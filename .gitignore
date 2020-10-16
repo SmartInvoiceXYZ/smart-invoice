@@ -1,0 +1,46 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+lib-cov
+
+# production
+build
+build/Release
+generated
+cache
+
+# environment variables
+.env*
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# swap 
+*.sw[a-z]
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# optional npm cache directory
+.npm
+
+# yarn Integrity file
+.yarn-integrity
+
+# editor 
+.history
+.vscode
+
+# misc
+.DS_Store
