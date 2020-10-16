@@ -1,9 +1,9 @@
 {
-    "name": "@open-grants/dapp",
-    "version": "0.1.0",
-    "dependencies": {},
-    "scripts": {
-        "start": "echo \"dapp not setup\"",
-        "build": "echo \"dapp not setup\""
-    }
+  "name": "@open-grants/dapp",
+  "version": "0.1.0",
+  "dependencies": {},
+  "scripts": {
+    "start": "echo \"dapp not setup\"",
+    "build": "echo \"dapp not setup\""
+  }
 }

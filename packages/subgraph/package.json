@@ -1,17 +1,17 @@
 {
-    "name": "@smart-invoice/subgraph",
-    "version": "0.1.0",
-    "scripts": {
-        "codegen": "graph codegen",
-        "build": "graph build",
-        "auth": "graph auth https://api.thegraph.com/ $GRAPH_ACCESS_TOKEN",
-        "deploy-kovan": "graph deploy dan13ram/kovan-smart-invoice --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-        "create-local": "graph create --node http://localhost:8020/ dan13ram/kovan-smart-invoice",
-        "remove-local": "graph remove --node http://localhost:8020/ dan13ram/kovan-smart-invoice",
-        "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dan13ram/kovan-smart-invoice"
-    },
-    "dependencies": {
-        "@graphprotocol/graph-cli": "0.18.0",
-        "@graphprotocol/graph-ts": "0.18.0"
-    }
+  "name": "@smart-invoice/subgraph",
+  "version": "0.1.0",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "auth": "graph auth https://api.thegraph.com/ $GRAPH_ACCESS_TOKEN",
+    "deploy-kovan": "graph deploy dan13ram/kovan-smart-invoice --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "create-local": "graph create --node http://localhost:8020/ dan13ram/kovan-smart-invoice",
+    "remove-local": "graph remove --node http://localhost:8020/ dan13ram/kovan-smart-invoice",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dan13ram/kovan-smart-invoice"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.18.0",
+    "@graphprotocol/graph-ts": "0.18.0"
+  }
 }
