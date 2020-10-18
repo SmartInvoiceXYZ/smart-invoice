@@ -1,4 +1,4 @@
-const { usePlugin } = require('@nomiclabs/buidler/config');
+const {usePlugin} = require('@nomiclabs/buidler/config');
 require('dotenv').config();
 
 usePlugin('@nomiclabs/buidler-ganache');
@@ -8,7 +8,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
 module.exports = {
   solc: {
-    version: '0.5.17',
+    version: '0.7.0',
   },
   paths: {
     artifacts: './build',
