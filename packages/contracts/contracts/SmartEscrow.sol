@@ -2,12 +2,13 @@
 
 pragma solidity ^0.7.0;
 
-import '@openzeppelin/contracts/GSN/Context.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import './IArbitrable.sol';
-import './IArbitrator.sol';
+import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./IArbitrable.sol";
+import "./IArbitrator.sol";
 
 interface IWETH {
   // brief interface for canonical ether token wrapper contract
@@ -16,13 +17,8 @@ interface IWETH {
   function transfer(address dst, uint256 wad) external returns (bool);
 }
 
-
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
-contract SmartEscrow is
-  Context,
-  IArbitrable
-
-{
+contract SmartEscrow is Context, IArbitrable, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
@@ -47,9 +43,9 @@ contract SmartEscrow is
   address public token;
   bool public confirmed;
   bool public locked;
-  uint256[] amounts; // milestones split into amounts
-  uint256 milestone = 0; // current milestone starts from 0 to amounts.length
-  uint256 total;
+  uint256[] public amounts; // milestones split into amounts
+  uint256 public milestone = 0; // current milestone starts from 0 to amounts.length
+  uint256 public total;
   uint256 public released = 0;
   uint256 public terminationTime;
   bytes32 public details;
@@ -67,7 +63,11 @@ contract SmartEscrow is
     uint256 providerAward,
     bytes32 details
   );
-  event Rule(address indexed resolver, uint256 indexed _disputeId, uint256 indexed ruling);
+  event Rule(
+    address indexed resolver,
+    uint256 indexed _disputeId,
+    uint256 indexed ruling
+  );
 
   constructor(
     address _client,
@@ -80,15 +80,18 @@ contract SmartEscrow is
     uint256 _terminationTime, // exact termination date in seconds since epoch
     bytes32 _details
   ) {
-    require(_resolverType <= uint8(ADR.ARAGON_COURT), 'invalid resolverType');
+    require(_resolverType <= uint8(ADR.ARAGON_COURT), "invalid resolverType");
 
     uint256 sum;
     for (uint256 i = 0; i < amounts.length; i++) {
       sum = sum.add(amounts[i]);
     }
 
-    require(sum == total, 'deposit != milestone amounts');
-    require(terminationTime <= block.timestamp.add(MAX_DURATION), 'duration maxed');
+    require(sum == total, "deposit != milestone amounts");
+    require(
+      terminationTime <= block.timestamp.add(MAX_DURATION),
+      "duration maxed"
+    );
 
     client = _client;
     provider = _provider;
@@ -103,17 +106,17 @@ contract SmartEscrow is
     emit Register();
   }
 
-  function confirmLocker() external payable {
+  function confirmLocker() external payable nonReentrant {
     // client confirms deposit of total & locks in deal
 
-    require(!confirmed, 'confirmed');
-    require(_msgSender() == client, '!client');
+    require(!confirmed, "confirmed");
+    require(_msgSender() == client, "!client");
 
     if (token == wETH && msg.value > 0) {
-      require(msg.value == total, '!ETH');
+      require(msg.value == total, "!ETH");
       IWETH(wETH).deposit();
-      (bool success, ) = wETH.call{value: msg.value}('');
-      require(success, '!transfer');
+      (bool success, ) = wETH.call{value: msg.value}("");
+      require(success, "!transfer");
       IWETH(wETH).transfer(address(this), msg.value);
     } else {
       IERC20(token).safeTransferFrom(msg.sender, address(this), total);
@@ -124,13 +127,13 @@ contract SmartEscrow is
     emit Confirm();
   }
 
-  function release() external {
+  function release() external nonReentrant {
     // client transfers locker milestone batch to provider(s)
 
-    require(!locked, 'locked');
-    require(confirmed, '!confirmed');
-    require(total > released, 'released');
-    require(_msgSender() == client, '!client');
+    require(!locked, "locked");
+    require(confirmed, "!confirmed");
+    require(total > released, "released");
+    require(_msgSender() == client, "!client");
 
     uint256 currentMilestone = milestone;
     uint256 amount = amounts[milestone];
@@ -142,13 +145,13 @@ contract SmartEscrow is
     emit Release(currentMilestone);
   }
 
-  function withdraw() external {
+  function withdraw() external nonReentrant {
     // withdraw locker remainder to client if termination time passes & no lock
 
-    require(!locked, 'locked');
-    require(confirmed, '!confirmed');
-    require(total > released, 'released');
-    require(block.timestamp > terminationTime, '!terminated');
+    require(!locked, "locked");
+    require(confirmed, "!confirmed");
+    require(total > released, "released");
+    require(block.timestamp > terminationTime, "!terminated");
 
     uint256 remainder = total.sub(released);
 
@@ -162,18 +165,18 @@ contract SmartEscrow is
   /************
     ADR FUNCTIONS
     ************/
-  function lock(bytes32 _details) external {
+  function lock(bytes32 _details) external nonReentrant {
     // client or main (0) provider can lock remainder for resolution during locker period / update request details
-    require(confirmed, '!confirmed');
-    require(total > released, 'released');
-    require(block.timestamp < terminationTime, 'terminated');
-    require(_msgSender() == client || _msgSender() == provider, '!party');
+    require(confirmed, "!confirmed");
+    require(total > released, "released");
+    require(block.timestamp < terminationTime, "terminated");
+    require(_msgSender() == client || _msgSender() == provider, "!party");
 
     if (resolverType == ADR.ARAGON_COURT) {
       payDisputeFees(resolver);
       disputeId = IArbitrator(resolver).createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
-        '0x'
+        "0x"
       );
     }
     locked = true;
@@ -185,27 +188,28 @@ contract SmartEscrow is
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
     feeToken.safeTransferFrom(msg.sender, address(this), feeAmount);
-    require(feeToken.approve(_adr, feeAmount));
+    require(feeToken.approve(_adr, feeAmount), "fee not approved");
   }
 
   function resolve(
     uint256 _clientAward,
     uint256 _providerAward,
     bytes32 _details
-  ) external {
+  ) external nonReentrant {
     // called by lex dao
+    require(resolverType == ADR.LEX_DAO, "!lex");
 
     uint256 remainder = total.sub(released);
     uint256 resolutionFee = remainder.div(20); // calculates dispute resolution fee (5% of remainder)
 
-    require(locked, '!locked');
-    require(total > released, 'released');
-    require(_msgSender() == resolver, '!resolver');
-    require(_msgSender() != client, 'resolver == client');
-    require(_msgSender() != provider, 'resolver == provider');
+    require(locked, "!locked");
+    require(total > released, "released");
+    require(_msgSender() == resolver, "!resolver");
+    require(_msgSender() != client, "resolver == client");
+    require(_msgSender() != provider, "resolver == provider");
     require(
       _clientAward.add(_providerAward) == remainder.sub(resolutionFee),
-      'resolution != remainder'
+      "resolution != remainder"
     );
     IERC20(token).safeTransfer(provider, _providerAward);
     IERC20(token).safeTransfer(client, _clientAward);
@@ -223,14 +227,19 @@ contract SmartEscrow is
     );
   }
 
-  function rule(uint256 _disputeId, uint256 _ruling) external override { // called by aragon
-    require(_disputeId == disputeId);
-    require(_ruling <= DISPUTES_POSSIBLE_OUTCOMES);
-    require(resolverType == ADR.ARAGON_COURT);
-    require(locked, '!locked');
-    require(total > released, 'released');
-    require(_msgSender() == resolver, '!resolver');
-    require(_msgSender() != client, 'resolver == client');
+  function rule(uint256 _disputeId, uint256 _ruling)
+    external
+    override
+    nonReentrant
+  {
+    // called by aragon
+    require(_disputeId == disputeId, "incorrect disputeId");
+    require(_ruling <= DISPUTES_POSSIBLE_OUTCOMES, "invalid ruling");
+    require(resolverType == ADR.ARAGON_COURT, "!aragon");
+    require(locked, "!locked");
+    require(total > released, "released");
+    require(_msgSender() == resolver, "!resolver");
+    require(_msgSender() != client, "resolver == client");
 
     uint256 remainder = total.sub(released);
 

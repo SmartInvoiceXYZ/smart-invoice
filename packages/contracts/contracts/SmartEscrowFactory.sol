@@ -2,8 +2,8 @@
 
 pragma solidity ^0.7.0;
 
-import '@openzeppelin/contracts/math/SafeMath.sol';
-import './SmartEscrow.sol';
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./SmartEscrow.sol";
 
 contract SmartEscrowFactory {
   using SafeMath for uint256;
