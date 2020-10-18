@@ -6,7 +6,8 @@
     "help": "buidler help",
     "clean": "rm -rf ./cache",
     "lint": "solhint contracts/*.sol",
-    "deploy-kovan": "buidler run scripts/deploy.ts --network kovan"
+    "deploy-mono": "buidler run scripts/deploy-mono.ts --network kovan",
+    "deploy-factory": "buidler run scripts/deploy-factory.ts --network kovan"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.7",
