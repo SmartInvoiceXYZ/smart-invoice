@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "scripts": {
     "build": "buidler compile",
+    "help": "buidler help",
     "clean": "rm -rf ./cache",
     "lint": "solhint contracts/*.sol",
-    "deploy-kovan": "buidler run scripts/deploy.ts --network kovan"
+    "deploy-mono": "buidler run scripts/deploy-mono.ts --network kovan",
+    "deploy-factory": "buidler run scripts/deploy-factory.ts --network kovan"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.7",
@@ -15,5 +17,9 @@
     "dotenv": "^8.2.0",
     "ethers": "^5.0.15",
     "solhint": "^3.2.1"
-  }
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "3.1.0-solc-0.7"
+  },
+  "license": "MIT"
 }
