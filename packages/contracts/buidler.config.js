@@ -2,6 +2,7 @@ const { usePlugin } = require("@nomiclabs/buidler/config");
 require("dotenv").config();
 
 usePlugin("@nomiclabs/buidler-ganache");
+usePlugin("@nomiclabs/buidler-ethers");
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
