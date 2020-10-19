@@ -186,7 +186,7 @@ contract SmartEscrow is Context, IArbitrable, ReentrancyGuard {
   function payDisputeFees(address _adr) internal {
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
-    feeToken.safeTransferFrom(msg.sender, address(this), feeAmount);
+    feeToken.safeTransferFrom(msg.sender, address(this), feeAmount); // sender must pay dispute fees when locking
     require(feeToken.approve(_adr, feeAmount), "fee not approved");
   }
 
