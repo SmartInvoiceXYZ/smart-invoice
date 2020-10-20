@@ -23,12 +23,18 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
   uint256 internal constant DISPUTES_POSSIBLE_OUTCOMES = 5; // excludes options 0, 1 and 2
   // Note that Aragon Court treats the possible outcomes as arbitrary numbers, leaving the Arbitrable (us) to define how to understand them.
   // Some outcomes [0, 1, and 2] are reserved by Aragon Court: "missing", "leaked", and "refused", respectively.
-  // Note that Aragon Court emits the lowest outcome in the event of a tie
-  uint256 internal constant DISPUTES_RULING_50_50 = 3;
-  uint256 internal constant DISPUTES_RULING_75_25 = 4;
-  uint256 internal constant DISPUTES_RULING_25_75 = 5;
-  uint256 internal constant DISPUTES_RULING_100_0 = 6;
-  uint256 internal constant DISPUTES_RULING_0_100 = 7;
+  // Note that Aragon Court emits the LOWEST outcome in the event of a tie.
+
+  uint8[][] public rulings = [
+    [1, 1], // 0 = missing
+    [1, 1], // 1 = leaked
+    [1, 1], // 2 = refused
+    [1, 0], // 3 = 100% to client
+    [3, 1], // 4 = 75% to client
+    [1, 1], // 5 = 50% to client
+    [1, 3], // 6 = 25% to client
+    [0, 1] // 7 = 0% to client
+  ];
 
   /** kovan wETH **/
   address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C; // canonical ether token wrapper contract reference (kovan)
@@ -203,7 +209,7 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
 
     if (locker.resolverType == ADR.ARAGON_COURT) {
       IArbitrator arbitrator = IArbitrator(locker.resolver);
-      payDisputeFees(locker.resolver);
+      payDisputeFees(locker.resolver, locker);
       uint256 disputeId = arbitrator.createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
         "0x"
@@ -215,10 +221,19 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
     emit Lock(_msgSender(), index, details);
   }
 
-  function payDisputeFees(address _adr) internal {
+  function payDisputeFees(address _adr, Locker storage locker) internal {
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
-    feeToken.safeTransferFrom(msg.sender, address(this), feeAmount); // sender must pay dispute fees when locking
+    if (address(feeToken) == locker.token) {
+      uint256 remainder = locker.total.sub(locker.released);
+      // // sender can pay extra dispute fees
+      // if (feeAmount > remainder) {
+      //   feeToken.safeTransferFrom(msg.sender, address(this), feeAmount - remainder);
+      // }
+      require(remainder > feeAmount, "feeAmount > remainder"); // can't raise dispute if remainder <= feeAmount
+    } else {
+      feeToken.safeTransferFrom(msg.sender, address(this), feeAmount); // sender must pay dispute fees
+    }
     require(feeToken.approve(_adr, feeAmount), "fee not approved");
   }
 
@@ -265,7 +280,7 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
     nonReentrant
   {
     // called by aragon court
-    require(_ruling <= DISPUTES_POSSIBLE_OUTCOMES, "invalid ruling");
+    require(_ruling <= rulings.length, "invalid ruling");
     uint256 index = disputes[_disputeId];
     Locker storage locker = lockers[index];
     require(locker.resolverType == ADR.ARAGON_COURT, "!aragon");
@@ -274,26 +289,18 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
     require(_msgSender() == locker.resolver, "!resolver");
 
     uint256 remainder = locker.total.sub(locker.released);
+    uint8[] storage ruling = rulings[_ruling];
+    uint8 clientShare = ruling[0];
+    uint8 providerShare = ruling[1];
+    uint8 denom = clientShare + providerShare;
+    uint256 providerAward = remainder.mul(providerShare).div(denom);
+    uint256 clientAward = remainder.sub(providerAward);
 
-    if (_ruling == DISPUTES_RULING_100_0) {
-      IERC20(locker.token).safeTransfer(locker.client, remainder);
-    } else if (_ruling == DISPUTES_RULING_0_100) {
-      IERC20(locker.token).safeTransfer(locker.provider, remainder);
-    } else if (_ruling == DISPUTES_RULING_75_25) {
-      uint256 clientAward = remainder.mul(3).div(4);
-      uint256 providerAward = remainder.sub(clientAward);
-      IERC20(locker.token).safeTransfer(locker.client, clientAward);
+    if (providerAward > 0) {
       IERC20(locker.token).safeTransfer(locker.provider, providerAward);
-    } else if (_ruling == DISPUTES_RULING_25_75) {
-      uint256 clientAward = remainder.mul(1).div(4);
-      uint256 providerAward = remainder.sub(clientAward);
+    }
+    if (clientAward > 0) {
       IERC20(locker.token).safeTransfer(locker.client, clientAward);
-      IERC20(locker.token).safeTransfer(locker.provider, providerAward);
-    } else {
-      uint256 clientAward = remainder.div(2);
-      uint256 providerAward = remainder.sub(clientAward);
-      IERC20(locker.token).safeTransfer(locker.client, clientAward);
-      IERC20(locker.token).safeTransfer(locker.provider, providerAward);
     }
 
     locker.released = locker.total;
