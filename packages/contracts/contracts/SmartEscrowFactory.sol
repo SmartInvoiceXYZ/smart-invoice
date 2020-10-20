@@ -20,7 +20,6 @@ contract SmartEscrowFactory {
     address _resolver,
     address _token,
     uint256[] memory _amounts,
-    uint256 _total,
     uint256 _terminationTime,
     bytes32 _details
   ) public returns (address) {
@@ -32,7 +31,6 @@ contract SmartEscrowFactory {
       _resolver,
       _token,
       _amounts,
-      _total,
       _terminationTime,
       _details
     );
