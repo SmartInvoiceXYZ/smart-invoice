@@ -1,0 +1,3 @@
+[build]
+  base    = "packages/dapp"
+  command = "npm run build"
