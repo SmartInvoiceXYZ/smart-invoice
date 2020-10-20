@@ -1,0 +1,58 @@
+$title-font: 'Rubik Mono One', sans-serif;
+$para-font: 'Roboto', sans-serif;
+$red: #ff3864;
+$grey: #a4a4a4;
+$light-grey: #dadada;
+$white: #ffffff;
+$black: #000;
+
+.app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.main {
+  height: 95%;
+  margin: 1rem;
+  border: 2px solid $red;
+}
+
+.home {
+  margin-top: 300px;
+  margin-left: 100px;
+  #raid-castle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: -1;
+  }
+  div {
+    width: 500px;
+    text-align: center;
+    .bg-red {
+      font-family: $title-font;
+      width: 500px;
+      height: 50px;
+      background: $red;
+      border: none;
+      border-radius: 5px;
+      color: $white;
+    }
+    .bg-red:hover {
+      cursor: pointer;
+    }
+    p {
+      margin: 10px;
+      font-size: 18px;
+      color: $red;
+      font-family: $para-font;
+    }
+  }
+}
+
+.web3modal-modal-card {
+  font-family: $title-font;
+}
