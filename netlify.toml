@@ -1,4 +1,3 @@
 [build]
   base    = "packages/dapp"
-  publish = "packages/dist/"
   command = "npm run build"
