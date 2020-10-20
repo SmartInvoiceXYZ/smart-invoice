@@ -1,4 +1,5 @@
-import React, { Component, createContext } from "react";
+/* eslint-disable no-unused-vars */
+import React, { createContext, useState } from "react";
 
 import Web3 from "web3";
 import Web3Modal from "web3modal";
@@ -25,16 +26,28 @@ const web3Modal = new Web3Modal({
 
 export const AppContext = createContext();
 
-class AppContextProvider extends Component {
-    state = {
-        //web3 needs
-        address: "",
-        provider: "",
-        web3: "",
-        chainID: "",
-    };
+const AppContextProvider = (props) => {
 
-    connectAccount = async () => {
+    const [address, setAddress] = useState('');
+    const [provider, setProvider] = useState('');
+    const [web3, setWeb3] = useState('');
+    const [chainID, setChainID] = useState('');
+    // project details value
+    const [projectName, setProjectName] = useState('Lorem Ipsum');
+    const [projectDescription, setProjectDescription] = useState('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.');
+    const [projectAgreement, setProjectAgreement] = useState('https://www.lipsum.com/');
+    const [startDate, setStartDate] = useState(new Date().toLocaleDateString());
+    const [endDate, setEndDate] = useState(new Date().toLocaleDateString());
+    const [safetyValveDate, setSafetyValveDate] = useState(new Date().toLocaleDateString());
+    // payment details value
+    const [clientAddress, setClientAddress] = useState('0x0');
+    const [paymentAddress, setPaymentAddress] = useState('0x0');
+    const [paymentDue, setPaymentDue] = useState(0);
+    const [paymentToken, setPaymentToken] = useState('DAI');
+    const [milestones, setMilestones] = useState(4);
+    const [arbitrationProvider, setArbitrationProvider] = useState('Aragon Court');
+
+    const connectAccount = async () => {
         try {
             web3Modal.clearCachedProvider();
 
@@ -43,39 +56,62 @@ class AppContextProvider extends Component {
             const accounts = await web3.eth.getAccounts();
             let chainID = await web3.eth.net.getId();
 
-            provider.on("chainChanged", (chainId) => {
-                this.setState({ chainID: chainId });
+            provider.on("chainChanged", (newChainId) => {
+                setChainID(newChainId)
             });
 
             provider.on("accountsChanged", (accounts) => {
                 window.location.href = "/";
             });
 
-            this.setState(
-                {
-                    address: accounts[0],
-                    provider,
-                    web3,
-                    chainID,
-                },
-            );
+            setAddress(accounts[0]);
+            setProvider(provider);
+            setWeb3(web3);
+            setChainID(chainID);
+
         } catch (err) {
             console.log(err)
         }
     };
 
-    render() {
-        return (
-            <AppContext.Provider
-                value={{
-                    ...this.state,
-                    connectAccount: this.connectAccount,
-                }}
-            >
-                {this.props.children}
-            </AppContext.Provider>
-        );
-    }
+    return (
+        <AppContext.Provider
+            value={{
+                address,
+                provider,
+                web3,
+                chainID,
+                projectName,
+                projectDescription,
+                projectAgreement,
+                startDate,
+                endDate,
+                safetyValveDate,
+                clientAddress,
+                paymentAddress,
+                paymentDue,
+                paymentToken,
+                milestones,
+                arbitrationProvider,
+                // functions
+                connectAccount,
+                setProjectName,
+                setProjectDescription,
+                setProjectAgreement,
+                setStartDate,
+                setEndDate,
+                setSafetyValveDate,
+                setClientAddress,
+                setPaymentAddress,
+                setPaymentDue,
+                setPaymentToken,
+                setMilestones,
+                setArbitrationProvider
+            }}
+        >
+            {props.children}
+        </AppContext.Provider>
+    );
 }
 
 export default AppContextProvider;

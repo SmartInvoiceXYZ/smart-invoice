@@ -39,7 +39,8 @@ $black: #000;
 
 .project-details-form,
 .payment-chunks-form,
-.payment-details-form {
+.payment-details-form,
+.form-confirmation {
   background: $dark-grey;
   height: 450px;
   width: 670px;
@@ -65,6 +66,7 @@ $black: #000;
       border-radius: 4px;
       padding: 5px;
       font-family: $para-font;
+      outline: none;
     }
   }
   .parallel-inputs {
@@ -74,6 +76,20 @@ $black: #000;
     align-items: center;
     input {
       width: 200px;
+    }
+  }
+}
+
+.payment-details-form {
+  .parallel-inputs {
+    select {
+      height: 40px;
+      width: 200px;
+      background-color: $black;
+      border: none;
+      color: $white;
+      font-family: $para-font;
+      outline: none;
     }
   }
 }
@@ -90,6 +106,31 @@ $black: #000;
     sl-switch::part(control) {
       background-color: $black;
       border: none;
+    }
+  }
+}
+
+.form-confirmation {
+  color: $white;
+  font-family: $para-font;
+  #project-title {
+    font-size: 22px;
+    font-weight: 900;
+  }
+  a {
+    color: $white;
+  }
+  div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .total-payment-info {
+    width: 50%;
+    margin-left: auto;
+    p:nth-child(2) {
+      color: $red;
+      font-weight: 900;
     }
   }
 }
