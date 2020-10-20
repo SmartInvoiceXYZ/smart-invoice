@@ -10,6 +10,7 @@ import './sass/formStyles.scss';
 import Header from './shared/Header'
 import Home from './pages/Home'
 import CreateInvoice from './pages/CreateInvoice'
+import RegisterSuccess from './pages/RegisterSuccess'
 
 function App() {
 
@@ -38,6 +39,9 @@ function App() {
               </Route>
               <Route path='/create-invoice' exact>
                 <CreateInvoice />
+              </Route>
+              <Route path='/invoice' exact>
+                <RegisterSuccess />
               </Route>
             </Switch>
           </Router>

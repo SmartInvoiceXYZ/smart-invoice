@@ -15,9 +15,15 @@ const CreateInvoice = (props) => {
     const context = useContext(AppContext);
     const [currentStep, setStep] = useState(1)
 
-    // useEffect(() => {
-    //     if (context.address === '') return props.history.push('/')
-    // }, [])
+    useEffect(() => {
+        if (context.address === '') return props.history.push('/')
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const stepHandler = () => {
+        if (currentStep === 4) return props.history.push('/invoice')
+        setStep((prevState) => prevState + 1);
+    }
 
     return (
         <div className='create-invoice'>
@@ -29,7 +35,7 @@ const CreateInvoice = (props) => {
                 {currentStep === 4 && <FormConfirmation context={context} />}
                 <div className='form-action-buttons'>
                     {currentStep !== 1 && <button id='back-button' onClick={() => setStep((prevState) => prevState - 1)}>BACK</button>}
-                    <button id='next-button' onClick={() => setStep((prevState) => prevState + 1)}>next: {steps[currentStep].next}</button>
+                    <button id='next-button' onClick={stepHandler}>next: {steps[currentStep].next}</button>
                 </div>
             </div>
         </div>
