@@ -1,26 +1,19 @@
 {
   "name": "smart-invoice",
   "version": "0.1.0",
-  "keywords": [
-    "ethereum",
-    "smart-invoice",
-    "escrow",
-    "workspaces",
-    "yarn"
-  ],
+  "keywords": ["ethereum", "smart-invoice", "escrow", "workspaces", "yarn"],
   "private": true,
   "scripts": {
-    "subgraph:auth": "yarn workspace @open-grants/subgraph auth",
-    "subgraph:codegen": "yarn workspace @open-grants/subgraph codegen",
-    "subgraph:build": "yarn workspace @open-grants/subgraph build",
-    "subgraph:deploy-kovan": "yarn workspace @open-grants/subgraph deploy-kovan",
-    "dapp:start": "yarn workspace @open-grants/dapp start",
-    "dapp:build": "yarn workspace @open-grants/dapp build",
-    "dapp:deploy": "yarn workspace @open-grants/dapp deploy",
-    "contracts:build": "yarn workspace @open-grants/contracts build",
-    "contracts:lint": "yarn workspace @open-grants/contracts lint",
-    "contracts:test": "yarn workspace @open-grants/contracts test",
-    "contracts:deploy-kovan": "yarn workspace @open-grants/contracts deploy-kovan",
+    "subgraph:auth": "yarn workspace @smart-invoice/subgraph auth",
+    "subgraph:codegen": "yarn workspace @smart-invoice/subgraph codegen",
+    "subgraph:build": "yarn workspace @smart-invoice/subgraph build",
+    "subgraph:deploy-kovan": "yarn workspace @smart-invoice/subgraph deploy-kovan",
+    "dapp:start": "yarn workspace @smart-invoice/dapp start",
+    "dapp:build": "yarn workspace @smart-invoice/dapp build",
+    "contracts:build": "yarn workspace @smart-invoice/contracts build",
+    "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
+    "contracts:test": "yarn workspace @smart-invoice/contracts test",
+    "contracts:deploy-kovan": "yarn workspace @smart-invoice/contracts deploy-kovan",
     "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md}\""
   },
   "workspaces": {
@@ -30,9 +23,7 @@
       "**/@nomiclabs/**",
       "**/solidity-coverage"
     ],
-    "packages": [
-      "packages/*"
-    ]
+    "packages": ["packages/*"]
   },
   "license": "MIT",
   "devDependencies": {
