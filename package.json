@@ -1,7 +1,13 @@
 {
   "name": "smart-invoice",
   "version": "0.1.0",
-  "keywords": ["ethereum", "smart-invoice", "escrow", "workspaces", "yarn"],
+  "keywords": [
+    "ethereum",
+    "smart-invoice",
+    "escrow",
+    "workspaces",
+    "yarn"
+  ],
   "private": true,
   "scripts": {
     "subgraph:auth": "yarn workspace @smart-invoice/subgraph auth",
@@ -14,7 +20,7 @@
     "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
     "contracts:deploy-kovan": "yarn workspace @smart-invoice/contracts deploy-kovan",
-    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md}\""
+    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md,sol}\""
   },
   "workspaces": {
     "nohoist": [
@@ -23,13 +29,16 @@
       "**/@nomiclabs/**",
       "**/solidity-coverage"
     ],
-    "packages": ["packages/*"]
+    "packages": [
+      "packages/*"
+    ]
   },
   "license": "MIT",
   "devDependencies": {
     "husky": "^4.2.5",
     "lint-staged": "^10.3.0",
-    "prettier": "^2.1.1"
+    "prettier": "^2.1.1",
+    "prettier-plugin-solidity": "^1.0.0-alpha.59"
   },
   "husky": {
     "hooks": {
@@ -37,6 +46,6 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,yml,yaml,md}": "prettier --write"
+    "*.{ts,tsx,js,jsx,json,yml,yaml,md,sol}": "prettier --write"
   }
 }

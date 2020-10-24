@@ -1,15 +1,15 @@
 specVersion: 0.0.2
-description: Grants Platform for Ethereum
+description: Smart Invoice
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: LexGuildLocker
+    name: SmartInvoiceMono
     network: kovan
     source:
-      address: '0xff906de0914F20d9577d6F436d5fCbF42429371C'
-      abi: LexGuildLocker
-      startBlock: 20483982
+      address: '0x9a12a9B87fF37Fbb19E6a16a09342a38FF39Eb34'
+      abi: SmartInvoiceMono
+      startBlock: 21696366
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -17,10 +17,22 @@ dataSources:
       entities:
         - Grant
       abis:
-        - name: LexGuildLocker
-          file: ./abis/LexGuildLocker.json
+        - name: SmartInvoiceMono
+          file: ./abis/SmartInvoiceMono.json
       eventHandlers:
-        - event: RegisterLocker(indexed address,indexed address[],indexed address,address,uint256[],uint256,uint256,uint256,bytes32)
-          handler: handleRegisterLocker
+        - event: Register(indexed uint256,indexed address,indexed address)
+          handler: handleRegister
+        - event: Deposit(indexed uint256,indexed address,uint256)
+          handler: handleDeposit
+        - event: Release(indexed uint256,indexed uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(indexed uint256,uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed uint256,indexed address,bytes32)
+          handler: handleLock
+        - event: Resolve(indexed address,indexed uint256,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Rule(indexed address,indexed uint256,uint256)
+          handler: handleRule
 
       file: ./src/mappings.ts

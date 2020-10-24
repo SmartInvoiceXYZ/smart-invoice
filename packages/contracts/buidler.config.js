@@ -1,4 +1,4 @@
-const { usePlugin } = require("@nomiclabs/buidler/config");
+const {usePlugin} = require("@nomiclabs/buidler/config");
 require("dotenv").config();
 
 usePlugin("@nomiclabs/buidler-ganache");

@@ -43,7 +43,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
   mapping(uint256 => uint256) public disputes;
 
   enum ADR {LEX_DAO, ARAGON_COURT}
-  
+
   struct Invoice {
     address client;
     address provider;
@@ -61,34 +61,27 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
   }
 
   event Register(
+    uint256 indexed index,
     address indexed client,
-    address indexed provider,
-    uint256 index
+    address indexed provider
   );
-  event Deposit(
-    uint256 index,
-    uint256 amount
-  );
+  event Deposit(uint256 indexed index, address indexed sender, uint256 amount);
   event Release(
     uint256 indexed index,
     uint256 indexed milestone,
     uint256 amount
   );
-  event Withdraw(uint256 indexed index, uint256 indexed balance);
-  event Lock(
-    address indexed sender,
-    uint256 indexed index,
-    bytes32 indexed details
-  );
+  event Withdraw(uint256 indexed index, uint256 balance);
+  event Lock(uint256 indexed index, address indexed sender, bytes32 details);
   event Resolve(
     address indexed resolver,
-    uint256 indexed clientAward,
-    uint256 indexed providerAward,
-    uint256 index,
+    uint256 indexed index,
+    uint256 clientAward,
+    uint256 providerAward,
     uint256 resolutionFee,
     bytes32 details
   );
-  event Rule(address indexed resolver, uint256 index, uint256 ruling);
+  event Rule(address indexed resolver, uint256 indexed index, uint256 ruling);
 
   function register(
     // register invoice for token deposit & client deal confirmation
@@ -133,26 +126,37 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       details
     );
 
-    emit Register(client, provider, index);
+    emit Register(index, client, provider);
   }
 
-  function deposit(uint256 index, uint256 amount) external payable nonReentrant {
+  function deposit(uint256 index, uint256 amount)
+    external
+    payable
+    nonReentrant
+  {
     // client (or anybody) deposits amount in invoice
     Invoice storage invoice = invoices[index];
 
     require(!invoice.locked, "locked");
     require(amount > 0, "amount is zero");
-    require(amount <= invoice.total - invoice.balance - invoice.released, "amount too large");
+    require(
+      amount <= invoice.total - invoice.balance - invoice.released,
+      "amount too large"
+    );
 
     if (invoice.token == wETH && msg.value > 0) {
       require(msg.value == amount, "!ETH");
       IWETH(wETH).deposit{value: msg.value}();
     } else {
-      IERC20(invoice.token).safeTransferFrom(msg.sender, address(this), amount);
+      IERC20(invoice.token).safeTransferFrom(
+        _msgSender(),
+        address(this),
+        amount
+      );
     }
     invoice.balance = invoice.balance.add(amount);
 
-    emit Deposit(index, amount);
+    emit Deposit(index, _msgSender(), amount);
   }
 
   function release(uint256 index) external nonReentrant {
@@ -212,7 +216,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     }
     invoice.locked = true;
 
-    emit Lock(_msgSender(), index, details);
+    emit Lock(index, _msgSender(), details);
   }
 
   function _payDisputeFees(address _adr, Invoice storage invoice) internal {
@@ -222,11 +226,11 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       uint256 balance = invoice.balance;
       // // sender can pay extra dispute fees
       // if (feeAmount > balance) {
-      //   feeToken.safeTransferFrom(msg.sender, address(this), feeAmount - balance);
+      //   feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount - balance);
       // }
       require(balance > feeAmount, "feeAmount > balance"); // can't raise dispute if balance <= feeAmount
     } else {
-      feeToken.safeTransferFrom(msg.sender, address(this), feeAmount); // sender must pay dispute fees
+      feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount); // sender must pay dispute fees
     }
     require(feeToken.approve(_adr, feeAmount), "fee not approved");
   }
@@ -260,9 +264,9 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
 
     emit Resolve(
       _msgSender(),
+      index,
       clientAward,
       providerAward,
-      index,
       resolutionFee,
       details
     );
