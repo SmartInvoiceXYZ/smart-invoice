@@ -11,11 +11,10 @@ import "./IArbitrable.sol";
 import "./IArbitrator.sol";
 
 interface IWETH {
-  // brief interface for canonical ether token wrapper contract
   function deposit() external payable;
 }
 
-// splittable digital deal lockers w/ embedded arbitration tailored for guild work
+// splittable digital deal escrows w/ embedded arbitration tailored for guild work
 contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
@@ -37,41 +36,46 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
   ];
 
   /** kovan wETH **/
-  address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C; // canonical ether token wrapper contract reference (kovan)
-  uint256 public lockerCount;
-  uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
-  mapping(uint256 => Locker) public lockers;
+  address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+  uint256 public escrowCount;
+  uint256 public constant MAX_DURATION = 63113904; // 2-year limit on escrow
+  mapping(uint256 => Escrow) public escrows;
   mapping(uint256 => uint256) public disputes;
 
   enum ADR {LEX_DAO, ARAGON_COURT}
-  struct Locker {
+  
+  struct Escrow {
     address client;
     address provider;
     ADR resolverType;
     address resolver;
     address token;
-    bool confirmed;
+    // bool confirmed;
     bool locked;
     uint256[] amounts; // milestones split into amounts
     uint256 milestone; // current milestone - starts from 0 to amounts.length
     uint256 total;
+    uint256 balance;
     uint256 released;
     uint256 terminationTime;
     bytes32 details;
   }
 
-  event RegisterLocker(
+  event Register(
     address indexed client,
     address indexed provider,
     uint256 index
   );
-  event ConfirmLocker(uint256 indexed index);
+  event Deposit(
+    uint256 index,
+    uint256 amount
+  );
   event Release(
     uint256 indexed index,
     uint256 indexed milestone,
     uint256 amount
   );
-  event Withdraw(uint256 indexed index, uint256 indexed remainder);
+  event Withdraw(uint256 indexed index, uint256 indexed balance);
   event Lock(
     address indexed sender,
     uint256 indexed index,
@@ -87,11 +91,8 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
   );
   event Rule(address indexed resolver, uint256 index, uint256 ruling);
 
-  /***************
-    LOCKER FUNCTIONS
-    ***************/
-  function registerLocker(
-    // register locker for token deposit & client deal confirmation
+  function register(
+    // register escrow for token deposit & client deal confirmation
     address client,
     address provider,
     uint8 resolverType,
@@ -113,124 +114,121 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
       total = total.add(amounts[i]);
     }
 
-    lockerCount = lockerCount + 1;
-    uint256 index = lockerCount;
+    escrowCount = escrowCount + 1;
+    uint256 index = escrowCount;
 
-    lockers[index] = Locker(
+    escrows[index] = Escrow(
       client,
       provider,
       ADR(resolverType),
       resolver,
       token,
-      false,
+      // false,
       false,
       amounts,
       0,
       total,
       0,
+      0,
       terminationTime,
       details
     );
 
-    emit RegisterLocker(client, provider, index);
+    emit Register(client, provider, index);
   }
 
-  function confirmLocker(uint256 index) external payable nonReentrant {
-    // client confirms deposit of total & locks in deal
-    Locker storage locker = lockers[index];
+  function deposit(uint256 index, uint256 amount) external payable nonReentrant {
+    // client (or anybody) deposits amount in escrow
+    Escrow storage escrow = escrows[index];
 
-    require(!locker.confirmed, "confirmed");
-    require(_msgSender() == locker.client, "!client");
+    require(!escrow.locked, "locked");
+    require(amount > 0, "amount is zero");
+    require(amount <= escrow.total - escrow.balance - escrow.released, "amount too large");
 
-    uint256 total = locker.total;
-
-    if (locker.token == wETH && msg.value > 0) {
-      require(msg.value == total, "!ETH");
+    if (escrow.token == wETH && msg.value > 0) {
+      require(msg.value == amount, "!ETH");
       IWETH(wETH).deposit{value: msg.value}();
     } else {
-      IERC20(locker.token).safeTransferFrom(msg.sender, address(this), total);
+      IERC20(escrow.token).safeTransferFrom(msg.sender, address(this), amount);
     }
+    escrow.balance = escrow.balance.add(amount);
 
-    locker.confirmed = true;
-
-    emit ConfirmLocker(index);
+    emit Deposit(index, amount);
   }
 
   function release(uint256 index) external nonReentrant {
-    // client transfers locker milestone amounts to provider(s)
-    Locker storage locker = lockers[index];
+    // client transfers escrow milestone amount to provider
+    Escrow storage escrow = escrows[index];
 
-    require(locker.confirmed, "!confirmed");
-    require(!locker.locked, "locked");
-    require(locker.total > locker.released, "released");
-    require(_msgSender() == locker.client, "!client");
+    // require(escrow.confirmed, "!confirmed");
+    require(!escrow.locked, "locked");
+    require(escrow.total > escrow.released, "released");
+    require(_msgSender() == escrow.client, "!client");
 
-    uint256 currentMilestone = locker.milestone;
-    locker.milestone = locker.milestone.add(1);
+    uint256 currentMilestone = escrow.milestone;
+    escrow.milestone = escrow.milestone.add(1);
 
-    uint256 amount = locker.amounts[currentMilestone];
+    uint256 amount = escrow.amounts[currentMilestone];
+    require(escrow.balance >= amount, "insufficient balance");
 
-    IERC20(locker.token).safeTransfer(locker.provider, amount);
-    locker.released = locker.released.add(amount);
+    IERC20(escrow.token).safeTransfer(escrow.provider, amount);
+    escrow.released = escrow.released.add(amount);
+    escrow.balance = escrow.balance.sub(amount);
 
     emit Release(index, currentMilestone, amount);
   }
 
   function withdraw(uint256 index) external nonReentrant {
-    // withdraw locker remainder to client if termination time passes & no lock
-    Locker storage locker = lockers[index];
+    // withdraw escrow balance to client if termination time passes & no lock
+    Escrow storage escrow = escrows[index];
 
-    require(locker.confirmed, "!confirmed");
-    require(!locker.locked, "locked");
-    require(locker.total > locker.released, "released");
-    require(block.timestamp > locker.terminationTime, "!terminated");
+    // require(escrow.confirmed, "!confirmed");
+    require(!escrow.locked, "locked");
+    require(escrow.balance > 0, "balance is zero");
+    require(block.timestamp > escrow.terminationTime, "!terminated");
 
-    uint256 remainder = locker.total.sub(locker.released);
-    IERC20(locker.token).safeTransfer(locker.client, remainder);
+    IERC20(escrow.token).safeTransfer(escrow.client, escrow.balance);
 
-    emit Withdraw(index, remainder);
+    emit Withdraw(index, escrow.balance);
   }
 
-  /************
-    ADR FUNCTIONS
-    ************/
   function lock(uint256 index, bytes32 details) external nonReentrant {
-    // client or main (0) provider can lock remainder for resolution during locker period / update request details
-    Locker storage locker = lockers[index];
+    // client or main (0) provider can lock balance for resolution during escrow period / update request details
+    Escrow storage escrow = escrows[index];
 
-    require(locker.confirmed, "!confirmed");
-    require(!locker.locked, "locked");
-    require(locker.total > locker.released, "released");
-    require(block.timestamp < locker.terminationTime, "terminated");
+    // require(escrow.confirmed, "!confirmed");
+    require(!escrow.locked, "locked");
+    require(escrow.balance > 0, "balance is zero");
+    require(block.timestamp < escrow.terminationTime, "terminated");
     require(
-      _msgSender() == locker.client || _msgSender() == locker.provider,
+      _msgSender() == escrow.client || _msgSender() == escrow.provider,
       "!party"
     );
 
-    if (locker.resolverType == ADR.ARAGON_COURT) {
-      IArbitrator arbitrator = IArbitrator(locker.resolver);
-      payDisputeFees(locker.resolver, locker);
+    if (escrow.resolverType == ADR.ARAGON_COURT) {
+      IArbitrator arbitrator = IArbitrator(escrow.resolver);
+      payDisputeFees(escrow.resolver, escrow);
       uint256 disputeId = arbitrator.createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
-        "0x"
+        abi.encodePacked(details)
       );
       disputes[disputeId] = index;
     }
-    locker.locked = true;
+    escrow.locked = true;
 
     emit Lock(_msgSender(), index, details);
   }
 
-  function payDisputeFees(address _adr, Locker storage locker) internal {
+  function payDisputeFees(address _adr, Escrow storage escrow) internal {
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
-    if (address(feeToken) == locker.token) {
-      uint256 remainder = locker.total.sub(locker.released);
+    if (address(feeToken) == escrow.token) {
+      uint256 balance = escrow.balance;
       // // sender can pay extra dispute fees
-      // if (feeAmount > remainder) {
-      //   feeToken.safeTransferFrom(msg.sender, address(this), feeAmount - remainder);
+      // if (feeAmount > balance) {
+      //   feeToken.safeTransferFrom(msg.sender, address(this), feeAmount - balance);
       // }
-      require(remainder > feeAmount, "feeAmount > remainder"); // can't raise dispute if remainder <= feeAmount
+      require(balance > feeAmount, "feeAmount > balance"); // can't raise dispute if balance <= feeAmount
     } else {
       feeToken.safeTransferFrom(msg.sender, address(this), feeAmount); // sender must pay dispute fees
     }
@@ -244,25 +242,25 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
     bytes32 details
   ) external nonReentrant {
     // called by lex dao
-    Locker storage locker = lockers[index];
-    require(locker.resolverType == ADR.LEX_DAO, "!lex");
-    require(locker.locked, "!locked");
-    require(locker.total > locker.released, "released");
-    require(_msgSender() == locker.resolver, "!resolver");
+    Escrow storage escrow = escrows[index];
+    require(escrow.resolverType == ADR.LEX_DAO, "!lex");
+    require(escrow.locked, "!locked");
+    require(escrow.balance > 0, "balance is zero");
+    require(_msgSender() == escrow.resolver, "!resolver");
 
-    uint256 remainder = locker.total.sub(locker.released);
-    uint256 resolutionFee = remainder.div(20); // calculates dispute resolution fee (5% of remainder)
+    uint256 balance = escrow.balance;
+    uint256 resolutionFee = balance.div(20); // calculates dispute resolution fee (5% of balance)
 
     require(
-      clientAward.add(providerAward) == remainder.sub(resolutionFee),
-      "resolution != remainder"
+      clientAward.add(providerAward) == balance.sub(resolutionFee),
+      "resolution != balance"
     );
-    IERC20(locker.token).safeTransfer(locker.provider, providerAward);
-    IERC20(locker.token).safeTransfer(locker.client, clientAward);
-    IERC20(locker.token).safeTransfer(locker.resolver, resolutionFee);
+    IERC20(escrow.token).safeTransfer(escrow.provider, providerAward);
+    IERC20(escrow.token).safeTransfer(escrow.client, clientAward);
+    IERC20(escrow.token).safeTransfer(escrow.resolver, resolutionFee);
 
-    locker.released = locker.total;
-    locker.locked = false;
+    escrow.released = escrow.released.add(balance);
+    escrow.locked = false;
 
     emit Resolve(
       _msgSender(),
@@ -282,29 +280,29 @@ contract SmartEscrowMono is Context, IArbitrable, ReentrancyGuard {
     // called by aragon court
     require(_ruling <= rulings.length, "invalid ruling");
     uint256 index = disputes[_disputeId];
-    Locker storage locker = lockers[index];
-    require(locker.resolverType == ADR.ARAGON_COURT, "!aragon");
-    require(locker.locked, "!locked");
-    require(locker.total > locker.released, "released");
-    require(_msgSender() == locker.resolver, "!resolver");
+    Escrow storage escrow = escrows[index];
+    require(escrow.resolverType == ADR.ARAGON_COURT, "!aragon");
+    require(escrow.locked, "!locked");
+    require(escrow.balance > 0, "balance is zero");
+    require(_msgSender() == escrow.resolver, "!resolver");
 
-    uint256 remainder = locker.total.sub(locker.released);
+    uint256 balance = escrow.balance;
     uint8[] storage ruling = rulings[_ruling];
     uint8 clientShare = ruling[0];
     uint8 providerShare = ruling[1];
     uint8 denom = clientShare + providerShare;
-    uint256 providerAward = remainder.mul(providerShare).div(denom);
-    uint256 clientAward = remainder.sub(providerAward);
+    uint256 providerAward = balance.mul(providerShare).div(denom);
+    uint256 clientAward = balance.sub(providerAward);
 
     if (providerAward > 0) {
-      IERC20(locker.token).safeTransfer(locker.provider, providerAward);
+      IERC20(escrow.token).safeTransfer(escrow.provider, providerAward);
     }
     if (clientAward > 0) {
-      IERC20(locker.token).safeTransfer(locker.client, clientAward);
+      IERC20(escrow.token).safeTransfer(escrow.client, clientAward);
     }
 
-    locker.released = locker.total;
-    locker.locked = false;
+    escrow.released = escrow.released.add(balance);
+    escrow.locked = false;
 
     emit Rule(_msgSender(), index, _ruling);
   }
