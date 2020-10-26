@@ -1,3 +1,49 @@
 type Invoice @entity {
   id: ID!
+  index: BigInt!
+  token: Bytes!
+  client: Bytes!
+  provider: Bytes!
+  resolverType: ADR!
+  resolver: Bytes!
+  isLocked: Boolean!
+  amounts: [BigInt!]!
+  numMilestones: Int!
+  currentMilestone: BigInt!
+  total: BigInt!
+  balance: BigInt!
+  released: BigInt!
+  timestamp: BigInt! # seconds since epoch
+  terminationTime: BigInt! # seconds since epoch
+  details: Bytes!
+  name: String!
+  description: String!
+  link: String!
+  startTime: BigInt # seconds since epoch
+  endTime: BigInt # seconds since epoch
+  status: InvoiceStatus! 
+  disputeDetails: Bytes
+  resolutionDetails: Bytes # only lexDao
+  resolutionFee: BigInt # only lexDao
+  disputeToken: Bytes # only aragonCourt
+  disputeFee: BigInt # only aragonCourt
+  disputeId: BigInt # only aragonCourt
+  ruling: BigInt # only aragonCourt
+  clientAward: BigInt
+  providerAward: BigInt
+}
+
+
+enum ADR @entity {
+  lexDao
+  aragonCourt
+}
+
+enum InvoiceStatus @entity {
+  awaitingFunding
+  funded
+  inDispute
+  disputeResolved
+  completed
+  expired
 }

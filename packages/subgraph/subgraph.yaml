@@ -7,9 +7,9 @@ dataSources:
     name: SmartInvoiceMono
     network: kovan
     source:
-      address: '0x9a12a9B87fF37Fbb19E6a16a09342a38FF39Eb34'
+      address: '0x6639BD11fA55384184208ae8bC49d5235E5eA30B'
       abi: SmartInvoiceMono
-      startBlock: 21696366
+      startBlock: 21729117
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -20,7 +20,7 @@ dataSources:
         - name: SmartInvoiceMono
           file: ./abis/SmartInvoiceMono.json
       eventHandlers:
-        - event: Register(indexed uint256,indexed address,indexed address)
+        - event: Register(indexed uint256,indexed address,indexed address,uint256[])
           handler: handleRegister
         - event: Deposit(indexed uint256,indexed address,uint256)
           handler: handleDeposit
@@ -30,9 +30,11 @@ dataSources:
           handler: handleWithdraw
         - event: Lock(indexed uint256,indexed address,bytes32)
           handler: handleLock
+        - event: DisputeFee(indexed uint256,indexed address,uint256)
+          handler: handleDisputeFee
         - event: Resolve(indexed address,indexed uint256,uint256,uint256,uint256,bytes32)
           handler: handleResolve
-        - event: Rule(indexed address,indexed uint256,uint256)
+        - event: Rule(indexed address,indexed uint256,uint256,uint256,uint256)
           handler: handleRule
 
       file: ./src/mappings.ts
