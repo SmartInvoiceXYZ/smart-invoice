@@ -63,7 +63,8 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
   event Register(
     uint256 indexed index,
     address indexed client,
-    address indexed provider
+    address indexed provider,
+    uint256[] amounts
   );
   event Deposit(uint256 indexed index, address indexed sender, uint256 amount);
   event Release(
@@ -81,7 +82,18 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     uint256 resolutionFee,
     bytes32 details
   );
-  event Rule(address indexed resolver, uint256 indexed index, uint256 ruling);
+  event DisputeFee(
+    uint256 indexed index,
+    address indexed token,
+    uint256 amount
+  );
+  event Rule(
+    address indexed resolver,
+    uint256 indexed index,
+    uint256 clientAward,
+    uint256 providerAward,
+    uint256 ruling
+  );
 
   function register(
     // register invoice for token deposit & client deal confirmation
@@ -126,7 +138,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       details
     );
 
-    emit Register(index, client, provider);
+    emit Register(index, client, provider, amounts);
   }
 
   function deposit(uint256 index, uint256 amount)
@@ -207,7 +219,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
 
     if (invoice.resolverType == ADR.ARAGON_COURT) {
       IArbitrator arbitrator = IArbitrator(invoice.resolver);
-      _payDisputeFees(invoice.resolver, invoice);
+      _payDisputeFees(invoice.resolver, index);
       uint256 disputeId = arbitrator.createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
         abi.encodePacked(details)
@@ -219,7 +231,8 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     emit Lock(index, _msgSender(), details);
   }
 
-  function _payDisputeFees(address _adr, Invoice storage invoice) internal {
+  function _payDisputeFees(address _adr, uint256 index) internal {
+    Invoice storage invoice = invoices[index];
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
     if (address(feeToken) == invoice.token) {
@@ -233,6 +246,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount); // sender must pay dispute fees
     }
     require(feeToken.approve(_adr, feeAmount), "fee not approved");
+    emit DisputeFee(index, address(feeToken), feeAmount);
   }
 
   function resolve(
@@ -304,6 +318,6 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     invoice.released = invoice.released.add(balance);
     invoice.locked = false;
 
-    emit Rule(_msgSender(), index, _ruling);
+    emit Rule(_msgSender(), index, clientAward, providerAward, _ruling);
   }
 }
