@@ -1,25 +1,32 @@
-import {Bytes, log} from '@graphprotocol/graph-ts';
-
-import {Invoice} from '../generated/schema';
-
 import {
-  Register,
+  Invoice,
   Deposit,
   Release,
   Withdraw,
-  Lock,
-  Resolve,
-  Rule,
-} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
-import {fetchInvoiceInfo} from './helpers';
+  Dispute,
+  Resolution,
+} from '../generated/schema';
 
-export function handleRegister(event: Register): void {
-  log.debug('Parsing Register', []);
-  let txHash = event.transaction.hash.toHex();
-  let invoice = new Invoice(txHash);
+import {
+  Register as RegisterEvent,
+  Deposit as DepositEvent,
+  Release as ReleaseEvent,
+  Withdraw as WithdrawEvent,
+  Lock as LockEvent,
+  DisputeFee as DisputeFeeEvent,
+  Resolve as ResolveEvent,
+  Rule as RuleEvent,
+} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
+import { updateInvoiceInfo, fetchInvoiceInfo } from './helpers';
+
+export function handleRegister(event: RegisterEvent): void {
+  let invoice = new Invoice(event.params.index.toHexString());
+
+  invoice.index = event.params.index;
+  invoice.amounts = event.params.amounts;
+  invoice.numMilestones = event.params.amounts.length;
 
   let invoiceObject = fetchInvoiceInfo(event.address, event.params.index);
-  invoice.index = event.params.index;
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
@@ -30,13 +37,10 @@ export function handleRegister(event: Register): void {
   }
   invoice.resolver = invoiceObject.resolver;
   invoice.isLocked = invoiceObject.isLocked;
-  invoice.amounts = event.params.amounts;
-  invoice.numMilestones = event.params.amounts.length;
   invoice.currentMilestone = invoiceObject.currentMilestone;
   invoice.total = invoiceObject.total;
   invoice.balance = invoiceObject.balance;
   invoice.released = invoiceObject.released;
-  invoice.timestamp = event.block.timestamp;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
   invoice.name = invoiceObject.name;
@@ -44,17 +48,142 @@ export function handleRegister(event: Register): void {
   invoice.link = invoiceObject.link;
   invoice.startTime = invoiceObject.startTime;
   invoice.endTime = invoiceObject.endTime;
+
+  invoice.createdAt = event.block.timestamp;
   invoice.status = 'awaitingFunding';
+
+  invoice.save();
 }
 
-export function handleDeposit(event: Deposit): void {}
+export function handleDeposit(event: DepositEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    if (invoice.balance.plus(invoice.released) == invoice.total) {
+      invoice.status = 'funded';
+    }
+    // if (invoice.terminationTime >= currentTime) {
+    //   invoice.status = 'expired';
+    // }
+    invoice.save();
 
-export function handleRelease(event: Release): void {}
+    let deposit = new Deposit(event.transaction.hash.toHexString());
 
-export function handleWithdraw(event: Withdraw): void {}
+    deposit.invoice = invoice.id;
+    deposit.sender = event.params.sender;
+    deposit.amount = event.params.amount;
+    deposit.timestamp = event.block.timestamp;
 
-export function handleLock(event: Lock): void {}
+    deposit.save();
+  }
+}
 
-export function handleResolve(event: Resolve): void {}
+export function handleRelease(event: ReleaseEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    if (invoice.released == invoice.total) {
+      invoice.status = 'completed';
+    }
+    invoice.save();
 
-export function handleRule(event: Rule): void {}
+    let release = new Release(event.transaction.hash.toHexString());
+
+    release.invoice = invoice.id;
+    release.milestone = event.params.milestone;
+    release.amount = event.params.amount;
+    release.timestamp = event.block.timestamp;
+
+    release.save();
+  }
+}
+
+export function handleWithdraw(event: WithdrawEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    // if (invoice.released == invoice.total) {
+    //   invoice.status = 'completed';
+    // }
+    invoice.save();
+
+    let withdraw = new Withdraw(event.transaction.hash.toHexString());
+
+    withdraw.invoice = invoice.id;
+    withdraw.amount = event.params.balance;
+    withdraw.timestamp = event.block.timestamp;
+
+    withdraw.save();
+  }
+}
+
+export function handleLock(event: LockEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    invoice.status = 'inDispute';
+    invoice.save();
+
+    let dispute = new Dispute(event.transaction.hash.toHexString());
+
+    dispute.invoice = invoice.id;
+    dispute.sender = event.params.sender;
+    dispute.details = event.params.details;
+    dispute.amount = invoice.balance;
+    dispute.timestamp = event.block.timestamp;
+
+    dispute.save();
+  }
+}
+
+export function handleDisputeFee(event: DisputeFeeEvent): void {
+  let dispute = Dispute.load(event.transaction.hash.toHexString());
+  if (dispute != null) {
+    dispute.disputeId = event.params.disputeId;
+    dispute.disputeToken = event.params.disputeToken;
+    dispute.disputeFee = event.params.disputeFee;
+    dispute.save();
+  }
+}
+
+export function handleResolve(event: ResolveEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    invoice.status = 'disputeResolved';
+    invoice.save();
+
+    let resolution = new Resolution(event.transaction.hash.toHexString());
+
+    resolution.resolverType = invoice.resolverType;
+    resolution.resolver = invoice.resolver;
+    resolution.invoice = invoice.id;
+    resolution.clientAward = event.params.clientAward;
+    resolution.providerAward = event.params.providerAward;
+    resolution.resolutionDetails = event.params.details;
+    resolution.timestamp = event.block.timestamp;
+
+    resolution.save();
+  }
+}
+
+export function handleRule(event: RuleEvent): void {
+  let invoice = Invoice.load(event.params.index.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
+    invoice.status = 'disputeResolved';
+    invoice.save();
+
+    let resolution = new Resolution(event.transaction.hash.toHexString());
+
+    resolution.resolverType = invoice.resolverType;
+    resolution.resolver = invoice.resolver;
+    resolution.invoice = invoice.id;
+    resolution.clientAward = event.params.clientAward;
+    resolution.providerAward = event.params.providerAward;
+    resolution.ruling = event.params.ruling;
+    resolution.timestamp = event.block.timestamp;
+
+    resolution.save();
+  }
+}

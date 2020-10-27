@@ -13,7 +13,7 @@ type Invoice @entity {
   total: BigInt!
   balance: BigInt!
   released: BigInt!
-  timestamp: BigInt! # seconds since epoch
+  createdAt: BigInt! # seconds since epoch
   terminationTime: BigInt! # seconds since epoch
   details: Bytes!
   name: String!
@@ -21,18 +21,8 @@ type Invoice @entity {
   link: String!
   startTime: BigInt # seconds since epoch
   endTime: BigInt # seconds since epoch
-  status: InvoiceStatus! 
-  disputeDetails: Bytes
-  resolutionDetails: Bytes # only lexDao
-  resolutionFee: BigInt # only lexDao
-  disputeToken: Bytes # only aragonCourt
-  disputeFee: BigInt # only aragonCourt
-  disputeId: BigInt # only aragonCourt
-  ruling: BigInt # only aragonCourt
-  clientAward: BigInt
-  providerAward: BigInt
+  status: InvoiceStatus!
 }
-
 
 enum ADR @entity {
   lexDao
@@ -46,4 +36,52 @@ enum InvoiceStatus @entity {
   disputeResolved
   completed
   expired
+}
+
+type Deposit @entity {
+  id: ID!
+  invoice: Invoice!
+  sender: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type Release @entity {
+  id: ID!
+  invoice: Invoice!
+  milestone: BigInt!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type Withdraw @entity {
+  id: ID!
+  invoice: Invoice!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type Dispute @entity {
+  id: ID!
+  invoice: Invoice!
+  sender: Bytes!
+  amount: BigInt!
+  details: Bytes!
+  disputeToken: Bytes # only aragonCourt
+  disputeFee: BigInt # only aragonCourt
+  disputeId: BigInt # only aragonCourt
+  timestamp: BigInt!
+}
+
+type Resolution @entity {
+  id: ID!
+  invoice: Invoice!
+  resolverType: ADR!
+  resolver: Bytes!
+  clientAward: BigInt!
+  providerAward: BigInt!
+  resolutionDetails: Bytes # only lexDao
+  resolutionFee: BigInt # only lexDao
+  ruling: BigInt # only aragonCourt
+  timestamp: BigInt!
 }
