@@ -4,15 +4,12 @@ import {
   Bytes,
   ByteArray,
   ipfs,
-  box,
   json,
   log,
-  TypedMap,
-  JSONValue,
 } from '@graphprotocol/graph-ts';
 
-import {Invoice} from '../generated/schema';
-import {SmartInvoiceMono} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
+import { Invoice } from '../generated/schema';
+import { SmartInvoiceMono } from '../generated/SmartInvoiceMono/SmartInvoiceMono';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -99,4 +96,38 @@ export function fetchInvoiceInfo(
   }
 
   return invoiceObject;
+}
+
+export function updateInvoiceInfo(
+  address: Address,
+  index: BigInt,
+  invoice: Invoice | null,
+): Invoice | null {
+  if (invoice == null) {
+      return invoice;
+  }
+  let invoiceObject = fetchInvoiceInfo(address, index);
+  invoice.token = invoiceObject.token;
+  invoice.client = invoiceObject.client;
+  invoice.provider = invoiceObject.provider;
+  if (invoiceObject.resolverType == 0) {
+    invoice.resolverType = 'lexDao';
+  } else if (invoiceObject.resolverType == 1) {
+    invoice.resolverType = 'aragonCourt';
+  }
+  invoice.resolver = invoiceObject.resolver;
+  invoice.isLocked = invoiceObject.isLocked;
+  invoice.currentMilestone = invoiceObject.currentMilestone;
+  invoice.total = invoiceObject.total;
+  invoice.balance = invoiceObject.balance;
+  invoice.released = invoiceObject.released;
+  invoice.terminationTime = invoiceObject.terminationTime;
+  invoice.details = invoiceObject.details;
+  invoice.name = invoiceObject.name;
+  invoice.description = invoiceObject.description;
+  invoice.link = invoiceObject.link;
+  invoice.startTime = invoiceObject.startTime;
+  invoice.endTime = invoiceObject.endTime;
+
+  return invoice;
 }

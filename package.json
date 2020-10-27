@@ -35,10 +35,19 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "async-prompt": "^1.0.1",
+    "base-58": "^0.0.1",
+    "buffer": "^5.6.0",
+    "cids": "^1.0.0",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.19",
     "husky": "^4.2.5",
+    "ipfs-http-client": "^47.0.1",
+    "it-all": "^1.0.2",
     "lint-staged": "^10.3.0",
     "prettier": "^2.1.1",
-    "prettier-plugin-solidity": "^1.0.0-alpha.59"
+    "prettier-plugin-solidity": "^1.0.0-alpha.59",
+    "uint8arrays": "^1.1.0"
   },
   "husky": {
     "hooks": {
