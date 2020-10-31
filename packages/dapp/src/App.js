@@ -5,11 +5,11 @@ import AppContextProvider from "./context/AppContext";
 
 import './App.scss';
 import './sass/sharedStyles.scss';
-import './sass/formStyles.scss';
 
 import Header from './shared/Header'
 import Home from './pages/Home'
 import CreateInvoice from './pages/CreateInvoice'
+import ViewInvoice from './pages/ViewInvoice'
 import RegisterSuccess from './pages/RegisterSuccess'
 
 function App() {
@@ -40,8 +40,11 @@ function App() {
               <Route path='/create-invoice' exact>
                 <CreateInvoice />
               </Route>
-              <Route path='/invoice' exact>
+              <Route path='/success' exact>
                 <RegisterSuccess />
+              </Route>
+              <Route path='/invoice/:invoiceId' exact>
+                <ViewInvoice />
               </Route>
             </Switch>
           </Router>
