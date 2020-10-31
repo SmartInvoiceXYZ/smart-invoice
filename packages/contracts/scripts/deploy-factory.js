@@ -1,4 +1,4 @@
-const { ethers } = require("@nomiclabs/buidler");
+const {ethers} = require("@nomiclabs/buidler");
 
 async function main() {
   const [deployer] = await ethers.getSigners();

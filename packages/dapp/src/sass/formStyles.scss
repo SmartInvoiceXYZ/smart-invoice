@@ -1,0 +1,222 @@
+$title-font: 'Rubik Mono One', sans-serif;
+$para-font: 'Roboto', sans-serif;
+$red: #ff3864;
+$grey: #a4a4a4;
+$light-grey: #dadada;
+$white: #ffffff;
+$dark-grey: #262626;
+$black: #000;
+
+.create-invoice {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.invoice-step-details {
+  height: 250px;
+  .section-title {
+    color: $red;
+    font-family: $title-font;
+    font-size: 24px;
+  }
+  .step-title {
+    color: $light-grey;
+    font-family: $para-font;
+    font-weight: 900;
+    margin-top: 1rem;
+  }
+  .step-details {
+    color: $grey;
+    margin-top: 1rem;
+    font-size: 14px;
+    font-family: $para-font;
+    max-width: 400px;
+  }
+}
+
+.project-details-form,
+.payment-chunks-form,
+.payment-details-form,
+.form-confirmation {
+  background: $dark-grey;
+  height: 450px;
+  width: 670px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 1rem;
+  border-radius: 10px;
+  .ordered-inputs {
+    display: flex;
+    flex-direction: column;
+    label {
+      color: $red;
+      font-size: 16px;
+      font-family: $para-font;
+      margin-bottom: 5px;
+    }
+    input {
+      height: 40px;
+      background-color: $black;
+      color: $white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px;
+      font-family: $para-font;
+      outline: none;
+    }
+  }
+  .parallel-inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    input {
+      width: 200px;
+    }
+  }
+}
+
+.payment-details-form {
+  .parallel-inputs {
+    select {
+      height: 40px;
+      width: 200px;
+      background-color: $black;
+      border: none;
+      color: $white;
+      font-family: $para-font;
+      outline: none;
+    }
+  }
+}
+
+.payment-chunks-form {
+  .parallel-inputs {
+    input {
+      width: 250px;
+    }
+    sl-switch::part(thumb) {
+      background-color: $red;
+      border: none;
+    }
+    sl-switch::part(control) {
+      background-color: $black;
+      border: none;
+    }
+  }
+}
+
+.form-confirmation {
+  color: $white;
+  font-family: $para-font;
+  #project-title {
+    font-size: 22px;
+    font-weight: 900;
+  }
+  a {
+    color: $white;
+  }
+  div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .total-payment-info {
+    width: 50%;
+    margin-left: auto;
+    p:nth-child(2) {
+      color: $red;
+      font-weight: 900;
+    }
+  }
+}
+
+.register-success {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: $para-font;
+  #title {
+    color: $red;
+    font-size: 34px;
+    font-weight: bold;
+  }
+  #transaction-text {
+    color: $white;
+    font-size: 12px;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    a {
+      color: $red;
+    }
+  }
+  #info-text {
+    font-style: italic;
+    color: $white;
+    font-size: 16px;
+  }
+  div {
+    display: flex;
+    flex-direction: column; 
+    margin-top: 30px;
+    label {
+      color: $red;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    p {
+      background: $dark-grey;
+      color: $white;
+      width: 480px;
+      height: 50px;
+      border-radius: 5px;
+      font-size: 16px;
+      padding: 1rem;
+    }
+  }
+  #return-home-button {
+    margin-top: 25px;
+    font-family: $title-font;
+    width: 480px;
+    height: 50px;
+    background: $black;
+    border: 2px solid $red;
+    border-radius: 5px;
+    color: $red;
+  }
+  #return-home-button {
+    cursor: pointer;
+  }
+}
+
+.form-action-buttons {
+  margin-top: 20px;
+  #back-button {
+    font-family: $title-font;
+    width: 150px;
+    height: 50px;
+    background: $black;
+    border: 2px solid $red;
+    border-radius: 5px;
+    color: $red;
+  }
+  #next-button {
+    font-family: $title-font;
+    width: 500px;
+    height: 50px;
+    background: $red;
+    border: none;
+    border-radius: 5px;
+    color: $white;
+    float: right;
+  }
+  button:hover {
+    cursor: pointer;
+  }
+}
