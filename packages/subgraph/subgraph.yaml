@@ -7,9 +7,9 @@ dataSources:
     name: SmartInvoiceMono
     network: kovan
     source:
-      address: '0xD29B0B4b27bA343e42b1C24F9A08B7f52c548d67'
+      address: '0xCE0cD015664Da65c237556025825310641FfC8FF'
       abi: SmartInvoiceMono
-      startBlock: 21733395
+      startBlock: 21891367
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
