@@ -1,10 +1,4 @@
-$title-font: 'Rubik Mono One', sans-serif;
-$para-font: 'Roboto', sans-serif;
-$red: #ff3864;
-$grey: #a4a4a4;
-$light-grey: #dadada;
-$white: #ffffff;
-$black: #000;
+@import './constants.scss';
 
 header {
   color: $white;

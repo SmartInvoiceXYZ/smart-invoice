@@ -1,6 +1,8 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 
+import '../sass/registerSuccessStyles.scss';
+
 const RegisterSuccess = (props) => {
     return (
         <div className='register-success'>

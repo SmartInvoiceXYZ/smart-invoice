@@ -9,19 +9,21 @@ import PaymentDetailsForm from '../components/PaymentDetailsForm';
 import PaymentChunksForm from '../components/PaymentChunksForm';
 import FormConfirmation from '../components/FormConfirmation';
 
+import '../sass/createInvoiceStyles.scss'
+
 const { steps } = require('../utils/Constants');
 
 const CreateInvoice = (props) => {
     const context = useContext(AppContext);
     const [currentStep, setStep] = useState(1)
 
-    useEffect(() => {
-        if (context.address === '') return props.history.push('/')
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    // useEffect(() => {
+    //     if (context.address === '') return props.history.push('/')
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [])
 
     const stepHandler = () => {
-        if (currentStep === 4) return props.history.push('/invoice')
+        if (currentStep === 4) return props.history.push('/success')
         setStep((prevState) => prevState + 1);
     }
 
