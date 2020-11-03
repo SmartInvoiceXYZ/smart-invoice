@@ -12,7 +12,7 @@ const provider = new ethers.providers.JsonRpcProvider(
   'https://kovan.infura.io/v3/' + process.env.INFURA_PROJECT_ID,
 );
 
-const contractAddress = '0xD29B0B4b27bA343e42b1C24F9A08B7f52c548d67';
+const contractAddress = '0xCE0cD015664Da65c237556025825310641FfC8FF';
 
 const wallet = new ethers.Wallet('0x' + process.env.PRIVATE_KEY, provider);
 

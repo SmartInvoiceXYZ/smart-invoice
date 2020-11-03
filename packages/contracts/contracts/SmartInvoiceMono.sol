@@ -119,8 +119,8 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       total = total.add(amounts[i]);
     }
 
-    invoiceCount = invoiceCount + 1;
     uint256 index = invoiceCount;
+    invoiceCount = invoiceCount.add(1);
 
     invoices[index] = Invoice(
       client,
@@ -153,7 +153,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     require(!invoice.locked, "locked");
     require(amount > 0, "amount is zero");
     require(
-      amount <= invoice.total - invoice.balance - invoice.released,
+      amount <= invoice.total.sub(invoice.balance).sub(invoice.released),
       "amount too large"
     );
 
@@ -241,7 +241,7 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
       uint256 balance = invoice.balance;
       // // sender can pay extra dispute fees
       // if (feeAmount > balance) {
-      //   feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount - balance);
+      //   feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount.sub(balance));
       // }
       require(balance > feeAmount, "feeAmount > balance"); // can't raise dispute if balance <= feeAmount
     } else {
