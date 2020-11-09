@@ -9,10 +9,12 @@ const contractAbi = [
 ];
 
 const provider = new ethers.providers.JsonRpcProvider(
-  'https://kovan.infura.io/v3/' + process.env.INFURA_PROJECT_ID,
+  // 'https://kovan.infura.io/v3/' + process.env.INFURA_PROJECT_ID, // kovan
+  'https://rinkeby.infura.io/v3/' + process.env.INFURA_PROJECT_ID, // rinkeby
 );
 
-const contractAddress = '0xCE0cD015664Da65c237556025825310641FfC8FF';
+// const contractAddress = '0xCE0cD015664Da65c237556025825310641FfC8FF'; // kovan
+const contractAddress = '0x143dB285462F6DC094297B7daDe3DE6DdB98969f'; // rinkeby
 
 const wallet = new ethers.Wallet('0x' + process.env.PRIVATE_KEY, provider);
 

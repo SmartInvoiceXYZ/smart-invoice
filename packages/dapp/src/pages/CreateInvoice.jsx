@@ -23,7 +23,8 @@ const CreateInvoice = props => {
   // }, [])
 
   const stepHandler = () => {
-    if (currentStep === 4) return props.history.push('/success');
+    if (currentStep === 4)
+      return context.createInvoice().then(() => props.history.push('/success'));
     setStep(prevState => prevState + 1);
   };
 

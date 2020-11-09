@@ -8,15 +8,15 @@ const ipfs = new IPFSClient({
 });
 
 // type Metadata = {
-//   name: string;
-//   description: string;
-//   link: string;
-//   startTime: number; // seconds since epoch
-//   endTime: number; // seconds since epoch
+//   projectName: string;
+//   projectDescription: string;
+//   projectAgreement: string;
+//   startDate: number; // seconds since epoch
+//   endDate: number; // seconds since epoch
 // }
 
 export const uploadMetadata = async (metadata) => {
-  if (!metadata.name) return '0x';
+  if (!metadata.projectName) return '0x';
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
   const node = await ipfs.add(bufferedString);

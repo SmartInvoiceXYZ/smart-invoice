@@ -36,7 +36,9 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
   ];
 
   /** kovan wETH **/
-  address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+  // address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+  /** rinkeby wETH **/
+  address public wETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
   uint256 public invoiceCount;
   uint256 public constant MAX_DURATION = 63113904; // 2-year limit on invoice
   mapping(uint256 => Invoice) public invoices;

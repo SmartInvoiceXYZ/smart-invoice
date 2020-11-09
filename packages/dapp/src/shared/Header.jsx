@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import Logo from '../assets/raidguild__logo.png';
+import { AppContext } from '../context/AppContext';
 
 const { nav_items } = require("../utils/Constants");
 
 const Header = () => {
+    const { address, disconnect } = useContext(AppContext);
     return (
         <header>
             <div className='logo-container'>
@@ -29,6 +31,11 @@ const Header = () => {
                         </li>
                     );
                 })}
+                {address && (
+                    <li>
+                        <span onClick={disconnect}>SIGN OUT</span>
+                    </li>
+                )}
             </ul>
         </header>
     );

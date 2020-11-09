@@ -1,4 +1,4 @@
-import { Contract } from 'ethers';
+import { utils, Contract } from 'ethers';
 import { smart_invoices_mono } from './Constants';
 
 export const register = async (
@@ -13,7 +13,7 @@ export const register = async (
   detailsHash, // 32 bits hex
 ) => {
   const abi =
-    'function register(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public';
+    new utils.Interface(['function register(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public']);
   const contract = new Contract(
     smart_invoices_mono,
     abi,
@@ -32,7 +32,7 @@ export const register = async (
 };
 
 export const deposit = async (ethersProvider, iswETH, index, amount) => {
-  const abi = 'function register(uint256 index, uint256 amount) public payable';
+  const abi = 'function deposit(uint256 index, uint256 amount) payable';
   const contract = new Contract(
     smart_invoices_mono,
     abi,
