@@ -21,21 +21,11 @@ type Invoice @entity {
   link: String!
   startTime: BigInt # seconds since epoch
   endTime: BigInt # seconds since epoch
-  status: InvoiceStatus!
 }
 
 enum ADR @entity {
   lexDao
   aragonCourt
-}
-
-enum InvoiceStatus @entity {
-  awaitingFunding
-  funded
-  inDispute
-  disputeResolved
-  completed
-  expired
 }
 
 type Deposit @entity {
