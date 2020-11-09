@@ -1,5 +1,5 @@
-import { Contract, ethers } from 'ethers';
-import { contract_address } from './Constants';
+import { Contract } from 'ethers';
+import { smart_invoices_mono } from './Constants';
 
 export const register = async (
   ethersProvider,
@@ -15,7 +15,7 @@ export const register = async (
   const abi =
     'function register(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public';
   const contract = new Contract(
-    contract_address,
+    smart_invoices_mono,
     abi,
     ethersProvider.getSigner(),
   );
@@ -32,21 +32,19 @@ export const register = async (
 };
 
 export const deposit = async (ethersProvider, iswETH, index, amount) => {
-  const abi =
-    'function register(uint256 index, uint256 amount) public payable';
+  const abi = 'function register(uint256 index, uint256 amount) public payable';
   const contract = new Contract(
-    contract_address,
+    smart_invoices_mono,
     abi,
     ethersProvider.getSigner(),
   );
-  const payableAmount = iswETH ? amount : 0;
-  return contract.deposit(index, amount, { value: payableAmount });
+  return contract.deposit(index, amount, { value: iswETH ? amount : 0 });
 };
 
 export const release = async (ethersProvider, index) => {
   const abi = 'function release(uint256 index) public';
   const contract = new Contract(
-    contract_address,
+    smart_invoices_mono,
     abi,
     ethersProvider.getSigner(),
   );
@@ -56,7 +54,7 @@ export const release = async (ethersProvider, index) => {
 export const withdraw = async (ethersProvider, index) => {
   const abi = 'function withdraw(uint256 index) public';
   const contract = new Contract(
-    contract_address,
+    smart_invoices_mono,
     abi,
     ethersProvider.getSigner(),
   );
@@ -70,7 +68,7 @@ export const lock = async (
 ) => {
   const abi = 'function lock(uint256 index) public';
   const contract = new Contract(
-    contract_address,
+    smart_invoices_mono,
     abi,
     ethersProvider.getSigner(),
   );
