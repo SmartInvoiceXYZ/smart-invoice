@@ -17,7 +17,7 @@ import {
   Resolve as ResolveEvent,
   Rule as RuleEvent,
 } from '../generated/SmartInvoiceMono/SmartInvoiceMono';
-import { updateInvoiceInfo, fetchInvoiceInfo } from './helpers';
+import {updateInvoiceInfo, fetchInvoiceInfo} from './helpers';
 
 export function handleRegister(event: RegisterEvent): void {
   let invoice = new Invoice(event.params.index.toHexString());
@@ -27,13 +27,14 @@ export function handleRegister(event: RegisterEvent): void {
   invoice.numMilestones = event.params.amounts.length;
 
   let invoiceObject = fetchInvoiceInfo(event.address, event.params.index);
+  if (invoiceObject.projectName.length == 0) return;
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
   if (invoiceObject.resolverType == 0) {
-    invoice.resolverType = 'lexDao';
+    invoice.resolverType = 'lex_dao';
   } else if (invoiceObject.resolverType == 1) {
-    invoice.resolverType = 'aragonCourt';
+    invoice.resolverType = 'aragon_court';
   }
   invoice.resolver = invoiceObject.resolver;
   invoice.isLocked = invoiceObject.isLocked;
@@ -43,11 +44,11 @@ export function handleRegister(event: RegisterEvent): void {
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
-  invoice.name = invoiceObject.name;
-  invoice.description = invoiceObject.description;
-  invoice.link = invoiceObject.link;
-  invoice.startTime = invoiceObject.startTime;
-  invoice.endTime = invoiceObject.endTime;
+  invoice.projectName = invoiceObject.projectName;
+  invoice.projectDescription = invoiceObject.projectDescription;
+  invoice.projectAgreement = invoiceObject.projectAgreement;
+  invoice.startDate = invoiceObject.startDate;
+  invoice.endDate = invoiceObject.endDate;
 
   invoice.createdAt = event.block.timestamp;
 

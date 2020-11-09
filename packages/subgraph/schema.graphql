@@ -16,16 +16,16 @@ type Invoice @entity {
   createdAt: BigInt! # seconds since epoch
   terminationTime: BigInt! # seconds since epoch
   details: Bytes!
-  name: String!
-  description: String!
-  link: String!
-  startTime: BigInt # seconds since epoch
-  endTime: BigInt # seconds since epoch
+  projectName: String!
+  projectDescription: String!
+  projectAgreement: String!
+  startDate: BigInt # seconds since epoch
+  endDate: BigInt # seconds since epoch
 }
 
 enum ADR @entity {
-  lexDao
-  aragonCourt
+  lex_dao
+  aragon_court
 }
 
 type Deposit @entity {

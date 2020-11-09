@@ -8,8 +8,8 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice } from '../generated/schema';
-import { SmartInvoiceMono } from '../generated/SmartInvoiceMono/SmartInvoiceMono';
+import {Invoice} from '../generated/schema';
+import {SmartInvoiceMono} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -36,11 +36,11 @@ class InvoiceObject {
   released: BigInt;
   terminationTime: BigInt;
   details: Bytes;
-  name: string;
-  description: string;
-  link: string;
-  startTime: BigInt;
-  endTime: BigInt;
+  projectName: string;
+  projectDescription: string;
+  projectAgreement: string;
+  startDate: BigInt;
+  endDate: BigInt;
 }
 
 export function fetchInvoiceInfo(
@@ -72,25 +72,30 @@ export function fetchInvoiceInfo(
     log.debug('IPFS details {} hash {}', [hexHash.toHexString(), base58Hash]);
     if (getIPFSData != null) {
       let data = json.fromBytes(getIPFSData as Bytes).toObject();
-      let name = data.get('name');
-      if (name != null) {
-        invoiceObject.name = name.toString();
+      //   projectName: string;
+      //   projectDescription: string;
+      //   projectAgreement: string;
+      //   startDate: number; // seconds since epoch
+      //   endDate: number; // seconds since epoch
+      let projectName = data.get('projectName');
+      if (projectName != null) {
+        invoiceObject.projectName = projectName.toString();
       }
-      let description = data.get('description');
-      if (description != null) {
-        invoiceObject.description = description.toString();
+      let projectDescription = data.get('projectDescription');
+      if (projectDescription != null) {
+        invoiceObject.projectDescription = projectDescription.toString();
       }
-      let link = data.get('link');
-      if (link != null) {
-        invoiceObject.link = link.toString();
+      let projectAgreement = data.get('projectAgreement');
+      if (projectAgreement != null) {
+        invoiceObject.projectAgreement = projectAgreement.toString();
       }
-      let startTime = data.get('startTime');
-      if (startTime != null) {
-        invoiceObject.startTime = startTime.toBigInt();
+      let startDate = data.get('startDate');
+      if (startDate != null) {
+        invoiceObject.startDate = startDate.toBigInt();
       }
-      let endTime = data.get('endTime');
-      if (endTime != null) {
-        invoiceObject.endTime = endTime.toBigInt();
+      let endDate = data.get('endDate');
+      if (endDate != null) {
+        invoiceObject.endDate = endDate.toBigInt();
       }
     }
   }
@@ -104,7 +109,7 @@ export function updateInvoiceInfo(
   invoice: Invoice | null,
 ): Invoice | null {
   if (invoice == null) {
-      return invoice;
+    return invoice;
   }
   let invoiceObject = fetchInvoiceInfo(address, index);
   invoice.token = invoiceObject.token;
@@ -123,11 +128,11 @@ export function updateInvoiceInfo(
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
-  invoice.name = invoiceObject.name;
-  invoice.description = invoiceObject.description;
-  invoice.link = invoiceObject.link;
-  invoice.startTime = invoiceObject.startTime;
-  invoice.endTime = invoiceObject.endTime;
+  invoice.projectName = invoiceObject.projectName;
+  invoice.projectDescription = invoiceObject.projectDescription;
+  invoice.projectAgreement = invoiceObject.projectAgreement;
+  invoice.startDate = invoiceObject.startDate;
+  invoice.endDate = invoiceObject.endDate;
 
   return invoice;
 }

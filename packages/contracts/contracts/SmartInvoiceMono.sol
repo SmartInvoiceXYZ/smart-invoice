@@ -222,7 +222,10 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
 
     if (invoice.resolverType == ADR.ARAGON_COURT) {
       IArbitrator arbitrator = IArbitrator(invoice.resolver);
-      (address disputeToken, uint256 disputeFee) = _payDisputeFees(invoice.resolver, index);
+      (address disputeToken, uint256 disputeFee) = _payDisputeFees(
+        invoice.resolver,
+        index
+      );
       uint256 disputeId = arbitrator.createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
         abi.encodePacked(details)
@@ -235,7 +238,10 @@ contract SmartInvoiceMono is Context, IArbitrable, ReentrancyGuard {
     emit Lock(index, _msgSender(), details);
   }
 
-  function _payDisputeFees(address _adr, uint256 index) internal returns (address, uint256) {
+  function _payDisputeFees(address _adr, uint256 index)
+    internal
+    returns (address, uint256)
+  {
     Invoice storage invoice = invoices[index];
     IArbitrator arbitrator = IArbitrator(_adr);
     (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
