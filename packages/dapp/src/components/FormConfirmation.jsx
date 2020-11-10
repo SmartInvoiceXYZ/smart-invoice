@@ -1,4 +1,5 @@
 import React from 'react';
+import { utils } from 'ethers';
 
 const FormConfirmation = ({ context }) => {
     console.log(context.startDate)
@@ -17,15 +18,15 @@ const FormConfirmation = ({ context }) => {
             </div>
             <div>
                 <p>Project Start Date:</p>
-                <p>{context.startDate}</p>
+                <p>{context.startDate.toLocaleDateString()}</p>
             </div>
             <div>
                 <p>Expected End Date:</p>
-                <p>{context.endDate}</p>
+                <p>{context.endDate.toLocaleDateString()}</p>
             </div>
             <div>
                 <p>Safety Valve Date:</p>
-                <p>{context.safetyValveDate}</p>
+                <p>{context.safetyValveDate.toLocaleDateString()}</p>
             </div>
             <div>
                 <p>Arbitration Provider:</p>
@@ -34,7 +35,7 @@ const FormConfirmation = ({ context }) => {
             <hr></hr>
             <div className='total-payment-info'>
                 <p>{context.milestones} Payments</p>
-                <p>{context.paymentDue} {context.paymentToken} Total</p>
+                <p>{utils.formatEther(context.paymentDue)} {context.paymentToken} Total</p>
             </div>
         </section>
     );

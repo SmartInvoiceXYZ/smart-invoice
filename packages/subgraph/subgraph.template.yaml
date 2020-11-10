@@ -5,11 +5,13 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: SmartInvoiceMono
-    network: kovan
+    # prettier-ignore
+    network: {{network}}
     source:
-      address: '0xD29B0B4b27bA343e42b1C24F9A08B7f52c548d67'
+      address: '{{address}}'
       abi: SmartInvoiceMono
-      startBlock: 21733395
+      # prettier-ignore
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

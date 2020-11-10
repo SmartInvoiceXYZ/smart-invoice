@@ -44,3 +44,6 @@ pids
 
 # misc
 .DS_Store
+
+# subgraph
+subgraph.yaml

@@ -5,14 +5,17 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "auth": "graph auth https://api.thegraph.com/deploy/ $GRAPH_ACCESS_TOKEN",
-    "deploy-kovan": "graph deploy raid-guild/kovan-smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "create-local": "graph create --node http://localhost:8020/ raid-guild/kovan-smart-invoices-mono",
-    "remove-local": "graph remove --node http://localhost:8020/ raid-guild/kovan-smart-invoices-mono",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 raid-guild/kovan-smart-invoices-mono"
+    "prepare-mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
+    "prepare-rinkeby": "mustache config/rinkeby.json subgraph.template.yaml > subgraph.yaml",
+    "prepare-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml",
+    "deploy-mainnet": "graph deploy raid-guild/smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-rinkeby": "graph deploy raid-guild/rinkeby-smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-kovan": "graph deploy raid-guild/kovan-smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug"
   },
   "license": "MIT",
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",
-    "@graphprotocol/graph-ts": "0.18.0"
+    "@graphprotocol/graph-ts": "0.18.0",
+    "mustache": "^4.0.1"
   }
 }
