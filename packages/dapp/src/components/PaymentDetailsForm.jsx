@@ -1,4 +1,5 @@
 import React from 'react';
+import { utils, BigNumber } from 'ethers';
 
 const PaymentDetailsForm = ({ context }) => {
   return (
@@ -32,7 +33,9 @@ const PaymentDetailsForm = ({ context }) => {
           <label>Total Payment Due</label>
           <input
             type="number"
-            onChange={e => context.setPaymentDue(e.target.value)}
+            onChange={e =>
+              context.setPaymentDue(utils.parseEther(e.target.value))
+            }
           />
         </div>
         <div className="ordered-inputs">
@@ -55,7 +58,16 @@ const PaymentDetailsForm = ({ context }) => {
           <label>Number of Payments</label>
           <input
             type="number"
-            onChange={e => context.setMilestones(e.target.value)}
+            onChange={e => {
+              const numMilestones = Number(e.target.value);
+              context.setMilestones(numMilestones);
+              const payments = Array(numMilestones)
+                .fill(1)
+                .map(() => {
+                  return BigNumber.from(0);
+                });
+              context.setPayments(payments);
+            }}
           />
         </div>
       </div>
@@ -70,6 +82,7 @@ const PaymentDetailsForm = ({ context }) => {
           <select
             name="provider"
             id="provider"
+            value={context.arbitrationProvider}
             onChange={e => context.setArbitrationProvider(e.target.value)}
           >
             <option value="Lex">Lex</option>

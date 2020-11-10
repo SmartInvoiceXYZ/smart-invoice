@@ -1,5 +1,5 @@
 const ethers = require('ethers');
-const { BigNumber } = ethers;
+const {BigNumber} = ethers;
 const prompt = require('async-prompt');
 
 const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
@@ -56,20 +56,20 @@ async function getInput() {
   let terminationTime = Math.floor(
     new Date().getTime() / 1000 + durationInDays * 24 * 60 * 60,
   );
-  let name = await prompt('project name: ');
-  while (!name) {
+  let projectName = await prompt('project name: ');
+  while (!projectName) {
     console.log('invalid name');
-    name = await prompt('project name: ');
+    projectName = await prompt('project name: ');
   }
-  let description = await prompt('project description: ');
-  while (!description) {
+  let projectDescription = await prompt('project description: ');
+  while (!projectDescription) {
     console.log('invalid description');
-    description = await prompt('project description: ');
+    projectDescription = await prompt('project description: ');
   }
-  let link = await prompt('project link: ');
-  while (!URL_REGEX.test(link)) {
+  let projectAgreement = await prompt('project link: ');
+  while (!URL_REGEX.test(projectAgreement)) {
     console.log('invalid link');
-    link = await prompt('project link: ');
+    projectAgreement = await prompt('project link: ');
   }
   console.log({
     client,
@@ -81,9 +81,9 @@ async function getInput() {
     amounts,
     durationInDays,
     terminationTime,
-    name,
-    description,
-    link,
+    projectName,
+    projectDescription,
+    projectAgreement,
   });
 
   return {
@@ -94,9 +94,9 @@ async function getInput() {
     token,
     amounts,
     terminationTime,
-    name,
-    description,
-    link,
+    projectName,
+    projectDescription,
+    projectAgreement,
   };
 }
 

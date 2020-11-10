@@ -6,7 +6,8 @@
     "help": "buidler help",
     "clean": "rm -rf ./cache",
     "lint": "solhint contracts/*.sol",
-    "deploy-mono": "buidler run scripts/deploy-mono.js --network kovan",
+    "deploy-kovan": "buidler run scripts/deploy-mono.js --network kovan",
+    "deploy-rinkeby": "buidler run scripts/deploy-mono.js --network rinkeby",
     "deploy-factory": "buidler run scripts/deploy-factory.js --network kovan"
   },
   "devDependencies": {

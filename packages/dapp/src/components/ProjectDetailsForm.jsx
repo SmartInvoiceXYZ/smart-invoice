@@ -29,12 +29,12 @@ const ProjectDetailsForm = ({ context }) => {
                 <div className='ordered-inputs'>
                     <p className='tooltip'>optional</p>
                     <label>Project Start Date</label>
-                    <DayPickerInput onDayChange={(e) => context.setStartDate(e.toLocaleDateString())} />
+                    <DayPickerInput onDayChange={(e) => context.setStartDate(e)} />
                 </div>
                 <div className='ordered-inputs'>
                     <p className='tooltip'>optional</p>
                     <label>Expected End Date</label>
-                    <DayPickerInput onDayChange={(e) => context.setEndDate(e.toLocaleDateString())} />
+                    <DayPickerInput onDayChange={(e) => context.setEndDate(e)} />
                 </div>
                 <div className='ordered-inputs'>
                     <p className='tooltip'>
@@ -43,7 +43,7 @@ const ProjectDetailsForm = ({ context }) => {
                         </sl-tooltip>
                     </p>
                     <label>Safety Valve Date</label>
-                    <DayPickerInput onDayChange={(e) => context.setSafetyValveDate(e.toLocaleDateString())} />
+                    <DayPickerInput onDayChange={(e) => context.setSafetyValveDate(e)} />
                 </div>
             </div>
         </section>

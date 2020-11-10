@@ -17,7 +17,7 @@ import {
   Resolve as ResolveEvent,
   Rule as RuleEvent,
 } from '../generated/SmartInvoiceMono/SmartInvoiceMono';
-import { updateInvoiceInfo, fetchInvoiceInfo } from './helpers';
+import {updateInvoiceInfo, fetchInvoiceInfo} from './helpers';
 
 export function handleRegister(event: RegisterEvent): void {
   let invoice = new Invoice(event.params.index.toHexString());
@@ -27,13 +27,14 @@ export function handleRegister(event: RegisterEvent): void {
   invoice.numMilestones = event.params.amounts.length;
 
   let invoiceObject = fetchInvoiceInfo(event.address, event.params.index);
+  if (invoiceObject.projectName.length == 0) return;
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
   if (invoiceObject.resolverType == 0) {
-    invoice.resolverType = 'lexDao';
+    invoice.resolverType = 'lex_dao';
   } else if (invoiceObject.resolverType == 1) {
-    invoice.resolverType = 'aragonCourt';
+    invoice.resolverType = 'aragon_court';
   }
   invoice.resolver = invoiceObject.resolver;
   invoice.isLocked = invoiceObject.isLocked;
@@ -43,14 +44,13 @@ export function handleRegister(event: RegisterEvent): void {
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
-  invoice.name = invoiceObject.name;
-  invoice.description = invoiceObject.description;
-  invoice.link = invoiceObject.link;
-  invoice.startTime = invoiceObject.startTime;
-  invoice.endTime = invoiceObject.endTime;
+  invoice.projectName = invoiceObject.projectName;
+  invoice.projectDescription = invoiceObject.projectDescription;
+  invoice.projectAgreement = invoiceObject.projectAgreement;
+  invoice.startDate = invoiceObject.startDate;
+  invoice.endDate = invoiceObject.endDate;
 
   invoice.createdAt = event.block.timestamp;
-  invoice.status = 'awaitingFunding';
 
   invoice.save();
 }
@@ -59,12 +59,6 @@ export function handleDeposit(event: DepositEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    if (invoice.balance.plus(invoice.released) == invoice.total) {
-      invoice.status = 'funded';
-    }
-    // if (invoice.terminationTime >= currentTime) {
-    //   invoice.status = 'expired';
-    // }
     invoice.save();
 
     let deposit = new Deposit(event.transaction.hash.toHexString());
@@ -82,9 +76,6 @@ export function handleRelease(event: ReleaseEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    if (invoice.released == invoice.total) {
-      invoice.status = 'completed';
-    }
     invoice.save();
 
     let release = new Release(event.transaction.hash.toHexString());
@@ -102,9 +93,6 @@ export function handleWithdraw(event: WithdrawEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    // if (invoice.released == invoice.total) {
-    //   invoice.status = 'completed';
-    // }
     invoice.save();
 
     let withdraw = new Withdraw(event.transaction.hash.toHexString());
@@ -121,7 +109,6 @@ export function handleLock(event: LockEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    invoice.status = 'inDispute';
     invoice.save();
 
     let dispute = new Dispute(event.transaction.hash.toHexString());
@@ -150,7 +137,6 @@ export function handleResolve(event: ResolveEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    invoice.status = 'disputeResolved';
     invoice.save();
 
     let resolution = new Resolution(event.transaction.hash.toHexString());
@@ -171,7 +157,6 @@ export function handleRule(event: RuleEvent): void {
   let invoice = Invoice.load(event.params.index.toHexString());
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-    invoice.status = 'disputeResolved';
     invoice.save();
 
     let resolution = new Resolution(event.transaction.hash.toHexString());

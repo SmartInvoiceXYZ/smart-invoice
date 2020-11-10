@@ -1,6 +1,7 @@
 @import './constants.scss';
 
 header {
+  z-index: 1;
   color: $white;
   font-family: $title-font;
   position: absolute;
@@ -62,14 +63,15 @@ header {
     justify-content: space-evenly;
     li {
       list-style: none;
-      opacity: 0;
+      opacity: 1;
       transition: all 0.5s ease 0.4s;
-      a {
+      a, span {
+        cursor: pointer;
         font-size: 25px;
         color: #ff3864;
         text-decoration: none;
       }
-      a::after {
+      a::after, span::after {
         transition: all ease-in-out 0.2s;
         background: none repeat scroll 0 0 #ff3864;
         content: '';
@@ -77,7 +79,7 @@ header {
         height: 2px;
         width: 0;
       }
-      a:hover::after {
+      a:hover::after, span:hover::after {
         width: 100%;
       }
     }
