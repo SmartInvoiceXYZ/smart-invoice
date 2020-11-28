@@ -13,6 +13,7 @@ import {
   aragon_court,
   dai_token,
   weth_token,
+  chain_id,
 } from '../utils/Constants';
 import { BigNumber } from 'ethers';
 
@@ -66,6 +67,14 @@ const AppContextProvider = props => {
   const [txHash, setTxHash] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const disconnect = useCallback(async () => {
+    web3Modal.clearCachedProvider();
+    setAddress();
+    setProvider();
+    setWeb3();
+    setChainID();
+  }, []);
+
   const connectAccount = useCallback(async () => {
     try {
       // web3Modal.clearCachedProvider();
@@ -81,7 +90,8 @@ const AppContextProvider = props => {
         setChainID(newChainId);
       });
 
-      modalProvider.on('accountsChanged', accounts => {
+      modalProvider.on('accountsChanged', _accounts => {
+        disconnect();
         window.location.href = '/';
       });
 
@@ -92,24 +102,19 @@ const AppContextProvider = props => {
     } catch (err) {
       console.log(err);
     }
-  }, []);
+  }, [disconnect]);
+
+  useEffect(() => {
+    if (chainID !== chain_id) {
+        //TODO show error alert that invalid network is connected
+    }
+  }, [chainID]);
 
   useEffect(() => {
     if (web3Modal.cachedProvider) {
-      connectAccount().catch(error => {
-        // eslint-disable-next-line
-        console.error({ web3ModalError: error });
-      });
+      connectAccount();
     }
   }, [connectAccount]);
-
-  const disconnect = useCallback(async () => {
-    web3Modal.clearCachedProvider();
-    setAddress();
-    setProvider();
-    setWeb3();
-    setChainID();
-  }, []);
 
   const validate = () => {
     // TODO: validate all data here

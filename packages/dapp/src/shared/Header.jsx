@@ -33,7 +33,7 @@ const Header = () => {
                 })}
                 {address && (
                     <li>
-                        <span onClick={disconnect}>SIGN OUT</span>
+                        <span onClick={disconnect}>DISCONNECT</span>
                     </li>
                 )}
             </ul>

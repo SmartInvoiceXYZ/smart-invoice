@@ -19,11 +19,11 @@ const invoiceQuery = gql`
       released
       createdAt
       terminationTime
-      name
-      description
-      link
-      startTime
-      endTime
+      projectName
+      projectDescription
+      projectAgreement
+      startDate
+      endDate
     }
   }
 `;

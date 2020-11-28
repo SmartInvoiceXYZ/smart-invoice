@@ -19,14 +19,6 @@ const ProjectChunksForm = ({ context }) => {
                 }}
               />
             </div>
-            {/*
-            // TODO: add this back and use this properly
-            <sl-switch className="slider"></sl-switch>
-            <div className='ordered-inputs'>
-                <label>Percentage</label>
-                <input type='text' />
-            </div>
-            */}
           </div>
         );
       })}

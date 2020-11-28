@@ -1,3 +1,5 @@
+export const chain_id = 4;
+
 // rinkeby
 export const lex_dao = '0x3F9B2fea60325d733e61bC76598725c5430cD751'; //TODO: change this to an actual valid lex_dao address
 export const aragon_court = '0x52180af656a1923024d1accf1d827ab85ce48878';
@@ -22,7 +24,7 @@ export const nav_items = [
   },
   {
     name: 'Home',
-    link: '',
+    link: '/',
   },
 ];
 
