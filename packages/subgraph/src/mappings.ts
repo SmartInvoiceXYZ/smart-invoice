@@ -6,6 +6,7 @@ import {
   Dispute,
   Resolution,
 } from '../generated/schema';
+import {log} from '@graphprotocol/graph-ts';
 
 import {
   Register as RegisterEvent,
@@ -26,7 +27,9 @@ export function handleRegister(event: RegisterEvent): void {
   invoice.amounts = event.params.amounts;
   invoice.numMilestones = event.params.amounts.length;
 
+  log.debug('handleRegister index {}', [event.params.index.toString()]);
   let invoiceObject = fetchInvoiceInfo(event.address, event.params.index);
+  log.debug('fetched invoice info {}', [event.params.index.toString()]);
   if (invoiceObject.projectName.length == 0) return;
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;

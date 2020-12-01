@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { BigNumber, utils } from 'ethers';
+import React, {useEffect, useState} from 'react';
+import {BigNumber, utils} from 'ethers';
 
 import '../sass/viewInvoiceStyles.scss';
-import { getInvoice } from '../graphql/getInvoice';
-import { getDateString, getResolverString, getToken } from '../utils/Helpers';
+import {getInvoice} from '../graphql/getInvoice';
+import {getDateString, getResolverString, getToken} from '../utils/Helpers';
 
 const ViewInvoice = ({
   match: {
-    params: { invoiceId },
+    params: {invoiceId},
   },
 }) => {
   const [invoice, setInvoice] = useState();
@@ -37,7 +37,7 @@ const ViewInvoice = ({
   } = invoice;
 
   const tokenData = getToken(token);
-  const { decimals, symbol } = tokenData;
+  const {decimals, symbol} = tokenData;
   const due = BigNumber.from(total)
     .sub(BigNumber.from(released))
     .sub(BigNumber.from(balance));

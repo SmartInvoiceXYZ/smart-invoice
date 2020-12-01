@@ -43,12 +43,13 @@
   padding: 1rem;
   border-radius: 10px;
   .ordered-inputs {
+    width: 100%;
     display: flex;
     flex-direction: column;
     position: relative;
     .tooltip {
       position: absolute;
-      right: 0;
+      right: 1rem;
       font-size: 12px;
       color: $red;
       font-family: $para-font;
@@ -72,12 +73,15 @@
       padding: 5px;
       font-family: $para-font;
       outline: none;
+      width: 100%;
     }
     #arb-fee-desc {
+        padding: 0.5rem;
+      height: 100%;
       font-size: 14px;
       color: #e5e5e5;
       font-family: $para-font;
-      width: 200px;
+      width: 100%;
     }
   }
   .parallel-inputs {
@@ -127,6 +131,9 @@
     input {
       width: 250px;
     }
+    .ordered-inputs >input {
+        width: 100%;
+    }
     sl-switch::part(thumb) {
       background-color: $red;
       border: none;
@@ -173,6 +180,9 @@
     border: 2px solid $red;
     border-radius: 5px;
     color: $red;
+    &:hover {
+        background-color: $white-hover;
+    }
   }
   #next-button {
     font-family: $title-font;
@@ -183,8 +193,16 @@
     border-radius: 5px;
     color: $white;
     float: right;
+    &:hover {
+        background-color: $red-hover;
+    }
   }
-  button:hover {
+  button {
     cursor: pointer;
+    transition: background-color 0.25s;
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 }

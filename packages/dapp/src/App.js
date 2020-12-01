@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import React from 'react';
+import {BrowserRouter as Router, Switch, Route} from 'react-router-dom';
 
 import AppContextProvider from './context/AppContext';
 
@@ -7,25 +7,13 @@ import './App.scss';
 import './sass/sharedStyles.scss';
 
 import Header from './shared/Header';
+import Footer from './shared/Footer';
 import Home from './pages/Home';
 import CreateInvoice from './pages/CreateInvoice';
 import ViewInvoice from './pages/ViewInvoice';
-import RegisterSuccess from './pages/RegisterSuccess';
+import Invoices from './pages/Invoices';
 
 function App() {
-  useEffect(() => {
-    const hamburger = document.querySelector('.hamburger');
-    const navLinks = document.querySelector('.nav-links');
-    const links = document.querySelectorAll('.nav-links li');
-
-    hamburger.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
-      links.forEach(link => {
-        link.classList.toggle('fade');
-      });
-    });
-  }, []);
-
   return (
     <div className="app">
       <div className="main">
@@ -35,9 +23,10 @@ function App() {
             <Switch>
               <Route path="/" exact component={Home} />
               <Route path="/create-invoice" exact component={CreateInvoice} />
-              <Route path="/success" exact component={RegisterSuccess} />
+              <Route path="/invoices" exact component={Invoices} />
               <Route path="/invoice/:invoiceId" exact component={ViewInvoice} />
             </Switch>
+            <Footer />
           </Router>
         </AppContextProvider>
       </div>

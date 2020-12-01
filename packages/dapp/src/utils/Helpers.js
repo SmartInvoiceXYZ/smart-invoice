@@ -1,4 +1,5 @@
-import { dai_token, weth_token } from "./Constants";
+import {dai_token, weth_token} from './Constants';
+import {getAddress} from '@ethersproject/address';
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -28,9 +29,18 @@ export const getResolverString = resolverType => {
 export const getToken = token => {
   switch (token) {
     case weth_token:
-      return { decimals: 18, symbol: 'WETH' };
+      return {decimals: 18, symbol: 'WETH'};
     case dai_token:
     default:
-      return { decimals: 18, symbol: 'DAI' };
+      return {decimals: 18, symbol: 'DAI'};
+  }
+};
+
+// returns the checksummed address if the address is valid, otherwise returns false
+export const isAddress = value => {
+  try {
+    return getAddress(value).toLowerCase();
+  } catch {
+    return false;
   }
 };
