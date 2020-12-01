@@ -6,7 +6,7 @@ import SearchContextProvider, {SearchContext} from '../context/SearchContext';
 import '../sass/invoicesStyles.scss';
 
 const Invoices = ({history}) => {
-  const {search, setSearch, result, fetching} = useContext(SearchContext);
+  const {search, setSearch, result} = useContext(SearchContext);
   const {address} = useContext(AppContext);
 
   useEffect(() => setSearch(address), [address, setSearch]);
