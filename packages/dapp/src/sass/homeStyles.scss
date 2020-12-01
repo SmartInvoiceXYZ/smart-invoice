@@ -40,9 +40,11 @@
       border: none;
       border-radius: 5px;
       color: $white;
+      transition: background-color 0.25s;
     }
     .bg-red:hover {
       cursor: pointer;
+      background-color: $red-hover;
     }
     p {
       margin: 10px;
