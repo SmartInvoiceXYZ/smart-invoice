@@ -85,6 +85,8 @@
         font-size: 18px;
         text-transform: uppercase;
         font-family: $title-font;
+        transition: background-color 0.25s;
+        cursor: pointer;
       }
       #secondary-buttons {
         width: 435px;
@@ -95,13 +97,22 @@
           border: 2px solid $red;
           border-radius: 4px;
           color: $red;
+          &:hover {
+            background-color: $white-hover;
+          }
         }
       }
       #primary-button {
         position: absolute;
         right: 0;
+        border: 2px solid $red;
+        border-radius: 4px;
         background-color: $red;
         color: $white;
+        &:hover {
+          border-color: $red-hover;
+          background-color: $red-hover;
+        }
       }
     }
   }

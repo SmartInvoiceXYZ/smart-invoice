@@ -1,7 +1,18 @@
-import React from 'react';
-import { utils, BigNumber } from 'ethers';
+import React, {useContext, useRef, useEffect} from 'react';
+import {utils, BigNumber} from 'ethers';
+import {dai_token, weth_token} from '../utils/Constants';
+import {CreateContext} from '../context/CreateContext';
 
-const PaymentDetailsForm = ({ context }) => {
+const PaymentDetailsForm = () => {
+  const context = useContext(CreateContext);
+  const {setTermsAccepted} = context;
+  const checkBox = useRef(null);
+  useEffect(() => {
+    if (!checkBox.current) return;
+    checkBox.current.addEventListener('sl-change', () =>
+      setTermsAccepted(c => !c),
+    );
+  }, [checkBox, setTermsAccepted]);
   return (
     <section className="payment-details-form">
       <div className="ordered-inputs">
@@ -13,6 +24,7 @@ const PaymentDetailsForm = ({ context }) => {
         <label>Client Address</label>
         <input
           type="text"
+          value={context.clientAddress}
           onChange={e => context.setClientAddress(e.target.value)}
         />
       </div>
@@ -25,6 +37,7 @@ const PaymentDetailsForm = ({ context }) => {
         <label>Payment Address</label>
         <input
           type="text"
+          value={context.paymentAddress}
           onChange={e => context.setPaymentAddress(e.target.value)}
         />
       </div>
@@ -33,9 +46,13 @@ const PaymentDetailsForm = ({ context }) => {
           <label>Total Payment Due</label>
           <input
             type="number"
-            onChange={e =>
-              context.setPaymentDue(utils.parseEther(e.target.value))
-            }
+            onChange={e => {
+              if (e.target.value || !isNaN(Number(e.target.value))) {
+                context.setPaymentDue(utils.parseEther(e.target.value));
+              } else {
+                context.setPaymentDue(BigNumber.from(0));
+              }
+            }}
           />
         </div>
         <div className="ordered-inputs">
@@ -43,10 +60,11 @@ const PaymentDetailsForm = ({ context }) => {
           <select
             name="token"
             id="token"
+            value={context.paymentToken}
             onChange={e => context.setPaymentToken(e.target.value)}
           >
-            <option value="DAI">DAI</option>
-            <option value="wETH">wETH</option>
+            <option value={dai_token}>DAI</option>
+            <option value={weth_token}>wETH</option>
           </select>
         </div>
         <div className="ordered-inputs">
@@ -58,6 +76,7 @@ const PaymentDetailsForm = ({ context }) => {
           <label>Number of Payments</label>
           <input
             type="number"
+            value={context.milestones}
             onChange={e => {
               const numMilestones = Number(e.target.value);
               context.setMilestones(numMilestones);
@@ -85,7 +104,7 @@ const PaymentDetailsForm = ({ context }) => {
             value={context.arbitrationProvider}
             onChange={e => context.setArbitrationProvider(e.target.value)}
           >
-            <option value="Lex">Lex</option>
+            <option value="Lex">Lex DAO</option>
             <option value="Aragon Court">Aragon Court</option>
           </select>
         </div>
@@ -99,15 +118,49 @@ const PaymentDetailsForm = ({ context }) => {
           <input type="text" disabled value={`${100} DAI`} />
         </div>
         <div className="ordered-inputs">
-          <p id="arb-fee-desc">
-            LexDAO deducts a 5% arbitration fee from remaining funds in the case
-            of dispute
-          </p>
+          {context.arbitrationProvider === 'Lex' ? (
+            <p id="arb-fee-desc">
+              LexDAO deducts a 5% arbitration fee from remaining funds in the
+              case of dispute
+            </p>
+          ) : (
+            <p id="arb-fee-desc">
+              Aragon Court deducts a fixed fee at the creation time of dispute
+            </p>
+          )}
         </div>
       </div>
-      <sl-checkbox>
-        I agree to LexDAO <a href="https://raidguild.org/">terms of service</a>
-      </sl-checkbox>
+      {context.arbitrationProvider === 'Lex' ? (
+        <sl-checkbox
+          value={context.termsAccepted}
+          checked={context.termsAccepted}
+          ref={checkBox}
+        >
+          I agree to LexDAO{' '}
+          <a
+            target="_blank"
+            href="https://docs.google.com/document/d/1SoHrtoZbvgJg9OluZueZqoUracuEmvccWLo4EPU61R4/view"
+            rel="noreferrer noopener"
+          >
+            terms of service
+          </a>
+        </sl-checkbox>
+      ) : (
+        <sl-checkbox
+          value={context.termsAccepted}
+          checked={context.termsAccepted}
+          ref={checkBox}
+        >
+          I agree to Aragon Court{' '}
+          <a
+            target="_blank"
+            href="https://anj.aragon.org/legal/terms-general.pdf"
+            rel="noreferrer noopener"
+          >
+            terms of service
+          </a>
+        </sl-checkbox>
+      )}
     </section>
   );
 };

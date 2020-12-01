@@ -78,23 +78,23 @@ export function fetchInvoiceInfo(
       //   startDate: number; // seconds since epoch
       //   endDate: number; // seconds since epoch
       let projectName = data.get('projectName');
-      if (projectName != null) {
+      if (!projectName.isNull()) {
         invoiceObject.projectName = projectName.toString();
       }
       let projectDescription = data.get('projectDescription');
-      if (projectDescription != null) {
+      if (!projectDescription.isNull()) {
         invoiceObject.projectDescription = projectDescription.toString();
       }
       let projectAgreement = data.get('projectAgreement');
-      if (projectAgreement != null) {
+      if (!projectAgreement.isNull()) {
         invoiceObject.projectAgreement = projectAgreement.toString();
       }
       let startDate = data.get('startDate');
-      if (startDate != null) {
+      if (!startDate.isNull()) {
         invoiceObject.startDate = startDate.toBigInt();
       }
       let endDate = data.get('endDate');
-      if (endDate != null) {
+      if (!endDate.isNull()) {
         invoiceObject.endDate = endDate.toBigInt();
       }
     }

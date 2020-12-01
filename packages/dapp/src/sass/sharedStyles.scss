@@ -1,17 +1,34 @@
 @import './constants.scss';
 
+footer {
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem;
+  margin: 0 1rem;
+}
+
 header {
   z-index: 1;
   color: $white;
   font-family: $title-font;
   position: absolute;
   width: 100%;
+  a {
+    text-decoration: none;
+  }
   .logo-container {
     display: flex;
     flex-direction: row;
     align-items: center;
     font-size: 32px;
     padding: 1rem;
+    margin: 1rem;
+    color: $red;
   }
 
   #logo {
@@ -60,18 +77,21 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: center;
     li {
       list-style: none;
       opacity: 1;
       transition: all 0.5s ease 0.4s;
-      a, span {
+      margin: 1rem 0;
+      a,
+      span {
         cursor: pointer;
         font-size: 25px;
         color: #ff3864;
         text-decoration: none;
       }
-      a::after, span::after {
+      a::after,
+      span::after {
         transition: all ease-in-out 0.2s;
         background: none repeat scroll 0 0 #ff3864;
         content: '';
@@ -79,7 +99,8 @@ header {
         height: 2px;
         width: 0;
       }
-      a:hover::after, span:hover::after {
+      a:hover::after,
+      span:hover::after {
         width: 100%;
       }
     }
@@ -88,8 +109,8 @@ header {
     }
   }
   .nav-links.open {
-    clip-path: circle(2000px at 90% -10%);
-    -webkit-clip-path: circle(2000px at 90% -10%);
+    clip-path: circle($radius at 90% -10%);
+    -webkit-clip-path: circle($radius at 90% -10%);
     pointer-events: all;
   }
 }
