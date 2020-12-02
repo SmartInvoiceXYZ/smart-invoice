@@ -68,15 +68,10 @@ export function fetchInvoiceInfo(
     invoiceObject.details = invoiceResult.value11;
     let hexHash = addQm(invoiceObject.details) as Bytes;
     let base58Hash = hexHash.toBase58();
-    let getIPFSData = ipfs.cat(base58Hash);
+    let ipfsData = ipfs.cat(base58Hash);
     log.debug('IPFS details {} hash {}', [hexHash.toHexString(), base58Hash]);
-    if (getIPFSData != null) {
-      let data = json.fromBytes(getIPFSData as Bytes).toObject();
-      //   projectName: string;
-      //   projectDescription: string;
-      //   projectAgreement: string;
-      //   startDate: number; // seconds since epoch
-      //   endDate: number; // seconds since epoch
+    if (ipfsData != null) {
+      let data = json.fromBytes(ipfsData as Bytes).toObject();
       let projectName = data.get('projectName');
       if (!projectName.isNull()) {
         invoiceObject.projectName = projectName.toString();

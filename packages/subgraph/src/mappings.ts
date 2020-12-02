@@ -29,7 +29,6 @@ export function handleRegister(event: RegisterEvent): void {
 
   log.debug('handleRegister index {}', [event.params.index.toString()]);
   let invoiceObject = fetchInvoiceInfo(event.address, event.params.index);
-  log.debug('fetched invoice info {}', [event.params.index.toString()]);
   if (invoiceObject.projectName.length == 0) return;
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
