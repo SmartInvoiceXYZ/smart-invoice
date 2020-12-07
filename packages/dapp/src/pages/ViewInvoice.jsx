@@ -5,12 +5,32 @@ import '../sass/viewInvoiceStyles.scss';
 import {getInvoice} from '../graphql/getInvoice';
 import {getDateString, getResolverString, getToken} from '../utils/Helpers';
 
+import {LockFunds} from '../components/LockFunds';
+import {DepositFunds} from '../components/DepositFunds';
+import {ReleaseFunds} from '../components/ReleaseFunds';
+
 const ViewInvoice = ({
   match: {
     params: {invoiceId},
   },
 }) => {
   const [invoice, setInvoice] = useState();
+  const [modal, setModal] = useState(false);
+  const [selected, setSelected] = useState(0);
+
+  const onLock = () => {
+    setSelected(0);
+    setModal(true);
+  };
+
+  const onDeposit = () => {
+    setSelected(1);
+    setModal(true);
+  };
+  const onRelease = () => {
+    setSelected(2);
+    setModal(true);
+  };
 
   useEffect(() => {
     if (invoiceId >= 0) {
@@ -77,10 +97,29 @@ const ViewInvoice = ({
         </div>
         <div className="invoice-buttons">
           <div id="secondary-buttons">
-            <button id="lock-button">Lock</button>
-            <button id="deposit-button">Deposit</button>
+            <button id="lock-button" onClick={() => onLock()}>
+              Lock
+            </button>
+            <button id="deposit-button" onClick={() => onDeposit()}>
+              Deposit
+            </button>
           </div>
-          <button id="primary-button">Release</button>
+          <button id="primary-button" onClick={() => onRelease()}>
+            Release
+          </button>
+        </div>
+      </div>
+      <div className={`modal ${modal ? 'is-active' : null}`}>
+        <div className="modal-background"></div>
+        <div className="modal-content">
+          <button
+            className="modal-close is-large"
+            aria-label="close"
+            onClick={() => setModal(false)}
+          ></button>
+          {modal && selected === 0 && <LockFunds />}
+          {modal && selected === 1 && <DepositFunds />}
+          {modal && selected === 2 && <ReleaseFunds />}
         </div>
       </div>
     </div>

@@ -27,7 +27,8 @@
       "**/@graphprotocol/graph-ts",
       "**/@graphprotocol/graph-ts/**",
       "**/@nomiclabs/**",
-      "**/solidity-coverage"
+      "**/solidity-coverage",
+      "**/bulma"
     ],
     "packages": [
       "packages/*"
