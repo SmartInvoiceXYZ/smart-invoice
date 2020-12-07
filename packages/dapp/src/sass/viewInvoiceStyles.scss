@@ -117,3 +117,36 @@
     }
   }
 }
+
+.modal {
+  .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: $modal-grey;
+    border-radius: 8px;
+    padding: 2rem;
+    p {
+        margin: 0.5rem 0;
+    }
+    font-weight: normal;
+    font-family: $para-font;
+    font-size: 1rem;
+    h1 {
+        font-family: $title-font;
+        font-size: 2.25rem;
+    }
+    .modal-note {
+        font-size: 0.9rem;
+    }
+  }
+  .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      &::after, &::before {background-color: $close-grey;}
+  }
+}
