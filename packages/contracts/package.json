@@ -8,7 +8,7 @@
     "lint": "solhint contracts/*.sol",
     "deploy-kovan": "buidler run scripts/deploy-mono.js --network kovan",
     "deploy-rinkeby": "buidler run scripts/deploy-mono.js --network rinkeby",
-    "deploy-factory": "buidler run scripts/deploy-factory.js --network kovan"
+    "deploy-factory": "buidler run scripts/deploy-factory.js --network rinkeby"
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.4.7",

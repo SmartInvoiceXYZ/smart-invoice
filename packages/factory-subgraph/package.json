@@ -1,5 +1,5 @@
 {
-  "name": "@smart-invoice/subgraph",
+  "name": "@smart-invoice/factory-subgraph",
   "version": "0.1.0",
   "scripts": {
     "codegen": "graph codegen",
@@ -8,9 +8,9 @@
     "prepare-mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
     "prepare-rinkeby": "mustache config/rinkeby.json subgraph.template.yaml > subgraph.yaml",
     "prepare-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml",
-    "deploy-mainnet": "graph deploy raid-guild/smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "deploy-rinkeby": "graph deploy raid-guild/rinkeby-smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "deploy-kovan": "graph deploy raid-guild/kovan-smart-invoices-mono --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug"
+    "deploy-mainnet": "graph deploy dan13ram/smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-rinkeby": "graph deploy dan13ram/rinkeby-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-kovan": "graph deploy dan13ram/kovan-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug"
   },
   "license": "MIT",
   "dependencies": {

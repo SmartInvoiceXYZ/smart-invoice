@@ -3,15 +3,15 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./SmartEscrow.sol";
+import "./SmartInvoice.sol";
 
-contract SmartEscrowFactory {
+contract SmartInvoiceFactory {
   using SafeMath for uint256;
 
   uint256 public id = 0;
-  mapping(uint256 => address) internal _escrows;
+  mapping(uint256 => address) internal _invoices;
 
-  event LogNewEscrow(uint256 indexed id, address escrow);
+  event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts);
 
   function create(
     address _client,
@@ -23,8 +23,8 @@ contract SmartEscrowFactory {
     uint256 _terminationTime,
     bytes32 _details
   ) public returns (address) {
-    address escrowAddress;
-    SmartEscrow escrow = new SmartEscrow(
+    address invoiceAddress;
+    SmartInvoice invoice = new SmartInvoice(
       _client,
       _provider,
       _resolverType,
@@ -34,17 +34,17 @@ contract SmartEscrowFactory {
       _terminationTime,
       _details
     );
-    escrowAddress = address(escrow);
+    invoiceAddress = address(invoice);
 
-    uint256 escrowId = id;
-    _escrows[escrowId] = escrowAddress;
+    uint256 invoiceId = id;
+    _invoices[invoiceId] = invoiceAddress;
     id = id.add(1);
 
-    emit LogNewEscrow(escrowId, escrowAddress);
-    return escrowAddress;
+    emit LogNewInvoice(invoiceId, invoiceAddress, _amounts);
+    return invoiceAddress;
   }
 
-  function getEscrowAddress(uint256 _id) public view returns (address) {
-    return _escrows[_id];
+  function getInvoiceAddress(uint256 _id) public view returns (address) {
+    return _invoices[_id];
   }
 }

@@ -3,7 +3,7 @@ const {ethers} = require("@nomiclabs/buidler");
 async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
-  console.log("Deploying SmartEscrowFactory with the account:", address);
+  console.log("Deploying SmartInvoiceFactory with the account:", address);
 
   if (deployer.provider) {
     console.log(
@@ -14,12 +14,12 @@ async function main() {
   }
 
   // We get the contract to deploy
-  const SmartEscrow = await ethers.getContractFactory("SmartEscrowFactory");
-  const smartEscrowFactory = await SmartEscrow.deploy();
+  const SmartInvoice = await ethers.getContractFactory("SmartInvoiceFactory");
+  const smartInvoiceFactory = await SmartInvoice.deploy();
 
-  await smartEscrowFactory.deployed();
+  await smartInvoiceFactory.deployed();
 
-  console.log("SmartEscrowFactory deployed to:", smartEscrowFactory.address);
+  console.log("SmartInvoiceFactory deployed to:", smartInvoiceFactory.address);
 }
 
 main()

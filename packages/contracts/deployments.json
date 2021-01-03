@@ -1,0 +1,12 @@
+[
+  {
+    "network": "rinkeby",
+    "mono": "0xd09Fdad24DE8C4CE3C65be5eeBFE841ecd24220B",
+    "factory": "0x99bF7aEc181E86bC1AD6c72Cfa190C1D590c4D00"
+  },
+  {
+    "network": "kovan",
+    "mono": "",
+    "factory": ""
+  }
+]

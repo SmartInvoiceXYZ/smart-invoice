@@ -1,0 +1,152 @@
+@import './constants.scss';
+
+.view-invoice {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.view-invoice {
+  .project-info {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    #title {
+      color: $red;
+      font-family: $title-font;
+      font-size: 24px;
+      font-weight: normal;
+    }
+    #description,
+    a {
+      color: $light-grey;
+      font-family: $para-font;
+      font-size: 18px;
+      font-weight: normal;
+    }
+    p {
+      color: $light-grey;
+      font-family: $para-font;
+      font-size: 12px;
+    }
+  }
+  .payment-info-container {
+    .payment-info {
+      width: 670px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: $dark-grey;
+      padding: 2rem;
+      border-radius: 10px;
+      div {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        color: $white;
+        font-family: $para-font;
+        font-size: 16px;
+        font-weight: lighter;
+      }
+      #payment-milestone {
+        display: flex;
+        flex-direction: column;
+        margin: 1rem 0;
+        div {
+          margin: 5px 0;
+        }
+      }
+      #total-amount {
+        font-size: 18px;
+        font-weight: bold;
+      }
+      #due-amount {
+        font-size: 18px;
+        color: $red;
+        font-weight: bold;
+        margin-top: 50px;
+      }
+    }
+    .invoice-buttons {
+      position: relative;
+      width: 670px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-top: 20px;
+      button {
+        height: 50px;
+        width: 200px;
+        border: none;
+        background: none;
+        font-size: 18px;
+        text-transform: uppercase;
+        font-family: $title-font;
+        transition: background-color 0.25s;
+        cursor: pointer;
+      }
+      #secondary-buttons {
+        width: 435px;
+        display: flex;
+        justify-content: space-between;
+        #lock-button,
+        #deposit-button {
+          border: 2px solid $red;
+          border-radius: 4px;
+          color: $red;
+          &:hover {
+            background-color: $white-hover;
+          }
+        }
+      }
+      #primary-button {
+        position: absolute;
+        right: 0;
+        border: 2px solid $red;
+        border-radius: 4px;
+        background-color: $red;
+        color: $white;
+        &:hover {
+          border-color: $red-hover;
+          background-color: $red-hover;
+        }
+      }
+    }
+  }
+}
+
+.modal {
+  .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: $modal-grey;
+    border-radius: 8px;
+    padding: 2rem;
+    p {
+        margin: 0.5rem 0;
+    }
+    font-weight: normal;
+    font-family: $para-font;
+    font-size: 1rem;
+    h1 {
+        font-family: $title-font;
+        font-size: 2.25rem;
+    }
+    .modal-note {
+        font-size: 0.9rem;
+    }
+  }
+  .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      &::after, &::before {background-color: $close-grey;}
+  }
+}

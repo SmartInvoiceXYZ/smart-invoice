@@ -1,0 +1,51 @@
+@import './constants.scss';
+
+.invoices {
+  margin-top: 200px;
+  margin-left: 100px;
+  div {
+    width: 500px;
+    #invoices-title {
+      color: $red;
+      font-family: $body-title-font;
+      font-size: 30px;
+      font-weight: normal;
+      margin-bottom: 1rem;
+    }
+    input {
+      width: 500px;
+      height: 50px;
+      border: 1px solid $red;
+      border-radius: 3px;
+      color: $red;
+      background-color: $black;
+      margin-bottom: 20px;
+      outline: none;
+      font-size: 18px;
+      padding: 5px;
+      padding-left: 1rem;
+      padding-right: 3rem;
+
+    }
+    input::placeholder {
+      color: $red;
+    }
+    .invoices-res-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem;
+      font-family: $para-font;
+      width: 500px;
+      height: 50px;
+      border: none;
+      color: $white;
+      border-bottom: solid 1px $border-grey;
+      transition: background-color 0.25s;
+      &:hover {
+        cursor: pointer;
+        background-color: $white-hover;
+      }
+    }
+  }
+}

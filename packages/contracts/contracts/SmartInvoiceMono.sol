@@ -11,6 +11,7 @@ import "./IArbitrable.sol";
 import "./IArbitrator.sol";
 
 interface IWETH {
+  // brief interface for canonical ether token wrapper contract
   function deposit() external payable;
 }
 

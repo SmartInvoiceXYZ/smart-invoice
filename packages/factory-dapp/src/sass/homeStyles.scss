@@ -1,0 +1,56 @@
+@import './constants.scss';
+
+.home {
+  margin-top: 400px;
+  margin-left: 100px;
+  #raid-castle {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: -1;
+  }
+  div {
+    width: 500px;
+    text-align: center;
+    input {
+      width: 500px;
+      height: 50px;
+      border: 1px solid $red;
+      border-radius: 3px;
+      color: $red;
+      background-color: $black;
+      margin-bottom: 20px;
+      outline: none;
+      font-size: 18px;
+      padding: 5px;
+    }
+    input::placeholder {
+      color: $red;
+    }
+    .bg-red {
+      font-family: $title-font;
+      width: 500px;
+      height: 50px;
+      background: $red;
+      border: none;
+      border-radius: 5px;
+      color: $white;
+      transition: background-color 0.25s;
+    }
+    .bg-red:hover {
+      cursor: pointer;
+      background-color: $red-hover;
+    }
+    p {
+      margin: 10px;
+      font-size: 18px;
+      color: $red;
+      font-family: $para-font;
+    }
+  }
+}
