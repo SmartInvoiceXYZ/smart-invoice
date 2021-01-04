@@ -19,6 +19,14 @@ const searchQuery = gql`
 
 const addressSearchQuery = gql`
   query AddressSearch($search: Bytes, $first: Int) {
+    addressInvoices: invoices(
+      first: $first
+      where: {address_contains: $search}
+      orderBy: createdAt
+      orderDirection: desc
+    ) {
+      ...InvoiceDetails
+    }
     clientInvoices: invoices(
       first: $first
       where: {client_contains: $search}
@@ -59,6 +67,10 @@ export const search = async (searchInput, first = 10) => {
   }
 
   return isAddressSearch
-    ? [...data.clientInvoices, ...data.providerInvoices]
+    ? [
+        ...data.addressInvoices,
+        ...data.clientInvoices,
+        ...data.providerInvoices,
+      ]
     : data.invoices;
 };

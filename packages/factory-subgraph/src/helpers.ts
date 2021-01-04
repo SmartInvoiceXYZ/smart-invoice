@@ -98,7 +98,7 @@ export function fetchInvoiceInfo(address: Address): InvoiceObject | null {
     let hexHash = addQm(invoiceObject.details) as Bytes;
     let base58Hash = hexHash.toBase58();
     let ipfsData = ipfs.cat(base58Hash);
-    log.debug('IPFS details {} hash {}', [hexHash.toHexString(), base58Hash]);
+    log.debug('IPFS details from hash {}', [base58Hash]);
     if (ipfsData != null) {
       let data = json.fromBytes(ipfsData as Bytes).toObject();
       let projectName = data.get('projectName');

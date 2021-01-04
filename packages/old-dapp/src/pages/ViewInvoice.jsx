@@ -1,11 +1,9 @@
-import React, {useEffect, useState, useContext} from 'react';
+import React, {useEffect, useState} from 'react';
 import {BigNumber, utils} from 'ethers';
 
 import '../sass/viewInvoiceStyles.scss';
 import {getInvoice} from '../graphql/getInvoice';
 import {getDateString, getResolverString, getToken} from '../utils/Helpers';
-import {balanceOf} from '../utils/ERC20';
-import {AppContext} from '../context/AppContext';
 
 import {LockFunds} from '../components/LockFunds';
 import {DepositFunds} from '../components/DepositFunds';
@@ -16,9 +14,7 @@ const ViewInvoice = ({
     params: {invoiceId},
   },
 }) => {
-  const {provider} = useContext(AppContext);
   const [invoice, setInvoice] = useState();
-  const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
 
@@ -42,14 +38,6 @@ const ViewInvoice = ({
     }
   }, [invoiceId]);
 
-  useEffect(() => {
-    if (invoice && provider) {
-      balanceOf(provider, invoice.token, invoice.address).then(b =>
-        setBalance(b),
-      );
-    }
-  }, [invoice, provider]);
-
   if (!invoice) return null;
 
   const {
@@ -65,6 +53,7 @@ const ViewInvoice = ({
     total,
     token,
     released,
+    balance,
   } = invoice;
 
   const tokenData = getToken(token);
@@ -79,7 +68,7 @@ const ViewInvoice = ({
         <h3 id="title">{projectName}</h3>
         <h5 id="description">{projectDescription}</h5>
         <a href={projectAgreement} target="_blank" rel="noopener noreferrer">
-          {projectAgreement}
+          Link to details of agreement
         </a>
         <br></br>
         <p>Project Start Date: {getDateString(startDate)}</p>
@@ -129,7 +118,7 @@ const ViewInvoice = ({
             onClick={() => setModal(false)}
           ></button>
           {modal && selected === 0 && <LockFunds />}
-          {modal && selected === 1 && <DepositFunds invoice={invoice} />}
+          {modal && selected === 1 && <DepositFunds />}
           {modal && selected === 2 && <ReleaseFunds />}
         </div>
       </div>

@@ -1,7 +1,77 @@
 @import './constants.scss';
 
 .deposit-funds {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .control {
+    .label {
+      color: $red;
+      font-weight: bold;
+    }
+    input {
+      height: 40px;
+      background-color: $black;
+      color: $white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem;
+      font-family: $para-font;
+      outline: none;
+      width: 100%;
+    }
+    margin-top: 2rem;
+    .icon.is-right {
+      height: 2.5rem;
+      font-size: 0.75rem;
+      color: white;
+      right: 0.5rem;
+      bottom: 0;
+      top: initial;
+    }
+  }
+  button {
+    margin-top: 1rem;
+    height: 50px;
+    width: 200px;
+    border: none;
+    background: none;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-family: $title-font;
+    transition: background-color 0.25s;
+    cursor: pointer;
+    border: 2px solid $red;
+    border-radius: 4px;
+    background-color: $red;
+    color: $white;
+    &:hover {
+      border-color: $red-hover;
+      background-color: $red-hover;
+    }
+  }
+  .amount-heading {
+    color: $red;
+    font-weight: bold;
+  }
+  sl-checkbox::part(control) {
+    width: 30px;
+    height: 30px;
+    color: $red;
+    background-color: $black;
+    border: none;
+  }
+  sl-checkbox::part(label) {
+    font-size: 14px;
+    color: #e5e5e5;
+    font-family: $para-font;
+    font-weight: bold;
+    margin-left: 1rem;
+  }
+  sl-checkbox {
+    margin-bottom: 0.5rem;
+    a {
+      color: #e5e5e5;
+    }
+  }
 }

@@ -2,7 +2,7 @@ import gql from 'fake-tag';
 
 export const InvoiceDetails = gql`
   fragment InvoiceDetails on Invoice {
-    index
+    address
     token
     client
     provider
@@ -13,7 +13,7 @@ export const InvoiceDetails = gql`
     numMilestones
     currentMilestone
     total
-    balance
+    disputeId
     released
     createdAt
     terminationTime

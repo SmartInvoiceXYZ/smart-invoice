@@ -1,5 +1,5 @@
 import {utils, Contract} from 'ethers';
-import {smart_invoices_mono} from './Constants';
+import {smart_invoices_factory} from './Constants';
 
 export const register = async (
   ethersProvider,
@@ -13,14 +13,14 @@ export const register = async (
   detailsHash, // 32 bits hex
 ) => {
   const abi = new utils.Interface([
-    'function register(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
+    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
   ]);
   const contract = new Contract(
-    smart_invoices_mono,
+    smart_invoices_factory,
     abi,
     ethersProvider.getSigner(),
   );
-  return contract.register(
+  return contract.create(
     client,
     provider,
     resolverType,
@@ -32,56 +32,44 @@ export const register = async (
   );
 };
 
-export const deposit = async (ethersProvider, iswETH, index, amount) => {
+export const awaitInvoiceAddress = async (ethersProvider, tx) => {
+  await tx.wait();
   const abi = new utils.Interface([
-    'function deposit(uint256 index, uint256 amount) payable',
+    'event LogNewInvoice(uint256 indexed id, address invoice)',
   ]);
-  const contract = new Contract(
-    smart_invoices_mono,
-    abi,
-    ethersProvider.getSigner(),
-  );
-  return contract.deposit(index, amount, {value: iswETH ? amount : 0});
+  const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
+  const eventFragment = abi.events[Object.keys(abi.events)[0]];
+  const eventTopic = abi.getEventTopic(eventFragment);
+  const event = receipt.logs.find(e => e.topics[0] === eventTopic);
+  if (event) {
+    const decodedLog = abi.decodeEventLog(
+      eventFragment,
+      event.data,
+      event.topics,
+    );
+    return decodedLog.invoice;
+  }
+  return '';
 };
 
-export const release = async (ethersProvider, index) => {
-  const abi = new utils.Interface(['function release(uint256 index) public']);
-  const contract = new Contract(
-    smart_invoices_mono,
-    abi,
-    ethersProvider.getSigner(),
-  );
-  return contract.release(index);
+export const release = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function release() public']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.release();
 };
 
-export const withdraw = async (ethersProvider, index) => {
-  const abi = new utils.Interface(['function withdraw(uint256 index) public']);
-  const contract = new Contract(
-    smart_invoices_mono,
-    abi,
-    ethersProvider.getSigner(),
-  );
-  return contract.withdraw(index);
+export const withdraw = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function withdraw() public']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.withdraw();
 };
 
 export const lock = async (
   ethersProvider,
-  index,
+  address,
   detailsHash, // 32 bits hex
 ) => {
-  const abi = new utils.Interface(['function lock(uint256 index) public']);
-  const contract = new Contract(
-    smart_invoices_mono,
-    abi,
-    ethersProvider.getSigner(),
-  );
-  return contract.lock(index, detailsHash);
-};
-
-export const invoiceCount = async ethersProvider => {
-  const abi = new utils.Interface([
-    'function invoiceCount() public view returns(uint256)',
-  ]);
-  const contract = new Contract(smart_invoices_mono, abi, ethersProvider);
-  return contract.invoiceCount();
+  const abi = new utils.Interface(['function lock(bytes32 details) public']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.lock(detailsHash);
 };

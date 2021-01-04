@@ -26,8 +26,8 @@ const Invoices = ({history}) => {
             result.map(invoice => (
               <div
                 className="invoices-res-item"
-                onClick={() => history.push(`/invoice/${invoice.address}`)}
-                key={invoice.address}
+                onClick={() => history.push(`/invoice/${invoice.index}`)}
+                key={invoice.index}
               >
                 {invoice.projectName}
               </div>

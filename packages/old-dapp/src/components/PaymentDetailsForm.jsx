@@ -47,7 +47,7 @@ const PaymentDetailsForm = () => {
           <input
             type="number"
             onChange={e => {
-              if (e.target.value && !isNaN(Number(e.target.value))) {
+              if (e.target.value || !isNaN(Number(e.target.value))) {
                 context.setPaymentDue(utils.parseEther(e.target.value));
               } else {
                 context.setPaymentDue(BigNumber.from(0));

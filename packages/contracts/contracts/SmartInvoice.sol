@@ -118,7 +118,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     emit Register(client, provider, amounts);
   }
 
-  function release() external nonReentrant {
+  function release() public nonReentrant {
     // client transfers locker milestone batch to provider(s)
 
     require(!locked, "locked");
@@ -139,6 +139,19 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     released = released.add(amount);
 
     emit Release(currentMilestone, amount);
+  }
+
+  function releaseTokens(address _token) external nonReentrant {
+    require(
+      _msgSender() == client || _msgSender() == provider,
+      "!client & !provider"
+    );
+    if (_token == token) {
+      release();
+    } else {
+      uint256 balance = IERC20(token).balanceOf(address(this));
+      IERC20(token).safeTransfer(provider, balance);
+    }
   }
 
   function withdraw() external nonReentrant {
@@ -265,12 +278,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   // receive eth transfers
   receive() external payable {
     require(!locked, "locked");
-    require(
-      msg.value == 0 || (msg.value > 0 && token == wETH),
-      "invalid token or amount"
-    );
-    if (msg.value > 0) {
-      IWETH(wETH).deposit{value: msg.value}();
-    }
+    require(token == wETH, "!wETH");
+    IWETH(wETH).deposit{value: msg.value}();
   }
 }

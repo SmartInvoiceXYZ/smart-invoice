@@ -2,17 +2,21 @@ import React, {useContext, useRef, useEffect} from 'react';
 import {utils, BigNumber} from 'ethers';
 import {dai_token, weth_token} from '../utils/Constants';
 import {CreateContext} from '../context/CreateContext';
+import {getToken} from '../utils/Helpers';
 
 const PaymentDetailsForm = () => {
   const context = useContext(CreateContext);
   const {setTermsAccepted} = context;
   const checkBox = useRef(null);
   useEffect(() => {
-    if (!checkBox.current) return;
-    checkBox.current.addEventListener('sl-change', () =>
-      setTermsAccepted(c => !c),
-    );
+    if (checkBox.current) {
+      checkBox.current.addEventListener('sl-change', () =>
+        setTermsAccepted(c => !c),
+      );
+    }
   }, [checkBox, setTermsAccepted]);
+  const tokenData = getToken(context.paymentToken);
+  const {decimals, symbol} = tokenData;
   return (
     <section className="payment-details-form">
       <div className="ordered-inputs">
@@ -47,7 +51,7 @@ const PaymentDetailsForm = () => {
           <input
             type="number"
             onChange={e => {
-              if (e.target.value || !isNaN(Number(e.target.value))) {
+              if (e.target.value && !isNaN(Number(e.target.value))) {
                 context.setPaymentDue(utils.parseEther(e.target.value));
               } else {
                 context.setPaymentDue(BigNumber.from(0));
@@ -115,7 +119,18 @@ const PaymentDetailsForm = () => {
             </sl-tooltip>
           </p>
           <label>Max Fee</label>
-          <input type="text" disabled value={`${100} DAI`} />
+          <input
+            type="text"
+            disabled
+            value={
+              context.arbitrationProvider === 'Lex'
+                ? `${utils.formatUnits(
+                    context.paymentDue.mul(5).div(100),
+                    decimals,
+                  )} ${symbol}`
+                : `150 DAI`
+            }
+          />
         </div>
         <div className="ordered-inputs">
           {context.arbitrationProvider === 'Lex' ? (
@@ -139,7 +154,7 @@ const PaymentDetailsForm = () => {
           I agree to LexDAO{' '}
           <a
             target="_blank"
-            href="https://docs.google.com/document/d/1SoHrtoZbvgJg9OluZueZqoUracuEmvccWLo4EPU61R4/view"
+            href="https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver "
             rel="noreferrer noopener"
           >
             terms of service

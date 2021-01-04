@@ -2,7 +2,7 @@ import React, {useContext, useState, useEffect} from 'react';
 import {withRouter} from 'react-router-dom';
 import {AppContext} from '../context/AppContext';
 import {CreateContext} from '../context/CreateContext';
-import {invoiceCount} from '../utils/Invoice';
+import {awaitInvoiceAddress} from '../utils/Invoice';
 
 import '../sass/registerSuccessStyles.scss';
 
@@ -12,16 +12,13 @@ const RegisterSuccess = props => {
   const [invoiceID, setInvoiceID] = useState();
 
   useEffect(() => {
-    if (provider) {
-      invoiceCount(provider).then(c => setInvoiceID(c.toString()));
+    if (tx && provider) {
+      awaitInvoiceAddress(provider, tx).then(id => {
+        console.log(id);
+        setInvoiceID(id);
+      });
     }
-  }, [provider]);
-
-  useEffect(() => {
-    if (tx) {
-      tx.wait().then(() => console.log('invoice created'));
-    }
-  }, [tx]);
+  }, [tx, provider]);
 
   return (
     <div className="register-success">

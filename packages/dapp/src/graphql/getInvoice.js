@@ -1,21 +1,21 @@
 import {client} from './client';
 import gql from 'fake-tag';
 import {InvoiceDetails} from './fragments';
+import {isAddress} from '../utils/Helpers';
 
 const invoiceQuery = gql`
-  query GetInvoice($index: ID!) {
-    invoice(id: $index) {
+  query GetInvoice($address: ID!) {
+    invoice(id: $address) {
       ...InvoiceDetails
     }
   }
   ${InvoiceDetails}
 `;
 
-export const getInvoice = async index => {
-  if (!index) return null;
-  const {data, error} = await client
-    .query(invoiceQuery, {index: `0x${index.toString(16)}`})
-    .toPromise();
+export const getInvoice = async query => {
+  const address = isAddress(query);
+  if (!address) return null;
+  const {data, error} = await client.query(invoiceQuery, {address}).toPromise();
   if (!data) {
     if (error) {
       throw error;

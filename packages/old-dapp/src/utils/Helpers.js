@@ -27,7 +27,7 @@ export const getResolverString = resolverType => {
 };
 
 export const getToken = token => {
-  switch (token.toLowerCase()) {
+  switch (token) {
     case weth_token:
       return {decimals: 18, symbol: 'WETH'};
     case dai_token:
