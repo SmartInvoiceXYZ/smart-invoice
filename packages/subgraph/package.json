@@ -1,5 +1,5 @@
 {
-  "name": "@smart-invoice/factory-subgraph",
+  "name": "@smart-invoice/subgraph",
   "version": "0.1.0",
   "scripts": {
     "codegen": "graph codegen",

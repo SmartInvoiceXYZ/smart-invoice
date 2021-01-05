@@ -6,10 +6,10 @@ import {
   Dispute,
   Resolution,
 } from '../generated/schema';
-import {log} from '@graphprotocol/graph-ts';
+import { log } from '@graphprotocol/graph-ts';
 
-import {LogNewInvoice as LogNewInvoiceEvent} from '../generated/SmartInvoiceFactory/SmartInvoiceFactory';
-import {fetchInvoiceInfo} from './helpers';
+import { LogNewInvoice as LogNewInvoiceEvent } from '../generated/SmartInvoiceFactory/SmartInvoiceFactory';
+import { fetchInvoiceInfo } from './helpers';
 
 export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());

@@ -8,8 +8,8 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import {Invoice} from '../generated/schema';
-import {SmartInvoiceMono} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
+import { Invoice } from '../generated/schema';
+import { SmartInvoice } from '../generated/SmartInvoiceFactory/SmartInvoice';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -32,10 +32,10 @@ class InvoiceObject {
   isLocked: boolean;
   currentMilestone: BigInt;
   total: BigInt;
-  balance: BigInt;
   released: BigInt;
   terminationTime: BigInt;
   details: Bytes;
+  disputeId: BigInt;
   projectName: string;
   projectDescription: string;
   projectAgreement: string;
@@ -43,33 +43,62 @@ class InvoiceObject {
   endDate: BigInt;
 }
 
-export function fetchInvoiceInfo(
-  address: Address,
-  index: BigInt,
-): InvoiceObject | null {
-  let invoicesInstance = SmartInvoiceMono.bind(address);
+export function fetchInvoiceInfo(address: Address): InvoiceObject | null {
+  let invoiceInstance = SmartInvoice.bind(address);
   let invoiceObject = new InvoiceObject();
 
-  let invoiceCall = invoicesInstance.try_invoices(index);
+  let client = invoiceInstance.try_client();
+  let provider = invoiceInstance.try_provider();
+  let resolverType = invoiceInstance.try_resolverType();
+  let resolver = invoiceInstance.try_resolver();
+  let token = invoiceInstance.try_token();
+  let locked = invoiceInstance.try_locked();
+  let milestone = invoiceInstance.try_milestone();
+  let total = invoiceInstance.try_total();
+  let released = invoiceInstance.try_released();
+  let terminationTime = invoiceInstance.try_terminationTime();
+  let details = invoiceInstance.try_details();
+  let disputeId = invoiceInstance.try_disputeId();
 
-  if (!invoiceCall.reverted) {
-    let invoiceResult = invoiceCall.value;
-    invoiceObject.client = invoiceResult.value0;
-    invoiceObject.provider = invoiceResult.value1;
-    invoiceObject.resolverType = invoiceResult.value2;
-    invoiceObject.resolver = invoiceResult.value3;
-    invoiceObject.token = invoiceResult.value4;
-    invoiceObject.isLocked = invoiceResult.value5;
-    invoiceObject.currentMilestone = invoiceResult.value6;
-    invoiceObject.total = invoiceResult.value7;
-    invoiceObject.balance = invoiceResult.value8;
-    invoiceObject.released = invoiceResult.value9;
-    invoiceObject.terminationTime = invoiceResult.value10;
-    invoiceObject.details = invoiceResult.value11;
+  if (!client.reverted) {
+    invoiceObject.client = client.value;
+  }
+  if (!provider.reverted) {
+    invoiceObject.provider = provider.value;
+  }
+  if (!resolverType.reverted) {
+    invoiceObject.resolverType = resolverType.value;
+  }
+  if (!resolver.reverted) {
+    invoiceObject.resolver = resolver.value;
+  }
+  if (!token.reverted) {
+    invoiceObject.token = token.value;
+  }
+  if (!locked.reverted) {
+    invoiceObject.isLocked = locked.value;
+  }
+  if (!milestone.reverted) {
+    invoiceObject.currentMilestone = milestone.value;
+  }
+  if (!total.reverted) {
+    invoiceObject.total = total.value;
+  }
+  if (!released.reverted) {
+    invoiceObject.released = released.value;
+  }
+  if (!terminationTime.reverted) {
+    invoiceObject.terminationTime = terminationTime.value;
+  }
+  if (!disputeId.reverted) {
+    invoiceObject.disputeId = disputeId.value;
+  }
+  if (!details.reverted) {
+    invoiceObject.details = details.value;
     let hexHash = addQm(invoiceObject.details) as Bytes;
     let base58Hash = hexHash.toBase58();
     let ipfsData = ipfs.cat(base58Hash);
-    log.debug('IPFS details {} hash {}', [hexHash.toHexString(), base58Hash]);
+    log.debug('IPFS details from hash {}', [base58Hash]);
     if (ipfsData != null) {
       let data = json.fromBytes(ipfsData as Bytes).toObject();
       let projectName = data.get('projectName');
@@ -100,13 +129,12 @@ export function fetchInvoiceInfo(
 
 export function updateInvoiceInfo(
   address: Address,
-  index: BigInt,
   invoice: Invoice | null,
 ): Invoice | null {
   if (invoice == null) {
     return invoice;
   }
-  let invoiceObject = fetchInvoiceInfo(address, index);
+  let invoiceObject = fetchInvoiceInfo(address);
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;

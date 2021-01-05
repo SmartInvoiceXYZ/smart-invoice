@@ -1,1 +1,0 @@
-# grants-platform-subgraph
