@@ -1,7 +1,7 @@
 export const chain_id = 4;
 
 // rinkeby
-export const lex_dao = '0x3F9B2fea60325d733e61bC76598725c5430cD751'.toLowerCase(); //TODO: change this to an actual valid lex_dao address
+export const lex_dao = '0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase(); //TODO: change this to an actual valid lex_dao address
 export const aragon_court = '0x52180af656a1923024d1accf1d827ab85ce48878'.toLowerCase();
 export const dai_token = '0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42'.toLowerCase();
 export const weth_token = '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase();
