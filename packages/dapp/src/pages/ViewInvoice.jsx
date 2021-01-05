@@ -1,23 +1,24 @@
-import React, {useEffect, useState, useContext} from 'react';
-import {BigNumber, utils} from 'ethers';
+import React, { useEffect, useState, useContext } from 'react';
+import { BigNumber, utils } from 'ethers';
 
 import '../sass/viewInvoiceStyles.scss';
-import {getInvoice} from '../graphql/getInvoice';
-import {getDateString, getResolverString, getToken} from '../utils/Helpers';
-import {balanceOf} from '../utils/ERC20';
-import {AppContext} from '../context/AppContext';
+import { getInvoice } from '../graphql/getInvoice';
+import { getDateString, getResolverString, getToken } from '../utils/Helpers';
+import { balanceOf } from '../utils/ERC20';
+import { AppContext } from '../context/AppContext';
 
-import {LockFunds} from '../components/LockFunds';
-import {DepositFunds} from '../components/DepositFunds';
-import {ReleaseFunds} from '../components/ReleaseFunds';
+import { LockFunds } from '../components/LockFunds';
+import { DepositFunds } from '../components/DepositFunds';
+import { ReleaseFunds } from '../components/ReleaseFunds';
 
 const ViewInvoice = ({
   match: {
-    params: {invoiceId},
+    params: { invoiceId },
   },
 }) => {
-  const {provider} = useContext(AppContext);
+  const { provider } = useContext(AppContext);
   const [invoice, setInvoice] = useState();
+  const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -44,13 +45,15 @@ const ViewInvoice = ({
 
   useEffect(() => {
     if (invoice && provider) {
-      balanceOf(provider, invoice.token, invoice.address).then(b =>
-        setBalance(b),
-      );
+      setLoading(true);
+      balanceOf(provider, invoice.token, invoice.address).then(b => {
+        setBalance(b);
+        setLoading(false);
+      });
     }
   }, [invoice, provider]);
 
-  if (!invoice) return null;
+  if (!invoice || loading) return null;
 
   const {
     projectName,
@@ -68,7 +71,7 @@ const ViewInvoice = ({
   } = invoice;
 
   const tokenData = getToken(token);
-  const {decimals, symbol} = tokenData;
+  const { decimals, symbol } = tokenData;
   const due = BigNumber.from(total)
     .sub(BigNumber.from(released))
     .sub(BigNumber.from(balance));

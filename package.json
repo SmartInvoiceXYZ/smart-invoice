@@ -34,7 +34,8 @@
       "**/@graphprotocol/graph-ts/**",
       "**/@nomiclabs/**",
       "**/solidity-coverage",
-      "**/bulma"
+      "**/bulma",
+      "**/@ethersproject/**"
     ],
     "packages": [
       "packages/*"
@@ -47,8 +48,8 @@
     "buffer": "^5.6.0",
     "cids": "^1.0.0",
     "dotenv": "^8.2.0",
-    "ethers": "^5.0.19",
-    "husky": "^4.2.5",
+    "ethers": "^5.0.24",
+    "husky": "^4.3.6",
     "ipfs-http-client": "^47.0.1",
     "it-all": "^1.0.2",
     "lint-staged": "^10.3.0",

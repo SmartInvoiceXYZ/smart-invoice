@@ -54,6 +54,10 @@
     color: $red;
     font-weight: bold;
   }
+  .amount-details {
+    display: flex;
+    flex-direction: column;
+  }
   sl-checkbox::part(control) {
     width: 30px;
     height: 30px;

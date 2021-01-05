@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-import React, {createContext, useState, useCallback, useEffect} from 'react';
+import React, { createContext, useState, useCallback, useEffect } from 'react';
 
 import Web3 from 'web3';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 
-import {chain_id} from '../utils/Constants';
+import { chain_id } from '../utils/Constants';
 
 const providerOptions = {
   walletconnect: {
