@@ -179,7 +179,7 @@ const ViewInvoice = ({
               close={() => setModal(false)}
             />
           )}
-          {modal && selected === 1 && (
+          {modal && selected === 2 && (
             <ReleaseFunds
               invoice={invoice}
               balance={balance}
