@@ -10,6 +10,7 @@ import { AppContext } from '../context/AppContext';
 
 import { LockFunds } from '../components/LockFunds';
 import { DepositFunds } from '../components/DepositFunds';
+import { ReleaseFunds } from '../components/ReleaseFunds';
 
 const ViewInvoice = ({
   match: {
@@ -85,8 +86,7 @@ const ViewInvoice = ({
   } = invoice;
 
   console.log({ invoice });
-  const tokenData = getToken(token);
-  const { decimals, symbol } = tokenData;
+  const { decimals, symbol } = getToken(token);
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
   const amount = BigNumber.from(amounts[currentMilestone]);
@@ -99,7 +99,7 @@ const ViewInvoice = ({
           <h3 id="title">{projectName}</h3>
           <h5 id="description">{projectDescription}</h5>
           <a href={projectAgreement} target="_blank" rel="noopener noreferrer">
-            {projectAgreement}
+            Link to details of agreement
           </a>
         </div>
         <div id="right-col">
@@ -165,9 +165,26 @@ const ViewInvoice = ({
             aria-label="close"
             onClick={() => setModal(false)}
           ></button>
-          {modal && selected === 0 && <LockFunds />}
+          {modal && selected === 0 && (
+            <LockFunds
+              invoice={invoice}
+              balance={balance}
+              close={() => setModal(false)}
+            />
+          )}
           {modal && selected === 1 && (
-            <DepositFunds invoice={invoice} balance={balance} />
+            <DepositFunds
+              invoice={invoice}
+              balance={balance}
+              close={() => setModal(false)}
+            />
+          )}
+          {modal && selected === 1 && (
+            <ReleaseFunds
+              invoice={invoice}
+              balance={balance}
+              close={() => setModal(false)}
+            />
           )}
         </div>
       </div>

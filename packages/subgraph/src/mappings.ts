@@ -1,15 +1,13 @@
-import {
-  Invoice,
-  Deposit,
-  Release,
-  Withdraw,
-  Dispute,
-  Resolution,
-} from '../generated/schema';
+import { Invoice, Release, Withdraw } from '../generated/schema';
 import { log } from '@graphprotocol/graph-ts';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../generated/SmartInvoiceFactory/SmartInvoiceFactory';
-import { fetchInvoiceInfo } from './helpers';
+import {
+  Release as ReleaseEvent,
+  Withdraw as WithdrawEvent,
+  Lock as LockEvent,
+} from '../generated/SmartInvoice/SmartInvoice';
+import { fetchInvoiceInfo, updateInvoiceInfo } from './helpers';
 
 export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());
@@ -48,73 +46,47 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   invoice.save();
 }
 
-// export function handleDeposit(event: DepositEvent): void {
-//   let invoice = Invoice.load(event.params.index.toHexString());
-//   if (invoice != null) {
-//     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-//     invoice.save();
+export function handleRelease(event: ReleaseEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.debug('handleRelease {}', [event.address.toHexString()]);
+    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice.save();
 
-//     let deposit = new Deposit(event.transaction.hash.toHexString());
+    let release = new Release(event.transaction.hash.toHexString());
 
-//     deposit.invoice = invoice.id;
-//     deposit.sender = event.params.sender;
-//     deposit.amount = event.params.amount;
-//     deposit.timestamp = event.block.timestamp;
+    release.invoice = invoice.id;
+    release.milestone = event.params.milestone;
+    release.amount = event.params.amount;
+    release.timestamp = event.block.timestamp;
 
-//     deposit.save();
-//   }
-// }
+    release.save();
+  }
+}
 
-// export function handleRelease(event: ReleaseEvent): void {
-//   let invoice = Invoice.load(event.params.index.toHexString());
-//   if (invoice != null) {
-//     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-//     invoice.save();
+export function handleWithdraw(event: WithdrawEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice.save();
 
-//     let release = new Release(event.transaction.hash.toHexString());
+    let withdraw = new Withdraw(event.transaction.hash.toHexString());
 
-//     release.invoice = invoice.id;
-//     release.milestone = event.params.milestone;
-//     release.amount = event.params.amount;
-//     release.timestamp = event.block.timestamp;
+    withdraw.invoice = invoice.id;
+    withdraw.amount = event.params.balance;
+    withdraw.timestamp = event.block.timestamp;
 
-//     release.save();
-//   }
-// }
+    withdraw.save();
+  }
+}
 
-// export function handleWithdraw(event: WithdrawEvent): void {
-//   let invoice = Invoice.load(event.params.index.toHexString());
-//   if (invoice != null) {
-//     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-//     invoice.save();
-
-//     let withdraw = new Withdraw(event.transaction.hash.toHexString());
-
-//     withdraw.invoice = invoice.id;
-//     withdraw.amount = event.params.balance;
-//     withdraw.timestamp = event.block.timestamp;
-
-//     withdraw.save();
-//   }
-// }
-
-// export function handleLock(event: LockEvent): void {
-//   let invoice = Invoice.load(event.params.index.toHexString());
-//   if (invoice != null) {
-//     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-//     invoice.save();
-
-//     let dispute = new Dispute(event.transaction.hash.toHexString());
-
-//     dispute.invoice = invoice.id;
-//     dispute.sender = event.params.sender;
-//     dispute.details = event.params.details;
-//     dispute.amount = invoice.balance;
-//     dispute.timestamp = event.block.timestamp;
-
-//     dispute.save();
-//   }
-// }
+export function handleLock(event: LockEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice.save();
+  }
+}
 
 // export function handleDisputeFee(event: DisputeFeeEvent): void {
 //   let dispute = Dispute.load(event.transaction.hash.toHexString());

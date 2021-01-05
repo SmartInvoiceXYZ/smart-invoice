@@ -147,7 +147,6 @@ export function updateInvoiceInfo(
   invoice.isLocked = invoiceObject.isLocked;
   invoice.currentMilestone = invoiceObject.currentMilestone;
   invoice.total = invoiceObject.total;
-  invoice.balance = invoiceObject.balance;
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;

@@ -28,14 +28,6 @@ enum ADR @entity {
   aragon_court
 }
 
-type Deposit @entity {
-  id: ID!
-  invoice: Invoice!
-  sender: Bytes!
-  amount: BigInt!
-  timestamp: BigInt!
-}
-
 type Release @entity {
   id: ID!
   invoice: Invoice!

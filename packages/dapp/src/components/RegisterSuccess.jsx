@@ -26,7 +26,7 @@ const RegisterSuccess = props => {
       <p id="title">Invoice Registration Received</p>
       <p id="transaction-text">
         You can check the progress of your transaction{' '}
-        <a href={getTxLink(tx.hash)} target="_blank" rel="norefferer noopener">
+        <a href={getTxLink(tx.hash)} target="_blank" rel="noopener noreferrer">
           here
         </a>
         .

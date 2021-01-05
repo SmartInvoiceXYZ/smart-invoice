@@ -52,13 +52,14 @@ export const DepositFunds = ({ invoice, balance }) => {
         });
       }
     }
-  }, [amountsRef, numAmounts]);
+  }, [amountsRef, numAmounts, amounts, decimals]);
 
   useEffect(() => {
     if (amountInput) {
       setAmount(utils.parseUnits(amountInput, decimals));
     }
-  }, [amountInput]);
+  }, [amountInput, decimals]);
+
   let sum = BigNumber.from(0);
   return (
     <div className="deposit-funds">

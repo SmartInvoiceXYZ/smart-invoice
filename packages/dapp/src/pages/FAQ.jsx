@@ -17,7 +17,7 @@ const FAQ = () => {
         <a
           href={getAddressLink(smart_invoices_factory)}
           target="_blank"
-          rel="norefferer noopener"
+          rel="noopener noreferrer"
         >
           {smart_invoices_factory}
         </a>
@@ -27,7 +27,7 @@ const FAQ = () => {
         <a
           href={getAddressLink(weth_token)}
           target="_blank"
-          rel="norefferer noopener"
+          rel="noopener noreferrer"
         >
           {weth_token}
         </a>
@@ -37,7 +37,7 @@ const FAQ = () => {
         <a
           href={getAddressLink(dai_token)}
           target="_blank"
-          rel="norefferer noopener"
+          rel="noopener noreferrer"
         >
           {dai_token}
         </a>
