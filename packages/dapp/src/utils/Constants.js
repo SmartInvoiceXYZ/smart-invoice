@@ -14,16 +14,16 @@ export const graph_url =
 
 export const nav_items = [
   {
-    name: 'How it Works',
-    link: '',
-  },
-  {
-    name: 'FAQ',
-    link: '',
-  },
-  {
     name: 'Home',
     link: '/',
+  },
+  // {
+  //   name: 'How it Works',
+  //   link: '',
+  // },
+  {
+    name: 'FAQ',
+    link: '/faq',
   },
 ];
 

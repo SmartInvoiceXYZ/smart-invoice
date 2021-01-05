@@ -1,5 +1,5 @@
-import {utils, Contract} from 'ethers';
-import {smart_invoices_factory} from './Constants';
+import { utils, Contract } from 'ethers';
+import { smart_invoices_factory } from './Constants';
 
 export const register = async (
   ethersProvider,
@@ -33,9 +33,9 @@ export const register = async (
 };
 
 export const awaitInvoiceAddress = async (ethersProvider, tx) => {
-  await tx.wait();
+  await tx.wait(1);
   const abi = new utils.Interface([
-    'event LogNewInvoice(uint256 indexed id, address invoice)',
+    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
   ]);
   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];

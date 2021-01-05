@@ -35,7 +35,7 @@
       font-weight: bold;
       margin-bottom: 5px;
     }
-    p {
+    p, a {
       background: $dark-grey;
       color: $white;
       width: 480px;
@@ -43,6 +43,8 @@
       border-radius: 5px;
       font-size: 16px;
       padding: 1rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
   #return-home-button {

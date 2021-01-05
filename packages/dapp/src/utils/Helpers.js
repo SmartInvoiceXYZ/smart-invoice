@@ -1,5 +1,5 @@
-import {dai_token, weth_token} from './Constants';
-import {getAddress} from '@ethersproject/address';
+import { dai_token, weth_token } from './Constants';
+import { getAddress } from '@ethersproject/address';
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -29,10 +29,10 @@ export const getResolverString = resolverType => {
 export const getToken = token => {
   switch (token.toLowerCase()) {
     case weth_token:
-      return {decimals: 18, symbol: 'WETH'};
+      return { decimals: 18, symbol: 'WETH' };
     case dai_token:
     default:
-      return {decimals: 18, symbol: 'DAI'};
+      return { decimals: 18, symbol: 'DAI' };
   }
 };
 
@@ -44,3 +44,8 @@ export const isAddress = value => {
     return false;
   }
 };
+
+export const getTxLink = hash => `https://rinkeby.etherscan.io/tx/${hash}`;
+
+export const getAddressLink = hash =>
+  `https://rinkeby.etherscan.io/address/${hash}`;

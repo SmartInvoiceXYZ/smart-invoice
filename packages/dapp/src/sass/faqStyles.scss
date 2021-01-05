@@ -1,0 +1,14 @@
+@import './constants.scss';
+
+.faq {
+  h2 {
+    font-family: $title-font;
+    color: $red;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  p {
+    color: white;
+    font-family: $para-font;
+  }
+}

@@ -1,14 +1,15 @@
-import React, {useContext, useState, useEffect} from 'react';
-import {withRouter} from 'react-router-dom';
-import {AppContext} from '../context/AppContext';
-import {CreateContext} from '../context/CreateContext';
-import {awaitInvoiceAddress} from '../utils/Invoice';
+import React, { useContext, useState, useEffect } from 'react';
+import { withRouter, Link } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import { CreateContext } from '../context/CreateContext';
+import { awaitInvoiceAddress } from '../utils/Invoice';
 
 import '../sass/registerSuccessStyles.scss';
+import { getTxLink } from '../utils/Helpers';
 
 const RegisterSuccess = props => {
-  const {provider} = useContext(AppContext);
-  const {tx} = useContext(CreateContext);
+  const { provider } = useContext(AppContext);
+  const { tx } = useContext(CreateContext);
   const [invoiceID, setInvoiceID] = useState();
 
   useEffect(() => {
@@ -25,7 +26,10 @@ const RegisterSuccess = props => {
       <p id="title">Invoice Registration Received</p>
       <p id="transaction-text">
         You can check the progress of your transaction{' '}
-        <a href={`https://rinkeby.etherscan.io/tx/${tx.hash}`}>here</a>.
+        <a href={getTxLink(tx.hash)} target="_blank" rel="norefferer noopener">
+          here
+        </a>
+        .
       </p>
       {invoiceID && (
         <>
@@ -39,7 +43,9 @@ const RegisterSuccess = props => {
           </div>
           <div>
             <label>Link to Invoice</label>
-            <p>{`${window.location.protocol}://${window.location.hostname}/invoice/${invoiceID}`}</p>
+            <Link
+              href={`/invoice/${invoiceID}`}
+            >{`${window.location.protocol}://${window.location.hostname}/invoice/${invoiceID}`}</Link>
           </div>
         </>
       )}

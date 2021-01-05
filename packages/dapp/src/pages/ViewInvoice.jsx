@@ -4,12 +4,12 @@ import { BigNumber, utils } from 'ethers';
 import '../sass/viewInvoiceStyles.scss';
 import { getInvoice } from '../graphql/getInvoice';
 import { getDateString, getResolverString, getToken } from '../utils/Helpers';
+import { release } from '../utils/Invoice';
 import { balanceOf } from '../utils/ERC20';
 import { AppContext } from '../context/AppContext';
 
 import { LockFunds } from '../components/LockFunds';
 import { DepositFunds } from '../components/DepositFunds';
-import { ReleaseFunds } from '../components/ReleaseFunds';
 
 const ViewInvoice = ({
   match: {
@@ -18,7 +18,8 @@ const ViewInvoice = ({
 }) => {
   const { provider } = useContext(AppContext);
   const [invoice, setInvoice] = useState();
-  const [loading, setLoading] = useState(true);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+  const [releaseLoading, setReleaseLoading] = useState(false);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -32,9 +33,21 @@ const ViewInvoice = ({
     setSelected(1);
     setModal(true);
   };
-  const onRelease = () => {
-    setSelected(2);
-    setModal(true);
+  const onRelease = async () => {
+    if (
+      !releaseLoading &&
+      !balanceLoading &&
+      provider &&
+      invoice &&
+      balance &&
+      balance.gte(invoice.amounts[invoice.currentMilestone])
+    ) {
+      setReleaseLoading(true);
+      const tx = await release(provider, invoice.address);
+      await tx.wait();
+      setReleaseLoading(false);
+      window.location.href = `/invoice/${invoiceId}`;
+    }
   };
 
   useEffect(() => {
@@ -45,15 +58,15 @@ const ViewInvoice = ({
 
   useEffect(() => {
     if (invoice && provider) {
-      setLoading(true);
+      setBalanceLoading(true);
       balanceOf(provider, invoice.token, invoice.address).then(b => {
         setBalance(b);
-        setLoading(false);
+        setBalanceLoading(false);
       });
     }
   }, [invoice, provider]);
 
-  if (!invoice || loading) return null;
+  if (!invoice || balanceLoading) return null;
 
   const {
     projectName,
@@ -71,6 +84,7 @@ const ViewInvoice = ({
     released,
   } = invoice;
 
+  console.log({ invoice });
   const tokenData = getToken(token);
   const { decimals, symbol } = tokenData;
   const deposited = BigNumber.from(released).add(balance);
@@ -139,7 +153,7 @@ const ViewInvoice = ({
             </button>
           </div>
           <button id="primary-button" onClick={() => onRelease()}>
-            Release
+            {releaseLoading ? 'Loading...' : 'Release'}
           </button>
         </div>
       </div>
@@ -155,7 +169,6 @@ const ViewInvoice = ({
           {modal && selected === 1 && (
             <DepositFunds invoice={invoice} balance={balance} />
           )}
-          {modal && selected === 2 && <ReleaseFunds />}
         </div>
       </div>
     </div>
