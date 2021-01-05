@@ -17,7 +17,7 @@ const ipfs = new IPFSClient({
 
 export const uploadMetadata = async meta => {
   if (!meta.projectName) return '0x';
-  const metadata = { ...metadata, version: 'smart-invoice-v0' };
+  const metadata = { ...meta, version: 'smart-invoice-v0' };
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
   const node = await ipfs.add(bufferedString);
@@ -27,7 +27,7 @@ export const uploadMetadata = async meta => {
 
 export const uploadDisputeDetails = async meta => {
   if (!meta.reason) return '0x';
-  const metadata = { ...metadata, version: 'smart-invoice-v0' };
+  const metadata = { ...meta, version: 'smart-invoice-v0' };
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
   const node = await ipfs.add(bufferedString);
