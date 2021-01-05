@@ -139,9 +139,9 @@ export function updateInvoiceInfo(
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
   if (invoiceObject.resolverType == 0) {
-    invoice.resolverType = 'lexDao';
+    invoice.resolverType = 'lex_dao';
   } else if (invoiceObject.resolverType == 1) {
-    invoice.resolverType = 'aragonCourt';
+    invoice.resolverType = 'aragon_court';
   }
   invoice.resolver = invoiceObject.resolver;
   invoice.isLocked = invoiceObject.isLocked;
