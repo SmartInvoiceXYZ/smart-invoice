@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { utils, BigNumber } from 'ethers';
+import { utils, BigNumber, Contract } from 'ethers';
 import { getToken } from '../utils/Helpers';
+import { weth_token } from '../utils/Constants';
 import { AppContext } from '../context/AppContext';
 
 import '../sass/depositFunds.scss';
 export const DepositFunds = ({ invoice, balance }) => {
   const { address, token, amounts } = invoice;
+  const [paymentType, setPaymentType] = useState(0);
   const numAmounts = amounts.length;
   const { provider } = useContext(AppContext);
   const [amount, setAmount] = useState(BigNumber.from(0));
@@ -14,9 +16,16 @@ export const DepositFunds = ({ invoice, balance }) => {
   const { decimals, symbol } = tokenData;
   const deposit = () => {
     if (!amount || !provider) return;
-    // provider.getSigner().sendTransaction({ to: address, value: amount });
+    if (paymentType === 1) {
+      provider.getSigner().sendTransaction({ to: address, value: amount });
+    } else {
+      const abi = ['function transfer(address, uint256) public'];
+      const tokenContract = new Contract(token, abi, provider.getSigner());
+      tokenContract.transfer(address, amount);
+    }
   };
   const amountsRef = useRef(null);
+  const isWETH = token.toLowerCase() === weth_token;
 
   useEffect(() => {
     if (amountsRef.current) {
@@ -87,7 +96,18 @@ export const DepositFunds = ({ invoice, balance }) => {
           onChange={e => setAmountInput(e.target.value)}
           placeholder="Amount to Deposit"
         />
-        <span className="icon is-right">{symbol}</span>
+        {isWETH ? (
+          <select
+            className="icon is-right"
+            onChange={e => setPaymentType(Number(e.target.value))}
+            value={paymentType}
+          >
+            <option value="0">{symbol}</option>
+            <option value="1">ETH</option>
+          </select>
+        ) : (
+          <span className="icon is-right">{symbol}</span>
+        )}
       </div>
       <button onClick={deposit}>Deposit</button>
     </div>

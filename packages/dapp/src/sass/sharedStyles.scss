@@ -10,14 +10,18 @@ footer {
   align-items: center;
   padding: 1rem;
   margin: 0 1rem;
+  height: 5rem;
 }
 
 header {
+  height: 8rem;
   z-index: 1;
   color: $white;
   font-family: $title-font;
   position: absolute;
   width: 100%;
+  top: 0;
+  left: 0;
   a {
     text-decoration: none;
   }

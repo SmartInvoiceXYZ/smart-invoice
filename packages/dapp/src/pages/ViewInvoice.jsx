@@ -64,6 +64,7 @@ const ViewInvoice = ({
     terminationTime,
     resolverType,
     // numMilestones,
+    currentMilestone,
     amounts,
     total,
     token,
@@ -72,23 +73,27 @@ const ViewInvoice = ({
 
   const tokenData = getToken(token);
   const { decimals, symbol } = tokenData;
-  const due = BigNumber.from(total)
-    .sub(BigNumber.from(released))
-    .sub(BigNumber.from(balance));
+  const deposited = BigNumber.from(released).add(balance);
+  const due = BigNumber.from(total).sub(deposited);
+  const amount = BigNumber.from(amounts[currentMilestone]);
+  const isReleasable = amount.lte(balance);
 
   return (
     <div className="view-invoice">
       <div className="project-info">
-        <h3 id="title">{projectName}</h3>
-        <h5 id="description">{projectDescription}</h5>
-        <a href={projectAgreement} target="_blank" rel="noopener noreferrer">
-          {projectAgreement}
-        </a>
-        <br></br>
-        <p>Project Start Date: {getDateString(startDate)}</p>
-        <p>Project End Date: {getDateString(endDate)}</p>
-        <p>Safety Valve Withdrawal Date: {getDateString(terminationTime)}</p>
-        <p>Arbitration Provider: {getResolverString(resolverType)}</p>
+        <div>
+          <h3 id="title">{projectName}</h3>
+          <h5 id="description">{projectDescription}</h5>
+          <a href={projectAgreement} target="_blank" rel="noopener noreferrer">
+            {projectAgreement}
+          </a>
+        </div>
+        <div id="right-col">
+          <p>Project Start Date: {getDateString(startDate)}</p>
+          <p>Project End Date: {getDateString(endDate)}</p>
+          <p>Safety Valve Withdrawal Date: {getDateString(terminationTime)}</p>
+          <p>Arbitration Provider: {getResolverString(resolverType)}</p>
+        </div>
       </div>
       <div className="payment-info-container">
         <div className="payment-info">
@@ -104,9 +109,24 @@ const ViewInvoice = ({
               </div>
             ))}
           </div>
+          <hr className="hr-line" />
+          <div id="deposited-amount">
+            <div>
+              <p>Total Deposited</p>
+              <p>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</p>
+            </div>
+            <div>
+              <p>Remaining Amount Due</p>
+              <p>{`${utils.formatUnits(due, decimals)} ${symbol}`}</p>
+            </div>
+          </div>
+          <hr className="hr-line" />
           <div id="due-amount">
-            <p>Total Due Today</p>
-            <p>{`${utils.formatUnits(due, decimals)} ${symbol}`}</p>
+            <p>{isReleasable ? 'Next Amount to Release' : 'Total Due Today'}</p>
+            <p>{`${utils.formatUnits(
+              isReleasable ? amount : amount.sub(balance),
+              decimals,
+            )} ${symbol}`}</p>
           </div>
         </div>
         <div className="invoice-buttons">
