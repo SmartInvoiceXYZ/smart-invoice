@@ -32,7 +32,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
         amount: balance.toString(),
       });
 
-      const tx = await lock(detailsHash);
+      const tx = await lock(provider, address, detailsHash);
 
       await tx.wait();
       setLocking(false);

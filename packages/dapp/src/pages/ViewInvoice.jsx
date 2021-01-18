@@ -60,10 +60,12 @@ const ViewInvoice = ({
   useEffect(() => {
     if (invoice && provider) {
       setBalanceLoading(true);
-      balanceOf(provider, invoice.token, invoice.address).then(b => {
-        setBalance(b);
-        setBalanceLoading(false);
-      });
+      balanceOf(provider, invoice.token, invoice.address)
+        .then(b => {
+          setBalance(b);
+          setBalanceLoading(false);
+        })
+        .catch(balanceError => console.error(balanceError));
     }
   }, [invoice, provider]);
 

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 
 import Web3 from 'web3';
@@ -6,7 +5,7 @@ import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 
-import { chain_id } from '../utils/Constants';
+import { chain_id as SUPPORTED_NETWORK } from '../utils/Constants';
 
 const providerOptions = {
   walletconnect: {
@@ -28,74 +27,105 @@ const web3Modal = new Web3Modal({
 
 export const AppContext = createContext();
 
-const AppContextProvider = props => {
-  const [address, setAddress] = useState('');
-  const [provider, setProvider] = useState('');
-  const [web3, setWeb3] = useState('');
-  const [chainID, setChainID] = useState('');
-  // project details value
+const AppContextProvider = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [provider, setProvider] = useState({});
+  const { web3, account, ethersProvider, chainId } = provider;
+  console.log({ web3, account, ethersProvider, chainId });
+
+  const setWeb3Provider = async (prov, updateAccount = false) => {
+    if (prov) {
+      const web3Provider = new Web3(prov);
+      const ethersProvider = new ethers.providers.Web3Provider(
+        web3Provider.currentProvider,
+      );
+
+      const providerNetwork = await web3Provider.eth.getChainId();
+      if (updateAccount) {
+        const gotAccounts = await web3Provider.eth.getAccounts();
+        setProvider(_provider => ({
+          ..._provider,
+          web3: web3Provider,
+          ethersProvider,
+          chainId: providerNetwork,
+          account: gotAccounts[0],
+        }));
+      } else {
+        setProvider(_provider => ({
+          ..._provider,
+          web3: web3Provider,
+          ethersProvider,
+          chainId: providerNetwork,
+        }));
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (chainId !== SUPPORTED_NETWORK) {
+      //TODO show error alert that invalid network is connected
+    }
+  }, [chainId]);
+
+  const connectWeb3 = useCallback(async () => {
+    try {
+      setLoading(true);
+      const modalProvider = await web3Modal.connect();
+
+      await setWeb3Provider(modalProvider, true);
+
+      // Subscribe to accounts change
+      modalProvider.on('accountsChanged', accounts => {
+        setProvider(_provider => ({
+          ..._provider,
+          account: accounts[0],
+        }));
+      });
+
+      // Subscribe to chainId change
+      modalProvider.on('chainChanged', () => {
+        setWeb3Provider(modalProvider);
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log({ web3ModalError: error });
+    }
+    setLoading(false);
+  }, []);
 
   const disconnect = useCallback(async () => {
     web3Modal.clearCachedProvider();
-    setAddress();
-    setProvider();
-    setWeb3();
-    setChainID();
+    setProvider({});
   }, []);
 
-  const connectAccount = useCallback(async () => {
-    try {
-      // web3Modal.clearCachedProvider();
-
-      const modalProvider = await web3Modal.connect();
-      const web3 = new Web3(modalProvider);
-      const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-
-      const accounts = await web3.eth.getAccounts();
-      let chainID = await web3.eth.net.getId();
-
-      modalProvider.on('chainChanged', newChainId => {
-        setChainID(newChainId);
-      });
-
-      modalProvider.on('accountsChanged', _accounts => {
-        disconnect();
-        window.location.href = '/';
-      });
-
-      setAddress(accounts[0]);
-      setProvider(provider);
-      setWeb3(web3);
-      setChainID(chainID);
-    } catch (err) {
-      console.log(err);
-    }
-  }, [disconnect]);
-
   useEffect(() => {
-    if (chainID !== chain_id) {
-      //TODO show error alert that invalid network is connected
+    if (window.ethereum) {
+      window.ethereum.autoRefreshOnNetworkChange = false;
     }
-  }, [chainID]);
-
-  useEffect(() => {
     if (web3Modal.cachedProvider) {
-      connectAccount();
+      setLoading(true);
+      connectWeb3().catch(error => {
+        // eslint-disable-next-line
+        console.error({ web3ModalError: error });
+      });
+    } else {
+      setLoading(false);
     }
-  }, [connectAccount]);
+  }, [connectWeb3]);
 
   return (
     <AppContext.Provider
       value={{
-        address,
-        provider,
+        loading,
+        address: account,
+        provider: ethersProvider,
         web3,
-        chainID,
-        connectAccount,
+        chainID: chainId,
+        connectAccount: connectWeb3,
         disconnect,
       }}
     >
-      {props.children}
+      {children}
     </AppContext.Provider>
   );
 };
