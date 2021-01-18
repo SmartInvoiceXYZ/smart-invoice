@@ -31,7 +31,6 @@ const AppContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState({});
   const { web3, account, ethersProvider, chainId } = provider;
-  console.log({ web3, account, ethersProvider, chainId });
 
   const setWeb3Provider = async (prov, updateAccount = false) => {
     if (prov) {
@@ -86,9 +85,9 @@ const AppContextProvider = ({ children }) => {
       modalProvider.on('chainChanged', () => {
         setWeb3Provider(modalProvider);
       });
-    } catch (error) {
+    } catch (web3ModalError) {
       // eslint-disable-next-line no-console
-      console.log({ web3ModalError: error });
+      console.error({ web3ModalError });
     }
     setLoading(false);
   }, []);
@@ -104,9 +103,9 @@ const AppContextProvider = ({ children }) => {
     }
     if (web3Modal.cachedProvider) {
       setLoading(true);
-      connectWeb3().catch(error => {
+      connectWeb3().catch(web3ModalError => {
         // eslint-disable-next-line
-        console.error({ web3ModalError: error });
+        console.error({ web3ModalError });
       });
     } else {
       setLoading(false);

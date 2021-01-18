@@ -91,29 +91,31 @@ const CreateInvoice = () => {
 
   if (tx) return <RegisterSuccess />;
   return (
-    <div className="create-invoice">
-      <StepInfo
-        stepNum={currentStep}
-        stepTitle={steps[currentStep].step_title}
-        stepDetails={steps[currentStep].step_details}
-      />
-      <div>
-        {currentStep === 1 && <ProjectDetailsForm />}
-        {currentStep === 2 && <PaymentDetailsForm />}
-        {currentStep === 3 && <PaymentChunksForm />}
-        {currentStep === 4 && <FormConfirmation />}
-        <div className="form-action-buttons">
-          {currentStep !== 1 && (
-            <button
-              id="back-button"
-              onClick={() => setStep(prevState => prevState - 1)}
-            >
-              BACK
+    <div className="main overlay">
+      <div className="create-invoice">
+        <StepInfo
+          stepNum={currentStep}
+          stepTitle={steps[currentStep].step_title}
+          stepDetails={steps[currentStep].step_details}
+        />
+        <div>
+          {currentStep === 1 && <ProjectDetailsForm />}
+          {currentStep === 2 && <PaymentDetailsForm />}
+          {currentStep === 3 && <PaymentChunksForm />}
+          {currentStep === 4 && <FormConfirmation />}
+          <div className="form-action-buttons">
+            {currentStep !== 1 && (
+              <button
+                id="back-button"
+                onClick={() => setStep(prevState => prevState - 1)}
+              >
+                BACK
+              </button>
+            )}
+            <button id="next-button" onClick={stepHandler} ref={nextButton}>
+              next: {steps[currentStep].next}
             </button>
-          )}
-          <button id="next-button" onClick={stepHandler} ref={nextButton}>
-            next: {steps[currentStep].next}
-          </button>
+          </div>
         </div>
       </div>
     </div>

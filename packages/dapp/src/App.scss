@@ -1,6 +1,10 @@
 @import './sass/constants.scss';
 @import '../node_modules/bulma/bulma.sass';
 
+html, .root, .app {
+  background-color: black;
+}
+
 .app {
   padding: 1rem;
   background-image: url('./assets/raid__cloud__castle.png');
@@ -18,6 +22,10 @@
   position: relative;
   flex-direction: column;
   padding: 8rem 5rem 5rem 5rem;
+  &.overlay {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
 }
 
 .web3modal-modal-card {

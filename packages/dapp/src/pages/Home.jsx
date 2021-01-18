@@ -25,15 +25,17 @@ const Home = props => {
   };
 
   return (
-    <div className="home">
-      <div>
-        <button className="bg-red" onClick={createInvoice}>
-          CREATE A NEW SMART INVOICE
-        </button>
-        <p>or</p>
-        <button className="bg-red" onClick={viewInvoices}>
-          VIEW EXISTING INVOICE
-        </button>
+    <div className="main">
+      <div className="home">
+        <div>
+          <button className="bg-red" onClick={createInvoice}>
+            CREATE A NEW SMART INVOICE
+          </button>
+          <p>or</p>
+          <button className="bg-red" onClick={viewInvoices}>
+            VIEW EXISTING INVOICE
+          </button>
+        </div>
       </div>
     </div>
   );

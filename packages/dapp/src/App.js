@@ -17,21 +17,19 @@ import Invoices from './pages/Invoices';
 function App() {
   return (
     <div className="app">
-      <div className="main">
-        <AppContextProvider>
-          <Router>
-            <Header />
-            <Switch>
-              <Route path="/" exact component={Home} />
-              <Route path="/faq" exact component={FAQ} />
-              <Route path="/create-invoice" exact component={CreateInvoice} />
-              <Route path="/invoices" exact component={Invoices} />
-              <Route path="/invoice/:invoiceId" exact component={ViewInvoice} />
-            </Switch>
-            <Footer />
-          </Router>
-        </AppContextProvider>
-      </div>
+      <AppContextProvider>
+        <Router>
+          <Header />
+          <Switch>
+            <Route path="/" exact component={Home} />
+            <Route path="/faq" exact component={FAQ} />
+            <Route path="/create-invoice" exact component={CreateInvoice} />
+            <Route path="/invoices" exact component={Invoices} />
+            <Route path="/invoice/:invoiceId" exact component={ViewInvoice} />
+          </Switch>
+          <Footer />
+        </Router>
+      </AppContextProvider>
     </div>
   );
 }

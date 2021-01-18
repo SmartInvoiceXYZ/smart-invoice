@@ -10,23 +10,31 @@
       font-weight: normal;
       margin-bottom: 1rem;
     }
-    input {
-      width: 500px;
-      height: 50px;
-      border: 1px solid $red;
-      border-radius: 3px;
-      color: $red;
-      background-color: $black;
+    .input-box {
+      position: relative;
       margin-bottom: 20px;
-      outline: none;
-      font-size: 18px;
-      padding: 5px;
-      padding-left: 1rem;
-      padding-right: 3rem;
-
-    }
-    input::placeholder {
-      color: $red;
+      input {
+        width: 500px;
+        height: 50px;
+        border: 1px solid $red;
+        border-radius: 3px;
+        color: $red;
+        background-color: $black;
+        outline: none;
+        font-size: 18px;
+        padding: 5px;
+        padding-left: 1rem;
+        padding-right: 3rem;
+      }
+      input::placeholder {
+        color: $red;
+      }
+      svg {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+      }
     }
     .invoices-res-item {
       display: flex;
