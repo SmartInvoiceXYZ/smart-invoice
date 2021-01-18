@@ -1,14 +1,12 @@
-import React, {useContext} from 'react';
-import {withRouter} from 'react-router-dom';
+import React, { useContext } from 'react';
+import { withRouter } from 'react-router-dom';
 
-import {AppContext} from '../context/AppContext';
+import { AppContext } from '../context/AppContext';
 
 import '../sass/homeStyles.scss';
 
-import RaidCastle from '../assets/raid__cloud__castle.png';
-
 const Home = props => {
-  const {provider, address, connectAccount} = useContext(AppContext);
+  const { provider, address, connectAccount } = useContext(AppContext);
 
   const createInvoice = async () => {
     if (!provider) {
@@ -28,7 +26,6 @@ const Home = props => {
 
   return (
     <div className="home">
-      <img src={RaidCastle} id="raid-castle" alt="raid-castle" />
       <div>
         <button className="bg-red" onClick={createInvoice}>
           CREATE A NEW SMART INVOICE

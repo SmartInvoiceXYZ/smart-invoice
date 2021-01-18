@@ -25,7 +25,7 @@
     margin-top: 1rem;
     font-size: 14px;
     font-family: $para-font;
-    max-width: 400px;
+    max-width: 25rem;
   }
 }
 
@@ -39,7 +39,7 @@ a {
 .form-confirmation {
   background: $dark-grey;
   height: 450px;
-  width: 670px;
+  width: 42rem;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
@@ -101,21 +101,20 @@ a {
       width: 100%;
       position: relative;
       span {
-          position: absolute;
-          color: white;
-          right: 1rem;
-          margin: auto 0;
+        position: absolute;
+        color: white;
+        right: 1rem;
+        margin: auto 0;
       }
     }
   }
   .info-note {
-      color: #A4A4A4;
-      font-weight: bold;
-      padding: 1rem;
-      width: 100%;
-      text-align: right;
-      margin-top: auto;
-
+    color: #a4a4a4;
+    font-weight: bold;
+    padding: 1rem;
+    width: 100%;
+    text-align: right;
+    margin-top: auto;
   }
   .parallel-inputs {
     display: flex;
@@ -236,6 +235,18 @@ a {
     &.disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .create-invoice {
+    flex-direction: column;
+  }
+  .invoice-step-details {
+    margin-bottom: 2rem;
+    .step-details {
+      max-width: 42rem;
     }
   }
 }

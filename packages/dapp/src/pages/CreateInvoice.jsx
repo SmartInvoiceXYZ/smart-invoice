@@ -1,7 +1,7 @@
-import React, {useContext, useEffect, useState, useRef} from 'react';
-import {withRouter} from 'react-router-dom';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { withRouter } from 'react-router-dom';
 
-import CreateContextProvider, {CreateContext} from '../context/CreateContext';
+import CreateContextProvider, { CreateContext } from '../context/CreateContext';
 
 import StepInfo from '../shared/StepInfo';
 import ProjectDetailsForm from '../components/ProjectDetailsForm';
@@ -11,12 +11,12 @@ import FormConfirmation from '../components/FormConfirmation';
 import RegisterSuccess from '../components/RegisterSuccess';
 
 import '../sass/createInvoiceStyles.scss';
-import {utils, BigNumber} from 'ethers';
-const {isAddress} = utils;
+import { utils, BigNumber } from 'ethers';
+const { isAddress } = utils;
 
-const {steps} = require('../utils/Constants');
+const { steps } = require('../utils/Constants');
 
-const CreateInvoice = props => {
+const CreateInvoice = () => {
   const {
     tx,
     createInvoice,
