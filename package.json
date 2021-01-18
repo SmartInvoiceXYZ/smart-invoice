@@ -21,6 +21,7 @@
     "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
     "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
+    "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md,sol}\""
   },
   "workspaces": {
@@ -50,7 +51,14 @@
     "lint-staged": "^10.3.0",
     "prettier": "^2.1.1",
     "prettier-plugin-solidity": "^1.0.0-alpha.59",
-    "uint8arrays": "^1.1.0"
+    "uint8arrays": "^1.1.0",
+    "eslint": "6.8.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-react": "7.20.3",
+    "eslint-plugin-react-hooks": "4.0.6",
+    "eslint-plugin-simple-import-sort": "5.0.3"
   },
   "husky": {
     "hooks": {
