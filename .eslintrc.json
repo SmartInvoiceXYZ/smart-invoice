@@ -1,8 +1,12 @@
 {
   "root": true,
+  "env": {
+    "node": true,
+    "es6": true
+  },
   "extends": ["airbnb", "prettier/react", "prettier"],
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 8,
     "sourceType": "module"
   },
   "plugins": ["simple-import-sort"],

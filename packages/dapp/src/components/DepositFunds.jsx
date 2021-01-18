@@ -1,15 +1,19 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import { utils, BigNumber, Contract } from 'ethers';
-import { getToken } from '../utils/Helpers';
-import { weth_token } from '../utils/Constants';
-import { AppContext } from '../context/AppContext';
-
 import '../sass/depositFunds.scss';
+
+import { BigNumber, Contract, utils } from 'ethers';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+
+import { Web3Context } from '../context/Web3Context';
+import { ADDRESSES } from '../utils/constants';
+import { getToken } from '../utils/helpers';
+
+const { WETH_TOKEN } = ADDRESSES;
+
 export const DepositFunds = ({ invoice, balance }) => {
   const { address, token, amounts } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const numAmounts = amounts.length;
-  const { provider } = useContext(AppContext);
+  const { provider } = useContext(Web3Context);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
   const tokenData = getToken(token);
@@ -25,7 +29,7 @@ export const DepositFunds = ({ invoice, balance }) => {
     }
   };
   const amountsRef = useRef(null);
-  const isWETH = token.toLowerCase() === weth_token;
+  const isWETH = token.toLowerCase() === WETH_TOKEN;
 
   useEffect(() => {
     if (amountsRef.current) {
@@ -110,7 +114,9 @@ export const DepositFunds = ({ invoice, balance }) => {
           <span className="icon is-right">{symbol}</span>
         )}
       </div>
-      <button onClick={deposit}>Deposit</button>
+      <button type="submit" onClick={deposit}>
+        Deposit
+      </button>
     </div>
   );
 };

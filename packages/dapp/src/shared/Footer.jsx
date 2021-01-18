@@ -2,7 +2,7 @@ import React from 'react';
 
 import RaidGuild from '../assets/built-by-raid-guild.svg';
 
-const Footer = () => {
+export const Footer = () => {
   return (
     <footer>
       <a href="https://raidguild.org" target="_blank" rel="noopener noreferrer">
@@ -11,5 +11,3 @@ const Footer = () => {
     </footer>
   );
 };
-
-export default Footer;

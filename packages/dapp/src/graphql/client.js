@@ -1,6 +1,7 @@
-import {graph_url} from '../utils/Constants';
-import {createClient} from 'urql';
+import { createClient } from 'urql';
+
+import { GRAPH_URL } from '../utils/constants';
 
 export const client = createClient({
-  url: graph_url,
+  url: GRAPH_URL,
 });

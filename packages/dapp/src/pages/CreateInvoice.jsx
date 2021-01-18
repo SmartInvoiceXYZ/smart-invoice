@@ -1,22 +1,21 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import '../sass/createInvoiceStyles.scss';
+
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 
-import CreateContextProvider, { CreateContext } from '../context/CreateContext';
+import { FormConfirmation } from '../components/FormConfirmation';
+import { PaymentChunksForm } from '../components/PaymentChunksForm';
+import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
+import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
+import { RegisterSuccess } from '../components/RegisterSuccess';
+import { CreateContext, CreateContextProvider } from '../context/CreateContext';
+import { StepInfo } from '../shared/StepInfo';
+import { STEPS } from '../utils/constants';
 
-import StepInfo from '../shared/StepInfo';
-import ProjectDetailsForm from '../components/ProjectDetailsForm';
-import PaymentDetailsForm from '../components/PaymentDetailsForm';
-import PaymentChunksForm from '../components/PaymentChunksForm';
-import FormConfirmation from '../components/FormConfirmation';
-import RegisterSuccess from '../components/RegisterSuccess';
-
-import '../sass/createInvoiceStyles.scss';
-import { utils, BigNumber } from 'ethers';
 const { isAddress } = utils;
 
-const { steps } = require('../utils/Constants');
-
-const CreateInvoice = () => {
+const CreateInvoiceInner = () => {
   const {
     tx,
     createInvoice,
@@ -84,9 +83,11 @@ const CreateInvoice = () => {
   ]);
 
   const stepHandler = () => {
-    if (!isEnabled) return;
-    if (currentStep === 4) return createInvoice();
-    setStep(prevState => prevState + 1);
+    if (isEnabled) {
+      if (currentStep === 4) return createInvoice();
+      setStep(prevState => prevState + 1);
+    }
+    return () => undefined;
   };
 
   if (tx) return <RegisterSuccess />;
@@ -95,8 +96,8 @@ const CreateInvoice = () => {
       <div className="create-invoice">
         <StepInfo
           stepNum={currentStep}
-          stepTitle={steps[currentStep].step_title}
-          stepDetails={steps[currentStep].step_details}
+          stepTitle={STEPS[currentStep].step_title}
+          stepDetails={STEPS[currentStep].step_details}
         />
         <div>
           {currentStep === 1 && <ProjectDetailsForm />}
@@ -106,14 +107,20 @@ const CreateInvoice = () => {
           <div className="form-action-buttons">
             {currentStep !== 1 && (
               <button
+                type="button"
                 id="back-button"
                 onClick={() => setStep(prevState => prevState - 1)}
               >
                 BACK
               </button>
             )}
-            <button id="next-button" onClick={stepHandler} ref={nextButton}>
-              next: {steps[currentStep].next}
+            <button
+              type="button"
+              id="next-button"
+              onClick={stepHandler}
+              ref={nextButton}
+            >
+              next: {STEPS[currentStep].next}
             </button>
           </div>
         </div>
@@ -124,8 +131,8 @@ const CreateInvoice = () => {
 
 const CreateInvoiceWithProvider = props => (
   <CreateContextProvider>
-    <CreateInvoice {...props} />
+    <CreateInvoiceInner {...props} />
   </CreateContextProvider>
 );
 
-export default withRouter(CreateInvoiceWithProvider);
+export const CreateInvoice = withRouter(CreateInvoiceWithProvider);

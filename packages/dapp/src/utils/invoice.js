@@ -1,5 +1,8 @@
-import { utils, Contract } from 'ethers';
-import { smart_invoices_factory } from './Constants';
+import { Contract, utils } from 'ethers';
+
+import { ADDRESSES } from './constants';
+
+const { FACTORY } = ADDRESSES;
 
 export const register = async (
   ethersProvider,
@@ -15,11 +18,7 @@ export const register = async (
   const abi = new utils.Interface([
     'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
   ]);
-  const contract = new Contract(
-    smart_invoices_factory,
-    abi,
-    ethersProvider.getSigner(),
-  );
+  const contract = new Contract(FACTORY, abi, ethersProvider.getSigner());
   return contract.create(
     client,
     provider,

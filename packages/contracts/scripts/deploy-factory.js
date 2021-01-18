@@ -1,4 +1,5 @@
-const {ethers} = require("@nomiclabs/buidler");
+/* eslint-disable */
+const { ethers } = require("@nomiclabs/buidler");
 
 async function main() {
   const [deployer] = await ethers.getSigners();

@@ -1,13 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { AppContext } from '../context/AppContext';
-import { getResolverString, getToken } from '../utils/Helpers';
-import { BigNumber, utils } from 'ethers';
-import { uploadDisputeDetails } from '../utils/Ipfs';
-import { lock } from '../utils/Invoice';
-
 import '../sass/lockFunds.scss';
+
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useState } from 'react';
+
+import { Web3Context } from '../context/Web3Context';
+import { getResolverString, getToken } from '../utils/helpers';
+import { lock } from '../utils/invoice';
+import { uploadDisputeDetails } from '../utils/ipfs';
+
 export const LockFunds = ({ invoice, balance, close }) => {
-  const { address, provider } = useContext(AppContext);
+  const { address, provider } = useContext(Web3Context);
   const { resolverType, token } = invoice;
   const resolver = getResolverString(resolverType);
   const { decimals, symbol } = getToken(token);
@@ -15,9 +17,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
   const fee =
     resolverType === 'lex_dao'
       ? `${utils.formatUnits(
-          BigNumber.from(balance)
-            .mul(5)
-            .div(100),
+          BigNumber.from(balance).mul(5).div(100),
           decimals,
         )} ${symbol}`
       : `150 DAI`;
@@ -68,7 +68,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
           <div className="ordered-inputs">
             <p className="tooltip">
               <sl-tooltip content="Why do you want to lock these funds?">
-                <i className="far fa-question-circle"></i>
+                <i className="far fa-question-circle" />
               </sl-tooltip>
             </p>
             <label>Dispute Reason</label>
@@ -82,7 +82,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
             <u>{resolver}</u> charges a {fee} fee to resolve this dispute. This
             amount will be deducted from the locked fund amount.
           </p>
-          <button onClick={lockFunds}>
+          <button type="button" onClick={lockFunds}>
             Lock {utils.formatUnits(balance, decimals)} {symbol}
           </button>
           <a
@@ -109,7 +109,9 @@ export const LockFunds = ({ invoice, balance, close }) => {
 const LexDAOSteps = ({ close }) => {
   return (
     <>
-      <button onClick={close}>Close</button>
+      <button type="button" onClick={close}>
+        Close
+      </button>
     </>
   );
 };

@@ -1,13 +1,14 @@
-import {client} from './client';
 import gql from 'fake-tag';
-import {isAddress} from '../utils/Helpers';
-import {InvoiceDetails} from './fragments';
+
+import { isAddress } from '../utils/helpers';
+import { client } from './client';
+import { InvoiceDetails } from './fragments';
 
 const searchQuery = gql`
   query Search($search: String, $first: Int) {
     invoices(
       first: $first
-      where: {projectName_contains: $search}
+      where: { projectName_contains: $search }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -21,7 +22,7 @@ const addressSearchQuery = gql`
   query AddressSearch($search: Bytes, $first: Int) {
     addressInvoices: invoices(
       first: $first
-      where: {address_contains: $search}
+      where: { address_contains: $search }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -29,7 +30,7 @@ const addressSearchQuery = gql`
     }
     clientInvoices: invoices(
       first: $first
-      where: {client_contains: $search}
+      where: { client_contains: $search }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -37,7 +38,7 @@ const addressSearchQuery = gql`
     }
     providerInvoices: invoices(
       first: $first
-      where: {provider_contains: $search}
+      where: { provider_contains: $search }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -51,7 +52,7 @@ export const search = async (searchInput, first = 10) => {
   const isAddressSearch = isAddress(searchInput);
 
   const query = isAddressSearch ? addressSearchQuery : searchQuery;
-  const {data, error} = await client
+  const { data, error } = await client
     .query(query, {
       first,
       search: isAddressSearch || searchInput,

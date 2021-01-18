@@ -1,8 +1,10 @@
 {
-  "root": true,
+  "env": {
+    "es6": true
+  },
   "extends": ["airbnb", "prettier/react", "prettier", "react-app"],
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 8,
     "sourceType": "module"
   },
   "plugins": ["simple-import-sort"],
@@ -21,6 +23,9 @@
     "react/jsx-props-no-spreading": "off",
 
     // disable prop-types
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+
+    // disable form label
+    "jsx-a11y/label-has-associated-control": "off"
   }
 }

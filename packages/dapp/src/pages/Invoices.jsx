@@ -1,15 +1,15 @@
-import React, { useEffect, useContext } from 'react';
-import { withRouter } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
-import SearchContextProvider, { SearchContext } from '../context/SearchContext';
-
-import { Loader } from '../components/Loader';
-
 import '../sass/invoicesStyles.scss';
 
-const Invoices = ({ history }) => {
+import React, { useContext, useEffect } from 'react';
+import { withRouter } from 'react-router-dom';
+
+import { Loader } from '../components/Loader';
+import { SearchContext, SearchContextProvider } from '../context/SearchContext';
+import { Web3Context } from '../context/Web3Context';
+
+const InvoicesInner = ({ history }) => {
   const { search, setSearch, result, fetching } = useContext(SearchContext);
-  const { address } = useContext(AppContext);
+  const { address } = useContext(Web3Context);
 
   useEffect(() => setSearch(address), [address, setSearch]);
   return (
@@ -23,13 +23,14 @@ const Invoices = ({ history }) => {
               value={search}
               placeholder="Search for Invoice"
               onChange={e => setSearch(e.target.value)}
-            ></input>
+            />
             {fetching && <Loader size="20" />}
           </div>
 
           <div className="invoices-res">
             {result &&
               result.map(invoice => (
+                // eslint-disable-next-line
                 <div
                   className="invoices-res-item"
                   onClick={() => history.push(`/invoice/${invoice.address}`)}
@@ -47,8 +48,8 @@ const Invoices = ({ history }) => {
 
 const InvoicesWithProvider = props => (
   <SearchContextProvider>
-    <Invoices {...props} />
+    <InvoicesInner {...props} />
   </SearchContextProvider>
 );
 
-export default withRouter(InvoicesWithProvider);
+export const Invoices = withRouter(InvoicesWithProvider);

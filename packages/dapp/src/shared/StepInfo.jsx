@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StepInfo = ({stepNum, stepTitle, stepDetails}) => {
+export const StepInfo = ({ stepNum, stepTitle, stepDetails }) => {
   return (
     <section className="invoice-step-details">
       <p className="section-title">Create a Smart Invoice</p>
@@ -9,7 +9,7 @@ const StepInfo = ({stepNum, stepTitle, stepDetails}) => {
       </p>
       {stepDetails.map((detail, index) => {
         return (
-          <p className="step-details" key={index}>
+          <p className="step-details" key={index.toString()}>
             {detail}
           </p>
         );
@@ -17,5 +17,3 @@ const StepInfo = ({stepNum, stepTitle, stepDetails}) => {
     </section>
   );
 };
-
-export default StepInfo;

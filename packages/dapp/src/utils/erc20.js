@@ -1,4 +1,4 @@
-import { utils, Contract } from 'ethers';
+import { Contract, utils } from 'ethers';
 
 export const balanceOf = async (ethersProvider, token, address) => {
   const abi = new utils.Interface([

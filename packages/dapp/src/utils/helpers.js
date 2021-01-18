@@ -1,5 +1,8 @@
-import { dai_token, weth_token } from './Constants';
 import { getAddress } from '@ethersproject/address';
+
+import { ADDRESSES } from './constants';
+
+const { DAI_TOKEN, WETH_TOKEN } = ADDRESSES;
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -28,9 +31,9 @@ export const getResolverString = resolverType => {
 
 export const getToken = token => {
   switch (token.toLowerCase()) {
-    case weth_token:
+    case WETH_TOKEN:
       return { decimals: 18, symbol: 'WETH' };
-    case dai_token:
+    case DAI_TOKEN:
     default:
       return { decimals: 18, symbol: 'DAI' };
   }

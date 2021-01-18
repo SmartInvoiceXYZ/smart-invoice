@@ -176,10 +176,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(_msgSender() == client || _msgSender() == provider, "!party");
 
     if (resolverType == ADR.ARAGON_COURT) {
-      (address disputeToken, uint256 disputeFee) = _payDisputeFees(
-        resolver,
-        balance
-      );
+      (address disputeToken, uint256 disputeFee) =
+        _payDisputeFees(resolver, balance);
       disputeId = IArbitrator(resolver).createDispute(
         DISPUTES_POSSIBLE_OUTCOMES,
         "0x"

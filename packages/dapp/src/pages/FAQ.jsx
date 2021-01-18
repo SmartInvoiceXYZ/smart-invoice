@@ -1,14 +1,13 @@
-import React from 'react';
-
-import {
-  dai_token,
-  weth_token,
-  smart_invoices_factory,
-} from '../utils/Constants';
-import { getAddressLink } from '../utils/Helpers';
 import '../sass/faqStyles.scss';
 
-const FAQ = () => {
+import React from 'react';
+
+import { ADDRESSES } from '../utils/constants';
+import { getAddressLink } from '../utils/helpers';
+
+const { DAI_TOKEN, FACTORY, WETH_TOKEN } = ADDRESSES;
+
+export const FAQ = () => {
   return (
     <div className="main overlay">
       <div className="faq">
@@ -16,36 +15,34 @@ const FAQ = () => {
         <p>
           INVOICE FACTORY:{' '}
           <a
-            href={getAddressLink(smart_invoices_factory)}
+            href={getAddressLink(FACTORY)}
             target="_blank"
             rel="noopener noreferrer"
           >
-            {smart_invoices_factory}
+            {FACTORY}
           </a>
         </p>
         <p>
           WRAPPED ETH:{' '}
           <a
-            href={getAddressLink(weth_token)}
+            href={getAddressLink(WETH_TOKEN)}
             target="_blank"
             rel="noopener noreferrer"
           >
-            {weth_token}
+            {WETH_TOKEN}
           </a>
         </p>
         <p>
           DAI:{' '}
           <a
-            href={getAddressLink(dai_token)}
+            href={getAddressLink(DAI_TOKEN)}
             target="_blank"
             rel="noopener noreferrer"
           >
-            {dai_token}
+            {DAI_TOKEN}
           </a>
         </p>
       </div>
     </div>
   );
 };
-
-export default FAQ;

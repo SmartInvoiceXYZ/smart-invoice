@@ -1,11 +1,10 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
-
-import Web3 from 'web3';
-import { ethers } from 'ethers';
-import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
+import { ethers } from 'ethers';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
+import Web3 from 'web3';
+import Web3Modal from 'web3modal';
 
-import { chain_id as SUPPORTED_NETWORK } from '../utils/Constants';
+import { NETWORK } from '../utils/constants';
 
 const providerOptions = {
   walletconnect: {
@@ -25,9 +24,9 @@ const web3Modal = new Web3Modal({
   },
 });
 
-export const AppContext = createContext();
+export const Web3Context = createContext();
 
-const AppContextProvider = ({ children }) => {
+export const Web3ContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState({});
   const { web3, account, ethersProvider, chainId } = provider;
@@ -35,17 +34,15 @@ const AppContextProvider = ({ children }) => {
   const setWeb3Provider = async (prov, updateAccount = false) => {
     if (prov) {
       const web3Provider = new Web3(prov);
-      const ethersProvider = new ethers.providers.Web3Provider(
-        web3Provider.currentProvider,
-      );
-
       const providerNetwork = await web3Provider.eth.getChainId();
       if (updateAccount) {
         const gotAccounts = await web3Provider.eth.getAccounts();
         setProvider(_provider => ({
           ..._provider,
           web3: web3Provider,
-          ethersProvider,
+          ethersProvider: new ethers.providers.Web3Provider(
+            web3Provider.currentProvider,
+          ),
           chainId: providerNetwork,
           account: gotAccounts[0],
         }));
@@ -53,7 +50,9 @@ const AppContextProvider = ({ children }) => {
         setProvider(_provider => ({
           ..._provider,
           web3: web3Provider,
-          ethersProvider,
+          ethersProvider: new ethers.providers.Web3Provider(
+            web3Provider.currentProvider,
+          ),
           chainId: providerNetwork,
         }));
       }
@@ -61,8 +60,8 @@ const AppContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (chainId !== SUPPORTED_NETWORK) {
-      //TODO show error alert that invalid network is connected
+    if (chainId !== NETWORK) {
+      // TODO show error alert that invalid network is connected
     }
   }, [chainId]);
 
@@ -113,7 +112,7 @@ const AppContextProvider = ({ children }) => {
   }, [connectWeb3]);
 
   return (
-    <AppContext.Provider
+    <Web3Context.Provider
       value={{
         loading,
         address: account,
@@ -125,8 +124,6 @@ const AppContextProvider = ({ children }) => {
       }}
     >
       {children}
-    </AppContext.Provider>
+    </Web3Context.Provider>
   );
 };
-
-export default AppContextProvider;

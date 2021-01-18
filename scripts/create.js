@@ -40,7 +40,7 @@ async function create() {
       projectDescription,
       projectAgreement,
     } = await getInput();
-    const {bytes, hash} = await ipfsService.uploadJson({
+    const { bytes, hash } = await ipfsService.uploadJson({
       projectName,
       projectDescription,
       projectAgreement,
@@ -49,7 +49,7 @@ async function create() {
 
     const details = `0x${bytes.slice(2).toString('hex')}`;
     console.log('details uploaded to ipfs');
-    console.log({hash, details});
+    console.log({ hash, details });
 
     const invoiceCount = Number(await invoiceCreator.invoiceCount());
     const tx = await invoiceCreator.register(

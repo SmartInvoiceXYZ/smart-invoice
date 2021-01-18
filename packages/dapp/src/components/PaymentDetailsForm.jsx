@@ -1,12 +1,30 @@
-import React, {useContext, useRef, useEffect} from 'react';
-import {utils, BigNumber} from 'ethers';
-import {dai_token, weth_token} from '../utils/Constants';
-import {CreateContext} from '../context/CreateContext';
-import {getToken} from '../utils/Helpers';
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useRef } from 'react';
 
-const PaymentDetailsForm = () => {
-  const context = useContext(CreateContext);
-  const {setTermsAccepted} = context;
+import { CreateContext } from '../context/CreateContext';
+import { ADDRESSES } from '../utils/constants';
+import { getToken } from '../utils/helpers';
+
+const { DAI_TOKEN, WETH_TOKEN } = ADDRESSES;
+
+export const PaymentDetailsForm = () => {
+  const {
+    clientAddress,
+    setClientAddress,
+    paymentAddress,
+    setPaymentAddress,
+    paymentToken,
+    setPaymentToken,
+    paymentDue,
+    setPaymentDue,
+    milestones,
+    setMilestones,
+    arbitrationProvider,
+    setArbitrationProvider,
+    setPayments,
+    termsAccepted,
+    setTermsAccepted,
+  } = useContext(CreateContext);
   const checkBox = useRef(null);
   useEffect(() => {
     if (checkBox.current) {
@@ -15,34 +33,34 @@ const PaymentDetailsForm = () => {
       );
     }
   }, [checkBox, setTermsAccepted]);
-  const tokenData = getToken(context.paymentToken);
-  const {decimals, symbol} = tokenData;
+  const tokenData = getToken(paymentToken);
+  const { decimals, symbol } = tokenData;
   return (
     <section className="payment-details-form">
       <div className="ordered-inputs">
         <p className="tooltip">
           <sl-tooltip content="This will be the address used to access the invoice">
-            <i className="far fa-question-circle"></i>
+            <i className="far fa-question-circle" />
           </sl-tooltip>
         </p>
         <label>Client Address</label>
         <input
           type="text"
-          value={context.clientAddress}
-          onChange={e => context.setClientAddress(e.target.value)}
+          value={clientAddress}
+          onChange={e => setClientAddress(e.target.value)}
         />
       </div>
       <div className="ordered-inputs">
         <p className="tooltip">
           <sl-tooltip content="eg. Multisig, Gnosis safe">
-            <i className="far fa-question-circle"></i>
+            <i className="far fa-question-circle" />
           </sl-tooltip>
         </p>
         <label>Payment Address</label>
         <input
           type="text"
-          value={context.paymentAddress}
-          onChange={e => context.setPaymentAddress(e.target.value)}
+          value={paymentAddress}
+          onChange={e => setPaymentAddress(e.target.value)}
         />
       </div>
       <div className="parallel-inputs">
@@ -52,9 +70,9 @@ const PaymentDetailsForm = () => {
             type="number"
             onChange={e => {
               if (e.target.value && !isNaN(Number(e.target.value))) {
-                context.setPaymentDue(utils.parseEther(e.target.value));
+                setPaymentDue(utils.parseEther(e.target.value));
               } else {
-                context.setPaymentDue(BigNumber.from(0));
+                setPaymentDue(BigNumber.from(0));
               }
             }}
           />
@@ -62,34 +80,33 @@ const PaymentDetailsForm = () => {
         <div className="ordered-inputs">
           <label>Payment Token</label>
           <select
-            name="token"
-            id="token"
-            value={context.paymentToken}
-            onChange={e => context.setPaymentToken(e.target.value)}
+            value={paymentToken}
+            onChange={e => setPaymentToken(e.target.value)}
           >
-            <option value={dai_token}>DAI</option>
-            <option value={weth_token}>wETH</option>
+            <option value={DAI_TOKEN}>DAI</option>
+            <option value={WETH_TOKEN}>wETH</option>
           </select>
         </div>
         <div className="ordered-inputs">
           <p className="tooltip">
             <sl-tooltip content="Number of milestones in which the total payment will be processed">
-              <i className="far fa-question-circle"></i>
+              <i className="far fa-question-circle" />
             </sl-tooltip>
           </p>
           <label>Number of Payments</label>
           <input
             type="number"
-            value={context.milestones}
+            value={milestones}
             onChange={e => {
-              const numMilestones = Number(e.target.value);
-              context.setMilestones(numMilestones);
-              const payments = Array(numMilestones)
-                .fill(1)
-                .map(() => {
-                  return BigNumber.from(0);
-                });
-              context.setPayments(payments);
+              const numMilestones = e.target.value ? Number(e.target.value) : 1;
+              setMilestones(numMilestones);
+              setPayments(
+                Array(numMilestones)
+                  .fill(1)
+                  .map(() => {
+                    return BigNumber.from(0);
+                  }),
+              );
             }}
           />
         </div>
@@ -98,15 +115,13 @@ const PaymentDetailsForm = () => {
         <div className="ordered-inputs">
           <p className="tooltip">
             <sl-tooltip content="Arbitration provider that will be used incase of a dispute">
-              <i className="far fa-question-circle"></i>
+              <i className="far fa-question-circle" />
             </sl-tooltip>
           </p>
           <label>Arbitration Provider</label>
           <select
-            name="provider"
-            id="provider"
-            value={context.arbitrationProvider}
-            onChange={e => context.setArbitrationProvider(e.target.value)}
+            value={arbitrationProvider}
+            onChange={e => setArbitrationProvider(e.target.value)}
           >
             <option value="Lex">Lex DAO</option>
             <option value="Aragon Court">Aragon Court</option>
@@ -115,7 +130,7 @@ const PaymentDetailsForm = () => {
         <div className="ordered-inputs">
           <p className="tooltip">
             <sl-tooltip content="The fee that is used to resolve the issue in case of a dispute">
-              <i className="far fa-question-circle"></i>
+              <i className="far fa-question-circle" />
             </sl-tooltip>
           </p>
           <label>Max Fee</label>
@@ -123,9 +138,9 @@ const PaymentDetailsForm = () => {
             type="text"
             disabled
             value={
-              context.arbitrationProvider === 'Lex'
+              arbitrationProvider === 'Lex'
                 ? `${utils.formatUnits(
-                    context.paymentDue.mul(5).div(100),
+                    paymentDue.mul(5).div(100),
                     decimals,
                   )} ${symbol}`
                 : `150 DAI`
@@ -133,7 +148,7 @@ const PaymentDetailsForm = () => {
           />
         </div>
         <div className="ordered-inputs">
-          {context.arbitrationProvider === 'Lex' ? (
+          {arbitrationProvider === 'Lex' ? (
             <p id="arb-fee-desc">
               LexDAO deducts a 5% arbitration fee from remaining funds in the
               case of dispute
@@ -145,10 +160,10 @@ const PaymentDetailsForm = () => {
           )}
         </div>
       </div>
-      {context.arbitrationProvider === 'Lex' ? (
+      {arbitrationProvider === 'Lex' ? (
         <sl-checkbox
-          value={context.termsAccepted}
-          checked={context.termsAccepted}
+          value={termsAccepted}
+          checked={termsAccepted}
           ref={checkBox}
         >
           I agree to LexDAO{' '}
@@ -162,8 +177,8 @@ const PaymentDetailsForm = () => {
         </sl-checkbox>
       ) : (
         <sl-checkbox
-          value={context.termsAccepted}
-          checked={context.termsAccepted}
+          value={termsAccepted}
+          checked={termsAccepted}
           ref={checkBox}
         >
           I agree to Aragon Court{' '}
@@ -179,5 +194,3 @@ const PaymentDetailsForm = () => {
     </section>
   );
 };
-
-export default PaymentDetailsForm;

@@ -1,19 +1,21 @@
-import React, { useContext } from 'react';
-import { withRouter } from 'react-router-dom';
-
-import { AppContext } from '../context/AppContext';
-
 import '../sass/homeStyles.scss';
 
-const Home = props => {
-  const { provider, address, connectAccount } = useContext(AppContext);
+import React, { useContext } from 'react';
+import { useHistory } from 'react-router-dom';
+
+import { Web3Context } from '../context/Web3Context';
+
+export const Home = () => {
+  const { provider, address, connectAccount } = useContext(Web3Context);
+
+  const history = useHistory();
 
   const createInvoice = async () => {
     if (!provider) {
       await connectAccount();
     }
     if (address === '') return;
-    props.history.push('/create-invoice');
+    history.push('/create-invoice');
   };
 
   const viewInvoices = async () => {
@@ -21,18 +23,18 @@ const Home = props => {
       await connectAccount();
     }
     if (address === '') return;
-    props.history.push('/invoices');
+    history.push('/invoices');
   };
 
   return (
     <div className="main">
       <div className="home">
         <div>
-          <button className="bg-red" onClick={createInvoice}>
+          <button className="bg-red" onClick={createInvoice} type="button">
             CREATE A NEW SMART INVOICE
           </button>
           <p>or</p>
-          <button className="bg-red" onClick={viewInvoices}>
+          <button className="bg-red" onClick={viewInvoices} type="button">
             VIEW EXISTING INVOICE
           </button>
         </div>
@@ -40,5 +42,3 @@ const Home = props => {
     </div>
   );
 };
-
-export default withRouter(Home);

@@ -1,21 +1,23 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { withRouter, Link } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
-import { CreateContext } from '../context/CreateContext';
-import { awaitInvoiceAddress } from '../utils/Invoice';
-
 import '../sass/registerSuccessStyles.scss';
-import { getTxLink } from '../utils/Helpers';
 
-const RegisterSuccess = props => {
-  const { provider } = useContext(AppContext);
+import React, { useContext, useEffect, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+
+import { CreateContext } from '../context/CreateContext';
+import { Web3Context } from '../context/Web3Context';
+import { getTxLink } from '../utils/helpers';
+import { awaitInvoiceAddress } from '../utils/invoice';
+
+export const RegisterSuccess = () => {
+  const { provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceID, setInvoiceID] = useState();
+  const history = useHistory();
 
   useEffect(() => {
     if (tx && provider) {
       awaitInvoiceAddress(provider, tx).then(id => {
-        console.log(id);
+        console.log({ newInvoiceId: id });
         setInvoiceID(id);
       });
     }
@@ -38,22 +40,24 @@ const RegisterSuccess = props => {
             later:
           </p>
           <div>
-            <label>Your Invoice ID</label>
+            <span className="label">Your Invoice ID</span>
             <p>{invoiceID}</p>
           </div>
           <div>
-            <label>Link to Invoice</label>
+            <span className="label">Link to Invoice</span>
             <Link
               href={`/invoice/${invoiceID}`}
             >{`${window.location.protocol}://${window.location.hostname}/invoice/${invoiceID}`}</Link>
           </div>
         </>
       )}
-      <button id="return-home-button" onClick={() => props.history.push('/')}>
+      <button
+        type="button"
+        id="return-home-button"
+        onClick={() => history.push('/')}
+      >
         Return Home
       </button>
     </div>
   );
 };
-
-export default withRouter(RegisterSuccess);

@@ -1,14 +1,13 @@
-import React, {useContext, useRef} from 'react';
-import {Link} from 'react-router-dom';
+import React, { useContext, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
-import Logo from '../assets/raidguild__logo.png';
 import LogoText from '../assets/logo.svg';
-import {AppContext} from '../context/AppContext';
+import Logo from '../assets/raidguild__logo.png';
+import { Web3Context } from '../context/Web3Context';
+import { NAV_ITEMS } from '../utils/constants';
 
-const {nav_items} = require('../utils/Constants');
-
-const Header = () => {
-  const {provider, connectAccount, disconnect} = useContext(AppContext);
+export const Header = () => {
+  const { provider, connectAccount, disconnect } = useContext(Web3Context);
   const navLinks = useRef(null);
   const onHamburger = () => {
     navLinks.current.classList.toggle('open');
@@ -21,24 +20,26 @@ const Header = () => {
           <img src={LogoText} alt="logo-text" />
         </div>
       </Link>
-
+      {/* eslint-disable-next-line */}
       <nav className="hamburger" onClick={onHamburger}>
-        <i className="fas fa-bars fa-3x"></i>
+        <i className="fas fa-bars fa-3x" />
       </nav>
       <ul className="nav-links" ref={navLinks}>
-        {nav_items.map((item, index) => {
+        {NAV_ITEMS.map(item => {
           return (
-            <li key={index}>
+            <li key={item.name}>
               <Link to={item.link}>{item.name}</Link>
             </li>
           );
         })}
         {provider ? (
           <li>
+            {/* eslint-disable-next-line */}
             <span onClick={disconnect}>DISCONNECT</span>
           </li>
         ) : (
           <li>
+            {/* eslint-disable-next-line */}
             <span onClick={connectAccount}>CONNECT</span>
           </li>
         )}
@@ -46,5 +47,3 @@ const Header = () => {
     </header>
   );
 };
-
-export default Header;

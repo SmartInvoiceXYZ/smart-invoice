@@ -1,24 +1,24 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { BigNumber, utils } from 'ethers';
-
 import '../sass/viewInvoiceStyles.scss';
-import { getInvoice } from '../graphql/getInvoice';
-import { getDateString, getResolverString, getToken } from '../utils/Helpers';
-import { release } from '../utils/Invoice';
-import { balanceOf } from '../utils/ERC20';
-import { AppContext } from '../context/AppContext';
 
-import { LockFunds } from '../components/LockFunds';
-import { Loader } from '../components/Loader';
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useState } from 'react';
+
 import { DepositFunds } from '../components/DepositFunds';
+import { Loader } from '../components/Loader';
+import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
+import { Web3Context } from '../context/Web3Context';
+import { getInvoice } from '../graphql/getInvoice';
+import { balanceOf } from '../utils/erc20';
+import { getDateString, getResolverString, getToken } from '../utils/helpers';
+import { release } from '../utils/invoice';
 
-const ViewInvoice = ({
+export const ViewInvoice = ({
   match: {
     params: { invoiceId },
   },
 }) => {
-  const { provider } = useContext(AppContext);
+  const { provider } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [releaseLoading, setReleaseLoading] = useState(false);
@@ -66,6 +66,7 @@ const ViewInvoice = ({
           setBalance(b);
           setBalanceLoading(false);
         })
+        // eslint-disable-next-line no-console
         .catch(balanceError => console.error({ balanceError }));
     }
   }, [invoice, provider]);
@@ -133,10 +134,10 @@ const ViewInvoice = ({
               <p>{`${utils.formatUnits(total, decimals)} ${symbol}`}</p>
             </div>
             <div id="payment-milestone">
-              {amounts.map((amount, index) => (
-                <div key={index + 1}>
+              {amounts.map((amt, index) => (
+                <div key={index.toString()}>
                   <p>Project Milestone #{index + 1}</p>
-                  <p>{`${utils.formatUnits(amount, decimals)} ${symbol}`}</p>
+                  <p>{`${utils.formatUnits(amt, decimals)} ${symbol}`}</p>
                 </div>
               ))}
             </div>
@@ -164,26 +165,35 @@ const ViewInvoice = ({
           </div>
           <div className="invoice-buttons">
             <div id="secondary-buttons">
-              <button id="lock-button" onClick={() => onLock()}>
+              <button id="lock-button" onClick={() => onLock()} type="button">
                 Lock
               </button>
-              <button id="deposit-button" onClick={() => onDeposit()}>
+              <button
+                id="deposit-button"
+                onClick={() => onDeposit()}
+                type="button"
+              >
                 Deposit
               </button>
             </div>
-            <button id="primary-button" onClick={() => onRelease()}>
+            <button
+              id="primary-button"
+              onClick={() => onRelease()}
+              type="button"
+            >
               {releaseLoading ? 'Loading...' : 'Release'}
             </button>
           </div>
         </div>
         <div className={`modal ${modal ? 'is-active' : null}`}>
-          <div className="modal-background"></div>
+          <div className="modal-background" />
           <div className="modal-content">
             <button
+              type="button"
               className="modal-close is-large"
               aria-label="close"
               onClick={() => setModal(false)}
-            ></button>
+            />
             {modal && selected === 0 && (
               <LockFunds
                 invoice={invoice}
@@ -211,5 +221,3 @@ const ViewInvoice = ({
     </div>
   );
 };
-
-export default ViewInvoice;

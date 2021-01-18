@@ -1,6 +1,7 @@
+import '../sass/releaseFunds.scss';
+
 import React from 'react';
 
-import '../sass/releaseFunds.scss';
 export const ReleaseFunds = () => {
   return (
     <div className="release-funds">

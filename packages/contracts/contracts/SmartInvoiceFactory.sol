@@ -24,16 +24,17 @@ contract SmartInvoiceFactory {
     bytes32 _details
   ) public returns (address) {
     address invoiceAddress;
-    SmartInvoice invoice = new SmartInvoice(
-      _client,
-      _provider,
-      _resolverType,
-      _resolver,
-      _token,
-      _amounts,
-      _terminationTime,
-      _details
-    );
+    SmartInvoice invoice =
+      new SmartInvoice(
+        _client,
+        _provider,
+        _resolverType,
+        _resolver,
+        _token,
+        _amounts,
+        _terminationTime,
+        _details
+      );
     invoiceAddress = address(invoice);
 
     uint256 invoiceId = id;

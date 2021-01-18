@@ -1,17 +1,24 @@
-import React, {useContext} from 'react';
-import {utils} from 'ethers';
-import {CreateContext} from '../context/CreateContext';
-import {getToken} from '../utils/Helpers';
+import { utils } from 'ethers';
+import React, { useContext } from 'react';
 
-const ProjectChunksForm = () => {
-  const context = useContext(CreateContext);
-  const tokenData = getToken(context.paymentToken);
-  const {decimals, symbol} = tokenData;
+import { CreateContext } from '../context/CreateContext';
+import { getToken } from '../utils/helpers';
+
+export const PaymentChunksForm = () => {
+  const {
+    paymentToken,
+    milestones,
+    payments,
+    setPayments,
+    paymentDue,
+  } = useContext(CreateContext);
+  const tokenData = getToken(paymentToken);
+  const { decimals, symbol } = tokenData;
   return (
     <section className="payment-chunks-form">
-      {Array.from(Array(Number(context.milestones))).map((_val, index) => {
+      {Array.from(Array(Number(milestones))).map((_val, index) => {
         return (
-          <div className="parallel-inputs" key={index}>
+          <div className="parallel-inputs" key={index.toString()}>
             <div className="ordered-inputs">
               <label>Payment {index + 1}</label>
               <div className="input-symbol">
@@ -21,11 +28,11 @@ const ProjectChunksForm = () => {
                     if (!e.target.value || isNaN(Number(e.target.value)))
                       return;
                     const amount = utils.parseEther(e.target.value);
-                    const newPayments = context.payments.slice();
+                    const newPayments = payments.slice();
                     newPayments[index] = amount;
-                    context.setPayments(newPayments);
+                    setPayments(newPayments);
                   }}
-                ></input>
+                />
                 <span>{symbol}</span>
               </div>
             </div>
@@ -33,11 +40,9 @@ const ProjectChunksForm = () => {
         );
       })}
       <div className="info-note">
-        Total Amount Must Add Up to{' '}
-        {utils.formatUnits(context.paymentDue, decimals)} {symbol}
+        Total Amount Must Add Up to {utils.formatUnits(paymentDue, decimals)}{' '}
+        {symbol}
       </div>
     </section>
   );
 };
-
-export default ProjectChunksForm;

@@ -1,9 +1,10 @@
-import { search } from '../graphql/search';
 import React, { createContext, useEffect, useState } from 'react';
+
+import { search } from '../graphql/search';
 
 export const SearchContext = createContext();
 
-const SearchContextProvider = ({ children }) => {
+export const SearchContextProvider = ({ children }) => {
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState();
@@ -17,6 +18,7 @@ const SearchContextProvider = ({ children }) => {
           setFetching(false);
         })
         .catch(searchError => {
+          // eslint-disable-next-line no-console
           console.error({ searchError });
           setResult();
           setFetching(false);
@@ -34,5 +36,3 @@ const SearchContextProvider = ({ children }) => {
     </SearchContext.Provider>
   );
 };
-
-export default SearchContextProvider;

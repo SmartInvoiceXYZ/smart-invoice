@@ -1,23 +1,22 @@
-import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-
-import AppContextProvider from './context/AppContext';
-
 import './App.scss';
 import './sass/sharedStyles.scss';
 
-import Header from './shared/Header';
-import Footer from './shared/Footer';
-import Home from './pages/Home';
-import FAQ from './pages/FAQ';
-import CreateInvoice from './pages/CreateInvoice';
-import ViewInvoice from './pages/ViewInvoice';
-import Invoices from './pages/Invoices';
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
-function App() {
+import { Web3ContextProvider } from './context/Web3Context';
+import { CreateInvoice } from './pages/CreateInvoice';
+import { FAQ } from './pages/FAQ';
+import { Home } from './pages/Home';
+import { Invoices } from './pages/Invoices';
+import { ViewInvoice } from './pages/ViewInvoice';
+import { Footer } from './shared/Footer';
+import { Header } from './shared/Header';
+
+export const App = () => {
   return (
     <div className="app">
-      <AppContextProvider>
+      <Web3ContextProvider>
         <Router>
           <Header />
           <Switch>
@@ -29,9 +28,7 @@ function App() {
           </Switch>
           <Footer />
         </Router>
-      </AppContextProvider>
+      </Web3ContextProvider>
     </div>
   );
-}
-
-export default App;
+};

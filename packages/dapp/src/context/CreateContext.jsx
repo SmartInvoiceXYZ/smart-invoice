@@ -1,16 +1,18 @@
 /* eslint-disable no-unused-vars */
-import React, {createContext, useState, useContext} from 'react';
+import { BigNumber } from 'ethers';
+import React, { createContext, useContext, useState } from 'react';
 
-import {uploadMetadata} from '../utils/Ipfs';
-import {register} from '../utils/Invoice';
-import {lex_dao, aragon_court, dai_token} from '../utils/Constants';
-import {BigNumber} from 'ethers';
-import {AppContext} from './AppContext';
+import { ADDRESSES } from '../utils/constants';
+import { register } from '../utils/invoice';
+import { uploadMetadata } from '../utils/ipfs';
+import { Web3Context } from './Web3Context';
+
+const { ARAGON_COURT, DAI_TOKEN, LEX_DAO } = ADDRESSES;
 
 export const CreateContext = createContext();
 
-const CreateContextProvider = props => {
-  const {provider} = useContext(AppContext);
+export const CreateContextProvider = ({ children }) => {
+  const { provider } = useContext(Web3Context);
 
   // project details value
   const [projectName, setProjectName] = useState('');
@@ -23,7 +25,7 @@ const CreateContextProvider = props => {
   const [clientAddress, setClientAddress] = useState('');
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
-  const [paymentToken, setPaymentToken] = useState(dai_token);
+  const [paymentToken, setPaymentToken] = useState(DAI_TOKEN);
   const [milestones, setMilestones] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(
@@ -55,21 +57,29 @@ const CreateContextProvider = props => {
       projectAgreement,
       startDate: Math.floor(startDate / 1000),
       endDate: Math.floor(endDate / 1000),
+    }).catch(ipfsError => {
+      // eslint-disable-next-line no-console
+      console.error({ ipfsError });
+      throw ipfsError;
     });
 
-    const tx = await register(
+    const transaction = await register(
       provider,
       clientAddress,
       paymentAddress,
       arbitrationProvider === 'Aragon Court' ? 1 : 0,
-      arbitrationProvider === 'Aragon Court' ? aragon_court : lex_dao,
+      arbitrationProvider === 'Aragon Court' ? ARAGON_COURT : LEX_DAO,
       paymentToken,
       payments,
       Math.floor(safetyValveDate / 1000),
       detailsHash,
-    );
+    ).catch(registerError => {
+      // eslint-disable-next-line no-console
+      console.error({ registerError });
+      throw registerError;
+    });
 
-    setTx(tx);
+    setTx(transaction);
     setLoading(false);
   };
 
@@ -110,9 +120,7 @@ const CreateContextProvider = props => {
         createInvoice,
       }}
     >
-      {props.children}
+      {children}
     </CreateContext.Provider>
   );
 };
-
-export default CreateContextProvider;
