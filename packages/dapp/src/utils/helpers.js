@@ -52,3 +52,7 @@ export const getTxLink = hash => `https://rinkeby.etherscan.io/tx/${hash}`;
 
 export const getAddressLink = hash =>
   `https://rinkeby.etherscan.io/address/${hash}`;
+
+export const getInvoiceStatus = _invoice => {
+  return { funded: true, label: 'FUNDED' };
+};
