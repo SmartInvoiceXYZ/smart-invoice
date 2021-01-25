@@ -1,8 +1,8 @@
 [
   {
     "network": "rinkeby",
-    "mono": "0xd09Fdad24DE8C4CE3C65be5eeBFE841ecd24220B",
-    "factory": "0x99bF7aEc181E86bC1AD6c72Cfa190C1D590c4D00"
+    "mono": "",
+    "factory": "0xaf0aDaCf88ffeACB1d76cB41B139b6359192C50d"
   },
   {
     "network": "kovan",

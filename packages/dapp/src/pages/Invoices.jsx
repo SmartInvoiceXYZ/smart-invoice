@@ -6,12 +6,26 @@ import { withRouter } from 'react-router-dom';
 import { Loader } from '../components/Loader';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
+import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
+
+const InvoiceStatusLabel = ({ invoice }) => {
+  const { funded, label, loading } = useInvoiceStatus(invoice);
+  return (
+    <span className={`invoice-status ${funded ? 'funded' : ''}`}>
+      {loading ? <Loader size="20" /> : label}
+    </span>
+  );
+};
 
 const InvoicesInner = ({ history }) => {
   const { search, setSearch, result, fetching } = useContext(SearchContext);
   const { address } = useContext(Web3Context);
 
-  useEffect(() => setSearch(address), [address, setSearch]);
+  useEffect(() => {
+    if (address) {
+      setSearch(address);
+    }
+  }, [address, setSearch]);
   return (
     <div className="main">
       <div className="invoices">
@@ -36,9 +50,15 @@ const InvoicesInner = ({ history }) => {
                   onClick={() => history.push(`/invoice/${invoice.address}`)}
                   key={invoice.address}
                 >
-                  {invoice.projectName}
+                  <span> {invoice.projectName} </span>
+                  <InvoiceStatusLabel invoice={invoice} />
                 </div>
               ))}
+            {!fetching && result && result.length === 0 && (
+              <div className="invoices-res-item">
+                <span> No invoices found </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,4 @@
-import 'react-day-picker/lib/style.css';
-
 import React, { useContext } from 'react';
-import DayPickerInput from 'react-day-picker/DayPickerInput';
 
 import { CreateContext } from '../context/CreateContext';
 
@@ -56,15 +53,20 @@ export const ProjectDetailsForm = () => {
         <div className="ordered-inputs">
           <p className="tooltip">optional</p>
           <label>Project Start Date</label>
-          <DayPickerInput
+          <input
+            type="date"
             value={startDate}
-            onDayChange={e => setStartDate(e)}
+            onChange={e => setStartDate(e.target.value)}
           />
         </div>
         <div className="ordered-inputs">
           <p className="tooltip">optional</p>
           <label>Expected End Date</label>
-          <DayPickerInput value={endDate} onDayChange={e => setEndDate(e)} />
+          <input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+          />
         </div>
         <div className="ordered-inputs">
           <p className="tooltip">
@@ -73,9 +75,10 @@ export const ProjectDetailsForm = () => {
             </sl-tooltip>
           </p>
           <label>Safety Valve Date</label>
-          <DayPickerInput
+          <input
+            type="date"
             value={safetyValveDate}
-            onDayChange={e => setSafetyValveDate(e)}
+            onChange={e => setSafetyValveDate(e.target.value)}
           />
         </div>
       </div>

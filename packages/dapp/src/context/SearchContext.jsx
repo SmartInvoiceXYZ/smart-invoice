@@ -26,7 +26,7 @@ export const SearchContextProvider = ({ children }) => {
     } else {
       setResult(undefined);
     }
-  }, [query, setQuery]);
+  }, [query]);
 
   return (
     <SearchContext.Provider

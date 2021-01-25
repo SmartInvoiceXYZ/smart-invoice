@@ -15,7 +15,6 @@
     "ipfs-http-client": "^48.0.0",
     "node-sass": "^4.14.1",
     "react": "^16.14.0",
-    "react-day-picker": "^7.4.8",
     "react-dom": "^16.14.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",

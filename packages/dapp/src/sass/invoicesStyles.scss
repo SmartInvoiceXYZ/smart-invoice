@@ -52,6 +52,14 @@
         cursor: pointer;
         background-color: $white-hover;
       }
+      .invoice-status {
+          text-transform: uppercase;
+          font-weight: 700;
+          color: $red;
+          &.funded {
+              color: $green;
+          }
+      }
     }
   }
 }

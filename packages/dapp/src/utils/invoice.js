@@ -68,7 +68,7 @@ export const lock = async (
   address,
   detailsHash, // 32 bits hex
 ) => {
-  const abi = new utils.Interface(['function lock(bytes32 details) public']);
+  const abi = new utils.Interface(['function lock(bytes32 details) external']);
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.lock(detailsHash);
 };

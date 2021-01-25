@@ -1,16 +1,19 @@
 import '../sass/lockFunds.scss';
 
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useCallback, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { getResolverString, getToken } from '../utils/helpers';
 import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
+import { Loader } from './Loader';
+import { ReactComponent as LockImage } from '../assets/lock.svg';
 
 export const LockFunds = ({ invoice, balance, close }) => {
-  const { address, provider } = useContext(Web3Context);
-  const { resolverType, token } = invoice;
+  const { provider } = useContext(Web3Context);
+  const { isLocked, address, resolverType, token } = invoice;
+  console.log(invoice);
   const resolver = getResolverString(resolverType);
   const { decimals, symbol } = getToken(token);
   const [disputeReason, setDisputeReason] = useState('');
@@ -22,8 +25,11 @@ export const LockFunds = ({ invoice, balance, close }) => {
         )} ${symbol}`
       : `150 DAI`;
 
-  const lockFunds = async () => {
-    if (provider && !locking && balance.gt(0)) {
+  const [showLexDAOSteps] = useState(false);
+  const [locking, setLocking] = useState(false);
+
+  const lockFunds = useCallback(async () => {
+    if (provider && !locking && balance.gt(0) && disputeReason) {
       setLocking(true);
 
       const detailsHash = await uploadDisputeDetails({
@@ -32,20 +38,39 @@ export const LockFunds = ({ invoice, balance, close }) => {
         amount: balance.toString(),
       });
 
-      const tx = await lock(provider, address, detailsHash);
+      try {
+        const tx = await lock(provider, address, detailsHash);
+        console.log({ tx: tx.hash });
+        await tx.wait();
+        window.location.href = `/invoice/${address}`;
+      } catch (lockError) {
+        //eslint-disable-next-line
+        console.error({ lockError });
+      }
 
-      await tx.wait();
       setLocking(false);
     }
-  };
-
-  const [showLexDAOSteps] = useState(false);
-  const [locking, setLocking] = useState(false);
+  }, [provider, locking, balance, address, disputeReason]);
 
   if (locking) {
     return (
       <div className="lock-funds">
         <h1> Locking Funds </h1>
+        <div className="locking-funds">
+          <Loader size="6rem" />
+          <LockImage className="image" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <div className="lock-funds">
+        <h1> Funds Locked </h1>
+        <div className="locking-funds">
+          <LockImage className="image locked" />
+        </div>
       </div>
     );
   }

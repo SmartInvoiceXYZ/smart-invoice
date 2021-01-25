@@ -9,7 +9,7 @@ import { getToken } from '../utils/helpers';
 
 const { WETH_TOKEN } = ADDRESSES;
 
-export const DepositFunds = ({ invoice, balance }) => {
+export const DepositFunds = ({ invoice, deposited }) => {
   const { address, token, amounts } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const numAmounts = amounts.length;
@@ -18,14 +18,24 @@ export const DepositFunds = ({ invoice, balance }) => {
   const [amountInput, setAmountInput] = useState('');
   const tokenData = getToken(token);
   const { decimals, symbol } = tokenData;
-  const deposit = () => {
+  const deposit = async () => {
     if (!amount || !provider) return;
-    if (paymentType === 1) {
-      provider.getSigner().sendTransaction({ to: address, value: amount });
-    } else {
-      const abi = ['function transfer(address, uint256) public'];
-      const tokenContract = new Contract(token, abi, provider.getSigner());
-      tokenContract.transfer(address, amount);
+    try {
+      let tx;
+      if (paymentType === 1) {
+        tx = await provider
+          .getSigner()
+          .sendTransaction({ to: address, value: amount });
+      } else {
+        const abi = ['function transfer(address, uint256) public'];
+        const tokenContract = new Contract(token, abi, provider.getSigner());
+        tx = await tokenContract.transfer(address, amount);
+      }
+      await tx.wait();
+      window.location.href = `/invoice/${address}`;
+    } catch (depositError) {
+      //eslint-disable-next-line
+      console.error({ depositError });
     }
   };
   const amountsRef = useRef(null);
@@ -82,8 +92,8 @@ export const DepositFunds = ({ invoice, balance }) => {
               key={i.toString()}
               value={a}
               name={i}
-              checked={balance.gte(sum)}
-              disabled={balance.gte(sum)}
+              checked={deposited.gte(sum)}
+              disabled={deposited.gte(sum)}
             >
               Payment #{i + 1} &nbsp; &nbsp;
               {utils.formatUnits(a, decimals)} {symbol}

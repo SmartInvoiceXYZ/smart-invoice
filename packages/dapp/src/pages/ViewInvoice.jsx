@@ -11,7 +11,6 @@ import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { balanceOf } from '../utils/erc20';
 import { getDateString, getResolverString, getToken } from '../utils/helpers';
-import { release } from '../utils/invoice';
 
 export const ViewInvoice = ({
   match: {
@@ -21,36 +20,9 @@ export const ViewInvoice = ({
   const { provider } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
-  const [releaseLoading, setReleaseLoading] = useState(false);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
-
-  const onLock = () => {
-    setSelected(0);
-    setModal(true);
-  };
-
-  const onDeposit = () => {
-    setSelected(1);
-    setModal(true);
-  };
-  const onRelease = async () => {
-    if (
-      !releaseLoading &&
-      !balanceLoading &&
-      provider &&
-      invoice &&
-      balance &&
-      balance.gte(invoice.amounts[invoice.currentMilestone])
-    ) {
-      setReleaseLoading(true);
-      const tx = await release(provider, invoice.address);
-      await tx.wait();
-      setReleaseLoading(false);
-      window.location.href = `/invoice/${invoiceId}`;
-    }
-  };
 
   useEffect(() => {
     if (invoiceId >= 0) {
@@ -101,7 +73,23 @@ export const ViewInvoice = ({
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
   const amount = BigNumber.from(amounts[currentMilestone]);
-  const isReleasable = amount.lte(balance);
+  const isReleasable = currentMilestone < amounts.length && amount.lte(balance);
+
+  const onLock = () => {
+    setSelected(0);
+    setModal(true);
+  };
+
+  const onDeposit = () => {
+    setSelected(1);
+    setModal(true);
+  };
+  const onRelease = async () => {
+    if (isReleasable) {
+      setSelected(2);
+      setModal(true);
+    }
+  };
 
   return (
     <div className="main overlay">
@@ -148,6 +136,10 @@ export const ViewInvoice = ({
                 <p>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</p>
               </div>
               <div>
+                <p>Total Released</p>
+                <p>{`${utils.formatUnits(released, decimals)} ${symbol}`}</p>
+              </div>
+              <div>
                 <p>Remaining Amount Due</p>
                 <p>{`${utils.formatUnits(due, decimals)} ${symbol}`}</p>
               </div>
@@ -181,7 +173,7 @@ export const ViewInvoice = ({
               onClick={() => onRelease()}
               type="button"
             >
-              {releaseLoading ? 'Loading...' : 'Release'}
+              Release
             </button>
           </div>
         </div>
@@ -204,7 +196,7 @@ export const ViewInvoice = ({
             {modal && selected === 1 && (
               <DepositFunds
                 invoice={invoice}
-                balance={balance}
+                deposited={deposited}
                 close={() => setModal(false)}
               />
             )}

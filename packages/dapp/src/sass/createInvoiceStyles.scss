@@ -78,6 +78,24 @@ a {
       outline: none;
       width: 100%;
     }
+
+    input[type='date']::-webkit-calendar-picker-indicator {
+      color: white;
+      opacity: 1;
+      display: block;
+      background: url(../assets/calendar.svg) no-repeat;
+      background-size: contain;
+      width: 14px;
+      height: 14px;
+      border-width: thin;
+      cursor: pointer;
+      transition: background 0.25s;
+      &:hover {
+          color: red;
+          background: url(../assets/calendar-red.svg) no-repeat;
+          background-size: contain;
+      }
+    }
     #arb-fee-desc {
       padding: 0.5rem;
       height: 100%;

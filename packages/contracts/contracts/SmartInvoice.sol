@@ -126,9 +126,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(_msgSender() == client, "!client");
 
     uint256 currentMilestone = milestone;
-    milestone = milestone.add(1);
-
-    uint256 amount = amounts[milestone];
+    uint256 amount = amounts[currentMilestone];
     uint256 balance = IERC20(token).balanceOf(address(this));
     if (currentMilestone == amounts.length && amount < balance) {
       amount = balance;
@@ -137,6 +135,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
 
     IERC20(token).safeTransfer(provider, amount);
     released = released.add(amount);
+    milestone = milestone.add(1);
 
     emit Release(currentMilestone, amount);
   }
