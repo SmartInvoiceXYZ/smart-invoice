@@ -10,7 +10,7 @@ import { getToken } from '../utils/helpers';
 export const ReleaseFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
   const { provider } = useContext(Web3Context);
-  const { invoiceId, currentMilestone, amounts, address, token } = invoice;
+  const { currentMilestone, amounts, address, token } = invoice;
 
   let amount = BigNumber.from(amounts[currentMilestone]);
   amount =
@@ -27,7 +27,7 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
         const tx = await release(provider, address);
         await tx.wait();
         setLoading(false);
-        window.location.href = `/invoice/${invoiceId}`;
+        window.location.href = `/invoice/${address}`;
       } catch (releaseError) {
         //eslint-disable-next-line
         console.error({ releaseError });
@@ -35,10 +35,8 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
     };
     if (!loading && provider && balance && balance.gte(amount)) {
       send();
-    } else {
-      close();
     }
-  }, [amount, address, provider, balance, close, loading, invoiceId]);
+  }, [amount, address, provider, balance, close, loading]);
 
   return (
     <div className="release-funds">

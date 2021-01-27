@@ -11,6 +11,7 @@ import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { balanceOf } from '../utils/erc20';
 import { getDateString, getResolverString, getToken } from '../utils/helpers';
+import { Redirect } from 'react-router-dom';
 
 export const ViewInvoice = ({
   match: {
@@ -25,7 +26,7 @@ export const ViewInvoice = ({
   const [selected, setSelected] = useState(0);
 
   useEffect(() => {
-    if (invoiceId >= 0) {
+    if (utils.isAddress(invoiceId)) {
       getInvoice(invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceId]);
@@ -42,6 +43,10 @@ export const ViewInvoice = ({
         .catch(balanceError => console.error({ balanceError }));
     }
   }, [invoice, provider]);
+
+  if (!utils.isAddress(invoiceId) || invoice === null) {
+    return <Redirect to="/" />;
+  }
 
   if (!invoice || balanceLoading) {
     return (
@@ -60,20 +65,23 @@ export const ViewInvoice = ({
     startDate,
     endDate,
     terminationTime,
-    resolverType,
-    // numMilestones,
+    resolver,
     currentMilestone,
     amounts,
     total,
     token,
     released,
+    isLocked,
   } = invoice;
+
+  console.log(invoice);
 
   const { decimals, symbol } = getToken(token);
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
   const amount = BigNumber.from(amounts[currentMilestone]);
   const isReleasable = currentMilestone < amounts.length && amount.lte(balance);
+  const isLockable = !isLocked && balance.gt(0);
 
   const onLock = () => {
     setSelected(0);
@@ -107,12 +115,12 @@ export const ViewInvoice = ({
             </a>
           </div>
           <div id="right-col">
-            <p>Project Start Date: {getDateString(startDate)}</p>
-            <p>Project End Date: {getDateString(endDate)}</p>
+            {startDate && <p>Project Start Date: {getDateString(startDate)}</p>}
+            {endDate && <p>Project End Date: {getDateString(endDate)}</p>}
             <p>
               Safety Valve Withdrawal Date: {getDateString(terminationTime)}
             </p>
-            <p>Arbitration Provider: {getResolverString(resolverType)}</p>
+            <p>Arbitration Provider: {getResolverString(resolver)}</p>
           </div>
         </div>
         <div className="payment-info-container">
@@ -157,24 +165,41 @@ export const ViewInvoice = ({
           </div>
           <div className="invoice-buttons">
             <div id="secondary-buttons">
-              <button id="lock-button" onClick={() => onLock()} type="button">
-                Lock
-              </button>
+              {!isReleasable && <div></div>}
+              {isLockable ? (
+                <button id="lock-button" onClick={() => onLock()} type="button">
+                  Lock
+                </button>
+              ) : (
+                <div></div>
+              )}
+              {isReleasable && (
+                <button
+                  id="deposit-button"
+                  onClick={() => onDeposit()}
+                  type="button"
+                >
+                  Deposit
+                </button>
+              )}
+            </div>
+            {isReleasable ? (
               <button
-                id="deposit-button"
+                id="primary-button"
+                onClick={() => onRelease()}
+                type="button"
+              >
+                Release
+              </button>
+            ) : (
+              <button
+                id="primary-button"
                 onClick={() => onDeposit()}
                 type="button"
               >
                 Deposit
               </button>
-            </div>
-            <button
-              id="primary-button"
-              onClick={() => onRelease()}
-              type="button"
-            >
-              Release
-            </button>
+            )}
           </div>
         </div>
         <div className={`modal ${modal ? 'is-active' : null}`}>

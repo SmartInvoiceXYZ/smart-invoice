@@ -2,7 +2,7 @@ import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
-import { getDateString, getToken } from '../utils/helpers';
+import { getDateString, getToken, getResolverString } from '../utils/helpers';
 
 export const FormConfirmation = () => {
   const {
@@ -24,7 +24,7 @@ export const FormConfirmation = () => {
   return (
     <section className="form-confirmation">
       <p id="project-title">{projectName}</p>
-      <p>{projectDescription}</p>
+      {projectDescription && <p>{projectDescription}</p>}
       <a href={projectAgreement}>{projectAgreement}</a>
       <div>
         <p>Client Address:</p>
@@ -52,7 +52,7 @@ export const FormConfirmation = () => {
       </div>
       <div>
         <p>Arbitration Provider:</p>
-        <p>{arbitrationProvider}</p>
+        <p>{getResolverString(arbitrationProvider)}</p>
       </div>
       <hr />
       <div className="total-payment-info">

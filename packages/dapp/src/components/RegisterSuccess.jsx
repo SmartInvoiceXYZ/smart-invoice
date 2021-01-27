@@ -41,13 +41,17 @@ export const RegisterSuccess = () => {
           </p>
           <div>
             <span className="label">Your Invoice ID</span>
-            <p>{invoiceID}</p>
+            <div className="value">
+              <p>{invoiceID}</p>
+            </div>
           </div>
           <div>
             <span className="label">Link to Invoice</span>
-            <Link
-              href={`/invoice/${invoiceID}`}
-            >{`${window.location.protocol}://${window.location.hostname}/invoice/${invoiceID}`}</Link>
+            <div className="value">
+              <Link
+                to={`/invoice/${invoiceID}`}
+              >{`/invoice/${invoiceID}`}</Link>
+            </div>
           </div>
         </>
       )}

@@ -2,7 +2,7 @@ import { getAddress } from '@ethersproject/address';
 
 import { ADDRESSES } from './constants';
 
-const { DAI_TOKEN, WETH_TOKEN } = ADDRESSES;
+const { DAI_TOKEN, WETH_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -18,14 +18,14 @@ export const getDateString = timeInSec => {
   return `${mo} ${da}, ${ye}`;
 };
 
-export const getResolverString = resolverType => {
-  switch (resolverType) {
-    case 'lex_dao':
+export const getResolverString = resolver => {
+  switch (resolver) {
+    case LEX_DAO:
       return 'Lex DAO';
-    case 'aragon_court':
+    case ARAGON_COURT:
       return 'Aragon Court';
     default:
-      return 'Custom';
+      return resolver.toUpperCase();
   }
 };
 

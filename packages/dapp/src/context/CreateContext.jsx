@@ -28,9 +28,7 @@ export const CreateContextProvider = ({ children }) => {
   const [paymentToken, setPaymentToken] = useState(DAI_TOKEN);
   const [milestones, setMilestones] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [arbitrationProvider, setArbitrationProvider] = useState(
-    'Aragon Court',
-  );
+  const [arbitrationProvider, setArbitrationProvider] = useState(LEX_DAO);
 
   const [payments, setPayments] = useState([]);
   const [tx, setTx] = useState();
@@ -67,8 +65,8 @@ export const CreateContextProvider = ({ children }) => {
       provider,
       clientAddress,
       paymentAddress,
-      arbitrationProvider === 'Aragon Court' ? 1 : 0,
-      arbitrationProvider === 'Aragon Court' ? ARAGON_COURT : LEX_DAO,
+      arbitrationProvider === ARAGON_COURT ? 1 : 0,
+      arbitrationProvider,
       paymentToken,
       payments,
       Math.floor(safetyValveDate / 1000),

@@ -2,6 +2,20 @@ import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 
+const formatDate = date => {
+  const d = new Date(date);
+
+  let month = '' + (d.getMonth() + 1);
+  if (month.length < 2) month = '0' + month;
+
+  let day = '' + d.getDate();
+  if (day.length < 2) day = '0' + day;
+
+  const year = d.getFullYear();
+
+  return [year, month, day].join('-');
+};
+
 export const ProjectDetailsForm = () => {
   const {
     startDate,
@@ -17,6 +31,13 @@ export const ProjectDetailsForm = () => {
     projectAgreement,
     setProjectAgreement,
   } = useContext(CreateContext);
+
+  const startDateString = startDate ? formatDate(startDate) : '';
+  const endDateString = endDate ? formatDate(endDate) : '';
+  const safetyValveDateString = safetyValveDate
+    ? formatDate(safetyValveDate)
+    : '';
+
   return (
     <section className="project-details-form">
       <div className="ordered-inputs">
@@ -55,8 +76,8 @@ export const ProjectDetailsForm = () => {
           <label>Project Start Date</label>
           <input
             type="date"
-            value={startDate}
-            onChange={e => setStartDate(e.target.value)}
+            value={startDateString}
+            onChange={e => setStartDate(Date.parse(e.target.value))}
           />
         </div>
         <div className="ordered-inputs">
@@ -64,8 +85,8 @@ export const ProjectDetailsForm = () => {
           <label>Expected End Date</label>
           <input
             type="date"
-            value={endDate}
-            onChange={e => setEndDate(e.target.value)}
+            value={endDateString}
+            onChange={e => setEndDate(Date.parse(e.target.value))}
           />
         </div>
         <div className="ordered-inputs">
@@ -77,8 +98,8 @@ export const ProjectDetailsForm = () => {
           <label>Safety Valve Date</label>
           <input
             type="date"
-            value={safetyValveDate}
-            onChange={e => setSafetyValveDate(e.target.value)}
+            value={safetyValveDateString}
+            onChange={e => setSafetyValveDate(Date.parse(e.target.value))}
           />
         </div>
       </div>

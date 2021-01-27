@@ -9,16 +9,18 @@ import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 import { ReactComponent as LockImage } from '../assets/lock.svg';
+import { ADDRESSES } from '../utils/constants';
+
+const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const LockFunds = ({ invoice, balance, close }) => {
   const { provider } = useContext(Web3Context);
-  const { isLocked, address, resolverType, token } = invoice;
-  console.log(invoice);
-  const resolver = getResolverString(resolverType);
+  const { isLocked, address, resolver, token } = invoice;
+  const resolverString = getResolverString(resolver);
   const { decimals, symbol } = getToken(token);
   const [disputeReason, setDisputeReason] = useState('');
   const fee =
-    resolverType === 'lex_dao'
+    resolver !== ARAGON_COURT
       ? `${utils.formatUnits(
           BigNumber.from(balance).mul(5).div(100),
           decimals,
@@ -86,8 +88,8 @@ export const LockFunds = ({ invoice, balance, close }) => {
             dispute.
           </p>
           <p>
-            Once a dispute has been initated, {resolver} will review your case,
-            including the project agreement and dispute reason to make a
+            Once a dispute has been initated, {resolverString} will review your
+            case, including the project agreement and dispute reason to make a
             decision on how to fairly distribute remaining funds.
           </p>
           <div className="ordered-inputs">
@@ -110,17 +112,19 @@ export const LockFunds = ({ invoice, balance, close }) => {
           <button type="button" onClick={lockFunds}>
             Lock {utils.formatUnits(balance, decimals)} {symbol}
           </button>
-          <a
-            target="_blank"
-            href={
-              resolverType === 'lex_dao'
-                ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
-                : 'https://anj.aragon.org/legal/terms-general.pdf'
-            }
-            rel="noreferrer noopener"
-          >
-            Learn about {resolver} dispute process & terms
-          </a>
+          {[LEX_DAO, ARAGON_COURT].indexOf(resolver) !== -1 && (
+            <a
+              target="_blank"
+              href={
+                resolver === LEX_DAO
+                  ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
+                  : 'https://anj.aragon.org/legal/terms-general.pdf'
+              }
+              rel="noreferrer noopener"
+            >
+              Learn about {resolver} dispute process & terms
+            </a>
+          )}
         </>
       ) : (
         <>

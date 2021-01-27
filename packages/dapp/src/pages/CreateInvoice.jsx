@@ -28,6 +28,7 @@ const CreateInvoiceInner = () => {
     paymentDue,
     payments,
     termsAccepted,
+    arbitrationProvider,
   } = useContext(CreateContext);
   const [currentStep, setStep] = useState(1);
   const [isEnabled, setEnabled] = useState(false);
@@ -47,8 +48,17 @@ const CreateInvoiceInner = () => {
       isAddress(clientAddress) &&
       isAddress(paymentAddress) &&
       isAddress(paymentToken) &&
+      isAddress(arbitrationProvider) &&
       paymentDue.gt(0) &&
-      termsAccepted
+      termsAccepted &&
+      Array.from(
+        new Set([
+          clientAddress.toLowerCase(),
+          paymentAddress.toLowerCase(),
+          paymentToken.toLowerCase(),
+          arbitrationProvider.toLowerCase(),
+        ]),
+      ).length === 4
     ) {
       setEnabled(true);
       nextButton.current.classList.remove('disabled');
@@ -80,6 +90,7 @@ const CreateInvoiceInner = () => {
     payments,
     termsAccepted,
     currentStep,
+    arbitrationProvider,
   ]);
 
   const stepHandler = () => {
@@ -90,41 +101,44 @@ const CreateInvoiceInner = () => {
     return () => undefined;
   };
 
-  if (tx) return <RegisterSuccess />;
   return (
     <div className="main overlay">
-      <div className="create-invoice">
-        <StepInfo
-          stepNum={currentStep}
-          stepTitle={STEPS[currentStep].step_title}
-          stepDetails={STEPS[currentStep].step_details}
-        />
-        <div>
-          {currentStep === 1 && <ProjectDetailsForm />}
-          {currentStep === 2 && <PaymentDetailsForm />}
-          {currentStep === 3 && <PaymentChunksForm />}
-          {currentStep === 4 && <FormConfirmation />}
-          <div className="form-action-buttons">
-            {currentStep !== 1 && (
+      {tx ? (
+        <RegisterSuccess />
+      ) : (
+        <div className="create-invoice">
+          <StepInfo
+            stepNum={currentStep}
+            stepTitle={STEPS[currentStep].step_title}
+            stepDetails={STEPS[currentStep].step_details}
+          />
+          <div>
+            {currentStep === 1 && <ProjectDetailsForm />}
+            {currentStep === 2 && <PaymentDetailsForm />}
+            {currentStep === 3 && <PaymentChunksForm />}
+            {currentStep === 4 && <FormConfirmation />}
+            <div className="form-action-buttons">
+              {currentStep !== 1 && (
+                <button
+                  type="button"
+                  id="back-button"
+                  onClick={() => setStep(prevState => prevState - 1)}
+                >
+                  BACK
+                </button>
+              )}
               <button
                 type="button"
-                id="back-button"
-                onClick={() => setStep(prevState => prevState - 1)}
+                id="next-button"
+                onClick={stepHandler}
+                ref={nextButton}
               >
-                BACK
+                next: {STEPS[currentStep].next}
               </button>
-            )}
-            <button
-              type="button"
-              id="next-button"
-              onClick={stepHandler}
-              ref={nextButton}
-            >
-              next: {STEPS[currentStep].next}
-            </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

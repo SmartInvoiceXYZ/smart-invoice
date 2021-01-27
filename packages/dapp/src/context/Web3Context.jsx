@@ -118,7 +118,7 @@ export const Web3ContextProvider = ({ children }) => {
         address: account,
         provider: ethersProvider,
         web3,
-        chainID: chainId,
+        chainId,
         connectAccount: connectWeb3,
         disconnect,
       }}

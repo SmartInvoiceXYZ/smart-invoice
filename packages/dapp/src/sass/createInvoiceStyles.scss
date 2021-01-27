@@ -38,7 +38,7 @@ a {
 .payment-details-form,
 .form-confirmation {
   background: $dark-grey;
-  height: 450px;
+  min-height: 25rem;
   width: 42rem;
   display: flex;
   flex-direction: column;
@@ -65,7 +65,8 @@ a {
       color: $red;
       font-size: 16px;
       font-family: $para-font;
-      margin-bottom: 5px;
+      margin-bottom: 0.5rem;
+      margin-top: 0.25rem;
     }
     input {
       height: 40px;
@@ -77,23 +78,28 @@ a {
       font-family: $para-font;
       outline: none;
       width: 100%;
-    }
-
-    input[type='date']::-webkit-calendar-picker-indicator {
-      color: white;
-      opacity: 1;
-      display: block;
-      background: url(../assets/calendar.svg) no-repeat;
-      background-size: contain;
-      width: 14px;
-      height: 14px;
-      border-width: thin;
-      cursor: pointer;
-      transition: background 0.25s;
-      &:hover {
+      &::-webkit-calendar-picker-indicator {
+        color: white;
+        opacity: 1;
+        display: block;
+        background: url(../assets/calendar.svg) no-repeat;
+        background-size: contain !important;
+        width: 14px;
+        height: 14px;
+        border-width: thin;
+        cursor: pointer;
+        transition: background 0.25s;
+        &:hover {
           color: red;
           background: url(../assets/calendar-red.svg) no-repeat;
           background-size: contain;
+        }
+        &:hover,
+        &:focus,
+        &:active {
+          background-size: contain;
+          outline: none;
+        }
       }
     }
     #arb-fee-desc {

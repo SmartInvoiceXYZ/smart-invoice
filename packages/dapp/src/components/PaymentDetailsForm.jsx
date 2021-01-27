@@ -1,11 +1,11 @@
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { ADDRESSES } from '../utils/constants';
 import { getToken } from '../utils/helpers';
 
-const { DAI_TOKEN, WETH_TOKEN } = ADDRESSES;
+const { DAI_TOKEN, WETH_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const PaymentDetailsForm = () => {
   const {
@@ -35,6 +35,7 @@ export const PaymentDetailsForm = () => {
   }, [checkBox, setTermsAccepted]);
   const tokenData = getToken(paymentToken);
   const { decimals, symbol } = tokenData;
+  const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   return (
     <section className="payment-details-form">
       <div className="ordered-inputs">
@@ -120,11 +121,28 @@ export const PaymentDetailsForm = () => {
           </p>
           <label>Arbitration Provider</label>
           <select
-            value={arbitrationProvider}
-            onChange={e => setArbitrationProvider(e.target.value)}
+            value={arbitrationProviderType}
+            onChange={e => {
+              setArbitrationProviderType(e.target.value);
+              switch (e.target.value) {
+                case '1':
+                  setArbitrationProvider(ARAGON_COURT);
+                  setTermsAccepted(false);
+                  break;
+                case '2':
+                  setArbitrationProvider('');
+                  setTermsAccepted(true);
+                  break;
+                case '0':
+                default:
+                  setArbitrationProvider(LEX_DAO);
+                  setTermsAccepted(false);
+              }
+            }}
           >
-            <option value="Lex">Lex DAO</option>
-            <option value="Aragon Court">Aragon Court</option>
+            <option value="0">Lex DAO</option>
+            {/* <option value="1">Aragon Court</option> */}
+            <option value="2">Other</option>
           </select>
         </div>
         <div className="ordered-inputs">
@@ -138,7 +156,7 @@ export const PaymentDetailsForm = () => {
             type="text"
             disabled
             value={
-              arbitrationProvider === 'Lex'
+              arbitrationProvider !== ARAGON_COURT
                 ? `${utils.formatUnits(
                     paymentDue.mul(5).div(100),
                     decimals,
@@ -148,43 +166,42 @@ export const PaymentDetailsForm = () => {
           />
         </div>
         <div className="ordered-inputs">
-          {arbitrationProvider === 'Lex' ? (
-            <p id="arb-fee-desc">
-              LexDAO deducts a 5% arbitration fee from remaining funds in the
-              case of dispute
-            </p>
-          ) : (
-            <p id="arb-fee-desc">
-              Aragon Court deducts a fixed fee at the creation time of dispute
-            </p>
-          )}
+          <p id="arb-fee-desc">
+            {arbitrationProvider === ARAGON_COURT
+              ? 'Aragon Court deducts a fixed fee at the creation time of dispute'
+              : 'A 5% arbitration fee will be deducted from remaining funds during dispute resolution'}
+          </p>
         </div>
       </div>
-      {arbitrationProvider === 'Lex' ? (
-        <sl-checkbox
-          value={termsAccepted}
-          checked={termsAccepted}
-          ref={checkBox}
-        >
-          I agree to LexDAO{' '}
-          <a
-            target="_blank"
-            href="https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver "
-            rel="noreferrer noopener"
-          >
-            terms of service
-          </a>
-        </sl-checkbox>
+      {[LEX_DAO, ARAGON_COURT].indexOf(arbitrationProvider) === -1 ? (
+        <div className="ordered-inputs">
+          <p className="tooltip">
+            <sl-tooltip content="This will be the address used to resolve any disputes on the invoice">
+              <i className="far fa-question-circle" />
+            </sl-tooltip>
+          </p>
+          <label>Arbitration Provider Address</label>
+          <input
+            type="text"
+            value={arbitrationProvider}
+            onChange={e => setArbitrationProvider(e.target.value)}
+          />
+        </div>
       ) : (
         <sl-checkbox
           value={termsAccepted}
           checked={termsAccepted}
           ref={checkBox}
         >
-          I agree to Aragon Court{' '}
+          I agree to
+          {arbitrationProvider === LEX_DAO ? ' LexDAO ' : ' Aragon Court '}
           <a
             target="_blank"
-            href="https://anj.aragon.org/legal/terms-general.pdf"
+            href={
+              arbitrationProvider === LEX_DAO
+                ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
+                : 'https://anj.aragon.org/legal/terms-general.pdf'
+            }
             rel="noreferrer noopener"
           >
             terms of service

@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Web3Context } from '../context/Web3Context';
 import { ADDRESSES } from '../utils/constants';
 import { getToken } from '../utils/helpers';
+import { Loader } from './Loader';
 
 const { WETH_TOKEN } = ADDRESSES;
 
@@ -18,9 +19,11 @@ export const DepositFunds = ({ invoice, deposited }) => {
   const [amountInput, setAmountInput] = useState('');
   const tokenData = getToken(token);
   const { decimals, symbol } = tokenData;
+  const [loading, setLoading] = useState(false);
   const deposit = async () => {
     if (!amount || !provider) return;
     try {
+      setLoading(true);
       let tx;
       if (paymentType === 1) {
         tx = await provider
@@ -37,6 +40,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
       //eslint-disable-next-line
       console.error({ depositError });
     }
+    setLoading(false);
   };
   const amountsRef = useRef(null);
   const isWETH = token.toLowerCase() === WETH_TOKEN;
@@ -125,7 +129,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
         )}
       </div>
       <button type="submit" onClick={deposit}>
-        Deposit
+        {loading ? <Loader size="20" color="#ffffff" /> : 'Deposit'}
       </button>
     </div>
   );

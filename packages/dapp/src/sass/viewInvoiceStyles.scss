@@ -41,8 +41,10 @@
     }
   }
   .payment-info-container {
+    width: 100%;
+    max-width: 42rem;
     .payment-info {
-      max-width: 42rem;
+      width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -86,14 +88,15 @@
     }
     .invoice-buttons {
       position: relative;
-      width: 670px;
+      width: 100%;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
       margin-top: 20px;
       button {
+        margin-left: 2rem;
         height: 50px;
-        width: 200px;
+        min-width: 200px;
         border: none;
         background: none;
         font-size: 18px;
@@ -103,7 +106,7 @@
         cursor: pointer;
       }
       #secondary-buttons {
-        width: 435px;
+        flex: 1;
         display: flex;
         justify-content: space-between;
         #lock-button,
@@ -115,10 +118,11 @@
             background-color: $white-hover;
           }
         }
+        #lock-button {
+          margin-left: 0;
+        }
       }
       #primary-button {
-        position: absolute;
-        right: 0;
         border: 2px solid $red;
         border-radius: 4px;
         background-color: $red;

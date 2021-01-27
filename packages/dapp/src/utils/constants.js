@@ -1,7 +1,9 @@
 export const NETWORK = 4;
+export const NETWORK_NAME = 'Rinkeby Testnet';
 
 // rinkeby
 export const ADDRESSES = {
+  // toLowerCase is IMPORTANT
   // TODO: change this to an actual valid lex_dao address
   LEX_DAO: '0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase(),
   ARAGON_COURT: '0x52180af656a1923024d1accf1d827ab85ce48878'.toLowerCase(),
