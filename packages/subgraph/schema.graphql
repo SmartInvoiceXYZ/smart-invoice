@@ -21,11 +21,13 @@ type Invoice @entity {
   projectAgreement: String!
   startDate: BigInt # seconds since epoch
   endDate: BigInt # seconds since epoch
+  disputes: [Dispute!]!
+  resolutions: [Resolution!]!
 }
 
 enum ADR @entity {
-  lex_dao
-  aragon_court
+  individual
+  arbitrator
 }
 
 type Release @entity {
@@ -47,11 +49,10 @@ type Dispute @entity {
   id: ID!
   invoice: Invoice!
   sender: Bytes!
-  amount: BigInt!
   details: Bytes!
-  disputeToken: Bytes # only aragonCourt
-  disputeFee: BigInt # only aragonCourt
-  disputeId: BigInt # only aragonCourt
+  disputeToken: Bytes # only arbitrator
+  disputeFee: BigInt # only arbitrator
+  disputeId: BigInt # only arbitrator
   timestamp: BigInt!
 }
 
@@ -62,8 +63,8 @@ type Resolution @entity {
   resolver: Bytes!
   clientAward: BigInt!
   providerAward: BigInt!
-  resolutionDetails: Bytes # only lexDao
-  resolutionFee: BigInt # only lexDao
-  ruling: BigInt # only aragonCourt
+  resolutionDetails: Bytes # only individual
+  resolutionFee: BigInt # only individual
+  ruling: BigInt # only arbitrator
   timestamp: BigInt!
 }

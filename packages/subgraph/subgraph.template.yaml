@@ -53,5 +53,7 @@ dataSources:
           handler: handleWithdraw
         - event: Lock(indexed address,bytes32)
           handler: handleLock
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
 
       file: ./src/mappings.ts

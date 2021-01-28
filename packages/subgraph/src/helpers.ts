@@ -139,9 +139,9 @@ export function updateInvoiceInfo(
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
   if (invoiceObject.resolverType == 0) {
-    invoice.resolverType = 'lex_dao';
+    invoice.resolverType = 'individual';
   } else if (invoiceObject.resolverType == 1) {
-    invoice.resolverType = 'aragon_court';
+    invoice.resolverType = 'arbitrator';
   }
   invoice.resolver = invoiceObject.resolver;
   invoice.isLocked = invoiceObject.isLocked;
@@ -155,6 +155,7 @@ export function updateInvoiceInfo(
   invoice.projectAgreement = invoiceObject.projectAgreement;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
+  invoice.disputeId = invoiceObject.disputeId;
 
   return invoice;
 }
