@@ -5,6 +5,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import { FormConfirmation } from '../components/FormConfirmation';
+import { Loader } from '../components/Loader';
 import { PaymentChunksForm } from '../components/PaymentChunksForm';
 import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
@@ -18,6 +19,7 @@ const { isAddress } = utils;
 const CreateInvoiceInner = () => {
   const {
     tx,
+    loading,
     createInvoice,
     projectName,
     projectAgreement,
@@ -133,7 +135,11 @@ const CreateInvoiceInner = () => {
                 onClick={stepHandler}
                 ref={nextButton}
               >
-                next: {STEPS[currentStep].next}
+                {loading ? (
+                  <Loader size="20" color="#ffffff" />
+                ) : (
+                  `next: ${STEPS[currentStep].next}`
+                )}
               </button>
             </div>
           </div>

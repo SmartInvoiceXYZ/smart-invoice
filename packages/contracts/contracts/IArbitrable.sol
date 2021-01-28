@@ -2,8 +2,6 @@
 
 pragma solidity >=0.7;
 
-import "./IArbitrator.sol";
-
 /**
  * @title IArbitrable
  * Arbitrable interface.
@@ -19,7 +17,7 @@ interface IArbitrable {
    * @param _ruling The ruling which was given.
    */
   event Ruling(
-    IArbitrator indexed _arbitrator,
+    address indexed _arbitrator,
     uint256 indexed _disputeID,
     uint256 _ruling
   );

@@ -35,6 +35,7 @@ class InvoiceObject {
   released: BigInt;
   terminationTime: BigInt;
   details: Bytes;
+  ipfsHash: string;
   disputeId: BigInt;
   projectName: string;
   projectDescription: string;
@@ -43,7 +44,7 @@ class InvoiceObject {
   endDate: BigInt;
 }
 
-export function fetchInvoiceInfo(address: Address): InvoiceObject | null {
+function fetchInvoiceInfo(address: Address): InvoiceObject | null {
   let invoiceInstance = SmartInvoice.bind(address);
   let invoiceObject = new InvoiceObject();
 
@@ -97,6 +98,7 @@ export function fetchInvoiceInfo(address: Address): InvoiceObject | null {
     invoiceObject.details = details.value;
     let hexHash = addQm(invoiceObject.details) as Bytes;
     let base58Hash = hexHash.toBase58();
+    invoiceObject.ipfsHash = base58Hash;
     let ipfsData = ipfs.cat(base58Hash);
     log.debug('IPFS details from hash {}', [base58Hash]);
     if (ipfsData != null) {
@@ -130,11 +132,11 @@ export function fetchInvoiceInfo(address: Address): InvoiceObject | null {
 export function updateInvoiceInfo(
   address: Address,
   invoice: Invoice | null,
-): Invoice | null {
-  if (invoice == null) {
-    return invoice;
-  }
+): Invoice {
+  if (invoice == null) return null;
   let invoiceObject = fetchInvoiceInfo(address);
+  log.debug('Got details for invoice', [address.toHexString()]);
+
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
@@ -150,12 +152,13 @@ export function updateInvoiceInfo(
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
+  invoice.ipfsHash = invoiceObject.ipfsHash;
+  invoice.disputeId = invoiceObject.disputeId;
   invoice.projectName = invoiceObject.projectName;
   invoice.projectDescription = invoiceObject.projectDescription;
   invoice.projectAgreement = invoiceObject.projectAgreement;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
-  invoice.disputeId = invoiceObject.disputeId;
 
-  return invoice;
+  return invoice as Invoice;
 }

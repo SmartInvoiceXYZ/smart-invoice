@@ -2,8 +2,6 @@
 
 pragma solidity >=0.7;
 
-import "./IArbitrable.sol";
-
 /**
  * @title Arbitrator
  * Arbitrator abstract contract.
@@ -22,7 +20,7 @@ interface IArbitrator {
    */
   event DisputeCreation(
     uint256 indexed _disputeID,
-    IArbitrable indexed _arbitrable
+    address indexed _arbitrable
   );
 
   /**
@@ -30,20 +28,14 @@ interface IArbitrator {
    * @param _disputeID ID of the dispute.
    * @param _arbitrable The contract which created the dispute.
    */
-  event AppealPossible(
-    uint256 indexed _disputeID,
-    IArbitrable indexed _arbitrable
-  );
+  event AppealPossible(uint256 indexed _disputeID, address indexed _arbitrable);
 
   /**
    * @dev To be emitted when the current ruling is appealed.
    * @param _disputeID ID of the dispute.
    * @param _arbitrable The contract which created the dispute.
    */
-  event AppealDecision(
-    uint256 indexed _disputeID,
-    IArbitrable indexed _arbitrable
-  );
+  event AppealDecision(uint256 indexed _disputeID, address indexed _arbitrable);
 
   /**
    * @dev Create a dispute. Must be called by the arbitrable contract.

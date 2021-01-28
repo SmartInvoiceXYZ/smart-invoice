@@ -3,7 +3,7 @@ import '../sass/connectStyles.scss';
 import React, { useContext } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { NETWORK_NAME, NETWORK } from '../utils/constants';
+import { NETWORK, NETWORK_NAME } from '../utils/constants';
 
 export const ConnectWeb3 = () => {
   const { chainId, loading, disconnect } = useContext(Web3Context);
@@ -12,12 +12,10 @@ export const ConnectWeb3 = () => {
     <div className="main">
       {!loading && (
         <div className="connect">
-          <p> Unsupported network - {chainId} </p>
-          <p>
-            Please connect to {NETWORK_NAME} - {NETWORK}
-          </p>
+          <p> {`Unsupported network => ${chainId}`}</p>
+          <p>{`Please connect to ${NETWORK_NAME} => ${NETWORK}`}</p>
 
-          <button className="bg-red" onClick={disconnect}>
+          <button className="bg-red" type="button" onClick={disconnect}>
             Disconnect
           </button>
         </div>

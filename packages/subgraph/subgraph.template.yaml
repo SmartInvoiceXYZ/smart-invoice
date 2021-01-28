@@ -17,7 +17,7 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - Grant
+        - Invoice
       abis:
         - name: SmartInvoiceFactory
           file: ./abis/SmartInvoiceFactory.json
@@ -41,8 +41,10 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - Fund
-        - Payment
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
       abis:
         - name: SmartInvoice
           file: ./abis/SmartInvoice.json
@@ -55,5 +57,29 @@ dataSources:
           handler: handleLock
         - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
           handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+
+      file: ./src/mappings.ts
+  - kind: ethereum/contract
+    name: ERC20
+    # prettier-ignore
+    network: {{network}}
+    source:
+      abi: ERC20
+      # prettier-ignore
+      startBlock: {{startBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Deposit
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
 
       file: ./src/mappings.ts

@@ -7,6 +7,7 @@ import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
 import { getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
+import { Loader } from './Loader';
 
 export const RegisterSuccess = () => {
   const { provider } = useContext(Web3Context);
@@ -17,7 +18,6 @@ export const RegisterSuccess = () => {
   useEffect(() => {
     if (tx && provider) {
       awaitInvoiceAddress(provider, tx).then(id => {
-        console.log({ newInvoiceId: id });
         setInvoiceID(id);
       });
     }
@@ -33,27 +33,20 @@ export const RegisterSuccess = () => {
         </a>
         .
       </p>
-      {invoiceID && (
+      {invoiceID ? (
         <>
           <p id="info-text">
-            Save these details because you will need it to manage your invoice
-            later:
+            Save this because you will need it to manage your invoice later:
           </p>
           <div>
             <span className="label">Your Invoice ID</span>
             <div className="value">
-              <p>{invoiceID}</p>
-            </div>
-          </div>
-          <div>
-            <span className="label">Link to Invoice</span>
-            <div className="value">
-              <Link
-                to={`/invoice/${invoiceID}`}
-              >{`/invoice/${invoiceID}`}</Link>
+              <Link to={`/invoice/${invoiceID}`}>{invoiceID}</Link>
             </div>
           </div>
         </>
+      ) : (
+        <Loader size="80" />
       )}
       <button
         type="button"

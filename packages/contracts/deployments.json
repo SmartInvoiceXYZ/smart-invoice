@@ -1,12 +1,10 @@
 [
   {
     "network": "rinkeby",
-    "mono": "",
-    "factory": "0x15Ca029dB61Af56d20f43DE361F85FF97F777dc6"
+    "factory": "0xFC6E7Bed72491D9508504a470524913f0049fD82"
   },
   {
     "network": "kovan",
-    "mono": "",
     "factory": ""
   }
 ]

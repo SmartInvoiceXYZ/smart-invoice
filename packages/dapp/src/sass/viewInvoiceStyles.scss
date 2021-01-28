@@ -160,6 +160,11 @@
     .modal-note {
       font-size: 0.9rem;
     }
+    a {
+      color: $red;
+      font-size: 0.75rem;
+      margin-top: 1rem;
+    }
   }
   .modal-close {
     position: absolute;

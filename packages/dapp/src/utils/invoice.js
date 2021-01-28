@@ -72,3 +72,17 @@ export const lock = async (
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.lock(detailsHash);
 };
+
+export const resolve = async (
+  ethersProvider,
+  address,
+  clientAward,
+  providerAward,
+  detailsHash, // 32 bits hex
+) => {
+  const abi = new utils.Interface([
+    'function resolve(uint256 clientAward, uint256 providerAward, bytes32 details) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.resolve(clientAward, providerAward, detailsHash);
+};

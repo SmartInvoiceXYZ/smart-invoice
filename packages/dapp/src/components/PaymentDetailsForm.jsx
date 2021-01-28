@@ -3,9 +3,9 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { ADDRESSES } from '../utils/constants';
-import { getToken } from '../utils/helpers';
+import { getResolverString, getToken } from '../utils/helpers';
 
-const { DAI_TOKEN, WETH_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
+const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const PaymentDetailsForm = () => {
   const {
@@ -53,11 +53,11 @@ export const PaymentDetailsForm = () => {
       </div>
       <div className="ordered-inputs">
         <p className="tooltip">
-          <sl-tooltip content="eg. Multisig, Gnosis safe">
+          <sl-tooltip content="Recipient of the funds">
             <i className="far fa-question-circle" />
           </sl-tooltip>
         </p>
-        <label>Payment Address</label>
+        <label>Provider Address</label>
         <input
           type="text"
           value={paymentAddress}
@@ -84,8 +84,10 @@ export const PaymentDetailsForm = () => {
             value={paymentToken}
             onChange={e => setPaymentToken(e.target.value)}
           >
-            <option value={DAI_TOKEN}>DAI</option>
-            <option value={WETH_TOKEN}>wETH</option>
+            <option value={DAI_TOKEN}>{getToken(DAI_TOKEN).symbol}</option>
+            <option value={WRAPPED_TOKEN}>
+              {getToken(WRAPPED_TOKEN).symbol}
+            </option>
           </select>
         </div>
         <div className="ordered-inputs">
@@ -140,9 +142,9 @@ export const PaymentDetailsForm = () => {
               }
             }}
           >
-            <option value="0">Lex DAO</option>
+            <option value="0">LexDAO</option>
             {/* <option value="1">Aragon Court</option> */}
-            <option value="2">Other</option>
+            <option value="2">Custom</option>
           </select>
         </div>
         <div className="ordered-inputs">
@@ -157,10 +159,7 @@ export const PaymentDetailsForm = () => {
             disabled
             value={
               arbitrationProvider !== ARAGON_COURT
-                ? `${utils.formatUnits(
-                    paymentDue.mul(5).div(100),
-                    decimals,
-                  )} ${symbol}`
+                ? `${utils.formatUnits(paymentDue.div(20), decimals)} ${symbol}`
                 : `150 DAI`
             }
           />
@@ -193,8 +192,7 @@ export const PaymentDetailsForm = () => {
           checked={termsAccepted}
           ref={checkBox}
         >
-          I agree to
-          {arbitrationProvider === LEX_DAO ? ' LexDAO ' : ' Aragon Court '}
+          {`I agree to ${getResolverString(arbitrationProvider)} `}
           <a
             target="_blank"
             href={

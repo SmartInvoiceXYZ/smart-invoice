@@ -4,11 +4,11 @@ import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { ADDRESSES } from '../utils/constants';
-import { getToken } from '../utils/helpers';
+import { ADDRESSES, NATIVE_TOKEN_SYMBOL } from '../utils/constants';
+import { getToken, getTxLink } from '../utils/helpers';
 import { Loader } from './Loader';
 
-const { WETH_TOKEN } = ADDRESSES;
+const { WRAPPED_TOKEN } = ADDRESSES;
 
 export const DepositFunds = ({ invoice, deposited }) => {
   const { address, token, amounts } = invoice;
@@ -20,6 +20,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
   const tokenData = getToken(token);
   const { decimals, symbol } = tokenData;
   const [loading, setLoading] = useState(false);
+  const [transaction, setTransaction] = useState();
   const deposit = async () => {
     if (!amount || !provider) return;
     try {
@@ -34,16 +35,17 @@ export const DepositFunds = ({ invoice, deposited }) => {
         const tokenContract = new Contract(token, abi, provider.getSigner());
         tx = await tokenContract.transfer(address, amount);
       }
+      setTransaction(tx);
       await tx.wait();
       window.location.href = `/invoice/${address}`;
     } catch (depositError) {
-      //eslint-disable-next-line
+      // eslint-disable-next-line
       console.error({ depositError });
     }
     setLoading(false);
   };
   const amountsRef = useRef(null);
-  const isWETH = token.toLowerCase() === WETH_TOKEN;
+  const isWRAPPED = token.toLowerCase() === WRAPPED_TOKEN;
 
   useEffect(() => {
     if (amountsRef.current) {
@@ -115,14 +117,14 @@ export const DepositFunds = ({ invoice, deposited }) => {
           onChange={e => setAmountInput(e.target.value)}
           placeholder="Amount to Deposit"
         />
-        {isWETH ? (
+        {isWRAPPED ? (
           <select
             className="icon is-right"
             onChange={e => setPaymentType(Number(e.target.value))}
             value={paymentType}
           >
             <option value="0">{symbol}</option>
-            <option value="1">ETH</option>
+            <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
           </select>
         ) : (
           <span className="icon is-right">{symbol}</span>
@@ -131,6 +133,15 @@ export const DepositFunds = ({ invoice, deposited }) => {
       <button type="submit" onClick={deposit}>
         {loading ? <Loader size="20" color="#ffffff" /> : 'Deposit'}
       </button>
+      {transaction && (
+        <a
+          href={getTxLink(transaction.hash)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View Transaction on Explorer
+        </a>
+      )}
     </div>
   );
 };

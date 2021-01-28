@@ -62,7 +62,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     address indexed provider,
     uint256[] amounts
   );
-  event Deposit(uint256 indexed sender, uint256 amount);
+  event Deposit(address indexed sender, uint256 amount);
   event Release(uint256 milestone, uint256 amount);
   event Withdraw(uint256 balance);
   event Lock(address indexed sender, bytes32 details);
@@ -72,11 +72,6 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 providerAward,
     uint256 resolutionFee,
     bytes32 details
-  );
-  event DisputeFee(
-    uint256 indexed disputeId,
-    address indexed disputeToken,
-    uint256 disputeFee
   );
   event Rule(
     address indexed resolver,
@@ -145,6 +140,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
+  // release non-invoice tokens
   function releaseTokens(address _token) external nonReentrant {
     if (_token == token) {
       release();
@@ -155,7 +151,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
-  function withdraw() external nonReentrant {
+  function withdraw() public nonReentrant {
     // withdraw locker remainder to client if termination time passes & no lock
 
     require(!locked, "locked");
@@ -166,6 +162,19 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     IERC20(token).safeTransfer(client, balance);
 
     emit Withdraw(balance);
+  }
+
+  // withdraw non-invoice tokens
+  function withdrawTokens(address _token) external nonReentrant {
+    if (_token == token) {
+      withdraw();
+    } else {
+      require(block.timestamp > terminationTime, "!terminated");
+      uint256 balance = IERC20(_token).balanceOf(address(this));
+      require(balance > 0, "balance is 0");
+
+      IERC20(token).safeTransfer(client, balance);
+    }
   }
 
   function lock(bytes32 _details) external payable nonReentrant {
@@ -251,10 +260,11 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
 
     released = released.add(balance);
+    milestone = amounts.length;
     locked = false;
 
     emit Rule(_msgSender(), clientAward, providerAward, _ruling);
-    emit Ruling(IArbitrator(resolver), _disputeId, _ruling);
+    emit Ruling(resolver, _disputeId, _ruling);
   }
 
   // receive eth transfers
@@ -262,5 +272,6 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(!locked, "locked");
     require(token == WETH_TOKEN, "!wETH");
     IWETH(WETH_TOKEN).deposit{value: msg.value}();
+    emit Deposit(_msgSender(), msg.value);
   }
 }

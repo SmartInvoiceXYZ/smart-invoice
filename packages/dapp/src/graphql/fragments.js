@@ -22,5 +22,24 @@ export const InvoiceDetails = gql`
     projectAgreement
     startDate
     endDate
+    releases {
+      txHash
+      milestone
+      amount
+      timestamp
+    }
+    disputes {
+      txHash
+      sender
+      details
+      timestamp
+    }
+    resolutions {
+      txHash
+      clientAward
+      providerAward
+      resolutionFee
+      timestamp
+    }
   }
 `;

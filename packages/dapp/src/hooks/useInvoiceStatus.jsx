@@ -1,7 +1,8 @@
-import { useState, useEffect, useContext } from 'react';
+import { BigNumber } from 'ethers';
+import { useContext, useEffect, useState } from 'react';
+
 import { Web3Context } from '../context/Web3Context';
 import { balanceOf } from '../utils/erc20';
-import { BigNumber } from 'ethers';
 
 export const useInvoiceStatus = invoice => {
   const { provider } = useContext(Web3Context);
@@ -11,7 +12,6 @@ export const useInvoiceStatus = invoice => {
   const [label, setLabel] = useState('');
 
   useEffect(() => {
-    console.log(invoice);
     if (invoice && provider) {
       const {
         currentMilestone,
@@ -20,20 +20,33 @@ export const useInvoiceStatus = invoice => {
         address,
         isLocked,
         terminationTime,
+        disputes,
+        resolutions,
       } = invoice;
       balanceOf(provider, token, address)
         .then(balance => {
-          const amount = BigNumber.from(amounts[currentMilestone]);
-          if (balance.gte(amount)) {
-            setFunded(!isLocked);
-            setLabel('Funded');
+          if (currentMilestone === amounts.length) {
+            if (
+              disputes.length === resolutions.length &&
+              resolutions.length > 0
+            ) {
+              setLabel('Dispute Resolved');
+            } else {
+              setLabel('Completed');
+            }
           } else {
-            setLabel('Awaiting Deposit');
-          }
-          if (isLocked) {
-            setLabel('Locked');
-          } else if (terminationTime <= new Date().getTime() / 1000) {
-            setLabel('Expired');
+            const amount = BigNumber.from(amounts[currentMilestone]);
+            if (balance.gte(amount)) {
+              setFunded(!isLocked);
+              setLabel('Funded');
+            } else {
+              setLabel('Awaiting Deposit');
+            }
+            if (isLocked) {
+              setLabel('In Dispute');
+            } else if (terminationTime <= new Date().getTime() / 1000) {
+              setLabel('Expired');
+            }
           }
 
           setLoading(false);

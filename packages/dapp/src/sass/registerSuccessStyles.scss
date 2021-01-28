@@ -10,13 +10,13 @@
   #title {
     color: $red;
     font-family: $body-title-font;
-    font-size: 34px;
+    font-size: 2rem;
   }
   #transaction-text {
     color: $white;
-    font-size: 12px;
-    margin-top: 15px;
-    margin-bottom: 30px;
+    font-size: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
     a {
       color: $red;
     }
@@ -24,44 +24,39 @@
   #info-text {
     font-style: italic;
     color: $white;
-    font-size: 16px;
+    font-size: 1rem;
   }
   div {
     display: flex;
     flex-direction: column;
-    margin-top: 30px;
+    margin-top: 2rem;
     .label {
       color: $red;
       font-weight: bold;
-      margin-bottom: 5px;
+      margin-bottom: 0.5rem;
     }
     .value {
       background: $dark-grey;
       color: $white;
-      width: 480px;
-      height: 50px;
-      border-radius: 5px;
+      width: 30rem;
+      height: 3rem;
+      border-radius: 0.5rem;
       font-size: 1rem;
       padding: 1rem;
       overflow: hidden;
-      a {
-        text-overflow: ellipsis;
-        width: 100%;
-        overflow: hidden;
-      }
       display: flex;
       justify-content: center;
       align-items: center;
     }
   }
   #return-home-button {
-    margin-top: 25px;
+    margin-top: 1.5rem;
     font-family: $title-font;
-    width: 480px;
-    height: 50px;
+    width: 30rem;
+    height: 3rem;
     background: $black;
     border: 2px solid $red;
-    border-radius: 5px;
+    border-radius: 0.5rem;
     color: $red;
   }
   #return-home-button {

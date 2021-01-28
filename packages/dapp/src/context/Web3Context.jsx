@@ -4,13 +4,13 @@ import React, { createContext, useCallback, useEffect, useState } from 'react';
 import Web3 from 'web3';
 import Web3Modal from 'web3modal';
 
-import { NETWORK } from '../utils/constants';
+import { INFURA_ID, NETWORK } from '../utils/constants';
 
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
-      infuraId: process.env.REACT_APP_INFURA_ID,
+      infuraId: INFURA_ID,
     },
   },
 };

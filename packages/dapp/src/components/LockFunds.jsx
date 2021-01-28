@@ -1,15 +1,15 @@
 import '../sass/lockFunds.scss';
 
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 
+import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
-import { getResolverString, getToken } from '../utils/helpers';
+import { ADDRESSES } from '../utils/constants';
+import { getResolverString, getToken, getTxLink } from '../utils/helpers';
 import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
-import { ReactComponent as LockImage } from '../assets/lock.svg';
-import { ADDRESSES } from '../utils/constants';
 
 const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
@@ -22,18 +22,18 @@ export const LockFunds = ({ invoice, balance, close }) => {
   const fee =
     resolver !== ARAGON_COURT
       ? `${utils.formatUnits(
-          BigNumber.from(balance).mul(5).div(100),
+          BigNumber.from(balance).div(20),
           decimals,
         )} ${symbol}`
       : `150 DAI`;
 
   const [showLexDAOSteps] = useState(false);
   const [locking, setLocking] = useState(false);
+  const [transaction, setTransaction] = useState();
 
   const lockFunds = useCallback(async () => {
-    if (provider && !locking && balance.gt(0) && disputeReason) {
+    if (provider && !locking && balance.gt(0)) {
       setLocking(true);
-
       const detailsHash = await uploadDisputeDetails({
         reason: disputeReason,
         invoice: address,
@@ -42,11 +42,11 @@ export const LockFunds = ({ invoice, balance, close }) => {
 
       try {
         const tx = await lock(provider, address, detailsHash);
-        console.log({ tx: tx.hash });
+        setTransaction(tx);
         await tx.wait();
         window.location.href = `/invoice/${address}`;
       } catch (lockError) {
-        //eslint-disable-next-line
+        // eslint-disable-next-line
         console.error({ lockError });
       }
 
@@ -58,6 +58,15 @@ export const LockFunds = ({ invoice, balance, close }) => {
     return (
       <div className="lock-funds">
         <h1> Locking Funds </h1>
+        {transaction && (
+          <a
+            href={getTxLink(transaction.hash)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Transaction on Explorer
+          </a>
+        )}
         <div className="locking-funds">
           <Loader size="6rem" />
           <LockImage className="image" />
@@ -70,6 +79,15 @@ export const LockFunds = ({ invoice, balance, close }) => {
     return (
       <div className="lock-funds">
         <h1> Funds Locked </h1>
+        {transaction && (
+          <a
+            href={getTxLink(transaction.hash)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Transaction on Explorer
+          </a>
+        )}
         <div className="locking-funds">
           <LockImage className="image locked" />
         </div>
@@ -99,8 +117,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
               </sl-tooltip>
             </p>
             <label>Dispute Reason</label>
-            <input
-              type="text"
+            <textarea
               value={disputeReason}
               onChange={e => setDisputeReason(e.target.value)}
             />
@@ -110,7 +127,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
             amount will be deducted from the locked fund amount.
           </p>
           <button type="button" onClick={lockFunds}>
-            Lock {utils.formatUnits(balance, decimals)} {symbol}
+            {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
           </button>
           {[LEX_DAO, ARAGON_COURT].indexOf(resolver) !== -1 && (
             <a

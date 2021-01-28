@@ -2,23 +2,24 @@ import '../sass/viewInvoiceStyles.scss';
 
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
+import { Redirect } from 'react-router-dom';
 
 import { DepositFunds } from '../components/DepositFunds';
 import { Loader } from '../components/Loader';
 import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
+import { ResolveFunds } from '../components/ResolveFunds';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { balanceOf } from '../utils/erc20';
 import { getDateString, getResolverString, getToken } from '../utils/helpers';
-import { Redirect } from 'react-router-dom';
 
 export const ViewInvoice = ({
   match: {
     params: { invoiceId },
   },
 }) => {
-  const { provider } = useContext(Web3Context);
+  const { address: account, provider } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -65,6 +66,7 @@ export const ViewInvoice = ({
     startDate,
     endDate,
     terminationTime,
+    client,
     resolver,
     currentMilestone,
     amounts,
@@ -74,11 +76,12 @@ export const ViewInvoice = ({
     isLocked,
   } = invoice;
 
-  console.log(invoice);
-
+  const isClient = account.toLowerCase() === client;
+  const isResolver = account.toLowerCase() === resolver;
   const { decimals, symbol } = getToken(token);
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
+
   const amount = BigNumber.from(amounts[currentMilestone]);
   const isReleasable = currentMilestone < amounts.length && amount.lte(balance);
   const isLockable = !isLocked && balance.gt(0);
@@ -89,12 +92,22 @@ export const ViewInvoice = ({
   };
 
   const onDeposit = () => {
-    setSelected(1);
-    setModal(true);
+    if (deposited.lt(total)) {
+      setSelected(1);
+      setModal(true);
+    }
   };
+
   const onRelease = async () => {
-    if (isReleasable) {
+    if (isReleasable && isClient) {
       setSelected(2);
+      setModal(true);
+    }
+  };
+
+  const onResolve = async () => {
+    if (isResolver) {
+      setSelected(3);
       setModal(true);
     }
   };
@@ -163,17 +176,10 @@ export const ViewInvoice = ({
               )} ${symbol}`}</p>
             </div>
           </div>
-          <div className="invoice-buttons">
-            <div id="secondary-buttons">
-              {!isReleasable && <div></div>}
-              {isLockable ? (
-                <button id="lock-button" onClick={() => onLock()} type="button">
-                  Lock
-                </button>
-              ) : (
-                <div></div>
-              )}
-              {isReleasable && (
+          {isResolver ? (
+            <div className="invoice-buttons">
+              <div id="secondary-buttons">
+                <div />
                 <button
                   id="deposit-button"
                   onClick={() => onDeposit()}
@@ -181,26 +187,59 @@ export const ViewInvoice = ({
                 >
                   Deposit
                 </button>
+              </div>
+              <button
+                id="primary-button"
+                onClick={() => onResolve()}
+                type="button"
+              >
+                Resolve
+              </button>
+            </div>
+          ) : (
+            <div className="invoice-buttons">
+              <div id="secondary-buttons">
+                {!isReleasable && !isClient && <div />}
+                {isLockable ? (
+                  <button
+                    id="lock-button"
+                    onClick={() => onLock()}
+                    type="button"
+                  >
+                    Lock
+                  </button>
+                ) : (
+                  <div />
+                )}
+                {isReleasable && isClient && (
+                  <button
+                    id="deposit-button"
+                    onClick={() => onDeposit()}
+                    type="button"
+                  >
+                    Deposit
+                  </button>
+                )}
+              </div>
+              {isReleasable && isClient ? (
+                <button
+                  id="primary-button"
+                  onClick={() => onRelease()}
+                  type="button"
+                >
+                  Release
+                </button>
+              ) : (
+                <button
+                  id="primary-button"
+                  onClick={() => onDeposit()}
+                  type="button"
+                >
+                  Deposit
+                </button>
               )}
             </div>
-            {isReleasable ? (
-              <button
-                id="primary-button"
-                onClick={() => onRelease()}
-                type="button"
-              >
-                Release
-              </button>
-            ) : (
-              <button
-                id="primary-button"
-                onClick={() => onDeposit()}
-                type="button"
-              >
-                Deposit
-              </button>
-            )}
-          </div>
+          )}
         </div>
         <div className={`modal ${modal ? 'is-active' : null}`}>
           <div className="modal-background" />
@@ -227,6 +266,13 @@ export const ViewInvoice = ({
             )}
             {modal && selected === 2 && (
               <ReleaseFunds
+                invoice={invoice}
+                balance={balance}
+                close={() => setModal(false)}
+              />
+            )}
+            {modal && selected === 3 && (
+              <ResolveFunds
                 invoice={invoice}
                 balance={balance}
                 close={() => setModal(false)}

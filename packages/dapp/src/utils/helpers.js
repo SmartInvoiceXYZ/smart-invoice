@@ -1,8 +1,8 @@
 import { getAddress } from '@ethersproject/address';
 
-import { ADDRESSES } from './constants';
+import { ADDRESSES, EXPLORER_URL, NATIVE_TOKEN_SYMBOL } from './constants';
 
-const { DAI_TOKEN, WETH_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
+const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -21,18 +21,18 @@ export const getDateString = timeInSec => {
 export const getResolverString = resolver => {
   switch (resolver) {
     case LEX_DAO:
-      return 'Lex DAO';
+      return 'LexDAO';
     case ARAGON_COURT:
       return 'Aragon Court';
     default:
-      return resolver.toUpperCase();
+      return resolver;
   }
 };
 
 export const getToken = token => {
   switch (token.toLowerCase()) {
-    case WETH_TOKEN:
-      return { decimals: 18, symbol: 'WETH' };
+    case WRAPPED_TOKEN:
+      return { decimals: 18, symbol: `w${NATIVE_TOKEN_SYMBOL}` };
     case DAI_TOKEN:
     default:
       return { decimals: 18, symbol: 'DAI' };
@@ -48,7 +48,6 @@ export const isAddress = value => {
   }
 };
 
-export const getTxLink = hash => `https://rinkeby.etherscan.io/tx/${hash}`;
+export const getTxLink = hash => `${EXPLORER_URL}/tx/${hash}`;
 
-export const getAddressLink = hash =>
-  `https://rinkeby.etherscan.io/address/${hash}`;
+export const getAddressLink = hash => `${EXPLORER_URL}/address/${hash}`;

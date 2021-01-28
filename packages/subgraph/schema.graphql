@@ -15,12 +15,15 @@ type Invoice @entity {
   createdAt: BigInt! # seconds since epoch
   terminationTime: BigInt! # seconds since epoch
   details: Bytes!
+  ipfsHash: String!
   disputeId: BigInt!
   projectName: String!
   projectDescription: String!
   projectAgreement: String!
   startDate: BigInt # seconds since epoch
   endDate: BigInt # seconds since epoch
+  deposits: [Deposit!]!
+  releases: [Release!]!
   disputes: [Dispute!]!
   resolutions: [Resolution!]!
 }
@@ -28,6 +31,14 @@ type Invoice @entity {
 enum ADR @entity {
   individual
   arbitrator
+}
+
+type Deposit @entity {
+  id: ID!
+  sender: Bytes!
+  invoice: Invoice!
+  amount: BigInt!
+  timestamp: BigInt!
 }
 
 type Release @entity {
@@ -50,6 +61,7 @@ type Dispute @entity {
   invoice: Invoice!
   sender: Bytes!
   details: Bytes!
+  ipfsHash: String!
   disputeToken: Bytes # only arbitrator
   disputeFee: BigInt # only arbitrator
   disputeId: BigInt # only arbitrator
@@ -58,6 +70,8 @@ type Dispute @entity {
 
 type Resolution @entity {
   id: ID!
+  details: Bytes!
+  ipfsHash: String!
   invoice: Invoice!
   resolverType: ADR!
   resolver: Bytes!

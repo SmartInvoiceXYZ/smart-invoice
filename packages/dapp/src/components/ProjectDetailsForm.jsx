@@ -5,11 +5,11 @@ import { CreateContext } from '../context/CreateContext';
 const formatDate = date => {
   const d = new Date(date);
 
-  let month = '' + (d.getMonth() + 1);
-  if (month.length < 2) month = '0' + month;
+  let month = `${d.getMonth() + 1}`;
+  if (month.length < 2) month = `0${month}`;
 
-  let day = '' + d.getDate();
-  if (day.length < 2) day = '0' + day;
+  let day = `${d.getDate()}`;
+  if (day.length < 2) day = `0${day}`;
 
   const year = d.getFullYear();
 

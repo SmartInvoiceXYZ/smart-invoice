@@ -1,11 +1,11 @@
 import '../sass/releaseFunds.scss';
 
-import React, { useState, useEffect, useContext } from 'react';
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
+import { getToken, getTxLink } from '../utils/helpers';
 import { release } from '../utils/invoice';
-import { BigNumber, utils } from 'ethers';
-import { getToken } from '../utils/helpers';
 
 export const ReleaseFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
@@ -19,17 +19,19 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
       : amounts[currentMilestone];
 
   const { decimals, symbol } = getToken(token);
+  const [transaction, setTransaction] = useState();
 
   useEffect(() => {
     const send = async () => {
       try {
         setLoading(true);
         const tx = await release(provider, address);
+        setTransaction(tx);
         await tx.wait();
         setLoading(false);
         window.location.href = `/invoice/${address}`;
       } catch (releaseError) {
-        //eslint-disable-next-line
+        // eslint-disable-next-line
         console.error({ releaseError });
       }
     };
@@ -52,6 +54,15 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
           decimals,
         )} ${symbol}`}</p>
       </div>
+      {transaction && (
+        <a
+          href={getTxLink(transaction.hash)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View Transaction on Explorer
+        </a>
+      )}
       <button type="button" onClick={close}>
         Close
       </button>
