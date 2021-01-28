@@ -20,29 +20,28 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
-  uint256 internal constant DISPUTES_POSSIBLE_OUTCOMES = 5; // excludes options 0, 1 and 2
+  uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
   // Note that Aragon Court treats the possible outcomes as arbitrary numbers, leaving the Arbitrable (us) to define how to understand them.
   // Some outcomes [0, 1, and 2] are reserved by Aragon Court: "missing", "leaked", and "refused", respectively.
   // Note that Aragon Court emits the LOWEST outcome in the event of a tie.
 
-  uint8[][] public rulings = [
-    [1, 1], // 0 = missing
-    [1, 1], // 1 = leaked
-    [1, 1], // 2 = refused
-    [1, 0], // 3 = 100% to client
-    [3, 1], // 4 = 75% to client
-    [1, 1], // 5 = 50% to client
-    [1, 3], // 6 = 25% to client
-    [0, 1] // 7 = 0% to client
+  uint8[2][6] public RULINGS = [
+    [1, 1], // 0 = refused to arbitrate
+    [1, 0], // 1 = 100% to client
+    [3, 1], // 2 = 75% to client
+    [1, 1], // 3 = 50% to client
+    [1, 3], // 4 = 25% to client
+    [0, 1] // 5 = 0% to client
   ];
 
-  /** kovan wETH **/
-  // address public wETH = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
-  /** rinkeby wETH **/
-  address public wETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+  /** kovan WETH_TOKEN **/
+  // address public WETH_TOKEN = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+  /** rinkeby WETH_TOKEN **/
+  address public constant WETH_TOKEN =
+    0xc778417E063141139Fce010982780140Aa0cD5Ab;
   uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
-  enum ADR {LEX_DAO, ARAGON_COURT}
+  enum ADR {INDIVIDUAL, ARBITRATOR}
 
   address public client;
   address public provider;
@@ -96,7 +95,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 _terminationTime, // exact termination date in seconds since epoch
     bytes32 _details
   ) {
-    require(_resolverType <= uint8(ADR.ARAGON_COURT), "invalid resolverType");
+    require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
     require(_terminationTime > block.timestamp, "invoice ends before now");
     require(
       _terminationTime <= block.timestamp.add(MAX_DURATION),
@@ -126,30 +125,33 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(_msgSender() == client, "!client");
 
     uint256 currentMilestone = milestone;
-    uint256 amount = amounts[currentMilestone];
     uint256 balance = IERC20(token).balanceOf(address(this));
-    if (currentMilestone == amounts.length && amount < balance) {
-      amount = balance;
+
+    if (currentMilestone < amounts.length) {
+      milestone = milestone.add(1);
+      uint256 amount = amounts[currentMilestone];
+      if (milestone == amounts.length && amount < balance) {
+        amount = balance;
+      }
+      require(balance >= amount, "insufficient balance");
+
+      IERC20(token).safeTransfer(provider, amount);
+      released = released.add(amount);
+      emit Release(currentMilestone, amount);
+    } else if (balance > 0) {
+      IERC20(token).safeTransfer(provider, balance);
+      released = released.add(balance);
+      emit Release(currentMilestone, balance);
     }
-    require(balance >= amount, "insufficient balance");
-
-    IERC20(token).safeTransfer(provider, amount);
-    released = released.add(amount);
-    milestone = milestone.add(1);
-
-    emit Release(currentMilestone, amount);
   }
 
   function releaseTokens(address _token) external nonReentrant {
-    require(
-      _msgSender() == client || _msgSender() == provider,
-      "!client & !provider"
-    );
     if (_token == token) {
       release();
     } else {
-      uint256 balance = IERC20(token).balanceOf(address(this));
-      IERC20(token).safeTransfer(provider, balance);
+      require(_msgSender() == client, "!client");
+      uint256 balance = IERC20(_token).balanceOf(address(this));
+      IERC20(_token).safeTransfer(provider, balance);
     }
   }
 
@@ -166,7 +168,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     emit Withdraw(balance);
   }
 
-  function lock(bytes32 _details) external nonReentrant {
+  function lock(bytes32 _details) external payable nonReentrant {
     // client or main (0) provider can lock remainder for resolution during locker period / update request details
     require(!locked, "locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
@@ -174,33 +176,15 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(block.timestamp < terminationTime, "terminated");
     require(_msgSender() == client || _msgSender() == provider, "!party");
 
-    if (resolverType == ADR.ARAGON_COURT) {
-      (address disputeToken, uint256 disputeFee) =
-        _payDisputeFees(resolver, balance);
-      disputeId = IArbitrator(resolver).createDispute(
-        DISPUTES_POSSIBLE_OUTCOMES,
-        "0x"
+    if (resolverType == ADR.ARBITRATOR) {
+      disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
+        NUM_RULING_OPTIONS,
+        ""
       );
-      emit DisputeFee(disputeId, disputeToken, disputeFee);
     }
     locked = true;
 
     emit Lock(_msgSender(), _details);
-  }
-
-  function _payDisputeFees(address _adr, uint256 _balance)
-    internal
-    returns (address, uint256)
-  {
-    IArbitrator arbitrator = IArbitrator(_adr);
-    (, IERC20 feeToken, uint256 feeAmount) = arbitrator.getDisputeFees();
-    if (address(feeToken) == token) {
-      require(_balance > feeAmount, "feeAmount > balance"); // can't raise dispute if balance <= feeAmount
-    } else {
-      feeToken.safeTransferFrom(_msgSender(), address(this), feeAmount); // sender must pay dispute fees
-    }
-    require(feeToken.approve(_adr, feeAmount), "fee not approved");
-    return (address(feeToken), feeAmount);
   }
 
   function resolve(
@@ -208,8 +192,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 _providerAward,
     bytes32 _details
   ) external nonReentrant {
-    // called by lex dao
-    require(resolverType == ADR.LEX_DAO, "!lex");
+    // called by individual
+    require(resolverType == ADR.INDIVIDUAL, "!lex");
     require(locked, "!locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
@@ -225,7 +209,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     IERC20(token).safeTransfer(client, _clientAward);
     IERC20(token).safeTransfer(resolver, resolutionFee);
 
-    released = total;
+    released = released.add(balance);
+    milestone = amounts.length;
     locked = false;
 
     emit Resolve(
@@ -242,17 +227,16 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     override
     nonReentrant
   {
-    // called by aragon court
-    require(_ruling <= rulings.length, "invalid ruling");
+    // called by arbitrator
     require(_disputeId == disputeId, "incorrect disputeId");
-    require(_ruling <= DISPUTES_POSSIBLE_OUTCOMES, "invalid ruling");
-    require(resolverType == ADR.ARAGON_COURT, "!aragon");
+    require(_ruling <= NUM_RULING_OPTIONS, "invalid ruling");
+    require(resolverType == ADR.ARBITRATOR, "!arbitrator");
     require(locked, "!locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
     require(_msgSender() == resolver, "!resolver");
 
-    uint8[] storage ruling = rulings[_ruling];
+    uint8[2] storage ruling = RULINGS[_ruling];
     uint8 clientShare = ruling[0];
     uint8 providerShare = ruling[1];
     uint8 denom = clientShare + providerShare;
@@ -270,12 +254,13 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     locked = false;
 
     emit Rule(_msgSender(), clientAward, providerAward, _ruling);
+    emit Ruling(IArbitrator(resolver), _disputeId, _ruling);
   }
 
   // receive eth transfers
   receive() external payable {
     require(!locked, "locked");
-    require(token == wETH, "!wETH");
-    IWETH(wETH).deposit{value: msg.value}();
+    require(token == WETH_TOKEN, "!wETH");
+    IWETH(WETH_TOKEN).deposit{value: msg.value}();
   }
 }

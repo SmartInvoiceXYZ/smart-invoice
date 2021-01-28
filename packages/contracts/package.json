@@ -6,9 +6,8 @@
     "help": "buidler help",
     "clean": "rm -rf ./cache",
     "lint": "solhint contracts/*.sol",
-    "deploy-kovan": "buidler run scripts/deploy-mono.js --network kovan",
-    "deploy-rinkeby": "buidler run scripts/deploy-mono.js --network rinkeby",
-    "deploy-factory": "buidler run scripts/deploy-factory.js --network rinkeby"
+    "deploy-kovan": "buidler run scripts/deploy-factory.js --network kovan",
+    "deploy-rinkeby": "buidler run scripts/deploy-factory.js --network rinkeby"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.7",
@@ -18,7 +17,7 @@
     "dotenv": "^8.2.0",
     "ethers": "^5.0.24",
     "solhint": "^3.2.1",
-    "@openzeppelin/contracts": "3.1.0-solc-0.7"
+    "@openzeppelin/contracts": "3.3.0-solc-0.7"
   },
   "license": "MIT"
 }
