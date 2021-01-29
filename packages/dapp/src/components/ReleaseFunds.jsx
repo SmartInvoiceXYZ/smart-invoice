@@ -1,5 +1,11 @@
-import '../sass/releaseFunds.scss';
-
+import {
+  Button,
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
@@ -20,6 +26,7 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
 
   const { decimals, symbol } = getToken(token);
   const [transaction, setTransaction] = useState();
+  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
     const send = async () => {
@@ -41,31 +48,54 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
   }, [amount, address, provider, balance, close, loading]);
 
   return (
-    <div className="release-funds">
-      <h1> Release Funds </h1>
-      <p className="modal-note">
+    <VStack w="100%" spacing="1rem">
+      <Heading
+        fontWeight="normal"
+        mb="1rem"
+        textTransform="uppercase"
+        textAlign="center"
+      >
+        Release Funds
+      </Heading>
+      <Text textAlign="center" fontSize="sm" mb="1rem">
         Follow the instructions in your wallet to release funds from escrow to
         the project team.
-      </p>
-      <div className="release-amount">
-        <p className="label"> Amount To Be Released </p>
-        <p className="value">{`${utils.formatUnits(
-          amount,
-          decimals,
-        )} ${symbol}`}</p>
-      </div>
+      </Text>
+      <VStack
+        className="release-amount"
+        my="2rem"
+        px="5rem"
+        py="1rem"
+        bg="black"
+        borderRadius="0.5rem"
+      >
+        <Text color="red.500" fontSize="0.875rem" textAlign="center">
+          Amount To Be Released
+        </Text>
+        <Text
+          color="white"
+          fontSize="1rem"
+          fontWeight="bold"
+          textAlign="center"
+        >{`${utils.formatUnits(amount, decimals)} ${symbol}`}</Text>
+      </VStack>
       {transaction && (
-        <a
-          href={getTxLink(transaction.hash)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View Transaction on Explorer
-        </a>
+        <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
+          Follow Transaction on Explorer
+        </Link>
       )}
-      <button type="button" onClick={close}>
+      <Button
+        onClick={close}
+        variant="outline"
+        colorScheme="red"
+        textTransform="uppercase"
+        size={buttonSize}
+        fontFamily="mono"
+        fontWeight="normal"
+        w="100%"
+      >
         Close
-      </button>
-    </div>
+      </Button>
+    </VStack>
   );
 };

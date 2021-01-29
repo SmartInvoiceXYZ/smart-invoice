@@ -1,6 +1,8 @@
 import Base58 from 'base-58';
 import IPFSClient from 'ipfs-http-client';
 
+import { INVOICE_VERSION } from './constants';
+
 const ipfs = new IPFSClient({
   host: 'ipfs.infura.io',
   port: '5001',
@@ -16,7 +18,7 @@ const ipfs = new IPFSClient({
 // }
 
 export const uploadMetadata = async meta => {
-  const metadata = { ...meta, version: 'smart-invoice-v0' };
+  const metadata = { ...meta, version: INVOICE_VERSION };
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
   const node = await ipfs.add(bufferedString);
@@ -25,7 +27,7 @@ export const uploadMetadata = async meta => {
 };
 
 export const uploadDisputeDetails = async meta => {
-  const metadata = { ...meta, version: 'smart-invoice-v0' };
+  const metadata = { ...meta, version: INVOICE_VERSION };
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
   const node = await ipfs.add(bufferedString);

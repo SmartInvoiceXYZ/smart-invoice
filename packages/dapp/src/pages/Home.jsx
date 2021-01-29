@@ -1,44 +1,53 @@
-import '../sass/homeStyles.scss';
-
-import React, { useContext } from 'react';
+import { Button, Flex, Text, useBreakpointValue } from '@chakra-ui/react';
+import React from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { Web3Context } from '../context/Web3Context';
+import { Container } from '../shared/Container';
 
 export const Home = () => {
-  const { provider, address, connectAccount } = useContext(Web3Context);
-
   const history = useHistory();
 
   const createInvoice = async () => {
-    if (!provider) {
-      await connectAccount();
-    }
-    if (address === '') return;
     history.push('/create-invoice');
   };
 
   const viewInvoices = async () => {
-    if (!provider) {
-      await connectAccount();
-    }
-    if (address === '') return;
     history.push('/invoices');
   };
 
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+
   return (
-    <div className="main">
-      <div className="home">
-        <div>
-          <button className="bg-red" onClick={createInvoice} type="button">
-            CREATE A NEW SMART INVOICE
-          </button>
-          <p>or</p>
-          <button className="bg-red" onClick={viewInvoices} type="button">
-            VIEW EXISTING INVOICE
-          </button>
-        </div>
-      </div>
-    </div>
+    <Container justify={{ base: 'center', md: 'flex-start' }} direction="row">
+      <Flex
+        direction="column"
+        align="stretch"
+        m={{ base: '1rem', md: '2rem' }}
+        w={{ base: '22rem', sm: '28rem', lg: '32rem' }}
+        maxW="calc(100%-4rem)"
+      >
+        <Button
+          colorScheme="red"
+          onClick={createInvoice}
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="normal"
+        >
+          CREATE A NEW SMART INVOICE
+        </Button>
+        <Text fontWeight="bold" my="0.5rem" w="100%" textAlign="center">
+          or
+        </Text>
+        <Button
+          colorScheme="red"
+          onClick={viewInvoices}
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="normal"
+        >
+          VIEW EXISTING INVOICE
+        </Button>
+      </Flex>
+    </Container>
   );
 };

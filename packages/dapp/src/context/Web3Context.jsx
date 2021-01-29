@@ -115,7 +115,7 @@ export const Web3ContextProvider = ({ children }) => {
     <Web3Context.Provider
       value={{
         loading,
-        address: account,
+        account,
         provider: ethersProvider,
         web3,
         chainId,

@@ -25,7 +25,7 @@ export const getResolverString = resolver => {
     case ARAGON_COURT:
       return 'Aragon Court';
     default:
-      return resolver;
+      return getAccountString(resolver);
   }
 };
 
@@ -51,3 +51,27 @@ export const isAddress = value => {
 export const getTxLink = hash => `${EXPLORER_URL}/tx/${hash}`;
 
 export const getAddressLink = hash => `${EXPLORER_URL}/address/${hash}`;
+
+export const getAccountString = account => {
+  const len = account.length;
+  return `${account.substr(0, 6)}...${account.substr(
+    len - 4,
+    len - 1,
+  )}`.toUpperCase();
+};
+
+export const logError = error => {
+  if (process.env.REACT_APP_DEBUG_LOGS === 'true') {
+    // eslint-disable-next-line no-console
+    console.error(error);
+  }
+};
+
+export const copyToClipboard = value => {
+  const tempInput = document.createElement('input');
+  tempInput.value = value;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  document.execCommand('copy');
+  document.body.removeChild(tempInput);
+};

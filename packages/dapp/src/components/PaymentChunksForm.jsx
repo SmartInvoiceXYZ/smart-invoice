@@ -1,3 +1,11 @@
+import {
+  Flex,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
@@ -15,34 +23,37 @@ export const PaymentChunksForm = () => {
   const tokenData = getToken(paymentToken);
   const { decimals, symbol } = tokenData;
   return (
-    <section className="payment-chunks-form">
+    <VStack w="100%" spacing="1rem">
       {Array.from(Array(Number(milestones))).map((_val, index) => {
         return (
-          <div className="parallel-inputs" key={index.toString()}>
-            <div className="ordered-inputs">
-              <label>Payment {index + 1}</label>
-              <div className="input-symbol">
-                <input
-                  type="text"
-                  onChange={e => {
-                    if (!e.target.value || isNaN(Number(e.target.value)))
-                      return;
-                    const amount = utils.parseEther(e.target.value);
-                    const newPayments = payments.slice();
-                    newPayments[index] = amount;
-                    setPayments(newPayments);
-                  }}
-                />
-                <span>{symbol}</span>
-              </div>
-            </div>
-          </div>
+          <VStack w="100%" spacing="0.5rem" key={index.toString()}>
+            <Flex justify="space-between" w="100%">
+              <Text fontWeight="700">Payment #{index + 1}</Text>
+              <Flex />
+            </Flex>
+            <InputGroup>
+              <Input
+                bg="black"
+                type="text"
+                color="white"
+                border="none"
+                onChange={e => {
+                  if (!e.target.value || isNaN(Number(e.target.value))) return;
+                  const amount = utils.parseEther(e.target.value);
+                  const newPayments = payments.slice();
+                  newPayments[index] = amount;
+                  setPayments(newPayments);
+                }}
+              />
+              <InputRightElement color="white">{symbol}</InputRightElement>
+            </InputGroup>
+          </VStack>
         );
       })}
-      <div className="info-note">
+      <Text w="100%" textAlign="right" color="grey">
         Total Amount Must Add Up to {utils.formatUnits(paymentDue, decimals)}{' '}
         {symbol}
-      </div>
-    </section>
+      </Text>
+    </VStack>
   );
 };

@@ -1,16 +1,22 @@
-import '../sass/createInvoiceStyles.scss';
-
+import {
+  Button,
+  Flex,
+  Grid,
+  Stack,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import { FormConfirmation } from '../components/FormConfirmation';
-import { Loader } from '../components/Loader';
 import { PaymentChunksForm } from '../components/PaymentChunksForm';
 import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../components/RegisterSuccess';
 import { CreateContext, CreateContextProvider } from '../context/CreateContext';
+import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
 import { STEPS } from '../utils/constants';
 
@@ -34,7 +40,7 @@ const CreateInvoiceInner = () => {
   } = useContext(CreateContext);
   const [currentStep, setStep] = useState(1);
   const [isEnabled, setEnabled] = useState(false);
-  const nextButton = useRef(null);
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md' });
 
   useEffect(() => {
     if (
@@ -44,7 +50,6 @@ const CreateInvoiceInner = () => {
       safetyValveDate
     ) {
       setEnabled(true);
-      nextButton.current.classList.remove('disabled');
     } else if (
       currentStep === 2 &&
       isAddress(clientAddress) &&
@@ -63,7 +68,6 @@ const CreateInvoiceInner = () => {
       ).length === 4
     ) {
       setEnabled(true);
-      nextButton.current.classList.remove('disabled');
     } else if (
       currentStep === 3 &&
       payments
@@ -73,13 +77,10 @@ const CreateInvoiceInner = () => {
         .eq(paymentDue)
     ) {
       setEnabled(true);
-      nextButton.current.classList.remove('disabled');
     } else if (currentStep === 4) {
       setEnabled(true);
-      nextButton.current.classList.remove('disabled');
     } else {
       setEnabled(false);
-      nextButton.current.classList.add('disabled');
     }
   }, [
     projectName,
@@ -103,49 +104,73 @@ const CreateInvoiceInner = () => {
     return () => undefined;
   };
 
+  const spacing = useBreakpointValue({ base: '1rem', md: '2rem' });
+
   return (
-    <div className="main overlay">
+    <Container overlay>
       {tx ? (
         <RegisterSuccess />
       ) : (
-        <div className="create-invoice">
+        <Stack
+          direction={{ base: 'column', lg: 'row' }}
+          spacing={spacing}
+          align="center"
+          justify="center"
+          w="100%"
+          px="1rem"
+          my="8rem"
+        >
           <StepInfo
             stepNum={currentStep}
             stepTitle={STEPS[currentStep].step_title}
             stepDetails={STEPS[currentStep].step_details}
           />
-          <div>
-            {currentStep === 1 && <ProjectDetailsForm />}
-            {currentStep === 2 && <PaymentDetailsForm />}
-            {currentStep === 3 && <PaymentChunksForm />}
-            {currentStep === 4 && <FormConfirmation />}
-            <div className="form-action-buttons">
-              {currentStep !== 1 && (
-                <button
-                  type="button"
-                  id="back-button"
+          <VStack spacing="1rem" w={{ base: '100%', md: 'auto' }}>
+            <Flex
+              bg="background"
+              direction="column"
+              justify="space-between"
+              p="1rem"
+              borderRadius="0.5rem"
+              w="100%"
+            >
+              {currentStep === 1 && <ProjectDetailsForm />}
+              {currentStep === 2 && <PaymentDetailsForm />}
+              {currentStep === 3 && <PaymentChunksForm />}
+              {currentStep === 4 && <FormConfirmation />}
+            </Flex>
+            <Grid templateColumns="1fr 4fr" gap="1rem" w="100%">
+              {currentStep !== 1 ? (
+                <Button
+                  colorScheme="red"
+                  variant="outline"
                   onClick={() => setStep(prevState => prevState - 1)}
+                  size={buttonSize}
+                  fontFamily="mono"
+                  fontWeight="normal"
                 >
                   BACK
-                </button>
+                </Button>
+              ) : (
+                <Flex />
               )}
-              <button
-                type="button"
-                id="next-button"
+              <Button
+                colorScheme="red"
                 onClick={stepHandler}
-                ref={nextButton}
+                isLoading={loading}
+                isDisabled={!isEnabled}
+                textTransform="uppercase"
+                size={buttonSize}
+                fontFamily="mono"
+                fontWeight="normal"
               >
-                {loading ? (
-                  <Loader size="20" color="#ffffff" />
-                ) : (
-                  `next: ${STEPS[currentStep].next}`
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+                {`next: ${STEPS[currentStep].next}`}
+              </Button>
+            </Grid>
+          </VStack>
+        </Stack>
       )}
-    </div>
+    </Container>
   );
 };
 

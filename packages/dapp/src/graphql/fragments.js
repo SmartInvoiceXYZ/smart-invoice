@@ -22,20 +22,26 @@ export const InvoiceDetails = gql`
     projectAgreement
     startDate
     endDate
-    releases {
-      txHash
+    deposits(orderBy: timestamp, orderDirection: asc) {
+      txHash: id
+      sender
+      amount
+      timestamp
+    }
+    releases(orderBy: timestamp, orderDirection: asc) {
+      txHash: id
       milestone
       amount
       timestamp
     }
-    disputes {
-      txHash
+    disputes(orderBy: timestamp, orderDirection: asc) {
+      txHash: id
       sender
       details
       timestamp
     }
-    resolutions {
-      txHash
+    resolutions(orderBy: timestamp, orderDirection: asc) {
+      txHash: id
       clientAward
       providerAward
       resolutionFee

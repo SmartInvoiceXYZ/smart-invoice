@@ -1,5 +1,11 @@
-import '../sass/invoicesStyles.scss';
-
+import {
+  Flex,
+  Heading,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Text,
+} from '@chakra-ui/react';
 import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 
@@ -7,62 +13,91 @@ import { Loader } from '../components/Loader';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
+import { SearchIcon } from '../icons/SearchIcon';
+import { Container } from '../shared/Container';
+import { theme } from '../theme';
 
 const InvoiceStatusLabel = ({ invoice }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
   return (
-    <span className={`invoice-status ${funded ? 'funded' : ''}`}>
+    <Text
+      color={funded ? 'green' : 'red.500'}
+      fontWeight="bold"
+      textTransform="uppercase"
+    >
       {loading ? <Loader size="20" /> : label}
-    </span>
+    </Text>
   );
 };
 
 const InvoicesInner = ({ history }) => {
   const { search, setSearch, result, fetching } = useContext(SearchContext);
-  const { address } = useContext(Web3Context);
+  const { account } = useContext(Web3Context);
 
   useEffect(() => {
-    if (address) {
-      setSearch(address);
+    if (account) {
+      setSearch(account);
     }
-  }, [address, setSearch]);
+  }, [account, setSearch]);
   return (
-    <div className="main">
-      <div className="invoices">
-        <div>
-          <h3 id="invoices-title">View Existing</h3>
-          <div className="input-box">
-            <input
-              type="text"
-              value={search}
-              placeholder="Search for Invoice"
-              onChange={e => setSearch(e.target.value)}
-            />
-            {fetching && <Loader size="20" />}
-          </div>
+    <Container justify="flex-start" direction="row">
+      <Flex
+        direction="column"
+        align="stretch"
+        m={{ base: '1rem', md: '2rem' }}
+        w="30rem"
+        maxW="calc(100%-4rem)"
+      >
+        <Heading fontWeight="normal" mb="1rem">
+          View Existing
+        </Heading>
+        <InputGroup>
+          <Input
+            type="text"
+            value={search}
+            placeholder="Search for Invoice"
+            onChange={e => setSearch(e.target.value)}
+          />
+          <InputRightElement>
+            {fetching ? <Loader size="20" /> : <SearchIcon boxSize="1.25rem" />}
+          </InputRightElement>
+        </InputGroup>
 
-          <div className="invoices-res">
-            {result &&
-              result.map(invoice => (
-                // eslint-disable-next-line
-                <div
-                  className="invoices-res-item"
-                  onClick={() => history.push(`/invoice/${invoice.address}`)}
-                  key={invoice.address}
-                >
-                  <span> {invoice.projectName} </span>
-                  <InvoiceStatusLabel invoice={invoice} />
-                </div>
-              ))}
-            {!fetching && result && result.length === 0 && (
-              <div className="invoices-res-item">
-                <span> No invoices found </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+        <Flex direction="column" align="stretch" w="100%" mt="0.5rem">
+          {result &&
+            result.map(invoice => (
+              // eslint-disable-next-line
+              <Flex
+                justify="space-between"
+                align="center"
+                borderBottom={`solid 1px ${theme.colors.borderGrey}`}
+                onClick={() => history.push(`/invoice/${invoice.address}`)}
+                key={invoice.address}
+                p="0.5rem"
+                height="3rem"
+                cursor="pointer"
+                transition="backgroundColor 0.25s"
+                _hover={{
+                  backgroundColor: 'white20',
+                }}
+              >
+                <Text color="white"> {invoice.projectName} </Text>
+                <InvoiceStatusLabel invoice={invoice} />
+              </Flex>
+            ))}
+          {!fetching && result && result.length === 0 && (
+            <Flex
+              justify="space-between"
+              align="center"
+              p="0.5rem"
+              borderBottom="solid 1px #505050"
+            >
+              <Text color="white"> No invoices found </Text>
+            </Flex>
+          )}
+        </Flex>
+      </Flex>
+    </Container>
   );
 };
 

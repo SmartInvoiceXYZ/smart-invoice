@@ -82,3 +82,13 @@ type Resolution @entity {
   ruling: BigInt # only arbitrator
   timestamp: BigInt!
 }
+
+type Transfer @entity {
+  id: ID!
+  txHash: Bytes!
+  from: Bytes!
+  to: Bytes!
+  amount: BigInt!
+  token: Bytes!
+  timestamp: BigInt!
+}

@@ -22,7 +22,7 @@ const addressSearchQuery = gql`
   query AddressSearch($search: Bytes, $first: Int) {
     addressInvoices: invoices(
       first: $first
-      where: { address_contains: $search }
+      where: { address_contains: $search, projectName_not: "" }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -30,7 +30,7 @@ const addressSearchQuery = gql`
     }
     clientInvoices: invoices(
       first: $first
-      where: { client_contains: $search }
+      where: { client_contains: $search, projectName_not: "" }
       orderBy: createdAt
       orderDirection: desc
     ) {
@@ -38,7 +38,7 @@ const addressSearchQuery = gql`
     }
     providerInvoices: invoices(
       first: $first
-      where: { provider_contains: $search }
+      where: { provider_contains: $search, projectName_not: "" }
       orderBy: createdAt
       orderDirection: desc
     ) {

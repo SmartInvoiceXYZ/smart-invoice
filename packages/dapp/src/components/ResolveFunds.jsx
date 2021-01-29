@@ -1,13 +1,22 @@
-import '../sass/resolveFunds.scss';
-
+import {
+  Button,
+  Heading,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Link,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
+import { OrderedTextarea } from '../shared/OrderedInput';
 import { getToken, getTxLink } from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
-import { Loader } from './Loader';
 
 export const ResolveFunds = ({ invoice, balance, close }) => {
   const { address, token, isLocked } = invoice;
@@ -16,7 +25,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
   const { decimals, symbol } = tokenData;
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
-  const resolverAward = balance.div(20);
+  const resolverAward = balance.gt(0) ? balance.div(20) : BigNumber.from(0);
   const availableFunds = balance.sub(resolverAward);
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigNumber.from(0));
@@ -25,12 +34,14 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
   );
   const [providerAwardInput, setProviderAwardInput] = useState('0');
   const [comments, setComments] = useState('');
+  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   const resolveFunds = async () => {
     if (
       !provider ||
       !isLocked ||
-      !balance.eq(clientAward.add(providerAward).add(resolverAward))
+      !balance.eq(clientAward.add(providerAward).add(resolverAward)) ||
+      balance.lte(0)
     )
       return;
     try {
@@ -58,111 +69,129 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
   };
 
   return (
-    <div className="resolve-funds">
-      <h1> RESOLVE DISPUTE </h1>
-      <p className="modal-note">
+    <VStack w="100%" spacing="1rem">
+      <Heading
+        fontWeight="normal"
+        mb="1rem"
+        textTransform="uppercase"
+        textAlign="center"
+      >
+        Resolve Dispute
+      </Heading>
+      <Text textAlign="center" fontSize="sm" mb="1rem">
         {isLocked
           ? `You’ll need to equally distibute the total balance of ${utils.formatUnits(
               balance,
               decimals,
             )} ${symbol} between the client and provider, excluding the 5% arbitration fee which you shall receive.`
           : `Invoice is not locked`}
-      </p>
+      </Text>
       {isLocked ? (
         <>
-          <div className="ordered-inputs">
-            <p className="tooltip">
-              <sl-tooltip content="Comments for resolution?">
-                <i className="far fa-question-circle" />
-              </sl-tooltip>
-            </p>
-            <label>Resolution Comments</label>
-            <textarea
-              value={comments}
-              onChange={e => setComments(e.target.value)}
-            />
-          </div>
+          <OrderedTextarea
+            tooltip="Here you may explain your reasoning behind the resolution"
+            label="Resolution Comments"
+            value={comments}
+            setValue={setComments}
+          />
 
-          <div className="control has-icons-right">
-            <span className="label"> Client Award </span>
-            <input
-              className="input"
-              type="number"
-              value={clientAwardInput}
-              onChange={e => {
-                setClientAwardInput(e.target.value);
-                if (e.target.value) {
-                  let award = utils.parseUnits(e.target.value, decimals);
-                  if (award.gt(availableFunds)) {
-                    award = availableFunds;
-                    setClientAwardInput(utils.formatUnits(award, decimals));
-                  }
-                  setClientAward(award);
-                  award = availableFunds.sub(award);
-                  setProviderAward(award);
-                  setProviderAwardInput(utils.formatUnits(award, decimals));
-                }
-              }}
-              placeholder="Client Award"
-            />
-            <span className="icon is-right">{symbol}</span>
-          </div>
-          <div className="control has-icons-right">
-            <span className="label"> Provider Award </span>
-            <input
-              className="input"
-              type="number"
-              value={providerAwardInput}
-              onChange={e => {
-                setProviderAwardInput(e.target.value);
-                if (e.target.value) {
-                  let award = utils.parseUnits(e.target.value, decimals);
-                  if (award.gt(availableFunds)) {
-                    award = availableFunds;
+          <VStack spacing="0.5rem" align="stretch" color="red.500">
+            <Text fontWeight="700">Client Award</Text>
+            <InputGroup bg="black" color="white" border="none">
+              <Input
+                border="none"
+                type="number"
+                value={clientAwardInput}
+                onChange={e => {
+                  setClientAwardInput(e.target.value);
+                  if (e.target.value) {
+                    let award = utils.parseUnits(e.target.value, decimals);
+                    if (award.gt(availableFunds)) {
+                      award = availableFunds;
+                      setClientAwardInput(utils.formatUnits(award, decimals));
+                    }
+                    setClientAward(award);
+                    award = availableFunds.sub(award);
+                    setProviderAward(award);
                     setProviderAwardInput(utils.formatUnits(award, decimals));
                   }
-                  setProviderAward(award);
-                  award = availableFunds.sub(award);
-                  setClientAward(award);
-                  setClientAwardInput(utils.formatUnits(award, decimals));
-                }
-              }}
-              placeholder="Provider Award"
-            />
-            <span className="icon is-right">{symbol}</span>
-          </div>
-          <div className="control has-icons-right">
-            <span className="label"> Resolver Award </span>
-            <input
-              className="input"
-              type="number"
-              value={utils.formatUnits(resolverAward, decimals)}
-              disabled
-            />
-            <span className="icon is-right">{symbol}</span>
-          </div>
-          <button
-            type="submit"
+                }}
+                placeholder="Client Award"
+              />
+              <InputRightElement>{symbol}</InputRightElement>
+            </InputGroup>
+          </VStack>
+          <VStack spacing="0.5rem" align="stretch" color="red.500">
+            <Text fontWeight="700">Provider Award</Text>
+            <InputGroup bg="black" color="white" border="none">
+              <Input
+                border="none"
+                type="number"
+                value={providerAwardInput}
+                onChange={e => {
+                  setProviderAwardInput(e.target.value);
+                  if (e.target.value) {
+                    let award = utils.parseUnits(e.target.value, decimals);
+                    if (award.gt(availableFunds)) {
+                      award = availableFunds;
+                      setProviderAwardInput(utils.formatUnits(award, decimals));
+                    }
+                    setProviderAward(award);
+                    award = availableFunds.sub(award);
+                    setClientAward(award);
+                    setClientAwardInput(utils.formatUnits(award, decimals));
+                  }
+                }}
+                placeholder="Provider Award"
+              />
+              <InputRightElement>{symbol}</InputRightElement>
+            </InputGroup>
+          </VStack>
+          <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
+            <Text fontWeight="700">Resolver Award</Text>
+            <InputGroup bg="black" color="white" border="none">
+              <Input
+                border="none"
+                type="number"
+                value={utils.formatUnits(resolverAward, decimals)}
+                isDisabled
+              />
+              <InputRightElement>{symbol}</InputRightElement>
+            </InputGroup>
+          </VStack>
+          <Button
             onClick={resolveFunds}
-            className="submit-button"
+            isLoading={loading}
+            colorScheme="red"
+            isDisabled={resolverAward.lte(0)}
+            textTransform="uppercase"
+            size={buttonSize}
+            fontFamily="mono"
+            fontWeight="normal"
+            w="100%"
           >
-            {loading ? <Loader size="20" color="#ffffff" /> : 'Resolve'}
-          </button>
+            Resolve
+          </Button>
           {transaction && (
-            <a
-              href={getTxLink(transaction.hash)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Transaction on Explorer
-            </a>
+            <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
+              Follow Transaction on Explorer
+            </Link>
           )}
         </>
       ) : (
-        <button type="button" onClick={close} className="close-button">
+        <Button
+          onClick={close}
+          variant="outline"
+          colorScheme="red"
+          textTransform="uppercase"
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="normal"
+          w="100%"
+        >
           Close
-        </button>
+        </Button>
       )}
-    </div>
+    </VStack>
   );
 };

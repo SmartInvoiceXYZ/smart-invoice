@@ -86,3 +86,5 @@ export const STEPS = {
     next: 'register invoice escrow',
   },
 };
+
+export const INVOICE_VERSION = 'smart-invoice-v0';

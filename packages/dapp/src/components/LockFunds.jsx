@@ -1,10 +1,17 @@
-import '../sass/lockFunds.scss';
-
+import {
+  Button,
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
 
 import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
+import { OrderedTextarea } from '../shared/OrderedInput';
 import { ADDRESSES } from '../utils/constants';
 import { getResolverString, getToken, getTxLink } from '../utils/helpers';
 import { lock } from '../utils/invoice';
@@ -13,9 +20,9 @@ import { Loader } from './Loader';
 
 const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
-export const LockFunds = ({ invoice, balance, close }) => {
+export const LockFunds = ({ invoice, balance }) => {
   const { provider } = useContext(Web3Context);
-  const { isLocked, address, resolver, token } = invoice;
+  const { address, resolver, token } = invoice;
   const resolverString = getResolverString(resolver);
   const { decimals, symbol } = getToken(token);
   const [disputeReason, setDisputeReason] = useState('');
@@ -27,12 +34,12 @@ export const LockFunds = ({ invoice, balance, close }) => {
         )} ${symbol}`
       : `150 DAI`;
 
-  const [showLexDAOSteps] = useState(false);
   const [locking, setLocking] = useState(false);
   const [transaction, setTransaction] = useState();
+  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   const lockFunds = useCallback(async () => {
-    if (provider && !locking && balance.gt(0)) {
+    if (provider && !locking && balance.gt(0) && disputeReason) {
       setLocking(true);
       const detailsHash = await uploadDisputeDetails({
         reason: disputeReason,
@@ -64,7 +71,7 @@ export const LockFunds = ({ invoice, balance, close }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            View Transaction on Explorer
+            Follow Transaction on Explorer
           </a>
         )}
         <div className="locking-funds">
@@ -75,89 +82,63 @@ export const LockFunds = ({ invoice, balance, close }) => {
     );
   }
 
-  if (isLocked) {
-    return (
-      <div className="lock-funds">
-        <h1> Funds Locked </h1>
-        {transaction && (
-          <a
-            href={getTxLink(transaction.hash)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Transaction on Explorer
-          </a>
-        )}
-        <div className="locking-funds">
-          <LockImage className="image locked" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="lock-funds">
-      <h1> Lock Funds </h1>
+    <VStack w="100%" spacing="1rem">
+      <Heading
+        fontWeight="normal"
+        mb="1rem"
+        textTransform="uppercase"
+        textAlign="center"
+      >
+        Lock Funds
+      </Heading>
 
-      {!showLexDAOSteps ? (
-        <>
-          <p className="modal-note">
-            Locking freezes all remaining funds in the contract and initiates a
-            dispute.
-          </p>
-          <p>
-            Once a dispute has been initated, {resolverString} will review your
-            case, including the project agreement and dispute reason to make a
-            decision on how to fairly distribute remaining funds.
-          </p>
-          <div className="ordered-inputs">
-            <p className="tooltip">
-              <sl-tooltip content="Why do you want to lock these funds?">
-                <i className="far fa-question-circle" />
-              </sl-tooltip>
-            </p>
-            <label>Dispute Reason</label>
-            <textarea
-              value={disputeReason}
-              onChange={e => setDisputeReason(e.target.value)}
-            />
-          </div>
-          <p className="lock-note">
-            <u>{resolver}</u> charges a {fee} fee to resolve this dispute. This
-            amount will be deducted from the locked fund amount.
-          </p>
-          <button type="button" onClick={lockFunds}>
-            {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
-          </button>
-          {[LEX_DAO, ARAGON_COURT].indexOf(resolver) !== -1 && (
-            <a
-              target="_blank"
-              href={
-                resolver === LEX_DAO
-                  ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
-                  : 'https://anj.aragon.org/legal/terms-general.pdf'
-              }
-              rel="noreferrer noopener"
-            >
-              Learn about {resolver} dispute process & terms
-            </a>
-          )}
-        </>
-      ) : (
-        <>
-          <LexDAOSteps close={close} />
-        </>
+      <Text textAlign="center" fontSize="sm" mb="1rem">
+        Locking freezes all remaining funds in the contract and initiates a
+        dispute.
+      </Text>
+      <Text w="100%">
+        Once a dispute has been initiated, {resolverString} will review your
+        case, the project agreement and dispute reasoning before making a
+        decision on how to fairly distribute remaining funds.
+      </Text>
+
+      <OrderedTextarea
+        tooltip="Why do you want to lock these funds?"
+        label="Dispute Reason"
+        value={disputeReason}
+        setValue={setDisputeReason}
+      />
+      <Text color="red.500" textAlign="center">
+        <u>{getResolverString(resolver)}</u> charges a {fee} fee to resolve this
+        dispute. This amount will be deducted from the locked fund amount.
+      </Text>
+      <Button
+        onClick={lockFunds}
+        colorScheme="red"
+        isDisabled={!disputeReason}
+        textTransform="uppercase"
+        size={buttonSize}
+        fontFamily="mono"
+        fontWeight="normal"
+        w="100%"
+      >
+        {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
+      </Button>
+      {[LEX_DAO, ARAGON_COURT].indexOf(resolver) === -1 && (
+        <Link
+          href={
+            resolver === LEX_DAO
+              ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
+              : 'https://anj.aragon.org/legal/terms-general.pdf'
+          }
+          isExternal
+          color="red.500"
+          textDecor="underline"
+        >
+          Learn about {getResolverString(resolver)} dispute process & terms
+        </Link>
       )}
-    </div>
-  );
-};
-
-const LexDAOSteps = ({ close }) => {
-  return (
-    <>
-      <button type="button" onClick={close}>
-        Close
-      </button>
-    </>
+    </VStack>
   );
 };

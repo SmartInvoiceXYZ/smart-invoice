@@ -1,19 +1,23 @@
+import { Heading, Text, useBreakpointValue, VStack } from '@chakra-ui/react';
 import React from 'react';
 
 export const StepInfo = ({ stepNum, stepTitle, stepDetails }) => {
+  const maxW = useBreakpointValue({ base: '30rem', lg: '20rem' });
   return (
-    <section className="invoice-step-details">
-      <p className="section-title">Create a Smart Invoice</p>
-      <p className="step-title">
+    <VStack spacing="1rem" maxW={maxW} align="stretch">
+      <Heading fontWeight="normal" fontSize="xl">
+        Create a Smart Invoice
+      </Heading>
+      <Text color="white">
         Step {stepNum}: {stepTitle}
-      </p>
+      </Text>
       {stepDetails.map((detail, index) => {
         return (
-          <p className="step-details" key={index.toString()}>
+          <Text color="grey" fontSize="sm" key={index.toString()}>
             {detail}
-          </p>
+          </Text>
         );
       })}
-    </section>
+    </VStack>
   );
 };

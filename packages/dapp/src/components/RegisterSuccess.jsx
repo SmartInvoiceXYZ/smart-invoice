@@ -1,11 +1,11 @@
-import '../sass/registerSuccessStyles.scss';
-
+import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
-import { getTxLink } from '../utils/helpers';
+import { CopyIcon } from '../icons/CopyIcon';
+import { copyToClipboard, getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
 
@@ -24,37 +24,122 @@ export const RegisterSuccess = () => {
   }, [tx, provider]);
 
   return (
-    <div className="register-success">
-      <p id="title">Invoice Registration Received</p>
-      <p id="transaction-text">
+    <VStack
+      w="100%"
+      spacing="1rem"
+      align="center"
+      justify="center"
+      my="8rem"
+      maxW="30rem"
+    >
+      <Heading fontWeight="normal" fontSize="xl">
+        Invoice Registration Received
+      </Heading>
+      <Text color="white">
         You can check the progress of your transaction{' '}
-        <a href={getTxLink(tx.hash)} target="_blank" rel="noopener noreferrer">
+        <Link
+          href={getTxLink(tx.hash)}
+          isExternal
+          color="red.500"
+          textDecoration="underline"
+        >
           here
-        </a>
-        .
-      </p>
+        </Link>
+      </Text>
       {invoiceID ? (
         <>
-          <p id="info-text">
+          <Text color="white" fontStyle="italic">
             Save this because you will need it to manage your invoice later:
-          </p>
-          <div>
-            <span className="label">Your Invoice ID</span>
-            <div className="value">
-              <Link to={`/invoice/${invoiceID}`}>{invoiceID}</Link>
-            </div>
-          </div>
+          </Text>
+          <VStack w="100%" align="stretch">
+            <Text fontWeight="bold">Your Invoice ID</Text>
+            <Flex
+              p="0.5rem"
+              justify="space-between"
+              align="center"
+              bg="background"
+              borderRadius="0.25rem"
+              w="100%"
+            >
+              <Link
+                ml="0.5rem"
+                href={`/invoice/${invoiceID}`}
+                color="white"
+                overflow="hidden"
+              >
+                {invoiceID}
+              </Link>
+              {document.queryCommandSupported('copy') && (
+                <Button
+                  ml={4}
+                  onClick={() => copyToClipboard(invoiceID.toLowerCase())}
+                  variant="ghost"
+                  colorScheme="red"
+                  h="auto"
+                  w="auto"
+                  minW="2"
+                  p={2}
+                >
+                  <CopyIcon boxSize={4} />
+                </Button>
+              )}
+            </Flex>
+          </VStack>
+          <VStack w="100%" align="stretch" mb="1.5rem">
+            <Text fontWeight="bold">Link to Invoice</Text>
+            <Flex
+              p="0.5rem"
+              justify="space-between"
+              align="center"
+              bg="background"
+              borderRadius="0.25rem"
+              w="100%"
+            >
+              <Link
+                ml="0.5rem"
+                href={`/invoice/${invoiceID}`}
+                color="white"
+                overflow="hidden"
+              >{`${
+                window.location.origin
+              }/invoice/${invoiceID.toLowerCase()}`}</Link>
+              {document.queryCommandSupported('copy') && (
+                <Button
+                  ml={4}
+                  onClick={() =>
+                    copyToClipboard(
+                      `${
+                        window.location.origin
+                      }/invoice/${invoiceID.toLowerCase()}`,
+                    )
+                  }
+                  variant="ghost"
+                  colorScheme="red"
+                  h="auto"
+                  w="auto"
+                  minW="2"
+                  p={2}
+                >
+                  <CopyIcon boxSize={4} />
+                </Button>
+              )}
+            </Flex>
+          </VStack>
         </>
       ) : (
         <Loader size="80" />
       )}
-      <button
-        type="button"
-        id="return-home-button"
+      <Button
+        w="100%"
+        variant="outline"
+        colorScheme="red"
+        textTransform="uppercase"
+        fontFamily="mono"
+        fontWeight="normal"
         onClick={() => history.push('/')}
       >
         Return Home
-      </button>
-    </div>
+      </Button>
+    </VStack>
   );
 };

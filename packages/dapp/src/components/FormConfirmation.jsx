@@ -1,8 +1,14 @@
+import { Divider, Flex, Link, Text, VStack } from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
-import { getDateString, getResolverString, getToken } from '../utils/helpers';
+import {
+  getAccountString,
+  getDateString,
+  getResolverString,
+  getToken,
+} from '../utils/helpers';
 
 export const FormConfirmation = () => {
   const {
@@ -22,51 +28,49 @@ export const FormConfirmation = () => {
   const tokenData = getToken(paymentToken);
   const { decimals, symbol } = tokenData;
   return (
-    <section className="form-confirmation">
-      <p id="project-title">{projectName}</p>
-      {projectDescription && <p>{projectDescription}</p>}
-      <a href={projectAgreement} target="_blank" rel="noopener noreferrer">
+    <VStack w="100%" spacing="1rem" color="white" align="stretch">
+      <Text id="project-title" fontWeight="bold" fontSize="xl">
+        {projectName}
+      </Text>
+      {projectDescription && <Text>{projectDescription}</Text>}
+      <Link href={projectAgreement} isExternal mb="1rem" textDecor="underline">
         {projectAgreement}
-      </a>
-      <div>
-        <p>Client Address:</p>
-        <p>{clientAddress}</p>
-      </div>
-      <div>
-        <p>Client Address:</p>
-        <p>{clientAddress}</p>
-      </div>
-      <div>
-        <p>Payment Address:</p>
-        <p>{paymentAddress}</p>
-      </div>
+      </Link>
+      <Flex justify="space-between">
+        <Text>{`Client Address: `}</Text>
+        <Text>{getAccountString(clientAddress)}</Text>
+      </Flex>
+      <Flex justify="space-between">
+        <Text>{`Payment Address: `}</Text>
+        <Text>{getAccountString(paymentAddress)}</Text>
+      </Flex>
       {startDate && (
-        <div>
-          <p>Project Start Date:</p>
-          <p>{getDateString(startDate / 1000)}</p>
-        </div>
+        <Flex justify="space-between">
+          <Text>{`Project Start Date: `}</Text>
+          <Text>{getDateString(startDate / 1000)}</Text>
+        </Flex>
       )}
       {endDate && (
-        <div>
-          <p>Expected End Date:</p>
-          <p>{getDateString(endDate / 1000)}</p>
-        </div>
+        <Flex justify="space-between">
+          <Text>{`Expected End Date: `}</Text>
+          <Text>{getDateString(endDate / 1000)}</Text>
+        </Flex>
       )}
-      <div>
-        <p>Safety Valve Date:</p>
-        <p>{getDateString(safetyValveDate / 1000)}</p>
-      </div>
-      <div>
-        <p>Arbitration Provider:</p>
-        <p>{getResolverString(arbitrationProvider)}</p>
-      </div>
-      <hr />
-      <div className="total-payment-info">
-        <p>{milestones} Payments</p>
-        <p>
+      <Flex justify="space-between">
+        <Text>{`Safety Valve Date: `}</Text>
+        <Text>{getDateString(safetyValveDate / 1000)}</Text>
+      </Flex>
+      <Flex justify="space-between">
+        <Text>{`Arbitration Provider: `}</Text>
+        <Text>{getResolverString(arbitrationProvider)}</Text>
+      </Flex>
+      <Divider color="black" w="calc(100% + 2rem)" ml="-1rem" />
+      <Flex justify="flex-end">
+        <Text>{milestones} Payments</Text>
+        <Text color="red.500" ml="2rem">
           {utils.formatUnits(paymentDue, decimals)} {symbol} Total
-        </p>
-      </div>
-    </section>
+        </Text>
+      </Flex>
+    </VStack>
   );
 };

@@ -1,19 +1,28 @@
-import '../sass/depositFunds.scss';
-
+import {
+  Button,
+  Checkbox,
+  Heading,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Link,
+  Select,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { BigNumber, Contract, utils } from 'ethers';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { ADDRESSES, NATIVE_TOKEN_SYMBOL } from '../utils/constants';
 import { getToken, getTxLink } from '../utils/helpers';
-import { Loader } from './Loader';
 
 const { WRAPPED_TOKEN } = ADDRESSES;
 
 export const DepositFunds = ({ invoice, deposited }) => {
-  const { address, token, amounts } = invoice;
+  const { address, token, amounts, currentMilestone } = invoice;
   const [paymentType, setPaymentType] = useState(0);
-  const numAmounts = amounts.length;
   const { provider } = useContext(Web3Context);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
@@ -21,6 +30,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
   const { decimals, symbol } = tokenData;
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
+  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
   const deposit = async () => {
     if (!amount || !provider) return;
     try {
@@ -44,35 +54,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
     }
     setLoading(false);
   };
-  const amountsRef = useRef(null);
   const isWRAPPED = token.toLowerCase() === WRAPPED_TOKEN;
-
-  useEffect(() => {
-    if (amountsRef.current) {
-      for (let i = 0; i < numAmounts; i += 1) {
-        const checkbox = amountsRef.current.children[i];
-        checkbox.addEventListener('sl-change', () => {
-          if (checkbox.checked) {
-            setAmountInput(_input => {
-              const amt = _input
-                ? utils.parseUnits(_input, decimals)
-                : BigNumber.from(0);
-              return utils.formatUnits(amt.add(amounts[i]), decimals);
-            });
-          } else {
-            setAmountInput(_input => {
-              const amt = _input
-                ? utils.parseUnits(_input, decimals)
-                : BigNumber.from(0);
-              return amt.gt(amounts[i])
-                ? utils.formatUnits(amt.sub(amounts[i]), decimals)
-                : '0';
-            });
-          }
-        });
-      }
-    }
-  }, [amountsRef, numAmounts, amounts, decimals]);
 
   useEffect(() => {
     if (amountInput) {
@@ -82,66 +64,108 @@ export const DepositFunds = ({ invoice, deposited }) => {
 
   let sum = BigNumber.from(0);
   return (
-    <div className="deposit-funds">
-      <h1> PAY INVOICE </h1>
-      <p className="modal-note">
-        At a minimum, you’ll need to deposit enough to cover the first project
-        payment.
-      </p>
+    <VStack w="100%" spacing="1rem">
+      <Heading
+        fontWeight="normal"
+        mb="1rem"
+        textTransform="uppercase"
+        textAlign="center"
+      >
+        Pay Invoice
+      </Heading>
+      <Text textAlign="center" fontSize="sm" mb="1rem">
+        At a minimum, you’ll need to deposit enough to cover the{' '}
+        {currentMilestone === 0 ? 'first' : 'next'} project payment.
+      </Text>
 
-      <p className="amount-heading">How much will you be depositing today?</p>
-      <div className="amount-details" ref={amountsRef}>
+      <Text textAlign="center" color="red.500">
+        How much will you be depositing today?
+      </Text>
+      <VStack spacing="0.5rem">
         {amounts.map((a, i) => {
           sum = sum.add(a);
           return (
-            <sl-checkbox
-              key={i.toString()}
-              value={a}
-              name={i}
-              checked={deposited.gte(sum)}
-              disabled={deposited.gte(sum)}
+            <Checkbox
+              isChecked={deposited.gte(sum) ? true : undefined}
+              isDisabled={deposited.gte(sum)}
+              onChange={e => {
+                if (e.target.checked) {
+                  setAmountInput(_input => {
+                    const amt = _input
+                      ? utils.parseUnits(_input, decimals)
+                      : BigNumber.from(0);
+                    return utils.formatUnits(amt.add(amounts[i]), decimals);
+                  });
+                } else {
+                  setAmountInput(_input => {
+                    const amt = _input
+                      ? utils.parseUnits(_input, decimals)
+                      : BigNumber.from(0);
+                    return amt.gt(amounts[i])
+                      ? utils.formatUnits(amt.sub(amounts[i]), decimals)
+                      : '0';
+                  });
+                }
+              }}
+              colorScheme="red"
+              border="none"
+              size="lg"
+              fontSize="1rem"
+              color="white"
             >
               Payment #{i + 1} &nbsp; &nbsp;
               {utils.formatUnits(a, decimals)} {symbol}
-            </sl-checkbox>
+            </Checkbox>
           );
         })}
-      </div>
+      </VStack>
 
-      <div className="control has-icons-right">
-        <span className="label"> Amount </span>
-        <input
-          className="input"
-          type="number"
-          value={amountInput}
-          onChange={e => setAmountInput(e.target.value)}
-          placeholder="Amount to Deposit"
-        />
-        {isWRAPPED ? (
-          <select
-            className="icon is-right"
-            onChange={e => setPaymentType(Number(e.target.value))}
-            value={paymentType}
-          >
-            <option value="0">{symbol}</option>
-            <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
-          </select>
-        ) : (
-          <span className="icon is-right">{symbol}</span>
-        )}
-      </div>
-      <button type="submit" onClick={deposit}>
-        {loading ? <Loader size="20" color="#ffffff" /> : 'Deposit'}
-      </button>
+      <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
+        <Text fontWeight="700">Amount</Text>
+        <InputGroup bg="black" color="white" border="none">
+          <Input
+            border="none"
+            type="number"
+            value={amountInput}
+            onChange={e => setAmountInput(e.target.value)}
+            placeholder="Amount to Deposit"
+          />
+          <InputRightElement>
+            {isWRAPPED ? (
+              <Select
+                onChange={e => setPaymentType(Number(e.target.value))}
+                value={paymentType}
+                bg="black"
+                color="white"
+                border="none"
+              >
+                <option value="0">{symbol}</option>
+                <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
+              </Select>
+            ) : (
+              symbol
+            )}
+          </InputRightElement>
+        </InputGroup>
+      </VStack>
+      <Button
+        onClick={deposit}
+        isLoading={loading}
+        colorScheme="red"
+        isDisabled={amount.lte(0)}
+        textTransform="uppercase"
+        size={buttonSize}
+        fontFamily="mono"
+        fontWeight="normal"
+        w="100%"
+      >
+        Deposit
+      </Button>
       {transaction && (
-        <a
-          href={getTxLink(transaction.hash)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View Transaction on Explorer
-        </a>
+        <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
+          Follow Transaction on Explorer
+        </Link>
       )}
-    </div>
+    </VStack>
   );
 };

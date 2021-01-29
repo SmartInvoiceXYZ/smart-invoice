@@ -6,6 +6,7 @@ import {
   Dispute,
   Resolution,
   Deposit,
+  Transfer,
 } from '../generated/schema';
 import { log } from '@graphprotocol/graph-ts';
 
@@ -23,18 +24,18 @@ import { addQm, updateInvoiceInfo } from './helpers';
 export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());
 
-  log.debug('handleLogNewInvoice {}', [event.params.invoice.toString()]);
+  log.debug('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
 
   invoice.address = event.params.invoice;
   invoice.amounts = event.params.amounts;
   invoice.numMilestones = event.params.amounts.length;
   invoice.createdAt = event.block.timestamp;
+  invoice.deposits = new Array<string>();
   invoice.releases = new Array<string>();
   invoice.disputes = new Array<string>();
   invoice.resolutions = new Array<string>();
 
   invoice = updateInvoiceInfo(event.params.invoice, invoice);
-  if (invoice.projectName.length == 0) return;
   invoice.save();
 }
 
@@ -83,7 +84,7 @@ export function handleLock(event: LockEvent): void {
     dispute.details = event.params.details;
     let hexHash = addQm(dispute.details) as Bytes;
     let base58Hash = hexHash.toBase58();
-    dispute.ipfsHash = base58Hash;
+    dispute.ipfsHash = base58Hash.toString();
     dispute.timestamp = event.block.timestamp;
     dispute.save();
 
@@ -103,7 +104,7 @@ export function handleResolve(event: ResolveEvent): void {
     resolution.details = event.params.details;
     let hexHash = addQm(resolution.details) as Bytes;
     let base58Hash = hexHash.toBase58();
-    resolution.ipfsHash = base58Hash;
+    resolution.ipfsHash = base58Hash.toString();
     resolution.resolverType = invoice.resolverType;
     resolution.resolver = invoice.resolver;
     resolution.invoice = invoice.id;
@@ -141,15 +142,33 @@ export function handleDeposit(event: DepositEvent): void {
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  let invoice = Invoice.load(event.params.to.toHexString());
+  let transfer = new Transfer(event.logIndex.toHexString());
+  transfer.txHash = event.transaction.hash;
+  transfer.from = event.params.from;
+  transfer.to = event.params.to;
+  transfer.amount = event.params.amount;
+  transfer.token = event.address;
+  transfer.timestamp = event.block.timestamp;
+  transfer.save();
+
+  let invoice = Invoice.load(transfer.to.toHexString());
   if (invoice != null) {
-    if (event.address.toHexString() === invoice.token.toHexString()) {
+    log.debug('handleTransfer {} Invoice Found {}', [
+      transfer.txHash.toHexString(),
+      invoice.id,
+    ]);
+    if (transfer.token == invoice.token) {
+      log.debug('handleTransfer {} Invoice {} Token Found {}', [
+        transfer.txHash.toHexString(),
+        invoice.id,
+        invoice.token.toHexString(),
+      ]);
       invoice = updateInvoiceInfo(event.params.to, invoice);
 
-      let deposit = new Deposit(event.transaction.hash.toHexString());
+      let deposit = new Deposit(transfer.txHash.toHexString());
       deposit.invoice = invoice.id;
-      deposit.sender = event.params.from;
-      deposit.amount = event.params.tokens;
+      deposit.sender = transfer.from;
+      deposit.amount = transfer.amount;
       deposit.timestamp = event.block.timestamp;
       deposit.save();
 

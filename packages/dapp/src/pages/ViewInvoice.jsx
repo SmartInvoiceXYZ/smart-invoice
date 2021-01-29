@@ -1,5 +1,22 @@
-import '../sass/viewInvoiceStyles.scss';
-
+import {
+  Button,
+  Divider,
+  Flex,
+  Heading,
+  HStack,
+  Link,
+  Modal,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  SimpleGrid,
+  Stack,
+  Text,
+  useBreakpointValue,
+  VStack,
+  Wrap,
+  WrapItem,
+} from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
@@ -11,15 +28,21 @@ import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
+import { Container } from '../shared/Container';
 import { balanceOf } from '../utils/erc20';
-import { getDateString, getResolverString, getToken } from '../utils/helpers';
+import {
+  getDateString,
+  getResolverString,
+  getToken,
+  getTxLink,
+} from '../utils/helpers';
 
 export const ViewInvoice = ({
   match: {
     params: { invoiceId },
   },
 }) => {
-  const { address: account, provider } = useContext(Web3Context);
+  const { account, provider } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -45,17 +68,21 @@ export const ViewInvoice = ({
     }
   }, [invoice, provider]);
 
+  const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
+  const leftMaxW = useBreakpointValue({ base: '30rem', lg: '20rem' });
+  const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
+  const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
+  const smallScreen = useBreakpointValue({ base: true, sm: false });
+
   if (!utils.isAddress(invoiceId) || invoice === null) {
     return <Redirect to="/" />;
   }
 
   if (!invoice || balanceLoading) {
     return (
-      <div className="main overlay">
-        <div className="view-invoice">
-          <Loader size="80" />
-        </div>
-      </div>
+      <Container overlay>
+        <Loader size="80" />
+      </Container>
     );
   }
 
@@ -74,6 +101,8 @@ export const ViewInvoice = ({
     token,
     released,
     isLocked,
+    deposits,
+    releases,
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
@@ -112,175 +141,372 @@ export const ViewInvoice = ({
     }
   };
 
+  let sum = BigNumber.from(0);
   return (
-    <div className="main overlay">
-      <div className="view-invoice">
-        <div className="project-info">
-          <div>
-            <h3 id="title">{projectName}</h3>
-            <h5 id="description">{projectDescription}</h5>
-            <a
+    <Container overlay>
+      <Stack
+        spacing="2rem"
+        justify="center"
+        align="center"
+        direction={{ base: 'column', lg: 'row' }}
+        w="100%"
+        px="1rem"
+        py="8rem"
+      >
+        <Stack
+          spacing="1rem"
+          minW={leftMinW}
+          w="100%"
+          maxW={leftMaxW}
+          justify="center"
+          align="stretch"
+          direction={{ base: 'column', md: 'row', lg: 'column' }}
+        >
+          <VStack align="stretch" justify="center">
+            <Heading fontWeight="normal" fontSize="2xl">
+              {projectName}
+            </Heading>
+            {projectDescription && (
+              <Text color="white">{projectDescription}</Text>
+            )}
+            <Link
               href={projectAgreement}
-              target="_blank"
-              rel="noopener noreferrer"
+              isExternal
+              textDecor="underline"
+              color="white"
             >
-              Link to details of agreement
-            </a>
-          </div>
-          <div id="right-col">
-            {startDate && <p>Project Start Date: {getDateString(startDate)}</p>}
-            {endDate && <p>Project End Date: {getDateString(endDate)}</p>}
-            <p>
-              Safety Valve Withdrawal Date: {getDateString(terminationTime)}
-            </p>
-            <p>Arbitration Provider: {getResolverString(resolver)}</p>
-          </div>
-        </div>
-        <div className="payment-info-container">
-          <div className="payment-info">
-            <div id="total-amount">
-              <p>Total Project Amount</p>
-              <p>{`${utils.formatUnits(total, decimals)} ${symbol}`}</p>
-            </div>
-            <div id="payment-milestone">
-              {amounts.map((amt, index) => (
-                <div key={index.toString()}>
-                  <p>Project Milestone #{index + 1}</p>
-                  <p>{`${utils.formatUnits(amt, decimals)} ${symbol}`}</p>
-                </div>
-              ))}
-            </div>
-            <hr className="hr-line" />
-            <div id="deposited-amount">
-              <div>
-                <p>Total Deposited</p>
-                <p>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</p>
-              </div>
-              <div>
-                <p>Total Released</p>
-                <p>{`${utils.formatUnits(released, decimals)} ${symbol}`}</p>
-              </div>
-              <div>
-                <p>Remaining Amount Due</p>
-                <p>{`${utils.formatUnits(due, decimals)} ${symbol}`}</p>
-              </div>
-            </div>
-            <hr className="hr-line" />
-            <div id="due-amount">
-              <p>
-                {isReleasable ? 'Next Amount to Release' : 'Total Due Today'}
-              </p>
-              <p>{`${utils.formatUnits(
+              Details of Agreement
+            </Link>
+          </VStack>
+          <VStack fontSize="sm" color="grey" align="stretch" justify="center">
+            {startDate && (
+              <Wrap>
+                <WrapItem>
+                  <Text>{'Project Start Date: '}</Text>
+                </WrapItem>
+                <WrapItem>
+                  <Text fontWeight="bold">{getDateString(startDate)}</Text>
+                </WrapItem>
+              </Wrap>
+            )}
+            {endDate && (
+              <Wrap>
+                <WrapItem>
+                  <Text>{'Project End Date: '}</Text>
+                </WrapItem>
+                <WrapItem>
+                  <Text fontWeight="bold">{getDateString(endDate)}</Text>
+                </WrapItem>
+              </Wrap>
+            )}
+            <Wrap>
+              <WrapItem>
+                <Text>{'Safety Valve Withdrawal Date: '}</Text>
+              </WrapItem>
+              <WrapItem>
+                <Text fontWeight="bold">{getDateString(terminationTime)}</Text>
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <WrapItem>
+                <Text>{'Arbitration Provider: '}</Text>
+              </WrapItem>
+              <WrapItem>
+                <Text fontWeight="bold">{getResolverString(resolver)}</Text>
+              </WrapItem>
+            </Wrap>
+          </VStack>
+        </Stack>
+        <VStack
+          spacing={{ base: '2rem', lg: '1.5rem' }}
+          w="100%"
+          align="stretch"
+          maxW={rightMaxW}
+        >
+          <Flex
+            bg="background"
+            direction="column"
+            justify="space-between"
+            px={{ base: '1rem', md: '2rem' }}
+            py="1.5rem"
+            borderRadius="0.5rem"
+            w="100%"
+            color="white"
+          >
+            <Flex
+              justify="space-between"
+              align="center"
+              fontWeight="bold"
+              mb="1rem"
+            >
+              <Text>
+                {smallScreen ? 'Total Amount' : 'Total Project Amount'}
+              </Text>
+              <Text>{`${utils.formatUnits(total, decimals)} ${symbol}`}</Text>
+            </Flex>
+            <VStack
+              pl={{ base: '0.5rem', md: '1rem' }}
+              align="stretch"
+              spacing="0.25rem"
+            >
+              {amounts.map((amt, index) => {
+                let tot = BigNumber.from(0);
+                let ind = -1;
+                let full = false;
+                if (deposits.length > 0) {
+                  for (let i = 0; i < deposits.length; i += 1) {
+                    tot = tot.add(deposits[i].amount);
+                    if (tot.gte(sum)) {
+                      ind = i;
+                      if (tot.sub(sum).gte(amt)) {
+                        full = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+                sum = sum.add(amt);
+
+                return (
+                  <Flex
+                    key={index.toString()}
+                    justify="space-between"
+                    align={{ base: 'stretch', sm: 'center' }}
+                    direction={{ base: 'column', sm: 'row' }}
+                  >
+                    <Text>Payment Milestone #{index + 1}</Text>
+                    <HStack
+                      spacing={{ base: '0.5rem', md: '1rem' }}
+                      align="center"
+                      justify="flex-end"
+                      ml={{ base: '0.5rem', md: '1rem' }}
+                    >
+                      {index < currentMilestone && releases.length > index && (
+                        <Link
+                          fontSize="xs"
+                          isExternal
+                          color="grey"
+                          fontStyle="italic"
+                          href={getTxLink(releases[index].txHash)}
+                        >
+                          Released{' '}
+                          {new Date(
+                            releases[index].timestamp * 1000,
+                          ).toLocaleDateString()}
+                        </Link>
+                      )}
+                      {!(index < currentMilestone && releases.length > index) &&
+                        ind !== -1 && (
+                          <Link
+                            fontSize="xs"
+                            isExternal
+                            color="grey"
+                            fontStyle="italic"
+                            href={getTxLink(deposits[ind].txHash)}
+                          >
+                            {full ? '' : 'Partially '}Deposited{' '}
+                            {new Date(
+                              deposits[ind].timestamp * 1000,
+                            ).toLocaleDateString()}
+                          </Link>
+                        )}
+                      <Text
+                        textAlign="right"
+                        fontWeight="500"
+                      >{`${utils.formatUnits(amt, decimals)} ${symbol}`}</Text>
+                    </HStack>
+                  </Flex>
+                );
+              })}
+            </VStack>
+            <Divider
+              color="black"
+              w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
+              ml={{ base: '-1rem', md: '-2rem' }}
+              my="1rem"
+            />
+            <VStack
+              pl={{ base: '0.5rem', md: '1rem' }}
+              align="stretch"
+              spacing="0.25rem"
+            >
+              <Flex justify="space-between" align="center">
+                <Text>{smallScreen ? '' : 'Total '}Deposited</Text>
+                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
+                  deposited,
+                  decimals,
+                )} ${symbol}`}</Text>
+              </Flex>
+              <Flex justify="space-between" align="center">
+                <Text>{smallScreen ? '' : 'Total '}Released</Text>
+                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
+                  released,
+                  decimals,
+                )} ${symbol}`}</Text>
+              </Flex>
+              <Flex justify="space-between" align="center">
+                <Text>Remaining{smallScreen ? '' : ' Amount Due'}</Text>
+                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
+                  due,
+                  decimals,
+                )} ${symbol}`}</Text>
+              </Flex>
+            </VStack>
+            <Divider color="black" w="calc(100% + 4rem)" ml="-2rem" my="1rem" />
+            <Flex
+              justify="space-between"
+              align="center"
+              color="red.500"
+              fontWeight="bold"
+              fontSize="lg"
+            >
+              <Text>
+                {isReleasable &&
+                  (smallScreen ? 'Next Release' : 'Next Amount to Release')}
+                {!isReleasable &&
+                  (smallScreen ? 'Due Today' : 'Total Due Today')}
+              </Text>
+              <Text>{`${utils.formatUnits(
                 isReleasable ? amount : amount.sub(balance),
                 decimals,
-              )} ${symbol}`}</p>
-            </div>
-          </div>
-          {isResolver ? (
-            <div className="invoice-buttons">
-              <div id="secondary-buttons">
-                <div />
-                <button
-                  id="deposit-button"
+              )} ${symbol}`}</Text>
+            </Flex>
+          </Flex>
+          <SimpleGrid columns={{ base: 2, sm: 3 }} spacing="1rem" w="100%">
+            {isResolver ? (
+              <>
+                <Flex />
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontFamily="mono"
+                  textTransform="uppercase"
                   onClick={() => onDeposit()}
-                  type="button"
                 >
                   Deposit
-                </button>
-              </div>
-              <button
-                id="primary-button"
-                onClick={() => onResolve()}
-                type="button"
-              >
-                Resolve
-              </button>
-            </div>
-          ) : (
-            <div className="invoice-buttons">
-              <div id="secondary-buttons">
-                {!isReleasable && !isClient && <div />}
+                </Button>
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onResolve()}
+                >
+                  Resolve
+                </Button>
+              </>
+            ) : (
+              <>
+                {!isReleasable && !isClient && <Flex />}
                 {isLockable ? (
-                  <button
-                    id="lock-button"
+                  <Button
+                    size={buttonSize}
+                    variant="outline"
+                    colorScheme="red"
+                    fontFamily="mono"
+                    textTransform="uppercase"
                     onClick={() => onLock()}
-                    type="button"
                   >
                     Lock
-                  </button>
+                  </Button>
                 ) : (
-                  <div />
+                  <Flex />
                 )}
                 {isReleasable && isClient && (
-                  <button
-                    id="deposit-button"
+                  <Button
+                    size={buttonSize}
+                    variant="outline"
+                    colorScheme="red"
+                    fontFamily="mono"
+                    textTransform="uppercase"
                     onClick={() => onDeposit()}
-                    type="button"
                   >
                     Deposit
-                  </button>
+                  </Button>
                 )}
-              </div>
-              {isReleasable && isClient ? (
-                <button
-                  id="primary-button"
-                  onClick={() => onRelease()}
-                  type="button"
-                >
-                  Release
-                </button>
-              ) : (
-                <button
-                  id="primary-button"
-                  onClick={() => onDeposit()}
-                  type="button"
-                >
-                  Deposit
-                </button>
+                {isReleasable && isClient ? (
+                  <Button
+                    size={buttonSize}
+                    gridArea={{
+                      base: '2/1/2/span 2',
+                      sm: 'auto/auto/auto/auto',
+                    }}
+                    colorScheme="red"
+                    fontWeight="normal"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onRelease()}
+                  >
+                    Release
+                  </Button>
+                ) : (
+                  <Button
+                    size={buttonSize}
+                    gridArea={{
+                      base: '2/1/2/span 2',
+                      sm: 'auto/auto/auto/auto',
+                    }}
+                    colorScheme="red"
+                    fontWeight="normal"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onDeposit()}
+                  >
+                    Deposit
+                  </Button>
+                )}
+              </>
+            )}
+          </SimpleGrid>
+        </VStack>
+        <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
+          <ModalOverlay>
+            <ModalContent
+              p="2rem"
+              maxW="40rem"
+              background="background"
+              borderRadius="0.5rem"
+              color="white"
+            >
+              <ModalCloseButton
+                _hover={{ bgColor: 'white20' }}
+                top="0.5rem"
+                right="0.5rem"
+              />
+              {modal && selected === 0 && (
+                <LockFunds
+                  invoice={invoice}
+                  balance={balance}
+                  close={() => setModal(false)}
+                />
               )}
-            </div>
-          )}
-        </div>
-        <div className={`modal ${modal ? 'is-active' : null}`}>
-          <div className="modal-background" />
-          <div className="modal-content">
-            <button
-              type="button"
-              className="modal-close is-large"
-              aria-label="close"
-              onClick={() => setModal(false)}
-            />
-            {modal && selected === 0 && (
-              <LockFunds
-                invoice={invoice}
-                balance={balance}
-                close={() => setModal(false)}
-              />
-            )}
-            {modal && selected === 1 && (
-              <DepositFunds
-                invoice={invoice}
-                deposited={deposited}
-                close={() => setModal(false)}
-              />
-            )}
-            {modal && selected === 2 && (
-              <ReleaseFunds
-                invoice={invoice}
-                balance={balance}
-                close={() => setModal(false)}
-              />
-            )}
-            {modal && selected === 3 && (
-              <ResolveFunds
-                invoice={invoice}
-                balance={balance}
-                close={() => setModal(false)}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+              {modal && selected === 1 && (
+                <DepositFunds
+                  invoice={invoice}
+                  deposited={deposited}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 2 && (
+                <ReleaseFunds
+                  invoice={invoice}
+                  balance={balance}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 3 && (
+                <ResolveFunds
+                  invoice={invoice}
+                  balance={balance}
+                  close={() => setModal(false)}
+                />
+              )}
+            </ModalContent>
+          </ModalOverlay>
+        </Modal>
+      </Stack>
+    </Container>
   );
 };

@@ -1,6 +1,8 @@
+import { VStack, Wrap, WrapItem } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
+import { OrderedInput } from '../shared/OrderedInput';
 
 const formatDate = date => {
   const d = new Date(date);
@@ -39,70 +41,53 @@ export const ProjectDetailsForm = () => {
     : '';
 
   return (
-    <section className="project-details-form">
-      <div className="ordered-inputs">
-        <label>Project Name or ID</label>
-        <input
-          type="text"
-          value={projectName}
-          onChange={e => setProjectName(e.target.value)}
-        />
-      </div>
-      <div className="ordered-inputs">
-        <p className="tooltip">140 character limit - optional</p>
-        <label>Project Description</label>
-        <input
-          type="text"
-          value={projectDescription}
-          onChange={e => setProjectDescription(e.target.value)}
-        />
-      </div>
-      <div className="ordered-inputs">
-        <p className="tooltip">
-          <sl-tooltip content="This agreement will be referenced in the case of a dispute">
-            <i className="far fa-question-circle" />
-          </sl-tooltip>
-        </p>
-        <label>Link to Project Agreement</label>
-        <input
-          type="text"
-          value={projectAgreement}
-          onChange={e => setProjectAgreement(e.target.value)}
-        />
-      </div>
-      <div className="parallel-inputs">
-        <div className="ordered-inputs">
-          <p className="tooltip">optional</p>
-          <label>Project Start Date</label>
-          <input
+    <VStack w="100%" spacing="1rem">
+      <OrderedInput
+        label="Project Name or ID"
+        value={projectName}
+        setValue={setProjectName}
+      />
+      <OrderedInput
+        label="Project Description"
+        value={projectDescription}
+        setValue={setProjectDescription}
+        infoText="140 character limit • optional"
+      />
+      <OrderedInput
+        label="Link to Project Agreement"
+        value={projectAgreement}
+        setValue={setProjectAgreement}
+        tooltip="This agreement will be referenced in the case of a dispute"
+      />
+      <Wrap w="100%" spacing="1rem">
+        <WrapItem>
+          <OrderedInput
+            label="Project Start Date"
             type="date"
             value={startDateString}
-            onChange={e => setStartDate(Date.parse(e.target.value))}
+            setValue={v => setStartDate(Date.parse(v))}
+            infoText="optional"
           />
-        </div>
-        <div className="ordered-inputs">
-          <p className="tooltip">optional</p>
-          <label>Expected End Date</label>
-          <input
+        </WrapItem>
+        <WrapItem>
+          <OrderedInput
+            label="Expected End Date"
             type="date"
             value={endDateString}
-            onChange={e => setEndDate(Date.parse(e.target.value))}
+            setValue={v => setEndDate(Date.parse(v))}
+            infoText="optional"
           />
-        </div>
-        <div className="ordered-inputs">
-          <p className="tooltip">
-            <sl-tooltip content="The date at which funds cannot be moved">
-              <i className="far fa-question-circle" />
-            </sl-tooltip>
-          </p>
-          <label>Safety Valve Date</label>
-          <input
+        </WrapItem>
+        <WrapItem>
+          <OrderedInput
+            label="Safety Valve Date"
             type="date"
             value={safetyValveDateString}
-            onChange={e => setSafetyValveDate(Date.parse(e.target.value))}
+            setValue={v => setSafetyValveDate(Date.parse(v))}
+            tooltip="The date at which funds cannot be moved"
           />
-        </div>
-      </div>
-    </section>
+        </WrapItem>
+      </Wrap>
+    </VStack>
   );
 };

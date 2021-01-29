@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Loader = ({ color = '#ff3864', size = '38' }) => {
+export const Loader = ({ color = 'currentColor', size = '38' }) => {
   return (
     <svg
       width={size}
