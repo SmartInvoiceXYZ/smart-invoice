@@ -11,10 +11,10 @@ import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
-import { ADDRESSES } from '../utils/constants';
+import { ADDRESSES, TOKENS } from '../utils/constants';
 import { getResolverString, getToken } from '../utils/helpers';
 
-const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
+const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const PaymentDetailsForm = () => {
   const {
@@ -72,10 +72,11 @@ export const PaymentDetailsForm = () => {
           setValue={setPaymentToken}
           label="Payment Token"
         >
-          <option value={DAI_TOKEN}>{getToken(DAI_TOKEN).symbol}</option>
-          <option value={WRAPPED_TOKEN}>
-            {getToken(WRAPPED_TOKEN).symbol}
-          </option>
+          {TOKENS.map(token => (
+            <option value={token} key={token}>
+              {getToken(token).symbol}
+            </option>
+          ))}
         </OrderedSelect>
         {!isSmallScreen && (
           <OrderedInput
@@ -154,7 +155,7 @@ export const PaymentDetailsForm = () => {
           setValue={() => undefined}
           tooltip={
             arbitrationProvider === ARAGON_COURT
-              ? 'Aragon Court deducts a fixed fee at the creation time of dispute'
+              ? 'Aragon Court deducts a fixed fee at the time of dispute creation'
               : 'A 5% arbitration fee will be deducted from remaining funds during dispute resolution'
           }
           isDisabled

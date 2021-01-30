@@ -40,7 +40,7 @@ const CreateInvoiceInner = () => {
   } = useContext(CreateContext);
   const [currentStep, setStep] = useState(1);
   const [isEnabled, setEnabled] = useState(false);
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md' });
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   useEffect(() => {
     if (

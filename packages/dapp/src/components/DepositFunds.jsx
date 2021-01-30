@@ -16,7 +16,7 @@ import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { ADDRESSES, NATIVE_TOKEN_SYMBOL } from '../utils/constants';
-import { getToken, getTxLink } from '../utils/helpers';
+import { getToken, getTxLink, logError } from '../utils/helpers';
 
 const { WRAPPED_TOKEN } = ADDRESSES;
 
@@ -49,10 +49,9 @@ export const DepositFunds = ({ invoice, deposited }) => {
       await tx.wait();
       window.location.href = `/invoice/${address}`;
     } catch (depositError) {
-      // eslint-disable-next-line
-      console.error({ depositError });
+      setLoading(false);
+      logError({ depositError });
     }
-    setLoading(false);
   };
   const isWRAPPED = token.toLowerCase() === WRAPPED_TOKEN;
 
@@ -86,6 +85,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
           sum = sum.add(a);
           return (
             <Checkbox
+              key={i.toString()}
               isChecked={deposited.gte(sum) ? true : undefined}
               isDisabled={deposited.gte(sum)}
               onChange={e => {
@@ -122,15 +122,18 @@ export const DepositFunds = ({ invoice, deposited }) => {
 
       <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
         <Text fontWeight="700">Amount</Text>
-        <InputGroup bg="black" color="white" border="none">
+        <InputGroup>
           <Input
+            bg="black"
+            color="white"
             border="none"
             type="number"
             value={amountInput}
             onChange={e => setAmountInput(e.target.value)}
             placeholder="Amount to Deposit"
+            pr="3.5rem"
           />
-          <InputRightElement>
+          <InputRightElement w="3.5rem">
             {isWRAPPED ? (
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}

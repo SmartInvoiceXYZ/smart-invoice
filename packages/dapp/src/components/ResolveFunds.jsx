@@ -14,7 +14,7 @@ import React, { useContext, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { getToken, getTxLink } from '../utils/helpers';
+import { getToken, getTxLink, logError } from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
@@ -38,35 +38,34 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
 
   const resolveFunds = async () => {
     if (
-      !provider ||
-      !isLocked ||
-      !comments ||
-      !balance.eq(clientAward.add(providerAward).add(resolverAward)) ||
-      balance.lte(0)
-    )
-      return;
-    try {
-      setLoading(true);
-      const detailsHash = await uploadDisputeDetails({
-        comments,
-        invoice: address,
-        amount: balance.toString(),
-      });
-      const tx = await resolve(
-        provider,
-        address,
-        clientAward,
-        providerAward,
-        detailsHash,
-      );
-      setTransaction(tx);
-      await tx.wait();
-      window.location.href = `/invoice/${address}`;
-    } catch (depositError) {
-      // eslint-disable-next-line
-      console.error({ depositError });
+      provider &&
+      isLocked &&
+      comments &&
+      balance.eq(clientAward.add(providerAward).add(resolverAward)) &&
+      balance.gt(0)
+    ) {
+      try {
+        setLoading(true);
+        const detailsHash = await uploadDisputeDetails({
+          comments,
+          invoice: address,
+          amount: balance.toString(),
+        });
+        const tx = await resolve(
+          provider,
+          address,
+          clientAward,
+          providerAward,
+          detailsHash,
+        );
+        setTransaction(tx);
+        await tx.wait();
+        window.location.href = `/invoice/${address}`;
+      } catch (depositError) {
+        setLoading(false);
+        logError({ depositError });
+      }
     }
-    setLoading(false);
   };
 
   return (
@@ -103,6 +102,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
                 border="none"
                 type="number"
                 value={clientAwardInput}
+                pr="3.5rem"
                 onChange={e => {
                   setClientAwardInput(e.target.value);
                   if (e.target.value) {
@@ -119,7 +119,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
                 }}
                 placeholder="Client Award"
               />
-              <InputRightElement>{symbol}</InputRightElement>
+              <InputRightElement w="3.5rem">{symbol}</InputRightElement>
             </InputGroup>
           </VStack>
           <VStack spacing="0.5rem" align="stretch" color="red.500">

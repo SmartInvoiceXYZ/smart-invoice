@@ -7,6 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Text,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import React, { useContext, useEffect, useState } from 'react';
@@ -66,6 +67,7 @@ export const Header = () => {
       getProfile(account).then(p => setProfile(p));
     }
   }, [account]);
+  const buttonVariant = useBreakpointValue({ base: 'link', md: 'ghost' });
   return (
     <Flex
       w="100%"
@@ -103,10 +105,9 @@ export const Header = () => {
                   h="auto"
                   fontWeight="normal"
                   borderRadius={{ base: 'full', md: undefined }}
-                  variant={{ base: 'link', md: 'ghost' }}
+                  variant={buttonVariant}
                   colorScheme="red"
                   fontFamily="mono"
-                  textTransform="uppercase"
                   p={{ base: 0, md: 2 }}
                 >
                   <Flex
@@ -116,6 +117,7 @@ export const Header = () => {
                     overflow="hidden"
                     justify="center"
                     align="center"
+                    bgColor="black"
                     bgImage={profile && `url(${profile.imageUrl})`}
                     border={`1px solid ${theme.colors.white20}`}
                     bgSize="cover"
@@ -128,7 +130,9 @@ export const Header = () => {
                     fontFamily="'Roboto Mono', monospace;"
                     color="red.500"
                   >
-                    {getAccountString(account)}
+                    {profile && profile.name
+                      ? profile.name
+                      : getAccountString(account)}
                   </Text>
                 </Button>
               </PopoverTrigger>

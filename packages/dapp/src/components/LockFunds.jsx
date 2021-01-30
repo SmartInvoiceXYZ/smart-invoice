@@ -12,9 +12,15 @@ import React, { useCallback, useContext, useState } from 'react';
 
 import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
+import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import { ADDRESSES } from '../utils/constants';
-import { getResolverString, getToken, getTxLink } from '../utils/helpers';
+import {
+  getResolverString,
+  getToken,
+  getTxLink,
+  logError,
+} from '../utils/helpers';
 import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
@@ -24,7 +30,6 @@ const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 export const LockFunds = ({ invoice, balance }) => {
   const { provider } = useContext(Web3Context);
   const { address, resolver, token } = invoice;
-  const resolverString = getResolverString(resolver);
   const { decimals, symbol } = getToken(token);
   const [disputeReason, setDisputeReason] = useState('');
   const fee =
@@ -41,14 +46,13 @@ export const LockFunds = ({ invoice, balance }) => {
 
   const lockFunds = useCallback(async () => {
     if (provider && !locking && balance.gt(0) && disputeReason) {
-      setLocking(true);
-      const detailsHash = await uploadDisputeDetails({
-        reason: disputeReason,
-        invoice: address,
-        amount: balance.toString(),
-      });
-
       try {
+        setLocking(true);
+        const detailsHash = await uploadDisputeDetails({
+          reason: disputeReason,
+          invoice: address,
+          amount: balance.toString(),
+        });
         const tx = await lock(provider, address, detailsHash);
         setTransaction(tx);
         await tx.wait();
@@ -57,8 +61,7 @@ export const LockFunds = ({ invoice, balance }) => {
         }, 2000);
       } catch (lockError) {
         setLocking(false);
-        // eslint-disable-next-line
-        console.error({ lockError });
+        logError({ lockError });
       }
     }
   }, [provider, locking, balance, address, disputeReason]);
@@ -126,9 +129,11 @@ export const LockFunds = ({ invoice, balance }) => {
         dispute.
       </Text>
       <Text w="100%">
-        Once a dispute has been initiated, {resolverString} will review your
-        case, the project agreement and dispute reasoning before making a
-        decision on how to fairly distribute remaining funds.
+        {'Once a dispute has been initiated, '}
+        <AccountLink address={resolver} />
+        {
+          ' will review your case, the project agreement and dispute reasoning before making a decision on how to fairly distribute remaining funds.'
+        }
       </Text>
 
       <OrderedTextarea
@@ -138,8 +143,8 @@ export const LockFunds = ({ invoice, balance }) => {
         setValue={setDisputeReason}
       />
       <Text color="red.500" textAlign="center">
-        <u>{getResolverString(resolver)}</u> charges a {fee} fee to resolve this
-        dispute. This amount will be deducted from the locked fund amount.
+        <AccountLink address={resolver} />
+        {` charges a ${fee} fee to resolve this dispute. This amount will be deducted from the locked fund amount.`}
       </Text>
       <Button
         onClick={lockFunds}

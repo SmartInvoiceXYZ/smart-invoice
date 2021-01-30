@@ -2,10 +2,10 @@ import { Heading, Link, Text, useBreakpointValue } from '@chakra-ui/react';
 import React from 'react';
 
 import { Container } from '../shared/Container';
-import { ADDRESSES, NETWORK } from '../utils/constants';
-import { getAccountString, getAddressLink } from '../utils/helpers';
+import { ADDRESSES, NETWORK, TOKENS } from '../utils/constants';
+import { getAccountString, getAddressLink, getToken } from '../utils/helpers';
 
-const { DAI_TOKEN, FACTORY, WRAPPED_TOKEN } = ADDRESSES;
+const { FACTORY } = ADDRESSES;
 export const FAQ = () => {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
   return (
@@ -26,18 +26,14 @@ export const FAQ = () => {
           {isSmallScreen ? getAccountString(FACTORY) : FACTORY}
         </Link>
       </Text>
-      <Text textAlign="center">
-        WRAPPED NATIVE TOKEN:{' '}
-        <Link href={getAddressLink(WRAPPED_TOKEN)} isExternal color="red.500">
-          {isSmallScreen ? getAccountString(WRAPPED_TOKEN) : WRAPPED_TOKEN}
-        </Link>
-      </Text>
-      <Text textAlign="center">
-        DAI:{' '}
-        <Link href={getAddressLink(DAI_TOKEN)} isExternal color="red.500">
-          {isSmallScreen ? getAccountString(DAI_TOKEN) : DAI_TOKEN}
-        </Link>
-      </Text>
+      {TOKENS.map(token => (
+        <Text textAlign="center">
+          {`ERC20 TOKEN ${getToken(token).symbol}: `}
+          <Link href={getAddressLink(token)} isExternal color="red.500">
+            {isSmallScreen ? getAccountString(token) : token}
+          </Link>
+        </Text>
+      ))}
     </Container>
   );
 };

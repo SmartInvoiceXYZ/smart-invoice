@@ -6,6 +6,7 @@ import Web3Modal from 'web3modal';
 
 import { theme } from '../theme';
 import { INFURA_ID, NETWORK } from '../utils/constants';
+import { logError } from '../utils/helpers';
 
 const providerOptions = {
   walletconnect: {
@@ -88,8 +89,7 @@ export const Web3ContextProvider = ({ children }) => {
         setWeb3Provider(modalProvider);
       });
     } catch (web3ModalError) {
-      // eslint-disable-next-line no-console
-      console.error({ web3ModalError });
+      logError({ web3ModalError });
     }
     setLoading(false);
   }, []);
@@ -104,11 +104,7 @@ export const Web3ContextProvider = ({ children }) => {
       window.ethereum.autoRefreshOnNetworkChange = false;
     }
     if (web3Modal.cachedProvider) {
-      setLoading(true);
-      connectWeb3().catch(web3ModalError => {
-        // eslint-disable-next-line
-        console.error({ web3ModalError });
-      });
+      connectWeb3();
     } else {
       setLoading(false);
     }

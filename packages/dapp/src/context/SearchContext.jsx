@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 
 import { search } from '../graphql/search';
+import { logError } from '../utils/helpers';
 
 export const SearchContext = createContext();
 
@@ -18,8 +19,7 @@ export const SearchContextProvider = ({ children }) => {
           setFetching(false);
         })
         .catch(searchError => {
-          // eslint-disable-next-line no-console
-          console.error({ searchError });
+          logError({ searchError });
           setResult();
           setFetching(false);
         });

@@ -1,4 +1,5 @@
 import {
+  Button,
   Flex,
   Heading,
   Input,
@@ -62,6 +63,7 @@ const InvoicesInner = ({ history }) => {
             value={search}
             placeholder="Search for Invoice"
             onChange={e => setSearch(e.target.value)}
+            borderColor="red.500"
           />
           <InputRightElement>
             {fetching ? (
@@ -75,24 +77,31 @@ const InvoicesInner = ({ history }) => {
         <Flex direction="column" align="stretch" w="100%" mt="0.5rem">
           {result &&
             result.map(invoice => (
-              // eslint-disable-next-line
-              <Flex
-                justify="space-between"
-                align="center"
+              <Button
+                borderRadius="0"
+                variant="ghost"
+                size="lg"
                 borderBottom={`solid 1px ${theme.colors.borderGrey}`}
                 onClick={() => history.push(`/invoice/${invoice.address}`)}
                 key={invoice.address}
-                p="0.5rem"
-                height="3rem"
-                cursor="pointer"
-                transition="backgroundColor 0.25s"
                 _hover={{
-                  backgroundColor: 'white20',
+                  bgColor: 'white20',
+                }}
+                _active={{
+                  bgColor: 'white20',
                 }}
               >
-                <Text color="white"> {invoice.projectName} </Text>
-                <InvoiceStatusLabel invoice={invoice} />
-              </Flex>
+                <Flex
+                  fontSize={fontSize}
+                  display="flex"
+                  justify="space-between"
+                  align="center"
+                  w="100%"
+                >
+                  <Text color="white"> {invoice.projectName} </Text>
+                  <InvoiceStatusLabel invoice={invoice} />
+                </Flex>
+              </Button>
             ))}
           {!fetching && result && result.length === 0 && (
             <Flex

@@ -4,10 +4,10 @@ import {
   ADDRESSES,
   EXPLORER_URL,
   IPFS_ENDPOINT,
-  NATIVE_TOKEN_SYMBOL,
+  TOKEN_INFO,
 } from './constants';
 
-const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
+const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -34,15 +34,8 @@ export const getResolverString = resolver => {
   }
 };
 
-export const getToken = token => {
-  switch (token.toLowerCase()) {
-    case WRAPPED_TOKEN:
-      return { decimals: 18, symbol: `w${NATIVE_TOKEN_SYMBOL}` };
-    case DAI_TOKEN:
-    default:
-      return { decimals: 18, symbol: 'DAI' };
-  }
-};
+export const getToken = token =>
+  TOKEN_INFO[token.toLowerCase()] || { decimals: 18, symbol: 'UNKNOWN' };
 
 // returns the checksummed address if the address is valid, otherwise returns false
 export const isAddress = value => {
@@ -61,10 +54,9 @@ export const getIpfsLink = hash => `${IPFS_ENDPOINT}/ipfs/${hash}`;
 
 export const getAccountString = account => {
   const len = account.length;
-  return `${account.substr(0, 6)}...${account.substr(
-    len - 4,
-    len - 1,
-  )}`.toUpperCase();
+  return `0x${account.substr(2, 3).toUpperCase()}...${account
+    .substr(len - 3, len - 1)
+    .toUpperCase()}`;
 };
 
 export const logError = error => {

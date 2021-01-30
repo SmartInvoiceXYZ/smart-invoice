@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { balanceOf } from '../utils/erc20';
+import { logError } from '../utils/helpers';
 
 export const useInvoiceStatus = invoice => {
   const { provider } = useContext(Web3Context);
@@ -51,8 +52,7 @@ export const useInvoiceStatus = invoice => {
 
           setLoading(false);
         })
-        // eslint-disable-next-line no-console
-        .catch(statusError => console.error({ statusError }));
+        .catch(statusError => logError({ statusError }));
     }
   }, [invoice, provider]);
 

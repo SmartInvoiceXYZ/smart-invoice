@@ -127,7 +127,9 @@ export const RegisterSuccess = () => {
           </VStack>
         </>
       ) : (
-        <Loader size="80" />
+        <Flex my="3rem">
+          <Loader size="80" />
+        </Flex>
       )}
       <Button
         w="100%"

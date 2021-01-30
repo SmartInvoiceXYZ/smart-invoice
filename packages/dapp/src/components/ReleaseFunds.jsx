@@ -10,7 +10,7 @@ import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { getToken, getTxLink } from '../utils/helpers';
+import { getToken, getTxLink, logError } from '../utils/helpers';
 import { release } from '../utils/invoice';
 
 export const ReleaseFunds = ({ invoice, balance, close }) => {
@@ -35,11 +35,10 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
         const tx = await release(provider, address);
         setTransaction(tx);
         await tx.wait();
-        setLoading(false);
         window.location.href = `/invoice/${address}`;
       } catch (releaseError) {
-        // eslint-disable-next-line
-        console.error({ releaseError });
+        setLoading(false);
+        logError({ releaseError });
       }
     };
     if (!loading && provider && balance && balance.gte(amount)) {

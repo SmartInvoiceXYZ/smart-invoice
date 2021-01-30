@@ -1,13 +1,13 @@
-/* eslint-disable no-unused-vars */
 import { BigNumber } from 'ethers';
 import React, { createContext, useContext, useState } from 'react';
 
 import { ADDRESSES } from '../utils/constants';
+import { logError } from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 import { Web3Context } from './Web3Context';
 
-const { ARAGON_COURT, DAI_TOKEN, LEX_DAO } = ADDRESSES;
+const { ARAGON_COURT, LEX_DAO, WRAPPED_TOKEN } = ADDRESSES;
 
 export const CreateContext = createContext();
 
@@ -25,7 +25,7 @@ export const CreateContextProvider = ({ children }) => {
   const [clientAddress, setClientAddress] = useState('');
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
-  const [paymentToken, setPaymentToken] = useState(DAI_TOKEN);
+  const [paymentToken, setPaymentToken] = useState(WRAPPED_TOKEN);
   const [milestones, setMilestones] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(LEX_DAO);
@@ -56,8 +56,7 @@ export const CreateContextProvider = ({ children }) => {
       startDate: Math.floor(startDate / 1000),
       endDate: Math.floor(endDate / 1000),
     }).catch(ipfsError => {
-      // eslint-disable-next-line no-console
-      console.error({ ipfsError });
+      logError({ ipfsError });
       throw ipfsError;
     });
 
@@ -72,8 +71,7 @@ export const CreateContextProvider = ({ children }) => {
       Math.floor(safetyValveDate / 1000),
       detailsHash,
     ).catch(registerError => {
-      // eslint-disable-next-line no-console
-      console.error({ registerError });
+      logError({ registerError });
       throw registerError;
     });
 

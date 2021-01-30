@@ -37,6 +37,7 @@ export const PaymentChunksForm = () => {
                 type="text"
                 color="white"
                 border="none"
+                pr="3.5rem"
                 onChange={e => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;
                   const amount = utils.parseEther(e.target.value);
@@ -45,7 +46,9 @@ export const PaymentChunksForm = () => {
                   setPayments(newPayments);
                 }}
               />
-              <InputRightElement color="white">{symbol}</InputRightElement>
+              <InputRightElement color="white" w="3.5rem">
+                {symbol}
+              </InputRightElement>
             </InputGroup>
           </VStack>
         );

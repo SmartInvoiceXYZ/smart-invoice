@@ -1,7 +1,6 @@
-export const INFURA_ID = process.env.REACT_APP_INFURA_ID;
-export const NETWORK = 4;
-export const IPFS_ENDPOINT = 'https://ipfs.infura.io';
-export const BOX_ENDPOINT = 'https://ipfs.3box.io';
+import { CONFIG } from '../config';
+
+const { INFURA_ID, NETWORK, IPFS_ENDPOINT, BOX_ENDPOINT } = CONFIG;
 
 const networkNames = {
   1: 'ETH Mainnet',
@@ -31,26 +30,36 @@ const nativeSymbols = {
   100: 'XDAI',
 };
 
+export { INFURA_ID, NETWORK, IPFS_ENDPOINT, BOX_ENDPOINT };
+
+export const INVOICE_VERSION = 'smart-invoice-v0';
+
+export const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))|((ipfs|ipns|dweb):\/\/[a-zA-Z0-9/]+)|(^$)/;
+
 export const NETWORK_NAME = networkNames[NETWORK] || 'Rinkeby Testnet';
+
 export const RPC_URL =
   rpcUrls[NETWORK] || `https://rinkeby.infura.io/v3/${INFURA_ID}`;
+
 export const EXPLORER_URL =
   explorerUrls[NETWORK] || 'https://rinkeby.etherscan.io';
+
 export const NATIVE_TOKEN_SYMBOL = nativeSymbols[NETWORK] || 'ETH';
 
-// rinkeby
+export const GRAPH_URL = `https://api.thegraph.com/subgraphs/name/${CONFIG.SUBGRAPH}`;
+
+export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
+
 export const ADDRESSES = {
-  // toLowerCase is IMPORTANT
-  // TODO: change this to an actual valid lex_dao address
-  LEX_DAO: '0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase(),
-  ARAGON_COURT: '0x52180af656a1923024d1accf1d827ab85ce48878'.toLowerCase(),
-  DAI_TOKEN: '0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42'.toLowerCase(),
-  WRAPPED_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-  FACTORY: '0xFC6E7Bed72491D9508504a470524913f0049fD82'.toLowerCase(),
+  LEX_DAO: CONFIG.LEX_DAO.toLowerCase(),
+  ARAGON_COURT: ADDRESS_ZERO,
+  WRAPPED_TOKEN: CONFIG.WRAPPED_TOKEN.toLowerCase(),
+  FACTORY: CONFIG.INVOICE_FACTORY.toLowerCase(),
 };
 
-export const GRAPH_URL =
-  'https://api.thegraph.com/subgraphs/name/dan13ram/rinkeby-smart-invoices';
+export const TOKENS = Object.keys(CONFIG.TOKENS);
+
+export const TOKEN_INFO = CONFIG.TOKENS;
 
 export const NAV_ITEMS = [
   {
@@ -88,6 +97,3 @@ export const STEPS = {
     next: 'register invoice escrow',
   },
 };
-
-export const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))|((ipfs|ipns|dweb):\/\/[a-zA-Z0-9/]+)|(^$)/;
-export const INVOICE_VERSION = 'smart-invoice-v0';

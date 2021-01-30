@@ -3,13 +3,8 @@ import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
-import {
-  getAccountString,
-  getAddressLink,
-  getDateString,
-  getResolverString,
-  getToken,
-} from '../utils/helpers';
+import { AccountLink } from '../shared/AccountLink';
+import { getDateString, getToken } from '../utils/helpers';
 
 export const FormConfirmation = () => {
   const {
@@ -39,38 +34,36 @@ export const FormConfirmation = () => {
       </Link>
       <Flex justify="space-between">
         <Text>{`Client Address: `}</Text>
-        <Text>{getAccountString(clientAddress)}</Text>
+        <AccountLink address={clientAddress} />
       </Flex>
       <Flex justify="space-between">
         <Text>{`Payment Address: `}</Text>
-        <Text>{getAccountString(paymentAddress)}</Text>
+        <AccountLink address={paymentAddress} />
       </Flex>
       {startDate && (
         <Flex justify="space-between">
           <Text>{`Project Start Date: `}</Text>
-          <Text>{getDateString(startDate / 1000)}</Text>
+          <Text textAlign="right">{getDateString(startDate / 1000)}</Text>
         </Flex>
       )}
       {endDate && (
         <Flex justify="space-between">
           <Text>{`Expected End Date: `}</Text>
-          <Text>{getDateString(endDate / 1000)}</Text>
+          <Text textAlign="right">{getDateString(endDate / 1000)}</Text>
         </Flex>
       )}
       <Flex justify="space-between">
         <Text>{`Safety Valve Date: `}</Text>
-        <Text>{getDateString(safetyValveDate / 1000)}</Text>
+        <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
       </Flex>
       <Flex justify="space-between">
         <Text>{`Arbitration Provider: `}</Text>
-        <Link href={getAddressLink(arbitrationProvider)} isExternal>
-          {getResolverString(arbitrationProvider)}
-        </Link>
+        <AccountLink address={arbitrationProvider} />
       </Flex>
       <Divider color="black" w="calc(100% + 2rem)" ml="-1rem" />
       <Flex justify="flex-end">
         <Text>{milestones} Payments</Text>
-        <Text color="red.500" ml="2rem">
+        <Text color="red.500" ml="2rem" fontWeight="bold">
           {utils.formatUnits(paymentDue, decimals)} {symbol} Total
         </Text>
       </Flex>
