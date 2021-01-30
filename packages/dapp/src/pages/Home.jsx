@@ -16,6 +16,7 @@ export const Home = () => {
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const smallScreen = useBreakpointValue({ base: true, sm: false });
 
   return (
     <Container justify={{ base: 'center', md: 'flex-start' }} direction="row">
@@ -33,7 +34,7 @@ export const Home = () => {
           fontFamily="mono"
           fontWeight="normal"
         >
-          CREATE A NEW SMART INVOICE
+          {smallScreen ? 'CREATE NEW INVOICE' : 'CREATE A NEW SMART INVOICE'}
         </Button>
         <Text
           fontWeight="bold"
