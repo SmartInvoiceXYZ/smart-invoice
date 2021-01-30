@@ -41,22 +41,21 @@ const InvoicesInner = ({ history }) => {
       setSearch(account);
     }
   }, [account, setSearch]);
-  const inputSize = useBreakpointValue({ base: 'md', md: 'lg' });
-  const fontSize = useBreakpointValue({ base: 'md', md: 'xl' });
+  const fontSize = useBreakpointValue({ base: 'md', sm: 'lg', md: 'xl' });
   return (
-    <Container justify="flex-start" direction="row">
+    <Container justify={{ base: 'center', md: 'flex-start' }} direction="row">
       <Flex
         direction="column"
         align="stretch"
         m={{ base: '1rem', md: '2rem' }}
-        w={{ base: '30rem', md: '35rem', lg: '40rem' }}
+        w={{ base: '30rem', md: '35rem' }}
         maxW="calc(100%-4rem)"
-        fontSize={{ base: 'md', md: 'lg', lg: 'xl' }}
+        fontSize={{ base: 'md', sm: 'lg', lg: 'xl' }}
       >
         <Heading fontWeight="normal" mb="1rem">
           View Existing
         </Heading>
-        <InputGroup size={inputSize}>
+        <InputGroup size="lg">
           <Input
             type="text"
             fontSize={fontSize}

@@ -35,7 +35,13 @@ export const Home = () => {
         >
           CREATE A NEW SMART INVOICE
         </Button>
-        <Text fontWeight="bold" my="0.5rem" w="100%" textAlign="center">
+        <Text
+          fontWeight="bold"
+          my="0.5rem"
+          w="100%"
+          textAlign="center"
+          fontSize={{ base: 'md', md: 'xl' }}
+        >
           or
         </Text>
         <Button
