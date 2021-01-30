@@ -1,4 +1,4 @@
-import { VStack, Wrap, WrapItem } from '@chakra-ui/react';
+import { VStack, SimpleGrid } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
@@ -59,35 +59,34 @@ export const ProjectDetailsForm = () => {
         setValue={setProjectAgreement}
         tooltip="This agreement will be referenced in the case of a dispute"
       />
-      <Wrap w="100%" spacing="1rem">
-        <WrapItem>
-          <OrderedInput
-            label="Project Start Date"
-            type="date"
-            value={startDateString}
-            setValue={v => setStartDate(Date.parse(v))}
-            infoText="optional"
-          />
-        </WrapItem>
-        <WrapItem>
-          <OrderedInput
-            label="Expected End Date"
-            type="date"
-            value={endDateString}
-            setValue={v => setEndDate(Date.parse(v))}
-            infoText="optional"
-          />
-        </WrapItem>
-        <WrapItem>
-          <OrderedInput
-            label="Safety Valve Date"
-            type="date"
-            value={safetyValveDateString}
-            setValue={v => setSafetyValveDate(Date.parse(v))}
-            tooltip="The date at which funds cannot be moved"
-          />
-        </WrapItem>
-      </Wrap>
+      <SimpleGrid w="100%" spacing="1rem" columns={{ base: 1, sm: 2, md: 3 }}>
+        <OrderedInput
+          label="Project Start Date"
+          type="date"
+          value={startDateString}
+          setValue={v => setStartDate(Date.parse(v))}
+          infoText="optional"
+        />
+        <OrderedInput
+          label="Expected End Date"
+          type="date"
+          value={endDateString}
+          setValue={v => setEndDate(Date.parse(v))}
+          infoText="optional"
+        />
+        <OrderedInput
+          gridArea={{
+            base: 'auto/auto/auto/auto',
+            sm: '2/1/2/span 2',
+            md: 'auto/auto/auto/auto',
+          }}
+          label="Safety Valve Date"
+          type="date"
+          value={safetyValveDateString}
+          setValue={v => setSafetyValveDate(Date.parse(v))}
+          tooltip="The date after which funds can be withdrawn"
+        />
+      </SimpleGrid>
     </VStack>
   );
 };

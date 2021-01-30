@@ -493,6 +493,7 @@ export const ViewInvoice = ({
                       size={buttonSize}
                       variant="outline"
                       colorScheme="red"
+                      fontWeight="normal"
                       fontFamily="mono"
                       textTransform="uppercase"
                       onClick={() => onDeposit()}
@@ -507,6 +508,7 @@ export const ViewInvoice = ({
                       sm: 'auto/auto/auto/auto',
                     }}
                     colorScheme="red"
+                    fontWeight="normal"
                     fontFamily="mono"
                     textTransform="uppercase"
                     onClick={() => onResolve()}
@@ -523,6 +525,7 @@ export const ViewInvoice = ({
                       variant="outline"
                       colorScheme="red"
                       fontFamily="mono"
+                      fontWeight="normal"
                       textTransform="uppercase"
                       onClick={() => onLock()}
                     >
@@ -536,6 +539,7 @@ export const ViewInvoice = ({
                       size={buttonSize}
                       variant="outline"
                       colorScheme="red"
+                      fontWeight="normal"
                       fontFamily="mono"
                       textTransform="uppercase"
                       onClick={() => onDeposit()}

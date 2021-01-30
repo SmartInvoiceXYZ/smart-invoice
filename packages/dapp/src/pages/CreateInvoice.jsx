@@ -18,7 +18,7 @@ import { RegisterSuccess } from '../components/RegisterSuccess';
 import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
-import { STEPS } from '../utils/constants';
+import { STEPS, URL_REGEX } from '../utils/constants';
 
 const { isAddress } = utils;
 
@@ -46,8 +46,9 @@ const CreateInvoiceInner = () => {
     if (
       currentStep === 1 &&
       projectName &&
-      projectAgreement &&
-      safetyValveDate
+      URL_REGEX.test(projectAgreement) &&
+      safetyValveDate &&
+      safetyValveDate > new Date().getTime()
     ) {
       setEnabled(true);
     } else if (
@@ -104,7 +105,7 @@ const CreateInvoiceInner = () => {
     return () => undefined;
   };
 
-  const spacing = useBreakpointValue({ base: '1rem', md: '2rem' });
+  // const spacing = useBreakpointValue({ base: '1rem', md: '2rem' });
 
   return (
     <Container overlay>
@@ -113,7 +114,7 @@ const CreateInvoiceInner = () => {
       ) : (
         <Stack
           direction={{ base: 'column', lg: 'row' }}
-          spacing={spacing}
+          spacing="2rem"
           align="center"
           justify="center"
           w="100%"
@@ -125,7 +126,10 @@ const CreateInvoiceInner = () => {
             stepTitle={STEPS[currentStep].step_title}
             stepDetails={STEPS[currentStep].step_details}
           />
-          <VStack spacing="1rem" w={{ base: '100%', md: 'auto' }}>
+          <VStack
+            spacing={{ base: '1.5rem', lg: '1rem' }}
+            w={{ base: '100%', md: 'auto' }}
+          >
             <Flex
               bg="background"
               direction="column"

@@ -20,9 +20,10 @@ export const OrderedInput = ({
   placeholder,
   isDisabled = false,
   type = 'text',
+  ...props
 }) => {
   return (
-    <VStack w="100%" spacing="0.5rem" justify="space-between">
+    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
       <Flex justify="space-between" w="100%">
         <Text fontWeight="700">{label}</Text>
         <Flex>

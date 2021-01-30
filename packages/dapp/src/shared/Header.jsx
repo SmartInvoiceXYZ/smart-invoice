@@ -1,6 +1,15 @@
-import { Box, Button, Flex, Image } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Flex,
+  Image,
+  Text,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@chakra-ui/react';
 import styled from '@emotion/styled';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
 import LogoText from '../assets/logo.svg';
@@ -9,6 +18,8 @@ import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { NAV_ITEMS } from '../utils/constants';
+import { getProfile } from '../utils/3box';
+import { getAccountString } from '../utils/helpers';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -46,9 +57,17 @@ export const NavButton = ({ onClick, children }) => (
 );
 
 export const Header = () => {
-  const { provider, connectAccount, disconnect } = useContext(Web3Context);
+  const { account, provider, connectAccount, disconnect } = useContext(
+    Web3Context,
+  );
   const [isOpen, onOpen] = useState(false);
   const history = useHistory();
+  const [profile, setProfile] = useState();
+  useEffect(() => {
+    if (account) {
+      getProfile(account).then(p => setProfile(p));
+    }
+  }, [account]);
   return (
     <Flex
       w="100%"
@@ -77,24 +96,83 @@ export const Header = () => {
           </Flex>
         </Link>
       </Box>
-      <Button
-        onClick={() => onOpen(o => !o)}
-        variant="link"
-        zIndex={7}
-        m={{ base: '2rem', sm: '3rem' }}
-      >
-        <HamburgerIcon
-          boxSize={{ base: '2rem', sm: '2.75rem' }}
-          transition="all 1s ease-out"
-          _hover={{
-            transition: 'all 1s ease-out',
-            transform: 'rotateZ(90deg)',
-          }}
-          color="red.500"
-        />
-      </Button>
+      <Flex m={{ base: '2rem', sm: '3rem' }}>
+        {account && (
+          <Flex justify="center" align="center" zIndex={5}>
+            <Popover>
+              <PopoverTrigger>
+                <Button
+                  h="auto"
+                  fontWeight="normal"
+                  borderRadius={{ base: 'full', md: undefined }}
+                  variant={{ base: 'link', md: 'ghost' }}
+                  colorScheme="red"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  p={{ base: 0, md: 2 }}
+                >
+                  <Flex
+                    borderRadius="50%"
+                    w="2.5rem"
+                    h="2.5rem"
+                    overflow="hidden"
+                    justify="center"
+                    align="center"
+                    bgImage={profile && `url(${profile.imageUrl})`}
+                    border={`1px solid ${theme.colors.white20}`}
+                    bgSize="cover"
+                    bgRepeat="no-repeat"
+                    bgPosition="center center"
+                  />
+                  <Text
+                    px={2}
+                    display={{ base: 'none', md: 'flex' }}
+                    fontFamily="'Roboto Mono', monospace;"
+                    color="red.500"
+                  >
+                    {getAccountString(account)}
+                  </Text>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent bg="none" w="auto" mx="4rem">
+                <Button
+                  onClick={() => {
+                    disconnect();
+                  }}
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                >
+                  Disconnect
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </Flex>
+        )}
+        <Button
+          onClick={() => onOpen(o => !o)}
+          variant="link"
+          zIndex={7}
+          ml={{ base: '0.5rem', sm: '1rem' }}
+          top={isOpen ? { base: '2.5rem', sm: '2.125rem' } : undefined}
+          right={isOpen ? { base: '2rem', sm: '3rem' } : undefined}
+          position={isOpen ? 'fixed' : undefined}
+          p="0.5rem"
+        >
+          <HamburgerIcon
+            boxSize={{ base: '2rem', sm: '2.75rem' }}
+            transition="all 1s ease-out"
+            _hover={{
+              transition: 'all 1s ease-out',
+              transform: 'rotateZ(90deg)',
+            }}
+            color="red.500"
+          />
+        </Button>
+      </Flex>
       <Flex
-        zIndex={5}
+        zIndex={6}
         position="fixed"
         left="0"
         top="0"
@@ -125,18 +203,6 @@ export const Header = () => {
             </NavButton>
           );
         })}
-        <NavButton
-          onClick={async () => {
-            if (provider) {
-              disconnect();
-            } else {
-              await connectAccount();
-            }
-            onOpen(false);
-          }}
-        >
-          {provider ? 'DISCONNECT' : 'Connect'}
-        </NavButton>
       </Flex>
     </Flex>
   );

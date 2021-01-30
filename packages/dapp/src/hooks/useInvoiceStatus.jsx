@@ -25,7 +25,7 @@ export const useInvoiceStatus = invoice => {
       } = invoice;
       balanceOf(provider, token, address)
         .then(balance => {
-          if (currentMilestone === amounts.length) {
+          if (Number(currentMilestone) === amounts.length) {
             if (
               disputes.length === resolutions.length &&
               resolutions.length > 0
@@ -52,7 +52,7 @@ export const useInvoiceStatus = invoice => {
           setLoading(false);
         })
         // eslint-disable-next-line no-console
-        .catch(balanceError => console.error({ balanceError }));
+        .catch(statusError => console.error({ statusError }));
     }
   }, [invoice, provider]);
 

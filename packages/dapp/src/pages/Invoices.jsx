@@ -5,6 +5,7 @@ import {
   InputGroup,
   InputRightElement,
   Text,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
@@ -24,6 +25,7 @@ const InvoiceStatusLabel = ({ invoice }) => {
       color={funded ? 'green' : 'red.500'}
       fontWeight="bold"
       textTransform="uppercase"
+      textAlign="right"
     >
       {loading ? <Loader size="20" /> : label}
     </Text>
@@ -39,27 +41,35 @@ const InvoicesInner = ({ history }) => {
       setSearch(account);
     }
   }, [account, setSearch]);
+  const inputSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  const fontSize = useBreakpointValue({ base: 'md', md: 'xl' });
   return (
     <Container justify="flex-start" direction="row">
       <Flex
         direction="column"
         align="stretch"
         m={{ base: '1rem', md: '2rem' }}
-        w="30rem"
+        w={{ base: '30rem', md: '35rem', lg: '40rem' }}
         maxW="calc(100%-4rem)"
+        fontSize={{ base: 'md', md: 'lg', lg: 'xl' }}
       >
         <Heading fontWeight="normal" mb="1rem">
           View Existing
         </Heading>
-        <InputGroup>
+        <InputGroup size={inputSize}>
           <Input
             type="text"
+            fontSize={fontSize}
             value={search}
             placeholder="Search for Invoice"
             onChange={e => setSearch(e.target.value)}
           />
           <InputRightElement>
-            {fetching ? <Loader size="20" /> : <SearchIcon boxSize="1.25rem" />}
+            {fetching ? (
+              <Loader size="20" />
+            ) : (
+              <SearchIcon boxSize={{ base: '1.25rem', md: '1.5rem' }} />
+            )}
           </InputRightElement>
         </InputGroup>
 
