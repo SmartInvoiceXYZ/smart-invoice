@@ -1,12 +1,12 @@
 import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useEffect, useState } from 'react';
-import { Link as RouterLink, useHistory, Redirect } from 'react-router-dom';
+import { Link as RouterLink, Redirect, useHistory } from 'react-router-dom';
 
 import { Loader } from '../components/Loader';
 import { getInvoice } from '../graphql/getInvoice';
 import { Container } from '../shared/Container';
-import { getTxLink, getIpfsLink } from '../utils/helpers';
+import { getIpfsLink, getTxLink } from '../utils/helpers';
 
 export const LockedInvoice = ({
   match: {

@@ -1,11 +1,11 @@
 import {
   Button,
+  Flex,
   Heading,
   Link,
   Text,
   useBreakpointValue,
   VStack,
-  Flex,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
@@ -56,8 +56,8 @@ export const LockFunds = ({ invoice, balance }) => {
           window.location.href = `/invoice/${address}/locked`;
         }, 2000);
       } catch (lockError) {
-        // eslint-disable-next-line
         setLocking(false);
+        // eslint-disable-next-line
         console.error({ lockError });
       }
     }

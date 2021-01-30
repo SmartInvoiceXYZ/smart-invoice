@@ -3,10 +3,10 @@ import {
   Button,
   Flex,
   Image,
-  Text,
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
+  Text,
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import React, { useContext, useEffect, useState } from 'react';
@@ -17,8 +17,8 @@ import Logo from '../assets/raidguild__logo.png';
 import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
-import { NAV_ITEMS } from '../utils/constants';
 import { getProfile } from '../utils/3box';
+import { NAV_ITEMS } from '../utils/constants';
 import { getAccountString } from '../utils/helpers';
 
 const StyledButton = styled(Button)`
@@ -57,9 +57,7 @@ export const NavButton = ({ onClick, children }) => (
 );
 
 export const Header = () => {
-  const { account, provider, connectAccount, disconnect } = useContext(
-    Web3Context,
-  );
+  const { account, disconnect } = useContext(Web3Context);
   const [isOpen, onOpen] = useState(false);
   const history = useHistory();
   const [profile, setProfile] = useState();

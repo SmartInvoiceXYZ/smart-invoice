@@ -3,8 +3,8 @@ import { ethers } from 'ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import Web3 from 'web3';
 import Web3Modal from 'web3modal';
-import { theme } from '../theme';
 
+import { theme } from '../theme';
 import { INFURA_ID, NETWORK } from '../utils/constants';
 
 const providerOptions = {

@@ -5,9 +5,9 @@ import React, { useContext } from 'react';
 import { CreateContext } from '../context/CreateContext';
 import {
   getAccountString,
+  getAddressLink,
   getDateString,
   getResolverString,
-  getAddressLink,
   getToken,
 } from '../utils/helpers';
 

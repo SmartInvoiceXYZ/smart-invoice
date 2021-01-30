@@ -3,8 +3,8 @@ import { getAddress } from '@ethersproject/address';
 import {
   ADDRESSES,
   EXPLORER_URL,
-  NATIVE_TOKEN_SYMBOL,
   IPFS_ENDPOINT,
+  NATIVE_TOKEN_SYMBOL,
 } from './constants';
 
 const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;

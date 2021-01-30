@@ -31,13 +31,13 @@ import { getInvoice } from '../graphql/getInvoice';
 import { Container } from '../shared/Container';
 import { balanceOf } from '../utils/erc20';
 import {
+  getAccountString,
+  getAddressLink,
   getDateString,
+  getIpfsLink,
   getResolverString,
   getToken,
   getTxLink,
-  getAddressLink,
-  getIpfsLink,
-  getAccountString,
 } from '../utils/helpers';
 
 export const ViewInvoice = ({
