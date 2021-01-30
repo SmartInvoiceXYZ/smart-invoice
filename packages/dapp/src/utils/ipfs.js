@@ -15,6 +15,7 @@ const ipfs = new IPFSClient({
 //   projectAgreement: string;
 //   startDate: number; // seconds since epoch
 //   endDate: number; // seconds since epoch
+//   version: string; // to differentiating versions of smart-invoice contract/json structure
 // }
 
 export const uploadMetadata = async meta => {

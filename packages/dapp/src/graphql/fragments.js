@@ -36,12 +36,14 @@ export const InvoiceDetails = gql`
     }
     disputes(orderBy: timestamp, orderDirection: asc) {
       txHash: id
+      ipfsHash
       sender
       details
       timestamp
     }
     resolutions(orderBy: timestamp, orderDirection: asc) {
       txHash: id
+      ipfsHash
       clientAward
       providerAward
       resolutionFee

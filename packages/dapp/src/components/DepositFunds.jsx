@@ -162,9 +162,17 @@ export const DepositFunds = ({ invoice, deposited }) => {
         Deposit
       </Button>
       {transaction && (
-        <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
-          Follow Transaction on Explorer
-        </Link>
+        <Text color="white" textAlign="center" fontSize="sm">
+          Follow your transaction{' '}
+          <Link
+            href={getTxLink(transaction.hash)}
+            isExternal
+            color="red.500"
+            textDecoration="underline"
+          >
+            here
+          </Link>
+        </Text>
       )}
     </VStack>
   );

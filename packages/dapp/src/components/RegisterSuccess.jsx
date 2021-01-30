@@ -32,10 +32,10 @@ export const RegisterSuccess = () => {
       my="8rem"
       maxW="30rem"
     >
-      <Heading fontWeight="normal" fontSize="xl">
+      <Heading fontWeight="normal" textAlign="center">
         Invoice Registration Received
       </Heading>
-      <Text color="white">
+      <Text color="white" textAlign="center" fontSize="sm">
         You can check the progress of your transaction{' '}
         <Link
           href={getTxLink(tx.hash)}
@@ -48,7 +48,7 @@ export const RegisterSuccess = () => {
       </Text>
       {invoiceID ? (
         <>
-          <Text color="white" fontStyle="italic">
+          <Text color="white" fontStyle="italic" textAlign="center">
             Save this because you will need it to manage your invoice later:
           </Text>
           <VStack w="100%" align="stretch">
@@ -136,6 +136,7 @@ export const RegisterSuccess = () => {
         textTransform="uppercase"
         fontFamily="mono"
         fontWeight="normal"
+        size="lg"
         onClick={() => history.push('/')}
       >
         Return Home

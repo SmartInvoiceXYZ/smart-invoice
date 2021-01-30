@@ -35,6 +35,9 @@ import {
   getResolverString,
   getToken,
   getTxLink,
+  getAddressLink,
+  getIpfsLink,
+  getAccountString,
 } from '../utils/helpers';
 
 export const ViewInvoice = ({
@@ -42,7 +45,7 @@ export const ViewInvoice = ({
     params: { invoiceId },
   },
 }) => {
-  const { account, provider } = useContext(Web3Context);
+  const { account, provider: ethersProvider } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -56,9 +59,9 @@ export const ViewInvoice = ({
   }, [invoiceId]);
 
   useEffect(() => {
-    if (invoice && provider) {
+    if (invoice && ethersProvider) {
       setBalanceLoading(true);
-      balanceOf(provider, invoice.token, invoice.address)
+      balanceOf(ethersProvider, invoice.token, invoice.address)
         .then(b => {
           setBalance(b);
           setBalanceLoading(false);
@@ -66,7 +69,7 @@ export const ViewInvoice = ({
         // eslint-disable-next-line no-console
         .catch(balanceError => console.error({ balanceError }));
     }
-  }, [invoice, provider]);
+  }, [invoice, ethersProvider]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '20rem' });
@@ -94,6 +97,7 @@ export const ViewInvoice = ({
     endDate,
     terminationTime,
     client,
+    provider,
     resolver,
     currentMilestone,
     amounts,
@@ -103,6 +107,8 @@ export const ViewInvoice = ({
     isLocked,
     deposits,
     releases,
+    disputes,
+    resolutions,
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
@@ -111,9 +117,18 @@ export const ViewInvoice = ({
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
 
-  const amount = BigNumber.from(amounts[currentMilestone]);
+  const amount =
+    currentMilestone < amounts.length
+      ? BigNumber.from(amounts[currentMilestone])
+      : BigNumber.from(0);
   const isReleasable = currentMilestone < amounts.length && amount.lte(balance);
   const isLockable = !isLocked && balance.gt(0);
+  const dispute =
+    isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
+  const resolution =
+    !isLocked && resolutions.length > 0
+      ? resolutions[resolutions.length - 1]
+      : undefined;
 
   const onLock = () => {
     setSelected(0);
@@ -212,7 +227,13 @@ export const ViewInvoice = ({
                 <Text>{'Arbitration Provider: '}</Text>
               </WrapItem>
               <WrapItem>
-                <Text fontWeight="bold">{getResolverString(resolver)}</Text>
+                <Link
+                  fontWeight="bold"
+                  href={getAddressLink(resolver)}
+                  isExternal
+                >
+                  {getResolverString(resolver)}
+                </Link>
               </WrapItem>
             </Wrap>
           </VStack>
@@ -344,7 +365,11 @@ export const ViewInvoice = ({
                   decimals,
                 )} ${symbol}`}</Text>
               </Flex>
-              <Flex justify="space-between" align="center">
+              <Flex
+                justify="space-between"
+                align="center"
+                textDecor={dispute || resolution ? 'line-through' : undefined}
+              >
                 <Text>Remaining{smallScreen ? '' : ' Amount Due'}</Text>
                 <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
                   due,
@@ -353,113 +378,206 @@ export const ViewInvoice = ({
               </Flex>
             </VStack>
             <Divider color="black" w="calc(100% + 4rem)" ml="-2rem" my="1rem" />
-            <Flex
-              justify="space-between"
-              align="center"
-              color="red.500"
-              fontWeight="bold"
-              fontSize="lg"
-            >
-              <Text>
-                {isReleasable &&
-                  (smallScreen ? 'Next Release' : 'Next Amount to Release')}
-                {!isReleasable &&
-                  (smallScreen ? 'Due Today' : 'Total Due Today')}
-              </Text>
-              <Text>{`${utils.formatUnits(
-                isReleasable ? amount : amount.sub(balance),
-                decimals,
-              )} ${symbol}`}</Text>
-            </Flex>
-          </Flex>
-          <SimpleGrid columns={{ base: 2, sm: 3 }} spacing="1rem" w="100%">
-            {isResolver ? (
-              <>
-                <Flex />
-                <Button
-                  size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Deposit
-                </Button>
-                <Button
-                  size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onResolve()}
-                >
-                  Resolve
-                </Button>
-              </>
-            ) : (
-              <>
-                {!isReleasable && !isClient && <Flex />}
-                {isLockable ? (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onLock()}
-                  >
-                    Lock
-                  </Button>
-                ) : (
-                  <Flex />
-                )}
-                {isReleasable && isClient && (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onDeposit()}
-                  >
-                    Deposit
-                  </Button>
-                )}
-                {isReleasable && isClient ? (
-                  <Button
-                    size={buttonSize}
-                    gridArea={{
-                      base: '2/1/2/span 2',
-                      sm: 'auto/auto/auto/auto',
-                    }}
-                    colorScheme="red"
-                    fontWeight="normal"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onRelease()}
-                  >
-                    Release
-                  </Button>
-                ) : (
-                  <Button
-                    size={buttonSize}
-                    gridArea={{
-                      base: '2/1/2/span 2',
-                      sm: 'auto/auto/auto/auto',
-                    }}
-                    colorScheme="red"
-                    fontWeight="normal"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onDeposit()}
-                  >
-                    Deposit
-                  </Button>
-                )}
-              </>
+            {!dispute && !resolution && (
+              <Flex
+                justify="space-between"
+                align="center"
+                color="red.500"
+                fontWeight="bold"
+                fontSize="lg"
+              >
+                <Text>
+                  {isReleasable &&
+                    (smallScreen ? 'Next Release' : 'Next Amount to Release')}
+                  {!isReleasable &&
+                    (smallScreen ? 'Due Today' : 'Total Due Today')}
+                </Text>
+                <Text textAlign="right">{`${utils.formatUnits(
+                  isReleasable ? amount : amount.sub(balance),
+                  decimals,
+                )} ${symbol}`}</Text>
+              </Flex>
             )}
-          </SimpleGrid>
+            {dispute && (
+              <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  fontWeight="bold"
+                  fontSize="lg"
+                >
+                  <Text>Amount Locked</Text>
+                  <Text textAlign="right">{`${utils.formatUnits(
+                    balance,
+                    decimals,
+                  )} ${symbol}`}</Text>
+                </Flex>
+                <Text>
+                  A dispute is in progress with {getResolverString(resolver)}
+                  <br />
+                  <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
+                    <u>View details on IPFS</u>
+                  </Link>
+                  <br />
+                  <Link href={getTxLink(dispute.txHash)} isExternal>
+                    <u>View transaction</u>
+                  </Link>
+                </Text>
+              </VStack>
+            )}
+            {resolution && (
+              <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  fontWeight="bold"
+                  fontSize="lg"
+                >
+                  <Text>Amount Dispersed</Text>
+                  <Text textAlign="right">{`${utils.formatUnits(
+                    BigNumber.from(resolution.clientAward)
+                      .add(resolution.providerAward)
+                      .add(
+                        resolution.resolutionFee ? resolution.resolutionFee : 0,
+                      ),
+                    decimals,
+                  )} ${symbol}`}</Text>
+                </Flex>
+                <Flex
+                  justify="space-between"
+                  direction={{ base: 'column', sm: 'row' }}
+                >
+                  <Flex flex={1}>
+                    <Text textAlign={{ base: 'center', sm: 'left' }}>
+                      {getResolverString(resolver)} has resolved the dispute and
+                      dispersed remaining funds
+                      <br />
+                      <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
+                        <u>View details on IPFS</u>
+                      </Link>
+                      <br />
+                      <Link href={getTxLink(resolution.txHash)} isExternal>
+                        <u>View transaction</u>
+                      </Link>
+                    </Text>
+                  </Flex>
+                  <VStack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
+                    {resolution.resolutionFee && (
+                      <Text textAlign="right">{`${utils.formatUnits(
+                        BigNumber.from(resolution.resolutionFee),
+                        decimals,
+                      )} ${symbol} to ${getResolverString(resolver)}`}</Text>
+                    )}
+                    <Text textAlign="right">{`${utils.formatUnits(
+                      BigNumber.from(resolution.clientAward),
+                      decimals,
+                    )} ${symbol} to ${getAccountString(client)}`}</Text>
+                    <Text textAlign="right">{`${utils.formatUnits(
+                      BigNumber.from(resolution.providerAward),
+                      decimals,
+                    )} ${symbol} to ${getAccountString(provider)}`}</Text>
+                  </VStack>
+                </Flex>
+              </VStack>
+            )}
+          </Flex>
+          {((!dispute && !resolution) || isResolver) && (
+            <SimpleGrid columns={{ base: 2, sm: 3 }} spacing="1rem" w="100%">
+              {isResolver ? (
+                <>
+                  <Flex />
+                  {isLocked ? (
+                    <Flex />
+                  ) : (
+                    <Button
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="red"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onDeposit()}
+                    >
+                      Deposit
+                    </Button>
+                  )}
+                  <Button
+                    size={buttonSize}
+                    gridArea={{
+                      base: '2/1/2/span 2',
+                      sm: 'auto/auto/auto/auto',
+                    }}
+                    colorScheme="red"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onResolve()}
+                  >
+                    Resolve
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {!isReleasable && !isClient && <Flex />}
+                  {isLockable ? (
+                    <Button
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="red"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onLock()}
+                    >
+                      Lock
+                    </Button>
+                  ) : (
+                    <Flex />
+                  )}
+                  {isReleasable && isClient && (
+                    <Button
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="red"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onDeposit()}
+                    >
+                      Deposit
+                    </Button>
+                  )}
+                  {isReleasable && isClient ? (
+                    <Button
+                      size={buttonSize}
+                      gridArea={{
+                        base: '2/1/2/span 2',
+                        sm: 'auto/auto/auto/auto',
+                      }}
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onRelease()}
+                    >
+                      Release
+                    </Button>
+                  ) : (
+                    <Button
+                      size={buttonSize}
+                      gridArea={{
+                        base: '2/1/2/span 2',
+                        sm: 'auto/auto/auto/auto',
+                      }}
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onDeposit()}
+                    >
+                      Deposit
+                    </Button>
+                  )}
+                </>
+              )}
+            </SimpleGrid>
+          )}
         </VStack>
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
           <ModalOverlay>

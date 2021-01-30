@@ -3,7 +3,7 @@ import 'focus-visible/dist/focus-visible';
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { css, Global } from '@emotion/react';
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 
 import CalendarRed from './assets/calendar-red.svg';
 import Calendar from './assets/calendar.svg';
@@ -14,6 +14,7 @@ import { FAQ } from './pages/FAQ';
 import { Home } from './pages/Home';
 import { Invoices } from './pages/Invoices';
 import { ViewInvoice } from './pages/ViewInvoice';
+import { LockedInvoice } from './pages/LockedInvoice';
 import { Layout } from './shared/Layout';
 import { theme } from './theme';
 
@@ -70,15 +71,17 @@ export const App = () => {
           <Router>
             <Layout>
               <Switch>
-                <Route path="/" exact component={Home} />
-                <Route path="/faq" exact component={FAQ} />
-                <Route path="/create-invoice" exact component={CreateInvoice} />
-                <Route path="/invoices" exact component={Invoices} />
+                <Route exact path="/" component={Home} />
+                <Route exact path="/faq" component={FAQ} />
+                <Route exact path="/create-invoice" component={CreateInvoice} />
+                <Route exact path="/invoices" component={Invoices} />
+                <Route exact path="/invoice/:invoiceId" component={ViewInvoice} />
                 <Route
-                  path="/invoice/:invoiceId"
                   exact
-                  component={ViewInvoice}
+                  path="/invoice/:invoiceId/locked"
+                  component={LockedInvoice}
                 />
+                <Redirect to="/" />
               </Switch>
             </Layout>
           </Router>

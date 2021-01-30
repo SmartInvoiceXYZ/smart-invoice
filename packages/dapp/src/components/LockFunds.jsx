@@ -5,6 +5,7 @@ import {
   Text,
   useBreakpointValue,
   VStack,
+  Flex,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
@@ -51,34 +52,61 @@ export const LockFunds = ({ invoice, balance }) => {
         const tx = await lock(provider, address, detailsHash);
         setTransaction(tx);
         await tx.wait();
-        window.location.href = `/invoice/${address}`;
+        setTimeout(() => {
+          window.location.href = `/invoice/${address}/locked`;
+        }, 2000);
       } catch (lockError) {
         // eslint-disable-next-line
+        setLocking(false);
         console.error({ lockError });
       }
-
-      setLocking(false);
     }
   }, [provider, locking, balance, address, disputeReason]);
 
   if (locking) {
     return (
-      <div className="lock-funds">
-        <h1> Locking Funds </h1>
+      <VStack w="100%" spacing="1rem">
+        <Heading
+          fontWeight="normal"
+          mb="1rem"
+          textTransform="uppercase"
+          textAlign="center"
+        >
+          Locking Funds
+        </Heading>
         {transaction && (
-          <a
-            href={getTxLink(transaction.hash)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Follow Transaction on Explorer
-          </a>
+          <Text color="white" textAlign="center" fontSize="sm">
+            Follow your transaction{' '}
+            <Link
+              href={getTxLink(transaction.hash)}
+              isExternal
+              color="red.500"
+              textDecoration="underline"
+            >
+              here
+            </Link>
+          </Text>
         )}
-        <div className="locking-funds">
+        <Flex
+          w="100%"
+          justify="center"
+          align="center"
+          minH="7rem"
+          my="3rem"
+          position="relative"
+          color="red.500"
+        >
           <Loader size="6rem" />
-          <LockImage className="image" />
-        </div>
-      </div>
+          <Flex
+            position="absolute"
+            left="50%"
+            top="50%"
+            transform="translate(-50%,-50%)"
+          >
+            <LockImage width="2rem" />
+          </Flex>
+        </Flex>
+      </VStack>
     );
   }
 
@@ -125,7 +153,7 @@ export const LockFunds = ({ invoice, balance }) => {
       >
         {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
       </Button>
-      {[LEX_DAO, ARAGON_COURT].indexOf(resolver) === -1 && (
+      {[LEX_DAO, ARAGON_COURT].indexOf(resolver) !== -1 && (
         <Link
           href={
             resolver === LEX_DAO

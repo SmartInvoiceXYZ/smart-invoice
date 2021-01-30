@@ -1,5 +1,7 @@
 export const INFURA_ID = process.env.REACT_APP_INFURA_ID;
 export const NETWORK = 4;
+export const IPFS_ENDPOINT = 'https://ipfs.infura.io';
+export const BOX_ENDPOINT = 'https://ipfs.3box.io';
 
 const networkNames = {
   1: 'ETH Mainnet',

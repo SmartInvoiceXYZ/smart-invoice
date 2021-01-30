@@ -80,9 +80,17 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
         >{`${utils.formatUnits(amount, decimals)} ${symbol}`}</Text>
       </VStack>
       {transaction && (
-        <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
-          Follow Transaction on Explorer
-        </Link>
+        <Text color="white" textAlign="center" fontSize="sm">
+          Follow your transaction{' '}
+          <Link
+            href={getTxLink(transaction.hash)}
+            isExternal
+            color="red.500"
+            textDecoration="underline"
+          >
+            here
+          </Link>
+        </Text>
       )}
       <Button
         onClick={close}

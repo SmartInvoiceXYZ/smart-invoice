@@ -40,6 +40,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
     if (
       !provider ||
       !isLocked ||
+      !comments ||
       !balance.eq(clientAward.add(providerAward).add(resolverAward)) ||
       balance.lte(0)
     )
@@ -80,7 +81,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem">
         {isLocked
-          ? `You’ll need to equally distibute the total balance of ${utils.formatUnits(
+          ? `You’ll need to distribute the total balance of ${utils.formatUnits(
               balance,
               decimals,
             )} ${symbol} between the client and provider, excluding the 5% arbitration fee which you shall receive.`
@@ -163,7 +164,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
             onClick={resolveFunds}
             isLoading={loading}
             colorScheme="red"
-            isDisabled={resolverAward.lte(0)}
+            isDisabled={resolverAward.lte(0) || !comments}
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"
@@ -173,9 +174,17 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
             Resolve
           </Button>
           {transaction && (
-            <Link isExternal href={getTxLink(transaction.hash)} fontSize="sm">
-              Follow Transaction on Explorer
-            </Link>
+            <Text color="white" textAlign="center" fontSize="sm">
+              Follow your transaction{' '}
+              <Link
+                href={getTxLink(transaction.hash)}
+                isExternal
+                color="red.500"
+                textDecoration="underline"
+              >
+                here
+              </Link>
+            </Text>
           )}
         </>
       ) : (

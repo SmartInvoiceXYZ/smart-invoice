@@ -1,6 +1,11 @@
 import { getAddress } from '@ethersproject/address';
 
-import { ADDRESSES, EXPLORER_URL, NATIVE_TOKEN_SYMBOL } from './constants';
+import {
+  ADDRESSES,
+  EXPLORER_URL,
+  NATIVE_TOKEN_SYMBOL,
+  IPFS_ENDPOINT,
+} from './constants';
 
 const { DAI_TOKEN, WRAPPED_TOKEN, ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
@@ -51,6 +56,8 @@ export const isAddress = value => {
 export const getTxLink = hash => `${EXPLORER_URL}/tx/${hash}`;
 
 export const getAddressLink = hash => `${EXPLORER_URL}/address/${hash}`;
+
+export const getIpfsLink = hash => `${IPFS_ENDPOINT}/ipfs/${hash}`;
 
 export const getAccountString = account => {
   const len = account.length;

@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import Web3 from 'web3';
 import Web3Modal from 'web3modal';
+import { theme } from '../theme';
 
 import { INFURA_ID, NETWORK } from '../utils/constants';
 
@@ -19,8 +20,10 @@ const web3Modal = new Web3Modal({
   cacheProvider: true,
   providerOptions,
   theme: {
-    background: '#ffffff',
-    main: '#FF3864',
+    background: theme.colors.background,
+    main: theme.colors.red[500],
+    secondary: theme.colors.white,
+    hover: theme.colors.black30,
   },
 });
 

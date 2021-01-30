@@ -1,13 +1,13 @@
 import React from 'react';
 
-export const Loader = ({ color = 'currentColor', size = '38' }) => {
+export const Loader = ({ size = '38' }) => {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 38 38"
       xmlns="http://www.w3.org/2000/svg"
-      stroke={color}
+      stroke="currentColor"
     >
       <g fill="none" fillRule="evenodd">
         <g transform="translate(1 1)" strokeWidth="2">

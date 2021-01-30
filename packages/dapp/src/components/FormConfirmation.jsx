@@ -7,6 +7,7 @@ import {
   getAccountString,
   getDateString,
   getResolverString,
+  getAddressLink,
   getToken,
 } from '../utils/helpers';
 
@@ -62,7 +63,9 @@ export const FormConfirmation = () => {
       </Flex>
       <Flex justify="space-between">
         <Text>{`Arbitration Provider: `}</Text>
-        <Text>{getResolverString(arbitrationProvider)}</Text>
+        <Link href={getAddressLink(arbitrationProvider)} isExternal>
+          {getResolverString(arbitrationProvider)}
+        </Link>
       </Flex>
       <Divider color="black" w="calc(100% + 2rem)" ml="-1rem" />
       <Flex justify="flex-end">
