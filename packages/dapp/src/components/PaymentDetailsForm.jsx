@@ -11,10 +11,8 @@ import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
-import { ADDRESSES, TOKENS } from '../utils/constants';
-import { getResolverString, getToken } from '../utils/helpers';
-
-const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
+import { RESOLVER_INFO, RESOLVERS, TOKENS } from '../utils/constants';
+import { getResolverString, getToken, isKnownResolver } from '../utils/helpers';
 
 export const PaymentDetailsForm = () => {
   const {
@@ -123,45 +121,31 @@ export const PaymentDetailsForm = () => {
           value={arbitrationProviderType}
           setValue={v => {
             setArbitrationProviderType(v);
-            switch (v) {
-              case '1':
-                setArbitrationProvider(ARAGON_COURT);
-                setTermsAccepted(false);
-                break;
-              case '2':
-                setArbitrationProvider('');
-                setTermsAccepted(true);
-                break;
-              case '0':
-              default:
-                setArbitrationProvider(LEX_DAO);
-                setTermsAccepted(false);
+            if (isKnownResolver(v)) {
+              setArbitrationProvider(v);
+              setTermsAccepted(false);
+            } else {
+              setArbitrationProvider('');
+              setTermsAccepted(true);
             }
           }}
           label="Arbitration Provider"
         >
-          <option value="0">LexDAO</option>
-          {/* <option value="1">Aragon Court</option> */}
-          <option value="2">Custom</option>
+          {RESOLVERS.map(res => (
+            <option value={res}>RESOLVER_INFO[res].name</option>
+          ))}
+          <option value="custom">Custom</option>
         </OrderedSelect>
         <OrderedInput
           label="Max Fee"
           type="text"
-          value={
-            arbitrationProvider !== ARAGON_COURT
-              ? `${utils.formatUnits(paymentDue.div(20), decimals)} ${symbol}`
-              : `150 DAI`
-          }
+          value={`${utils.formatUnits(paymentDue.div(20), decimals)} ${symbol}`}
           setValue={() => undefined}
-          tooltip={
-            arbitrationProvider === ARAGON_COURT
-              ? 'Aragon Court deducts a fixed fee at the time of dispute creation'
-              : 'A 5% arbitration fee will be deducted from remaining funds during dispute resolution'
-          }
+          tooltip="A 5% arbitration fee will be deducted from remaining funds during dispute resolution"
           isDisabled
         />
       </SimpleGrid>
-      {[LEX_DAO, ARAGON_COURT].indexOf(arbitrationProvider) === -1 ? (
+      {!isKnownResolver(arbitrationProvider) ? (
         <OrderedInput
           tooltip="This will be the address used to resolve any disputes on the invoice"
           label="Arbitration Provider Address"
@@ -181,11 +165,7 @@ export const PaymentDetailsForm = () => {
           >
             {`I agree to ${getResolverString(arbitrationProvider)} `}
             <Link
-              href={
-                arbitrationProvider === LEX_DAO
-                  ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
-                  : 'https://anj.aragon.org/legal/terms-general.pdf'
-              }
+              href={RESOLVER_INFO[arbitrationProvider].termsUrl}
               isExternal
               textDecor="underline"
             >

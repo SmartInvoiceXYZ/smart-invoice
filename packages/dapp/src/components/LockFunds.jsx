@@ -14,31 +14,27 @@ import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { ADDRESSES } from '../utils/constants';
+import { RESOLVER_INFO } from '../utils/constants';
 import {
   getResolverString,
   getToken,
   getTxLink,
+  isKnownResolver,
   logError,
 } from '../utils/helpers';
 import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
-const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
-
 export const LockFunds = ({ invoice, balance }) => {
   const { provider } = useContext(Web3Context);
   const { address, resolver, token } = invoice;
   const { decimals, symbol } = getToken(token);
   const [disputeReason, setDisputeReason] = useState('');
-  const fee =
-    resolver !== ARAGON_COURT
-      ? `${utils.formatUnits(
-          BigNumber.from(balance).div(20),
-          decimals,
-        )} ${symbol}`
-      : `150 DAI`;
+  const fee = `${utils.formatUnits(
+    BigNumber.from(balance).div(20),
+    decimals,
+  )} ${symbol}`;
 
   const [locking, setLocking] = useState(false);
   const [transaction, setTransaction] = useState();
@@ -158,13 +154,9 @@ export const LockFunds = ({ invoice, balance }) => {
       >
         {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
       </Button>
-      {[LEX_DAO, ARAGON_COURT].indexOf(resolver) !== -1 && (
+      {isKnownResolver(resolver) && (
         <Link
-          href={
-            resolver === LEX_DAO
-              ? 'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver'
-              : 'https://anj.aragon.org/legal/terms-general.pdf'
-          }
+          href={RESOLVER_INFO[resolver].termsUrl}
           isExternal
           color="red.500"
           textDecor="underline"

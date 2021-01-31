@@ -2,10 +2,9 @@ import { Heading, Link, Text, useBreakpointValue } from '@chakra-ui/react';
 import React from 'react';
 
 import { Container } from '../shared/Container';
-import { ADDRESSES, NETWORK, TOKENS } from '../utils/constants';
+import { INVOICE_FACTORY, NETWORK, TOKENS } from '../utils/constants';
 import { getAccountString, getAddressLink, getToken } from '../utils/helpers';
 
-const { FACTORY } = ADDRESSES;
 export const FAQ = () => {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
   return (
@@ -22,8 +21,8 @@ export const FAQ = () => {
       <Text textAlign="center">NETWORK CHAIN ID: {NETWORK}</Text>
       <Text textAlign="center">
         INVOICE FACTORY:{' '}
-        <Link href={getAddressLink(FACTORY)} isExternal color="red.500">
-          {isSmallScreen ? getAccountString(FACTORY) : FACTORY}
+        <Link href={getAddressLink(INVOICE_FACTORY)} isExternal color="red.500">
+          {isSmallScreen ? getAccountString(INVOICE_FACTORY) : INVOICE_FACTORY}
         </Link>
       </Text>
       {TOKENS.map(token => (

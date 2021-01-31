@@ -232,6 +232,22 @@ export const ViewInvoice = ({
             </Wrap>
             <Wrap>
               <WrapItem>
+                <Text>{'Client Account: '}</Text>
+              </WrapItem>
+              <WrapItem fontWeight="bold">
+                <AccountLink address={client} />
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <WrapItem>
+                <Text>{'Provider Account: '}</Text>
+              </WrapItem>
+              <WrapItem fontWeight="bold">
+                <AccountLink address={provider} />
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <WrapItem>
                 <Text>{'Arbitration Provider: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">

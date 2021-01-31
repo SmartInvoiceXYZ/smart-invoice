@@ -1,13 +1,11 @@
 import { BigNumber } from 'ethers';
 import React, { createContext, useContext, useState } from 'react';
 
-import { ADDRESSES } from '../utils/constants';
+import { RESOLVERS, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
 import { logError } from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 import { Web3Context } from './Web3Context';
-
-const { ARAGON_COURT, LEX_DAO, WRAPPED_TOKEN } = ADDRESSES;
 
 export const CreateContext = createContext();
 
@@ -25,10 +23,10 @@ export const CreateContextProvider = ({ children }) => {
   const [clientAddress, setClientAddress] = useState('');
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
-  const [paymentToken, setPaymentToken] = useState(WRAPPED_TOKEN);
+  const [paymentToken, setPaymentToken] = useState(WRAPPED_NATIVE_TOKEN);
   const [milestones, setMilestones] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [arbitrationProvider, setArbitrationProvider] = useState(LEX_DAO);
+  const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
 
   const [payments, setPayments] = useState([]);
   const [tx, setTx] = useState();
@@ -64,7 +62,6 @@ export const CreateContextProvider = ({ children }) => {
       provider,
       clientAddress,
       paymentAddress,
-      arbitrationProvider === ARAGON_COURT ? 1 : 0,
       arbitrationProvider,
       paymentToken,
       payments,

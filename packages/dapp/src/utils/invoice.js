@@ -1,14 +1,11 @@
 import { Contract, utils } from 'ethers';
 
-import { ADDRESSES } from './constants';
-
-const { FACTORY } = ADDRESSES;
+import { INVOICE_FACTORY } from './constants';
 
 export const register = async (
   ethersProvider,
   client,
   provider,
-  resolverType, // 0 for lexDao, 1 for aragon court
   resolver,
   token,
   amounts, // array of milestone payments in wei
@@ -18,7 +15,13 @@ export const register = async (
   const abi = new utils.Interface([
     'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
   ]);
-  const contract = new Contract(FACTORY, abi, ethersProvider.getSigner());
+  const contract = new Contract(
+    INVOICE_FACTORY,
+    abi,
+    ethersProvider.getSigner(),
+  );
+
+  const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
   return contract.create(
     client,
     provider,

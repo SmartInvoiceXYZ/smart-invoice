@@ -19,9 +19,9 @@ import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
+import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
 import { NAV_ITEMS } from '../utils/constants';
 import { getAccountString } from '../utils/helpers';
-import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
 
 const StyledButton = styled(Button)`
   &::after {

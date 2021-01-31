@@ -1,13 +1,12 @@
 import { getAddress } from '@ethersproject/address';
 
 import {
-  ADDRESSES,
   EXPLORER_URL,
   IPFS_ENDPOINT,
+  RESOLVER_INFO,
+  RESOLVERS,
   TOKEN_INFO,
 } from './constants';
-
-const { ARAGON_COURT, LEX_DAO } = ADDRESSES;
 
 export const getDateString = timeInSec => {
   const date = new Date(timeInSec * 1000);
@@ -21,17 +20,6 @@ export const getDateString = timeInSec => {
     day: '2-digit',
   }).format(date);
   return `${mo} ${da}, ${ye}`;
-};
-
-export const getResolverString = resolver => {
-  switch (resolver) {
-    case LEX_DAO:
-      return 'LexDAO';
-    case ARAGON_COURT:
-      return 'Aragon Court';
-    default:
-      return getAccountString(resolver);
-  }
 };
 
 export const getToken = token =>
@@ -58,6 +46,14 @@ export const getAccountString = account => {
     .substr(len - 3, len - 1)
     .toUpperCase()}`;
 };
+
+export const isKnownResolver = resolver =>
+  RESOLVERS.indexOf(resolver.toLowerCase()) !== -1;
+
+export const getResolverString = resolver =>
+  RESOLVER_INFO[resolver]
+    ? RESOLVER_INFO[resolver].name
+    : getAccountString(resolver);
 
 export const logError = error => {
   if (process.env.REACT_APP_DEBUG_LOGS === 'true') {

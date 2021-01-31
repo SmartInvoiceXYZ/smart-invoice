@@ -15,10 +15,8 @@ import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { ADDRESSES, NATIVE_TOKEN_SYMBOL } from '../utils/constants';
+import { NATIVE_TOKEN_SYMBOL, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
 import { getToken, getTxLink, logError } from '../utils/helpers';
-
-const { WRAPPED_TOKEN } = ADDRESSES;
 
 export const DepositFunds = ({ invoice, deposited }) => {
   const { address, token, amounts, currentMilestone } = invoice;
@@ -53,7 +51,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
       logError({ depositError });
     }
   };
-  const isWRAPPED = token.toLowerCase() === WRAPPED_TOKEN;
+  const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
 
   useEffect(() => {
     if (amountInput) {

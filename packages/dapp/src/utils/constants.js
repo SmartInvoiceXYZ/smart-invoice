@@ -1,6 +1,13 @@
 import { CONFIG } from '../config';
 
-const { INFURA_ID, NETWORK, IPFS_ENDPOINT, BOX_ENDPOINT } = CONFIG;
+const {
+  INFURA_ID,
+  NETWORK,
+  IPFS_ENDPOINT,
+  BOX_ENDPOINT,
+  WRAPPED_NATIVE_TOKEN,
+  INVOICE_FACTORY,
+} = CONFIG;
 
 const networkNames = {
   1: 'ETH Mainnet',
@@ -30,7 +37,14 @@ const nativeSymbols = {
   100: 'XDAI',
 };
 
-export { INFURA_ID, NETWORK, IPFS_ENDPOINT, BOX_ENDPOINT };
+export {
+  INFURA_ID,
+  NETWORK,
+  IPFS_ENDPOINT,
+  BOX_ENDPOINT,
+  WRAPPED_NATIVE_TOKEN,
+  INVOICE_FACTORY,
+};
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
 
@@ -50,16 +64,13 @@ export const GRAPH_URL = `https://api.thegraph.com/subgraphs/name/${CONFIG.SUBGR
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
-export const ADDRESSES = {
-  LEX_DAO: CONFIG.LEX_DAO.toLowerCase(),
-  ARAGON_COURT: ADDRESS_ZERO,
-  WRAPPED_TOKEN: CONFIG.WRAPPED_TOKEN.toLowerCase(),
-  FACTORY: CONFIG.INVOICE_FACTORY.toLowerCase(),
-};
-
 export const TOKENS = Object.keys(CONFIG.TOKENS);
 
 export const TOKEN_INFO = CONFIG.TOKENS;
+
+export const RESOLVERS = Object.keys(CONFIG.RESOLVERS);
+
+export const RESOLVER_INFO = CONFIG.RESOLVERS;
 
 export const NAV_ITEMS = [
   {
