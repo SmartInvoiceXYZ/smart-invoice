@@ -276,6 +276,7 @@ export const ViewInvoice = ({
               justify="space-between"
               align="center"
               fontWeight="bold"
+              fontSize="lg"
               mb="1rem"
             >
               <Text>
@@ -570,37 +571,22 @@ export const ViewInvoice = ({
                   Deposit
                 </Button>
               )}
-              {isReleasable ? (
-                <Button
-                  size={buttonSize}
-                  gridArea={{
-                    base: '2/1/2/span 2',
-                    sm: 'auto/auto/auto/auto',
-                  }}
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onRelease()}
-                >
-                  Release
-                </Button>
-              ) : (
-                <Button
-                  size={buttonSize}
-                  gridArea={{
-                    base: '2/1/2/span 2',
-                    sm: 'auto/auto/auto/auto',
-                  }}
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Deposit
-                </Button>
-              )}
+              <Button
+                size={buttonSize}
+                gridArea={{
+                  base: Number.isInteger(gridColumns)
+                    ? 'auto/auto/auto/auto'
+                    : '2/1/2/span 2',
+                  sm: 'auto/auto/auto/auto',
+                }}
+                colorScheme="red"
+                fontWeight="normal"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => (isReleasable ? onRelease() : onDeposit())}
+              >
+                {isReleasable ? 'Release' : 'Deposit'}
+              </Button>
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
