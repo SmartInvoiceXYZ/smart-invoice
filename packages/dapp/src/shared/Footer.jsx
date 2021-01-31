@@ -3,7 +3,7 @@ import React from 'react';
 
 import RaidGuild from '../assets/built-by-raid-guild.svg';
 
-export const Footer = () => {
+export const Footer = ({ center }) => {
   return (
     <Flex
       position="absolute"
@@ -14,7 +14,7 @@ export const Footer = () => {
       py="1rem"
       px="3rem"
       align="center"
-      justify={{ base: 'center', lg: 'flex-end' }}
+      justify={center ? 'center' : { base: 'center', lg: 'flex-end' }}
     >
       <Link href="https://raidguild.org" isExternal zIndex={5}>
         <Image src={RaidGuild} alt="built-by-raid-guild" />

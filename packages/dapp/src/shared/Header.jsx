@@ -19,9 +19,10 @@ import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
-import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
 import { NAV_ITEMS } from '../utils/constants';
 import { getAccountString } from '../utils/helpers';
+import { Footer } from './Footer';
+import { ProfileButton } from './ProfileButton';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -72,14 +73,6 @@ export const Header = () => {
     base: isOpen ? 'ghost' : 'link',
     md: 'ghost',
   });
-  const overlayStyles = isBackdropFilterSupported()
-    ? {
-        backgroundColor: 'black30',
-        backdropFilter: 'blur(8px)',
-      }
-    : {
-        backgroundColor: 'black80',
-      };
   return (
     <Flex
       w="100%"
@@ -111,32 +104,21 @@ export const Header = () => {
       <Flex
         mx={{ base: '2rem', sm: '3rem' }}
         align="center"
-        zIndex={7}
         height="8rem"
         transition="width 1s ease-out"
-        position={isOpen ? 'fixed' : undefined}
-        top={isOpen ? '0' : undefined}
-        right={isOpen ? '0' : undefined}
-        w={
-          isOpen
-            ? { base: 'calc(100% - 4rem)', sm: 'calc(100% - 6rem)' }
-            : undefined
-        }
-        justify={isOpen ? 'space-between' : undefined}
       >
         {account && (
-          <Flex justify="center" align="center">
+          <Flex justify="center" align="center" zIndex={5}>
             <Popover>
               <PopoverTrigger>
                 <Button
                   h="auto"
                   fontWeight="normal"
-                  borderRadius={{ base: 'full', md: undefined }}
+                  borderRadius="full"
                   variant={buttonVariant}
                   colorScheme="red"
                   fontFamily="mono"
-                  p={{ base: isOpen ? 2 : 0, md: 2 }}
-                  css={overlayStyles}
+                  p={{ base: 0, md: 2 }}
                 >
                   <Flex
                     borderRadius="50%"
@@ -154,7 +136,7 @@ export const Header = () => {
                   />
                   <Text
                     px={2}
-                    display={{ base: isOpen ? 'flex' : 'none', md: 'flex' }}
+                    display={{ base: 'none', md: 'flex' }}
                     fontFamily="'Roboto Mono', monospace;"
                     color="red.500"
                   >
@@ -164,7 +146,7 @@ export const Header = () => {
                   </Text>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent bg="none" w="auto" mx={isOpen ? 0 : '4rem'}>
+              <PopoverContent bg="none" w="auto" mx="4rem">
                 <Button
                   onClick={() => {
                     disconnect();
@@ -184,6 +166,7 @@ export const Header = () => {
           onClick={() => onOpen(o => !o)}
           variant="link"
           ml={{ base: '0.5rem', sm: '1rem' }}
+          zIndex={7}
         >
           <HamburgerIcon
             boxSize={{ base: '2rem', sm: '2.75rem' }}
@@ -215,6 +198,13 @@ export const Header = () => {
             : 'circle(100px at 90% -20%)',
         }}
       >
+        {account && profile && (
+          <ProfileButton
+            account={account}
+            profile={profile}
+            disconnect={disconnect}
+          />
+        )}
         {NAV_ITEMS.map(item => {
           return (
             <NavButton
@@ -228,6 +218,7 @@ export const Header = () => {
             </NavButton>
           );
         })}
+        <Footer center />
       </Flex>
     </Flex>
   );

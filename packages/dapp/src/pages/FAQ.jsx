@@ -12,6 +12,7 @@ export const FAQ = () => {
       <Heading
         fontWeight="normal"
         mb="1rem"
+        mx="1rem"
         textTransform="uppercase"
         textAlign="center"
         color="red.500"
