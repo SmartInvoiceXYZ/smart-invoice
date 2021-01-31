@@ -21,6 +21,7 @@ import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
 import { NAV_ITEMS } from '../utils/constants';
 import { getAccountString } from '../utils/helpers';
+import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -67,7 +68,18 @@ export const Header = () => {
       getProfile(account).then(p => setProfile(p));
     }
   }, [account]);
-  const buttonVariant = useBreakpointValue({ base: 'link', md: 'ghost' });
+  const buttonVariant = useBreakpointValue({
+    base: isOpen ? 'ghost' : 'link',
+    md: 'ghost',
+  });
+  const overlayStyles = isBackdropFilterSupported()
+    ? {
+        backgroundColor: 'black30',
+        backdropFilter: 'blur(8px)',
+      }
+    : {
+        backgroundColor: 'black80',
+      };
   return (
     <Flex
       w="100%"
@@ -85,20 +97,35 @@ export const Header = () => {
           <Flex align="center" p="1rem" m="1rem">
             <Image
               src={Logo}
-              alt="logo"
+              alt="Raid Guild"
               w={{ base: '3rem', sm: '4rem', md: '5rem' }}
             />
             <Image
               src={LogoText}
-              alt="logo-text"
+              alt="Smart Invoice"
               h={{ base: '2rem', sm: '3rem', md: 'auto' }}
             />
           </Flex>
         </Link>
       </Box>
-      <Flex m={{ base: '2rem', sm: '3rem' }}>
+      <Flex
+        mx={{ base: '2rem', sm: '3rem' }}
+        align="center"
+        zIndex={7}
+        height="8rem"
+        transition="width 1s ease-out"
+        position={isOpen ? 'fixed' : undefined}
+        top={isOpen ? '0' : undefined}
+        right={isOpen ? '0' : undefined}
+        w={
+          isOpen
+            ? { base: 'calc(100% - 4rem)', sm: 'calc(100% - 6rem)' }
+            : undefined
+        }
+        justify={isOpen ? 'space-between' : undefined}
+      >
         {account && (
-          <Flex justify="center" align="center" zIndex={5}>
+          <Flex justify="center" align="center">
             <Popover>
               <PopoverTrigger>
                 <Button
@@ -108,7 +135,8 @@ export const Header = () => {
                   variant={buttonVariant}
                   colorScheme="red"
                   fontFamily="mono"
-                  p={{ base: 0, md: 2 }}
+                  p={{ base: isOpen ? 2 : 0, md: 2 }}
+                  css={overlayStyles}
                 >
                   <Flex
                     borderRadius="50%"
@@ -126,7 +154,7 @@ export const Header = () => {
                   />
                   <Text
                     px={2}
-                    display={{ base: 'none', md: 'flex' }}
+                    display={{ base: isOpen ? 'flex' : 'none', md: 'flex' }}
                     fontFamily="'Roboto Mono', monospace;"
                     color="red.500"
                   >
@@ -136,7 +164,7 @@ export const Header = () => {
                   </Text>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent bg="none" w="auto" mx="4rem">
+              <PopoverContent bg="none" w="auto" mx={isOpen ? 0 : '4rem'}>
                 <Button
                   onClick={() => {
                     disconnect();
@@ -155,12 +183,7 @@ export const Header = () => {
         <Button
           onClick={() => onOpen(o => !o)}
           variant="link"
-          zIndex={7}
           ml={{ base: '0.5rem', sm: '1rem' }}
-          top={isOpen ? { base: '2.5rem', sm: '2.125rem' } : undefined}
-          right={isOpen ? { base: '2rem', sm: '3rem' } : undefined}
-          position={isOpen ? 'fixed' : undefined}
-          p="0.5rem"
         >
           <HamburgerIcon
             boxSize={{ base: '2rem', sm: '2.75rem' }}
