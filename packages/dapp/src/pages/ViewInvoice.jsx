@@ -295,7 +295,7 @@ export const ViewInvoice = ({
                 if (deposits.length > 0) {
                   for (let i = 0; i < deposits.length; i += 1) {
                     tot = tot.add(deposits[i].amount);
-                    if (tot.gte(sum)) {
+                    if (tot.gt(sum)) {
                       ind = i;
                       if (tot.sub(sum).gte(amt)) {
                         full = true;
