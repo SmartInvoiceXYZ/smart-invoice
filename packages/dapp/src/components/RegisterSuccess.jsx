@@ -12,7 +12,7 @@ import { Loader } from './Loader';
 export const RegisterSuccess = () => {
   const { provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
-  const [invoiceID, setInvoiceID] = useState();
+  const [invoiceId, setInvoiceID] = useState();
   const history = useHistory();
 
   useEffect(() => {
@@ -33,10 +33,12 @@ export const RegisterSuccess = () => {
       maxW="30rem"
     >
       <Heading fontWeight="normal" textAlign="center">
-        Invoice Registration Received
+        {invoiceId ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
       <Text color="white" textAlign="center" fontSize="sm">
-        You can check the progress of your transaction{' '}
+        {invoiceId
+          ? 'You can view your transaction '
+          : 'You can check the progress of your transaction '}
         <Link
           href={getTxLink(tx.hash)}
           isExternal
@@ -46,11 +48,8 @@ export const RegisterSuccess = () => {
           here
         </Link>
       </Text>
-      {invoiceID ? (
+      {invoiceId ? (
         <>
-          <Text color="white" fontStyle="italic" textAlign="center">
-            Save this because you will need it to manage your invoice later:
-          </Text>
           <VStack w="100%" align="stretch">
             <Text fontWeight="bold">Your Invoice ID</Text>
             <Flex
@@ -63,16 +62,16 @@ export const RegisterSuccess = () => {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${invoiceID}`}
+                href={`/invoice/${invoiceId}`}
                 color="white"
                 overflow="hidden"
               >
-                {invoiceID}
+                {invoiceId}
               </Link>
               {document.queryCommandSupported('copy') && (
                 <Button
                   ml={4}
-                  onClick={() => copyToClipboard(invoiceID.toLowerCase())}
+                  onClick={() => copyToClipboard(invoiceId.toLowerCase())}
                   variant="ghost"
                   colorScheme="red"
                   h="auto"
@@ -97,12 +96,12 @@ export const RegisterSuccess = () => {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${invoiceID}`}
+                href={`/invoice/${invoiceId}`}
                 color="white"
                 overflow="hidden"
               >{`${
                 window.location.origin
-              }/invoice/${invoiceID.toLowerCase()}`}</Link>
+              }/invoice/${invoiceId.toLowerCase()}`}</Link>
               {document.queryCommandSupported('copy') && (
                 <Button
                   ml={4}
@@ -110,7 +109,7 @@ export const RegisterSuccess = () => {
                     copyToClipboard(
                       `${
                         window.location.origin
-                      }/invoice/${invoiceID.toLowerCase()}`,
+                      }/invoice/${invoiceId.toLowerCase()}`,
                     )
                   }
                   variant="ghost"
@@ -127,7 +126,7 @@ export const RegisterSuccess = () => {
           </VStack>
         </>
       ) : (
-        <Flex my="3rem">
+        <Flex py="3rem">
           <Loader size="80" />
         </Flex>
       )}

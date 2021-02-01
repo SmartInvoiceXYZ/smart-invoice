@@ -13,6 +13,7 @@ type Invoice @entity {
   total: BigInt!
   released: BigInt!
   createdAt: BigInt! # seconds since epoch
+  creationTxHash: Bytes!
   terminationTime: BigInt! # seconds since epoch
   details: Bytes!
   ipfsHash: String!
@@ -23,6 +24,7 @@ type Invoice @entity {
   startDate: BigInt # seconds since epoch
   endDate: BigInt # seconds since epoch
   deposits: [Deposit!]!
+  withdraws: [Withdraw!]!
   releases: [Release!]!
   disputes: [Dispute!]!
   resolutions: [Resolution!]!
@@ -35,14 +37,17 @@ enum ADR @entity {
 
 type Deposit @entity {
   id: ID!
+  txHash: Bytes!
   sender: Bytes!
   invoice: Invoice!
   amount: BigInt!
   timestamp: BigInt!
 }
 
+
 type Release @entity {
   id: ID!
+  txHash: Bytes!
   invoice: Invoice!
   milestone: BigInt!
   amount: BigInt!
@@ -51,6 +56,7 @@ type Release @entity {
 
 type Withdraw @entity {
   id: ID!
+  txHash: Bytes!
   invoice: Invoice!
   amount: BigInt!
   timestamp: BigInt!
@@ -58,6 +64,7 @@ type Withdraw @entity {
 
 type Dispute @entity {
   id: ID!
+  txHash: Bytes!
   invoice: Invoice!
   sender: Bytes!
   details: Bytes!
@@ -70,6 +77,7 @@ type Dispute @entity {
 
 type Resolution @entity {
   id: ID!
+  txHash: Bytes!
   details: Bytes!
   ipfsHash: String!
   invoice: Invoice!
@@ -83,12 +91,12 @@ type Resolution @entity {
   timestamp: BigInt!
 }
 
-type Transfer @entity {
-  id: ID!
-  txHash: Bytes!
-  from: Bytes!
-  to: Bytes!
-  amount: BigInt!
-  token: Bytes!
-  timestamp: BigInt!
-}
+# type Transfer @entity {
+#   id: ID!
+#   txHash: Bytes!
+#   from: Bytes!
+#   to: Bytes!
+#   amount: BigInt!
+#   token: Bytes!
+#   timestamp: BigInt!
+# }

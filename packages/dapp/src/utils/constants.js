@@ -105,6 +105,6 @@ export const STEPS = {
   4: {
     step_title: 'Confirmation',
     step_details: [],
-    next: 'register invoice escrow',
+    next: 'create invoice',
   },
 };

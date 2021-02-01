@@ -12,7 +12,7 @@ import React, { useContext } from 'react';
 import { CreateContext } from '../context/CreateContext';
 import { getToken } from '../utils/helpers';
 
-export const PaymentChunksForm = () => {
+export const PaymentChunksForm = ({ display }) => {
   const {
     paymentToken,
     milestones,
@@ -23,7 +23,7 @@ export const PaymentChunksForm = () => {
   const tokenData = getToken(paymentToken);
   const { decimals, symbol } = tokenData;
   return (
-    <VStack w="100%" spacing="1rem">
+    <VStack w="100%" spacing="1rem" display={display}>
       {Array.from(Array(Number(milestones))).map((_val, index) => {
         return (
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
@@ -53,7 +53,7 @@ export const PaymentChunksForm = () => {
           </VStack>
         );
       })}
-      <Text w="100%" textAlign="right" color="grey">
+      <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
         Total Amount Must Add Up to {utils.formatUnits(paymentDue, decimals)}{' '}
         {symbol}
       </Text>

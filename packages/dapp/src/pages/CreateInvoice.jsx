@@ -105,8 +105,6 @@ const CreateInvoiceInner = () => {
     return () => undefined;
   };
 
-  // const spacing = useBreakpointValue({ base: '1rem', md: '2rem' });
-
   return (
     <Container overlay>
       {tx ? (
@@ -138,10 +136,16 @@ const CreateInvoiceInner = () => {
               borderRadius="0.5rem"
               w="100%"
             >
-              {currentStep === 1 && <ProjectDetailsForm />}
-              {currentStep === 2 && <PaymentDetailsForm />}
-              {currentStep === 3 && <PaymentChunksForm />}
-              {currentStep === 4 && <FormConfirmation />}
+              <ProjectDetailsForm
+                display={currentStep === 1 ? 'flex' : 'none'}
+              />
+              <PaymentDetailsForm
+                display={currentStep === 2 ? 'flex' : 'none'}
+              />
+              <PaymentChunksForm
+                display={currentStep === 3 ? 'flex' : 'none'}
+              />
+              <FormConfirmation display={currentStep === 4 ? 'flex' : 'none'} />
             </Flex>
             <Grid templateColumns="1fr 4fr" gap="1rem" w="100%">
               {currentStep !== 1 ? (
@@ -168,7 +172,9 @@ const CreateInvoiceInner = () => {
                 fontFamily="mono"
                 fontWeight="normal"
               >
-                {`next: ${STEPS[currentStep].next}`}
+                {currentStep === 4
+                  ? STEPS[currentStep].next
+                  : `next: ${STEPS[currentStep].next}`}
               </Button>
             </Grid>
           </VStack>

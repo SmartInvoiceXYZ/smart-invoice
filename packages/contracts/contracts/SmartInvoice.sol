@@ -113,10 +113,9 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   }
 
   function release() public nonReentrant {
-    // client transfers locker milestone batch to provider(s)
+    // client transfers locker milestone funds to provider
 
     require(!locked, "locked");
-    require(total > released, "released");
     require(_msgSender() == client, "!client");
 
     uint256 currentMilestone = milestone;
@@ -140,6 +139,25 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
+  function release(uint256 _milestone) public nonReentrant {
+    // client transfers locker funds upto certain milestone to provider
+    require(!locked, "locked");
+    require(_msgSender() == client, "!client");
+    require(_milestone >= milestone, "milestone passed");
+    require(_milestone < amounts.length, "invalid milestone");
+    uint256 amount = 0;
+    for (uint256 j = milestone; j <= _milestone; j++) {
+      amount = amount.add(amounts[j]);
+      emit Release(j, amounts[j]);
+    }
+    uint256 balance = IERC20(token).balanceOf(address(this));
+    require(balance >= amount, "insufficient balance");
+
+    IERC20(token).safeTransfer(provider, amount);
+    released = released.add(amount);
+    milestone = _milestone.add(1);
+  }
+
   // release non-invoice tokens
   function releaseTokens(address _token) external nonReentrant {
     if (_token == token) {
@@ -151,15 +169,15 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
+  // withdraw locker remainder to client if termination time passes & no lock
   function withdraw() public nonReentrant {
-    // withdraw locker remainder to client if termination time passes & no lock
-
     require(!locked, "locked");
     require(block.timestamp > terminationTime, "!terminated");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
 
     IERC20(token).safeTransfer(client, balance);
+    milestone = amounts.length;
 
     emit Withdraw(balance);
   }
@@ -177,8 +195,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
+  // client or main (0) provider can lock remainder for resolution during locker period / update request details
   function lock(bytes32 _details) external payable nonReentrant {
-    // client or main (0) provider can lock remainder for resolution during locker period / update request details
     require(!locked, "locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
@@ -259,7 +277,6 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       IERC20(token).safeTransfer(client, clientAward);
     }
 
-    released = released.add(balance);
     milestone = amounts.length;
     locked = false;
 

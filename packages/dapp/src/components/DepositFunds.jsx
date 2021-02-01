@@ -1,6 +1,7 @@
 import {
   Button,
   Checkbox,
+  Flex,
   Heading,
   Input,
   InputGroup,
@@ -8,6 +9,7 @@ import {
   Link,
   Select,
   Text,
+  Tooltip,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
@@ -15,6 +17,7 @@ import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
+import { QuestionIcon } from '../icons/QuestionIcon';
 import { NATIVE_TOKEN_SYMBOL, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
 import { getToken, getTxLink, logError } from '../utils/helpers';
 
@@ -51,6 +54,7 @@ export const DepositFunds = ({ invoice, deposited }) => {
       logError({ depositError });
     }
   };
+
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
 
   useEffect(() => {
@@ -119,7 +123,19 @@ export const DepositFunds = ({ invoice, deposited }) => {
       </VStack>
 
       <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
-        <Text fontWeight="700">Amount</Text>
+        <Flex justify="space-between" w="100%">
+          <Text fontWeight="700">Amount</Text>
+          <Flex>
+            {paymentType === 1 && (
+              <Tooltip
+                label={`Your ${NATIVE_TOKEN_SYMBOL} will be automagically wrapped to ${symbol} tokens`}
+                placement="auto-start"
+              >
+                <QuestionIcon ml="1rem" boxSize="0.75rem" />
+              </Tooltip>
+            )}
+          </Flex>
+        </Flex>
         <InputGroup>
           <Input
             bg="black"
@@ -129,9 +145,9 @@ export const DepositFunds = ({ invoice, deposited }) => {
             value={amountInput}
             onChange={e => setAmountInput(e.target.value)}
             placeholder="Amount to Deposit"
-            pr="3.5rem"
+            pr={isWRAPPED ? '6rem' : '3.5rem'}
           />
-          <InputRightElement w="3.5rem">
+          <InputRightElement w={isWRAPPED ? '6rem' : '3.5rem'}>
             {isWRAPPED ? (
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}

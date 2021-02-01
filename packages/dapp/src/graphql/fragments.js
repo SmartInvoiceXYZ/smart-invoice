@@ -23,26 +23,26 @@ export const InvoiceDetails = gql`
     startDate
     endDate
     deposits(orderBy: timestamp, orderDirection: asc) {
-      txHash: id
+      txHash
       sender
       amount
       timestamp
     }
     releases(orderBy: timestamp, orderDirection: asc) {
-      txHash: id
+      txHash
       milestone
       amount
       timestamp
     }
     disputes(orderBy: timestamp, orderDirection: asc) {
-      txHash: id
+      txHash
       ipfsHash
       sender
       details
       timestamp
     }
     resolutions(orderBy: timestamp, orderDirection: asc) {
-      txHash: id
+      txHash
       ipfsHash
       clientAward
       providerAward

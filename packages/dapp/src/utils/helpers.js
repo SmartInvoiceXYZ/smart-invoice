@@ -9,7 +9,7 @@ import {
 } from './constants';
 
 export const getDateString = timeInSec => {
-  const date = new Date(timeInSec * 1000);
+  const date = new Date(timeInSec ? timeInSec * 1000 : 0);
   const ye = new Intl.DateTimeFormat('en', {
     year: 'numeric',
   }).format(date);

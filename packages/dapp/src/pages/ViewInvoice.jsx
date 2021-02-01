@@ -26,12 +26,17 @@ import { Loader } from '../components/Loader';
 import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
+import { WithdrawFunds } from '../components/WithdrawFunds';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
+import { CopyIcon } from '../icons/CopyIcon';
 import { AccountLink } from '../shared/AccountLink';
 import { Container } from '../shared/Container';
 import { balanceOf } from '../utils/erc20';
 import {
+  copyToClipboard,
+  getAccountString,
+  getAddressLink,
   getDateString,
   getIpfsLink,
   getToken,
@@ -114,14 +119,18 @@ export const ViewInvoice = ({
   const { decimals, symbol } = getToken(token);
   const deposited = BigNumber.from(released).add(balance);
   const due = BigNumber.from(total).sub(deposited);
+  const isExpired = terminationTime <= new Date().getTime() / 1000;
 
   const amount =
     currentMilestone < amounts.length
       ? BigNumber.from(amounts[currentMilestone])
       : BigNumber.from(0);
   const isReleasable =
-    !isLocked && currentMilestone < amounts.length && amount.lte(balance);
-  const isLockable = !isLocked && balance.gt(0);
+    !isLocked &&
+    currentMilestone < amounts.length &&
+    amount.lte(balance) &&
+    balance.gt(0);
+  const isLockable = !isExpired && !isLocked && balance.gt(0);
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
   const resolution =
@@ -155,11 +164,18 @@ export const ViewInvoice = ({
     }
   };
 
+  const onWithdraw = async () => {
+    if (isExpired && isClient) {
+      setSelected(4);
+      setModal(true);
+    }
+  };
+
   let gridColumns;
   if (isLockable && isReleasable) {
-    gridColumns = { base: 2, sm: 3 };
+    gridColumns = { base: 2, sm: due.gt(0) ? 3 : 2 };
   } else if (isLockable || isReleasable) {
-    gridColumns = 2;
+    gridColumns = due.gt(0) ? 2 : 1;
   } else {
     gridColumns = 1;
   }
@@ -189,6 +205,25 @@ export const ViewInvoice = ({
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
+            <Flex align="center" color="white">
+              <Link href={getAddressLink(invoiceId.toLowerCase())} isExternal>
+                {getAccountString(invoiceId)}
+              </Link>
+              {document.queryCommandSupported('copy') && (
+                <Button
+                  ml={4}
+                  onClick={() => copyToClipboard(invoiceId.toLowerCase())}
+                  variant="ghost"
+                  colorScheme="red"
+                  h="auto"
+                  w="auto"
+                  minW="2"
+                  p={2}
+                >
+                  <CopyIcon boxSize={4} />
+                </Button>
+              )}
+            </Flex>
             {projectDescription && (
               <Text color="white">{projectDescription}</Text>
             )}
@@ -387,7 +422,11 @@ export const ViewInvoice = ({
               <Flex
                 justify="space-between"
                 align="center"
-                textDecor={dispute || resolution ? 'line-through' : undefined}
+                textDecor={
+                  dispute || resolution || isExpired
+                    ? 'line-through'
+                    : undefined
+                }
               >
                 <Text>Remaining{smallScreen ? '' : ' Amount Due'}</Text>
                 <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
@@ -405,16 +444,30 @@ export const ViewInvoice = ({
                 fontWeight="bold"
                 fontSize="lg"
               >
-                <Text>
-                  {isReleasable &&
-                    (smallScreen ? 'Next Release' : 'Next Amount to Release')}
-                  {!isReleasable &&
-                    (smallScreen ? 'Due Today' : 'Total Due Today')}
-                </Text>
-                <Text textAlign="right">{`${utils.formatUnits(
-                  isReleasable ? amount : amount.sub(balance),
-                  decimals,
-                )} ${symbol}`}</Text>
+                {isExpired || (due.eq(0) && !isReleasable) ? (
+                  <>
+                    <Text>Remaining Balance</Text>
+                    <Text textAlign="right">{`${utils.formatUnits(
+                      balance,
+                      decimals,
+                    )} ${symbol}`}</Text>{' '}
+                  </>
+                ) : (
+                  <>
+                    <Text>
+                      {isReleasable &&
+                        (smallScreen
+                          ? 'Next Release'
+                          : 'Next Amount to Release')}
+                      {!isReleasable &&
+                        (smallScreen ? 'Due Today' : 'Total Due Today')}
+                    </Text>
+                    <Text textAlign="right">{`${utils.formatUnits(
+                      isReleasable ? amount : amount.sub(balance),
+                      decimals,
+                    )} ${symbol}`}</Text>
+                  </>
+                )}
               </Flex>
             )}
             {dispute && (
@@ -517,8 +570,12 @@ export const ViewInvoice = ({
             )}
           </Flex>
           {!dispute && !resolution && isResolver && (
-            <SimpleGrid columns={isLocked ? 1 : 2} spacing="1rem" w="100%">
-              {!isLocked && (
+            <SimpleGrid
+              columns={isLocked || due.eq(0) ? 1 : 2}
+              spacing="1rem"
+              w="100%"
+            >
+              {!isLocked && due.gt(0) && (
                 <Button
                   size={buttonSize}
                   variant="outline"
@@ -558,39 +615,83 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
-              {isReleasable && (
-                <Button
-                  size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Deposit
-                </Button>
+              {isExpired ? (
+                <>
+                  {isReleasable && (
+                    <Button
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onRelease()}
+                    >
+                      Release
+                    </Button>
+                  )}
+                  {balance.gt(0) && (
+                    <Button
+                      size={buttonSize}
+                      gridArea={{
+                        base: Number.isInteger(gridColumns)
+                          ? 'auto/auto/auto/auto'
+                          : '2/1/2/span 2',
+                        sm: 'auto/auto/auto/auto',
+                      }}
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onWithdraw()}
+                    >
+                      Withdraw
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {isReleasable && due.gt(0) && (
+                    <Button
+                      size={buttonSize}
+                      variant="outline"
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => onDeposit()}
+                    >
+                      Deposit
+                    </Button>
+                  )}
+                  {(isReleasable || due.gt(0)) && (
+                    <Button
+                      size={buttonSize}
+                      gridArea={{
+                        base: Number.isInteger(gridColumns)
+                          ? 'auto/auto/auto/auto'
+                          : '2/1/2/span 2',
+                        sm: 'auto/auto/auto/auto',
+                      }}
+                      colorScheme="red"
+                      fontWeight="normal"
+                      fontFamily="mono"
+                      textTransform="uppercase"
+                      onClick={() => (isReleasable ? onRelease() : onDeposit())}
+                    >
+                      {isReleasable ? 'Release' : 'Deposit'}
+                    </Button>
+                  )}
+                </>
               )}
-              <Button
-                size={buttonSize}
-                gridArea={{
-                  base: Number.isInteger(gridColumns)
-                    ? 'auto/auto/auto/auto'
-                    : '2/1/2/span 2',
-                  sm: 'auto/auto/auto/auto',
-                }}
-                colorScheme="red"
-                fontWeight="normal"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => (isReleasable ? onRelease() : onDeposit())}
-              >
-                {isReleasable ? 'Release' : 'Deposit'}
-              </Button>
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
-            <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+            <SimpleGrid
+              columns={isLockable && due.gt(0) ? 2 : 1}
+              spacing="1rem"
+              w="100%"
+            >
               {isLockable && (
                 <Button
                   size={buttonSize}
@@ -604,16 +705,18 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
-              <Button
-                size={buttonSize}
-                colorScheme="red"
-                fontWeight="normal"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => onDeposit()}
-              >
-                Deposit
-              </Button>
+              {due.gt(0) && (
+                <Button
+                  size={buttonSize}
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onDeposit()}
+                >
+                  Deposit
+                </Button>
+              )}
             </SimpleGrid>
           )}
         </VStack>
@@ -654,6 +757,13 @@ export const ViewInvoice = ({
               )}
               {modal && selected === 3 && (
                 <ResolveFunds
+                  invoice={invoice}
+                  balance={balance}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 4 && (
+                <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
                   close={() => setModal(false)}

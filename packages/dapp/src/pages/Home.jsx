@@ -23,7 +23,7 @@ export const Home = () => {
       <Flex
         direction="column"
         align="stretch"
-        m={{ base: '1rem', md: '2rem' }}
+        m={{ base: '1rem', md: '2rem', lg: '4rem' }}
         w={{ base: '22rem', sm: '28rem', lg: '32rem' }}
         maxW="calc(100%-4rem)"
       >

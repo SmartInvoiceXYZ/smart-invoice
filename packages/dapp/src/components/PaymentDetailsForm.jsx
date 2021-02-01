@@ -1,11 +1,4 @@
-import {
-  Checkbox,
-  Flex,
-  Link,
-  SimpleGrid,
-  useBreakpointValue,
-  VStack,
-} from '@chakra-ui/react';
+import { Checkbox, Link, SimpleGrid, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useState } from 'react';
 
@@ -14,7 +7,7 @@ import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
 import { RESOLVER_INFO, RESOLVERS, TOKENS } from '../utils/constants';
 import { getResolverString, getToken, isKnownResolver } from '../utils/helpers';
 
-export const PaymentDetailsForm = () => {
+export const PaymentDetailsForm = ({ display }) => {
   const {
     clientAddress,
     setClientAddress,
@@ -36,9 +29,8 @@ export const PaymentDetailsForm = () => {
   const { decimals, symbol } = tokenData;
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
-  const isSmallScreen = useBreakpointValue({ base: true, sm: false });
   return (
-    <VStack w="100%" spacing="1rem">
+    <VStack w="100%" spacing="1rem" display={display}>
       <OrderedInput
         label="Client Address"
         value={clientAddress}
@@ -51,7 +43,7 @@ export const PaymentDetailsForm = () => {
         setValue={setPaymentAddress}
         tooltip="Recipient of the funds"
       />
-      <SimpleGrid w="100%" columns={isSmallScreen ? 2 : 3} spacing="1rem">
+      <SimpleGrid w="100%" columns={{ base: 2, sm: 3 }} spacing="1rem">
         <OrderedInput
           label="Total Payment Due"
           type="number"
@@ -76,28 +68,8 @@ export const PaymentDetailsForm = () => {
             </option>
           ))}
         </OrderedSelect>
-        {!isSmallScreen && (
-          <OrderedInput
-            label="Number of Payments"
-            type="number"
-            value={milestones}
-            setValue={v => {
-              const numMilestones = v ? Number(v) : 1;
-              setMilestones(numMilestones);
-              setPayments(
-                Array(numMilestones)
-                  .fill(1)
-                  .map(() => {
-                    return BigNumber.from(0);
-                  }),
-              );
-            }}
-            tooltip="Number of milestones in which the total payment will be processed"
-          />
-        )}
-      </SimpleGrid>
-      {isSmallScreen && (
         <OrderedInput
+          gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
           label="Number of Payments"
           type="number"
           value={milestones}
@@ -114,10 +86,10 @@ export const PaymentDetailsForm = () => {
           }}
           tooltip="Number of milestones in which the total payment will be processed"
         />
-      )}
+      </SimpleGrid>
       <SimpleGrid w="100%" columns={2} spacing="1rem">
         <OrderedSelect
-          tooltip="Arbitration provider that will be used incase of a dispute"
+          tooltip="Arbitration provider that will be used in case of a dispute"
           value={arbitrationProviderType}
           setValue={v => {
             setArbitrationProviderType(v);
@@ -132,16 +104,18 @@ export const PaymentDetailsForm = () => {
           label="Arbitration Provider"
         >
           {RESOLVERS.map(res => (
-            <option value={res}>RESOLVER_INFO[res].name</option>
+            <option key={res} value={res}>
+              {RESOLVER_INFO[res].name}
+            </option>
           ))}
           <option value="custom">Custom</option>
         </OrderedSelect>
         <OrderedInput
-          label="Max Fee"
+          label="Max Dispute Fee"
           type="text"
           value={`${utils.formatUnits(paymentDue.div(20), decimals)} ${symbol}`}
           setValue={() => undefined}
-          tooltip="A 5% arbitration fee will be deducted from remaining funds during dispute resolution"
+          tooltip="In case a dispute arises, 5% of the remaining funds will be deducted towards dispute resolution as an arbitration fee"
           isDisabled
         />
       </SimpleGrid>
@@ -153,26 +127,24 @@ export const PaymentDetailsForm = () => {
           setValue={setArbitrationProvider}
         />
       ) : (
-        <Flex w="100%" direction="column">
-          <Checkbox
-            isChecked={termsAccepted}
-            onChange={e => setTermsAccepted(e.target.checked)}
-            colorScheme="red"
-            border="none"
-            size="lg"
-            fontSize="1rem"
-            color="white"
+        <Checkbox
+          isChecked={termsAccepted}
+          onChange={e => setTermsAccepted(e.target.checked)}
+          colorScheme="red"
+          border="none"
+          size="lg"
+          fontSize="1rem"
+          color="white"
+        >
+          {`I agree to ${getResolverString(arbitrationProvider)} `}
+          <Link
+            href={RESOLVER_INFO[arbitrationProvider].termsUrl}
+            isExternal
+            textDecor="underline"
           >
-            {`I agree to ${getResolverString(arbitrationProvider)} `}
-            <Link
-              href={RESOLVER_INFO[arbitrationProvider].termsUrl}
-              isExternal
-              textDecor="underline"
-            >
-              terms of service
-            </Link>
-          </Checkbox>
-        </Flex>
+            terms of service
+          </Link>
+        </Checkbox>
       )}
     </VStack>
   );

@@ -6,7 +6,7 @@ import { CreateContext } from '../context/CreateContext';
 import { AccountLink } from '../shared/AccountLink';
 import { getDateString, getToken } from '../utils/helpers';
 
-export const FormConfirmation = () => {
+export const FormConfirmation = ({ display }) => {
   const {
     projectName,
     projectDescription,
@@ -24,7 +24,13 @@ export const FormConfirmation = () => {
   const tokenData = getToken(paymentToken);
   const { decimals, symbol } = tokenData;
   return (
-    <VStack w="100%" spacing="1rem" color="white" align="stretch">
+    <VStack
+      w="100%"
+      spacing="1rem"
+      color="white"
+      align="stretch"
+      display={display}
+    >
       <Text id="project-title" fontWeight="bold" fontSize="xl">
         {projectName}
       </Text>
@@ -60,7 +66,11 @@ export const FormConfirmation = () => {
         <Text>{`Arbitration Provider: `}</Text>
         <AccountLink address={arbitrationProvider} />
       </Flex>
-      <Divider color="black" w="calc(100% + 2rem)" ml="-1rem" />
+      <Divider
+        color="black"
+        w="calc(100% + 2rem)"
+        transform="translateX(-1rem)"
+      />
       <Flex justify="flex-end">
         <Text>{milestones} Payments</Text>
         <Text color="red.500" ml="2rem" fontWeight="bold">

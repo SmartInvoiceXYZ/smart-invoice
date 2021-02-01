@@ -18,7 +18,7 @@ const formatDate = date => {
   return [year, month, day].join('-');
 };
 
-export const ProjectDetailsForm = () => {
+export const ProjectDetailsForm = ({ display }) => {
   const {
     startDate,
     setStartDate,
@@ -41,7 +41,7 @@ export const ProjectDetailsForm = () => {
     : '';
 
   return (
-    <VStack w="100%" spacing="1rem">
+    <VStack w="100%" spacing="1rem" display={display}>
       <OrderedInput
         label="Project Name or ID"
         value={projectName}
