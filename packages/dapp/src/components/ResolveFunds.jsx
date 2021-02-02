@@ -97,8 +97,10 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
 
           <VStack spacing="0.5rem" align="stretch" color="red.500">
             <Text fontWeight="700">Client Award</Text>
-            <InputGroup bg="black" color="white" border="none">
+            <InputGroup>
               <Input
+                bg="black"
+                color="white"
                 border="none"
                 type="number"
                 value={clientAwardInput}
@@ -124,11 +126,14 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
           </VStack>
           <VStack spacing="0.5rem" align="stretch" color="red.500">
             <Text fontWeight="700">Provider Award</Text>
-            <InputGroup bg="black" color="white" border="none">
+            <InputGroup>
               <Input
+                bg="black"
+                color="white"
                 border="none"
                 type="number"
                 value={providerAwardInput}
+                pr="3.5rem"
                 onChange={e => {
                   setProviderAwardInput(e.target.value);
                   if (e.target.value) {
@@ -145,19 +150,22 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
                 }}
                 placeholder="Provider Award"
               />
-              <InputRightElement>{symbol}</InputRightElement>
+              <InputRightElement w="3.5rem">{symbol}</InputRightElement>
             </InputGroup>
           </VStack>
           <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
             <Text fontWeight="700">Resolver Award</Text>
-            <InputGroup bg="black" color="white" border="none">
+            <InputGroup>
               <Input
+                bg="black"
+                color="white"
                 border="none"
                 type="number"
                 value={utils.formatUnits(resolverAward, decimals)}
+                pr="3.5rem"
                 isDisabled
               />
-              <InputRightElement>{symbol}</InputRightElement>
+              <InputRightElement w="3.5rem">{symbol}</InputRightElement>
             </InputGroup>
           </VStack>
           <Button

@@ -115,21 +115,18 @@ export const ViewInvoice = ({
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
-  const isResolver = account.toLowerCase() === resolver;
+  const isResolver = account.toLowerCase() === resolver.toLowerCase();
   const { decimals, symbol } = getToken(token);
   const deposited = BigNumber.from(released).add(balance);
-  const due = BigNumber.from(total).sub(deposited);
+  const due = deposited.gte(total)
+    ? BigNumber.from(0)
+    : BigNumber.from(total).sub(deposited);
   const isExpired = terminationTime <= new Date().getTime() / 1000;
 
-  const amount =
-    currentMilestone < amounts.length
-      ? BigNumber.from(amounts[currentMilestone])
-      : BigNumber.from(0);
-  const isReleasable =
-    !isLocked &&
-    currentMilestone < amounts.length &&
-    amount.lte(balance) &&
-    balance.gt(0);
+  const amount = BigNumber.from(
+    currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
+  );
+  const isReleasable = !isLocked && balance.gte(amount);
   const isLockable = !isExpired && !isLocked && balance.gt(0);
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
@@ -569,7 +566,7 @@ export const ViewInvoice = ({
               </VStack>
             )}
           </Flex>
-          {!dispute && !resolution && isResolver && (
+          {dispute && !resolution && isResolver && (
             <SimpleGrid
               columns={isLocked || due.eq(0) ? 1 : 2}
               spacing="1rem"
@@ -745,6 +742,7 @@ export const ViewInvoice = ({
                 <DepositFunds
                   invoice={invoice}
                   deposited={deposited}
+                  due={due}
                   close={() => setModal(false)}
                 />
               )}

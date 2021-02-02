@@ -40,13 +40,13 @@ export const useInvoiceStatus = invoice => {
             if (balance.gte(amount)) {
               setFunded(!isLocked);
               setLabel('Funded');
+            } else if (terminationTime <= new Date().getTime() / 1000) {
+              setLabel('Expired');
             } else {
               setLabel('Awaiting Deposit');
             }
             if (isLocked) {
               setLabel('In Dispute');
-            } else if (terminationTime <= new Date().getTime() / 1000) {
-              setLabel('Expired');
             }
           }
 
