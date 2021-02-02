@@ -18,6 +18,7 @@ export const OrderedInput = ({
   infoText,
   tooltip,
   placeholder,
+  isInvalid = false,
   isDisabled = false,
   type = 'text',
   ...props
@@ -44,6 +45,7 @@ export const OrderedInput = ({
         color="white"
         border="none"
         isDisabled={isDisabled}
+        isInvalid={isInvalid}
       />
     </VStack>
   );
@@ -94,6 +96,7 @@ export const OrderedTextarea = ({
   infoText,
   tooltip,
   placeholder,
+  maxLength,
   isDisabled = false,
   type = 'text',
 }) => {
@@ -121,6 +124,7 @@ export const OrderedTextarea = ({
         isDisabled={isDisabled}
         h="4rem"
         resize="none"
+        maxLength={maxLength}
       />
     </VStack>
   );

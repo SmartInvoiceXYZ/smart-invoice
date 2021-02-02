@@ -2,7 +2,8 @@ import { SimpleGrid, VStack } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
-import { OrderedInput } from '../shared/OrderedInput';
+import { OrderedInput, OrderedTextarea } from '../shared/OrderedInput';
+import { URL_REGEX } from '../utils/constants';
 
 const formatDate = date => {
   const d = new Date(date);
@@ -48,16 +49,18 @@ export const ProjectDetailsForm = ({ display }) => {
         setValue={setProjectName}
       />
       <OrderedInput
+        label="Link to Project Agreement"
+        value={projectAgreement}
+        setValue={setProjectAgreement}
+        isInvalid={!URL_REGEX.test(projectAgreement)}
+        tooltip="This agreement will be referenced in the case of a dispute"
+      />
+      <OrderedTextarea
         label="Project Description"
         value={projectDescription}
         setValue={setProjectDescription}
         infoText="140 character limit • optional"
-      />
-      <OrderedInput
-        label="Link to Project Agreement"
-        value={projectAgreement}
-        setValue={setProjectAgreement}
-        tooltip="This agreement will be referenced in the case of a dispute"
+        maxLength="140"
       />
       <SimpleGrid w="100%" spacing="1rem" columns={{ base: 1, sm: 2, md: 3 }}>
         <OrderedInput
@@ -84,7 +87,8 @@ export const ProjectDetailsForm = ({ display }) => {
           type="date"
           value={safetyValveDateString}
           setValue={v => setSafetyValveDate(Date.parse(v))}
-          tooltip="The date after which funds can be withdrawn"
+          tooltip="The date after which funds can be withdrawn by the client"
+          isInvalid={safetyValveDate < new Date().getTime()}
         />
       </SimpleGrid>
     </VStack>
