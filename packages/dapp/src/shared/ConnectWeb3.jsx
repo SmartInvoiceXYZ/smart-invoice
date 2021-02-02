@@ -49,7 +49,7 @@ export const ConnectWeb3 = () => {
         ) : (
           <>
             <Text fontSize="xl" fontWeight="bold" mb={4}>
-              {account ? `Switch to a supported network` : 'Connect Wallet'}
+              {account ? `Network not supported` : 'Connect Wallet'}
             </Text>
             <Text color="greyText" mb={4} textAlign="center">
               {account
