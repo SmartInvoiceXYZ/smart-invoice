@@ -1,4 +1,4 @@
-import { Checkbox, Link, SimpleGrid, VStack } from '@chakra-ui/react';
+import { Checkbox, Link, SimpleGrid, VStack, Text } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useState } from 'react';
 
@@ -29,31 +29,57 @@ export const PaymentDetailsForm = ({ display }) => {
   const { decimals, symbol } = tokenData;
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
+
+  const [clientInvalid, setClientInvalid] = useState(false);
+  const [providerInvalid, setProviderInvalid] = useState(false);
+  const [resolverInvalid, setResolverInvalid] = useState(false);
+  const [paymentInvalid, setPaymentInvalid] = useState(false);
+  const [milestonesInvalid, setMilestonesInvalid] = useState(false);
+
   return (
     <VStack w="100%" spacing="1rem" display={display}>
       <OrderedInput
         label="Client Address"
         value={clientAddress}
-        setValue={setClientAddress}
+        isInvalid={clientInvalid}
+        setValue={v => {
+          setClientAddress(v);
+          setClientInvalid(!utils.isAddress(v));
+        }}
+        error={clientInvalid ? 'Invalid Address' : ''}
         tooltip="This will be the address used to access the invoice"
       />
       <OrderedInput
-        label="Provider Address"
+        label="Service Provider Address"
         value={paymentAddress}
-        setValue={setPaymentAddress}
+        isInvalid={providerInvalid}
+        setValue={v => {
+          setPaymentAddress(v);
+          setProviderInvalid(!utils.isAddress(v));
+        }}
+        error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="Recipient of the funds"
       />
-      <SimpleGrid w="100%" columns={{ base: 2, sm: 3 }} spacing="1rem">
+      <SimpleGrid
+        w="100%"
+        columns={{ base: 2, sm: 3 }}
+        spacing="1rem"
+        mb={paymentInvalid ? '-0.5rem' : ''}
+      >
         <OrderedInput
           label="Total Payment Due"
           type="number"
           value={paymentDueInput}
+          isInvalid={paymentInvalid}
           setValue={v => {
             setPaymentDueInput(v);
             if (v && !isNaN(Number(v))) {
-              setPaymentDue(utils.parseUnits(v, decimals));
+              const p = utils.parseUnits(v, decimals);
+              setPaymentDue(p);
+              setPaymentInvalid(p.lte(0));
             } else {
               setPaymentDue(BigNumber.from(0));
+              setPaymentInvalid(true);
             }
           }}
         />
@@ -73,9 +99,10 @@ export const PaymentDetailsForm = ({ display }) => {
           label="Number of Payments"
           type="number"
           value={milestones}
+          isInvalid={milestonesInvalid}
           setValue={v => {
             const numMilestones = v ? Number(v) : 1;
-            setMilestones(numMilestones);
+            setMilestones(v);
             setPayments(
               Array(numMilestones)
                 .fill(1)
@@ -83,10 +110,22 @@ export const PaymentDetailsForm = ({ display }) => {
                   return BigNumber.from(0);
                 }),
             );
+            setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
           tooltip="Number of milestones in which the total payment will be processed"
         />
       </SimpleGrid>
+      {(paymentInvalid || milestonesInvalid) && (
+        <Text
+          w="100%"
+          color="purple"
+          textAlign="right"
+          fontSize="xs"
+          fontWeight="700"
+        >
+          {'Payment must be greater than 0'}
+        </Text>
+      )}
       <SimpleGrid w="100%" columns={2} spacing="1rem">
         <OrderedSelect
           tooltip="Arbitration provider that will be used in case of a dispute"
@@ -98,6 +137,7 @@ export const PaymentDetailsForm = ({ display }) => {
               setTermsAccepted(false);
             } else {
               setArbitrationProvider('');
+              setResolverInvalid(false);
               setTermsAccepted(true);
             }
           }}
@@ -124,7 +164,12 @@ export const PaymentDetailsForm = ({ display }) => {
           tooltip="This will be the address used to resolve any disputes on the invoice"
           label="Arbitration Provider Address"
           value={arbitrationProvider}
-          setValue={setArbitrationProvider}
+          setValue={v => {
+            setArbitrationProvider(v);
+            setResolverInvalid(!utils.isAddress(v));
+          }}
+          isInvalid={resolverInvalid}
+          error={resolverInvalid ? 'Invalid Address' : ''}
         />
       ) : (
         <Checkbox

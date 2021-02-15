@@ -21,6 +21,7 @@ export const OrderedInput = ({
   isInvalid = false,
   isDisabled = false,
   type = 'text',
+  error = '',
   ...props
 }) => {
   return (
@@ -36,17 +37,32 @@ export const OrderedInput = ({
           )}
         </Flex>
       </Flex>
-      <Input
-        bg="black"
-        type={type}
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder={placeholder}
-        color="white"
-        border="none"
-        isDisabled={isDisabled}
-        isInvalid={isInvalid}
-      />
+      <Flex direction="column" w="100%">
+        <Input
+          bg="black"
+          type={type}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          placeholder={placeholder}
+          color="white"
+          border="none"
+          isDisabled={isDisabled}
+          isInvalid={isInvalid}
+          _invalid={{ border: '1px solid', borderColor: 'purple' }}
+        />
+        {error && (
+          <Text
+            w="100%"
+            color="purple"
+            textAlign="right"
+            fontSize="xs"
+            fontWeight="700"
+            mt="0.5rem"
+          >
+            {error}
+          </Text>
+        )}
+      </Flex>
     </VStack>
   );
 };

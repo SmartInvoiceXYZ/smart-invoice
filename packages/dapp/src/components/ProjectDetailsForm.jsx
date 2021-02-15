@@ -1,5 +1,5 @@
-import { SimpleGrid, VStack } from '@chakra-ui/react';
-import React, { useContext } from 'react';
+import { SimpleGrid, VStack, Text } from '@chakra-ui/react';
+import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { OrderedInput, OrderedTextarea } from '../shared/OrderedInput';
@@ -41,18 +41,31 @@ export const ProjectDetailsForm = ({ display }) => {
     ? formatDate(safetyValveDate)
     : '';
 
+  const [nameInvalid, setNameInvalid] = useState(false);
+  const [linkInvalid, setLinkInvalid] = useState(false);
+  const [dateInvalid, setDateInvalid] = useState(false);
+
   return (
     <VStack w="100%" spacing="1rem" display={display}>
       <OrderedInput
         label="Project Name or ID"
         value={projectName}
-        setValue={setProjectName}
+        setValue={v => {
+          setProjectName(v);
+          setNameInvalid(v === '');
+        }}
+        isInvalid={nameInvalid}
+        error={nameInvalid ? 'Cannot be empty' : ''}
       />
       <OrderedInput
         label="Link to Project Agreement"
         value={projectAgreement}
-        setValue={setProjectAgreement}
-        isInvalid={!URL_REGEX.test(projectAgreement)}
+        setValue={v => {
+          setProjectAgreement(v);
+          setLinkInvalid(v ? !URL_REGEX.test(v) : true);
+        }}
+        isInvalid={linkInvalid}
+        error={linkInvalid ? 'Invalid URL' : ''}
         tooltip="This agreement will be referenced in the case of a dispute"
       />
       <OrderedTextarea
@@ -62,7 +75,12 @@ export const ProjectDetailsForm = ({ display }) => {
         infoText="140 character limit • optional"
         maxLength="140"
       />
-      <SimpleGrid w="100%" spacing="1rem" columns={{ base: 1, sm: 2, md: 3 }}>
+      <SimpleGrid
+        w="100%"
+        spacing="1rem"
+        columns={{ base: 1, sm: 2, md: 3 }}
+        mb={dateInvalid ? '-0.5rem' : ''}
+      >
         <OrderedInput
           label="Project Start Date"
           type="date"
@@ -86,11 +104,26 @@ export const ProjectDetailsForm = ({ display }) => {
           label="Safety Valve Date"
           type="date"
           value={safetyValveDateString}
-          setValue={v => setSafetyValveDate(Date.parse(v))}
+          setValue={v => {
+            const date = Date.parse(v);
+            setSafetyValveDate(date);
+            setDateInvalid(date < new Date().getTime());
+          }}
           tooltip="The date after which funds can be withdrawn by the client"
-          isInvalid={safetyValveDate < new Date().getTime()}
+          isInvalid={dateInvalid}
         />
       </SimpleGrid>
+      {dateInvalid && (
+        <Text
+          w="100%"
+          color="purple"
+          textAlign="right"
+          fontSize="xs"
+          fontWeight="700"
+        >
+          {dateInvalid ? 'Invalid Safety Valve Date' : ''}
+        </Text>
+      )}
     </VStack>
   );
 };

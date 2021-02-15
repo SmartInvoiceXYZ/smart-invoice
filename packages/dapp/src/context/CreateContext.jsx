@@ -24,11 +24,11 @@ export const CreateContextProvider = ({ children }) => {
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
   const [paymentToken, setPaymentToken] = useState(WRAPPED_NATIVE_TOKEN);
-  const [milestones, setMilestones] = useState('');
+  const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
 
-  const [payments, setPayments] = useState([]);
+  const [payments, setPayments] = useState([BigNumber.from(0)]);
   const [tx, setTx] = useState();
   const [loading, setLoading] = useState(false);
 

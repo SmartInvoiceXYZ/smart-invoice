@@ -37,65 +37,56 @@ const CreateInvoiceInner = () => {
     payments,
     termsAccepted,
     arbitrationProvider,
+    milestones,
   } = useContext(CreateContext);
   const [currentStep, setStep] = useState(1);
   const [isEnabled, setEnabled] = useState(false);
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
+  const step1Valid =
+    projectName &&
+    projectAgreement &&
+    URL_REGEX.test(projectAgreement) &&
+    safetyValveDate &&
+    safetyValveDate > new Date().getTime();
+
+  const step2Valid =
+    isAddress(clientAddress) &&
+    isAddress(paymentAddress) &&
+    isAddress(paymentToken) &&
+    isAddress(arbitrationProvider) &&
+    paymentDue.gt(0) &&
+    !isNaN(Number(milestones)) &&
+    milestones > 0 &&
+    termsAccepted &&
+    Array.from(
+      new Set([
+        clientAddress.toLowerCase(),
+        paymentAddress.toLowerCase(),
+        paymentToken.toLowerCase(),
+        arbitrationProvider.toLowerCase(),
+      ]),
+    ).length === 4;
+
+  const step3Valid = payments
+    .reduce((t, a) => {
+      return t.add(a);
+    }, BigNumber.from(0))
+    .eq(paymentDue);
+
   useEffect(() => {
-    if (
-      currentStep === 1 &&
-      projectName &&
-      URL_REGEX.test(projectAgreement) &&
-      safetyValveDate &&
-      safetyValveDate > new Date().getTime()
-    ) {
-      setEnabled(true);
-    } else if (
-      currentStep === 2 &&
-      isAddress(clientAddress) &&
-      isAddress(paymentAddress) &&
-      isAddress(paymentToken) &&
-      isAddress(arbitrationProvider) &&
-      paymentDue.gt(0) &&
-      termsAccepted &&
-      Array.from(
-        new Set([
-          clientAddress.toLowerCase(),
-          paymentAddress.toLowerCase(),
-          paymentToken.toLowerCase(),
-          arbitrationProvider.toLowerCase(),
-        ]),
-      ).length === 4
-    ) {
-      setEnabled(true);
-    } else if (
-      currentStep === 3 &&
-      payments
-        .reduce((t, a) => {
-          return t.add(a);
-        }, BigNumber.from(0))
-        .eq(paymentDue)
-    ) {
-      setEnabled(true);
+    if (currentStep === 1) {
+      setEnabled(step1Valid);
+    } else if (currentStep === 2) {
+      setEnabled(step2Valid);
+    } else if (currentStep === 3) {
+      setEnabled(step3Valid);
     } else if (currentStep === 4) {
       setEnabled(true);
     } else {
       setEnabled(false);
     }
-  }, [
-    projectName,
-    projectAgreement,
-    safetyValveDate,
-    clientAddress,
-    paymentAddress,
-    paymentToken,
-    paymentDue,
-    payments,
-    termsAccepted,
-    currentStep,
-    arbitrationProvider,
-  ]);
+  }, [step1Valid, step2Valid, step3Valid, currentStep]);
 
   const stepHandler = () => {
     if (isEnabled) {

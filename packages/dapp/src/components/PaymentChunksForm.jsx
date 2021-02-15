@@ -40,7 +40,7 @@ export const PaymentChunksForm = ({ display }) => {
                 pr="3.5rem"
                 onChange={e => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;
-                  const amount = utils.parseEther(e.target.value);
+                  const amount = utils.parseUnits(e.target.value, decimals);
                   const newPayments = payments.slice();
                   newPayments[index] = amount;
                   setPayments(newPayments);
