@@ -169,10 +169,10 @@ export const ViewInvoice = ({
   };
 
   let gridColumns;
-  if (isLockable && isReleasable) {
-    gridColumns = { base: 2, sm: due.gt(0) ? 3 : 2 };
-  } else if (isLockable || isReleasable) {
-    gridColumns = due.gt(0) ? 2 : 1;
+  if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
+    gridColumns = { base: 2, sm: 3 };
+  } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
+    gridColumns = 2;
   } else {
     gridColumns = 1;
   }
@@ -567,12 +567,8 @@ export const ViewInvoice = ({
             )}
           </Flex>
           {dispute && !resolution && isResolver && (
-            <SimpleGrid
-              columns={isLocked || due.eq(0) ? 1 : 2}
-              spacing="1rem"
-              w="100%"
-            >
-              {!isLocked && due.gt(0) && (
+            <SimpleGrid columns={isLocked || 2} spacing="1rem" w="100%">
+              {!isLocked && (
                 <Button
                   size={buttonSize}
                   variant="outline"
@@ -612,83 +608,52 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
-              {isExpired ? (
-                <>
-                  {isReleasable && (
-                    <Button
-                      size={buttonSize}
-                      variant="outline"
-                      colorScheme="red"
-                      fontWeight="normal"
-                      fontFamily="mono"
-                      textTransform="uppercase"
-                      onClick={() => onRelease()}
-                    >
-                      Release
-                    </Button>
-                  )}
-                  {balance.gt(0) && (
-                    <Button
-                      size={buttonSize}
-                      gridArea={{
-                        base: Number.isInteger(gridColumns)
-                          ? 'auto/auto/auto/auto'
-                          : '2/1/2/span 2',
-                        sm: 'auto/auto/auto/auto',
-                      }}
-                      colorScheme="red"
-                      fontWeight="normal"
-                      fontFamily="mono"
-                      textTransform="uppercase"
-                      onClick={() => onWithdraw()}
-                    >
-                      Withdraw
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <>
-                  {isReleasable && due.gt(0) && (
-                    <Button
-                      size={buttonSize}
-                      variant="outline"
-                      colorScheme="red"
-                      fontWeight="normal"
-                      fontFamily="mono"
-                      textTransform="uppercase"
-                      onClick={() => onDeposit()}
-                    >
-                      Deposit
-                    </Button>
-                  )}
-                  {(isReleasable || due.gt(0)) && (
-                    <Button
-                      size={buttonSize}
-                      gridArea={{
-                        base: Number.isInteger(gridColumns)
-                          ? 'auto/auto/auto/auto'
-                          : '2/1/2/span 2',
-                        sm: 'auto/auto/auto/auto',
-                      }}
-                      colorScheme="red"
-                      fontWeight="normal"
-                      fontFamily="mono"
-                      textTransform="uppercase"
-                      onClick={() => (isReleasable ? onRelease() : onDeposit())}
-                    >
-                      {isReleasable ? 'Release' : 'Deposit'}
-                    </Button>
-                  )}
-                </>
+              {isExpired && balance.gt(0) && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontFamily="mono"
+                  fontWeight="normal"
+                  textTransform="uppercase"
+                  onClick={() => onWithdraw()}
+                >
+                  Withdraw
+                </Button>
               )}
+              {isReleasable && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onDeposit()}
+                >
+                  Deposit
+                </Button>
+              )}
+              <Button
+                size={buttonSize}
+                gridArea={{
+                  base: Number.isInteger(gridColumns)
+                    ? 'auto/auto/auto/auto'
+                    : '2/1/2/span 2',
+                  sm: 'auto/auto/auto/auto',
+                }}
+                colorScheme="red"
+                fontWeight="normal"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => (isReleasable ? onRelease() : onDeposit())}
+              >
+                {isReleasable ? 'Release' : 'Deposit'}
+              </Button>
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
-            <SimpleGrid
-              columns={isLockable && due.gt(0) ? 2 : 1}
-              spacing="1rem"
-              w="100%"
-            >
+            <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
               {isLockable && (
                 <Button
                   size={buttonSize}
@@ -702,18 +667,16 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
-              {due.gt(0) && (
-                <Button
-                  size={buttonSize}
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Deposit
-                </Button>
-              )}
+              <Button
+                size={buttonSize}
+                colorScheme="red"
+                fontWeight="normal"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => onDeposit()}
+              >
+                Deposit
+              </Button>
             </SimpleGrid>
           )}
         </VStack>
