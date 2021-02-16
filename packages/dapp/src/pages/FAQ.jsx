@@ -27,7 +27,7 @@ export const FAQ = () => {
         </Link>
       </Text>
       {TOKENS.map(token => (
-        <Text textAlign="center">
+        <Text textAlign="center" key={token}>
           {`ERC20 TOKEN ${getToken(token).symbol}: `}
           <Link href={getAddressLink(token)} isExternal color="red.500">
             {isSmallScreen ? getAccountString(token) : token}

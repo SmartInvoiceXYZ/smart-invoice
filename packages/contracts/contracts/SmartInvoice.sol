@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./IArbitrable.sol";
 import "./IArbitrator.sol";
 
-interface IWETH {
+interface IWRAPPED {
   // brief interface for canonical ether token wrapper contract
   function deposit() external payable;
 }
@@ -34,11 +34,13 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     [0, 1] // 5 = 0% to client
   ];
 
-  /** kovan WETH_TOKEN **/
-  // address public WETH_TOKEN = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
-  /** rinkeby WETH_TOKEN **/
-  address public constant WETH_TOKEN =
-    0xc778417E063141139Fce010982780140Aa0cD5Ab;
+  /** kovan WETH **/
+  // address public WRAPPED_TOKEN = 0xd0A1E359811322d97991E03f863a0C30C2cF029C;
+  /** rinkeby WETH **/
+  // address public constant WRAPPED_TOKEN =
+  //   0xc778417E063141139Fce010982780140Aa0cD5Ab;
+  /** xdai WXDAI **/
+  address public constant WRAPPED_TOKEN = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
   uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
@@ -132,7 +134,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       IERC20(token).safeTransfer(provider, amount);
       released = released.add(amount);
       emit Release(currentMilestone, amount);
-    } else if (balance > 0) {
+    } else {
+      require(balance > 0, 'balance is 0');
       IERC20(token).safeTransfer(provider, balance);
       released = released.add(balance);
       emit Release(currentMilestone, balance);
@@ -287,8 +290,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   // receive eth transfers
   receive() external payable {
     require(!locked, "locked");
-    require(token == WETH_TOKEN, "!wETH");
-    IWETH(WETH_TOKEN).deposit{value: msg.value}();
+    require(token == WRAPPED_TOKEN, "!WRAPPED_TOKEN");
+    IWRAPPED(WRAPPED_TOKEN).deposit{value: msg.value}();
     emit Deposit(_msgSender(), msg.value);
   }
 }

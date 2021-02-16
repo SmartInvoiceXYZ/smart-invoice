@@ -4,6 +4,10 @@
     "factory": "0x53f9963033706C37b9C265d388E998B6D8c72cF7"
   },
   {
+    "network": "xdai",
+    "factory": "0x0d006D9e862B362180eb602e5973Fd1fdb6f78dd"
+  },
+  {
     "network": "kovan",
     "factory": ""
   }

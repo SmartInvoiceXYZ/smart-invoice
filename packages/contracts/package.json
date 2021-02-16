@@ -7,7 +7,8 @@
     "clean": "rm -rf ./cache",
     "lint": "solhint contracts/*.sol",
     "deploy-kovan": "buidler run scripts/deploy-factory.js --network kovan",
-    "deploy-rinkeby": "buidler run scripts/deploy-factory.js --network rinkeby"
+    "deploy-rinkeby": "buidler run scripts/deploy-factory.js --network rinkeby",
+    "deploy-xdai": "buidler run scripts/deploy-factory.js --network xdai"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.7",

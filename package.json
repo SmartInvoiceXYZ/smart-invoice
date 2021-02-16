@@ -22,7 +22,7 @@
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
     "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
     "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
-    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md,sol}\""
+    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\""
   },
   "workspaces": {
     "nohoist": [
@@ -66,6 +66,6 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,yml,yaml,md,sol}": "prettier --write"
+    "*.{ts,tsx,js,jsx,json,md,sol}": "prettier --write"
   }
 }

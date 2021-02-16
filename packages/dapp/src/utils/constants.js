@@ -20,7 +20,7 @@ const rpcUrls = {
   1: `https://mainnet.infura.io/v3/${INFURA_ID}`,
   4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
   42: `https://kovan.infura.io/v3/${INFURA_ID}`,
-  100: 'https://xdai.poanetwork.dev',
+  100: 'https://rpc.xdaichain.com',
 };
 
 const explorerUrls = {

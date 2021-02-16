@@ -1,6 +1,8 @@
 import LexDAOLogo from './assets/lex-dao.png';
 
-export const CONFIG = {
+const NETWORK = process.env.REACT_APP_NETWORK || 'rinkeby';
+
+const RINKEBY_CONFIG = {
   INFURA_ID: process.env.REACT_APP_INFURA_ID,
   NETWORK: 4,
   IPFS_ENDPOINT: 'https://ipfs.infura.io',
@@ -31,3 +33,34 @@ export const CONFIG = {
     },
   },
 };
+
+const XDAI_CONFIG = {
+  INFURA_ID: process.env.REACT_APP_INFURA_ID,
+  NETWORK: 100,
+  IPFS_ENDPOINT: 'https://ipfs.infura.io',
+  BOX_ENDPOINT: 'https://ipfs.3box.io',
+  SUBGRAPH: 'dan13ram/xdai-smart-invoices',
+  WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
+  INVOICE_FACTORY: '0x0d006D9e862B362180eb602e5973Fd1fdb6f78dd'.toLowerCase(),
+  RESOLVERS: {
+    ['0x034CfED494EdCff96f0D7160dC2B55Cae5Ee69E1'.toLowerCase()]: {
+      name: 'LexDAO',
+      logoUrl: LexDAOLogo,
+      termsUrl:
+        'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+    },
+  },
+  TOKENS: {
+    ['0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase()]: {
+      decimals: 18,
+      symbol: 'WXDAI',
+    },
+  },
+};
+
+const CONFIGS = {
+  rinkeby: RINKEBY_CONFIG,
+  xdai: XDAI_CONFIG,
+};
+
+export const CONFIG = CONFIGS[NETWORK];

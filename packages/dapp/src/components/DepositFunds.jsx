@@ -12,6 +12,9 @@ import {
   Tooltip,
   useBreakpointValue,
   VStack,
+  Alert,
+  AlertIcon,
+  AlertTitle,
 } from '@chakra-ui/react';
 import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
@@ -20,11 +23,12 @@ import { Web3Context } from '../context/Web3Context';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { NATIVE_TOKEN_SYMBOL, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
 import { getToken, getTxLink, logError } from '../utils/helpers';
+import { balanceOf } from '../utils/erc20';
 
-export const DepositFunds = ({ invoice, deposited }) => {
+export const DepositFunds = ({ invoice, deposited, due }) => {
   const { address, token, amounts, currentMilestone } = invoice;
   const [paymentType, setPaymentType] = useState(0);
-  const { provider } = useContext(Web3Context);
+  const { provider, account } = useContext(Web3Context);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
   const tokenData = getToken(token);
@@ -62,6 +66,20 @@ export const DepositFunds = ({ invoice, deposited }) => {
       setAmount(utils.parseUnits(amountInput, decimals));
     }
   }, [amountInput, decimals]);
+
+  const [balance, setBalance] = useState();
+
+  useEffect(() => {
+    try {
+      if (paymentType === 0) {
+        balanceOf(provider, token, account).then(setBalance);
+      } else {
+        provider.getBalance(account).then(setBalance);
+      }
+    } catch (balanceError) {
+      logError({ balanceError });
+    }
+  }, [paymentType, token, provider, account]);
 
   let sum = BigNumber.from(0);
   return (
@@ -164,7 +182,39 @@ export const DepositFunds = ({ invoice, deposited }) => {
             )}
           </InputRightElement>
         </InputGroup>
+        {amount.gt(due) && (
+          <Alert bg="none">
+            <AlertIcon color="red.500"/>
+            <AlertTitle fontSize="sm">
+              Your deposit is greater than the due amount!
+            </AlertTitle>
+          </Alert>
+        )}
       </VStack>
+      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+        {deposited && (
+          <VStack align="flex-start">
+            <Text fontWeight="bold">{`Total Deposited`}</Text>
+            <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
+          </VStack>
+        )}
+        {due && (
+          <VStack>
+            <Text fontWeight="bold">{`Total Due`}</Text>
+            <Text>{`${utils.formatUnits(due, decimals)} ${symbol}`}</Text>
+          </VStack>
+        )}
+        {balance && (
+          <VStack align="flex-end">
+            <Text fontWeight="bold">{`Your Balance`}</Text>
+            <Text>
+              {`${utils.formatUnits(balance, decimals)} ${
+                paymentType === 0 ? symbol : NATIVE_TOKEN_SYMBOL
+              }`}
+            </Text>
+          </VStack>
+        )}
+      </Flex>
       <Button
         onClick={deposit}
         isLoading={loading}

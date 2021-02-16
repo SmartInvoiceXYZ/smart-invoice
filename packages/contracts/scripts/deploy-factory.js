@@ -18,6 +18,15 @@ async function main() {
   const SmartInvoice = await ethers.getContractFactory("SmartInvoiceFactory");
   const smartInvoiceFactory = await SmartInvoice.deploy();
 
+  console.log(
+    "SmartInvoiceFactory deploying to chainId:",
+    smartInvoiceFactory.deployTransaction.chainId,
+  );
+  console.log(
+    "SmartInvoiceFactory deploying with tx:",
+    smartInvoiceFactory.deployTransaction.hash,
+  );
+
   await smartInvoiceFactory.deployed();
 
   console.log("SmartInvoiceFactory deployed to:", smartInvoiceFactory.address);

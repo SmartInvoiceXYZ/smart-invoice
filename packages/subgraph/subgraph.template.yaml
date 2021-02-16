@@ -60,13 +60,15 @@ dataSources:
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
       file: ./src/mappings.ts
+  # prettier-ignore
+  {{#tokens}}
   - kind: ethereum/contract
-    name: Token1
+    name: {{tokenName}}
     # prettier-ignore
     network: {{network}}
     source:
       # prettier-ignore
-      address: '{{token1}}'
+      address: '{{tokenAddress}}'
       abi: ERC20
       # prettier-ignore
       startBlock: {{startBlock}}
@@ -85,53 +87,5 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
       file: ./src/mappings.ts
-  - kind: ethereum/contract
-    name: Token2
-    # prettier-ignore
-    network: {{network}}
-    source:
-      # prettier-ignore
-      address: '{{token2}}'
-      abi: ERC20
-      # prettier-ignore
-      startBlock: {{startBlock}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Deposit
-      abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: SmartInvoice
-          file: ./abis/SmartInvoice.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings.ts
-  - kind: ethereum/contract
-    name: Token3
-    # prettier-ignore
-    network: {{network}}
-    source:
-      # prettier-ignore
-      address: '{{token3}}'
-      abi: ERC20
-      # prettier-ignore
-      startBlock: {{startBlock}}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Deposit
-      abis:
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: SmartInvoice
-          file: ./abis/SmartInvoice.json
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings.ts
+  # prettier-ignore
+  {{/tokens}}

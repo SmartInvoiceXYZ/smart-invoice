@@ -14,6 +14,11 @@ module.exports = {
     artifacts: "./build",
   },
   networks: {
+    xdai: {
+      url: `https://rpc.xdaichain.com`,
+      accounts: [`0x${PRIVATE_KEY}`],
+      gasPrice: 1000000000,
+    },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],

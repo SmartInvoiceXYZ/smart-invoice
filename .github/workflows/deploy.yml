@@ -29,6 +29,7 @@ jobs:
         run: yarn dapp:build
         env:
           REACT_APP_INFURA_ID: ${{ secrets.INFURA_ID }}
+          REACT_APP_NETWORK: rinkeby
           REACT_APP_DEBUG_LOGS: 'true'
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master

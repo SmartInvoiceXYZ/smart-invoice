@@ -1,0 +1,11 @@
+{
+  "network": "xdai",
+  "startBlock": "14576081",
+  "address": "0x0d006D9e862B362180eb602e5973Fd1fdb6f78dd",
+  "tokens": [
+    {
+      "tokenAddress": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+      "tokenName": "WXDAI"
+    }
+  ]
+}
