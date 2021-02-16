@@ -1,7 +1,7 @@
 import gql from 'fake-tag';
 
 import { isAddress } from '../utils/helpers';
-import { client } from './client';
+import { clients } from './client';
 import { InvoiceDetails } from './fragments';
 
 const searchQuery = gql`
@@ -44,15 +44,23 @@ const addressSearchQuery = gql`
     ) {
       ...InvoiceDetails
     }
+    resolverInvoices: invoices(
+      first: $first
+      where: { resolver_contains: $search, projectName_not: "" }
+      orderBy: createdAt
+      orderDirection: desc
+    ) {
+      ...InvoiceDetails
+    }
   }
   ${InvoiceDetails}
 `;
 
-export const search = async (searchInput, first = 10) => {
+export const search = async (chainId, searchInput, first = 10) => {
   const isAddressSearch = isAddress(searchInput);
 
   const query = isAddressSearch ? addressSearchQuery : searchQuery;
-  const { data, error } = await client
+  const { data, error } = await clients[chainId]
     .query(query, {
       first,
       search: isAddressSearch || searchInput,
@@ -72,6 +80,7 @@ export const search = async (searchInput, first = 10) => {
         ...data.addressInvoices,
         ...data.clientInvoices,
         ...data.providerInvoices,
+        ...data.resolverInvoices,
       ]
     : data.invoices;
 };

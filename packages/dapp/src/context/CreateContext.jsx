@@ -1,8 +1,11 @@
 import { BigNumber } from 'ethers';
 import React, { createContext, useContext, useState } from 'react';
 
-import { RESOLVERS, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
-import { logError } from '../utils/helpers';
+import {
+  getResolvers,
+  getWrappedNativeToken,
+  logError,
+} from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 import { Web3Context } from './Web3Context';
@@ -10,7 +13,9 @@ import { Web3Context } from './Web3Context';
 export const CreateContext = createContext();
 
 export const CreateContextProvider = ({ children }) => {
-  const { provider } = useContext(Web3Context);
+  const { provider, chainId } = useContext(Web3Context);
+  const RESOLVERS = getResolvers(chainId);
+  const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
 
   // project details value
   const [projectName, setProjectName] = useState('');
@@ -59,6 +64,7 @@ export const CreateContextProvider = ({ children }) => {
     });
 
     const transaction = await register(
+      chainId,
       provider,
       clientAddress,
       paymentAddress,

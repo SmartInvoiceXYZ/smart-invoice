@@ -10,15 +10,15 @@ import { utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { getToken, getTxLink, logError } from '../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
 
 export const WithdrawFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
-  const { provider } = useContext(Web3Context);
+  const { chainId, provider } = useContext(Web3Context);
   const { address, token } = invoice;
 
-  const { decimals, symbol } = getToken(token);
+  const { decimals, symbol } = getTokenInfo(chainId, token);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -70,7 +70,7 @@ export const WithdrawFunds = ({ invoice, balance, close }) => {
         <Text color="white" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(transaction.hash)}
+            href={getTxLink(chainId, transaction.hash)}
             isExternal
             color="red.500"
             textDecoration="underline"

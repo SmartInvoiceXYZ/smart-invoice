@@ -14,10 +14,10 @@ import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { RESOLVER_INFO } from '../utils/constants';
 import {
+  getResolverInfo,
   getResolverString,
-  getToken,
+  getTokenInfo,
   getTxLink,
   isKnownResolver,
   logError,
@@ -27,9 +27,9 @@ import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
 export const LockFunds = ({ invoice, balance }) => {
-  const { provider } = useContext(Web3Context);
+  const { chainId, provider } = useContext(Web3Context);
   const { address, resolver, token } = invoice;
-  const { decimals, symbol } = getToken(token);
+  const { decimals, symbol } = getTokenInfo(chainId, token);
   const [disputeReason, setDisputeReason] = useState('');
   const fee = `${utils.formatUnits(
     BigNumber.from(balance).div(20),
@@ -77,7 +77,7 @@ export const LockFunds = ({ invoice, balance }) => {
           <Text color="white" textAlign="center" fontSize="sm">
             Follow your transaction{' '}
             <Link
-              href={getTxLink(transaction.hash)}
+              href={getTxLink(chainId, transaction.hash)}
               isExternal
               color="red.500"
               textDecoration="underline"
@@ -139,8 +139,9 @@ export const LockFunds = ({ invoice, balance }) => {
         setValue={setDisputeReason}
       />
       <Text color="red.500" textAlign="center">
+        {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}
         <AccountLink address={resolver} />
-        {` charges a ${fee} fee to resolve this dispute. This amount will be deducted from the locked fund amount.`}
+        {` for helping resolve this dispute.`}
       </Text>
       <Button
         onClick={lockFunds}
@@ -154,14 +155,15 @@ export const LockFunds = ({ invoice, balance }) => {
       >
         {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
       </Button>
-      {isKnownResolver(resolver) && (
+      {isKnownResolver(chainId, resolver) && (
         <Link
-          href={RESOLVER_INFO[resolver].termsUrl}
+          href={getResolverInfo(chainId, resolver).termsUrl}
           isExternal
           color="red.500"
           textDecor="underline"
         >
-          Learn about {getResolverString(resolver)} dispute process & terms
+          Learn about {getResolverString(chainId, resolver)} dispute process &
+          terms
         </Link>
       )}
     </VStack>

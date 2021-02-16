@@ -39,7 +39,7 @@ import {
   getAddressLink,
   getDateString,
   getIpfsLink,
-  getToken,
+  getTokenInfo,
   getTxLink,
   logError,
 } from '../utils/helpers';
@@ -49,7 +49,9 @@ export const ViewInvoice = ({
     params: { invoiceId },
   },
 }) => {
-  const { account, provider: ethersProvider } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -58,9 +60,9 @@ export const ViewInvoice = ({
 
   useEffect(() => {
     if (utils.isAddress(invoiceId)) {
-      getInvoice(invoiceId).then(i => setInvoice(i));
+      getInvoice(chainId, invoiceId).then(i => setInvoice(i));
     }
-  }, [invoiceId]);
+  }, [chainId, invoiceId]);
 
   useEffect(() => {
     if (invoice && ethersProvider) {
@@ -116,7 +118,7 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getToken(token);
+  const { decimals, symbol } = getTokenInfo(chainId, token);
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
     ? BigNumber.from(0)
@@ -196,14 +198,17 @@ export const ViewInvoice = ({
           maxW={leftMaxW}
           justify="center"
           align="stretch"
-          direction={{ base: 'column', md: 'row', lg: 'column' }}
+          direction="column"
         >
           <VStack align="stretch" justify="center">
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
             <Flex align="center" color="white">
-              <Link href={getAddressLink(invoiceId.toLowerCase())} isExternal>
+              <Link
+                href={getAddressLink(chainId, invoiceId.toLowerCase())}
+                isExternal
+              >
                 {getAccountString(invoiceId)}
               </Link>
               {document.queryCommandSupported('copy') && (
@@ -359,7 +364,7 @@ export const ViewInvoice = ({
                           isExternal
                           color="grey"
                           fontStyle="italic"
-                          href={getTxLink(releases[index].txHash)}
+                          href={getTxLink(chainId, releases[index].txHash)}
                         >
                           Released{' '}
                           {new Date(
@@ -374,7 +379,7 @@ export const ViewInvoice = ({
                             isExternal
                             color="grey"
                             fontStyle="italic"
-                            href={getTxLink(deposits[ind].txHash)}
+                            href={getTxLink(chainId, deposits[ind].txHash)}
                           >
                             {full ? '' : 'Partially '}Deposited{' '}
                             {new Date(
@@ -392,7 +397,6 @@ export const ViewInvoice = ({
               })}
             </VStack>
             <Divider
-              color="black"
               w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
               ml={{ base: '-1rem', md: '-2rem' }}
               my="1rem"
@@ -432,7 +436,11 @@ export const ViewInvoice = ({
                 )} ${symbol}`}</Text>
               </Flex>
             </VStack>
-            <Divider color="black" w="calc(100% + 4rem)" ml="-2rem" my="1rem" />
+            <Divider
+              w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
+              ml={{ base: '-1rem', md: '-2rem' }}
+              my="1rem"
+            />
             {!dispute && !resolution && (
               <Flex
                 justify="space-between"
@@ -489,7 +497,7 @@ export const ViewInvoice = ({
                     <u>View details on IPFS</u>
                   </Link>
                   <br />
-                  <Link href={getTxLink(dispute.txHash)} isExternal>
+                  <Link href={getTxLink(chainId, dispute.txHash)} isExternal>
                     <u>View transaction</u>
                   </Link>
                 </Text>
@@ -528,7 +536,10 @@ export const ViewInvoice = ({
                         <u>View details on IPFS</u>
                       </Link>
                       <br />
-                      <Link href={getTxLink(resolution.txHash)} isExternal>
+                      <Link
+                        href={getTxLink(chainId, resolution.txHash)}
+                        isExternal
+                      >
                         <u>View transaction</u>
                       </Link>
                     </Text>

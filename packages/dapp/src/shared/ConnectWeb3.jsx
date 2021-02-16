@@ -4,7 +4,8 @@ import React, { useContext } from 'react';
 import { Loader } from '../components/Loader';
 import { Web3Context } from '../context/Web3Context';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
-import { NETWORK_NAME } from '../utils/constants';
+import { SUPPORTED_NETWORKS } from '../utils/constants';
+import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
 export const ConnectWeb3 = () => {
@@ -18,6 +19,8 @@ export const ConnectWeb3 = () => {
       </Container>
     );
   }
+
+  const NETWORK_NAMES = SUPPORTED_NETWORKS.map(getNetworkName).join(' or ');
   return (
     <Container>
       <Flex
@@ -53,7 +56,7 @@ export const ConnectWeb3 = () => {
             </Text>
             <Text color="greyText" mb={4} textAlign="center">
               {account
-                ? `Please switch to ${NETWORK_NAME}`
+                ? `Please switch to ${NETWORK_NAMES}`
                 : 'To get started, connect your wallet'}
             </Text>
           </>

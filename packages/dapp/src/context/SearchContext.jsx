@@ -1,11 +1,13 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { search } from '../graphql/search';
 import { logError } from '../utils/helpers';
+import { Web3Context } from './Web3Context';
 
 export const SearchContext = createContext();
 
 export const SearchContextProvider = ({ children }) => {
+  const { chainId } = useContext(Web3Context);
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState();
@@ -13,7 +15,7 @@ export const SearchContextProvider = ({ children }) => {
   useEffect(() => {
     if (query) {
       setFetching(true);
-      search(query)
+      search(chainId, query)
         .then(res => {
           setResult(res);
           setFetching(false);
@@ -26,7 +28,7 @@ export const SearchContextProvider = ({ children }) => {
     } else {
       setResult(undefined);
     }
-  }, [query]);
+  }, [chainId, query]);
 
   return (
     <SearchContext.Provider

@@ -1,4 +1,7 @@
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
   Button,
   Checkbox,
   Flex,
@@ -12,27 +15,30 @@ import {
   Tooltip,
   useBreakpointValue,
   VStack,
-  Alert,
-  AlertIcon,
-  AlertTitle,
 } from '@chakra-ui/react';
 import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { QuestionIcon } from '../icons/QuestionIcon';
-import { NATIVE_TOKEN_SYMBOL, WRAPPED_NATIVE_TOKEN } from '../utils/constants';
-import { getToken, getTxLink, logError } from '../utils/helpers';
 import { balanceOf } from '../utils/erc20';
+import {
+  getNativeTokenSymbol,
+  getTokenInfo,
+  getTxLink,
+  getWrappedNativeToken,
+  logError,
+} from '../utils/helpers';
 
 export const DepositFunds = ({ invoice, deposited, due }) => {
+  const { chainId, provider, account } = useContext(Web3Context);
+  const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
+  const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
   const { address, token, amounts, currentMilestone } = invoice;
   const [paymentType, setPaymentType] = useState(0);
-  const { provider, account } = useContext(Web3Context);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
-  const tokenData = getToken(token);
-  const { decimals, symbol } = tokenData;
+  const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
@@ -184,7 +190,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
         </InputGroup>
         {amount.gt(due) && (
           <Alert bg="none">
-            <AlertIcon color="red.500"/>
+            <AlertIcon color="red.500" />
             <AlertTitle fontSize="sm">
               Your deposit is greater than the due amount!
             </AlertTitle>
@@ -194,19 +200,19 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
       <Flex color="white" justify="space-between" w="100%" fontSize="sm">
         {deposited && (
           <VStack align="flex-start">
-            <Text fontWeight="bold">{`Total Deposited`}</Text>
+            <Text fontWeight="bold">Total Deposited</Text>
             <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
           </VStack>
         )}
         {due && (
           <VStack>
-            <Text fontWeight="bold">{`Total Due`}</Text>
+            <Text fontWeight="bold">Total Due</Text>
             <Text>{`${utils.formatUnits(due, decimals)} ${symbol}`}</Text>
           </VStack>
         )}
         {balance && (
           <VStack align="flex-end">
-            <Text fontWeight="bold">{`Your Balance`}</Text>
+            <Text fontWeight="bold">Your Balance</Text>
             <Text>
               {`${utils.formatUnits(balance, decimals)} ${
                 paymentType === 0 ? symbol : NATIVE_TOKEN_SYMBOL
@@ -232,7 +238,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
         <Text color="white" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(transaction.hash)}
+            href={getTxLink(chainId, transaction.hash)}
             isExternal
             color="red.500"
             textDecoration="underline"

@@ -1,9 +1,10 @@
 import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 import { utils } from 'ethers';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, Redirect, useHistory } from 'react-router-dom';
 
 import { Loader } from '../components/Loader';
+import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { Container } from '../shared/Container';
 import { getIpfsLink, getTxLink } from '../utils/helpers';
@@ -13,14 +14,15 @@ export const LockedInvoice = ({
     params: { invoiceId },
   },
 }) => {
+  const { chainId } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const history = useHistory();
 
   useEffect(() => {
     if (utils.isAddress(invoiceId)) {
-      getInvoice(invoiceId).then(i => setInvoice(i));
+      getInvoice(chainId, invoiceId).then(i => setInvoice(i));
     }
-  }, [invoiceId]);
+  }, [invoiceId, chainId]);
 
   if (!utils.isAddress(invoiceId) || invoice === null) {
     return <Redirect to="/" />;
@@ -59,7 +61,7 @@ export const LockedInvoice = ({
         <Text color="white" textAlign="center" fontSize="sm" mb="1rem">
           You can view the transaction{' '}
           <Link
-            href={getTxLink(dispute.txHash)}
+            href={getTxLink(chainId, dispute.txHash)}
             isExternal
             color="red.500"
             textDecoration="underline"

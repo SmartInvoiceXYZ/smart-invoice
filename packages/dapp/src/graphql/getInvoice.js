@@ -1,7 +1,7 @@
 import gql from 'fake-tag';
 
 import { isAddress } from '../utils/helpers';
-import { client } from './client';
+import { clients } from './client';
 import { InvoiceDetails } from './fragments';
 
 const invoiceQuery = gql`
@@ -13,10 +13,10 @@ const invoiceQuery = gql`
   ${InvoiceDetails}
 `;
 
-export const getInvoice = async query => {
+export const getInvoice = async (chainId, query) => {
   const address = isAddress(query);
   if (!address) return null;
-  const { data, error } = await client
+  const { data, error } = await clients[chainId]
     .query(invoiceQuery, { address })
     .toPromise();
   if (!data) {

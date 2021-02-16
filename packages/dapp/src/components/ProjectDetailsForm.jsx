@@ -1,4 +1,4 @@
-import { SimpleGrid, VStack, Text } from '@chakra-ui/react';
+import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';

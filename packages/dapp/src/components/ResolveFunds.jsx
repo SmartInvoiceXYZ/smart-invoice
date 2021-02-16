@@ -14,15 +14,14 @@ import React, { useContext, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { getToken, getTxLink, logError } from '../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
 export const ResolveFunds = ({ invoice, balance, close }) => {
   const { address, token, isLocked } = invoice;
-  const { provider } = useContext(Web3Context);
-  const tokenData = getToken(token);
-  const { decimals, symbol } = tokenData;
+  const { chainId, provider } = useContext(Web3Context);
+  const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const resolverAward = balance.gt(0) ? balance.div(20) : BigNumber.from(0);
@@ -185,7 +184,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
             <Text color="white" textAlign="center" fontSize="sm">
               Follow your transaction{' '}
               <Link
-                href={getTxLink(transaction.hash)}
+                href={getTxLink(chainId, transaction.hash)}
                 isExternal
                 color="red.500"
                 textDecoration="underline"

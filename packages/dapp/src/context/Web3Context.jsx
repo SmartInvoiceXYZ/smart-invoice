@@ -5,7 +5,7 @@ import Web3 from 'web3';
 import Web3Modal from 'web3modal';
 
 import { theme } from '../theme';
-import { INFURA_ID, NETWORK } from '../utils/constants';
+import { INFURA_ID, SUPPORTED_NETWORKS } from '../utils/constants';
 import { logError } from '../utils/helpers';
 
 const providerOptions = {
@@ -64,7 +64,7 @@ export const Web3ContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (chainId !== NETWORK) {
+    if (SUPPORTED_NETWORKS.indexOf(chainId) === -1) {
       // TODO show error alert that invalid network is connected
     }
   }, [chainId]);

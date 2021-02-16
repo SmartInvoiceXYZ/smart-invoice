@@ -10,7 +10,7 @@ import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
 
 export const RegisterSuccess = () => {
-  const { provider } = useContext(Web3Context);
+  const { chainId, provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState();
   const history = useHistory();
@@ -40,7 +40,7 @@ export const RegisterSuccess = () => {
           ? 'You can view your transaction '
           : 'You can check the progress of your transaction '}
         <Link
-          href={getTxLink(tx.hash)}
+          href={getTxLink(chainId, tx.hash)}
           isExternal
           color="red.500"
           textDecoration="underline"

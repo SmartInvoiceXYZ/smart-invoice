@@ -1,7 +1,14 @@
 import { createClient } from 'urql';
 
-import { GRAPH_URL } from '../utils/constants';
+import { SUPPORTED_NETWORKS } from '../utils/constants';
+import { getGraphUrl } from '../utils/helpers';
 
-export const client = createClient({
-  url: GRAPH_URL,
-});
+export const clients = SUPPORTED_NETWORKS.reduce(
+  (o, chainId) => ({
+    ...o,
+    [chainId]: createClient({
+      url: getGraphUrl(chainId),
+    }),
+  }),
+  {},
+);

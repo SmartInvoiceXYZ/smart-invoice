@@ -1,13 +1,23 @@
-import { Checkbox, Link, SimpleGrid, VStack, Text } from '@chakra-ui/react';
+import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
+import { Web3Context } from '../context/Web3Context';
 import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
-import { RESOLVER_INFO, RESOLVERS, TOKENS } from '../utils/constants';
-import { getResolverString, getToken, isKnownResolver } from '../utils/helpers';
+import {
+  getResolverInfo,
+  getResolvers,
+  getResolverString,
+  getTokenInfo,
+  getTokens,
+  isKnownResolver,
+} from '../utils/helpers';
 
 export const PaymentDetailsForm = ({ display }) => {
+  const { chainId } = useContext(Web3Context);
+  const RESOLVERS = getResolvers(chainId);
+  const TOKENS = getTokens(chainId);
   const {
     clientAddress,
     setClientAddress,
@@ -25,8 +35,7 @@ export const PaymentDetailsForm = ({ display }) => {
     termsAccepted,
     setTermsAccepted,
   } = useContext(CreateContext);
-  const tokenData = getToken(paymentToken);
-  const { decimals, symbol } = tokenData;
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
@@ -90,7 +99,7 @@ export const PaymentDetailsForm = ({ display }) => {
         >
           {TOKENS.map(token => (
             <option value={token} key={token}>
-              {getToken(token).symbol}
+              {getTokenInfo(chainId, token).symbol}
             </option>
           ))}
         </OrderedSelect>
@@ -123,7 +132,7 @@ export const PaymentDetailsForm = ({ display }) => {
           fontSize="xs"
           fontWeight="700"
         >
-          {'Payment must be greater than 0'}
+          Payment must be greater than 0
         </Text>
       )}
       <SimpleGrid w="100%" columns={2} spacing="1rem">
@@ -132,7 +141,7 @@ export const PaymentDetailsForm = ({ display }) => {
           value={arbitrationProviderType}
           setValue={v => {
             setArbitrationProviderType(v);
-            if (isKnownResolver(v)) {
+            if (isKnownResolver(chainId, v)) {
               setArbitrationProvider(v);
               setTermsAccepted(false);
             } else {
@@ -145,7 +154,7 @@ export const PaymentDetailsForm = ({ display }) => {
         >
           {RESOLVERS.map(res => (
             <option key={res} value={res}>
-              {RESOLVER_INFO[res].name}
+              {getResolverInfo(chainId, res).name}
             </option>
           ))}
           <option value="custom">Custom</option>
@@ -159,7 +168,7 @@ export const PaymentDetailsForm = ({ display }) => {
           isDisabled
         />
       </SimpleGrid>
-      {!isKnownResolver(arbitrationProvider) ? (
+      {!isKnownResolver(chainId, arbitrationProvider) ? (
         <OrderedInput
           tooltip="This will be the address used to resolve any disputes on the invoice"
           label="Arbitration Provider Address"
@@ -181,9 +190,9 @@ export const PaymentDetailsForm = ({ display }) => {
           fontSize="1rem"
           color="white"
         >
-          {`I agree to ${getResolverString(arbitrationProvider)} `}
+          {`I agree to ${getResolverString(chainId, arbitrationProvider)} `}
           <Link
-            href={RESOLVER_INFO[arbitrationProvider].termsUrl}
+            href={getResolverInfo(chainId, arbitrationProvider).termsUrl}
             isExternal
             textDecor="underline"
           >

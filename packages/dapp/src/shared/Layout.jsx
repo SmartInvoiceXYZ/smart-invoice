@@ -3,14 +3,14 @@ import React, { useContext } from 'react';
 
 import BackgroundImage from '../assets/raid__cloud__castle.png';
 import { Web3Context } from '../context/Web3Context';
-import { NETWORK } from '../utils/constants';
+import { SUPPORTED_NETWORKS } from '../utils/constants';
 import { ConnectWeb3 } from './ConnectWeb3';
 import { Footer } from './Footer';
 import { Header } from './Header';
 
 export const Layout = ({ children }) => {
   const { chainId } = useContext(Web3Context);
-  const isValid = chainId === NETWORK;
+  const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1;
   return (
     <Flex
       position="relative"

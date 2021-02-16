@@ -40,7 +40,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   // address public constant WRAPPED_TOKEN =
   //   0xc778417E063141139Fce010982780140Aa0cD5Ab;
   /** xdai WXDAI **/
-  address public constant WRAPPED_TOKEN = 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
+  address public constant WRAPPED_TOKEN =
+    0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
   uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
@@ -135,7 +136,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       released = released.add(amount);
       emit Release(currentMilestone, amount);
     } else {
-      require(balance > 0, 'balance is 0');
+      require(balance > 0, "balance is 0");
       IERC20(token).safeTransfer(provider, balance);
       released = released.add(balance);
       emit Release(currentMilestone, balance);

@@ -1,8 +1,9 @@
 import { Contract, utils } from 'ethers';
 
-import { INVOICE_FACTORY } from './constants';
+import { getInvoiceFactoryAddress } from './helpers';
 
 export const register = async (
+  chainId,
   ethersProvider,
   client,
   provider,
@@ -15,6 +16,7 @@ export const register = async (
   const abi = new utils.Interface([
     'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
   ]);
+  const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId);
   const contract = new Contract(
     INVOICE_FACTORY,
     abi,

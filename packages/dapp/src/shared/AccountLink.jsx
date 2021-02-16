@@ -1,21 +1,22 @@
 import { Flex, Link, Text } from '@chakra-ui/react';
 import { utils } from 'ethers';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
+import { Web3Context } from '../context/Web3Context';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
-import { RESOLVER_INFO } from '../utils/constants';
 import {
-  getAccountString,
   getAddressLink,
+  getResolverInfo,
   getResolverString,
   isKnownResolver,
 } from '../utils/helpers';
 
 export const AccountLink = ({ address: inputAddress }) => {
+  const { chainId } = useContext(Web3Context);
   const address = inputAddress.toLowerCase();
   const [profile, setProfile] = useState();
-  const isResolver = isKnownResolver(address);
+  const isResolver = isKnownResolver(chainId, address);
 
   useEffect(() => {
     if (!isResolver && utils.isAddress(address)) {
@@ -23,11 +24,11 @@ export const AccountLink = ({ address: inputAddress }) => {
     }
   }, [address, isResolver]);
 
-  let displayString = isResolver
-    ? getResolverString(address)
-    : getAccountString(address);
+  let displayString = getResolverString(chainId, address);
 
-  let imageUrl = isResolver ? RESOLVER_INFO[address].logoUrl : undefined;
+  let imageUrl = isResolver
+    ? getResolverInfo(chainId, address).logoUrl
+    : undefined;
 
   if (!isResolver && profile) {
     if (profile.name) {
@@ -40,7 +41,7 @@ export const AccountLink = ({ address: inputAddress }) => {
 
   return (
     <Link
-      href={getAddressLink(address)}
+      href={getAddressLink(chainId, address)}
       isExternal
       display="inline-flex"
       textAlign="right"
