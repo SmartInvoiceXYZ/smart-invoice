@@ -56,9 +56,14 @@ export const getResolverString = resolver =>
     : getAccountString(resolver);
 
 export const logError = error => {
+  // eslint-disable-next-line no-console
+  console.error(error);
+};
+
+export const logDebug = msg => {
   if (process.env.REACT_APP_DEBUG_LOGS === 'true') {
     // eslint-disable-next-line no-console
-    console.error(error);
+    console.debug(msg);
   }
 };
 
