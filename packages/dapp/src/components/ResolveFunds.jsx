@@ -10,21 +10,29 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
-import { resolve } from '../utils/invoice';
+import { getResolutionRate, resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
 export const ResolveFunds = ({ invoice, balance, close }) => {
-  const { address, token, isLocked } = invoice;
+  const { address, resolver, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
-  const resolverAward = balance.gt(0) ? balance.div(20) : BigNumber.from(0);
+  const [resolutionRate, setResolutionRate] = useState(20);
+
+  useEffect(() => {
+    getResolutionRate(provider, resolver).then(setResolutionRate);
+  }, [provider, resolver]);
+
+  const resolverAward = balance.gt(0)
+    ? balance.div(resolutionRate)
+    : BigNumber.from(0);
   const availableFunds = balance.sub(resolverAward);
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigNumber.from(0));
@@ -82,7 +90,9 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
           ? `You’ll need to distribute the total balance of ${utils.formatUnits(
               balance,
               decimals,
-            )} ${symbol} between the client and provider, excluding the 5% arbitration fee which you shall receive.`
+            )} ${symbol} between the client and provider, excluding the ${
+              100 / resolutionRate
+            }% arbitration fee which you shall receive.`
           : `Invoice is not locked`}
       </Text>
       {isLocked ? (

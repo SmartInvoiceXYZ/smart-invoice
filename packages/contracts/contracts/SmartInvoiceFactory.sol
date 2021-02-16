@@ -10,8 +10,15 @@ contract SmartInvoiceFactory {
 
   uint256 public id = 0;
   mapping(uint256 => address) internal _invoices;
+  mapping(address => uint256) public resolutionRates;
+  uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
   event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts);
+  event UpdateResolutionRate(
+    address indexed resolver,
+    uint256 indexed resolutionRate,
+    bytes32 details
+  );
 
   function create(
     address _client,
@@ -23,7 +30,17 @@ contract SmartInvoiceFactory {
     uint256 _terminationTime,
     bytes32 _details
   ) public returns (address) {
-    address invoiceAddress;
+    require(_terminationTime > block.timestamp, "duration ended");
+    require(
+      _terminationTime <= block.timestamp.add(MAX_DURATION),
+      "duration too long"
+    );
+
+    uint256 resolutionRate = resolutionRates[_resolver];
+    if (resolutionRate == 0) {
+      resolutionRate = 20;
+    }
+
     SmartInvoice invoice =
       new SmartInvoice(
         _client,
@@ -33,9 +50,11 @@ contract SmartInvoiceFactory {
         _token,
         _amounts,
         _terminationTime,
+        resolutionRate,
         _details
       );
-    invoiceAddress = address(invoice);
+
+    address invoiceAddress = address(invoice);
 
     uint256 invoiceId = id;
     _invoices[invoiceId] = invoiceAddress;
@@ -47,5 +66,12 @@ contract SmartInvoiceFactory {
 
   function getInvoiceAddress(uint256 _id) public view returns (address) {
     return _invoices[_id];
+  }
+
+  function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
+    external
+  {
+    resolutionRates[msg.sender] = _resolutionRate;
+    emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
   }
 }

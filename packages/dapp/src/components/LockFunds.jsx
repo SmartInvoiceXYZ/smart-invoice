@@ -8,7 +8,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
@@ -22,7 +22,7 @@ import {
   isKnownResolver,
   logError,
 } from '../utils/helpers';
-import { lock } from '../utils/invoice';
+import { getResolutionRate, lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
@@ -31,8 +31,15 @@ export const LockFunds = ({ invoice, balance }) => {
   const { address, resolver, token } = invoice;
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [disputeReason, setDisputeReason] = useState('');
+
+  const [resolutionRate, setResolutionRate] = useState(20);
+
+  useEffect(() => {
+    getResolutionRate(provider, resolver).then(setResolutionRate);
+  }, [provider, resolver]);
+
   const fee = `${utils.formatUnits(
-    BigNumber.from(balance).div(20),
+    BigNumber.from(balance).div(resolutionRate),
     decimals,
   )} ${symbol}`;
 

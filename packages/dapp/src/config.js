@@ -8,7 +8,7 @@ export const CONFIG = {
     100: {
       SUBGRAPH: 'dan13ram/xdai-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
-      INVOICE_FACTORY: '0x0d006D9e862B362180eb602e5973Fd1fdb6f78dd'.toLowerCase(),
+      INVOICE_FACTORY: '0x61cEBDf43a96581E6E144395fBA18f9D1a43e558'.toLowerCase(),
       TOKENS: {
         ['0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase()]: {
           decimals: 18,

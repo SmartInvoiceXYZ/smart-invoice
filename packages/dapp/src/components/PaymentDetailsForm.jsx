@@ -1,6 +1,6 @@
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
@@ -13,9 +13,10 @@ import {
   getTokens,
   isKnownResolver,
 } from '../utils/helpers';
+import { getResolutionRateFromFactory } from '../utils/invoice';
 
 export const PaymentDetailsForm = ({ display }) => {
-  const { chainId } = useContext(Web3Context);
+  const { chainId, provider } = useContext(Web3Context);
   const RESOLVERS = getResolvers(chainId);
   const TOKENS = getTokens(chainId);
   const {
@@ -44,6 +45,13 @@ export const PaymentDetailsForm = ({ display }) => {
   const [resolverInvalid, setResolverInvalid] = useState(false);
   const [paymentInvalid, setPaymentInvalid] = useState(false);
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
+  const [resolutionRate, setResolutionRate] = useState(20);
+
+  useEffect(() => {
+    getResolutionRateFromFactory(chainId, provider, arbitrationProvider).then(
+      setResolutionRate,
+    );
+  }, [chainId, provider, arbitrationProvider]);
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
@@ -162,9 +170,14 @@ export const PaymentDetailsForm = ({ display }) => {
         <OrderedInput
           label="Max Dispute Fee"
           type="text"
-          value={`${utils.formatUnits(paymentDue.div(20), decimals)} ${symbol}`}
+          value={`${utils.formatUnits(
+            paymentDue.div(resolutionRate),
+            decimals,
+          )} ${symbol}`}
           setValue={() => undefined}
-          tooltip="In case a dispute arises, 5% of the remaining funds will be deducted towards dispute resolution as an arbitration fee"
+          tooltip={`In case a dispute arises, ${
+            100 / resolutionRate
+          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
           isDisabled
         />
       </SimpleGrid>

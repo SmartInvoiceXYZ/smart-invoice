@@ -5,14 +5,19 @@ import Web3 from 'web3';
 import Web3Modal from 'web3modal';
 
 import { theme } from '../theme';
-import { INFURA_ID, SUPPORTED_NETWORKS } from '../utils/constants';
-import { logError } from '../utils/helpers';
+import { SUPPORTED_NETWORKS } from '../utils/constants';
+import { getRpcUrl, logError } from '../utils/helpers';
 
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
-      infuraId: INFURA_ID,
+      rpc: {
+        1: getRpcUrl(1),
+        4: getRpcUrl(4),
+        42: getRpcUrl(42),
+        100: getRpcUrl(100),
+      },
     },
   },
 };

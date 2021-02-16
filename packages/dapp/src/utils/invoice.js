@@ -1,6 +1,6 @@
 import { Contract, utils } from 'ethers';
 
-import { getInvoiceFactoryAddress } from './helpers';
+import { getInvoiceFactoryAddress, logError } from './helpers';
 
 export const register = async (
   chainId,
@@ -16,9 +16,8 @@ export const register = async (
   const abi = new utils.Interface([
     'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
   ]);
-  const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId);
   const contract = new Contract(
-    INVOICE_FACTORY,
+    getInvoiceFactoryAddress(chainId),
     abi,
     ethersProvider.getSigner(),
   );
@@ -34,6 +33,30 @@ export const register = async (
     terminationTime,
     detailsHash,
   );
+};
+
+export const getResolutionRateFromFactory = async (
+  chainId,
+  ethersProvider,
+  resolver,
+) => {
+  if (!utils.isAddress(resolver)) return 20;
+  try {
+    const abi = new utils.Interface([
+      'function resolutionRates(address resolver) public view returns (uint256)',
+    ]);
+    const contract = new Contract(
+      getInvoiceFactoryAddress(chainId),
+      abi,
+      ethersProvider,
+    );
+
+    const resolutionRate = Number(await contract.resolutionRates(resolver));
+    return resolutionRate > 0 ? resolutionRate : 20;
+  } catch (resolutionRateError) {
+    logError({ resolutionRateError });
+    return 20;
+  }
 };
 
 export const awaitInvoiceAddress = async (ethersProvider, tx) => {
@@ -90,4 +113,20 @@ export const resolve = async (
   ]);
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.resolve(clientAward, providerAward, detailsHash);
+};
+
+export const getResolutionRate = async (ethersProvider, resolver) => {
+  if (!utils.isAddress(resolver)) return 20;
+  try {
+    const abi = new utils.Interface([
+      'function resolutionRate() public view returns (uint256)',
+    ]);
+    const contract = new Contract(resolver, abi, ethersProvider);
+
+    const resolutionRate = Number(await contract.resolutionRate());
+    return resolutionRate > 0 ? resolutionRate : 20;
+  } catch (resolutionRateError) {
+    logError({ resolutionRateError });
+    return 20;
+  }
 };

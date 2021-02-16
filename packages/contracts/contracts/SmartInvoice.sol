@@ -42,7 +42,6 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   /** xdai WXDAI **/
   address public constant WRAPPED_TOKEN =
     0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
-  uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
 
@@ -57,6 +56,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   uint256 public total = 0;
   uint256 public released = 0;
   uint256 public terminationTime;
+  uint256 public resolutionRate;
   bytes32 public details;
   uint256 public disputeId;
 
@@ -91,14 +91,10 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     address _token,
     uint256[] memory _amounts,
     uint256 _terminationTime, // exact termination date in seconds since epoch
+    uint256 _resolutionRate,
     bytes32 _details
   ) {
     require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
-    require(_terminationTime > block.timestamp, "invoice ends before now");
-    require(
-      _terminationTime <= block.timestamp.add(MAX_DURATION),
-      "duration maxed"
-    );
 
     client = _client;
     provider = _provider;
@@ -110,6 +106,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       total = total.add(amounts[i]);
     }
     terminationTime = _terminationTime;
+    resolutionRate = _resolutionRate;
     details = _details;
 
     emit Register(client, provider, amounts);
@@ -230,7 +227,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(balance > 0, "balance is 0");
     require(_msgSender() == resolver, "!resolver");
 
-    uint256 resolutionFee = balance.div(20); // calculates dispute resolution fee (5% of remainder)
+    uint256 resolutionFee = balance.div(resolutionRate); // calculates dispute resolution fee (div(20) = 5% of remainder)
 
     require(
       _clientAward.add(_providerAward) == balance.sub(resolutionFee),
