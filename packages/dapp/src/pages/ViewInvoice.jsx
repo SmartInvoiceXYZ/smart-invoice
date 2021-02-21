@@ -128,7 +128,7 @@ export const ViewInvoice = ({
   const amount = BigNumber.from(
     currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
   );
-  const isReleasable = !isLocked && balance.gte(amount);
+  const isReleasable = !isLocked && balance.gte(amount) && balance.gt(0);
   const isLockable = !isExpired && !isLocked && balance.gt(0);
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
