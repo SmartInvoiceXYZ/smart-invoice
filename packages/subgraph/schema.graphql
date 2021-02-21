@@ -6,6 +6,7 @@ type Invoice @entity {
   provider: Bytes!
   resolverType: ADR!
   resolver: Bytes!
+  resolutionRate: BigInt!
   isLocked: Boolean!
   amounts: [BigInt!]!
   numMilestones: Int!

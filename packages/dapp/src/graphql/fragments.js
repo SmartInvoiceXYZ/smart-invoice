@@ -8,6 +8,7 @@ export const InvoiceDetails = gql`
     provider
     resolverType
     resolver
+    resolutionRate
     isLocked
     amounts
     numMilestones

@@ -28,6 +28,7 @@ class InvoiceObject {
   provider: Address;
   resolverType: i32;
   resolver: Address;
+  resolutionRate: BigInt;
   token: Address;
   isLocked: boolean;
   currentMilestone: BigInt;
@@ -52,6 +53,7 @@ function fetchInvoiceInfo(address: Address): InvoiceObject | null {
   let provider = invoiceInstance.try_provider();
   let resolverType = invoiceInstance.try_resolverType();
   let resolver = invoiceInstance.try_resolver();
+  let resolutionRate = invoiceInstance.try_resolutionRate();
   let token = invoiceInstance.try_token();
   let locked = invoiceInstance.try_locked();
   let milestone = invoiceInstance.try_milestone();
@@ -72,6 +74,9 @@ function fetchInvoiceInfo(address: Address): InvoiceObject | null {
   }
   if (!resolver.reverted) {
     invoiceObject.resolver = resolver.value;
+  }
+  if (!resolutionRate.reverted) {
+    invoiceObject.resolutionRate = resolutionRate.value;
   }
   if (!token.reverted) {
     invoiceObject.token = token.value;
@@ -100,7 +105,10 @@ function fetchInvoiceInfo(address: Address): InvoiceObject | null {
     let base58Hash = hexHash.toBase58();
     invoiceObject.ipfsHash = base58Hash.toString();
     let ipfsData = ipfs.cat(base58Hash);
-    log.debug('IPFS details from hash {}', [base58Hash]);
+    log.info('IPFS details from hash {}, data {}', [
+      base58Hash,
+      ipfsData.toString(),
+    ]);
     if (ipfsData != null) {
       let data = json.fromBytes(ipfsData as Bytes).toObject();
       let projectName = data.get('projectName');
@@ -123,6 +131,8 @@ function fetchInvoiceInfo(address: Address): InvoiceObject | null {
       if (!endDate.isNull()) {
         invoiceObject.endDate = endDate.toBigInt();
       }
+    } else {
+      log.warning('could not get IPFS details from hash {}', [base58Hash]);
     }
   }
 
@@ -135,7 +145,7 @@ export function updateInvoiceInfo(
 ): Invoice {
   if (invoice == null) return null;
   let invoiceObject = fetchInvoiceInfo(address);
-  log.debug('Got details for invoice', [address.toHexString()]);
+  log.info('Got details for invoice', [address.toHexString()]);
 
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
@@ -146,6 +156,7 @@ export function updateInvoiceInfo(
     invoice.resolverType = 'arbitrator';
   }
   invoice.resolver = invoiceObject.resolver;
+  invoice.resolutionRate = invoiceObject.resolutionRate;
   invoice.isLocked = invoiceObject.isLocked;
   invoice.currentMilestone = invoiceObject.currentMilestone;
   invoice.total = invoiceObject.total;

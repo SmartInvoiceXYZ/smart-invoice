@@ -114,19 +114,3 @@ export const resolve = async (
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.resolve(clientAward, providerAward, detailsHash);
 };
-
-export const getResolutionRate = async (ethersProvider, resolver) => {
-  if (!utils.isAddress(resolver)) return 20;
-  try {
-    const abi = new utils.Interface([
-      'function resolutionRate() public view returns (uint256)',
-    ]);
-    const contract = new Contract(resolver, abi, ethersProvider);
-
-    const resolutionRate = Number(await contract.resolutionRate());
-    return resolutionRate > 0 ? resolutionRate : 20;
-  } catch (resolutionRateError) {
-    logError({ resolutionRateError });
-    return 20;
-  }
-};

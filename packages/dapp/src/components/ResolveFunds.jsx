@@ -10,25 +10,20 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
-import { getResolutionRate, resolve } from '../utils/invoice';
+import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
 export const ResolveFunds = ({ invoice, balance, close }) => {
-  const { address, resolver, token, isLocked } = invoice;
+  const { address, resolutionRate, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
-  const [resolutionRate, setResolutionRate] = useState(20);
-
-  useEffect(() => {
-    getResolutionRate(provider, resolver).then(setResolutionRate);
-  }, [provider, resolver]);
 
   const resolverAward = balance.gt(0)
     ? balance.div(resolutionRate)

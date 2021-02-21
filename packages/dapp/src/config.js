@@ -16,7 +16,7 @@ export const CONFIG = {
         },
         ['0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1'.toLowerCase()]: {
           decimals: 18,
-          symbol: 'XWETH',
+          symbol: 'WETH',
         },
       },
       RESOLVERS: {
@@ -31,7 +31,7 @@ export const CONFIG = {
     4: {
       SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY: '0x53f9963033706C37b9C265d388E998B6D8c72cF7'.toLowerCase(),
+      INVOICE_FACTORY: '0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,

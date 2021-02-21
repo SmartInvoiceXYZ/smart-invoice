@@ -15,6 +15,7 @@ import {
   Withdraw as WithdrawEvent,
   Lock as LockEvent,
   Resolve as ResolveEvent,
+  Rule as RuleEvent,
   Deposit as DepositEvent,
 } from '../generated/SmartInvoice/SmartInvoice';
 import { Transfer as TransferEvent } from '../generated/ERC20/ERC20';
@@ -153,15 +154,6 @@ export function handleDeposit(event: DepositEvent): void {
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  // let transfer = new Transfer(event.logIndex.toHexString());
-  // transfer.txHash = event.transaction.hash;
-  // transfer.from = event.params.from;
-  // transfer.to = event.params.to;
-  // transfer.amount = event.params.amount;
-  // transfer.token = event.address;
-  // transfer.timestamp = event.block.timestamp;
-  // transfer.save();
-
   let invoice = Invoice.load(event.params.to.toHexString());
   if (invoice != null) {
     log.debug('handleTransfer {} Invoice Found {}', [
@@ -192,22 +184,28 @@ export function handleTransfer(event: TransferEvent): void {
   }
 }
 
-// export function handleRule(event: RuleEvent): void {
-//   let invoice = Invoice.load(event.params.index.toHexString());
-//   if (invoice != null) {
-//     invoice = updateInvoiceInfo(event.address, event.params.index, invoice);
-//     invoice.save();
+export function handleRule(event: RuleEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    invoice = updateInvoiceInfo(event.address, invoice);
 
-//     let resolution = new Resolution(event.transaction.hash.toHexString());
+    let resolution = new Resolution(event.logIndex.toHexString());
+    resolution.txHash = event.transaction.hash;
+    let hexHash = addQm(resolution.details) as Bytes;
+    let base58Hash = hexHash.toBase58();
+    resolution.ipfsHash = base58Hash.toString();
+    resolution.resolverType = invoice.resolverType;
+    resolution.resolver = invoice.resolver;
+    resolution.invoice = invoice.id;
+    resolution.clientAward = event.params.clientAward;
+    resolution.providerAward = event.params.providerAward;
+    resolution.timestamp = event.block.timestamp;
+    resolution.ruling = event.params.ruling;
+    resolution.save();
 
-//     resolution.resolverType = invoice.resolverType;
-//     resolution.resolver = invoice.resolver;
-//     resolution.invoice = invoice.id;
-//     resolution.clientAward = event.params.clientAward;
-//     resolution.providerAward = event.params.providerAward;
-//     resolution.ruling = event.params.ruling;
-//     resolution.timestamp = event.block.timestamp;
-
-//     resolution.save();
-//   }
-// }
+    let resolutions = invoice.resolutions;
+    resolutions.push(resolution.id);
+    invoice.resolutions = resolutions;
+    invoice.save();
+  }
+}
