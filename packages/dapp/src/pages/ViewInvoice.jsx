@@ -143,10 +143,8 @@ export const ViewInvoice = ({
   };
 
   const onDeposit = () => {
-    if (deposited.lt(total)) {
-      setSelected(1);
-      setModal(true);
-    }
+    setSelected(1);
+    setModal(true);
   };
 
   const onRelease = async () => {
