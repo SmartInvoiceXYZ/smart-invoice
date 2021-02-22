@@ -60,6 +60,7 @@ export const CreateContextProvider = ({ children }) => {
       endDate: Math.floor(endDate / 1000),
     }).catch(ipfsError => {
       logError({ ipfsError });
+      setLoading(false);
       throw ipfsError;
     });
 
@@ -75,6 +76,7 @@ export const CreateContextProvider = ({ children }) => {
       detailsHash,
     ).catch(registerError => {
       logError({ registerError });
+      setLoading(false);
       throw registerError;
     });
 

@@ -1,7 +1,7 @@
 {
   "network": "xdai",
-  "startBlock": "14579358",
-  "address": "0x61cEBDf43a96581E6E144395fBA18f9D1a43e558",
+  "startBlock": "14673394",
+  "address": "0xFADd352cd43FC5Ccab88d2c37b61340518416677",
   "tokens": [
     {
       "tokenAddress": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",

@@ -18,7 +18,7 @@
     "fake-tag": "^2.0.0",
     "focus-visible": "^5.2.0",
     "framer-motion": "^3.2.2-rc.1",
-    "ipfs-http-client": "^48.0.0",
+    "ipfs-http-client": "34.0.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-router-dom": "^5.2.0",

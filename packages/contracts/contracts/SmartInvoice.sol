@@ -233,9 +233,16 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       _clientAward.add(_providerAward) == balance.sub(resolutionFee),
       "resolution != remainder"
     );
-    IERC20(token).safeTransfer(provider, _providerAward);
-    IERC20(token).safeTransfer(client, _clientAward);
-    IERC20(token).safeTransfer(resolver, resolutionFee);
+
+    if (_providerAward > 0) {
+      IERC20(token).safeTransfer(provider, _providerAward);
+    }
+    if (_clientAward > 0) {
+      IERC20(token).safeTransfer(client, _clientAward);
+    }
+    if (resolutionFee > 0) {
+      IERC20(token).safeTransfer(resolver, resolutionFee);
+    }
 
     released = released.add(balance);
     milestone = amounts.length;

@@ -24,7 +24,7 @@ import { addQm, updateInvoiceInfo } from './helpers';
 export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());
 
-  log.debug('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
+  log.info('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
 
   invoice.address = event.params.invoice;
   invoice.amounts = event.params.amounts;
@@ -44,7 +44,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
 export function handleRelease(event: ReleaseEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    log.debug('handleRelease {}', [event.address.toHexString()]);
+    log.info('handleRelease {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
     let release = new Release(event.logIndex.toHexString());
@@ -156,12 +156,12 @@ export function handleDeposit(event: DepositEvent): void {
 export function handleTransfer(event: TransferEvent): void {
   let invoice = Invoice.load(event.params.to.toHexString());
   if (invoice != null) {
-    log.debug('handleTransfer {} Invoice Found {}', [
+    log.info('handleTransfer {} Invoice Found {}', [
       event.transaction.hash.toHexString(),
       invoice.id,
     ]);
     if (event.address == invoice.token) {
-      log.debug('handleTransfer {} Invoice {} Token Found {}', [
+      log.info('handleTransfer {} Invoice {} Token Found {}', [
         event.transaction.hash.toHexString(),
         invoice.id,
         invoice.token.toHexString(),
