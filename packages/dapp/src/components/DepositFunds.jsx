@@ -70,6 +70,8 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   useEffect(() => {
     if (amountInput) {
       setAmount(utils.parseUnits(amountInput, decimals));
+    } else {
+      setAmount(BigNumber.from(0));
     }
   }, [amountInput, decimals]);
 
