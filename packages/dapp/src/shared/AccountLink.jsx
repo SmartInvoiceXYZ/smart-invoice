@@ -19,9 +19,13 @@ export const AccountLink = ({ address: inputAddress }) => {
   const isResolver = isKnownResolver(chainId, address);
 
   useEffect(() => {
+    let isSubscribed = true;
     if (!isResolver && utils.isAddress(address)) {
-      getProfile(address).then(p => setProfile(p));
+      getProfile(address).then(p => (isSubscribed ? setProfile(p) : undefined));
     }
+    return () => {
+      isSubscribed = false;
+    };
   }, [address, isResolver]);
 
   let displayString = getResolverString(chainId, address);

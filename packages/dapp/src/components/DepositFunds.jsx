@@ -96,8 +96,6 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
     }
   }, [paymentType, token, provider, account]);
 
-  console.log('here');
-
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
