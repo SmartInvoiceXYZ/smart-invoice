@@ -30,6 +30,18 @@ import {
   logError,
 } from '../utils/helpers';
 
+const getCheckedStatus = (deposited, amounts) => {
+  let sum = BigNumber.from(0);
+  return amounts.map(a => {
+    sum = sum.add(a);
+    return deposited.gte(sum);
+  });
+};
+
+const checkedAtIndex = (index, checked) => {
+  return checked.map((_c, i) => i <= index);
+};
+
 export const DepositFunds = ({ invoice, deposited, due }) => {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
@@ -67,13 +79,8 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
 
-  useEffect(() => {
-    if (amountInput) {
-      setAmount(utils.parseUnits(amountInput, decimals));
-    } else {
-      setAmount(BigNumber.from(0));
-    }
-  }, [amountInput, decimals]);
+  const initialStatus = getCheckedStatus(deposited, amounts);
+  const [checked, setChecked] = useState(initialStatus);
 
   const [balance, setBalance] = useState();
 
@@ -89,7 +96,8 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
     }
   }, [paymentType, token, provider, account]);
 
-  let sum = BigNumber.from(0);
+  console.log('here');
+
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
@@ -110,30 +118,29 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
       </Text>
       <VStack spacing="0.5rem">
         {amounts.map((a, i) => {
-          sum = sum.add(a);
           return (
             <Checkbox
               key={i.toString()}
-              isChecked={deposited.gte(sum) ? true : undefined}
-              isDisabled={deposited.gte(sum)}
+              isChecked={checked[i]}
+              isDisabled={initialStatus[i]}
               onChange={e => {
-                if (e.target.checked) {
-                  setAmountInput(_input => {
-                    const amt = _input
-                      ? utils.parseUnits(_input, decimals)
-                      : BigNumber.from(0);
-                    return utils.formatUnits(amt.add(amounts[i]), decimals);
-                  });
-                } else {
-                  setAmountInput(_input => {
-                    const amt = _input
-                      ? utils.parseUnits(_input, decimals)
-                      : BigNumber.from(0);
-                    return amt.gt(amounts[i])
-                      ? utils.formatUnits(amt.sub(amounts[i]), decimals)
-                      : '0';
-                  });
-                }
+                const newChecked = e.target.checked
+                  ? checkedAtIndex(i, checked)
+                  : checkedAtIndex(i - 1, checked);
+                setChecked(newChecked);
+                const newAmount = amounts.reduce(
+                  (tot, cur, ind) => (newChecked[ind] ? tot.add(cur) : tot),
+                  BigNumber.from(0),
+                );
+
+                setAmountInput(
+                  utils.formatUnits(
+                    newAmount.gte(deposited)
+                      ? newAmount.sub(deposited)
+                      : BigNumber.from(0),
+                    decimals,
+                  ),
+                );
               }}
               colorScheme="red"
               border="none"
@@ -169,7 +176,18 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
             border="none"
             type="number"
             value={amountInput}
-            onChange={e => setAmountInput(e.target.value)}
+            onChange={e => {
+              const newAmountInput = e.target.value;
+              setAmountInput(newAmountInput);
+              if (newAmountInput) {
+                const newAmount = utils.parseUnits(newAmountInput, decimals);
+                setAmount(newAmount);
+                setChecked(getCheckedStatus(deposited.add(newAmount), amounts));
+              } else {
+                setAmount(BigNumber.from(0));
+                setChecked(initialStatus);
+              }
+            }}
             placeholder="Amount to Deposit"
             pr={isWRAPPED ? '6rem' : '3.5rem'}
           />
