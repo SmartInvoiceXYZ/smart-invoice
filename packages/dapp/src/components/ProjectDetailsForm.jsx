@@ -8,13 +8,13 @@ import { URL_REGEX } from '../utils/constants';
 const formatDate = date => {
   const d = new Date(date);
 
-  let month = `${d.getMonth() + 1}`;
+  let month = `${d.getUTCMonth() + 1}`;
   if (month.length < 2) month = `0${month}`;
 
-  let day = `${d.getDate()}`;
+  let day = `${d.getUTCDate()}`;
   if (day.length < 2) day = `0${day}`;
 
-  const year = d.getFullYear();
+  const year = d.getUTCFullYear();
 
   return [year, month, day].join('-');
 };
