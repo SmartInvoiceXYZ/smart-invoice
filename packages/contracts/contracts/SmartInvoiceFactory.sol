@@ -8,12 +8,16 @@ import "./SmartInvoice.sol";
 contract SmartInvoiceFactory {
   using SafeMath for uint256;
 
-  uint256 public id = 0;
+  uint256 public invoiceCount = 0;
   mapping(uint256 => address) internal _invoices;
   mapping(address => uint256) public resolutionRates;
   uint256 public constant MAX_DURATION = 63113904; // 2-year limit on locker
 
-  event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts);
+  event LogNewInvoice(
+    uint256 indexed index,
+    address invoice,
+    uint256[] amounts
+  );
   event UpdateResolutionRate(
     address indexed resolver,
     uint256 indexed resolutionRate,
@@ -56,16 +60,16 @@ contract SmartInvoiceFactory {
 
     address invoiceAddress = address(invoice);
 
-    uint256 invoiceId = id;
+    uint256 invoiceId = invoiceCount;
     _invoices[invoiceId] = invoiceAddress;
-    id = id.add(1);
+    invoiceCount = invoiceCount.add(1);
 
     emit LogNewInvoice(invoiceId, invoiceAddress, _amounts);
     return invoiceAddress;
   }
 
-  function getInvoiceAddress(uint256 _id) public view returns (address) {
-    return _invoices[_id];
+  function getInvoiceAddress(uint256 _index) public view returns (address) {
+    return _invoices[_index];
   }
 
   function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
