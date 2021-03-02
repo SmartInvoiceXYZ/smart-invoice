@@ -109,7 +109,7 @@ export const ProjectDetailsForm = ({ display }) => {
             setSafetyValveDate(date);
             setDateInvalid(date < new Date().getTime());
           }}
-          tooltip="The date after which funds can be withdrawn by the client"
+          tooltip="The funds can be withdrawn by the client after 00:00:00 GMT on this date."
           isInvalid={dateInvalid}
         />
       </SimpleGrid>

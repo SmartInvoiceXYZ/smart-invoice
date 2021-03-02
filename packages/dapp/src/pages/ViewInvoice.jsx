@@ -12,6 +12,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Tooltip,
   useBreakpointValue,
   VStack,
   Wrap,
@@ -30,6 +31,7 @@ import { WithdrawFunds } from '../components/WithdrawFunds';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
+import { QuestionIcon } from '../icons/QuestionIcon';
 import { AccountLink } from '../shared/AccountLink';
 import { Container } from '../shared/Container';
 import { balanceOf } from '../utils/erc20';
@@ -77,7 +79,7 @@ export const ViewInvoice = ({
   }, [invoice, ethersProvider]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
-  const leftMaxW = useBreakpointValue({ base: '30rem', lg: '20rem' });
+  const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   const smallScreen = useBreakpointValue({ base: true, sm: false });
@@ -263,6 +265,14 @@ export const ViewInvoice = ({
               </WrapItem>
               <WrapItem>
                 <Text fontWeight="bold">{getDateString(terminationTime)}</Text>
+                <Tooltip
+                  label={`The Safety Valve gets activated on ${new Date(
+                    terminationTime * 1000,
+                  ).toUTCString()}`}
+                  placement="auto-start"
+                >
+                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="red.500" />
+                </Tooltip>
               </WrapItem>
             </Wrap>
             <Wrap>
