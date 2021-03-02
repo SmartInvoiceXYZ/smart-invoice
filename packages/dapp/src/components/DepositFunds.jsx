@@ -125,20 +125,17 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
                 const newChecked = e.target.checked
                   ? checkedAtIndex(i, checked)
                   : checkedAtIndex(i - 1, checked);
-                setChecked(newChecked);
-                const newAmount = amounts.reduce(
+                const totAmount = amounts.reduce(
                   (tot, cur, ind) => (newChecked[ind] ? tot.add(cur) : tot),
                   BigNumber.from(0),
                 );
+                const newAmount = totAmount.gte(deposited)
+                  ? totAmount.sub(deposited)
+                  : BigNumber.from(0);
 
-                setAmountInput(
-                  utils.formatUnits(
-                    newAmount.gte(deposited)
-                      ? newAmount.sub(deposited)
-                      : BigNumber.from(0),
-                    decimals,
-                  ),
-                );
+                setChecked(newChecked);
+                setAmount(newAmount);
+                setAmountInput(utils.formatUnits(newAmount, decimals));
               }}
               colorScheme="red"
               border="none"
