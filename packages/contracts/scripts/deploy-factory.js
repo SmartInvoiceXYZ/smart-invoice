@@ -18,18 +18,21 @@ async function main() {
   const SmartInvoice = await ethers.getContractFactory("SmartInvoiceFactory");
   const smartInvoiceFactory = await SmartInvoice.deploy();
 
-  console.log(
-    "SmartInvoiceFactory deploying to chainId:",
-    smartInvoiceFactory.deployTransaction.chainId,
-  );
-  console.log(
-    "SmartInvoiceFactory deploying with tx:",
-    smartInvoiceFactory.deployTransaction.hash,
-  );
+  const chainId = smartInvoiceFactory.deployTransaction.chainId;
+  const txHash = smartInvoiceFactory.deployTransaction.hash;
+  console.log("SmartInvoiceFactory deploying to chainId:", chainId);
+  console.log("SmartInvoiceFactory deploying with tx:", txHash);
 
   await smartInvoiceFactory.deployed();
 
   console.log("SmartInvoiceFactory deployed to:", smartInvoiceFactory.address);
+
+  const receipt = await deployer.provider.getTransactionReceipt(txHash);
+
+  console.log(
+    "SmartInvoiceFactory deployed in the block #",
+    receipt.blockNumber,
+  );
 }
 
 main()
