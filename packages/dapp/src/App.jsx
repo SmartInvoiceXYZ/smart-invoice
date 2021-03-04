@@ -34,7 +34,7 @@ export const App = () => {
               <Switch>
                 <Route exact path="/" component={Home} />
                 <Route exact path="/faq" component={FAQ} />
-                <Route exact path="/create-invoice" component={CreateInvoice} />
+                <Route exact path="/create" component={CreateInvoice} />
                 <Route exact path="/invoices" component={Invoices} />
                 <Route
                   exact

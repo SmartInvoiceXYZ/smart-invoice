@@ -8,7 +8,7 @@ export const Home = () => {
   const history = useHistory();
 
   const createInvoice = async () => {
-    history.push('/create-invoice');
+    history.push('/create');
   };
 
   const viewInvoices = async () => {
