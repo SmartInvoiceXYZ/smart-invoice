@@ -18,7 +18,8 @@ import { RegisterSuccess } from '../components/RegisterSuccess';
 import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
-import { STEPS, URL_REGEX } from '../utils/constants';
+import { STEPS } from '../utils/constants';
+import { isValidURL } from '../utils/helpers';
 
 const { isAddress } = utils;
 
@@ -45,8 +46,7 @@ const CreateInvoiceInner = () => {
 
   const step1Valid =
     projectName &&
-    projectAgreement &&
-    URL_REGEX.test(projectAgreement) &&
+    isValidURL(projectAgreement) &&
     safetyValveDate &&
     safetyValveDate > new Date().getTime();
 

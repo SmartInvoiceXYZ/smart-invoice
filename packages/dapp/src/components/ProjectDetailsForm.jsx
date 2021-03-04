@@ -2,8 +2,11 @@ import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
-import { OrderedInput, OrderedTextarea } from '../shared/OrderedInput';
-import { URL_REGEX } from '../utils/constants';
+import {
+  OrderedInput,
+  OrderedLinkInput,
+  OrderedTextarea,
+} from '../shared/OrderedInput';
 
 const formatDate = date => {
   const d = new Date(date);
@@ -42,7 +45,6 @@ export const ProjectDetailsForm = ({ display }) => {
     : '';
 
   const [nameInvalid, setNameInvalid] = useState(false);
-  const [linkInvalid, setLinkInvalid] = useState(false);
   const [dateInvalid, setDateInvalid] = useState(false);
 
   return (
@@ -57,15 +59,10 @@ export const ProjectDetailsForm = ({ display }) => {
         isInvalid={nameInvalid}
         error={nameInvalid ? 'Cannot be empty' : ''}
       />
-      <OrderedInput
+      <OrderedLinkInput
         label="Link to Project Agreement"
         value={projectAgreement}
-        setValue={v => {
-          setProjectAgreement(v);
-          setLinkInvalid(v ? !URL_REGEX.test(v) : true);
-        }}
-        isInvalid={linkInvalid}
-        error={linkInvalid ? 'Invalid URL' : ''}
+        setValue={setProjectAgreement}
         tooltip="This agreement will be referenced in the case of a dispute"
       />
       <OrderedTextarea

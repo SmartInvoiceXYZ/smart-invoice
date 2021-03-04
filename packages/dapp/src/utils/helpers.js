@@ -1,4 +1,5 @@
 import { getAddress } from '@ethersproject/address';
+import isIPFS from 'is-ipfs';
 
 import {
   explorerUrls,
@@ -112,4 +113,25 @@ export const copyToClipboard = value => {
   tempInput.select();
   document.execCommand('copy');
   document.body.removeChild(tempInput);
+};
+
+export const isValidHttpsURL = str => {
+  const pattern = new RegExp(
+    '^(https:\\/\\/)?' + // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+      '(\\#[-a-z\\d_]*)?$',
+    'i',
+  ); // fragment locator
+  return !!pattern.test(str);
+};
+
+export const isValidURL = url => {
+  if (!url) return false;
+  if (url.startsWith('ipfs://')) {
+    return isIPFS.cid(url.slice(7));
+  }
+  return isValidHttpsURL(url);
 };
