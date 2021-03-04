@@ -9,12 +9,12 @@ import {
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { isValidURL } from '../utils/helpers';
 
-const InnerOrderedLinkInput = ({
+export const OrderedLinkInput = ({
   label,
   value,
   setValue,
@@ -24,9 +24,11 @@ const InnerOrderedLinkInput = ({
   type = 'text',
   ...props
 }) => {
-  const [protocol, setProtocol] = useState('https://');
-  const [isInvalid, setInvalid] = useState(false);
-  const [input, setInput] = useState('');
+  const [{ protocol, input, isInvalid }, setInputParams] = useState({
+    protocol: 'https://',
+    input: '',
+    isInvalid: false,
+  });
 
   return (
     <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
@@ -44,14 +46,24 @@ const InnerOrderedLinkInput = ({
       <Flex direction="column" w="100%">
         <InputGroup>
           <InputLeftElement
-            w="6.5rem"
+            w="6.75rem"
             overflow="hidden"
             borderLeftRadius="0.375rem"
             borderRightColor="background"
             borderRightWidth="3px"
           >
             <Select
-              onChange={e => setProtocol(e.target.value)}
+              onChange={e => {
+                const newProtocol = e.target.value;
+                const newValue = newProtocol + input;
+                const newIsInvalid = !isValidURL(newValue);
+                setValue(newValue);
+                setInputParams({
+                  input,
+                  protocol: newProtocol,
+                  isInvalid: newIsInvalid,
+                });
+              }}
               value={protocol}
               bg="none"
               color="white"
@@ -64,36 +76,37 @@ const InnerOrderedLinkInput = ({
             </Select>
           </InputLeftElement>
           <Input
-            pl="7rem"
+            pl="7.25rem"
             bg="black"
             type={type}
             value={input}
             onChange={e => {
-              const newInput = e.target.value;
-              let newValue = protocol + newInput;
+              let newInput = e.target.value;
+              let newProtocol = protocol;
               if (newInput.startsWith('https://') && newInput.length > 8) {
-                setProtocol('https://');
-                setInput(newInput.slice(8));
-                newValue = `https://${newInput.slice(8)}`;
+                newProtocol = 'https://';
+                newInput = newInput.slice(8);
               } else if (
                 newInput.startsWith('http://') &&
                 newInput.length > 7
               ) {
-                setProtocol('https://');
-                setInput(newInput.slice(7));
-                newValue = `https://${newInput.slice(7)}`;
+                newProtocol = 'https://';
+                newInput = newInput.slice(7);
               } else if (
                 newInput.startsWith('ipfs://') &&
                 newInput.length > 7
               ) {
-                setProtocol('ipfs://');
-                setInput(newInput.slice(7));
-                newValue = `ipfs://${newInput.slice(7)}`;
-              } else {
-                setInput(newInput);
+                newProtocol = 'ipfs://';
+                newInput = newInput.slice(7);
               }
+              const newValue = newProtocol + newInput;
+              const newIsInvalid = !isValidURL(newValue);
               setValue(newValue);
-              setInvalid(!isValidURL(newValue));
+              setInputParams({
+                protocol: newProtocol,
+                input: newInput,
+                isInvalid: newIsInvalid,
+              });
             }}
             placeholder={placeholder}
             color="white"
@@ -119,7 +132,7 @@ const InnerOrderedLinkInput = ({
   );
 };
 
-const InnerOrderedInput = ({
+export const OrderedInput = ({
   label,
   value,
   setValue,
@@ -175,7 +188,7 @@ const InnerOrderedInput = ({
   );
 };
 
-const InnerOrderedSelect = ({
+export const OrderedSelect = ({
   label,
   value,
   setValue,
@@ -213,7 +226,7 @@ const InnerOrderedSelect = ({
   );
 };
 
-const InnerOrderedTextarea = ({
+export const OrderedTextarea = ({
   label,
   value,
   setValue,
@@ -253,8 +266,3 @@ const InnerOrderedTextarea = ({
     </VStack>
   );
 };
-
-export const OrderedInput = memo(InnerOrderedInput);
-export const OrderedLinkInput = memo(InnerOrderedLinkInput);
-export const OrderedSelect = memo(InnerOrderedSelect);
-export const OrderedTextarea = memo(InnerOrderedTextarea);
