@@ -1,5 +1,5 @@
 import { getAddress } from '@ethersproject/address';
-import isIPFS from 'is-ipfs';
+import CID from 'cids';
 
 import {
   explorerUrls,
@@ -127,10 +127,19 @@ export const isValidHttpsURL = str => {
   return !!pattern.test(str);
 };
 
+export const isCID = hash => {
+  try {
+    new CID(hash); // eslint-disable-line no-new
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const isValidURL = url => {
   if (!url) return false;
   if (url.startsWith('ipfs://')) {
-    return isIPFS.cid(url.slice(7));
+    return isCID(url.slice(7));
   }
   return isValidHttpsURL(url);
 };

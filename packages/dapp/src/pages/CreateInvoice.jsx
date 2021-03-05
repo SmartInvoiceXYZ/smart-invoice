@@ -6,8 +6,7 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import { FormConfirmation } from '../components/FormConfirmation';
@@ -19,82 +18,18 @@ import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
 import { STEPS } from '../utils/constants';
-import { isValidURL } from '../utils/helpers';
-
-const { isAddress } = utils;
 
 const CreateInvoiceInner = () => {
   const {
     tx,
     loading,
-    createInvoice,
-    projectName,
-    projectAgreement,
-    clientAddress,
-    paymentAddress,
-    paymentToken,
-    safetyValveDate,
-    paymentDue,
-    payments,
-    termsAccepted,
-    arbitrationProvider,
-    milestones,
+    currentStep,
+    nextStepEnabled,
+    goBackHandler,
+    nextStepHandler,
   } = useContext(CreateContext);
-  const [currentStep, setStep] = useState(1);
-  const [isEnabled, setEnabled] = useState(false);
+
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-
-  const step1Valid =
-    projectName &&
-    isValidURL(projectAgreement) &&
-    safetyValveDate &&
-    safetyValveDate > new Date().getTime();
-
-  const step2Valid =
-    isAddress(clientAddress) &&
-    isAddress(paymentAddress) &&
-    isAddress(paymentToken) &&
-    isAddress(arbitrationProvider) &&
-    paymentDue.gt(0) &&
-    !isNaN(Number(milestones)) &&
-    milestones > 0 &&
-    termsAccepted &&
-    Array.from(
-      new Set([
-        clientAddress.toLowerCase(),
-        paymentAddress.toLowerCase(),
-        paymentToken.toLowerCase(),
-        arbitrationProvider.toLowerCase(),
-      ]),
-    ).length === 4;
-
-  const step3Valid = payments
-    .reduce((t, a) => {
-      return t.add(a);
-    }, BigNumber.from(0))
-    .eq(paymentDue);
-
-  useEffect(() => {
-    if (currentStep === 1) {
-      setEnabled(step1Valid);
-    } else if (currentStep === 2) {
-      setEnabled(step2Valid);
-    } else if (currentStep === 3) {
-      setEnabled(step3Valid);
-    } else if (currentStep === 4) {
-      setEnabled(true);
-    } else {
-      setEnabled(false);
-    }
-  }, [step1Valid, step2Valid, step3Valid, currentStep]);
-
-  const stepHandler = () => {
-    if (isEnabled) {
-      if (currentStep === 4) return createInvoice();
-      setStep(prevState => prevState + 1);
-    }
-    return () => undefined;
-  };
 
   return (
     <Container overlay>
@@ -143,7 +78,7 @@ const CreateInvoiceInner = () => {
                 <Button
                   colorScheme="red"
                   variant="outline"
-                  onClick={() => setStep(prevState => prevState - 1)}
+                  onClick={goBackHandler}
                   size={buttonSize}
                   fontFamily="mono"
                   fontWeight="normal"
@@ -155,9 +90,9 @@ const CreateInvoiceInner = () => {
               )}
               <Button
                 colorScheme="red"
-                onClick={stepHandler}
+                onClick={nextStepHandler}
                 isLoading={loading}
-                isDisabled={!isEnabled}
+                isDisabled={!nextStepEnabled}
                 textTransform="uppercase"
                 size={buttonSize}
                 fontFamily="mono"
