@@ -74,9 +74,11 @@ export const FormConfirmation = ({ display }) => {
         transform="translateX(-1rem)"
       />
       <Flex justify="flex-end">
-        <Text>{milestones} Payments</Text>
-        <Text color="red.500" ml="2rem" fontWeight="bold">
-          {utils.formatUnits(paymentDue, decimals)} {symbol} Total
+        <Text>
+          {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
+        </Text>
+        <Text color="red.500" ml="2.5rem" fontWeight="bold">
+          {`${utils.formatUnits(paymentDue, decimals)} ${symbol} Total`}
         </Text>
       </Flex>
     </VStack>

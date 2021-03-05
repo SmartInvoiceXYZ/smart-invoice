@@ -1,27 +1,51 @@
 import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import { utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
+import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
 import { copyToClipboard, getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
 
+const POLL_INTERVAL = 5000;
+
 export const RegisterSuccess = () => {
   const { chainId, provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState();
+  const [invoiceFound, setInvoiceFound] = useState(false);
   const history = useHistory();
 
   useEffect(() => {
     if (tx && provider) {
       awaitInvoiceAddress(provider, tx).then(id => {
-        setInvoiceID(id);
+        setInvoiceID(id.toLowerCase());
       });
     }
   }, [tx, provider]);
+
+  useEffect(() => {
+    if (!utils.isAddress(invoiceId) || invoiceFound) return () => undefined;
+
+    let isSubscribed = true;
+
+    const interval = setInterval(() => {
+      getInvoice(chainId, invoiceId).then(invoice => {
+        if (isSubscribed && !!invoice) {
+          setInvoiceFound(true);
+        }
+      });
+    }, POLL_INTERVAL);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+    };
+  }, [chainId, invoiceId, invoiceFound]);
 
   return (
     <VStack
@@ -33,10 +57,10 @@ export const RegisterSuccess = () => {
       maxW="30rem"
     >
       <Heading fontWeight="normal" textAlign="center">
-        {invoiceId ? 'Invoice Registered' : 'Invoice Registration Received'}
+        {invoiceFound ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
       <Text color="white" textAlign="center" fontSize="sm">
-        {invoiceId
+        {invoiceFound
           ? 'You can view your transaction '
           : 'You can check the progress of your transaction '}
         <Link
@@ -48,7 +72,7 @@ export const RegisterSuccess = () => {
           here
         </Link>
       </Text>
-      {invoiceId ? (
+      {invoiceFound ? (
         <>
           <VStack w="100%" align="stretch">
             <Text fontWeight="bold">Your Invoice ID</Text>
