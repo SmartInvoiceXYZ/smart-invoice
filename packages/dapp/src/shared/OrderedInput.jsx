@@ -12,7 +12,7 @@ import {
 import React, { useState } from 'react';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
-import { isValidURL } from '../utils/helpers';
+import { isValidLink } from '../utils/helpers';
 
 export const OrderedLinkInput = ({
   label,
@@ -24,11 +24,9 @@ export const OrderedLinkInput = ({
   type = 'text',
   ...props
 }) => {
-  const [{ protocol, input, isInvalid }, setInputParams] = useState({
-    protocol: 'https://',
-    input: '',
-    isInvalid: false,
-  });
+  const [protocol, setProtocol] = useState('https://');
+  const [input, setInput] = useState('');
+  const [isInvalid, setInvalid] = useState(false);
 
   return (
     <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
@@ -56,13 +54,10 @@ export const OrderedLinkInput = ({
               onChange={e => {
                 const newProtocol = e.target.value;
                 const newValue = newProtocol + input;
-                const newIsInvalid = !isValidURL(newValue);
+                const isValid = isValidLink(newValue);
                 setValue(newValue);
-                setInputParams({
-                  input,
-                  protocol: newProtocol,
-                  isInvalid: newIsInvalid,
-                });
+                setInvalid(!isValid);
+                setProtocol(newProtocol);
               }}
               value={protocol}
               bg="none"
@@ -80,6 +75,7 @@ export const OrderedLinkInput = ({
             bg="black"
             type={type}
             value={input}
+            maxLength={240}
             onChange={e => {
               let newInput = e.target.value;
               let newProtocol = protocol;
@@ -100,13 +96,11 @@ export const OrderedLinkInput = ({
                 newInput = newInput.slice(7);
               }
               const newValue = newProtocol + newInput;
-              const newIsInvalid = !isValidURL(newValue);
+              const isValid = isValidLink(newValue);
               setValue(newValue);
-              setInputParams({
-                protocol: newProtocol,
-                input: newInput,
-                isInvalid: newIsInvalid,
-              });
+              setInvalid(!isValid);
+              setInput(newInput);
+              setProtocol(newProtocol);
             }}
             placeholder={placeholder}
             color="white"

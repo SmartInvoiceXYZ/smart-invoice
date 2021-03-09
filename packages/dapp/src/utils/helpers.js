@@ -1,5 +1,4 @@
 import { getAddress } from '@ethersproject/address';
-import CID from 'cids';
 
 import {
   explorerUrls,
@@ -115,31 +114,28 @@ export const copyToClipboard = value => {
   document.body.removeChild(tempInput);
 };
 
-export const isValidHttpsURL = str => {
-  const pattern = new RegExp(
-    '^(?:https:\\/\\/)' + // protocol
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-      '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-      '(?::\\d{2,5})?' + // port
-      '(?:[/?#][^\\s"]*)?', // path
-    'i',
-  ); // fragment locator
-  return !!pattern.test(str);
+const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
+
+export const isValidURL = str => {
+  return !!URL_REGEX.test(str);
 };
 
-export const isCID = hash => {
-  try {
-    new CID(hash); // eslint-disable-line no-new
-    return true;
-  } catch (e) {
-    return false;
-  }
+const BASE32_REGEX = /^[a-zA-Z2-7]+=*$/;
+const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+=*$/;
+
+export const isValidCID = hash => {
+  return (
+    (hash.length === 59 &&
+      hash.startsWith('bafy') &&
+      !!BASE32_REGEX.test(hash)) ||
+    (hash.length === 46 && hash.startsWith('Qm') && !!BASE58_REGEX.test(hash))
+  );
 };
 
-export const isValidURL = url => {
+export const isValidLink = url => {
   if (!url) return false;
   if (url.startsWith('ipfs://')) {
-    return isCID(url.slice(7));
+    return isValidCID(url.slice(7));
   }
-  return isValidHttpsURL(url);
+  return isValidURL(url);
 };

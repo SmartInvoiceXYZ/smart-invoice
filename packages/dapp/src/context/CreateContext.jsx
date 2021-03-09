@@ -11,7 +11,7 @@ import React, {
 import {
   getResolvers,
   getWrappedNativeToken,
-  isValidURL,
+  isValidLink,
   logError,
 } from '../utils/helpers';
 import { register } from '../utils/invoice';
@@ -57,7 +57,7 @@ export const CreateContextProvider = ({ children }) => {
   const step1Valid = useMemo(
     () =>
       projectName &&
-      isValidURL(projectAgreement) &&
+      isValidLink(projectAgreement) &&
       safetyValveDate &&
       safetyValveDate > new Date().getTime(),
     [projectName, projectAgreement, safetyValveDate],
@@ -220,10 +220,6 @@ export const CreateContextProvider = ({ children }) => {
         // creating invoice
         loading,
         createInvoice,
-        // validataions
-        step1Valid,
-        step2Valid,
-        step3Valid,
         // stepHandling
         currentStep,
         nextStepEnabled,
