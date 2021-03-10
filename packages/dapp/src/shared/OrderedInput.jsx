@@ -83,12 +83,6 @@ export const OrderedLinkInput = ({
                 newProtocol = 'https://';
                 newInput = newInput.slice(8);
               } else if (
-                newInput.startsWith('http://') &&
-                newInput.length > 7
-              ) {
-                newProtocol = 'https://';
-                newInput = newInput.slice(7);
-              } else if (
                 newInput.startsWith('ipfs://') &&
                 newInput.length > 7
               ) {
