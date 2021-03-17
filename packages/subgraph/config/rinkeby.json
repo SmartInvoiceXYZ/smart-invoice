@@ -1,18 +1,32 @@
 {
   "network": "rinkeby",
   "startBlock": "8113364",
-  "address": "0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73",
+  "factories": [
+    {
+      "factoryName": "Version0",
+      "startBlock": "8113364",
+      "address": "0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73"
+    },
+    {
+      "factoryName": "Version1",
+      "startBlock": "8249794",
+      "address": "0x06E79797c87a86FF999C6C917a7F5CeEF70c3Cd3"
+    }
+  ],
   "tokens": [
     {
       "tokenName": "DAI",
+      "startBlock": "8113364",
       "tokenAddress": "0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42"
     },
     {
       "tokenName": "WETH",
+      "startBlock": "8113364",
       "tokenAddress": "0xc778417E063141139Fce010982780140Aa0cD5Ab"
     },
     {
       "tokenName": "TEST",
+      "startBlock": "8113364",
       "tokenAddress": "0x982e00b16c313e979c0947b85230907fce45d50e"
     }
   ]

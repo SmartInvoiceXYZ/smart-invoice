@@ -3,8 +3,9 @@ description: Smart Invoice
 schema:
   file: ./schema.graphql
 dataSources:
+  {{#factories}}
   - kind: ethereum/contract
-    name: SmartInvoiceFactory
+    name: SmartInvoiceFactory{{factoryName}}
     # prettier-ignore
     network: {{network}}
     source:
@@ -28,6 +29,7 @@ dataSources:
           handler: handleLogNewInvoice
 
       file: ./src/mappings.ts
+  {{/factories}}
   - kind: ethereum/contract
     name: SmartInvoice
     # prettier-ignore

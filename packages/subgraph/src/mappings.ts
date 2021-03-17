@@ -27,6 +27,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   log.info('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
 
   invoice.address = event.params.invoice;
+  invoice.factoryAddress = event.address;
   invoice.amounts = event.params.amounts;
   invoice.numMilestones = event.params.amounts.length;
   invoice.createdAt = event.block.timestamp;
