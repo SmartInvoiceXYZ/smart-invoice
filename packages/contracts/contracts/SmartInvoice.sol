@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable not-rely-on-time
 
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/GSN/Context.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 import "./IArbitrable.sol";
 import "./IArbitrator.sol";
 
@@ -17,7 +17,6 @@ interface IWRAPPED {
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
-  using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
   uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
@@ -25,6 +24,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   // Some outcomes [0, 1, and 2] are reserved by Aragon Court: "missing", "leaked", and "refused", respectively.
   // Note that Aragon Court emits the LOWEST outcome in the event of a tie.
 
+  // solhint-disable-next-line var-name-mixedcase
   uint8[2][6] public RULINGS = [
     [1, 1], // 0 = refused to arbitrate
     [1, 0], // 1 = 100% to client
@@ -42,6 +42,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   /** xdai WXDAI **/
   address public constant WRAPPED_TOKEN =
     0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d;
+  uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
 
@@ -95,6 +96,12 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     bytes32 _details
   ) {
     require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
+    require(_terminationTime > block.timestamp, "duration ended");
+    require(
+      _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
+      "duration too long"
+    );
+    require(_resolutionRate > 0, "invalid resolutionRate");
 
     client = _client;
     provider = _provider;
@@ -103,7 +110,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     token = _token;
     amounts = _amounts;
     for (uint256 i = 0; i < amounts.length; i++) {
-      total = total.add(amounts[i]);
+      total = total + amounts[i];
     }
     terminationTime = _terminationTime;
     resolutionRate = _resolutionRate;
@@ -122,20 +129,21 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 balance = IERC20(token).balanceOf(address(this));
 
     if (currentMilestone < amounts.length) {
-      milestone = milestone.add(1);
       uint256 amount = amounts[currentMilestone];
-      if (milestone == amounts.length && amount < balance) {
+      if (currentMilestone == amounts.length - 1 && amount < balance) {
         amount = balance;
       }
       require(balance >= amount, "insufficient balance");
 
+      milestone = milestone + 1;
       IERC20(token).safeTransfer(provider, amount);
-      released = released.add(amount);
+      released = released + amount;
       emit Release(currentMilestone, amount);
     } else {
       require(balance > 0, "balance is 0");
+
       IERC20(token).safeTransfer(provider, balance);
-      released = released.add(balance);
+      released = released + balance;
       emit Release(currentMilestone, balance);
     }
   }
@@ -148,15 +156,15 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(_milestone < amounts.length, "invalid milestone");
     uint256 amount = 0;
     for (uint256 j = milestone; j <= _milestone; j++) {
-      amount = amount.add(amounts[j]);
+      amount = amount + amounts[j];
       emit Release(j, amounts[j]);
     }
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance >= amount, "insufficient balance");
 
     IERC20(token).safeTransfer(provider, amount);
-    released = released.add(amount);
-    milestone = _milestone.add(1);
+    released = released + amount;
+    milestone = _milestone + 1;
   }
 
   // release non-invoice tokens
@@ -227,10 +235,10 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(balance > 0, "balance is 0");
     require(_msgSender() == resolver, "!resolver");
 
-    uint256 resolutionFee = balance.div(resolutionRate); // calculates dispute resolution fee (div(20) = 5% of remainder)
+    uint256 resolutionFee = balance / resolutionRate; // calculates dispute resolution fee (div(20) = 5% of remainder)
 
     require(
-      _clientAward.add(_providerAward) == balance.sub(resolutionFee),
+      _clientAward + _providerAward == balance - resolutionFee,
       "resolution != remainder"
     );
 
@@ -244,7 +252,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       IERC20(token).safeTransfer(resolver, resolutionFee);
     }
 
-    released = released.add(balance);
+    released = released + balance;
     milestone = amounts.length;
     locked = false;
 
@@ -271,12 +279,12 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     require(balance > 0, "balance is 0");
     require(_msgSender() == resolver, "!resolver");
 
-    uint8[2] storage ruling = RULINGS[_ruling];
+    uint8[2] memory ruling = RULINGS[_ruling];
     uint8 clientShare = ruling[0];
     uint8 providerShare = ruling[1];
     uint8 denom = clientShare + providerShare;
-    uint256 providerAward = balance.mul(providerShare).div(denom);
-    uint256 clientAward = balance.sub(providerAward);
+    uint256 providerAward = balance * providerShare / denom;
+    uint256 clientAward = balance - providerAward;
 
     if (providerAward > 0) {
       IERC20(token).safeTransfer(provider, providerAward);
