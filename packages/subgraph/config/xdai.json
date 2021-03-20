@@ -3,9 +3,14 @@
   "startBlock": "14673394",
   "factories": [
     {
-      "factoryName": "Version0",
+      "factoryName": "Version00",
       "startBlock": "14673394",
       "address": "0xFADd352cd43FC5Ccab88d2c37b61340518416677"
+    },
+    {
+      "factoryName": "Version01",
+      "startBlock": "15108584",
+      "address": "0x7A6f602667f22D2Ec33636148e441A7c2D124380"
     }
   ],
   "tokens": [
