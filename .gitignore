@@ -47,3 +47,6 @@ pids
 
 # subgraph
 subgraph.yaml
+
+# flat contracts
+flat/

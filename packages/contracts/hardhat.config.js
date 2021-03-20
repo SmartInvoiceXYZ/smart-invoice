@@ -1,13 +1,13 @@
-const { usePlugin } = require("@nomiclabs/buidler/config");
+require("hardhat/config");
 require("dotenv").config();
+require("@nomiclabs/hardhat-ganache");
+require("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-etherscan");
 
-usePlugin("@nomiclabs/buidler-ganache");
-usePlugin("@nomiclabs/buidler-ethers");
-
-const { INFURA_PROJECT_ID, PRIVATE_KEY } = process.env;
+const { INFURA_PROJECT_ID, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
 
 module.exports = {
-  solc: {
+  solidity: {
     version: "0.8.0",
   },
   paths: {
@@ -31,5 +31,8 @@ module.exports = {
       url: "http://127.0.0.1:8555",
       defaultBalanceEther: 1000,
     },
+  },
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY,
   },
 };
