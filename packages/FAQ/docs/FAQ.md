@@ -1,19 +1,36 @@
 ---
 title: FAQ
 ---
-
 <h4><details>
-<summary> What is Arbitration and how does the dispute process work? (CLIENT/PROVIDER) </summary>
+<summary> What is Lock? (CLIENT/PROVIDER) </summary>
 
 <p>&nbsp;</p>
 
-###### Arbitration is a way for the client or provider to enter a dispute against the other party and reach a fair resolution through using a third-party adjudicator. 
+###### Lock is a feature that allows clients and providers to lock the funds deposited into their smart invoice, triggering arbitration.  
 
-###### If the client loses confidence in the provider at any time, they may lock the remaining funds in smart invoice so that they cannot be released or withdrawn.
+###### If the client loses confidence in the provider at any time or the provider under delivers on their promise, the client may lock any remaining funds in smart invoice so they cannot be released or withdrawn.
 
-###### Alternatively, If the client has not released funds once a milestone has been completed, the provider may Lock any remaining funds in smart invoice.
+###### Alternatively, if the client has not released funds after a milestone is complete, the provider may lock any remaining funds in smart invoice.
 
-###### In both cases, the lock triggers the arbitration provider (i.e., LexDAO or Custom) to review the dispute. Based on their review, the arbitration provider will determine which party should receive "x" amount of funds, and will send a transaction to the smart invoice contract that will transfer the appropriate amount to each party. 
+</details></h4>
+
+<h4><details>
+<summary> What is Arbitration? (CLIENT/PROVIDER) </summary>
+
+<p>&nbsp;</p>
+
+###### Arbitration is triggered by either the client or provider locking funds held by their smart invoice. Arbitration is the process of resolving a dispute between a client and a provider, and it is facilitated by a third-party adjudicator.   
+</details></h4>
+
+
+<h4><details>
+<summary> How does the dispute resolution process work? (CLIENT/PROVIDER) </summary>
+
+<p>&nbsp;</p>
+
+###### Lock triggers the arbitration provider (i.e., LexDAO or Custom) to review and resolve the dispute. 
+
+###### Based on their review, the arbitration provider will determine which party should receive "x" amount of funds, and will send a transaction to smart invoice that transfers the appropriate amount to each party. 
 
 </details></h4>
 
@@ -22,16 +39,21 @@ title: FAQ
 
 <p>&nbsp;</p>
 
-###### Deposit is a function that allows the Client to deposit funds into a milestone, before or after the milestone is completed, the Client can “Release” the funds to the Provider for their services.
+###### Deposit is a function that allows the client to deposit funds into the milestone(s), and before or after the milestone is completed, the client can use the release function to release the funds to the provider for their service.  In order to release funds, the client must first make a deposit!
 
 </details></h4>
 
 <h4><details>
-<summary>Why can’t I release my payment? (CLIENT)</summary>
+<summary>Why can’t I release or withdraw my payment? (CLIENT)</summary>
 
 <p>&nbsp;</p>
 
-###### In order to release payment to the provider, you must first make a deposit to the Smart Invoice contract.  Once you have made a deposit, you will see the option to “Release” funds to the provider.
+###### In order to release or withdraw your payment, first you will want to navigate to "view existing invoice" and check the status shown in the right column next to your smart invoice.  If the status of your smart invoice shows:
+
+1. Awaiting deposit - this means you need to make a deposit, following your deposit you will be able to release payment
+2. In dispute - You will not be able to release/withdraw payment until the dispute is resolved
+3. Safety valve withdrawal date passed
+
 
 </details></h4>
 
@@ -40,12 +62,12 @@ title: FAQ
 
 <p>&nbsp;</p>
 
-###### No, you have to execute one transaction for every milestone payment you make through the “Release” function, and the same applies to the “Deposit” function. 
+###### Yes, you can execute one transaction for all milestone deposits and releases respectivley.  
 
 </details></h4>
 
 <h4><details>
-<summary>What are the different Statuses among existing invoices? (CLIENT/PROVIDER)</summary>
+<summary>What statuses can an invoice have? (CLIENT/PROVIDER)</summary>
 
 <p>&nbsp;</p>
 

@@ -9,6 +9,7 @@ module.exports = {
         'creating-a-smart-invoice',
         'complete-invoice',
         'view-existing-invoice',
+        'deposit-or-release',
         'FAQ',
       ],
     },
