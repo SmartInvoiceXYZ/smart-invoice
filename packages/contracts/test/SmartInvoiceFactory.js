@@ -1,10 +1,8 @@
-const { expect, use } = require("chai");
-const { waffle } = require("hardhat");
+const { expect } = require("chai");
+// const { waffle } = require("hardhat");
 const { awaitInvoiceAddress } = require("./utils");
-const { solidity } = waffle;
+// const { provider } = waffle;
 // const { Contract, BigNumber } = require("ethers");
-
-use(solidity);
 
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
