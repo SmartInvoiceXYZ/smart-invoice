@@ -7,7 +7,7 @@ import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
-import { copyToClipboard, getTxLink } from '../utils/helpers';
+import { copyToClipboard, getHexChainId, getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
 
@@ -17,7 +17,7 @@ export const RegisterSuccess = () => {
   const { chainId, provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState();
-  const [invoiceFound, setInvoiceFound] = useState(false);
+  const [invoice, setInvoice] = useState();
   const history = useHistory();
 
   useEffect(() => {
@@ -29,14 +29,14 @@ export const RegisterSuccess = () => {
   }, [tx, provider]);
 
   useEffect(() => {
-    if (!utils.isAddress(invoiceId) || invoiceFound) return () => undefined;
+    if (!utils.isAddress(invoiceId) || !!invoice) return () => undefined;
 
     let isSubscribed = true;
 
     const interval = setInterval(() => {
-      getInvoice(chainId, invoiceId).then(invoice => {
-        if (isSubscribed && !!invoice) {
-          setInvoiceFound(true);
+      getInvoice(chainId, invoiceId).then(inv => {
+        if (isSubscribed && !!inv) {
+          setInvoice(inv);
         }
       });
     }, POLL_INTERVAL);
@@ -45,7 +45,7 @@ export const RegisterSuccess = () => {
       isSubscribed = false;
       clearInterval(interval);
     };
-  }, [chainId, invoiceId, invoiceFound]);
+  }, [chainId, invoiceId, invoice]);
 
   return (
     <VStack
@@ -55,12 +55,13 @@ export const RegisterSuccess = () => {
       justify="center"
       my="8rem"
       maxW="30rem"
+      px="1rem"
     >
       <Heading fontWeight="normal" textAlign="center">
-        {invoiceFound ? 'Invoice Registered' : 'Invoice Registration Received'}
+        {invoice ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
       <Text color="white" textAlign="center" fontSize="sm">
-        {invoiceFound
+        {invoice
           ? 'You can view your transaction '
           : 'You can check the progress of your transaction '}
         <Link
@@ -72,7 +73,7 @@ export const RegisterSuccess = () => {
           here
         </Link>
       </Text>
-      {invoiceFound ? (
+      {invoice ? (
         <>
           <VStack w="100%" align="stretch">
             <Text fontWeight="bold">Your Invoice ID</Text>
@@ -86,16 +87,18 @@ export const RegisterSuccess = () => {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${invoiceId}`}
+                href={`/invoice/${getHexChainId(invoice.network)}/${
+                  invoice.id
+                }`}
                 color="white"
                 overflow="hidden"
               >
-                {invoiceId}
+                {invoice.id}
               </Link>
               {document.queryCommandSupported('copy') && (
                 <Button
                   ml={4}
-                  onClick={() => copyToClipboard(invoiceId.toLowerCase())}
+                  onClick={() => copyToClipboard(invoice.id)}
                   variant="ghost"
                   colorScheme="red"
                   h="auto"
@@ -120,20 +123,22 @@ export const RegisterSuccess = () => {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${invoiceId}`}
+                href={`/invoice/${getHexChainId(invoice.network)}/${
+                  invoice.id
+                }`}
                 color="white"
                 overflow="hidden"
-              >{`${
-                window.location.origin
-              }/invoice/${invoiceId.toLowerCase()}`}</Link>
+              >{`${window.location.origin}/invoice/${getHexChainId(
+                invoice.network,
+              )}/${invoice.id}`}</Link>
               {document.queryCommandSupported('copy') && (
                 <Button
                   ml={4}
                   onClick={() =>
                     copyToClipboard(
-                      `${
-                        window.location.origin
-                      }/invoice/${invoiceId.toLowerCase()}`,
+                      `${window.location.origin}/invoice/${getHexChainId(
+                        invoice.network,
+                      )}/${invoice.id}`,
                     )
                   }
                   variant="ghost"

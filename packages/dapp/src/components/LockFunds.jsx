@@ -15,6 +15,7 @@ import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import {
+  getHexChainId,
   getResolverInfo,
   getResolverString,
   getTokenInfo,
@@ -28,7 +29,7 @@ import { Loader } from './Loader';
 
 export const LockFunds = ({ invoice, balance }) => {
   const { chainId, provider } = useContext(Web3Context);
-  const { address, resolver, token, resolutionRate } = invoice;
+  const { network, address, resolver, token, resolutionRate } = invoice;
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [disputeReason, setDisputeReason] = useState('');
 
@@ -54,14 +55,16 @@ export const LockFunds = ({ invoice, balance }) => {
         setTransaction(tx);
         await tx.wait();
         setTimeout(() => {
-          window.location.href = `/invoice/${address}/locked`;
+          window.location.href = `/invoice/${getHexChainId(
+            network,
+          )}/${address}`;
         }, 2000);
       } catch (lockError) {
         setLocking(false);
         logError({ lockError });
       }
     }
-  }, [provider, locking, balance, address, disputeReason]);
+  }, [network, provider, locking, balance, address, disputeReason]);
 
   if (locking) {
     return (

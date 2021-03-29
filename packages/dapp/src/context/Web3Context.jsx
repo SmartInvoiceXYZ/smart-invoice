@@ -1,6 +1,12 @@
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { ethers } from 'ethers';
-import React, { createContext, useCallback, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import Web3 from 'web3';
 import Web3Modal from 'web3modal';
 
@@ -34,6 +40,7 @@ const web3Modal = new Web3Modal({
 });
 
 export const Web3Context = createContext();
+export const useWeb3 = () => useContext(Web3Context);
 
 export const Web3ContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -95,8 +102,10 @@ export const Web3ContextProvider = ({ children }) => {
       });
     } catch (web3ModalError) {
       logError({ web3ModalError });
+      throw web3ModalError;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const disconnect = useCallback(async () => {

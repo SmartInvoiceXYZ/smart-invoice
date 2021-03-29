@@ -12,10 +12,14 @@ import {
   isKnownResolver,
 } from '../utils/helpers';
 
-export const AccountLink = ({ address: inputAddress }) => {
-  const { chainId } = useContext(Web3Context);
+export const AccountLink = ({
+  address: inputAddress,
+  chainId: inputChainId,
+}) => {
+  const { chainId: walletChainId } = useContext(Web3Context);
   const address = inputAddress.toLowerCase();
   const [profile, setProfile] = useState();
+  const chainId = inputChainId || walletChainId;
   const isResolver = isKnownResolver(chainId, address);
 
   useEffect(() => {

@@ -10,16 +10,21 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
+import {
+  getHexChainId,
+  getTokenInfo,
+  getTxLink,
+  logError,
+} from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
 export const ResolveFunds = ({ invoice, balance, close }) => {
-  const { address, resolutionRate, token, isLocked } = invoice;
+  const { network, address, resolutionRate, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
@@ -38,7 +43,7 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
   const [comments, setComments] = useState('');
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
-  const resolveFunds = async () => {
+  const resolveFunds = useCallback(async () => {
     if (
       provider &&
       isLocked &&
@@ -62,13 +67,23 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
         );
         setTransaction(tx);
         await tx.wait();
-        window.location.href = `/invoice/${address}`;
+        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
       } catch (depositError) {
         setLoading(false);
         logError({ depositError });
       }
     }
-  };
+  }, [
+    provider,
+    isLocked,
+    balance,
+    comments,
+    clientAward,
+    providerAward,
+    resolverAward,
+    address,
+    network,
+  ]);
 
   return (
     <VStack w="100%" spacing="1rem">

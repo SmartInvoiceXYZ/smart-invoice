@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 module.exports.awaitInvoiceAddress = async receipt => {
   if (!receipt || !receipt.logs) return "";
   const abi = new ethers.utils.Interface([

@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import React, { useContext } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import BackgroundImage from '../assets/raid__cloud__castle.png';
 import { Web3Context } from '../context/Web3Context';
@@ -10,6 +11,8 @@ import { Header } from './Header';
 
 export const Layout = ({ children }) => {
   const { chainId } = useContext(Web3Context);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1;
   return (
     <Flex
@@ -26,7 +29,7 @@ export const Layout = ({ children }) => {
       bgSize="cover"
       color="red.500"
     >
-      <Header /> {isValid ? children : <ConnectWeb3 />} <Footer />
+      <Header /> {isHome || isValid ? children : <ConnectWeb3 />} <Footer />
     </Flex>
   );
 };

@@ -38,12 +38,12 @@ export const App = () => {
                 <Route exact path="/invoices" component={Invoices} />
                 <Route
                   exact
-                  path="/invoice/:invoiceId"
+                  path="/invoice/:hexChainId/:invoiceId"
                   component={ViewInvoice}
                 />
                 <Route
                   exact
-                  path="/invoice/:invoiceId/locked"
+                  path="/invoice/:hexChainId/:invoiceId/locked"
                   component={LockedInvoice}
                 />
                 <Redirect to="/" />

@@ -18,6 +18,7 @@ import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
 import { SearchIcon } from '../icons/SearchIcon';
 import { Container } from '../shared/Container';
 import { theme } from '../theme';
+import { getHexChainId } from '../utils/helpers';
 
 const InvoiceStatusLabel = ({ invoice }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
@@ -82,7 +83,13 @@ const InvoicesInner = ({ history }) => {
                 variant="ghost"
                 size="lg"
                 borderBottom={`solid 1px ${theme.colors.borderGrey}`}
-                onClick={() => history.push(`/invoice/${invoice.address}`)}
+                onClick={() =>
+                  history.push(
+                    `/invoice/${getHexChainId(invoice.network)}/${
+                      invoice.address
+                    }`,
+                  )
+                }
                 key={invoice.address}
                 _hover={{
                   bgColor: 'white20',

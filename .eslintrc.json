@@ -4,14 +4,22 @@
     "node": true,
     "es6": true
   },
-  "extends": ["airbnb", "prettier/react", "prettier"],
+  "extends": [
+    "airbnb",
+    "prettier/react",
+    "prettier",
+    "plugin:mocha/recommended"
+  ],
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module"
   },
-  "plugins": ["simple-import-sort"],
+  "plugins": ["simple-import-sort", "mocha"],
   "settings": {},
   "rules": {
+    // mocha recommended defaults
+    "func-names": "off",
+
     // Prefer non-default exports
     "import/no-default-export": "error",
     "import/prefer-default-export": "off",

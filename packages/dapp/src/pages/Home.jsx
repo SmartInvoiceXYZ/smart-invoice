@@ -2,17 +2,39 @@ import { Button, Flex, Text, useBreakpointValue } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
+import { useWeb3 } from '../context/Web3Context';
 import { Container } from '../shared/Container';
+import { logError } from '../utils/helpers';
 
 export const Home = () => {
+  const { connectAccount, account } = useWeb3();
+
   const history = useHistory();
 
   const createInvoice = async () => {
-    history.push('/create');
+    if (account) {
+      history.push('/create');
+    } else {
+      try {
+        await connectAccount();
+        history.push('/create');
+      } catch {
+        logError("Couldn't connect web3 wallet");
+      }
+    }
   };
 
   const viewInvoices = async () => {
-    history.push('/invoices');
+    if (account) {
+      history.push('/invoices');
+    } else {
+      try {
+        await connectAccount();
+        history.push('/invoices');
+      } catch {
+        logError("Couldn't connect web3 wallet");
+      }
+    }
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });

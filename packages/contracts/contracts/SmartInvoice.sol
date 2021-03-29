@@ -283,7 +283,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint8 clientShare = ruling[0];
     uint8 providerShare = ruling[1];
     uint8 denom = clientShare + providerShare;
-    uint256 providerAward = balance * providerShare / denom;
+    uint256 providerAward = (balance * providerShare) / denom;
     uint256 clientAward = balance - providerAward;
 
     if (providerAward > 0) {

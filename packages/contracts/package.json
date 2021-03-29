@@ -16,7 +16,7 @@
     "flatten-factory": "hardhat flatten contracts/SmartInvoiceFactory.sol > flat/factory.sol",
     "flatten-invoice": "hardhat flatten contracts/SmartInvoice.sol > flat/invoice.sol"
   },
-  "devDependencies": {
+  "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.1",
     "@nomiclabs/hardhat-ganache": "^2.0.0",

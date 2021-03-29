@@ -10,13 +10,18 @@ import { utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
+import {
+  getHexChainId,
+  getTokenInfo,
+  getTxLink,
+  logError,
+} from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
 
 export const WithdrawFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
-  const { address, token } = invoice;
+  const { network, address, token } = invoice;
 
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [transaction, setTransaction] = useState();
@@ -29,7 +34,7 @@ export const WithdrawFunds = ({ invoice, balance, close }) => {
         const tx = await withdraw(provider, address);
         setTransaction(tx);
         await tx.wait();
-        window.location.href = `/invoice/${address}`;
+        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
         setLoading(false);
       } catch (withdrawError) {
         close();
@@ -39,7 +44,7 @@ export const WithdrawFunds = ({ invoice, balance, close }) => {
     if (!loading && provider && balance.gte(0)) {
       send();
     }
-  }, [balance, address, provider, loading, close]);
+  }, [network, balance, address, provider, loading, close]);
 
   return (
     <VStack w="100%" spacing="1rem">

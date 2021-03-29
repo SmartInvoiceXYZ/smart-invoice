@@ -2,6 +2,7 @@ import gql from 'fake-tag';
 
 export const InvoiceDetails = gql`
   fragment InvoiceDetails on Invoice {
+    id
     address
     token
     client

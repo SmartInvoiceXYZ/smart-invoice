@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "./SmartInvoice.sol";
 
 contract SmartInvoiceFactory {
-
   uint256 public invoiceCount = 0;
   mapping(uint256 => address) internal _invoices;
   mapping(address => uint256) public resolutionRates;

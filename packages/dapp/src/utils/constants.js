@@ -4,6 +4,32 @@ const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
 export { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT };
 
+export const chainIds = {
+  xdai: 100,
+  mainnet: 1,
+  rinkeby: 4,
+  kovan: 42,
+};
+
+export const hexChainIds = {
+  xdai: '0x64',
+  mainnet: '0x01',
+  rinkeby: '0x04',
+  kovan: '0x2a',
+};
+
+export const networkLabels = {
+  100: 'xDai',
+  1: 'Ethereum',
+  3: 'Ropsten',
+  4: 'Rinkeby',
+  5: 'Görli',
+  42: 'Kovan',
+  56: 'BSC',
+  77: 'Sokol',
+  137: 'Matic',
+};
+
 export const networkNames = {
   1: 'ETH Mainnet',
   4: 'Rinkeby Testnet',

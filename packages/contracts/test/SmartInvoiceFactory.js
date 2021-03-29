@@ -1,4 +1,5 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 // const { waffle } = require("hardhat");
 const { awaitInvoiceAddress } = require("./utils");
 // const { provider } = waffle;
@@ -8,15 +9,22 @@ const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const WETH_XDAI = "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d";
 // const WETH_RINKEBY = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
+const resolverType = 0;
+const token = WETH_XDAI;
+const amounts = [10, 10];
+const total = amounts.reduce((t, v) => t + v, 0);
+const terminationTime =
+  parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
+const details = EMPTY_BYTES32;
 
-describe("SmartInvoiceFactory", async () => {
+describe("SmartInvoiceFactory", function () {
   let SmartInvoiceFactory;
   let invoiceFactory;
   let owner;
   let addr1;
   let addr2;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     SmartInvoiceFactory = await ethers.getContractFactory(
       "SmartInvoiceFactory",
     );
@@ -27,7 +35,7 @@ describe("SmartInvoiceFactory", async () => {
     [owner, addr1, addr2] = await ethers.getSigners();
   });
 
-  it("Should deploy with 0 invoiceCount", async () => {
+  it("Should deploy with 0 invoiceCount", async function () {
     const invoiceCount = await invoiceFactory.invoiceCount();
     expect(invoiceCount).to.equal(0);
   });
@@ -35,16 +43,9 @@ describe("SmartInvoiceFactory", async () => {
   let invoiceAddress;
   let client;
   let provider;
-  let resolverType = 0;
   let resolver;
-  let token = WETH_XDAI;
-  let amounts = [10, 10];
-  let total = amounts.reduce((t, v) => t + v, 0);
-  let terminationTime =
-    parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
-  let details = EMPTY_BYTES32;
 
-  it("Should deploy a SmartInvoice", async () => {
+  it("Should deploy a SmartInvoice", async function () {
     client = owner.address;
     provider = addr1.address;
     resolver = addr2.address;
@@ -85,7 +86,7 @@ describe("SmartInvoiceFactory", async () => {
     expect(await invoiceFactory.getInvoiceAddress(0)).to.equal(invoiceAddress);
   });
 
-  it("Should update resolutionRate", async () => {
+  it("Should update resolutionRate", async function () {
     let resolutionRate = await invoiceFactory.resolutionRates(addr2.address);
     expect(resolutionRate).to.equal(0);
     const receipt = await invoiceFactory
@@ -99,7 +100,7 @@ describe("SmartInvoiceFactory", async () => {
     expect(resolutionRate).to.equal(10);
   });
 
-  it("Should deploy with new resolutionRate", async () => {
+  it("Should deploy with new resolutionRate", async function () {
     await invoiceFactory.connect(addr2).updateResolutionRate(10, details);
     client = owner.address;
     provider = addr1.address;
@@ -127,7 +128,7 @@ describe("SmartInvoiceFactory", async () => {
     expect(await invoiceFactory.getInvoiceAddress(0)).to.equal(invoiceAddress);
   });
 
-  it("Should update invoiceCount", async () => {
+  it("Should update invoiceCount", async function () {
     expect(await invoiceFactory.invoiceCount()).to.equal(0);
     let receipt = await invoiceFactory.create(
       client,
