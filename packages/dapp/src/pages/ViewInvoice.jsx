@@ -11,7 +11,6 @@ import {
   ModalOverlay,
   SimpleGrid,
   Stack,
-  Tag,
   Text,
   Tooltip,
   useBreakpointValue,
@@ -42,7 +41,6 @@ import {
   getAddressLink,
   getDateString,
   getIpfsLink,
-  getNetworkLabel,
   getTokenInfo,
   getTxLink,
   logError,
@@ -87,12 +85,14 @@ export const ViewInvoice = ({
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   const smallScreen = useBreakpointValue({ base: true, sm: false });
 
-  if (
-    !utils.isAddress(invoiceId) ||
-    invoice === null ||
-    chainId !== invoiceChainId
-  ) {
-    return <InvoiceNotFound chainId={invoice ? invoiceChainId : null} />;
+  if (!utils.isAddress(invoiceId) || invoice === null) {
+    return <InvoiceNotFound />;
+  }
+
+  if (invoice && chainId !== invoiceChainId) {
+    return (
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+    );
   }
 
   if (!invoice || balanceLoading) {
@@ -212,9 +212,6 @@ export const ViewInvoice = ({
               {projectName}
             </Heading>
             <Flex align="center" color="white">
-              <Tag colorScheme="red" size="sm" fontFamily="mono" mr="0.5rem">
-                {getNetworkLabel(invoiceChainId)}
-              </Tag>
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal

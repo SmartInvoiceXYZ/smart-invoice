@@ -1,46 +1,55 @@
-import { Button, Heading, Text, VStack } from '@chakra-ui/react';
+import { Button, Flex, Image, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
+import Logo from '../assets/raidguild__logo.png';
+import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
 export const InvoiceNotFound = ({ heading, chainId }) => {
   const history = useHistory();
   return (
-    <Container overlay>
+    <Container>
       <VStack
-        w="100%"
         spacing="1rem"
+        background="background"
+        borderRadius="1rem"
         align="center"
-        justify="center"
-        my="8rem"
-        maxW="35rem"
-        px="1rem"
+        w="calc(100% - 2rem)"
+        p="2rem"
+        maxW="27.5rem"
+        mx={4}
+        color="white"
       >
-        <Heading fontWeight="normal" textAlign="center">
-          {heading || 'Invoice Not Found'}
-        </Heading>
         {chainId && (
-          <Text>
-            Please switch to{' '}
-            <b>
-              <u>{getNetworkName(chainId)}</u>
-            </b>{' '}
-            to view this invoice.
+          <Flex
+            bg="red.500"
+            borderRadius="50%"
+            p="1rem"
+            justify="center"
+            align="center"
+            color="white"
+          >
+            <WalletFilledIcon boxSize="1.75rem" />
+          </Flex>
+        )}
+        <Text fontSize="2xl" textAlign="center" fontFamily="heading">
+          {heading || 'Invoice Not Found'}
+        </Text>
+        {chainId && (
+          <Text color="greyText">
+            Please switch to <b>{getNetworkName(chainId)}</b> to view this
+            invoice.
           </Text>
         )}
 
         <Button
-          w="100%"
-          maxW="30rem"
-          variant="outline"
           colorScheme="red"
-          textTransform="uppercase"
+          px={12}
+          onClick={() => history.push('/')}
           fontFamily="mono"
           fontWeight="normal"
-          size="lg"
-          onClick={() => history.push('/')}
         >
           Return Home
         </Button>

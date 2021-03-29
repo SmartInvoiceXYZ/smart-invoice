@@ -4,6 +4,7 @@ export const InvoiceDetails = gql`
   fragment InvoiceDetails on Invoice {
     id
     address
+    network
     token
     client
     provider

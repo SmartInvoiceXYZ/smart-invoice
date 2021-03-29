@@ -55,12 +55,12 @@ export const ConnectWeb3 = () => {
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
         {loading ? (
-          <Text fontSize="xl" fontWeight="bold" mb={4}>
+          <Text fontSize="2xl" fontFamily="heading" mb={4}>
             Connecting Wallet
           </Text>
         ) : (
           <>
-            <Text fontSize="xl" fontWeight="bold" mb={4}>
+            <Text fontSize="2xl" fontFamily="heading" mb={4}>
               {account ? `Network not supported` : 'Connect Wallet'}
             </Text>
             <Text color="greyText" mb={4} textAlign="center">
@@ -71,7 +71,13 @@ export const ConnectWeb3 = () => {
           </>
         )}
         {account && !loading ? (
-          <Button onClick={disconnect} colorScheme="red" px={12}>
+          <Button
+            onClick={disconnect}
+            colorScheme="red"
+            px={12}
+            fontFamily="mono"
+            fontWeight="normal"
+          >
             Disconnect
           </Button>
         ) : (
@@ -80,6 +86,8 @@ export const ConnectWeb3 = () => {
             colorScheme="red"
             px={12}
             isLoading={loading}
+            fontFamily="mono"
+            fontWeight="normal"
           >
             Connect
           </Button>
