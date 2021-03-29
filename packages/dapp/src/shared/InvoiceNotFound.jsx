@@ -1,8 +1,7 @@
-import { Button, Flex, Image, Text, VStack } from '@chakra-ui/react';
+import { Button, Flex, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
-import Logo from '../assets/raidguild__logo.png';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
