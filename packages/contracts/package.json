@@ -6,7 +6,7 @@
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "help": "hardhat help",
-    "clean": "rm -rf ./cache",
+    "clean": "hardhat clean",
     "lint": "solhint contracts/*.sol",
     "deploy-kovan": "hardhat run scripts/deploy-factory.js --network kovan",
     "deploy-rinkeby": "hardhat run scripts/deploy-factory.js --network rinkeby",

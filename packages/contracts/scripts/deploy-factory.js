@@ -1,36 +1,36 @@
 /* eslint-disable */
-const { ethers } = require("hardhat");
+const { ethers } = require('hardhat');
 
 async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
-  console.log("Deploying SmartInvoiceFactory with the account:", address);
+  console.log('Deploying SmartInvoiceFactory with the account:', address);
 
   if (deployer.provider) {
     console.log(
-      "Account balance:",
+      'Account balance:',
       ethers.utils.formatEther(await deployer.provider.getBalance(address)),
-      "ETH",
+      'ETH',
     );
   }
 
   // We get the contract to deploy
-  const SmartInvoice = await ethers.getContractFactory("SmartInvoiceFactory");
+  const SmartInvoice = await ethers.getContractFactory('SmartInvoiceFactory');
   const smartInvoiceFactory = await SmartInvoice.deploy();
 
   const chainId = smartInvoiceFactory.deployTransaction.chainId;
   const txHash = smartInvoiceFactory.deployTransaction.hash;
-  console.log("SmartInvoiceFactory deploying to chainId:", chainId);
-  console.log("SmartInvoiceFactory deploying with tx:", txHash);
+  console.log('SmartInvoiceFactory deploying to chainId:', chainId);
+  console.log('SmartInvoiceFactory deploying with tx:', txHash);
 
   await smartInvoiceFactory.deployed();
 
-  console.log("SmartInvoiceFactory deployed to:", smartInvoiceFactory.address);
+  console.log('SmartInvoiceFactory deployed to:', smartInvoiceFactory.address);
 
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
 
   console.log(
-    "SmartInvoiceFactory deployed in the block #",
+    'SmartInvoiceFactory deployed in the block #',
     receipt.blockNumber,
   );
 }

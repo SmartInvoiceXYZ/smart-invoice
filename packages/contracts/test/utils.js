@@ -1,9 +1,9 @@
-const { ethers } = require("hardhat");
+const { ethers } = require('hardhat');
 
 module.exports.awaitInvoiceAddress = async receipt => {
-  if (!receipt || !receipt.logs) return "";
+  if (!receipt || !receipt.logs) return '';
   const abi = new ethers.utils.Interface([
-    "event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)",
+    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
   ]);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
   const eventTopic = abi.getEventTopic(eventFragment);
@@ -16,5 +16,9 @@ module.exports.awaitInvoiceAddress = async receipt => {
     );
     return decodedLog.invoice;
   }
-  return "";
+  return '';
+};
+
+module.exports.sleep = async s => {
+  return new Promise(resolve => setTimeout(resolve, s * 1000));
 };

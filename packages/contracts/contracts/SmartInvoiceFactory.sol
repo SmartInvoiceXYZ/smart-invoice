@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./SmartInvoice.sol";
+import './SmartInvoice.sol';
 
 contract SmartInvoiceFactory {
   uint256 public invoiceCount = 0;
