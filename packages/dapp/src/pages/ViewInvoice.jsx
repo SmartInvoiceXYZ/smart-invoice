@@ -57,12 +57,11 @@ export const ViewInvoice = ({
     Web3Context,
   );
   const [invoice, setInvoice] = useState();
-  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
-  const isValidNetwork = chainId === invoiceChainId;
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -88,8 +87,12 @@ export const ViewInvoice = ({
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   const smallScreen = useBreakpointValue({ base: true, sm: false });
 
-  if (!utils.isAddress(invoiceId) || invoice === null) {
-    return <InvoiceNotFound />;
+  if (
+    !utils.isAddress(invoiceId) ||
+    invoice === null ||
+    chainId !== invoiceChainId
+  ) {
+    return <InvoiceNotFound chainId={invoice ? invoiceChainId : null} />;
   }
 
   if (!invoice || balanceLoading) {
@@ -610,14 +613,7 @@ export const ViewInvoice = ({
               </VStack>
             )}
           </Flex>
-          {/* {!isValidNetwork && ( */}
-          {/*   <Text w="100%" textAlign="center"> */}
-          {/*     {`Please connect to the `} */}
-          {/*     <b>{getNetworkName(invoiceChainId)}</b> */}
-          {/*     {` to interact with the invoice`} */}
-          {/*   </Text> */}
-          {/* )} */}
-          {isValidNetwork && isResolver && (
+          {isResolver && (
             <SimpleGrid columns={1} spacing="1rem" w="100%">
               {isLocked ? (
                 <Button
@@ -644,90 +640,38 @@ export const ViewInvoice = ({
               )}
             </SimpleGrid>
           )}
-          {isValidNetwork &&
-            !dispute &&
-            !resolution &&
-            !isResolver &&
-            isClient && (
-              <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
-                {isLockable && (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontFamily="mono"
-                    fontWeight="normal"
-                    textTransform="uppercase"
-                    onClick={() => onLock()}
-                  >
-                    Lock
-                  </Button>
-                )}
-                {isExpired && balance.gt(0) && (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontFamily="mono"
-                    fontWeight="normal"
-                    textTransform="uppercase"
-                    onClick={() => onWithdraw()}
-                  >
-                    Withdraw
-                  </Button>
-                )}
-                {isReleasable && (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontWeight="normal"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onDeposit()}
-                  >
-                    Deposit
-                  </Button>
-                )}
+          {!dispute && !resolution && !isResolver && isClient && (
+            <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
+              {isLockable && (
                 <Button
                   size={buttonSize}
-                  gridArea={{
-                    base: Number.isInteger(gridColumns)
-                      ? 'auto/auto/auto/auto'
-                      : '2/1/2/span 2',
-                    sm: 'auto/auto/auto/auto',
-                  }}
+                  variant="outline"
                   colorScheme="red"
-                  fontWeight="normal"
                   fontFamily="mono"
+                  fontWeight="normal"
                   textTransform="uppercase"
-                  onClick={() => (isReleasable ? onRelease() : onDeposit())}
+                  onClick={() => onLock()}
                 >
-                  {isReleasable ? 'Release' : 'Deposit'}
+                  Lock
                 </Button>
-              </SimpleGrid>
-            )}
-          {isValidNetwork &&
-            !dispute &&
-            !resolution &&
-            !isResolver &&
-            !isClient && (
-              <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
-                {isLockable && (
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontFamily="mono"
-                    fontWeight="normal"
-                    textTransform="uppercase"
-                    onClick={() => onLock()}
-                  >
-                    Lock
-                  </Button>
-                )}
+              )}
+              {isExpired && balance.gt(0) && (
                 <Button
                   size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontFamily="mono"
+                  fontWeight="normal"
+                  textTransform="uppercase"
+                  onClick={() => onWithdraw()}
+                >
+                  Withdraw
+                </Button>
+              )}
+              {isReleasable && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
                   colorScheme="red"
                   fontWeight="normal"
                   fontFamily="mono"
@@ -736,8 +680,52 @@ export const ViewInvoice = ({
                 >
                   Deposit
                 </Button>
-              </SimpleGrid>
-            )}
+              )}
+              <Button
+                size={buttonSize}
+                gridArea={{
+                  base: Number.isInteger(gridColumns)
+                    ? 'auto/auto/auto/auto'
+                    : '2/1/2/span 2',
+                  sm: 'auto/auto/auto/auto',
+                }}
+                colorScheme="red"
+                fontWeight="normal"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => (isReleasable ? onRelease() : onDeposit())}
+              >
+                {isReleasable ? 'Release' : 'Deposit'}
+              </Button>
+            </SimpleGrid>
+          )}
+          {!dispute && !resolution && !isResolver && !isClient && (
+            <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+              {isLockable && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontFamily="mono"
+                  fontWeight="normal"
+                  textTransform="uppercase"
+                  onClick={() => onLock()}
+                >
+                  Lock
+                </Button>
+              )}
+              <Button
+                size={buttonSize}
+                colorScheme="red"
+                fontWeight="normal"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => onDeposit()}
+              >
+                Deposit
+              </Button>
+            </SimpleGrid>
+          )}
         </VStack>
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
           <ModalOverlay>

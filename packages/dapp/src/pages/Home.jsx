@@ -1,19 +1,19 @@
 import {
   Button,
   Flex,
+  Link,
   Text,
   useBreakpointValue,
   useDisclosure,
   VStack,
-  Link,
 } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
+import { WhatIsThisModal } from '../components/WhatIsThisModal';
 import { useWeb3 } from '../context/Web3Context';
 import { Container } from '../shared/Container';
 import { logError } from '../utils/helpers';
-import { WhatIsThisModal } from '../components/WhatIsThisModal';
 
 export const Home = () => {
   const { connectAccount, account } = useWeb3();
@@ -57,7 +57,7 @@ export const Home = () => {
     <Container
       justify="flex-start"
       direction={{ base: 'column', lg: 'row' }}
-        pt={{ base: '6rem', sm: "8rem",  lg: '0rem' }}
+      pt={{ base: '6rem', sm: '8rem', lg: '0rem' }}
     >
       <Flex
         direction="column"
@@ -113,7 +113,7 @@ export const Home = () => {
       </Flex>
       <Flex
         {...(betaWarningSmallScreen
-          ? { }
+          ? {}
           : {
               width: '100%',
               justify: 'flex-end',

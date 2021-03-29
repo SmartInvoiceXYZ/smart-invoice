@@ -1,14 +1,14 @@
 import {
   Button,
+  Heading,
+  Link,
   Modal,
   ModalCloseButton,
   ModalContent,
   ModalOverlay,
-  VStack,
-  Heading,
   Text,
-  Link,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
 import React from 'react';
 

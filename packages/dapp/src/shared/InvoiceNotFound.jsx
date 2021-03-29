@@ -1,10 +1,11 @@
-import { Button, Heading, VStack } from '@chakra-ui/react';
+import { Button, Heading, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 
+import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
-export const InvoiceNotFound = () => {
+export const InvoiceNotFound = ({ heading, chainId }) => {
   const history = useHistory();
   return (
     <Container overlay>
@@ -18,8 +19,17 @@ export const InvoiceNotFound = () => {
         px="1rem"
       >
         <Heading fontWeight="normal" textAlign="center">
-          Invoice Not Found
+          {heading || 'Invoice Not Found'}
         </Heading>
+        {chainId && (
+          <Text>
+            Please switch to{' '}
+            <b>
+              <u>{getNetworkName(chainId)}</u>
+            </b>{' '}
+            to view this invoice.
+          </Text>
+        )}
 
         <Button
           w="100%"

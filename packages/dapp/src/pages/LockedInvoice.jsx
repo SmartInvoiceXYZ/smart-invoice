@@ -42,7 +42,7 @@ export const LockedInvoice = ({
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
 
   if (!dispute) {
-    return <InvoiceNotFound />;
+    return <InvoiceNotFound heading="Invoice Not Locked" />;
   }
 
   return (
