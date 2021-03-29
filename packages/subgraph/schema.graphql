@@ -1,5 +1,6 @@
 type Invoice @entity {
   id: ID!
+  network: String!
   address: Bytes!
   factoryAddress: Bytes!
   token: Bytes!
