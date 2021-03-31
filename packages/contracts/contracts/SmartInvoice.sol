@@ -213,7 +213,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       uint256 balance = IERC20(_token).balanceOf(address(this));
       require(balance > 0, 'balance is 0');
 
-      IERC20(token).safeTransfer(client, balance);
+      IERC20(_token).safeTransfer(client, balance);
     }
   }
 
@@ -228,7 +228,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     if (resolverType == ADR.ARBITRATOR) {
       disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
         NUM_RULING_OPTIONS,
-        ''
+        abi.encodePacked(details)
       );
     }
     locked = true;
@@ -242,7 +242,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     bytes32 _details
   ) external nonReentrant {
     // called by individual
-    require(resolverType == ADR.INDIVIDUAL, '!lex');
+    require(resolverType == ADR.INDIVIDUAL, '!individual');
     require(locked, '!locked');
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, 'balance is 0');
@@ -265,7 +265,6 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
       IERC20(token).safeTransfer(resolver, resolutionFee);
     }
 
-    released = released + balance;
     milestone = amounts.length;
     locked = false;
 
