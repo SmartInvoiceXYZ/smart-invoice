@@ -25,13 +25,11 @@ describe("SmartInvoiceFactory", function () {
   beforeEach(async function () {
     [owner, addr1, addr2] = await ethers.getSigners();
 
-    let mockToken = await deployMockContract(owner, IERC20.abi);
+    const mockToken = await deployMockContract(owner, IERC20.abi);
     token = mockToken.address;
 
-    MockWrappedTokenFactory = await ethers.getContractFactory(
-      "MockWETH",
-    );
-    let mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
+    const MockWrappedTokenFactory = await ethers.getContractFactory("MockWETH");
+    const mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
 
     wrappedNativeToken = mockWrappedNativeToken.address;
 
