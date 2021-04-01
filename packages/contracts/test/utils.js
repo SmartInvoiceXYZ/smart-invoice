@@ -57,7 +57,7 @@ module.exports.getLockedInvoice = async (
   await newInvoice.deployed();
   expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
-  receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
+  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
   await expect(receipt)
     .to.emit(newInvoice, "Lock")
     .withArgs(client.address, EMPTY_BYTES32);

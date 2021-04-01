@@ -28,9 +28,9 @@
     "dotenv": "^8.2.0",
     "ethereum-waffle": "^3.0.0",
     "ethers": "^5.0.26",
-    "hardhat": "^2.1.1",
+    "hardhat": "^2.1.2",
     "mocha": "^8.3.2",
-    "solhint": "^3.2.1",
+    "solhint": "^3.3.4",
     "solidity-coverage": "^0.7.16"
   },
   "license": "MIT"

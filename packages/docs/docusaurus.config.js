@@ -38,7 +38,7 @@ module.exports = {
             {
               label: 'GitHub',
               href: 'https://github.com/raid-guild/smart-invoice',
-              position: 'left'
+              position: 'left',
             },
           ],
         },
@@ -47,13 +47,13 @@ module.exports = {
           items: [
             {
               label: 'Discord',
-              href: 'https://discord.gg/YwfYQbWG',
-              position: 'right'
+              href: 'https://discord.gg/CanD2WcK7W',
+              position: 'right',
             },
             {
               label: 'Twitter',
               href: 'https://twitter.com/RaidGuild',
-              position: 'right'
+              position: 'right',
             },
           ],
         },

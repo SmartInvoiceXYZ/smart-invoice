@@ -1,42 +1,34 @@
-import React from 'react';
-import clsx from 'clsx';
-import Layout from '@theme/Layout';
+/* eslint-disable import/no-unresolved */
 import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Layout from '@theme/Layout';
+import clsx from 'clsx';
+import React from 'react';
+
 import styles from './styles.module.css';
 
 const features = [
   {
     title: 'Streamlined Experience',
     imageUrl: 'img/undraw_docusaurus_mountain.svg',
-    description: (
-      <>
-        Enabling a simple interface to create and view payments
-      </>
-    ),
+    description: <>Enabling a simple interface to create and view payments</>,
   },
   {
     title: 'Information Access',
     imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
-      <>
-        Providing reliable, auditable, and immutable information flows.
-      </>
+      <>Providing reliable, auditable, and immutable information flows.</>
     ),
   },
   {
     title: 'Contractual Enforcement',
     imageUrl: 'img/undraw_docusaurus_react.svg',
-    description: (
-      <>
-        Through Impartial third-party dispute resolution
-      </>
-    ),
+    description: <>Through Impartial third-party dispute resolution</>,
   },
 ];
 
-function Feature({imageUrl, title, description}) {
+function Feature({ imageUrl, title, description }) {
   const imgUrl = useBaseUrl(imageUrl);
   return (
     <div className={clsx('col col--4', styles.feature)}>
@@ -53,11 +45,12 @@ function Feature({imageUrl, title, description}) {
 
 export default function Home() {
   const context = useDocusaurusContext();
-  const {siteConfig = {}} = context;
+  const { siteConfig = {} } = context;
   return (
     <Layout
       title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      description="Description will go into a meta tag in <head />"
+    >
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
@@ -68,7 +61,8 @@ export default function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/introducing-smart-invoice')}>
+              to={useBaseUrl('docs/introducing-smart-invoice')}
+            >
               Get Started
             </Link>
           </div>
@@ -80,7 +74,7 @@ export default function Home() {
             <div className="container">
               <div className="row">
                 {features.map((props, idx) => (
-                  <Feature key={idx} {...props} />
+                  <Feature key={idx.toString()} {...props} />
                 ))}
               </div>
             </div>
