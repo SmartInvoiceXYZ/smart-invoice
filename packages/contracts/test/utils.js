@@ -1,13 +1,13 @@
-const { ethers, waffle } = require('hardhat');
-const { expect } = require('chai');
+const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
 
 const EMPTY_BYTES32 =
-  '0x0000000000000000000000000000000000000000000000000000000000000000';
+  "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 module.exports.awaitInvoiceAddress = async receipt => {
-  if (!receipt || !receipt.logs) return '';
+  if (!receipt || !receipt.logs) return "";
   const abi = new ethers.utils.Interface([
-    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
+    "event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)",
   ]);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
   const eventTopic = abi.getEventTopic(eventFragment);
@@ -20,7 +20,7 @@ module.exports.awaitInvoiceAddress = async receipt => {
     );
     return decodedLog.invoice;
   }
-  return '';
+  return "";
 };
 
 module.exports.currentTimestamp = async () => {
@@ -38,6 +38,8 @@ module.exports.getLockedInvoice = async (
   amounts,
   resolutionRate,
   details,
+  mockWrappedNativeToken,
+  value = 0,
 ) => {
   const currentTime = await module.exports.currentTimestamp();
   const newInvoice = await SmartInvoice.deploy(
@@ -50,13 +52,14 @@ module.exports.getLockedInvoice = async (
     currentTime + 1000,
     resolutionRate,
     details,
+    mockWrappedNativeToken.address,
   );
   await newInvoice.deployed();
-  expect(await newInvoice['locked()']()).to.equal(false);
+  expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
-  receipt = newInvoice['lock(bytes32)'](EMPTY_BYTES32);
+  receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
   await expect(receipt)
-    .to.emit(newInvoice, 'Lock')
+    .to.emit(newInvoice, "Lock")
     .withArgs(client.address, EMPTY_BYTES32);
   return newInvoice;
 };
