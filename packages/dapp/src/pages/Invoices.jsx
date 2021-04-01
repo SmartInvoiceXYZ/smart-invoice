@@ -18,6 +18,7 @@ import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
 import { SearchIcon } from '../icons/SearchIcon';
 import { Container } from '../shared/Container';
 import { theme } from '../theme';
+import { getHexChainId } from '../utils/helpers';
 
 const InvoiceStatusLabel = ({ invoice }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
@@ -48,10 +49,12 @@ const InvoicesInner = ({ history }) => {
       <Flex
         direction="column"
         align="stretch"
-        m={{ base: '1rem', md: '2rem' }}
+        mx={{ base: '1rem', md: '2rem' }}
         w={{ base: '30rem', md: '35rem' }}
         maxW="calc(100%-4rem)"
         fontSize={{ base: 'md', sm: 'lg', lg: 'xl' }}
+        mt="6rem"
+        mb="4rem"
       >
         <Heading fontWeight="normal" mb="1rem">
           View Existing
@@ -74,15 +77,29 @@ const InvoicesInner = ({ history }) => {
           </InputRightElement>
         </InputGroup>
 
-        <Flex direction="column" align="stretch" w="100%" mt="0.5rem">
+        <Flex
+          direction="column"
+          align="stretch"
+          w="100%"
+          mt="0.5rem"
+          maxH="30rem"
+          overflowY="auto"
+        >
           {result &&
             result.map(invoice => (
               <Button
+                minH="3rem"
                 borderRadius="0"
                 variant="ghost"
                 size="lg"
                 borderBottom={`solid 1px ${theme.colors.borderGrey}`}
-                onClick={() => history.push(`/invoice/${invoice.address}`)}
+                onClick={() =>
+                  history.push(
+                    `/invoice/${getHexChainId(invoice.network)}/${
+                      invoice.address
+                    }`,
+                  )
+                }
                 key={invoice.address}
                 _hover={{
                   bgColor: 'white20',
@@ -90,6 +107,7 @@ const InvoicesInner = ({ history }) => {
                 _active={{
                   bgColor: 'white20',
                 }}
+                px={{ base: '0.5rem', md: '1rem' }}
               >
                 <Flex
                   fontSize={fontSize}

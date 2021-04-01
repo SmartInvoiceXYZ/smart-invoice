@@ -1,4 +1,4 @@
-import { Bytes } from '@graphprotocol/graph-ts';
+import { log, Bytes, dataSource } from '@graphprotocol/graph-ts';
 import {
   Invoice,
   Release,
@@ -7,7 +7,6 @@ import {
   Resolution,
   Deposit,
 } from '../generated/schema';
-import { log } from '@graphprotocol/graph-ts';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../generated/SmartInvoiceFactory/SmartInvoiceFactory';
 import {
@@ -37,6 +36,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   invoice.disputes = new Array<string>();
   invoice.resolutions = new Array<string>();
   invoice.creationTxHash = event.transaction.hash;
+  invoice.network = dataSource.network();
 
   invoice = updateInvoiceInfo(event.params.invoice, invoice);
   invoice.save();

@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "./SmartInvoice.sol";
 
 contract SmartInvoiceFactory {
-
   uint256 public invoiceCount = 0;
   mapping(uint256 => address) internal _invoices;
   mapping(address => uint256) public resolutionRates;
@@ -20,6 +19,12 @@ contract SmartInvoiceFactory {
     uint256 indexed resolutionRate,
     bytes32 details
   );
+
+  address public wrappedNativeToken;
+
+  constructor(address _wrappedNativeToken) {
+    wrappedNativeToken = _wrappedNativeToken;
+  }
 
   function create(
     address _client,
@@ -46,7 +51,8 @@ contract SmartInvoiceFactory {
         _amounts,
         _terminationTime,
         resolutionRate,
-        _details
+        _details,
+        wrappedNativeToken
       );
 
     address invoiceAddress = address(invoice);

@@ -6,6 +6,7 @@ node_modules
 # testing
 coverage
 lib-cov
+coverage.json
 
 # production
 build

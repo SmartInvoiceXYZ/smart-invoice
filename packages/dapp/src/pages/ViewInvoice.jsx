@@ -20,7 +20,6 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { Redirect } from 'react-router-dom';
 
 import { DepositFunds } from '../components/DepositFunds';
 import { Loader } from '../components/Loader';
@@ -34,6 +33,7 @@ import { CopyIcon } from '../icons/CopyIcon';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { AccountLink } from '../shared/AccountLink';
 import { Container } from '../shared/Container';
+import { InvoiceNotFound } from '../shared/InvoiceNotFound';
 import { balanceOf } from '../utils/erc20';
 import {
   copyToClipboard,
@@ -48,7 +48,7 @@ import {
 
 export const ViewInvoice = ({
   match: {
-    params: { invoiceId },
+    params: { hexChainId, invoiceId },
   },
 }) => {
   const { chainId, account, provider: ethersProvider } = useContext(
@@ -59,15 +59,16 @@ export const ViewInvoice = ({
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
+  const invoiceChainId = parseInt(hexChainId, 16);
 
   useEffect(() => {
-    if (utils.isAddress(invoiceId)) {
-      getInvoice(chainId, invoiceId).then(i => setInvoice(i));
+    if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
+      getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
-  }, [chainId, invoiceId]);
+  }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
-    if (invoice && ethersProvider) {
+    if (invoice && ethersProvider && chainId === invoiceChainId) {
       setBalanceLoading(true);
       balanceOf(ethersProvider, invoice.token, invoice.address)
         .then(b => {
@@ -76,7 +77,7 @@ export const ViewInvoice = ({
         })
         .catch(balanceError => logError({ balanceError }));
     }
-  }, [invoice, ethersProvider]);
+  }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -85,7 +86,13 @@ export const ViewInvoice = ({
   const smallScreen = useBreakpointValue({ base: true, sm: false });
 
   if (!utils.isAddress(invoiceId) || invoice === null) {
-    return <Redirect to="/" />;
+    return <InvoiceNotFound />;
+  }
+
+  if (invoice && chainId !== invoiceChainId) {
+    return (
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+    );
   }
 
   if (!invoice || balanceLoading) {
@@ -120,7 +127,7 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(invoiceChainId, token);
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
     ? BigNumber.from(0)
@@ -206,7 +213,7 @@ export const ViewInvoice = ({
             </Heading>
             <Flex align="center" color="white">
               <Link
-                href={getAddressLink(chainId, invoiceId.toLowerCase())}
+                href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
               >
                 {getAccountString(invoiceId)}
@@ -280,7 +287,7 @@ export const ViewInvoice = ({
                 <Text>{'Client Account: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
-                <AccountLink address={client} />
+                <AccountLink address={client} chainId={invoiceChainId} />
               </WrapItem>
             </Wrap>
             <Wrap>
@@ -288,7 +295,7 @@ export const ViewInvoice = ({
                 <Text>{'Provider Account: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
-                <AccountLink address={provider} />
+                <AccountLink address={provider} chainId={invoiceChainId} />
               </WrapItem>
             </Wrap>
             <Wrap>
@@ -296,7 +303,7 @@ export const ViewInvoice = ({
                 <Text>{'Arbitration Provider: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
-                <AccountLink address={resolver} />
+                <AccountLink address={resolver} chainId={invoiceChainId} />
               </WrapItem>
             </Wrap>
           </VStack>
@@ -372,7 +379,10 @@ export const ViewInvoice = ({
                           isExternal
                           color="grey"
                           fontStyle="italic"
-                          href={getTxLink(chainId, releases[index].txHash)}
+                          href={getTxLink(
+                            invoiceChainId,
+                            releases[index].txHash,
+                          )}
                         >
                           Released{' '}
                           {new Date(
@@ -387,7 +397,10 @@ export const ViewInvoice = ({
                             isExternal
                             color="grey"
                             fontStyle="italic"
-                            href={getTxLink(chainId, deposits[ind].txHash)}
+                            href={getTxLink(
+                              invoiceChainId,
+                              deposits[ind].txHash,
+                            )}
                           >
                             {full ? '' : 'Partially '}Deposited{' '}
                             {new Date(
@@ -499,13 +512,16 @@ export const ViewInvoice = ({
                 </Flex>
                 <Text>
                   {`A dispute is in progress with `}
-                  <AccountLink address={resolver} />
+                  <AccountLink address={resolver} chainId={invoiceChainId} />
                   <br />
                   <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
                     <u>View details on IPFS</u>
                   </Link>
                   <br />
-                  <Link href={getTxLink(chainId, dispute.txHash)} isExternal>
+                  <Link
+                    href={getTxLink(invoiceChainId, dispute.txHash)}
+                    isExternal
+                  >
                     <u>View transaction</u>
                   </Link>
                 </Text>
@@ -535,7 +551,10 @@ export const ViewInvoice = ({
                 >
                   <Flex flex={1}>
                     <Text textAlign={{ base: 'center', sm: 'left' }}>
-                      <AccountLink address={resolver} />
+                      <AccountLink
+                        address={resolver}
+                        chainId={invoiceChainId}
+                      />
                       {
                         ' has resolved the dispute and dispersed remaining funds'
                       }
@@ -545,7 +564,7 @@ export const ViewInvoice = ({
                       </Link>
                       <br />
                       <Link
-                        href={getTxLink(chainId, resolution.txHash)}
+                        href={getTxLink(invoiceChainId, resolution.txHash)}
                         isExternal
                       >
                         <u>View transaction</u>
@@ -563,7 +582,10 @@ export const ViewInvoice = ({
                           BigNumber.from(resolution.resolutionFee),
                           decimals,
                         )} ${symbol} to `}
-                        <AccountLink address={resolver} />
+                        <AccountLink
+                          address={resolver}
+                          chainId={invoiceChainId}
+                        />
                       </Text>
                     )}
                     <Text textAlign="right">
@@ -571,26 +593,39 @@ export const ViewInvoice = ({
                         BigNumber.from(resolution.clientAward),
                         decimals,
                       )} ${symbol} to `}
-                      <AccountLink address={client} />
+                      <AccountLink address={client} chainId={invoiceChainId} />
                     </Text>
                     <Text textAlign="right">
                       {`${utils.formatUnits(
                         BigNumber.from(resolution.providerAward),
                         decimals,
                       )} ${symbol} to `}
-                      <AccountLink address={provider} />
+                      <AccountLink
+                        address={provider}
+                        chainId={invoiceChainId}
+                      />
                     </Text>
                   </VStack>
                 </Flex>
               </VStack>
             )}
           </Flex>
-          {dispute && !resolution && isResolver && (
-            <SimpleGrid columns={isLocked || 2} spacing="1rem" w="100%">
-              {!isLocked && (
+          {isResolver && (
+            <SimpleGrid columns={1} spacing="1rem" w="100%">
+              {isLocked ? (
                 <Button
                   size={buttonSize}
-                  variant="outline"
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onResolve()}
+                >
+                  Resolve
+                </Button>
+              ) : (
+                <Button
+                  size={buttonSize}
                   colorScheme="red"
                   fontWeight="normal"
                   fontFamily="mono"
@@ -600,16 +635,6 @@ export const ViewInvoice = ({
                   Deposit
                 </Button>
               )}
-              <Button
-                size={buttonSize}
-                colorScheme="red"
-                fontWeight="normal"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => onResolve()}
-              >
-                Resolve
-              </Button>
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && isClient && (

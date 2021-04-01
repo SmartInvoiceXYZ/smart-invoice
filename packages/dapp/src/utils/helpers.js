@@ -1,11 +1,14 @@
 import { getAddress } from '@ethersproject/address';
 
 import {
+  chainIds,
   explorerUrls,
   graphUrls,
+  hexChainIds,
   invoiceFactory,
   IPFS_ENDPOINT,
   nativeSymbols,
+  networkLabels,
   networkNames,
   resolverInfo,
   resolvers,
@@ -39,7 +42,7 @@ export const isAddress = value => {
 };
 
 export const getNetworkName = chainId =>
-  networkNames[chainId] || networkNames[4];
+  networkNames[chainId] || 'Unknown Chain';
 
 export const getGraphUrl = chainId => graphUrls[chainId] || graphUrls[4];
 
@@ -139,3 +142,10 @@ export const isValidLink = url => {
   }
   return isValidURL(url);
 };
+
+export const getChainId = network => chainIds[network] || chainIds.rinkeby;
+
+export const getHexChainId = network =>
+  hexChainIds[network] || hexChainIds.rinkeby;
+
+export const getNetworkLabel = chainId => networkLabels[chainId] || 'unknown';

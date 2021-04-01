@@ -1,31 +1,31 @@
 import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 import { utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
-import { Link as RouterLink, Redirect, useHistory } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 
 import { Loader } from '../components/Loader';
-import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { Container } from '../shared/Container';
-import { getIpfsLink, getTxLink } from '../utils/helpers';
+import { InvoiceNotFound } from '../shared/InvoiceNotFound';
+import { getHexChainId, getIpfsLink, getTxLink } from '../utils/helpers';
 
 export const LockedInvoice = ({
   match: {
-    params: { invoiceId },
+    params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const history = useHistory();
+  const invoiceChainId = parseInt(hexChainId, 16);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId)) {
-      getInvoice(chainId, invoiceId).then(i => setInvoice(i));
+      getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
-  }, [invoiceId, chainId]);
+  }, [invoiceId, invoiceChainId]);
 
   if (!utils.isAddress(invoiceId) || invoice === null) {
-    return <Redirect to="/" />;
+    return <InvoiceNotFound />;
   }
 
   if (!invoice) {
@@ -36,13 +36,13 @@ export const LockedInvoice = ({
     );
   }
 
-  const { disputes, isLocked } = invoice;
+  const { id, network, disputes, isLocked } = invoice;
 
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
 
   if (!dispute) {
-    return <Redirect to="/" />;
+    return <InvoiceNotFound heading="Invoice Not Locked" />;
   }
 
   return (
@@ -54,6 +54,7 @@ export const LockedInvoice = ({
         justify="center"
         my="8rem"
         maxW="35rem"
+        px="1rem"
       >
         <Heading fontWeight="normal" textAlign="center">
           Funds Securely Locked
@@ -61,7 +62,7 @@ export const LockedInvoice = ({
         <Text color="white" textAlign="center" fontSize="sm" mb="1rem">
           You can view the transaction{' '}
           <Link
-            href={getTxLink(chainId, dispute.txHash)}
+            href={getTxLink(invoiceChainId, dispute.txHash)}
             isExternal
             color="red.500"
             textDecoration="underline"
@@ -84,7 +85,7 @@ export const LockedInvoice = ({
           ruling.
           <br />
           Return to the{' '}
-          <RouterLink to={`/invoice/${invoiceId}`}>
+          <RouterLink to={`/invoice/${getHexChainId(network)}/${id}`}>
             <u>invoice details page</u>
           </RouterLink>{' '}
           to view the results.

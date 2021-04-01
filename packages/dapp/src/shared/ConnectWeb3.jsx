@@ -5,13 +5,14 @@ import { Loader } from '../components/Loader';
 import { Web3Context } from '../context/Web3Context';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { SUPPORTED_NETWORKS } from '../utils/constants';
-import { getNetworkName } from '../utils/helpers';
+import { getNetworkName, logError } from '../utils/helpers';
 import { Container } from './Container';
 
 export const ConnectWeb3 = () => {
   const { connectAccount, loading, account, disconnect } = useContext(
     Web3Context,
   );
+
   if (loading) {
     return (
       <Container>
@@ -19,6 +20,14 @@ export const ConnectWeb3 = () => {
       </Container>
     );
   }
+
+  const onClick = async () => {
+    try {
+      await connectAccount();
+    } catch {
+      logError("Couldn't connect web3 wallet");
+    }
+  };
 
   const NETWORK_NAMES = SUPPORTED_NETWORKS.map(getNetworkName).join(' or ');
   return (
@@ -46,12 +55,12 @@ export const ConnectWeb3 = () => {
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
         {loading ? (
-          <Text fontSize="xl" fontWeight="bold" mb={4}>
+          <Text fontSize="2xl" fontFamily="heading" mb={4}>
             Connecting Wallet
           </Text>
         ) : (
           <>
-            <Text fontSize="xl" fontWeight="bold" mb={4}>
+            <Text fontSize="2xl" fontFamily="heading" mb={4}>
               {account ? `Network not supported` : 'Connect Wallet'}
             </Text>
             <Text color="greyText" mb={4} textAlign="center">
@@ -62,15 +71,23 @@ export const ConnectWeb3 = () => {
           </>
         )}
         {account && !loading ? (
-          <Button onClick={disconnect} colorScheme="red" px={12}>
+          <Button
+            onClick={disconnect}
+            colorScheme="red"
+            px={12}
+            fontFamily="mono"
+            fontWeight="normal"
+          >
             Disconnect
           </Button>
         ) : (
           <Button
-            onClick={connectAccount}
+            onClick={onClick}
             colorScheme="red"
             px={12}
             isLoading={loading}
+            fontFamily="mono"
+            fontWeight="normal"
           >
             Connect
           </Button>

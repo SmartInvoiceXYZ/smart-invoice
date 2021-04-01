@@ -6,6 +6,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Tag,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
@@ -20,7 +21,7 @@ import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
 import { NAV_ITEMS } from '../utils/constants';
-import { getAccountString } from '../utils/helpers';
+import { getAccountString, getNetworkLabel } from '../utils/helpers';
 import { Footer } from './Footer';
 import { ProfileButton } from './ProfileButton';
 
@@ -60,7 +61,7 @@ export const NavButton = ({ onClick, children }) => (
 );
 
 export const Header = () => {
-  const { account, disconnect } = useContext(Web3Context);
+  const { account, disconnect, chainId } = useContext(Web3Context);
   const [isOpen, onOpen] = useState(false);
   const history = useHistory();
   const [profile, setProfile] = useState();
@@ -144,6 +145,13 @@ export const Header = () => {
                       ? profile.name
                       : getAccountString(account)}
                   </Text>
+                  <Tag
+                    colorScheme="red"
+                    display={{ base: 'none', md: 'flex' }}
+                    size="sm"
+                  >
+                    {getNetworkLabel(chainId)}
+                  </Tag>
                 </Button>
               </PopoverTrigger>
               <PopoverContent bg="none" w="auto" mx="4rem">
@@ -198,9 +206,10 @@ export const Header = () => {
             : 'circle(100px at 90% -20%)',
         }}
       >
-        {account && profile && (
+        {account && profile && chainId && (
           <ProfileButton
             account={account}
+            chainId={chainId}
             profile={profile}
             disconnect={disconnect}
           />

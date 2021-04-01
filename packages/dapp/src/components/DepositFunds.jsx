@@ -23,6 +23,7 @@ import { Web3Context } from '../context/Web3Context';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { balanceOf } from '../utils/erc20';
 import {
+  getHexChainId,
   getNativeTokenSymbol,
   getTokenInfo,
   getTxLink,
@@ -46,7 +47,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, amounts, currentMilestone } = invoice;
+  const { address, token, network, amounts, currentMilestone } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
@@ -70,7 +71,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
       }
       setTransaction(tx);
       await tx.wait();
-      window.location.href = `/invoice/${address}`;
+      window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
     } catch (depositError) {
       setLoading(false);
       logError({ depositError });

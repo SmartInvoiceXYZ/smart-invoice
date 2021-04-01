@@ -44,6 +44,14 @@
     "buffer": "^5.6.0",
     "cids": "^1.0.0",
     "dotenv": "^8.2.0",
+    "eslint": "6.8.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-mocha": "^8.1.0",
+    "eslint-plugin-react": "7.20.3",
+    "eslint-plugin-react-hooks": "4.0.6",
+    "eslint-plugin-simple-import-sort": "5.0.3",
     "ethers": "^5.0.24",
     "husky": "^4.3.6",
     "ipfs-http-client": "^47.0.1",
@@ -51,14 +59,7 @@
     "lint-staged": "^10.3.0",
     "prettier": "^2.1.1",
     "prettier-plugin-solidity": "^1.0.0-alpha.59",
-    "uint8arrays": "^1.1.0",
-    "eslint": "6.8.0",
-    "eslint-config-airbnb": "^18.2.0",
-    "eslint-config-prettier": "6.11.0",
-    "eslint-plugin-import": "2.22.0",
-    "eslint-plugin-react": "7.20.3",
-    "eslint-plugin-react-hooks": "4.0.6",
-    "eslint-plugin-simple-import-sort": "5.0.3"
+    "uint8arrays": "^1.1.0"
   },
   "husky": {
     "hooks": {

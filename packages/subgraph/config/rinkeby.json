@@ -16,6 +16,11 @@
       "factoryName": "Version02",
       "startBlock": "8267769",
       "address": "0x838A88166E60931aFfabc9D7538A2D04cBda8932"
+    },
+    {
+      "factoryName": "Version03",
+      "startBlock": "8336815",
+      "address": "0xd56DFAB596fEB4c3C9AEb68738DCa99Ef27E4055"
     }
   ],
   "tokens": [

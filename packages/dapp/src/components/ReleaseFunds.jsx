@@ -10,13 +10,18 @@ import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
-import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
+import {
+  getHexChainId,
+  getTokenInfo,
+  getTxLink,
+  logError,
+} from '../utils/helpers';
 import { release } from '../utils/invoice';
 
 export const ReleaseFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
-  const { currentMilestone, amounts, address, token } = invoice;
+  const { network, currentMilestone, amounts, address, token } = invoice;
 
   let amount = BigNumber.from(amounts[currentMilestone]);
   amount =
@@ -35,7 +40,7 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
         const tx = await release(provider, address);
         setTransaction(tx);
         await tx.wait();
-        window.location.href = `/invoice/${address}`;
+        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
       } catch (releaseError) {
         logError({ releaseError });
         close();
@@ -44,7 +49,7 @@ export const ReleaseFunds = ({ invoice, balance, close }) => {
     if (!loading && provider && balance && balance.gte(amount)) {
       send();
     }
-  }, [amount, address, provider, balance, loading, close]);
+  }, [network, amount, address, provider, balance, loading, close]);
 
   return (
     <VStack w="100%" spacing="1rem">
