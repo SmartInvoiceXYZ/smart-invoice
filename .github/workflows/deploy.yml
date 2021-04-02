@@ -17,29 +17,21 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
-      - uses: actions/cache@v2
-        with:
-          path: '**/node_modules'
-          key: nodeModules-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+      # - uses: actions/cache@v2
+      #   with:
+      #     path: '**/node_modules'
+      #     key: nodeModules-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install Dependencies
         run: yarn --frozen-lockfile
         env:
           CI: true
+      - name: Build Docs
+        run: yarn docs:build
       - name: Build Dapp
         run: yarn dapp:build
         env:
           REACT_APP_INFURA_ID: ${{ secrets.INFURA_ID }}
           REACT_APP_DEBUG_LOGS: 'true'
-      - name: Deploy Dapp
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy --only hosting
-        env:
-          PROJECT_ID: smart-invoice-factory
-          PROJECT_PATH: ./packages/dapp
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      - name: Build Docs
-        run: yarn docs:build
       - name: Deploy Docs
         uses: w9jds/firebase-action@master
         with:
@@ -47,4 +39,12 @@ jobs:
         env:
           PROJECT_ID: smart-invoice-docs
           PROJECT_PATH: ./packages/docs
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Deploy Dapp
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting
+        env:
+          PROJECT_ID: smart-invoice-factory
+          PROJECT_PATH: ./packages/dapp
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
