@@ -6,17 +6,22 @@ module.exports = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
-  organizationName: 'raid-guild', // Usually your GitHub org/user name.
-  projectName: 'Smart-Invoice.FAQ', // Usually your repo name.
+  favicon: 'img/logo.png',
+  organizationName: 'raid-guild',
+  projectName: 'smart-invoice',
   themeConfig: {
     navbar: {
-      title: 'Smart Invoice FAQ',
+      title: 'Smart Invoice',
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/logo.svg',
+        alt: 'RaidGuild Logo',
+        src: 'img/logo.png',
       },
       items: [
+        {
+          href: 'https://smartinvoice.xyz',
+          label: 'Dapp',
+          position: 'right',
+        },
         {
           href: 'https://github.com/raid-guild/smart-invoice',
           label: 'GitHub',
@@ -67,15 +72,8 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/',
-        },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/blog/',
+            'https://github.com/raid-guild/smart-invoice/edit/master/packages/docs/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

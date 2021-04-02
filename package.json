@@ -17,6 +17,8 @@
     "subgraph:deploy-rinkeby": "yarn workspace @smart-invoice/factory-subgraph deploy-rinkeby",
     "dapp:start": "yarn workspace @smart-invoice/dapp start",
     "dapp:build": "yarn workspace @smart-invoice/dapp build",
+    "docs:start": "yarn workspace @smart-invoice/docs start",
+    "docs:build": "yarn workspace @smart-invoice/docs build",
     "contracts:build": "yarn workspace @smart-invoice/contracts build",
     "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
@@ -31,7 +33,8 @@
       "**/@nomiclabs/**",
       "**/solidity-coverage",
       "**/bulma",
-      "**/@ethersproject/**"
+      "**/@ethersproject/**",
+      "**/@docusaurus/**"
     ],
     "packages": [
       "packages/*"
