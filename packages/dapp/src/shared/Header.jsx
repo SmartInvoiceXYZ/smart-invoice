@@ -3,6 +3,7 @@ import {
   Button,
   Flex,
   Image,
+  Link as ChakraLink,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -12,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 
 import LogoText from '../assets/logo.svg';
 import Logo from '../assets/raidguild__logo.png';
@@ -20,7 +21,6 @@ import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
-import { NAV_ITEMS } from '../utils/constants';
 import { getAccountString, getNetworkLabel } from '../utils/helpers';
 import { Footer } from './Footer';
 import { ProfileButton } from './ProfileButton';
@@ -87,7 +87,7 @@ export const Header = () => {
       align="center"
     >
       <Box zIndex={5}>
-        <Link to="/">
+        <RouterLink to="/">
           <Flex align="center" p="1rem" m="1rem">
             <Image
               src={Logo}
@@ -100,7 +100,7 @@ export const Header = () => {
               h={{ base: '2rem', sm: '3rem', md: 'auto' }}
             />
           </Flex>
-        </Link>
+        </RouterLink>
       </Box>
       <Flex
         mx={{ base: '2rem', sm: '3rem' }}
@@ -214,19 +214,34 @@ export const Header = () => {
             disconnect={disconnect}
           />
         )}
-        {NAV_ITEMS.map(item => {
-          return (
-            <NavButton
-              key={item.name}
-              onClick={() => {
-                history.push(item.link);
-                onOpen(false);
-              }}
-            >
-              {item.name}
-            </NavButton>
-          );
-        })}
+        <StyledButton
+          onClick={() => {
+            history.push('/');
+            onOpen(false);
+          }}
+          transition="all 0.5s ease 0.4s"
+          my="1rem"
+          variant="link"
+          color="red.500"
+          fontWeight="normal"
+          fontSize="1.5rem"
+        >
+          Home
+        </StyledButton>
+
+        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
+          <StyledButton
+            as="span"
+            transition="all 0.5s ease 0.4s"
+            my="1rem"
+            variant="link"
+            color="red.500"
+            fontWeight="normal"
+            fontSize="1.5rem"
+          >
+            FAQ
+          </StyledButton>
+        </ChakraLink>
         <Footer center />
       </Flex>
     </Flex>

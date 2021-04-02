@@ -53,7 +53,11 @@ export const WhatIsThisModal = ({ isOpen, onClose }) => {
 
             <Text w="100%">
               If you have more questions,{' '}
-              <Link href="/faq" textDecor="underline" isExternal>
+              <Link
+                href="https://docs.smartinvoice.xyz"
+                textDecor="underline"
+                isExternal
+              >
                 check out our FAQ.
               </Link>
             </Text>

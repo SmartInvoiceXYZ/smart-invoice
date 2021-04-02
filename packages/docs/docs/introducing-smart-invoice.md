@@ -2,7 +2,7 @@
 title: What is Smart Invoice?
 ---
 
-Smart Invoice is a is a sophisticated invoicing tool that facilitates payments between organizations or `Clients`, and freelancers or `Providers`. Smart Invoice establishes a set of shared expectations between a client and a provider who are engaged in business with one another. v1 features are as follows:
+Smart Invoice is a sophisticated invoicing tool that facilitates payments between organizations or `Clients`, and freelancers or `Providers`. Smart Invoice establishes a set of shared expectations between a client and a provider who are engaged in business with one another. v1 features are as follows:
 
 1. Each invoice is its own contract
 2. Deposits may come from any address

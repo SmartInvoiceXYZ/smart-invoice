@@ -142,7 +142,7 @@ export const Home = () => {
           </Text>
 
           <Link
-            href="/faq"
+            href="https://docs.smartinvoice.xyz"
             textDecor="underline"
             isExternal
             fontSize={smallFontSize}

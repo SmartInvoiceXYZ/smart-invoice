@@ -101,17 +101,6 @@ export const INVOICE_VERSION = 'smart-invoice-v0';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
-export const NAV_ITEMS = [
-  {
-    name: 'Home',
-    link: '/',
-  },
-  {
-    name: 'FAQ',
-    link: '/faq',
-  },
-];
-
 export const STEPS = {
   1: {
     step_title: 'Project Details',

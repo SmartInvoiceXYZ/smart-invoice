@@ -14,8 +14,17 @@ build/Release
 generated
 cache
 
+# Generated files
+.docusaurus
+.cache-loader
+
 # environment variables
-.env*
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
 
 # logs
 logs
