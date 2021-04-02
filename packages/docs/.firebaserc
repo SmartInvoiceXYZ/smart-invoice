@@ -1,5 +1,5 @@
 {
   "projects": {
-    "dapp": "smart-invoice-factory"
+    "default": "smart-invoice-docs"
   }
 }

@@ -35,7 +35,7 @@ jobs:
         with:
           args: deploy --only hosting
         env:
-          PROJECT_ID: dapp
+          PROJECT_ID: smart-invoice-factory
           PROJECT_PATH: ./packages/dapp
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Build Docs
@@ -45,6 +45,6 @@ jobs:
         with:
           args: deploy --only hosting
         env:
-          PROJECT_ID: docs
+          PROJECT_ID: smart-invoice-docs
           PROJECT_PATH: ./packages/docs
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

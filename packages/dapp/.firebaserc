@@ -1,5 +1,5 @@
 {
   "projects": {
-    "docs": "smart-invoice-docs"
+    "default": "smart-invoice-factory"
   }
 }
