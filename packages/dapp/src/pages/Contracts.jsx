@@ -26,7 +26,7 @@ export const Contracts = () => {
         textAlign="center"
         color="red.500"
       >
-        Contract Contracts
+        Contracts
       </Heading>
 
       {networks.map(chainId => {

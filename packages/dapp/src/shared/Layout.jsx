@@ -12,8 +12,9 @@ import { Header } from './Header';
 export const Layout = ({ children }) => {
   const { chainId } = useContext(Web3Context);
   const location = useLocation();
-  const isHome = location.pathname === '/';
-  const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1;
+  const isOpenPath =
+    location.pathname === '/' || location.pathname === '/contracts';
+  const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1 || isOpenPath;
   return (
     <Flex
       position="relative"
@@ -29,7 +30,7 @@ export const Layout = ({ children }) => {
       bgSize="cover"
       color="red.500"
     >
-      <Header /> {isHome || isValid ? children : <ConnectWeb3 />} <Footer />
+      <Header /> {isValid ? children : <ConnectWeb3 />} <Footer />
     </Flex>
   );
 };
