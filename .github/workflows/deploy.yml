@@ -40,9 +40,6 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Build Docs
         run: yarn docs:build
-        env:
-          REACT_APP_INFURA_ID: ${{ secrets.INFURA_ID }}
-          REACT_APP_DEBUG_LOGS: 'true'
       - name: Deploy Docs
         uses: w9jds/firebase-action@master
         with:
