@@ -1,3 +1,4 @@
+import { SafeAppWeb3Modal as Web3Modal } from '@gnosis.pm/safe-apps-web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { ethers } from 'ethers';
 import React, {
@@ -8,7 +9,6 @@ import React, {
   useState,
 } from 'react';
 import Web3 from 'web3';
-import Web3Modal from 'web3modal';
 
 import { theme } from '../theme';
 import { SUPPORTED_NETWORKS } from '../utils/constants';
@@ -43,7 +43,7 @@ export const Web3Context = createContext();
 export const useWeb3 = () => useContext(Web3Context);
 
 export const Web3ContextProvider = ({ children }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState({});
   const { web3, account, ethersProvider, chainId } = provider;
 
@@ -117,11 +117,11 @@ export const Web3ContextProvider = ({ children }) => {
     if (window.ethereum) {
       window.ethereum.autoRefreshOnNetworkChange = false;
     }
-    if (web3Modal.cachedProvider) {
-      connectWeb3();
-    } else {
-      setLoading(false);
-    }
+    (async function load() {
+      if (web3Modal.cachedProvider || (await web3Modal.canAutoConnect())) {
+        connectWeb3();
+      }
+    })();
   }, [connectWeb3]);
 
   return (
