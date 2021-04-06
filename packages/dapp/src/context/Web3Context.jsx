@@ -44,32 +44,29 @@ export const useWeb3 = () => useContext(Web3Context);
 
 export const Web3ContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState({});
-  const { web3, account, ethersProvider, chainId } = provider;
+  const [{ account, provider, chainId }, setWeb3] = useState({});
 
   const setWeb3Provider = async (prov, updateAccount = false) => {
     if (prov) {
       const web3Provider = new Web3(prov);
-      const providerNetwork = await web3Provider.eth.getChainId();
+      const gotProvider = new ethers.providers.Web3Provider(
+        web3Provider.currentProvider,
+      );
+      const gotChainId = Number(prov.chainId);
       if (updateAccount) {
-        const gotAccounts = await web3Provider.eth.getAccounts();
-        setProvider(_provider => ({
+        const signer = gotProvider.getSigner();
+        const gotAccount = await signer.getAddress();
+        setWeb3(_provider => ({
           ..._provider,
-          web3: web3Provider,
-          ethersProvider: new ethers.providers.Web3Provider(
-            web3Provider.currentProvider,
-          ),
-          chainId: providerNetwork,
-          account: gotAccounts[0],
+          provider: gotProvider,
+          chainId: gotChainId,
+          account: gotAccount,
         }));
       } else {
-        setProvider(_provider => ({
+        setWeb3(_provider => ({
           ..._provider,
-          web3: web3Provider,
-          ethersProvider: new ethers.providers.Web3Provider(
-            web3Provider.currentProvider,
-          ),
-          chainId: providerNetwork,
+          provider: gotProvider,
+          chainId: gotChainId,
         }));
       }
     }
@@ -81,25 +78,23 @@ export const Web3ContextProvider = ({ children }) => {
     }
   }, [chainId]);
 
-  const connectWeb3 = useCallback(async () => {
+  const connectWeb3 = useCallback(async (isGnosisSafe = false) => {
     try {
       setLoading(true);
-      const modalProvider = await web3Modal.connect();
+      const modalProvider = await web3Modal.requestProvider();
 
       await setWeb3Provider(modalProvider, true);
-
-      // Subscribe to accounts change
-      modalProvider.on('accountsChanged', accounts => {
-        setProvider(_provider => ({
-          ..._provider,
-          account: accounts[0],
-        }));
-      });
-
-      // Subscribe to chainId change
-      modalProvider.on('chainChanged', () => {
-        setWeb3Provider(modalProvider);
-      });
+      if (!isGnosisSafe) {
+        modalProvider.on('accountsChanged', accounts => {
+          setWeb3(_provider => ({
+            ..._provider,
+            account: accounts[0],
+          }));
+        });
+        modalProvider.on('chainChanged', () => {
+          setWeb3Provider(modalProvider);
+        });
+      }
     } catch (web3ModalError) {
       logError({ web3ModalError });
       throw web3ModalError;
@@ -110,7 +105,7 @@ export const Web3ContextProvider = ({ children }) => {
 
   const disconnect = useCallback(async () => {
     web3Modal.clearCachedProvider();
-    setProvider({});
+    setWeb3({});
   }, []);
 
   useEffect(() => {
@@ -118,7 +113,9 @@ export const Web3ContextProvider = ({ children }) => {
       window.ethereum.autoRefreshOnNetworkChange = false;
     }
     (async function load() {
-      if (web3Modal.cachedProvider || (await web3Modal.canAutoConnect())) {
+      if (await web3Modal.canAutoConnect()) {
+        connectWeb3(true);
+      } else if (web3Modal.cachedProvider) {
         connectWeb3();
       }
     })();
@@ -129,8 +126,7 @@ export const Web3ContextProvider = ({ children }) => {
       value={{
         loading,
         account,
-        provider: ethersProvider,
-        web3,
+        provider,
         chainId,
         connectAccount: connectWeb3,
         disconnect,
