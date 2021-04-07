@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time, max-states-count
+// solhint-disable not-rely-on-time
 
 pragma solidity ^0.8.0;
 
@@ -35,23 +35,24 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   ];
 
   uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
-  address public wrappedNativeToken;
+  address public immutable wrappedNativeToken;
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
 
-  address public client;
-  address public provider;
-  ADR public resolverType;
-  address public resolver;
-  address public token;
-  bool public locked;
+  address public immutable client;
+  address public immutable provider;
+  ADR public immutable resolverType;
+  address public immutable resolver;
+  address public immutable token;
+  uint256 public immutable terminationTime;
+  uint256 public immutable resolutionRate;
+  bytes32 public immutable details;
+
   uint256[] public amounts; // milestones split into amounts
-  uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
   uint256 public total = 0;
+  bool public locked;
+  uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
   uint256 public released = 0;
-  uint256 public terminationTime;
-  uint256 public resolutionRate;
-  bytes32 public details;
   uint256 public disputeId;
 
   event Register(
@@ -111,7 +112,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     details = _details;
     wrappedNativeToken = _wrappedNativeToken;
 
-    emit Register(client, provider, amounts);
+    emit Register(_client, _provider, amounts);
   }
 
   function _release() internal {

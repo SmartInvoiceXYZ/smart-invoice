@@ -8,7 +8,7 @@ export const CONFIG = {
     100: {
       SUBGRAPH: 'dan13ram/xdai-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
-      INVOICE_FACTORY: '0x3893b6deB66A8BFEBda3333103064668F89Bf9DD'.toLowerCase(),
+      INVOICE_FACTORY: '0x01b5845ef936CDEB12155Feaba82DfdecB57AE20'.toLowerCase(),
       TOKENS: {
         ['0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase()]: {
           decimals: 18,
@@ -31,7 +31,7 @@ export const CONFIG = {
     4: {
       SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY: '0xd56DFAB596fEB4c3C9AEb68738DCa99Ef27E4055'.toLowerCase(),
+      INVOICE_FACTORY: '0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,

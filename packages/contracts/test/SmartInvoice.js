@@ -38,7 +38,7 @@ describe("SmartInvoice", function () {
     const MockArbitratorFactory = await ethers.getContractFactory(
       "MockArbitrator",
     );
-    mockArbitrator = await MockArbitratorFactory.deploy();
+    mockArbitrator = await MockArbitratorFactory.deploy(10);
 
     SmartInvoice = await ethers.getContractFactory("SmartInvoice");
     invoice = await SmartInvoice.deploy(

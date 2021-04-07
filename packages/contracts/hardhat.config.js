@@ -11,6 +11,12 @@ const { INFURA_PROJECT_ID, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
 module.exports = {
   solidity: {
     version: "0.8.0",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
   },
   paths: {
     artifacts: "./build",

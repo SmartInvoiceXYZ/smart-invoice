@@ -20,7 +20,7 @@ contract SmartInvoiceFactory {
     bytes32 details
   );
 
-  address public wrappedNativeToken;
+  address public immutable wrappedNativeToken;
 
   constructor(address _wrappedNativeToken) {
     wrappedNativeToken = _wrappedNativeToken;
