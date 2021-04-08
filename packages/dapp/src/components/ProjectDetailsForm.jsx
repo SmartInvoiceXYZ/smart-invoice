@@ -118,7 +118,7 @@ export const ProjectDetailsForm = ({ display }) => {
           fontSize="xs"
           fontWeight="700"
         >
-          {dateInvalid ? 'Invalid Safety Valve Date' : ''}
+          {dateInvalid ? 'Invalid Safety Valve Date: Already Passed' : ''}
         </Text>
       )}
     </VStack>

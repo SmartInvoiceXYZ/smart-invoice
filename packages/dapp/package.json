@@ -3,30 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@chakra-ui/icon": "^1.1.4",
-    "@chakra-ui/react": "^1.1.6",
-    "@chakra-ui/theme": "^1.4.1",
+    "@chakra-ui/icon": "^1.1.5",
+    "@chakra-ui/react": "^1.5.0",
+    "@chakra-ui/theme": "^1.8.1",
     "@emotion/react": "^11.1.4",
-    "@emotion/styled": "^11.0.0",
-    "@ethersproject/address": "^5.0.9",
+    "@emotion/styled": "^11.3.0",
+    "@ethersproject/address": "^5.1.0",
+    "@gnosis.pm/safe-apps-provider": "^0.2.4",
     "@gnosis.pm/safe-apps-sdk": "^2.2.0",
-    "@gnosis.pm/safe-apps-web3modal": "^0.2.1",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
-    "@walletconnect/web3-provider": "^1.3.4",
+    "@gnosis.pm/safe-apps-web3modal": "^0.2.2",
+    "@walletconnect/web3-provider": "^1.4.1",
     "base-58": "^0.0.1",
-    "ethers": "^5.0.26",
+    "ethers": "^5.1.0",
     "fake-tag": "^2.0.0",
     "focus-visible": "^5.2.0",
-    "framer-motion": "^3.2.2-rc.1",
+    "framer-motion": "^4.1.3",
     "ipfs-http-client": "34.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
-    "urql": "^1.11.6",
-    "web3": "^1.3.3",
+    "urql": "^2.0.2",
+    "web3": "^1.3.5",
     "web3modal": "^1.9.3"
   },
   "scripts": {
@@ -52,9 +50,11 @@
     ]
   },
   "devDependencies": {
-    "cids": "^1.1.5",
+    "eslint-plugin-flowtype": "^5.6.0",
     "eslint-plugin-import": "2.22.1",
-    "ethers": "^5.0.26",
-    "husky": "^4.3.8"
+    "eslint-plugin-react": "7.23.1",
+    "eslint-plugin-react-hooks": "4.2.0",
+    "ethers": "^5.1.0",
+    "husky": "^6.0.0"
   }
 }
