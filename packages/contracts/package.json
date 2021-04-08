@@ -13,8 +13,8 @@
     "deploy-xdai": "hardhat run scripts/deploy-factory.js --network xdai",
     "verify-rinkeby": "hardhat verify --network rinkeby",
     "verify-xdai": "hardhat verify --network xdai",
-    "flatten-factory": "hardhat flatten contracts/SmartInvoiceFactory.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/factory.sol",
-    "flatten-invoice": "hardhat flatten contracts/SmartInvoice.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/invoice.sol",
+    "flatten-factory": "hardhat flatten contracts/SmartInvoiceFactory.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SmartInvoiceFactory.sol",
+    "flatten-invoice": "hardhat flatten contracts/SmartInvoice.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SmartInvoice.sol",
     "flatten": "yarn flatten-factory && yarn flatten-invoice"
   },
   "dependencies": {
