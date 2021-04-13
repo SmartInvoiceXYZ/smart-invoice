@@ -1,115 +1,218 @@
-import React from 'react';
-import { utils, BigNumber } from 'ethers';
+import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useState } from 'react';
 
-const PaymentDetailsForm = ({ context }) => {
+import { CreateContext } from '../context/CreateContext';
+import { Web3Context } from '../context/Web3Context';
+import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
+import {
+  getResolverInfo,
+  getResolvers,
+  getResolverString,
+  getTokenInfo,
+  getTokens,
+  isKnownResolver,
+} from '../utils/helpers';
+import { getResolutionRateFromFactory } from '../utils/invoice';
+
+export const PaymentDetailsForm = ({ display }) => {
+  const { chainId, provider } = useContext(Web3Context);
+  const RESOLVERS = getResolvers(chainId);
+  const TOKENS = getTokens(chainId);
+  const {
+    clientAddress,
+    setClientAddress,
+    paymentAddress,
+    setPaymentAddress,
+    paymentToken,
+    setPaymentToken,
+    paymentDue,
+    setPaymentDue,
+    milestones,
+    setMilestones,
+    arbitrationProvider,
+    setArbitrationProvider,
+    setPayments,
+    termsAccepted,
+    setTermsAccepted,
+  } = useContext(CreateContext);
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
+  const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
+  const [paymentDueInput, setPaymentDueInput] = useState('');
+
+  const [clientInvalid, setClientInvalid] = useState(false);
+  const [providerInvalid, setProviderInvalid] = useState(false);
+  const [resolverInvalid, setResolverInvalid] = useState(false);
+  const [paymentInvalid, setPaymentInvalid] = useState(false);
+  const [milestonesInvalid, setMilestonesInvalid] = useState(false);
+  const [resolutionRate, setResolutionRate] = useState(20);
+
+  useEffect(() => {
+    getResolutionRateFromFactory(chainId, provider, arbitrationProvider).then(
+      setResolutionRate,
+    );
+  }, [chainId, provider, arbitrationProvider]);
+
   return (
-    <section className="payment-details-form">
-      <div className="ordered-inputs">
-        <p className="tooltip">
-          <sl-tooltip content="This will be the address used to access the invoice">
-            <i className="far fa-question-circle"></i>
-          </sl-tooltip>
-        </p>
-        <label>Client Address</label>
-        <input
-          type="text"
-          onChange={e => context.setClientAddress(e.target.value)}
-        />
-      </div>
-      <div className="ordered-inputs">
-        <p className="tooltip">
-          <sl-tooltip content="eg. Multisig, Gnosis safe">
-            <i className="far fa-question-circle"></i>
-          </sl-tooltip>
-        </p>
-        <label>Payment Address</label>
-        <input
-          type="text"
-          onChange={e => context.setPaymentAddress(e.target.value)}
-        />
-      </div>
-      <div className="parallel-inputs">
-        <div className="ordered-inputs">
-          <label>Total Payment Due</label>
-          <input
-            type="number"
-            onChange={e =>
-              context.setPaymentDue(utils.parseEther(e.target.value))
+    <VStack w="100%" spacing="1rem" display={display}>
+      <OrderedInput
+        label="Client Address"
+        value={clientAddress}
+        isInvalid={clientInvalid}
+        setValue={v => {
+          setClientAddress(v);
+          setClientInvalid(!utils.isAddress(v));
+        }}
+        error={clientInvalid ? 'Invalid Address' : ''}
+        tooltip="This will be the address used to access the invoice"
+      />
+      <OrderedInput
+        label="Service Provider Address"
+        value={paymentAddress}
+        isInvalid={providerInvalid}
+        setValue={v => {
+          setPaymentAddress(v);
+          setProviderInvalid(!utils.isAddress(v));
+        }}
+        error={providerInvalid ? 'Invalid Address' : ''}
+        tooltip="Recipient of the funds"
+      />
+      <SimpleGrid
+        w="100%"
+        columns={{ base: 2, sm: 3 }}
+        spacing="1rem"
+        mb={paymentInvalid ? '-0.5rem' : ''}
+      >
+        <OrderedInput
+          label="Total Payment Due"
+          type="number"
+          value={paymentDueInput}
+          isInvalid={paymentInvalid}
+          setValue={v => {
+            setPaymentDueInput(v);
+            if (v && !isNaN(Number(v))) {
+              const p = utils.parseUnits(v, decimals);
+              setPaymentDue(p);
+              setPaymentInvalid(p.lte(0));
+            } else {
+              setPaymentDue(BigNumber.from(0));
+              setPaymentInvalid(true);
             }
-          />
-        </div>
-        <div className="ordered-inputs">
-          <label>Payment Token</label>
-          <select
-            name="token"
-            id="token"
-            onChange={e => context.setPaymentToken(e.target.value)}
-          >
-            <option value="DAI">DAI</option>
-            <option value="wETH">wETH</option>
-          </select>
-        </div>
-        <div className="ordered-inputs">
-          <p className="tooltip">
-            <sl-tooltip content="Number of milestones in which the total payment will be processed">
-              <i className="far fa-question-circle"></i>
-            </sl-tooltip>
-          </p>
-          <label>Number of Payments</label>
-          <input
-            type="number"
-            onChange={e => {
-              const numMilestones = Number(e.target.value);
-              context.setMilestones(numMilestones);
-              const payments = Array(numMilestones)
+          }}
+        />
+        <OrderedSelect
+          value={paymentToken}
+          setValue={setPaymentToken}
+          label="Payment Token"
+        >
+          {TOKENS.map(token => (
+            <option value={token} key={token}>
+              {getTokenInfo(chainId, token).symbol}
+            </option>
+          ))}
+        </OrderedSelect>
+        <OrderedInput
+          gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
+          label="Number of Payments"
+          type="number"
+          value={milestones}
+          isInvalid={milestonesInvalid}
+          setValue={v => {
+            const numMilestones = v ? Number(v) : 1;
+            setMilestones(v);
+            setPayments(
+              Array(numMilestones)
                 .fill(1)
                 .map(() => {
                   return BigNumber.from(0);
-                });
-              context.setPayments(payments);
-            }}
-          />
-        </div>
-      </div>
-      <div className="parallel-inputs">
-        <div className="ordered-inputs">
-          <p className="tooltip">
-            <sl-tooltip content="Arbitration provider that will be used incase of a dispute">
-              <i className="far fa-question-circle"></i>
-            </sl-tooltip>
-          </p>
-          <label>Arbitration Provider</label>
-          <select
-            name="provider"
-            id="provider"
-            value={context.arbitrationProvider}
-            onChange={e => context.setArbitrationProvider(e.target.value)}
+                }),
+            );
+            setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
+          }}
+          tooltip="Number of milestones in which the total payment will be processed"
+        />
+      </SimpleGrid>
+      {(paymentInvalid || milestonesInvalid) && (
+        <Text
+          w="100%"
+          color="purple"
+          textAlign="right"
+          fontSize="xs"
+          fontWeight="700"
+        >
+          Payment must be greater than 0
+        </Text>
+      )}
+      <SimpleGrid w="100%" columns={2} spacing="1rem">
+        <OrderedSelect
+          tooltip="Arbitration provider that will be used in case of a dispute"
+          value={arbitrationProviderType}
+          setValue={v => {
+            setArbitrationProviderType(v);
+            if (isKnownResolver(chainId, v)) {
+              setArbitrationProvider(v);
+              setTermsAccepted(false);
+            } else {
+              setArbitrationProvider('');
+              setResolverInvalid(false);
+              setTermsAccepted(true);
+            }
+          }}
+          label="Arbitration Provider"
+        >
+          {RESOLVERS.map(res => (
+            <option key={res} value={res}>
+              {getResolverInfo(chainId, res).name}
+            </option>
+          ))}
+          <option value="custom">Custom</option>
+        </OrderedSelect>
+        <OrderedInput
+          label="Max Dispute Fee"
+          type="text"
+          value={`${utils.formatUnits(
+            paymentDue.div(resolutionRate),
+            decimals,
+          )} ${symbol}`}
+          setValue={() => undefined}
+          tooltip={`In case a dispute arises, ${
+            100 / resolutionRate
+          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
+          isDisabled
+        />
+      </SimpleGrid>
+      {!isKnownResolver(chainId, arbitrationProvider) ? (
+        <OrderedInput
+          tooltip="This will be the address used to resolve any disputes on the invoice"
+          label="Arbitration Provider Address"
+          value={arbitrationProvider}
+          setValue={v => {
+            setArbitrationProvider(v);
+            setResolverInvalid(!utils.isAddress(v));
+          }}
+          isInvalid={resolverInvalid}
+          error={resolverInvalid ? 'Invalid Address' : ''}
+        />
+      ) : (
+        <Checkbox
+          isChecked={termsAccepted}
+          onChange={e => setTermsAccepted(e.target.checked)}
+          colorScheme="red"
+          border="none"
+          size="lg"
+          fontSize="1rem"
+          color="white"
+        >
+          {`I agree to ${getResolverString(chainId, arbitrationProvider)} `}
+          <Link
+            href={getResolverInfo(chainId, arbitrationProvider).termsUrl}
+            isExternal
+            textDecor="underline"
           >
-            <option value="Lex">Lex</option>
-            <option value="Aragon Court">Aragon Court</option>
-          </select>
-        </div>
-        <div className="ordered-inputs">
-          <p className="tooltip">
-            <sl-tooltip content="The fee that is used to resolve the issue in case of a dispute">
-              <i className="far fa-question-circle"></i>
-            </sl-tooltip>
-          </p>
-          <label>Max Fee</label>
-          <input type="text" disabled value={`${100} DAI`} />
-        </div>
-        <div className="ordered-inputs">
-          <p id="arb-fee-desc">
-            LexDAO deducts a 5% arbitration fee from remaining funds in the case
-            of dispute
-          </p>
-        </div>
-      </div>
-      <sl-checkbox>
-        I agree to LexDAO <a href="https://raidguild.org/">terms of service</a>
-      </sl-checkbox>
-    </section>
+            terms of service
+          </Link>
+        </Checkbox>
+      )}
+    </VStack>
   );
 };
-
-export default PaymentDetailsForm;

@@ -1,0 +1,12 @@
+{
+  "overrides": [
+    {
+      // assuming docusaurus application
+      "files": "**/pages/**/*.{ts,tsx,js,jsx}",
+      "rules": {
+        "import/no-default-export": "off", // pages have to have a default export
+        "import/prefer-default-export": "error"
+      }
+    }
+  ]
+}

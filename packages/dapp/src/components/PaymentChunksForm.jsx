@@ -1,37 +1,63 @@
-import React from 'react';
+import {
+  Flex,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 import { utils } from 'ethers';
+import React, { useContext } from 'react';
 
-const ProjectChunksForm = ({ context }) => {
+import { CreateContext } from '../context/CreateContext';
+import { Web3Context } from '../context/Web3Context';
+import { getTokenInfo } from '../utils/helpers';
+
+export const PaymentChunksForm = ({ display }) => {
+  const { chainId } = useContext(Web3Context);
+  const {
+    paymentToken,
+    milestones,
+    payments,
+    setPayments,
+    paymentDue,
+  } = useContext(CreateContext);
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
   return (
-    <section className="payment-chunks-form">
-      {Array.from(Array(Number(context.milestones))).map((_val, index) => {
+    <VStack w="100%" spacing="1rem" display={display}>
+      {Array.from(Array(Number(milestones))).map((_val, index) => {
         return (
-          <div className="parallel-inputs" key={index}>
-            <div className="ordered-inputs">
-              <label>Payment {index+1}</label>
-              <input
+          <VStack w="100%" spacing="0.5rem" key={index.toString()}>
+            <Flex justify="space-between" w="100%">
+              <Text fontWeight="700">Payment #{index + 1}</Text>
+              <Flex />
+            </Flex>
+            <InputGroup>
+              <Input
+                bg="black"
                 type="text"
+                color="white"
+                border="none"
+                pr="3.5rem"
                 onChange={e => {
-                  const amount = utils.parseEther(e.target.value);
-                  const newPayments = context.payments.slice();
+                  if (!e.target.value || isNaN(Number(e.target.value))) return;
+                  const amount = utils.parseUnits(e.target.value, decimals);
+                  const newPayments = payments.slice();
                   newPayments[index] = amount;
-                  context.setPayments(newPayments);
+                  setPayments(newPayments);
                 }}
               />
-            </div>
-            {/*
-            // TODO: add this back and use this properly
-            <sl-switch className="slider"></sl-switch>
-            <div className='ordered-inputs'>
-                <label>Percentage</label>
-                <input type='text' />
-            </div>
-            */}
-          </div>
+              <InputRightElement color="white" w="3.5rem">
+                {symbol}
+              </InputRightElement>
+            </InputGroup>
+          </VStack>
         );
       })}
-    </section>
+      <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
+        Total Amount Must Add Up to {utils.formatUnits(paymentDue, decimals)}{' '}
+        {symbol}
+      </Text>
+    </VStack>
   );
 };
-
-export default ProjectChunksForm;

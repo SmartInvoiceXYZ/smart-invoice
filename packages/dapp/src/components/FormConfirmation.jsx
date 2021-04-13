@@ -1,44 +1,86 @@
-import React from 'react';
+import { Divider, Flex, Link, Text, VStack } from '@chakra-ui/react';
 import { utils } from 'ethers';
+import React, { useContext } from 'react';
 
-const FormConfirmation = ({ context }) => {
-    console.log(context.startDate)
-    return (
-        <section className='form-confirmation'>
-            <p id='project-title'>{context.projectName}</p>
-            <p>{context.projectDescription}</p>
-            <a href={context.projectAgreement}>{context.projectAgreement}</a>
-            <div>
-                <p>Client Address:</p>
-                <p>{context.clientAddress}</p>
-            </div>
-            <div>
-                <p>Payment Address:</p>
-                <p>{context.paymentAddress}</p>
-            </div>
-            <div>
-                <p>Project Start Date:</p>
-                <p>{context.startDate.toLocaleDateString()}</p>
-            </div>
-            <div>
-                <p>Expected End Date:</p>
-                <p>{context.endDate.toLocaleDateString()}</p>
-            </div>
-            <div>
-                <p>Safety Valve Date:</p>
-                <p>{context.safetyValveDate.toLocaleDateString()}</p>
-            </div>
-            <div>
-                <p>Arbitration Provider:</p>
-                <p>{context.arbitrationProvider}</p>
-            </div>
-            <hr></hr>
-            <div className='total-payment-info'>
-                <p>{context.milestones} Payments</p>
-                <p>{utils.formatEther(context.paymentDue)} {context.paymentToken} Total</p>
-            </div>
-        </section>
-    );
-}
+import { CreateContext } from '../context/CreateContext';
+import { Web3Context } from '../context/Web3Context';
+import { AccountLink } from '../shared/AccountLink';
+import { getDateString, getTokenInfo } from '../utils/helpers';
 
-export default FormConfirmation;
+export const FormConfirmation = ({ display }) => {
+  const { chainId } = useContext(Web3Context);
+  const {
+    projectName,
+    projectDescription,
+    projectAgreement,
+    clientAddress,
+    paymentAddress,
+    startDate,
+    endDate,
+    safetyValveDate,
+    arbitrationProvider,
+    milestones,
+    paymentDue,
+    paymentToken,
+  } = useContext(CreateContext);
+  const tokenData = getTokenInfo(chainId, paymentToken);
+  const { decimals, symbol } = tokenData;
+  return (
+    <VStack
+      w="100%"
+      spacing="1rem"
+      color="white"
+      align="stretch"
+      display={display}
+    >
+      <Text id="project-title" fontWeight="bold" fontSize="xl">
+        {projectName}
+      </Text>
+      {projectDescription && <Text>{projectDescription}</Text>}
+      <Link href={projectAgreement} isExternal mb="1rem" textDecor="underline">
+        {projectAgreement}
+      </Link>
+      <Flex justify="space-between">
+        <Text>{`Client Address: `}</Text>
+        <AccountLink address={clientAddress} />
+      </Flex>
+      <Flex justify="space-between">
+        <Text>{`Payment Address: `}</Text>
+        <AccountLink address={paymentAddress} />
+      </Flex>
+      {startDate && (
+        <Flex justify="space-between">
+          <Text>{`Project Start Date: `}</Text>
+          <Text textAlign="right">{getDateString(startDate / 1000)}</Text>
+        </Flex>
+      )}
+      {endDate && (
+        <Flex justify="space-between">
+          <Text>{`Expected End Date: `}</Text>
+          <Text textAlign="right">{getDateString(endDate / 1000)}</Text>
+        </Flex>
+      )}
+      <Flex justify="space-between">
+        <Text>{`Safety Valve Date: `}</Text>
+        <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
+      </Flex>
+      <Flex justify="space-between">
+        <Text>{`Arbitration Provider: `}</Text>
+        <AccountLink address={arbitrationProvider} />
+      </Flex>
+      <Divider
+        color="black"
+        w="calc(100% + 2rem)"
+        transform="translateX(-1rem)"
+      />
+      <Flex justify="flex-end">
+        <Text>
+          {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
+        </Text>
+        <Text color="red.500" ml="2.5rem" fontWeight="bold">
+          {`${utils.formatUnits(paymentDue, decimals)} ${symbol} Total`}
+        </Text>
+      </Flex>
+    </VStack>
+  );
+};

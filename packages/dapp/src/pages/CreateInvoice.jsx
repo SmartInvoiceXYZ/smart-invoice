@@ -1,61 +1,119 @@
-import React, { useContext, useState } from 'react';
+import {
+  Button,
+  Flex,
+  Grid,
+  Stack,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
+import React, { useContext } from 'react';
 import { withRouter } from 'react-router-dom';
 
-import { AppContext } from '../context/AppContext';
+import { FormConfirmation } from '../components/FormConfirmation';
+import { PaymentChunksForm } from '../components/PaymentChunksForm';
+import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
+import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
+import { RegisterSuccess } from '../components/RegisterSuccess';
+import { CreateContext, CreateContextProvider } from '../context/CreateContext';
+import { Container } from '../shared/Container';
+import { StepInfo } from '../shared/StepInfo';
+import { STEPS } from '../utils/constants';
 
-import StepInfo from '../shared/StepInfo';
-import ProjectDetailsForm from '../components/ProjectDetailsForm';
-import PaymentDetailsForm from '../components/PaymentDetailsForm';
-import PaymentChunksForm from '../components/PaymentChunksForm';
-import FormConfirmation from '../components/FormConfirmation';
+const CreateInvoiceInner = () => {
+  const {
+    tx,
+    loading,
+    currentStep,
+    nextStepEnabled,
+    goBackHandler,
+    nextStepHandler,
+  } = useContext(CreateContext);
 
-import '../sass/createInvoiceStyles.scss';
-
-const { steps } = require('../utils/Constants');
-
-const CreateInvoice = props => {
-  const context = useContext(AppContext);
-  const [currentStep, setStep] = useState(1);
-
-  // useEffect(() => {
-  //     if (context.address === '') return props.history.push('/')
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
-
-  const stepHandler = () => {
-    if (currentStep === 4)
-      return context.createInvoice().then(() => props.history.push('/success'));
-    setStep(prevState => prevState + 1);
-  };
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   return (
-    <div className="create-invoice">
-      <StepInfo
-        stepNum={currentStep}
-        stepTitle={steps[currentStep].step_title}
-        stepDetails={steps[currentStep].step_details}
-      />
-      <div>
-        {currentStep === 1 && <ProjectDetailsForm context={context} />}
-        {currentStep === 2 && <PaymentDetailsForm context={context} />}
-        {currentStep === 3 && <PaymentChunksForm context={context} />}
-        {currentStep === 4 && <FormConfirmation context={context} />}
-        <div className="form-action-buttons">
-          {currentStep !== 1 && (
-            <button
-              id="back-button"
-              onClick={() => setStep(prevState => prevState - 1)}
+    <Container overlay>
+      {tx ? (
+        <RegisterSuccess />
+      ) : (
+        <Stack
+          direction={{ base: 'column', lg: 'row' }}
+          spacing="2rem"
+          align="center"
+          justify="center"
+          w="100%"
+          px="1rem"
+          my="8rem"
+        >
+          <StepInfo
+            stepNum={currentStep}
+            stepTitle={STEPS[currentStep].step_title}
+            stepDetails={STEPS[currentStep].step_details}
+          />
+          <VStack
+            spacing={{ base: '1.5rem', lg: '1rem' }}
+            w={{ base: '100%', md: 'auto' }}
+          >
+            <Flex
+              bg="background"
+              direction="column"
+              justify="space-between"
+              p="1rem"
+              borderRadius="0.5rem"
+              w="100%"
             >
-              BACK
-            </button>
-          )}
-          <button id="next-button" onClick={stepHandler}>
-            next: {steps[currentStep].next}
-          </button>
-        </div>
-      </div>
-    </div>
+              <ProjectDetailsForm
+                display={currentStep === 1 ? 'flex' : 'none'}
+              />
+              <PaymentDetailsForm
+                display={currentStep === 2 ? 'flex' : 'none'}
+              />
+              <PaymentChunksForm
+                display={currentStep === 3 ? 'flex' : 'none'}
+              />
+              <FormConfirmation display={currentStep === 4 ? 'flex' : 'none'} />
+            </Flex>
+            <Grid templateColumns="1fr 4fr" gap="1rem" w="100%">
+              {currentStep !== 1 ? (
+                <Button
+                  colorScheme="red"
+                  variant="outline"
+                  onClick={goBackHandler}
+                  size={buttonSize}
+                  fontFamily="mono"
+                  fontWeight="normal"
+                >
+                  BACK
+                </Button>
+              ) : (
+                <Flex />
+              )}
+              <Button
+                colorScheme="red"
+                onClick={nextStepHandler}
+                isLoading={loading}
+                isDisabled={!nextStepEnabled}
+                textTransform="uppercase"
+                size={buttonSize}
+                fontFamily="mono"
+                fontWeight="normal"
+              >
+                {currentStep === 4
+                  ? STEPS[currentStep].next
+                  : `next: ${STEPS[currentStep].next}`}
+              </Button>
+            </Grid>
+          </VStack>
+        </Stack>
+      )}
+    </Container>
   );
 };
 
-export default withRouter(CreateInvoice);
+const CreateInvoiceWithProvider = props => (
+  <CreateContextProvider>
+    <CreateInvoiceInner {...props} />
+  </CreateContextProvider>
+);
+
+export const CreateInvoice = withRouter(CreateInvoiceWithProvider);

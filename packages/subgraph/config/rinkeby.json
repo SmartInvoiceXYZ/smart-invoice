@@ -1,5 +1,43 @@
 {
   "network": "rinkeby",
-  "startBlock": "7517898",
-  "address": "0xd09Fdad24DE8C4CE3C65be5eeBFE841ecd24220B"
+  "startBlock": "8113364",
+  "factories": [
+    {
+      "factoryName": "Version00",
+      "startBlock": "8113364",
+      "address": "0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73"
+    },
+    {
+      "factoryName": "Version01",
+      "startBlock": "8249794",
+      "address": "0x06E79797c87a86FF999C6C917a7F5CeEF70c3Cd3"
+    },
+    {
+      "factoryName": "Version02",
+      "startBlock": "8267769",
+      "address": "0x838A88166E60931aFfabc9D7538A2D04cBda8932"
+    },
+    {
+      "factoryName": "Version03",
+      "startBlock": "8371074",
+      "address": "0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7"
+    }
+  ],
+  "tokens": [
+    {
+      "tokenName": "DAI",
+      "startBlock": "8113364",
+      "tokenAddress": "0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42"
+    },
+    {
+      "tokenName": "WETH",
+      "startBlock": "8113364",
+      "tokenAddress": "0xc778417E063141139Fce010982780140Aa0cD5Ab"
+    },
+    {
+      "tokenName": "TEST",
+      "startBlock": "8113364",
+      "tokenAddress": "0x982e00b16c313e979c0947b85230907fce45d50e"
+    }
+  ]
 }

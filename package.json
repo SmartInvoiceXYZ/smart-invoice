@@ -10,24 +10,31 @@
   ],
   "private": true,
   "scripts": {
-    "subgraph:auth": "yarn workspace @smart-invoice/subgraph auth",
-    "subgraph:codegen": "yarn workspace @smart-invoice/subgraph codegen",
-    "subgraph:build": "yarn workspace @smart-invoice/subgraph build",
-    "subgraph:deploy-kovan": "yarn workspace @smart-invoice/subgraph deploy-kovan",
+    "subgraph:auth": "yarn workspace @smart-invoice/factory-subgraph auth",
+    "subgraph:codegen": "yarn workspace @smart-invoice/factory-subgraph codegen",
+    "subgraph:build": "yarn workspace @smart-invoice/factory-subgraph build",
+    "subgraph:deploy-kovan": "yarn workspace @smart-invoice/factory-subgraph deploy-kovan",
+    "subgraph:deploy-rinkeby": "yarn workspace @smart-invoice/factory-subgraph deploy-rinkeby",
     "dapp:start": "yarn workspace @smart-invoice/dapp start",
     "dapp:build": "yarn workspace @smart-invoice/dapp build",
+    "docs:start": "yarn workspace @smart-invoice/docs start",
+    "docs:build": "yarn workspace @smart-invoice/docs build",
     "contracts:build": "yarn workspace @smart-invoice/contracts build",
     "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
-    "contracts:deploy-kovan": "yarn workspace @smart-invoice/contracts deploy-kovan",
-    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md,sol}\""
+    "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
+    "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
+    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\""
   },
   "workspaces": {
     "nohoist": [
       "**/@graphprotocol/graph-ts",
       "**/@graphprotocol/graph-ts/**",
       "**/@nomiclabs/**",
-      "**/solidity-coverage"
+      "**/solidity-coverage",
+      "**/bulma",
+      "**/@ethersproject/**",
+      "**/@docusaurus/**"
     ],
     "packages": [
       "packages/*"
@@ -36,18 +43,25 @@
   "license": "MIT",
   "devDependencies": {
     "async-prompt": "^1.0.1",
-    "base-58": "^0.0.1",
-    "buffer": "^5.6.0",
-    "cids": "^1.0.0",
+    "babel-eslint": "^10.1.0",
     "dotenv": "^8.2.0",
-    "ethers": "^5.0.19",
-    "husky": "^4.2.5",
-    "ipfs-http-client": "^47.0.1",
+    "eslint": "^7.11.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-prettier": "8.1.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.6.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-mocha": "^8.1.0",
+    "eslint-plugin-react": "7.23.1",
+    "eslint-plugin-react-hooks": "4.2.0",
+    "eslint-plugin-simple-import-sort": "7.0.0",
+    "ethers": "^5.1.0",
+    "husky": "^6.0.0",
     "it-all": "^1.0.2",
     "lint-staged": "^10.3.0",
     "prettier": "^2.1.1",
-    "prettier-plugin-solidity": "^1.0.0-alpha.59",
-    "uint8arrays": "^1.1.0"
+    "prettier-plugin-solidity": "^1.0.0-beta.7"
   },
   "husky": {
     "hooks": {
@@ -55,6 +69,6 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,yml,yaml,md,sol}": "prettier --write"
+    "*.{ts,tsx,js,jsx,json,md,sol}": "prettier --write"
   }
 }

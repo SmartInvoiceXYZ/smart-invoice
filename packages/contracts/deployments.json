@@ -1,0 +1,14 @@
+[
+  {
+    "network": "rinkeby",
+    "factory": "0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7"
+  },
+  {
+    "network": "xdai",
+    "factory": "0x01b5845ef936CDEB12155Feaba82DfdecB57AE20"
+  },
+  {
+    "network": "kovan",
+    "factory": ""
+  }
+]

@@ -8,8 +8,8 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import {Invoice} from '../generated/schema';
-import {SmartInvoiceMono} from '../generated/SmartInvoiceMono/SmartInvoiceMono';
+import { Invoice } from '../generated/schema';
+import { SmartInvoice } from '../generated/SmartInvoiceFactory/SmartInvoice';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -28,14 +28,16 @@ class InvoiceObject {
   provider: Address;
   resolverType: i32;
   resolver: Address;
+  resolutionRate: BigInt;
   token: Address;
   isLocked: boolean;
   currentMilestone: BigInt;
   total: BigInt;
-  balance: BigInt;
   released: BigInt;
   terminationTime: BigInt;
   details: Bytes;
+  ipfsHash: string;
+  disputeId: BigInt;
   projectName: string;
   projectDescription: string;
   projectAgreement: string;
@@ -43,60 +45,94 @@ class InvoiceObject {
   endDate: BigInt;
 }
 
-export function fetchInvoiceInfo(
-  address: Address,
-  index: BigInt,
-): InvoiceObject | null {
-  let invoicesInstance = SmartInvoiceMono.bind(address);
+function fetchInvoiceInfo(address: Address): InvoiceObject | null {
+  let invoiceInstance = SmartInvoice.bind(address);
   let invoiceObject = new InvoiceObject();
 
-  let invoiceCall = invoicesInstance.try_invoices(index);
+  let client = invoiceInstance.try_client();
+  let provider = invoiceInstance.try_provider();
+  let resolverType = invoiceInstance.try_resolverType();
+  let resolver = invoiceInstance.try_resolver();
+  let resolutionRate = invoiceInstance.try_resolutionRate();
+  let token = invoiceInstance.try_token();
+  let locked = invoiceInstance.try_locked();
+  let milestone = invoiceInstance.try_milestone();
+  let total = invoiceInstance.try_total();
+  let released = invoiceInstance.try_released();
+  let terminationTime = invoiceInstance.try_terminationTime();
+  let details = invoiceInstance.try_details();
+  let disputeId = invoiceInstance.try_disputeId();
 
-  if (!invoiceCall.reverted) {
-    let invoiceResult = invoiceCall.value;
-    invoiceObject.client = invoiceResult.value0;
-    invoiceObject.provider = invoiceResult.value1;
-    invoiceObject.resolverType = invoiceResult.value2;
-    invoiceObject.resolver = invoiceResult.value3;
-    invoiceObject.token = invoiceResult.value4;
-    invoiceObject.isLocked = invoiceResult.value5;
-    invoiceObject.currentMilestone = invoiceResult.value6;
-    invoiceObject.total = invoiceResult.value7;
-    invoiceObject.balance = invoiceResult.value8;
-    invoiceObject.released = invoiceResult.value9;
-    invoiceObject.terminationTime = invoiceResult.value10;
-    invoiceObject.details = invoiceResult.value11;
+  if (!client.reverted) {
+    invoiceObject.client = client.value;
+  }
+  if (!provider.reverted) {
+    invoiceObject.provider = provider.value;
+  }
+  if (!resolverType.reverted) {
+    invoiceObject.resolverType = resolverType.value;
+  }
+  if (!resolver.reverted) {
+    invoiceObject.resolver = resolver.value;
+  }
+  if (!resolutionRate.reverted) {
+    invoiceObject.resolutionRate = resolutionRate.value;
+  }
+  if (!token.reverted) {
+    invoiceObject.token = token.value;
+  }
+  if (!locked.reverted) {
+    invoiceObject.isLocked = locked.value;
+  }
+  if (!milestone.reverted) {
+    invoiceObject.currentMilestone = milestone.value;
+  }
+  if (!total.reverted) {
+    invoiceObject.total = total.value;
+  }
+  if (!released.reverted) {
+    invoiceObject.released = released.value;
+  }
+  if (!terminationTime.reverted) {
+    invoiceObject.terminationTime = terminationTime.value;
+  }
+  if (!disputeId.reverted) {
+    invoiceObject.disputeId = disputeId.value;
+  }
+  if (!details.reverted) {
+    invoiceObject.details = details.value;
     let hexHash = addQm(invoiceObject.details) as Bytes;
     let base58Hash = hexHash.toBase58();
-    let getIPFSData = ipfs.cat(base58Hash);
-    log.debug('IPFS details {} hash {}', [hexHash.toHexString(), base58Hash]);
-    if (getIPFSData != null) {
-      let data = json.fromBytes(getIPFSData as Bytes).toObject();
-      //   projectName: string;
-      //   projectDescription: string;
-      //   projectAgreement: string;
-      //   startDate: number; // seconds since epoch
-      //   endDate: number; // seconds since epoch
+    invoiceObject.ipfsHash = base58Hash.toString();
+    let ipfsData = ipfs.cat(base58Hash);
+    log.info('IPFS details from hash {}, data {}', [
+      base58Hash,
+      ipfsData.toString(),
+    ]);
+    if (ipfsData != null) {
+      let data = json.fromBytes(ipfsData as Bytes).toObject();
       let projectName = data.get('projectName');
-      if (projectName != null) {
+      if (!projectName.isNull()) {
         invoiceObject.projectName = projectName.toString();
       }
       let projectDescription = data.get('projectDescription');
-      if (projectDescription != null) {
+      if (!projectDescription.isNull()) {
         invoiceObject.projectDescription = projectDescription.toString();
       }
       let projectAgreement = data.get('projectAgreement');
-      if (projectAgreement != null) {
+      if (!projectAgreement.isNull()) {
         invoiceObject.projectAgreement = projectAgreement.toString();
       }
       let startDate = data.get('startDate');
-      if (startDate != null) {
+      if (!startDate.isNull()) {
         invoiceObject.startDate = startDate.toBigInt();
       }
       let endDate = data.get('endDate');
-      if (endDate != null) {
+      if (!endDate.isNull()) {
         invoiceObject.endDate = endDate.toBigInt();
       }
+    } else {
+      log.warning('could not get IPFS details from hash {}', [base58Hash]);
     }
   }
 
@@ -105,34 +141,35 @@ export function fetchInvoiceInfo(
 
 export function updateInvoiceInfo(
   address: Address,
-  index: BigInt,
   invoice: Invoice | null,
-): Invoice | null {
-  if (invoice == null) {
-    return invoice;
-  }
-  let invoiceObject = fetchInvoiceInfo(address, index);
+): Invoice {
+  if (invoice == null) return null;
+  let invoiceObject = fetchInvoiceInfo(address);
+  log.info('Got details for invoice', [address.toHexString()]);
+
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
   if (invoiceObject.resolverType == 0) {
-    invoice.resolverType = 'lexDao';
+    invoice.resolverType = 'individual';
   } else if (invoiceObject.resolverType == 1) {
-    invoice.resolverType = 'aragonCourt';
+    invoice.resolverType = 'arbitrator';
   }
   invoice.resolver = invoiceObject.resolver;
+  invoice.resolutionRate = invoiceObject.resolutionRate;
   invoice.isLocked = invoiceObject.isLocked;
   invoice.currentMilestone = invoiceObject.currentMilestone;
   invoice.total = invoiceObject.total;
-  invoice.balance = invoiceObject.balance;
   invoice.released = invoiceObject.released;
   invoice.terminationTime = invoiceObject.terminationTime;
   invoice.details = invoiceObject.details;
+  invoice.ipfsHash = invoiceObject.ipfsHash;
+  invoice.disputeId = invoiceObject.disputeId;
   invoice.projectName = invoiceObject.projectName;
   invoice.projectDescription = invoiceObject.projectDescription;
   invoice.projectAgreement = invoiceObject.projectAgreement;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
 
-  return invoice;
+  return invoice as Invoice;
 }
