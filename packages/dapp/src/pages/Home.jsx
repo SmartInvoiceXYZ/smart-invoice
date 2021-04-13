@@ -55,7 +55,7 @@ export const Home = () => {
 
   return (
     <Container
-      justify="flex-start"
+      justify={{ base: 'space-between', lg: 'flex-start' }}
       direction={{ base: 'column', lg: 'row' }}
       pt={{ base: '6rem', sm: '8rem', lg: '0rem' }}
     >
