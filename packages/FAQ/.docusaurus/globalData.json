@@ -1,0 +1,57 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "introducing-smart-invoice",
+          "docs": [
+            {
+              "id": "complete-invoice",
+              "path": "/docs/complete-invoice",
+              "sidebar": "docs"
+            },
+            {
+              "id": "creating-a-smart-invoice",
+              "path": "/docs/creating-a-smart-invoice",
+              "sidebar": "docs"
+            },
+            {
+              "id": "deposit-or-release",
+              "path": "/docs/deposit-or-release",
+              "sidebar": "docs"
+            },
+            {
+              "id": "FAQ",
+              "path": "/docs/FAQ",
+              "sidebar": "docs"
+            },
+            {
+              "id": "glossary",
+              "path": "/docs/glossary"
+            },
+            {
+              "id": "how-does-it-work",
+              "path": "/docs/how-does-it-work",
+              "sidebar": "docs"
+            },
+            {
+              "id": "introducing-smart-invoice",
+              "path": "/docs/introducing-smart-invoice",
+              "sidebar": "docs"
+            },
+            {
+              "id": "view-existing-invoice",
+              "path": "/docs/view-existing-invoice",
+              "sidebar": "docs"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

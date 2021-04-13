@@ -1,0 +1,68 @@
+{
+  "/-deb": {
+    "component": "component---site-src-pages-index-jsc-4-f-f99",
+    "config": "config---5-e-9-4f3"
+  },
+  "/__docusaurus/debug-3d6": {
+    "component": "component---theme-debug-config-23-a-2ff"
+  },
+  "/__docusaurus/debug/config-914": {
+    "component": "component---theme-debug-config-23-a-2ff"
+  },
+  "/__docusaurus/debug/content-c28": {
+    "component": "component---theme-debug-contentba-8-ce7",
+    "allContent": "allContent---docusaurus-debug-content-246-9aa"
+  },
+  "/__docusaurus/debug/globalData-3cf": {
+    "component": "component---theme-debug-global-dataede-0fa"
+  },
+  "/__docusaurus/debug/metadata-31b": {
+    "component": "component---theme-debug-site-metadata-68-e-3d4"
+  },
+  "/__docusaurus/debug/registry-0da": {
+    "component": "component---theme-debug-registry-679-501"
+  },
+  "/__docusaurus/debug/routes-244": {
+    "component": "component---theme-debug-routes-946-699"
+  },
+  "/markdown-page-be1": {
+    "component": "component---theme-mdx-page-1-f-3-b90",
+    "content": "content---markdown-page-393-028"
+  },
+  "/docs-ad7": {
+    "component": "component---theme-doc-page-1-be-9be",
+    "versionMetadata": "versionMetadata---docs-935-398"
+  },
+  "/docs/complete-invoice-ea7": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-complete-invoice-55-b-cb4"
+  },
+  "/docs/creating-a-smart-invoice-d4c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-creating-a-smart-invoice-66-e-8f4"
+  },
+  "/docs/deposit-or-release-752": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-deposit-or-release-4-d-9-017"
+  },
+  "/docs/FAQ-d46": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-fa-qad-8-5a1"
+  },
+  "/docs/glossary-65f": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-glossarye-74-cec"
+  },
+  "/docs/how-does-it-work-0ab": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-how-does-it-work-415-527"
+  },
+  "/docs/introducing-smart-invoice-f5e": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-introducing-smart-invoicecce-6d9"
+  },
+  "/docs/view-existing-invoice-9e5": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-view-existing-invoicefc-7-2d5"
+  }
+}

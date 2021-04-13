@@ -1,0 +1,12 @@
+{
+  "unversionedId": "glossary",
+  "id": "glossary",
+  "isDocsHomePage": false,
+  "title": "glossary",
+  "description": "Mini Glossary",
+  "source": "@site/docs/glossary.md",
+  "slug": "/glossary",
+  "permalink": "/docs/glossary",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/glossary.md",
+  "version": "current"
+}

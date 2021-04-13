@@ -1,0 +1,17 @@
+{
+  "unversionedId": "introducing-smart-invoice",
+  "id": "introducing-smart-invoice",
+  "isDocsHomePage": false,
+  "title": "What is Smart Invoice?",
+  "description": "Smart Invoice is a is a sophisticated invoicing tool that facilitates payments between organizations or Clients, and  freelancers or Providers. Smart Invoice establishes a set of shared expectations between a client and a provider who are engaged in business with one another. v1 features are as follows:",
+  "source": "@site/docs/introducing-smart-invoice.md",
+  "slug": "/introducing-smart-invoice",
+  "permalink": "/docs/introducing-smart-invoice",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/introducing-smart-invoice.md",
+  "version": "current",
+  "sidebar": "docs",
+  "next": {
+    "title": "How Does it Work?",
+    "permalink": "/docs/how-does-it-work"
+  }
+}

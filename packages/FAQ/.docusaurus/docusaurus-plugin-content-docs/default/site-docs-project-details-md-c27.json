@@ -1,0 +1,12 @@
+{
+  "unversionedId": "project-details",
+  "id": "project-details",
+  "isDocsHomePage": false,
+  "title": "project-details",
+  "description": "Step 1:  Project Details",
+  "source": "@site/docs/project-details.md",
+  "slug": "/project-details",
+  "permalink": "/docs/project-details",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/project-details.md",
+  "version": "current"
+}

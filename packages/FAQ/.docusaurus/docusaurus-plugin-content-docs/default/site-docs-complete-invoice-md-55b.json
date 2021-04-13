@@ -1,0 +1,21 @@
+{
+  "unversionedId": "complete-invoice",
+  "id": "complete-invoice",
+  "isDocsHomePage": false,
+  "title": "Complete Invoice (Provider)",
+  "description": "Finally, you have submitted a transaction to complete your smart invoice Registration! We ask that you wait patiently for the transaction to be processed.",
+  "source": "@site/docs/complete-invoice.md",
+  "slug": "/complete-invoice",
+  "permalink": "/docs/complete-invoice",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/complete-invoice.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Creating a Smart Invoice (Provider)",
+    "permalink": "/docs/creating-a-smart-invoice"
+  },
+  "next": {
+    "title": "View Existing Invoice(s)",
+    "permalink": "/docs/view-existing-invoice"
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "versionLabel": "Next",
+          "versionPath": "/docs",
+          "versionEditUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs",
+          "versionEditUrlLocalized": "https://github.com/facebook/docusaurus/edit/master/website/i18n/en/docusaurus-plugin-content-docs/current",
+          "isLast": true,
+          "routePriority": -1,
+          "sidebarFilePath": "/Users/burle/Downloads/githubprojects/smart-invoice/packages/FAQ/sidebars.js",
+          "contentPath": "/Users/burle/Downloads/githubprojects/smart-invoice/packages/FAQ/docs",
+          "contentPathLocalized": "/Users/burle/Downloads/githubprojects/smart-invoice/packages/FAQ/i18n/en/docusaurus-plugin-content-docs/current",
+          "mainDocId": "introducing-smart-invoice",
+          "sidebars": {
+            "docs": [
+              {
+                "collapsed": true,
+                "type": "category",
+                "label": "Overview",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "introducing-smart-invoice"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "how-does-it-work"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "creating-a-smart-invoice"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "complete-invoice"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "view-existing-invoice"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "deposit-or-release"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "FAQ"
+                  }
+                ]
+              }
+            ]
+          },
+          "permalinkToSidebar": {
+            "/docs/complete-invoice": "docs",
+            "/docs/creating-a-smart-invoice": "docs",
+            "/docs/deposit-or-release": "docs",
+            "/docs/FAQ": "docs",
+            "/docs/how-does-it-work": "docs",
+            "/docs/introducing-smart-invoice": "docs",
+            "/docs/view-existing-invoice": "docs"
+          },
+          "docs": [
+            {
+              "unversionedId": "complete-invoice",
+              "id": "complete-invoice",
+              "isDocsHomePage": false,
+              "title": "Complete Invoice (Provider)",
+              "description": "Finally, you have submitted a transaction to complete your smart invoice Registration! We ask that you wait patiently for the transaction to be processed.",
+              "source": "@site/docs/complete-invoice.md",
+              "slug": "/complete-invoice",
+              "permalink": "/docs/complete-invoice",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/complete-invoice.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "Creating a Smart Invoice (Provider)",
+                "permalink": "/docs/creating-a-smart-invoice"
+              },
+              "next": {
+                "title": "View Existing Invoice(s)",
+                "permalink": "/docs/view-existing-invoice"
+              }
+            },
+            {
+              "unversionedId": "creating-a-smart-invoice",
+              "id": "creating-a-smart-invoice",
+              "isDocsHomePage": false,
+              "title": "Creating a Smart Invoice (Provider)",
+              "description": "Step 1:  Project Details",
+              "source": "@site/docs/creating-a-smart-invoice.md",
+              "slug": "/creating-a-smart-invoice",
+              "permalink": "/docs/creating-a-smart-invoice",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/creating-a-smart-invoice.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "How Does it Work?",
+                "permalink": "/docs/how-does-it-work"
+              },
+              "next": {
+                "title": "Complete Invoice (Provider)",
+                "permalink": "/docs/complete-invoice"
+              }
+            },
+            {
+              "unversionedId": "deposit-or-release",
+              "id": "deposit-or-release",
+              "isDocsHomePage": false,
+              "title": "Making Payment (Client)",
+              "description": "If you are a client and would like to make a deposit, simply click the deposit button and select each of the milestones that you would like to make a deposit for, then click the deposit button that appears in the pop up.  This will redirect you to your WalletConnect or your MetaMask to approve the transaction.",
+              "source": "@site/docs/deposit-or-release.md",
+              "slug": "/deposit-or-release",
+              "permalink": "/docs/deposit-or-release",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/deposit-or-release.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "View Existing Invoice(s)",
+                "permalink": "/docs/view-existing-invoice"
+              },
+              "next": {
+                "title": "FAQ",
+                "permalink": "/docs/FAQ"
+              }
+            },
+            {
+              "unversionedId": "FAQ",
+              "id": "FAQ",
+              "isDocsHomePage": false,
+              "title": "FAQ",
+              "description": "What is Lock? (CLIENT/PROVIDER)",
+              "source": "@site/docs/FAQ.md",
+              "slug": "/FAQ",
+              "permalink": "/docs/FAQ",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/FAQ.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "Making Payment (Client)",
+                "permalink": "/docs/deposit-or-release"
+              }
+            },
+            {
+              "unversionedId": "glossary",
+              "id": "glossary",
+              "isDocsHomePage": false,
+              "title": "glossary",
+              "description": "Mini Glossary",
+              "source": "@site/docs/glossary.md",
+              "slug": "/glossary",
+              "permalink": "/docs/glossary",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/glossary.md",
+              "version": "current"
+            },
+            {
+              "unversionedId": "how-does-it-work",
+              "id": "how-does-it-work",
+              "isDocsHomePage": false,
+              "title": "How Does it Work?",
+              "description": "Smart Invoice leverages smart contracts built on Ethereum to create a framework by which service providers can rapidly create invoices and deploy them to xDai sidechain.",
+              "source": "@site/docs/how-does-it-work.md",
+              "slug": "/how-does-it-work",
+              "permalink": "/docs/how-does-it-work",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/how-does-it-work.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "What is Smart Invoice?",
+                "permalink": "/docs/introducing-smart-invoice"
+              },
+              "next": {
+                "title": "Creating a Smart Invoice (Provider)",
+                "permalink": "/docs/creating-a-smart-invoice"
+              }
+            },
+            {
+              "unversionedId": "introducing-smart-invoice",
+              "id": "introducing-smart-invoice",
+              "isDocsHomePage": false,
+              "title": "What is Smart Invoice?",
+              "description": "Smart Invoice is a is a sophisticated invoicing tool that facilitates payments between organizations or Clients, and  freelancers or Providers. Smart Invoice establishes a set of shared expectations between a client and a provider who are engaged in business with one another. v1 features are as follows:",
+              "source": "@site/docs/introducing-smart-invoice.md",
+              "slug": "/introducing-smart-invoice",
+              "permalink": "/docs/introducing-smart-invoice",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/introducing-smart-invoice.md",
+              "version": "current",
+              "sidebar": "docs",
+              "next": {
+                "title": "How Does it Work?",
+                "permalink": "/docs/how-does-it-work"
+              }
+            },
+            {
+              "unversionedId": "view-existing-invoice",
+              "id": "view-existing-invoice",
+              "isDocsHomePage": false,
+              "title": "View Existing Invoice(s)",
+              "description": "1. Enter Invoice ID or Client Wallet Address",
+              "source": "@site/docs/view-existing-invoice.md",
+              "slug": "/view-existing-invoice",
+              "permalink": "/docs/view-existing-invoice",
+              "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/view-existing-invoice.md",
+              "version": "current",
+              "sidebar": "docs",
+              "previous": {
+                "title": "Complete Invoice (Provider)",
+                "permalink": "/docs/complete-invoice"
+              },
+              "next": {
+                "title": "Making Payment (Client)",
+                "permalink": "/docs/deposit-or-release"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "docusaurus-plugin-content-blog": {
+    "default": null
+  },
+  "docusaurus-plugin-content-pages": {
+    "default": [
+      {
+        "type": "jsx",
+        "permalink": "/",
+        "source": "@site/src/pages/index.js"
+      },
+      {
+        "type": "mdx",
+        "permalink": "/markdown-page",
+        "source": "@site/src/pages/markdown-page.md"
+      }
+    ]
+  },
+  "docusaurus-plugin-debug": {
+    "default": null
+  },
+  "docusaurus-theme-classic": {
+    "default": null
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "pluginId": "default",
+  "version": "current",
+  "label": "Next",
+  "isLast": true,
+  "docsSidebars": {
+    "docs": [
+      {
+        "collapsed": true,
+        "type": "category",
+        "label": "Overview",
+        "items": [
+          {
+            "type": "link",
+            "label": "What is Smart Invoice?",
+            "href": "/docs/introducing-smart-invoice"
+          },
+          {
+            "type": "link",
+            "label": "How Does it Work?",
+            "href": "/docs/how-does-it-work"
+          },
+          {
+            "type": "link",
+            "label": "Creating a Smart Invoice (Provider)",
+            "href": "/docs/creating-a-smart-invoice"
+          },
+          {
+            "type": "link",
+            "label": "Complete Invoice (Provider)",
+            "href": "/docs/complete-invoice"
+          },
+          {
+            "type": "link",
+            "label": "View Existing Invoice(s)",
+            "href": "/docs/view-existing-invoice"
+          },
+          {
+            "type": "link",
+            "label": "Making Payment (Client)",
+            "href": "/docs/deposit-or-release"
+          },
+          {
+            "type": "link",
+            "label": "FAQ",
+            "href": "/docs/FAQ"
+          }
+        ]
+      }
+    ]
+  },
+  "permalinkToSidebar": {
+    "/docs/complete-invoice": "docs",
+    "/docs/creating-a-smart-invoice": "docs",
+    "/docs/deposit-or-release": "docs",
+    "/docs/FAQ": "docs",
+    "/docs/how-does-it-work": "docs",
+    "/docs/introducing-smart-invoice": "docs",
+    "/docs/view-existing-invoice": "docs"
+  }
+}
