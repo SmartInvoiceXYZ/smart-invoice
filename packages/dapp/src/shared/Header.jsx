@@ -226,9 +226,8 @@ export const Header = () => {
           fontWeight="normal"
           fontSize="1.5rem"
         >
-          Home
+          HOME
         </StyledButton>
-
         <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
           <StyledButton
             as="span"
@@ -240,6 +239,19 @@ export const Header = () => {
             fontSize="1.5rem"
           >
             FAQ
+          </StyledButton>
+        </ChakraLink>
+        <ChakraLink href="https://discord.gg/CanD2WcK7W" isExternal _hover={{}}>
+          <StyledButton
+            as="span"
+            transition="all 0.5s ease 0.4s"
+            my="1rem"
+            variant="link"
+            color="red.500"
+            fontWeight="normal"
+            fontSize="1.5rem"
+          >
+            SUPPORT
           </StyledButton>
         </ChakraLink>
         <Footer center />
