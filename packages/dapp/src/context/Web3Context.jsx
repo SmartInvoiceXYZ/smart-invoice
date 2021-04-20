@@ -43,7 +43,7 @@ export const Web3Context = createContext();
 export const useWeb3 = () => useContext(Web3Context);
 
 export const Web3ContextProvider = ({ children }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [{ account, provider, chainId }, setWeb3] = useState({});
 
   const setWeb3Provider = async (prov, initialCall = false) => {
@@ -118,6 +118,8 @@ export const Web3ContextProvider = ({ children }) => {
     (async function load() {
       if ((await web3Modal.canAutoConnect()) || web3Modal.cachedProvider) {
         connectWeb3();
+      } else {
+        setLoading(false);
       }
     })();
   }, [connectWeb3]);

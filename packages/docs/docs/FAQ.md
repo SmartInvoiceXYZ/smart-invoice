@@ -79,4 +79,4 @@ title: FAQ
 
 </details></h4>
 
-##### Have additional questions? Drop into our discord where we will be happy to help you! https://discord.gg/M2QaDPgKFR 
+##### Have additional questions? Drop into our discord where we will be happy to help you! https://discord.gg/M2QaDPgKFR
