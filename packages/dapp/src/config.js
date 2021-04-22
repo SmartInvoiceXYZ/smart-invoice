@@ -31,7 +31,7 @@ export const CONFIG = {
     4: {
       SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY: '0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7'.toLowerCase(),
+      INVOICE_FACTORY: '0xE14ab886A4ead1134c2F1c8FA58db44ceC8c7df9'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,
