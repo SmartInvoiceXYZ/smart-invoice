@@ -2,9 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./SmartInvoice.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./interfaces/ISmartInvoiceFactory.sol";
+import "./interfaces/ISmartInvoice.sol";
 
-contract SmartInvoiceFactory {
+contract SmartInvoiceFactory is ISmartInvoiceFactory {
   uint256 public invoiceCount = 0;
   mapping(uint256 => address) internal _invoices;
   mapping(address => uint256) public resolutionRates;
@@ -20,9 +22,11 @@ contract SmartInvoiceFactory {
     bytes32 details
   );
 
+  address public immutable implementation;
   address public immutable wrappedNativeToken;
 
-  constructor(address _wrappedNativeToken) {
+  constructor(address _implementation, address _wrappedNativeToken) {
+    implementation = _implementation;
     wrappedNativeToken = _wrappedNativeToken;
   }
 
@@ -35,27 +39,26 @@ contract SmartInvoiceFactory {
     uint256[] memory _amounts,
     uint256 _terminationTime,
     bytes32 _details
-  ) public returns (address) {
+  ) external override returns (address) {
     uint256 resolutionRate = resolutionRates[_resolver];
     if (resolutionRate == 0) {
       resolutionRate = 20;
     }
 
-    SmartInvoice invoice =
-      new SmartInvoice(
-        _client,
-        _provider,
-        _resolverType,
-        _resolver,
-        _token,
-        _amounts,
-        _terminationTime,
-        resolutionRate,
-        _details,
-        wrappedNativeToken
-      );
+    address invoiceAddress = Clones.clone(implementation);
 
-    address invoiceAddress = address(invoice);
+    ISmartInvoice(invoiceAddress).init(
+      _client,
+      _provider,
+      _resolverType,
+      _resolver,
+      _token,
+      _amounts,
+      _terminationTime,
+      resolutionRate,
+      _details,
+      wrappedNativeToken
+    );
 
     uint256 invoiceId = invoiceCount;
     _invoices[invoiceId] = invoiceAddress;

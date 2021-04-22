@@ -1,23 +1,28 @@
 /* eslint-disable */
-const { ethers } = require("hardhat");
+const { ethers, run } = require("hardhat");
 
 const wrappedTokenAddress = {
-  42: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
   4: "0xc778417e063141139fce010982780140aa0cd5ab",
+  42: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+  77: "0xc655c6D80ac92d75fBF4F40e95280aEb855B1E87",
   100: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
 };
 
 const networkName = {
-  42: "Kovan",
   4: "Rinkeby",
+  42: "Kovan",
+  77: "Sokol",
   100: "xDai",
 };
 
 const networkCurrency = {
-  42: "ETH",
   4: "ETH",
+  42: "ETH",
+  77: "SPOA",
   100: "xDai",
 };
+
+const BLOCKSCOUT_CHAIN_IDS = [77, 100];
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -34,18 +39,41 @@ async function main() {
     networkCurrency[chainId],
   );
 
-  const SmartInvoice = await ethers.getContractFactory("SmartInvoiceFactory");
-  const smartInvoiceFactory = await SmartInvoice.deploy(
+  const SmartInvoice = await ethers.getContractFactory("SmartInvoice");
+  const smartInvoice = await SmartInvoice.deploy();
+  await smartInvoice.deployed();
+  console.log("Implementation Address:", smartInvoice.address);
+
+  const SmartInvoiceFactory = await ethers.getContractFactory(
+    "SmartInvoiceFactory",
+  );
+  const smartInvoiceFactory = await SmartInvoiceFactory.deploy(
+    smartInvoice.address,
     wrappedTokenAddress[chainId],
   );
-
   await smartInvoiceFactory.deployed();
+  console.log("Factory Address:", smartInvoiceFactory.address);
 
   const txHash = smartInvoiceFactory.deployTransaction.hash;
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
-  console.log("Transaction Hash:", txHash);
-  console.log("Contract Address:", smartInvoiceFactory.address);
   console.log("Block Number:", receipt.blockNumber);
+
+  if (!BLOCKSCOUT_CHAIN_IDS.includes(chainId)) {
+    await run("verify:verify", {
+      address: smartInvoice.address,
+      constructorArguments: [],
+    });
+    console.log("Verified Implementation");
+
+    await run("verify:verify", {
+      address: smartInvoiceFactory.address,
+      constructorArguments: [
+        smartInvoice.address,
+        wrappedTokenAddress[chainId],
+      ],
+    });
+    console.log("Verified Factory");
+  }
 }
 
 main()

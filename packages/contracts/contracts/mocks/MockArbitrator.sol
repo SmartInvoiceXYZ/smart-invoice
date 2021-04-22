@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-import "../IArbitrable.sol";
+import "../interfaces/IArbitrable.sol";
 
 contract MockArbitrator {
   mapping(address => uint256) public disputes;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time
+// solhint-disable not-rely-on-time, max-states-count
 
 pragma solidity ^0.8.0;
 
@@ -7,16 +7,20 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "./IArbitrable.sol";
-import "./IArbitrator.sol";
-
-interface IWRAPPED {
-  // brief interface for canonical native token wrapper contract
-  function deposit() external payable;
-}
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "./interfaces/ISmartInvoice.sol";
+import "./interfaces/IArbitrable.sol";
+import "./interfaces/IArbitrator.sol";
+import "./interfaces/IWRAPPED.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
-contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
+contract SmartInvoice is
+  ISmartInvoice,
+  IArbitrable,
+  Initializable,
+  Context,
+  ReentrancyGuard
+{
   using SafeERC20 for IERC20;
 
   uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
@@ -34,19 +38,26 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     [0, 1] // 5 = 0% to client
   ];
 
+  bool private _initialized;
+
+  modifier initialized() {
+    require(_initialized, "!initialized");
+    _;
+  }
+
   uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
-  address public immutable wrappedNativeToken;
+  address public wrappedNativeToken;
 
   enum ADR {INDIVIDUAL, ARBITRATOR}
 
-  address public immutable client;
-  address public immutable provider;
-  ADR public immutable resolverType;
-  address public immutable resolver;
-  address public immutable token;
-  uint256 public immutable terminationTime;
-  uint256 public immutable resolutionRate;
-  bytes32 public immutable details;
+  address public client;
+  address public provider;
+  ADR public resolverType;
+  address public resolver;
+  address public token;
+  uint256 public terminationTime;
+  uint256 public resolutionRate;
+  bytes32 public details;
 
   uint256[] public amounts; // milestones split into amounts
   uint256 public total = 0;
@@ -78,7 +89,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 ruling
   );
 
-  constructor(
+  function init(
     address _client,
     address _provider,
     uint8 _resolverType,
@@ -89,7 +100,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 _resolutionRate,
     bytes32 _details,
     address _wrappedNativeToken
-  ) {
+  ) external override initializer {
     require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
     require(_terminationTime > block.timestamp, "duration ended");
     require(
@@ -111,6 +122,8 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     resolutionRate = _resolutionRate;
     details = _details;
     wrappedNativeToken = _wrappedNativeToken;
+
+    _initialized = true;
 
     emit Register(_client, _provider, amounts);
   }
@@ -144,11 +157,16 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     }
   }
 
-  function release() public nonReentrant {
+  function release() external override initialized nonReentrant {
     return _release();
   }
 
-  function release(uint256 _milestone) public nonReentrant {
+  function release(uint256 _milestone)
+    external
+    override
+    initialized
+    nonReentrant
+  {
     // client transfers locker funds upto certain milestone to provider
     require(!locked, "locked");
     require(_msgSender() == client, "!client");
@@ -173,7 +191,12 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   }
 
   // release non-invoice tokens
-  function releaseTokens(address _token) external nonReentrant {
+  function releaseTokens(address _token)
+    external
+    override
+    initialized
+    nonReentrant
+  {
     if (_token == token) {
       _release();
     } else {
@@ -196,12 +219,17 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   }
 
   // withdraw locker remainder to client if termination time passes & no lock
-  function withdraw() public nonReentrant {
+  function withdraw() external override initialized nonReentrant {
     return _withdraw();
   }
 
   // withdraw non-invoice tokens
-  function withdrawTokens(address _token) external nonReentrant {
+  function withdrawTokens(address _token)
+    external
+    override
+    initialized
+    nonReentrant
+  {
     if (_token == token) {
       _withdraw();
     } else {
@@ -214,7 +242,13 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   }
 
   // client or main (0) provider can lock remainder for resolution during locker period / update request details
-  function lock(bytes32 _details) external payable nonReentrant {
+  function lock(bytes32 _details)
+    external
+    payable
+    override
+    initialized
+    nonReentrant
+  {
     require(!locked, "locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
@@ -236,7 +270,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
     uint256 _clientAward,
     uint256 _providerAward,
     bytes32 _details
-  ) external nonReentrant {
+  ) external override initialized nonReentrant {
     // called by individual
     require(resolverType == ADR.INDIVIDUAL, "!individual resolver");
     require(locked, "!locked");
@@ -276,6 +310,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   function rule(uint256 _disputeId, uint256 _ruling)
     external
     override
+    initialized
     nonReentrant
   {
     // called by arbitrator
@@ -309,7 +344,7 @@ contract SmartInvoice is Context, IArbitrable, ReentrancyGuard {
   }
 
   // receive eth transfers
-  receive() external payable {
+  receive() external payable initialized {
     require(!locked, "locked");
     require(token == wrappedNativeToken, "!wrappedNativeToken");
     IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();

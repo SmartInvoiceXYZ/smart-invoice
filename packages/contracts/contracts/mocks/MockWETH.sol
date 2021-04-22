@@ -25,7 +25,7 @@ contract MockWETH {
   }
 
   function withdraw(uint256 wad) public {
-    require(balanceOf[msg.sender] >= wad);
+    require(balanceOf[msg.sender] >= wad, "WETH:: not enough balance");
     balanceOf[msg.sender] -= wad;
     payable(msg.sender).transfer(wad);
     emit Withdrawal(msg.sender, wad);
@@ -50,10 +50,10 @@ contract MockWETH {
     address dst,
     uint256 wad
   ) public returns (bool) {
-    require(balanceOf[src] >= wad);
+    require(balanceOf[src] >= wad, "WETH:: not enough balance");
 
     if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max) {
-      require(allowance[src][msg.sender] >= wad);
+      require(allowance[src][msg.sender] >= wad, "WETH:: not enough allowance");
       allowance[src][msg.sender] -= wad;
     }
 

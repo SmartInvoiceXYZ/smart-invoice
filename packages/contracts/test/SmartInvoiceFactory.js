@@ -15,6 +15,7 @@ const terminationTime =
 
 describe("SmartInvoiceFactory", function () {
   let SmartInvoiceFactory;
+  let SmartInvoice;
   let invoiceFactory;
   let owner;
   let addr1;
@@ -31,13 +32,21 @@ describe("SmartInvoiceFactory", function () {
     const MockWrappedTokenFactory = await ethers.getContractFactory("MockWETH");
     const mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
 
+    SmartInvoice = await ethers.getContractFactory("SmartInvoice");
+
+    const smartInvoice = await SmartInvoice.deploy();
+
     wrappedNativeToken = mockWrappedNativeToken.address;
 
     SmartInvoiceFactory = await ethers.getContractFactory(
       "SmartInvoiceFactory",
     );
 
-    invoiceFactory = await SmartInvoiceFactory.deploy(wrappedNativeToken);
+    invoiceFactory = await SmartInvoiceFactory.deploy(
+      smartInvoice.address,
+      wrappedNativeToken,
+    );
+
     await invoiceFactory.deployed();
   });
 
@@ -70,7 +79,6 @@ describe("SmartInvoiceFactory", function () {
       .to.emit(invoiceFactory, "LogNewInvoice")
       .withArgs(0, invoiceAddress, amounts);
 
-    const SmartInvoice = await ethers.getContractFactory("SmartInvoice");
     const invoice = await SmartInvoice.attach(invoiceAddress);
 
     expect(await invoice.client()).to.equal(client);
@@ -127,7 +135,6 @@ describe("SmartInvoiceFactory", function () {
       .to.emit(invoiceFactory, "LogNewInvoice")
       .withArgs(0, invoiceAddress, amounts);
 
-    const SmartInvoice = await ethers.getContractFactory("SmartInvoice");
     const invoice = await SmartInvoice.attach(invoiceAddress);
 
     expect(await invoice.resolutionRate()).to.equal(10);

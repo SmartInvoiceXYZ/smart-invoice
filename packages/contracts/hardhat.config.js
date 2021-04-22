@@ -10,7 +10,7 @@ const { INFURA_PROJECT_ID, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
 
 module.exports = {
   solidity: {
-    version: "0.8.0",
+    version: "0.8.3",
     settings: {
       optimizer: {
         enabled: true,
@@ -22,6 +22,11 @@ module.exports = {
     artifacts: "./build",
   },
   networks: {
+    sokol: {
+      url: `https://sokol.poa.network`,
+      accounts: [`0x${PRIVATE_KEY}`],
+      gasPrice: 1000000000,
+    },
     xdai: {
       url: `https://rpc.xdaichain.com`,
       accounts: [`0x${PRIVATE_KEY}`],
