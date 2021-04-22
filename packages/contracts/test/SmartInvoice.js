@@ -154,12 +154,6 @@ describe("SmartInvoice", function () {
     await expect(receipt).to.revertedWith("invalid resolverType");
   });
 
-  it("Should revert release if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(invoice["release()"]()).to.be.revertedWith("!initialized");
-  });
-
   it("Should revert release by non client", async function () {
     invoice = await invoice.connect(provider);
     await expect(invoice["release()"]()).to.be.revertedWith("!client");
@@ -275,14 +269,6 @@ describe("SmartInvoice", function () {
     await expect(receipt).to.emit(invoice, "Release").withArgs(1, 15);
   });
 
-  it("Should revert release with milestone if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(invoice["release(uint256)"](0)).to.be.revertedWith(
-      "!initialized",
-    );
-  });
-
   it("Should revert release with higher milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
@@ -348,24 +334,10 @@ describe("SmartInvoice", function () {
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
   });
 
-  it("Should revert releaseTokens if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(
-      invoice["releaseTokens(address)"](otherMockToken.address),
-    ).to.be.revertedWith("!initialized");
-  });
-
   it("Should revert releaseTokens if not client", async function () {
     invoice = await invoice.connect(provider);
     const receipt = invoice["releaseTokens(address)"](otherMockToken.address);
     await expect(receipt).to.revertedWith("!client");
-  });
-
-  it("Should revert withdraw if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(invoice["withdraw()"]()).to.be.revertedWith("!initialized");
   });
 
   it("Should revert withdraw before terminationTime", async function () {
@@ -512,14 +484,6 @@ describe("SmartInvoice", function () {
     expect(await invoice["milestone()"]()).to.equal(0);
   });
 
-  it("Should revert withdrawTokens if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(
-      invoice["withdrawTokens(address)"](otherMockToken.address),
-    ).to.be.revertedWith("!initialized");
-  });
-
   it("Should revert withdrawTokens for otherToken if not terminated", async function () {
     const currentTime = await currentTimestamp();
     invoice = await SmartInvoice.deploy();
@@ -564,14 +528,6 @@ describe("SmartInvoice", function () {
     await otherMockToken.mock.balanceOf.withArgs(invoice.address).returns(0);
     const receipt = invoice["withdrawTokens(address)"](otherMockToken.address);
     await expect(receipt).to.be.revertedWith("balance is 0");
-  });
-
-  it("Should revert lock if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(invoice["lock(bytes32)"](EMPTY_BYTES32)).to.be.revertedWith(
-      "!initialized",
-    );
   });
 
   it("Should revert lock if terminated", async function () {
@@ -673,14 +629,6 @@ describe("SmartInvoice", function () {
       mockWrappedNativeToken,
     );
     expect(await lockedInvoice["locked()"]()).to.equal(true);
-  });
-
-  it("Should revert resolve if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(
-      invoice["resolve(uint256,uint256,bytes32)"](0, 10, EMPTY_BYTES32),
-    ).to.be.revertedWith("!initialized");
   });
 
   it("Should revert resolve if not locked", async function () {
@@ -889,14 +837,6 @@ describe("SmartInvoice", function () {
     expect(await lockedInvoice["released()"]()).to.be.equal(0);
     expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
     expect(await lockedInvoice["locked()"]()).to.be.equal(false);
-  });
-
-  it("Should revert rule if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(invoice["rule(uint256,uint256)"](0, 0)).to.be.revertedWith(
-      "!initialized",
-    );
   });
 
   it("Should revert rule if not arbitrable", async function () {
@@ -1244,13 +1184,6 @@ describe("SmartInvoice", function () {
     expect(await lockedInvoice["released()"]()).to.be.equal(0);
     expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
     expect(await lockedInvoice["locked()"]()).to.be.equal(false);
-  });
-
-  it("Should revert receive if not initialized", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = client.sendTransaction({ to: invoice.address, value: 10 });
-    await expect(receipt).to.be.revertedWith("!initialized");
   });
 
   it("Should revert receive if not wrappedNativeToken", async function () {
