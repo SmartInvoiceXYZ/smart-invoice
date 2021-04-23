@@ -1187,7 +1187,10 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert receive if not wrappedNativeToken", async function () {
-    const receipt = client.sendTransaction({ to: invoice.address, value: 10 });
+    const receipt = client.sendTransaction({
+      to: invoice.address,
+      value: 10,
+    });
     await expect(receipt).to.be.revertedWith("!wrappedNativeToken");
   });
 

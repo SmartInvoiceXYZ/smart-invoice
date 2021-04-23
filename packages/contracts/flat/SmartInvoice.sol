@@ -814,13 +814,6 @@ contract SmartInvoice is
     [0, 1] // 5 = 0% to client
   ];
 
-  bool private _initialized;
-
-  modifier initialized() {
-    require(_initialized, "!initialized");
-    _;
-  }
-
   uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
   address public wrappedNativeToken;
 
@@ -899,8 +892,6 @@ contract SmartInvoice is
     details = _details;
     wrappedNativeToken = _wrappedNativeToken;
 
-    _initialized = true;
-
     emit Register(_client, _provider, amounts);
   }
 
@@ -933,16 +924,11 @@ contract SmartInvoice is
     }
   }
 
-  function release() external override initialized nonReentrant {
+  function release() external override nonReentrant {
     return _release();
   }
 
-  function release(uint256 _milestone)
-    external
-    override
-    initialized
-    nonReentrant
-  {
+  function release(uint256 _milestone) external override nonReentrant {
     // client transfers locker funds upto certain milestone to provider
     require(!locked, "locked");
     require(_msgSender() == client, "!client");
@@ -967,12 +953,7 @@ contract SmartInvoice is
   }
 
   // release non-invoice tokens
-  function releaseTokens(address _token)
-    external
-    override
-    initialized
-    nonReentrant
-  {
+  function releaseTokens(address _token) external override nonReentrant {
     if (_token == token) {
       _release();
     } else {
@@ -995,17 +976,12 @@ contract SmartInvoice is
   }
 
   // withdraw locker remainder to client if termination time passes & no lock
-  function withdraw() external override initialized nonReentrant {
+  function withdraw() external override nonReentrant {
     return _withdraw();
   }
 
   // withdraw non-invoice tokens
-  function withdrawTokens(address _token)
-    external
-    override
-    initialized
-    nonReentrant
-  {
+  function withdrawTokens(address _token) external override nonReentrant {
     if (_token == token) {
       _withdraw();
     } else {
@@ -1018,13 +994,7 @@ contract SmartInvoice is
   }
 
   // client or main (0) provider can lock remainder for resolution during locker period / update request details
-  function lock(bytes32 _details)
-    external
-    payable
-    override
-    initialized
-    nonReentrant
-  {
+  function lock(bytes32 _details) external payable override nonReentrant {
     require(!locked, "locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");
@@ -1046,7 +1016,7 @@ contract SmartInvoice is
     uint256 _clientAward,
     uint256 _providerAward,
     bytes32 _details
-  ) external override initialized nonReentrant {
+  ) external override nonReentrant {
     // called by individual
     require(resolverType == ADR.INDIVIDUAL, "!individual resolver");
     require(locked, "!locked");
@@ -1086,7 +1056,6 @@ contract SmartInvoice is
   function rule(uint256 _disputeId, uint256 _ruling)
     external
     override
-    initialized
     nonReentrant
   {
     // called by arbitrator
@@ -1120,7 +1089,7 @@ contract SmartInvoice is
   }
 
   // receive eth transfers
-  receive() external payable initialized {
+  receive() external payable {
     require(!locked, "locked");
     require(token == wrappedNativeToken, "!wrappedNativeToken");
     IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();

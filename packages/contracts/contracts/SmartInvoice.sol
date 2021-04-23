@@ -152,11 +152,7 @@ contract SmartInvoice is
     return _release();
   }
 
-  function release(uint256 _milestone)
-    external
-    override
-    nonReentrant
-  {
+  function release(uint256 _milestone) external override nonReentrant {
     // client transfers locker funds upto certain milestone to provider
     require(!locked, "locked");
     require(_msgSender() == client, "!client");
@@ -181,11 +177,7 @@ contract SmartInvoice is
   }
 
   // release non-invoice tokens
-  function releaseTokens(address _token)
-    external
-    override
-    nonReentrant
-  {
+  function releaseTokens(address _token) external override nonReentrant {
     if (_token == token) {
       _release();
     } else {
@@ -213,11 +205,7 @@ contract SmartInvoice is
   }
 
   // withdraw non-invoice tokens
-  function withdrawTokens(address _token)
-    external
-    override
-    nonReentrant
-  {
+  function withdrawTokens(address _token) external override nonReentrant {
     if (_token == token) {
       _withdraw();
     } else {
@@ -230,12 +218,7 @@ contract SmartInvoice is
   }
 
   // client or main (0) provider can lock remainder for resolution during locker period / update request details
-  function lock(bytes32 _details)
-    external
-    payable
-    override
-    nonReentrant
-  {
+  function lock(bytes32 _details) external payable override nonReentrant {
     require(!locked, "locked");
     uint256 balance = IERC20(token).balanceOf(address(this));
     require(balance > 0, "balance is 0");

@@ -2,7 +2,7 @@
   "name": "@smart-invoice/contracts",
   "version": "0.1.0",
   "scripts": {
-    "build": "hardhat compile",
+    "build": "hardhat compile && yarn flatten",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
     "help": "hardhat help",
