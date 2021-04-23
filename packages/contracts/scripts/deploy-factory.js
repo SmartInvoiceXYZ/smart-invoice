@@ -58,22 +58,21 @@ async function main() {
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
 
-  if (!BLOCKSCOUT_CHAIN_IDS.includes(chainId)) {
-    await run("verify:verify", {
-      address: smartInvoice.address,
-      constructorArguments: [],
-    });
-    console.log("Verified Implementation");
+  const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
+    ? "verify:verify-blockscout"
+    : "verify:verify";
 
-    await run("verify:verify", {
-      address: smartInvoiceFactory.address,
-      constructorArguments: [
-        smartInvoice.address,
-        wrappedTokenAddress[chainId],
-      ],
-    });
-    console.log("Verified Factory");
-  }
+  await run(TASK_VERIFY, {
+    address: smartInvoice.address,
+    constructorArguments: [],
+  });
+  console.log("Verified Implementation");
+
+  await run(TASK_VERIFY, {
+    address: smartInvoiceFactory.address,
+    constructorArguments: [smartInvoice.address, wrappedTokenAddress[chainId]],
+  });
+  console.log("Verified Factory");
 }
 
 main()
