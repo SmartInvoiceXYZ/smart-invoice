@@ -889,6 +889,8 @@ contract SmartInvoice is
         uint256 ruling
     );
 
+    function initLock() external initializer {}
+
     function init(
         address _client,
         address _provider,

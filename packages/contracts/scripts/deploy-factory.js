@@ -54,9 +54,13 @@ async function main() {
   await smartInvoiceFactory.deployed();
   console.log("Factory Address:", smartInvoiceFactory.address);
 
+  await smartInvoice.initLock();
+
   const txHash = smartInvoiceFactory.deployTransaction.hash;
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
+
+  await smartInvoiceFactory.deployTransaction.wait(5);
 
   const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
     ? "verify:verify-blockscout"

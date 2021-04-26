@@ -78,6 +78,31 @@ describe("SmartInvoice", function () {
     );
   });
 
+  it("Should revert initLock if already init", async function () {
+    const receipt = invoice.initLock();
+    await expect(receipt).to.revertedWith("Initializable: contract is already initialized");
+  });
+
+  it("Should revert init if initLocked", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await invoice.initLock();
+    const receipt = invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime - 3600,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await expect(receipt).to.revertedWith("Initializable: contract is already initialized");
+  });
+
   it("Should revert init if terminationTime has ended", async function () {
     const currentTime = await currentTimestamp();
     invoice = await SmartInvoice.deploy();
