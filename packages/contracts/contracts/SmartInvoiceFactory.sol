@@ -26,6 +26,11 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
     address public immutable wrappedNativeToken;
 
     constructor(address _implementation, address _wrappedNativeToken) {
+        require(_implementation != address(0), "invalid implementation");
+        require(
+            _wrappedNativeToken != address(0),
+            "invalid wrappedNativeToken"
+        );
         implementation = _implementation;
         wrappedNativeToken = _wrappedNativeToken;
     }
@@ -37,7 +42,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details
     ) internal {
@@ -72,7 +77,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details
     ) external override returns (address) {
@@ -108,7 +113,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details,
         bytes32 _salt

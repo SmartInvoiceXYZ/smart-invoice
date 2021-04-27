@@ -5,6 +5,7 @@ const { deployMockContract } = waffle;
 const { awaitInvoiceAddress } = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
+const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const resolverType = 0;
@@ -14,8 +15,9 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 
 describe("SmartInvoiceFactory", function () {
-  let SmartInvoiceFactory;
   let SmartInvoice;
+  let smartInvoice;
+  let SmartInvoiceFactory;
   let invoiceFactory;
   let owner;
   let addr1;
@@ -34,7 +36,7 @@ describe("SmartInvoiceFactory", function () {
 
     SmartInvoice = await ethers.getContractFactory("SmartInvoice");
 
-    const smartInvoice = await SmartInvoice.deploy();
+    smartInvoice = await SmartInvoice.deploy();
 
     wrappedNativeToken = mockWrappedNativeToken.address;
 
@@ -53,6 +55,19 @@ describe("SmartInvoiceFactory", function () {
   it("Should deploy with 0 invoiceCount", async function () {
     const invoiceCount = await invoiceFactory.invoiceCount();
     expect(invoiceCount).to.equal(0);
+  });
+
+  it("Should revert deploy if zero implementation", async function () {
+    const receipt = SmartInvoiceFactory.deploy(ADDRESS_ZERO, ADDRESS_ZERO);
+    await expect(receipt).to.revertedWith("invalid implementation");
+  });
+
+  it("Should revert deploy if zero wrappedNativeToken", async function () {
+    const receipt = SmartInvoiceFactory.deploy(
+      smartInvoice.address,
+      ADDRESS_ZERO,
+    );
+    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
 
   let invoiceAddress;

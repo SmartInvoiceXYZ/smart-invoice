@@ -9,7 +9,7 @@ interface ISmartInvoiceFactory {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details
     ) external returns (address);
@@ -20,7 +20,7 @@ interface ISmartInvoiceFactory {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details,
         bytes32 _salt

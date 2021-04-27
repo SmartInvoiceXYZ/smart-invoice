@@ -9,7 +9,7 @@ interface ISmartInvoice {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,

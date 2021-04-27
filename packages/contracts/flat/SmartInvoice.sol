@@ -627,7 +627,7 @@ interface ISmartInvoice {
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,
@@ -897,19 +897,27 @@ contract SmartInvoice is
         uint8 _resolverType,
         address _resolver,
         address _token,
-        uint256[] memory _amounts,
+        uint256[] calldata _amounts,
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,
         address _wrappedNativeToken
     ) external override initializer {
+        require(_client != address(0), "invalid client");
+        require(_provider != address(0), "invalid provider");
         require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
+        require(_resolver != address(0), "invalid resolver");
+        require(_token != address(0), "invalid token");
         require(_terminationTime > block.timestamp, "duration ended");
         require(
             _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
             "duration too long"
         );
         require(_resolutionRate > 0, "invalid resolutionRate");
+        require(
+            _wrappedNativeToken != address(0),
+            "invalid wrappedNativeToken"
+        );
 
         client = _client;
         provider = _provider;

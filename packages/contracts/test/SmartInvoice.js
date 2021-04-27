@@ -5,6 +5,7 @@ const { deployMockContract, provider: waffleProvider } = waffle;
 const { currentTimestamp, getLockedInvoice } = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
+const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const individualResolverType = 0;
@@ -105,6 +106,100 @@ describe("SmartInvoice", function () {
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
     );
+  });
+
+  it("Should revert init if invalid client", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    const receipt = invoice.init(
+      ADDRESS_ZERO,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime - 3600,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await expect(receipt).to.revertedWith("invalid client");
+  });
+
+  it("Should revert init if invalid provider", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    const receipt = invoice.init(
+      client.address,
+      ADDRESS_ZERO,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime - 3600,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await expect(receipt).to.revertedWith("invalid provider");
+  });
+
+  it("Should revert init if invalid resolver", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    const receipt = invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      ADDRESS_ZERO,
+      mockToken.address,
+      amounts,
+      currentTime - 3600,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await expect(receipt).to.revertedWith("invalid resolver");
+  });
+
+  it("Should revert init if invalid token", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    const receipt = invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      ADDRESS_ZERO,
+      amounts,
+      currentTime - 3600,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await expect(receipt).to.revertedWith("invalid token");
+  });
+
+  it("Should revert init if invalid wrappedNativeToken", async function () {
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    const receipt = invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      terminationTime,
+      resolutionRate,
+      EMPTY_BYTES32,
+      ADDRESS_ZERO,
+    );
+    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
 
   it("Should revert init if terminationTime has ended", async function () {
