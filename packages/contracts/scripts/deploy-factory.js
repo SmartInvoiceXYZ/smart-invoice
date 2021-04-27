@@ -1,5 +1,6 @@
 /* eslint-disable */
-const { ethers, run } = require("hardhat");
+const { ethers, run, network } = require("hardhat");
+const fs = require("fs");
 
 const wrappedTokenAddress = {
   4: "0xc778417e063141139fce010982780140aa0cd5ab",
@@ -77,6 +78,18 @@ async function main() {
     constructorArguments: [smartInvoice.address, wrappedTokenAddress[chainId]],
   });
   console.log("Verified Factory");
+
+  const deploymentInfo = {
+    network: network.name,
+    factory: smartInvoiceFactory.address,
+    txHash,
+    blockNumber: receipt.blockNumber.toString(),
+  };
+
+  fs.writeFileSync(
+    `deployments/${network.name}.json`,
+    JSON.stringify(deploymentInfo, undefined, 2),
+  );
 }
 
 main()
