@@ -80,7 +80,9 @@ describe("SmartInvoice", function () {
 
   it("Should revert initLock if already init", async function () {
     const receipt = invoice.initLock();
-    await expect(receipt).to.revertedWith("Initializable: contract is already initialized");
+    await expect(receipt).to.revertedWith(
+      "Initializable: contract is already initialized",
+    );
   });
 
   it("Should revert init if initLocked", async function () {
@@ -100,7 +102,9 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith("Initializable: contract is already initialized");
+    await expect(receipt).to.revertedWith(
+      "Initializable: contract is already initialized",
+    );
   });
 
   it("Should revert init if terminationTime has ended", async function () {

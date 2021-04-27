@@ -101,6 +101,36 @@ describe("SmartInvoiceFactory", function () {
     expect(await invoiceFactory.getInvoiceAddress(0)).to.equal(invoiceAddress);
   });
 
+  it("Should predict SmartInvoice address", async function () {
+    client = owner.address;
+    provider = addr1.address;
+    resolver = addr2.address;
+
+    const predictedAddress = await invoiceFactory.predictDeterministicAddress(
+      EMPTY_BYTES32,
+    );
+
+    const receipt = await invoiceFactory.createDeterministic(
+      client,
+      provider,
+      resolverType,
+      resolver,
+      token,
+      amounts,
+      terminationTime,
+      EMPTY_BYTES32,
+      EMPTY_BYTES32,
+    );
+
+    invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
+    expect(receipt)
+      .to.emit(invoiceFactory, "LogNewInvoice")
+      .withArgs(0, invoiceAddress, amounts);
+
+    expect(invoiceAddress).to.equal(predictedAddress);
+    expect(await invoiceFactory.getInvoiceAddress(0)).to.equal(invoiceAddress);
+  });
+
   it("Should update resolutionRate", async function () {
     let resolutionRate = await invoiceFactory.resolutionRates(addr2.address);
     expect(resolutionRate).to.equal(0);

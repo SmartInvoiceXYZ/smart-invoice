@@ -30,7 +30,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         wrappedNativeToken = _wrappedNativeToken;
     }
 
-    function create(
+    function _init(
+        address _invoiceAddress,
         address _client,
         address _provider,
         uint8 _resolverType,
@@ -39,15 +40,13 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         uint256[] memory _amounts,
         uint256 _terminationTime,
         bytes32 _details
-    ) external override returns (address) {
+    ) internal {
         uint256 resolutionRate = resolutionRates[_resolver];
         if (resolutionRate == 0) {
             resolutionRate = 20;
         }
 
-        address invoiceAddress = Clones.clone(implementation);
-
-        ISmartInvoice(invoiceAddress).init(
+        ISmartInvoice(_invoiceAddress).init(
             _client,
             _provider,
             _resolverType,
@@ -61,10 +60,74 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         );
 
         uint256 invoiceId = invoiceCount;
-        _invoices[invoiceId] = invoiceAddress;
+        _invoices[invoiceId] = _invoiceAddress;
         invoiceCount = invoiceCount + 1;
 
-        emit LogNewInvoice(invoiceId, invoiceAddress, _amounts);
+        emit LogNewInvoice(invoiceId, _invoiceAddress, _amounts);
+    }
+
+    function create(
+        address _client,
+        address _provider,
+        uint8 _resolverType,
+        address _resolver,
+        address _token,
+        uint256[] memory _amounts,
+        uint256 _terminationTime,
+        bytes32 _details
+    ) external override returns (address) {
+        address invoiceAddress = Clones.clone(implementation);
+
+        _init(
+            invoiceAddress,
+            _client,
+            _provider,
+            _resolverType,
+            _resolver,
+            _token,
+            _amounts,
+            _terminationTime,
+            _details
+        );
+
+        return invoiceAddress;
+    }
+
+    function predictDeterministicAddress(bytes32 _salt)
+        external
+        view
+        override
+        returns (address)
+    {
+        return Clones.predictDeterministicAddress(implementation, _salt);
+    }
+
+    function createDeterministic(
+        address _client,
+        address _provider,
+        uint8 _resolverType,
+        address _resolver,
+        address _token,
+        uint256[] memory _amounts,
+        uint256 _terminationTime,
+        bytes32 _details,
+        bytes32 _salt
+    ) external override returns (address) {
+        address invoiceAddress =
+            Clones.cloneDeterministic(implementation, _salt);
+
+        _init(
+            invoiceAddress,
+            _client,
+            _provider,
+            _resolverType,
+            _resolver,
+            _token,
+            _amounts,
+            _terminationTime,
+            _details
+        );
+
         return invoiceAddress;
     }
 
