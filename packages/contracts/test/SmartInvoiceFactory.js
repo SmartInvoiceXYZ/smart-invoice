@@ -90,7 +90,7 @@ describe("SmartInvoiceFactory", function () {
       EMPTY_BYTES32,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
-    expect(receipt)
+    await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
       .withArgs(0, invoiceAddress, amounts);
 
@@ -138,7 +138,7 @@ describe("SmartInvoiceFactory", function () {
     );
 
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
-    expect(receipt)
+    await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
       .withArgs(0, invoiceAddress, amounts);
 
@@ -152,7 +152,7 @@ describe("SmartInvoiceFactory", function () {
     const receipt = await invoiceFactory
       .connect(addr2)
       .updateResolutionRate(10, EMPTY_BYTES32);
-    expect(receipt)
+    await expect(receipt)
       .to.emit(invoiceFactory, "UpdateResolutionRate")
       .withArgs(addr2.address, 10, EMPTY_BYTES32);
 
@@ -176,7 +176,7 @@ describe("SmartInvoiceFactory", function () {
       EMPTY_BYTES32,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
-    expect(receipt)
+    await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
       .withArgs(0, invoiceAddress, amounts);
 
