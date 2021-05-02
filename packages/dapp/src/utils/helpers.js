@@ -79,7 +79,14 @@ export const getTxLink = (chainId, hash) =>
 export const getAddressLink = (chainId, hash) =>
   `${getExplorerUrl(chainId)}/address/${hash}`;
 
-export const getIpfsLink = hash => `${IPFS_ENDPOINT}/ipfs/${hash}`;
+// bytes58 QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51
+// is the same as
+// bytes64 12200000000000000000000000000000000000000000000000000000000000000000
+// which means an all zeros bytes32 was input on the contract
+export const getIpfsLink = hash =>
+  hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51'
+    ? ''
+    : `${IPFS_ENDPOINT}/ipfs/${hash}`;
 
 export const getAccountString = account => {
   const len = account.length;
