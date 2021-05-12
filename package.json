@@ -24,7 +24,8 @@
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
     "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
     "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
-    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\""
+    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
+    "prepare": "husky install"
   },
   "workspaces": {
     "nohoist": [
@@ -63,12 +64,13 @@
     "prettier": "^2.1.1",
     "prettier-plugin-solidity": "^1.0.0-beta.10"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,md,sol}": "prettier --write"
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,sol}": [
+      "prettier --write"
+    ]
   }
 }
