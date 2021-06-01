@@ -7,7 +7,8 @@ title: View Existing Invoice(s)
 3. Enter Invoice ID or Client Wallet Address
 4. Click on the invoice you want to select
 
-![](https://i.imgur.com/RzURt2c.png)
+![](https://i.imgur.com/5WnmZQI.png)
+
 
 
 Now you can see the Invoice name on the left hand side, above the arbitration provider address and the project description. To the right, you can see payment details such as milestones, amount deposited, amount released, as well as remaining amount due.
