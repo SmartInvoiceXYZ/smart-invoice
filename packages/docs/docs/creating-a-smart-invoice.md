@@ -11,7 +11,6 @@ Here you will enter your project’s details in sequential order:
 3. Project Description
 4. Project Start / End / Safety Valve Withdrawal (Date)
 
-
 ![](https://i.imgur.com/bwcIPM5.png)
 
 <h4><details>
@@ -33,7 +32,7 @@ Here you will enter your project’s details in sequential order:
 <summary> What is Safety Valve and Why is it Important?  </summary>    
 <p>&nbsp;</p>
 
-###### Safety Valve is a built in function that allows the client to withdraw funds from the contract on the date specified in the date entry field. This can be a useful feature in the scenario that a provider goes unresponsive or bails on the project, in which case the client can withdraw all funds deposited into smart invoice on the Safety Valve date.
+###### Safety Valve is a built in function that allows the client to withdraw funds from the contract on the date specified in the date entry field. This can be a useful feature in the scenario that a provider goes unresponsive or bails on the project, in which case the client can withdraw all funds deposited into smart invoice on or after the Safety Valve date.
 
 </details></h4>
 
