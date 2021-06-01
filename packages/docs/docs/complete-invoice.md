@@ -4,7 +4,11 @@ title: Complete Invoice (Provider)
 
 Finally, you have submitted a transaction to complete your smart invoice Registration! We ask that you wait patiently for the transaction to be processed.
 
+![](https://i.imgur.com/YV1NGoE.png)
+
 After your transaction has processed, you should see the invoice has been registered. You can check to see the transaction by clicking just below the “Invoice Registered” header.
+
+![](https://i.imgur.com/Z4cIklf.png)
 
 Following submission, you will see a copyable link to your Invoice ID as well as a link to your invoice agreement.
 
