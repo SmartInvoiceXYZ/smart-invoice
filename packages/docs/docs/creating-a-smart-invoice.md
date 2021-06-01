@@ -11,6 +11,9 @@ Here you will enter your project’s details in sequential order:
 3. Project Description
 4. Project Start / End / Safety Valve Withdrawal (Date)
 
+
+![](https://i.imgur.com/bwcIPM5.png)
+
 <h4><details>
 <summary> Mini Glossary</summary>
 
@@ -47,6 +50,8 @@ In this step you will enter the following payment details:
 7. Max Dispute Fee
 8. Terms-of-Service
 
+![](https://i.imgur.com/1xe9znr.png)
+
 <h4><details>
 <summary> Mini Glossary</summary>
 
@@ -75,9 +80,13 @@ In this step you will enter the following payment details:
 1. Enter Payment amount per milestone
 2. Enter Amount up until total amount is paid
 
+![](https://i.imgur.com/gKrQLG5.png)
+
 ## Step 4: Create Invoice
 
 Review that all of the details of your invoice are correct, if they are not you will want to re-enter the correct information in each of the fields you filled out incorrectly.
+
+![](https://i.imgur.com/zd5A8hZ.png)
 
 ###### Note: If you enter the incorrect client address or if any of the information you provide in the smart invoice form is wrong, you will not be able to edit or change that information later. This is because every completed smart invoice form executes on-chain, meaning it cannot be reversed and is immutable. Therefore, take extra caution and make sure to double or triple check that the details you enter are correct.
 
