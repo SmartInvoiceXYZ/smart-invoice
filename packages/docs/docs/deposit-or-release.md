@@ -12,7 +12,6 @@ After you complete the transaction, you will see `Deposited` and the `Date` indi
 
 ![](https://i.imgur.com/EWcmDYb.png)
 
-
 After depositing, if you would like to **release payment** to the provider, you can click the release button, which will redirect you to your WalletConnect or MetaMask where you will be asked to approve the transaction. Once the transaction is complete, you will see `Released` and the `Date` indicating that your payment has been received by the provider wallet address.
 
 ![](https://i.imgur.com/O5vsTwn.png)

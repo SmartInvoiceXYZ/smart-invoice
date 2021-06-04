@@ -31,6 +31,7 @@ type Invoice @entity {
   releases: [Release!]!
   disputes: [Dispute!]!
   resolutions: [Resolution!]!
+  tokenMetadata: Token!
 }
 
 enum ADR @entity {
@@ -94,12 +95,9 @@ type Resolution @entity {
   timestamp: BigInt!
 }
 
-# type Transfer @entity {
-#   id: ID!
-#   txHash: Bytes!
-#   from: Bytes!
-#   to: Bytes!
-#   amount: BigInt!
-#   token: Bytes!
-#   timestamp: BigInt!
-# }
+type Token @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+}

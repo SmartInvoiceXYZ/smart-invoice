@@ -8,8 +8,9 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice } from '../generated/schema';
-import { SmartInvoice } from '../generated/SmartInvoiceFactory/SmartInvoice';
+import { Invoice, Token } from '../types/schema';
+import { SmartInvoice } from '../types/templates/SmartInvoice/SmartInvoice';
+import { ERC20 } from '../types/templates/ERC20/ERC20';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -172,4 +173,21 @@ export function updateInvoiceInfo(
   invoice.endDate = invoiceObject.endDate;
 
   return invoice as Invoice;
+}
+
+export function getToken(address: Address): Token {
+  let token = Token.load(address.toHexString());
+  if (token == null) {
+    token = new Token(address.toHexString());
+
+    let erc20 = ERC20.bind(address);
+    let nameValue = erc20.try_name();
+    let symbolValue = erc20.try_symbol();
+    let decimalsValue = erc20.try_decimals();
+
+    token.name = nameValue.reverted ? '' : nameValue.value;
+    token.symbol = symbolValue.reverted ? '' : symbolValue.value;
+    token.decimals = decimalsValue.reverted ? 0 : decimalsValue.value;
+  }
+  return token as Token;
 }

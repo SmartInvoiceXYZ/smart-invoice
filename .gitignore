@@ -57,3 +57,4 @@ pids
 
 # subgraph
 subgraph.yaml
+packages/subgraph/src/types

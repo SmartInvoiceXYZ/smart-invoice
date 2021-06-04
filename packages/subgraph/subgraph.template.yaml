@@ -1,7 +1,7 @@
 specVersion: 0.0.2
 description: Smart Invoice
 schema:
-  file: ./schema.graphql
+  file: ./src/schema.graphql
 dataSources:
   {{#factories}}
   - kind: ethereum/contract
@@ -20,24 +20,25 @@ dataSources:
       entities:
         - Invoice
       abis:
-        - name: SmartInvoiceFactory
-          file: ./abis/SmartInvoiceFactory.json
+        - name: ERC20
+          file: ./src/abis/ERC20.json
         - name: SmartInvoice
-          file: ./abis/SmartInvoice.json
+          file: ./src/abis/SmartInvoice.json
+        - name: SmartInvoiceFactory
+          file: ./src/abis/SmartInvoiceFactory.json
       eventHandlers:
         - event: LogNewInvoice(indexed uint256,address,uint256[])
           handler: handleLogNewInvoice
 
-      file: ./src/mappings.ts
+      file: ./src/mappings/factory.ts
   {{/factories}}
+templates:
   - kind: ethereum/contract
     name: SmartInvoice
     # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoice
-      # prettier-ignore
-      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -47,9 +48,14 @@ dataSources:
         - Release
         - Deposit
         - Resolution
+        - Token
       abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
         - name: SmartInvoice
-          file: ./abis/SmartInvoice.json
+          file: ./src/abis/SmartInvoice.json
+        - name: SmartInvoiceFactory
+          file: ./src/abis/SmartInvoiceFactory.json
       eventHandlers:
         - event: Release(uint256,uint256)
           handler: handleRelease
@@ -63,33 +69,28 @@ dataSources:
           handler: handleResolve
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
-      file: ./src/mappings.ts
-  # prettier-ignore
-  {{#tokens}}
+      file: ./src/mappings/invoice.ts
   - kind: ethereum/contract
-    name: {{tokenName}}
+    name: ERC20
     # prettier-ignore
     network: {{network}}
     source:
-      # prettier-ignore
-      address: '{{tokenAddress}}'
       abi: ERC20
-      # prettier-ignore
-      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
+        - Token
         - Deposit
       abis:
         - name: ERC20
-          file: ./abis/ERC20.json
+          file: ./src/abis/ERC20.json
         - name: SmartInvoice
-          file: ./abis/SmartInvoice.json
+          file: ./src/abis/SmartInvoice.json
+        - name: SmartInvoiceFactory
+          file: ./src/abis/SmartInvoiceFactory.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-      file: ./src/mappings.ts
-  # prettier-ignore
-  {{/tokens}}
+      file: ./src/mappings/token.ts

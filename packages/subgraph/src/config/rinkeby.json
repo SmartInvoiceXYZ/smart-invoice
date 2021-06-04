@@ -1,6 +1,5 @@
 {
   "network": "rinkeby",
-  "startBlock": "8113364",
   "factories": [
     {
       "factoryName": "Version00",
@@ -26,23 +25,6 @@
       "factoryName": "Version04",
       "startBlock": "8484551",
       "address": "0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c"
-    }
-  ],
-  "tokens": [
-    {
-      "tokenName": "DAI",
-      "startBlock": "8113364",
-      "tokenAddress": "0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42"
-    },
-    {
-      "tokenName": "WETH",
-      "startBlock": "8113364",
-      "tokenAddress": "0xc778417E063141139Fce010982780140Aa0cD5Ab"
-    },
-    {
-      "tokenName": "TEST",
-      "startBlock": "8113364",
-      "tokenAddress": "0x982e00b16c313e979c0947b85230907fce45d50e"
     }
   ]
 }
