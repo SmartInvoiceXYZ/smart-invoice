@@ -4,10 +4,17 @@ require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
+require("hardhat-gas-reporter");
 require("solidity-coverage");
 require("./tasks/verify-blockscout");
 
-const { INFURA_PROJECT_ID, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
+const {
+  INFURA_PROJECT_ID,
+  PRIVATE_KEY,
+  ETHERSCAN_API_KEY,
+  COINMARKETCAP_API_KEY,
+  CURRENCY,
+} = process.env;
 
 module.exports = {
   solidity: {
@@ -48,5 +55,9 @@ module.exports = {
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    coinmarketcap: COINMARKETCAP_API_KEY,
+    currency: CURRENCY,
   },
 };

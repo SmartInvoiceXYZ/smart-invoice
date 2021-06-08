@@ -34,6 +34,7 @@
     "ethers": "^5.1.0",
     "fs": "^0.0.1-security",
     "hardhat": "^2.1.2",
+    "hardhat-gas-reporter": "^1.0.4",
     "mocha": "^8.3.2",
     "querystring": "^0.2.1",
     "semver": "^7.3.5",
