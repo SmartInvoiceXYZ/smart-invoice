@@ -18,16 +18,23 @@ import {
 } from '../utils/helpers';
 import { release } from '../utils/invoice';
 
+const getReleaseAmount = (currentMilestone, amounts, balance) => {
+  if (
+    currentMilestone >= amounts.length ||
+    (currentMilestone === amounts.length - 1 &&
+      balance.gte(amounts[currentMilestone]))
+  ) {
+    return balance;
+  }
+  return BigNumber.from(amounts[currentMilestone]);
+};
+
 export const ReleaseFunds = ({ invoice, balance, close }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
   const { network, currentMilestone, amounts, address, token } = invoice;
 
-  let amount = BigNumber.from(amounts[currentMilestone]);
-  amount =
-    currentMilestone === amounts.length - 1 && amount.lt(balance)
-      ? balance
-      : amounts[currentMilestone];
+  let amount = getReleaseAmount(currentMilestone, amounts, balance);
 
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [transaction, setTransaction] = useState();
