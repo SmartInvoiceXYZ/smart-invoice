@@ -889,6 +889,7 @@ contract SmartInvoice is
         uint256 ruling
     );
 
+    // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
 
     function init(
