@@ -59,36 +59,43 @@ export const nativeSymbols = {
 };
 
 export const graphUrls = {
+  1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
 };
 
 export const tokens = {
+  1: Object.keys(NETWORK_CONFIG[1].TOKENS),
   4: Object.keys(NETWORK_CONFIG[4].TOKENS),
   100: Object.keys(NETWORK_CONFIG[100].TOKENS),
 };
 
 export const tokenInfo = {
+  1: NETWORK_CONFIG[1].TOKENS,
   4: NETWORK_CONFIG[4].TOKENS,
   100: NETWORK_CONFIG[100].TOKENS,
 };
 
 export const resolvers = {
+  1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
   100: Object.keys(NETWORK_CONFIG[100].RESOLVERS),
 };
 
 export const resolverInfo = {
+  1: NETWORK_CONFIG[1].RESOLVERS,
   4: NETWORK_CONFIG[4].RESOLVERS,
   100: NETWORK_CONFIG[100].RESOLVERS,
 };
 
 export const wrappedNativeToken = {
+  1: NETWORK_CONFIG[1].WRAPPED_NATIVE_TOKEN,
   4: NETWORK_CONFIG[4].WRAPPED_NATIVE_TOKEN,
   100: NETWORK_CONFIG[100].WRAPPED_NATIVE_TOKEN,
 };
 
 export const invoiceFactory = {
+  1: NETWORK_CONFIG[1].INVOICE_FACTORY,
   4: NETWORK_CONFIG[4].INVOICE_FACTORY,
   100: NETWORK_CONFIG[100].INVOICE_FACTORY,
 };

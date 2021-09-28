@@ -7,15 +7,18 @@
     "auth": "graph auth https://api.thegraph.com/deploy/ $GRAPH_ACCESS_TOKEN",
     "prepare-rinkeby": "mustache src/config/rinkeby.json subgraph.template.yaml > subgraph.yaml",
     "prepare-xdai": "mustache src/config/xdai.json subgraph.template.yaml > subgraph.yaml",
+    "prepare-mainnet": "mustache src/config/mainnet.json subgraph.template.yaml > subgraph.yaml",
     "deploy-only-rinkeby": "graph deploy dan13ram/rinkeby-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-xdai": "graph deploy dan13ram/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
-    "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai"
+    "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
+    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet"
   },
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.20.0",
-    "@graphprotocol/graph-ts": "0.20.0",
+    "@graphprotocol/graph-cli": "^0.22.1",
+    "@graphprotocol/graph-ts": "^0.22.1",
     "mustache": "^4.2.0"
   }
 }

@@ -21,6 +21,7 @@ export function addQm(a: ByteArray): ByteArray {
   for (let i = 0; i < 32; i++) {
     out[i + 2] = a[i];
   }
+  changetype<ByteArray>(out);
   return out as ByteArray;
 }
 
@@ -44,9 +45,39 @@ class InvoiceObject {
   projectAgreement: string;
   startDate: BigInt;
   endDate: BigInt;
+
+  constructor() {
+    this.client = Address.fromHexString(
+      '0x0000000000000000000000000000000000000000',
+    ) as Address;
+    this.provider = Address.fromHexString(
+      '0x0000000000000000000000000000000000000000',
+    ) as Address;
+    this.resolverType = 0;
+    this.resolver = Address.fromHexString(
+      '0x0000000000000000000000000000000000000000',
+    ) as Address;
+    this.resolutionRate = BigInt.fromI32(0);
+    this.token = Address.fromHexString(
+      '0x0000000000000000000000000000000000000000',
+    ) as Address;
+    this.isLocked = false;
+    this.currentMilestone = BigInt.fromI32(0);
+    this.total = BigInt.fromI32(0);
+    this.released = BigInt.fromI32(0);
+    this.terminationTime = BigInt.fromI32(0);
+    this.details = Bytes.fromHexString('0x') as Bytes;
+    this.ipfsHash = '';
+    this.disputeId = BigInt.fromI32(0);
+    this.projectName = '';
+    this.projectDescription = '';
+    this.projectAgreement = '';
+    this.startDate = BigInt.fromI32(0);
+    this.endDate = BigInt.fromI32(0);
+  }
 }
 
-function fetchInvoiceInfo(address: Address): InvoiceObject | null {
+function fetchInvoiceInfo(address: Address): InvoiceObject {
   let invoiceInstance = SmartInvoice.bind(address);
   let invoiceObject = new InvoiceObject();
 
@@ -102,49 +133,47 @@ function fetchInvoiceInfo(address: Address): InvoiceObject | null {
   }
   if (!details.reverted) {
     invoiceObject.details = details.value;
-    let hexHash = addQm(invoiceObject.details) as Bytes;
-    let base58Hash = hexHash.toBase58();
-    invoiceObject.ipfsHash = base58Hash.toString();
-    let ipfsData = ipfs.cat(base58Hash);
-    log.info('IPFS details from hash {}, data {}', [
-      base58Hash,
-      ipfsData.toString(),
-    ]);
-    if (ipfsData != null) {
-      let data = json.fromBytes(ipfsData as Bytes).toObject();
-      let projectName = data.get('projectName');
-      if (!projectName.isNull()) {
-        invoiceObject.projectName = projectName.toString();
+    if (details.value.length == 32) {
+      let hexHash = addQm(invoiceObject.details) as Bytes;
+      let base58Hash = hexHash.toBase58();
+      invoiceObject.ipfsHash = base58Hash.toString();
+      let ipfsData = ipfs.cat(base58Hash);
+      if (ipfsData !== null) {
+        log.info('IPFS details from hash {}, data {}', [
+          base58Hash,
+          ipfsData.toString(),
+        ]);
+        let data = json.fromBytes(ipfsData).toObject();
+        let projectName = data.get('projectName');
+        if (projectName != null && !projectName.isNull()) {
+          invoiceObject.projectName = projectName.toString();
+        }
+        let projectDescription = data.get('projectDescription');
+        if (projectDescription != null && !projectDescription.isNull()) {
+          invoiceObject.projectDescription = projectDescription.toString();
+        }
+        let projectAgreement = data.get('projectAgreement');
+        if (projectAgreement != null && !projectAgreement.isNull()) {
+          invoiceObject.projectAgreement = projectAgreement.toString();
+        }
+        let startDate = data.get('startDate');
+        if (startDate != null && !startDate.isNull()) {
+          invoiceObject.startDate = startDate.toBigInt();
+        }
+        let endDate = data.get('endDate');
+        if (endDate != null && !endDate.isNull()) {
+          invoiceObject.endDate = endDate.toBigInt();
+        }
+      } else {
+        log.warning('could not get IPFS details from hash {}', [base58Hash]);
       }
-      let projectDescription = data.get('projectDescription');
-      if (!projectDescription.isNull()) {
-        invoiceObject.projectDescription = projectDescription.toString();
-      }
-      let projectAgreement = data.get('projectAgreement');
-      if (!projectAgreement.isNull()) {
-        invoiceObject.projectAgreement = projectAgreement.toString();
-      }
-      let startDate = data.get('startDate');
-      if (!startDate.isNull()) {
-        invoiceObject.startDate = startDate.toBigInt();
-      }
-      let endDate = data.get('endDate');
-      if (!endDate.isNull()) {
-        invoiceObject.endDate = endDate.toBigInt();
-      }
-    } else {
-      log.warning('could not get IPFS details from hash {}', [base58Hash]);
     }
   }
 
   return invoiceObject;
 }
 
-export function updateInvoiceInfo(
-  address: Address,
-  invoice: Invoice | null,
-): Invoice {
-  if (invoice == null) return null;
+export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   let invoiceObject = fetchInvoiceInfo(address);
   log.info('Got details for invoice', [address.toHexString()]);
 

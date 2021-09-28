@@ -5,6 +5,25 @@ export const CONFIG = {
   IPFS_ENDPOINT: 'https://ipfs.infura.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
+    1: {
+      SUBGRAPH: 'dan13ram/mainnet-smart-invoices',
+      WRAPPED_NATIVE_TOKEN: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
+      INVOICE_FACTORY: '0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a'.toLowerCase(),
+      TOKENS: {
+        ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase()]: {
+          decimals: 18,
+          symbol: 'WETH',
+        },
+      },
+      RESOLVERS: {
+        ['0x01b92e2c0d06325089c6fd53c98a214f5c75b2ac'.toLowerCase()]: {
+          name: 'LexDAO',
+          logoUrl: LexDAOLogo,
+          termsUrl:
+            'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+        },
+      },
+    },
     100: {
       SUBGRAPH: 'dan13ram/xdai-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
