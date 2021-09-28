@@ -79,4 +79,15 @@ title: FAQ
 
 </details></h4>
 
+<h4><details>
+<summary>What are the supported networks on Smart Invoice? (CLIENT/PROVIDER)</summary>
+
+<p>&nbsp;</p>
+
+1. Ethereum Mainnet
+2. xDai Chain
+3. Rinkeby Testnet
+
+</details></h4>
+
 ##### Have additional questions? Drop into our discord where we will be happy to help you! https://discord.gg/M2QaDPgKFR
