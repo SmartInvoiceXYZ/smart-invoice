@@ -27,9 +27,9 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
 
   SmartInvoice.create(event.params.invoice);
 
-  let tokenAddress = Address.fromHexString(
-    invoice.token.toHexString(),
-  ) as Address;
+  let tokenAddress = changetype<Address>(
+    Address.fromHexString(invoice.token.toHexString()),
+  );
   let token = getToken(tokenAddress);
   token.save();
   ERC20.create(tokenAddress);
