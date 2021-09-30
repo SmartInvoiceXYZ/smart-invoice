@@ -69,7 +69,7 @@ export function handleLock(event: LockEvent): void {
     dispute.invoice = event.address.toHexString();
     dispute.sender = event.params.sender;
     dispute.details = event.params.details;
-    let hexHash = addQm(dispute.details) as Bytes;
+    let hexHash = changetype<Bytes>(addQm(dispute.details));
     let base58Hash = hexHash.toBase58();
     dispute.ipfsHash = base58Hash.toString();
     dispute.timestamp = event.block.timestamp;
@@ -90,7 +90,7 @@ export function handleResolve(event: ResolveEvent): void {
     let resolution = new Resolution(event.logIndex.toHexString());
     resolution.txHash = event.transaction.hash;
     resolution.details = event.params.details;
-    let hexHash = addQm(resolution.details) as Bytes;
+    let hexHash = changetype<Bytes>(addQm(resolution.details));
     let base58Hash = hexHash.toBase58();
     resolution.ipfsHash = base58Hash.toString();
     resolution.resolverType = invoice.resolverType;
@@ -137,7 +137,7 @@ export function handleRule(event: RuleEvent): void {
 
     let resolution = new Resolution(event.logIndex.toHexString());
     resolution.txHash = event.transaction.hash;
-    let hexHash = addQm(resolution.details) as Bytes;
+    let hexHash = changetype<Bytes>(addQm(resolution.details));
     let base58Hash = hexHash.toBase58();
     resolution.ipfsHash = base58Hash.toString();
     resolution.resolverType = invoice.resolverType;

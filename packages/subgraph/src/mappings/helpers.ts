@@ -21,9 +21,14 @@ export function addQm(a: ByteArray): ByteArray {
   for (let i = 0; i < 32; i++) {
     out[i + 2] = a[i];
   }
-  changetype<ByteArray>(out);
-  return out as ByteArray;
+  return changetype<ByteArray>(out);
 }
+
+let zeroAddress = changetype<Address>(
+  Address.fromHexString('0x0000000000000000000000000000000000000000'),
+);
+
+let zeroBytes = changetype<Bytes>(Bytes.fromHexString('0x'));
 
 class InvoiceObject {
   client: Address;
@@ -47,26 +52,18 @@ class InvoiceObject {
   endDate: BigInt;
 
   constructor() {
-    this.client = Address.fromHexString(
-      '0x0000000000000000000000000000000000000000',
-    ) as Address;
-    this.provider = Address.fromHexString(
-      '0x0000000000000000000000000000000000000000',
-    ) as Address;
+    this.client = zeroAddress;
+    this.provider = zeroAddress;
     this.resolverType = 0;
-    this.resolver = Address.fromHexString(
-      '0x0000000000000000000000000000000000000000',
-    ) as Address;
+    this.resolver = zeroAddress;
     this.resolutionRate = BigInt.fromI32(0);
-    this.token = Address.fromHexString(
-      '0x0000000000000000000000000000000000000000',
-    ) as Address;
+    this.token = zeroAddress;
     this.isLocked = false;
     this.currentMilestone = BigInt.fromI32(0);
     this.total = BigInt.fromI32(0);
     this.released = BigInt.fromI32(0);
     this.terminationTime = BigInt.fromI32(0);
-    this.details = Bytes.fromHexString('0x') as Bytes;
+    this.details = zeroBytes;
     this.ipfsHash = '';
     this.disputeId = BigInt.fromI32(0);
     this.projectName = '';
@@ -134,7 +131,7 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
   if (!details.reverted) {
     invoiceObject.details = details.value;
     if (details.value.length == 32) {
-      let hexHash = addQm(invoiceObject.details) as Bytes;
+      let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
       let base58Hash = hexHash.toBase58();
       invoiceObject.ipfsHash = base58Hash.toString();
       let ipfsData = ipfs.cat(base58Hash);
