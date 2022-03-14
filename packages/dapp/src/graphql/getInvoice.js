@@ -19,6 +19,9 @@ export const getInvoice = async (chainId, queryAddress) => {
   const { data, error } = await clients[chainId]
     .query(invoiceQuery, { address })
     .toPromise();
+
+  console.log({data, error });
+  
   if (!data) {
     if (error) {
       throw error;
