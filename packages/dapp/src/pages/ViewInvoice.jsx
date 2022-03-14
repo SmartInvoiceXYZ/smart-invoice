@@ -66,8 +66,6 @@ export const ViewInvoice = ({
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
-
-  console.log({invoiceId, invoiceChainId, invoice, balanceLoading, balance});
   
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {

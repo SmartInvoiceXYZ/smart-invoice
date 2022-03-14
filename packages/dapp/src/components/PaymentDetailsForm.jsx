@@ -38,7 +38,6 @@ export const PaymentDetailsForm = ({ display }) => {
     setTermsAccepted,
   } = useContext(CreateContext);
   const { decimals, symbol } = useMemo(() => getTokenInfo(chainId, paymentToken), [chainId, paymentToken]);
-  console.log({chainId, paymentToken, symbol});
 
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
