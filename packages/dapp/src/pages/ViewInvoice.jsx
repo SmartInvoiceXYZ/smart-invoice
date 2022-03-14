@@ -67,6 +67,8 @@ export const ViewInvoice = ({
     }
   }, [invoiceChainId, invoiceId]);
 
+  console.log({invoiceId, invoiceChainId, invoice, balanceLoading, balance});
+  
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
       setBalanceLoading(true);
