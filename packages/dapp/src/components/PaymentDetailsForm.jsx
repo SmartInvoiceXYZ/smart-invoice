@@ -20,8 +20,6 @@ export const PaymentDetailsForm = ({ display }) => {
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
   const TOKENS = useMemo(() => getTokens(chainId), [chainId]);
 
-  console.log({TOKENS, RESOLVERS})
-
   const {
     clientAddress,
     setClientAddress,
@@ -39,7 +37,9 @@ export const PaymentDetailsForm = ({ display }) => {
     termsAccepted,
     setTermsAccepted,
   } = useContext(CreateContext);
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
+  const { decimals, symbol } = useMemo(() => getTokenInfo(chainId, paymentToken), [chainId, paymentToken]);
+  console.log({chainId, paymentToken, symbol});
+
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
