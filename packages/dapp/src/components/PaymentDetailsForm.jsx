@@ -1,6 +1,6 @@
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
@@ -17,8 +17,9 @@ import { getResolutionRateFromFactory } from '../utils/invoice';
 
 export const PaymentDetailsForm = ({ display }) => {
   const { chainId, provider } = useContext(Web3Context);
-  const RESOLVERS = getResolvers(chainId);
-  const TOKENS = getTokens(chainId);
+  const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
+  const TOKENS = useMemo(() => getTokens(chainId), [chainId]);
+
   const {
     clientAddress,
     setClientAddress,
@@ -36,7 +37,9 @@ export const PaymentDetailsForm = ({ display }) => {
     termsAccepted,
     setTermsAccepted,
   } = useContext(CreateContext);
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
+  const { decimals, symbol } = useMemo(() => getTokenInfo(chainId, paymentToken), [chainId, paymentToken]);
+  console.log({chainId, paymentToken, symbol});
+
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
