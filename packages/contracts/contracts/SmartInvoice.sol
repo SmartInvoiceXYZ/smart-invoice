@@ -81,6 +81,7 @@ contract SmartInvoice is
         uint256 providerAward,
         uint256 ruling
     );
+    event Update(address indexed sender, uint256 amount);
 
     // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
@@ -226,6 +227,23 @@ contract SmartInvoice is
 
             IERC20(_token).safeTransfer(client, balance);
         }
+    }
+
+    function addMilestone(uint256 _amount) external {
+        _appendAmount(_amount);
+        emit Update(_msgSender(), _amount);
+    }
+
+    function _appendAmount(uint256 _amount) internal {
+        require(!locked, "locked");
+        require(_amount > 0, "amount cannot be 0");
+        require(
+            block.timestamp < terminationTime,
+            "Already passed termination time"
+        );
+
+        amounts.push(_amount);
+        total += _amount;
     }
 
     // client or main (0) provider can lock remainder for resolution during locker period / update request details

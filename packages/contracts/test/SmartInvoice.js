@@ -1364,4 +1364,145 @@ describe("SmartInvoice", function () {
       10,
     );
   });
+
+  it("Should add new milestone amount and emit Update event", async function () {
+    const amount = 10;
+
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await (
+      await invoice.init(
+        client.address,
+        provider.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        amounts,
+        terminationTime,
+        resolutionRate,
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+      )
+    ).wait();
+
+    const update = await invoice.addMilestone(amount);
+    await update.wait();
+
+    expect(update).to.emit(invoice, "Update").withArgs(client.address, amount);
+  });
+
+  it("Should addMilestone and append amount to amounts", async function () {
+    const amount = 10;
+    const expectedAmounts = [...amounts, amount];
+
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await (
+      await invoice.init(
+        client.address,
+        provider.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        amounts,
+        terminationTime,
+        resolutionRate,
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+      )
+    ).wait();
+
+    const update = await invoice.addMilestone(amount);
+    await update.wait();
+
+    const updatedAmounts = [
+      ethers.BigNumber.from(await invoice.amounts(0)).toNumber(),
+      ethers.BigNumber.from(await invoice.amounts(1)).toNumber(),
+      ethers.BigNumber.from(await invoice.amounts(2)).toNumber(),
+    ];
+
+    for (let i = 0; i < expectedAmounts.length; i += 1) {
+      expect(updatedAmounts[i]).to.equal(expectedAmounts[i]);
+    }
+  });
+
+  it("Should addMilestone and add amount to total", async function () {
+    const amount = 10;
+
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await (
+      await invoice.init(
+        client.address,
+        provider.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        amounts,
+        terminationTime,
+        resolutionRate,
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+      )
+    ).wait();
+
+    const update = await invoice.addMilestone(amount);
+    await update.wait();
+
+    const newtotal = ethers.BigNumber.from(await invoice.total()).toNumber();
+
+    expect(newtotal).to.equal(total + amount);
+  });
+
+  it("Should revert addMilestone if amount is 0", async function () {
+    await expect(invoice.addMilestone(0)).to.be.revertedWith(
+      "amount cannot be 0",
+    );
+  });
+
+  it("Should revert addMilestone if locked", async function () {
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoice,
+      client,
+      provider,
+      individualResolverType,
+      resolver,
+      mockToken,
+      amounts,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken,
+    );
+
+    const amount = 10;
+    await expect(lockedInvoice.addMilestone(amount)).to.be.revertedWith(
+      "locked",
+    );
+  });
+
+  it("Should revert addMilestone if terminationTime passed", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime + 1000,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000,
+    ]);
+
+    const amount = 10;
+    await expect(invoice.addMilestone(amount)).to.be.revertedWith(
+      "Already passed termination time",
+    );
+  });
 });
