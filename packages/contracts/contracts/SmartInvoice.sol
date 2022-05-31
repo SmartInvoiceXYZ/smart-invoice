@@ -41,7 +41,10 @@ contract SmartInvoice is
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
     address public wrappedNativeToken;
 
-    enum ADR {INDIVIDUAL, ARBITRATOR}
+    enum ADR {
+        INDIVIDUAL,
+        ARBITRATOR
+    }
 
     address public client;
     address public provider;
@@ -81,6 +84,7 @@ contract SmartInvoice is
         uint256 providerAward,
         uint256 ruling
     );
+    event Verified(address indexed client, address indexed invoice);
 
     // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
@@ -95,7 +99,8 @@ contract SmartInvoice is
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,
-        address _wrappedNativeToken
+        address _wrappedNativeToken,
+        bool _requireVerification
     ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
@@ -127,7 +132,15 @@ contract SmartInvoice is
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
 
+        if (_requireVerification) emit Verified(_client, address(this));
+
         emit Register(_client, _provider, amounts);
+    }
+
+    // Client verifies address before deposits
+    function verify() public {
+        require(msg.sender == client, "!client");
+        emit Verified(client, address(this));
     }
 
     function _release() internal {

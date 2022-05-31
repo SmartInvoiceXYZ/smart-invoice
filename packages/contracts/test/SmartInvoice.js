@@ -15,6 +15,7 @@ const total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 const resolutionRate = 20;
+const requireVerification = true;
 
 describe("SmartInvoice", function () {
   let SmartInvoice;
@@ -55,6 +56,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
   });
 
@@ -102,6 +104,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
@@ -123,6 +126,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid client");
   });
@@ -142,6 +146,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid provider");
   });
@@ -161,6 +166,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolver");
   });
@@ -180,6 +186,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid token");
   });
@@ -198,6 +205,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       ADDRESS_ZERO,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
@@ -217,6 +225,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("duration ended");
   });
@@ -236,6 +245,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("duration too long");
   });
@@ -255,6 +265,7 @@ describe("SmartInvoice", function () {
       0,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolutionRate");
   });
@@ -274,6 +285,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolverType");
   });
@@ -479,6 +491,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
 
     const receipt = invoice["withdraw()"]();
@@ -516,6 +529,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -543,6 +557,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -568,6 +583,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -595,6 +611,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -623,6 +640,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
 
     const receipt = invoice["withdrawTokens(address)"](otherMockToken.address);
@@ -644,6 +662,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -669,6 +688,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -694,6 +714,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(0);
     const receipt = invoice["lock(bytes32)"](EMPTY_BYTES32);
@@ -715,6 +736,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     const invoiceWithResolver = await invoice.connect(resolver);
@@ -833,6 +855,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     expect(await invoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -986,6 +1009,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(invoice["rule(uint256,uint256)"](0, 0)).to.be.revertedWith(
       "!locked",
@@ -1005,6 +1029,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1029,6 +1054,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1056,6 +1082,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1079,6 +1106,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1103,6 +1131,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1140,6 +1169,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1176,6 +1206,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1213,6 +1244,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1250,6 +1282,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1287,6 +1320,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1352,6 +1386,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     const receipt = await client.sendTransaction({
       to: invoice.address,

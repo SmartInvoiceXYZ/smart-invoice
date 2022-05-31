@@ -35,7 +35,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-
+  console.log(chainId, "chaindId");
   console.log(
     "Deploying SmartInvoiceFactory on network:",
     networkName[chainId],
@@ -68,23 +68,7 @@ async function main() {
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
 
-  await smartInvoiceFactory.deployTransaction.wait(5);
-
-  const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
-    ? "verify:verify-blockscout"
-    : "verify:verify";
-
-  await run(TASK_VERIFY, {
-    address: smartInvoice.address,
-    constructorArguments: [],
-  });
-  console.log("Verified Implementation");
-
-  await run(TASK_VERIFY, {
-    address: smartInvoiceFactory.address,
-    constructorArguments: [smartInvoice.address, wrappedTokenAddress[chainId]],
-  });
-  console.log("Verified Factory");
+  //   await smartInvoiceFactory.deployTransaction.wait(5);
 
   const deploymentInfo = {
     network: network.name,

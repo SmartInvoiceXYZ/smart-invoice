@@ -4,6 +4,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
+    "test": "graph test",
     "auth": "graph auth https://api.thegraph.com/deploy/ $GRAPH_ACCESS_TOKEN",
     "create-local": "graph create --node http://localhost:8020/ test/smart-invoices",
     "remove-local": "graph remove --node http://localhost:8020/ test/smart-invoices",
@@ -22,6 +23,10 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.22.1",
     "@graphprotocol/graph-ts": "^0.22.1",
+    "jq": "^1.7.2",
     "mustache": "^4.2.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "^0.5.0"
   }
 }

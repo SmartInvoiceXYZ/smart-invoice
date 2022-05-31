@@ -11,7 +11,8 @@ interface ISmartInvoiceFactory {
         address _token,
         uint256[] calldata _amounts,
         uint256 _terminationTime,
-        bytes32 _details
+        bytes32 _details,
+        bool _requireVerification
     ) external returns (address);
 
     function createDeterministic(
@@ -23,7 +24,8 @@ interface ISmartInvoiceFactory {
         uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details,
-        bytes32 _salt
+        bytes32 _salt,
+        bool _requireVerification
     ) external returns (address);
 
     function predictDeterministicAddress(bytes32 _salt)

@@ -55,6 +55,7 @@ module.exports.getLockedInvoice = async (
     resolutionRate,
     details,
     mockWrappedNativeToken.address,
+    false,
   );
   expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
