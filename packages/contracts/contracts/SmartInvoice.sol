@@ -13,6 +13,8 @@ import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
 
+import "hardhat/console.sol";
+
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoice is
     ISmartInvoice,
@@ -41,7 +43,10 @@ contract SmartInvoice is
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
     address public wrappedNativeToken;
 
-    enum ADR {INDIVIDUAL, ARBITRATOR}
+    enum ADR {
+        INDIVIDUAL,
+        ARBITRATOR
+    }
 
     address public client;
     address public provider;
@@ -64,6 +69,7 @@ contract SmartInvoice is
         address indexed provider,
         uint256[] amounts
     );
+    event TerminationExtension(address indexed client, uint256 time);
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -128,6 +134,37 @@ contract SmartInvoice is
         wrappedNativeToken = _wrappedNativeToken;
 
         emit Register(_client, _provider, amounts);
+    }
+
+    function extendTerminationTime(uint256 _time) external {
+        require(_msgSender() == client, "msg.sender !client");
+        require(!locked, "locked");
+        terminationTime += _time;
+
+        emit TerminationExtension(_msgSender(), _time);
+    }
+
+    function addMilestones(uint256[] calldata _milestones) external {
+        require(!locked, "locked");
+        require(_msgSender() == client, "msg.sender !client");
+        require(_milestones.length > 0, "no milestones are being added");
+        require(
+            _milestones.length <= 10,
+            "you cannot add more than 10 new milestones at a time"
+        );
+        uint256[] memory baseArray = amounts;
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            baseArray[i] = amounts[i];
+        }
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            baseArray[i] = _milestones[i];
+        }
+    }
+
+    function getMilestones() public view returns (uint256[] memory) {
+        return amounts;
     }
 
     function _release() internal {
