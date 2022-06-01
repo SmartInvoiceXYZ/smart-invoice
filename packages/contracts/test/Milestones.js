@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
+require("dotenv").config();
 
 const { deployMockContract, provider: waffleProvider } = waffle;
 const { currentTimestamp, getLockedInvoice } = require("./utils");
@@ -71,9 +72,47 @@ describe("Milestone Tests", function () {
       .be.reverted;
   });
 
-  it("amounts", async function () {
-    console.log(await invoice.getMilestones(), "after amounts");
+  it("add Milestones if client", async function () {
     await invoice.connect(client).addMilestones([13, 14]);
-    console.log(await invoice.getMilestones(), "before amounts");
+    expect((await invoice.getMilestones()).length).to.equal(4);
+    expect(await invoice.amounts(0)).to.equal(10);
+    expect(await invoice.amounts(1)).to.equal(10);
+    expect(await invoice.amounts(2)).to.equal(13);
+    expect(await invoice.amounts(3)).to.equal(14);
+  });
+
+  it("non-client cannot add Milestones", async function () {
+    await expect(
+      invoice.connect(randomSigner).addMilestones([13, 14]),
+    ).to.be.revertedWith("msg.sender !client");
+  });
+
+  it("addMilestones() should revert if locked", async function () {
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoice,
+      client,
+      provider,
+      individualResolverType,
+      resolver,
+      mockToken,
+      amounts,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken,
+    );
+    await expect(
+      lockedInvoice.connect(client).addMilestones([13, 14]),
+    ).to.be.revertedWith("locked");
+  });
+
+  it("Added Milestones need to be between 1-10", async function () {
+    await expect(invoice.connect(client).addMilestones([])).to.be.revertedWith(
+      "no milestones are being added",
+    );
+    await expect(
+      invoice
+        .connect(client)
+        .addMilestones([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+    ).to.be.revertedWith("only 10 new milestones at a time");
   });
 });

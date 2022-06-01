@@ -5,6 +5,7 @@
     "hardhat": "hardhat",
     "build": "hardhat compile && yarn flatten",
     "test": "hardhat test",
+    "milestones": "hh test ./test/Milestones.js",
     "coverage": "hardhat coverage",
     "help": "hardhat help",
     "clean": "hardhat clean",
