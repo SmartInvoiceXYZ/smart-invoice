@@ -72,6 +72,8 @@ describe("Milestone Tests", function () {
   });
 
   it("amounts", async function () {
-    console.log(await invoice.getMilestones(), "amounts");
+    console.log(await invoice.getMilestones(), "after amounts");
+    await invoice.connect(client).addMilestones([13, 14]);
+    console.log(await invoice.getMilestones(), "before amounts");
   });
 });

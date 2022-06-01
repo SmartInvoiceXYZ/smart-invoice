@@ -144,23 +144,23 @@ contract SmartInvoice is
         emit TerminationExtension(_msgSender(), _time);
     }
 
-    function addMilestones(uint256[] calldata _milestones) external {
+    function addMilestones(uint256[] memory _milestones) external {
         require(!locked, "locked");
         require(_msgSender() == client, "msg.sender !client");
         require(_milestones.length > 0, "no milestones are being added");
-        require(
-            _milestones.length <= 10,
-            "you cannot add more than 10 new milestones at a time"
-        );
-        uint256[] memory baseArray = amounts;
+        require(_milestones.length <= 10, "only 10 new milestones at a time");
+
+        uint256 newLength = amounts.length + _milestones.length;
+        uint256[] memory baseArray = new uint256[](newLength);
 
         for (uint256 i = 0; i < amounts.length; i++) {
             baseArray[i] = amounts[i];
         }
 
-        for (uint256 i = 0; i < amounts.length; i++) {
-            baseArray[i] = _milestones[i];
+        for (uint256 i = amounts.length; i < newLength; i++) {
+            baseArray[i] = _milestones[i - amounts.length];
         }
+        amounts = baseArray;
     }
 
     function getMilestones() public view returns (uint256[] memory) {
