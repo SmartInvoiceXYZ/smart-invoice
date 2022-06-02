@@ -17,6 +17,7 @@ const networkName = {
   42: "Kovan",
   77: "Sokol",
   100: "xDai",
+  1227: "hardhat",
   31337: "anvil-localhost",
 };
 
@@ -26,6 +27,7 @@ const networkCurrency = {
   42: "ETH",
   77: "SPOA",
   100: "xDai",
+  1337: "hardhat",
   31337: "anvilEth",
 };
 

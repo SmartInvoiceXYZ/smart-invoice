@@ -31,11 +31,6 @@ export function handleVerification(event: VerifiedEvent): void {
     verification.invoice = invoice.address;
 
     verification.save();
-
-    // let verifications = invoice.releases;
-    // releases.push(release.id);
-    // invoice.releases = releases;
-    // invoice.save();
   }
 }
 

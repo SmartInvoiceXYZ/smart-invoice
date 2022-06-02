@@ -17,7 +17,6 @@ const networkName = {
   42: "Kovan",
   77: "Sokol",
   100: "xDai",
-  31337: "anvil-localhost",
 };
 
 const networkCurrency = {
@@ -26,7 +25,6 @@ const networkCurrency = {
   42: "ETH",
   77: "SPOA",
   100: "xDai",
-  31337: "anvilEth",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
