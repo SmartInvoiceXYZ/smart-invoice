@@ -6,35 +6,31 @@ import {
   ipfs,
   json,
   Bytes,
+  Entity,
 } from '@graphprotocol/graph-ts';
 
 // import { newMockEvent } from 'matchstick-as/assembly/index';
 
-import { Verified } from '../types/schema';
-import { handleVerification } from '../mappings/invoice';
+import { Verified } from '../types/templates/SmartInvoice/SmartInvoice';
 import { newMockEvent } from './matchstick-as/assembly';
 
 export function createNewVerifyEvent(
   client: string,
   invoice: string,
 ): Verified {
-  let newVerificationEvent = newMockEvent();
-  newVerificationEvent.parameters = new Array();
-  let idParam = new ethereum.EventParam('id', ethereum.Value.fromI32(id));
-
-  let addressParam = new ethereum.EventParam(
+  let newVerifyEvent = changetype<Verified>(newMockEvent());
+  newVerifyEvent.parameters = new Array();
+  let clientParam = new ethereum.EventParam(
     'client',
     ethereum.Value.fromAddress(Address.fromString(client)),
   );
-
-  let displayNameParam = new ethereum.EventParam(
+  let invoiceParam = new ethereum.EventParam(
     'invoice',
     ethereum.Value.fromAddress(Address.fromString(invoice)),
   );
 
-  newVerificationEvent.parameters.push(idParam);
-  newVerificationEvent.parameters.push(client);
-  newVerificationEvent.parameters.push(invoice);
+  newVerifyEvent.parameters.push(clientParam);
+  newVerifyEvent.parameters.push(invoiceParam);
 
-  return newVerificationEvent;
+  return newVerifyEvent;
 }

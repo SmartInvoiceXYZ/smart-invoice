@@ -27,8 +27,8 @@ export function handleVerification(event: VerifiedEvent): void {
     invoice = updateInvoiceInfo(event.address, invoice);
 
     let verification = new Verified(event.logIndex.toHexString());
-    verification.client = invoice.client;
-    verification.invoice = invoice.address;
+    verification.client = event.params.client;
+    verification.invoice = event.params.invoice;
 
     verification.save();
   }

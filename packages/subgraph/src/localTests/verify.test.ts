@@ -29,13 +29,24 @@ import { Verified } from '../types/schema';
 // let TRANSACTION_ENTITY_TYPE = "Transaction"
 
 test('Can handle Verification Event', () => {
-  let verify = new Verified('verify');
+  let verify = new Verified('1');
   verify.save();
+
+  // let newVerificationEvent = createNewVerifyEvent('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266','0xb35Pd6e51aad88F6F4ce6aB8827279cffFb92266');
 
   let newVerificationEvent = createNewVerifyEvent(
     '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-    '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    '0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7',
   );
 
   handleVerification(newVerificationEvent);
+
+  // fieldEquals(entityType: string, id: string, fieldName: string, expectedValue: string)
+
+  assert.fieldEquals(
+    'Verified',
+    '1',
+    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    '0xb35Pd6e51aad88F6F4ce6aB8827279cffFb92266',
+  );
 });

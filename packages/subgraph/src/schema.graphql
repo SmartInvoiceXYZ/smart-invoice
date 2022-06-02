@@ -96,7 +96,7 @@ type Resolution @entity {
 }
 
 type Token @entity {
-  id: ID!
+  id: ID!   
   name: String!
   symbol: String!
   decimals: Int!
