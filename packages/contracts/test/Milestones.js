@@ -73,7 +73,7 @@ describe("Milestone Tests", function () {
   });
 
   it("add Milestones if client", async function () {
-    await invoice.connect(client).addMilestones([13, 14]);
+    await invoice.connect(client).addMilestones([13, 14], 0);
     expect((await invoice.getMilestones()).length).to.equal(4);
     expect(await invoice.amounts(0)).to.equal(10);
     expect(await invoice.amounts(1)).to.equal(10);
@@ -81,9 +81,20 @@ describe("Milestone Tests", function () {
     expect(await invoice.amounts(3)).to.equal(14);
   });
 
+  it("client can add Milestones and Termination Time in same txn", async function () {
+    const time = 100000;
+    await invoice.connect(client).addMilestones([13, 14], time);
+    expect((await invoice.getMilestones()).length).to.equal(4);
+    expect(await invoice.amounts(0)).to.equal(10);
+    expect(await invoice.amounts(1)).to.equal(10);
+    expect(await invoice.amounts(2)).to.equal(13);
+    expect(await invoice.amounts(3)).to.equal(14);
+    expect(await invoice.terminationTime()).to.equal(terminationTime + time);
+  });
+
   it("non-client cannot add Milestones", async function () {
     await expect(
-      invoice.connect(randomSigner).addMilestones([13, 14]),
+      invoice.connect(randomSigner).addMilestones([13, 14], 0),
     ).to.be.revertedWith("msg.sender !client");
   });
 
@@ -101,18 +112,18 @@ describe("Milestone Tests", function () {
       mockWrappedNativeToken,
     );
     await expect(
-      lockedInvoice.connect(client).addMilestones([13, 14]),
+      lockedInvoice.connect(client).addMilestones([13, 14], 0),
     ).to.be.revertedWith("locked");
   });
 
   it("Added Milestones need to be between 1-10", async function () {
-    await expect(invoice.connect(client).addMilestones([])).to.be.revertedWith(
-      "no milestones are being added",
-    );
+    await expect(
+      invoice.connect(client).addMilestones([], 0),
+    ).to.be.revertedWith("no milestones are being added");
     await expect(
       invoice
         .connect(client)
-        .addMilestones([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+        .addMilestones([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 0),
     ).to.be.revertedWith("only 10 new milestones at a time");
   });
 });
