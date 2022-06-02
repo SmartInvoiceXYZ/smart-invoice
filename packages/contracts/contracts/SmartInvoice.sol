@@ -70,6 +70,7 @@ contract SmartInvoice is
         uint256[] amounts
     );
     event TerminationExtension(address indexed client, uint256 time);
+    event MilestoneAdded(address indexed client, address indexed invoice);
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -136,19 +137,23 @@ contract SmartInvoice is
         emit Register(_client, _provider, amounts);
     }
 
-    function extendTerminationTime(uint256 _time) external {
-        require(_msgSender() == client, "msg.sender !client");
+    function extendTerminationTime(uint256 _time) public {
         require(!locked, "locked");
+        require(_msgSender() == client, "msg.sender !client");
         terminationTime += _time;
 
         emit TerminationExtension(_msgSender(), _time);
     }
 
-    function addMilestones(uint256[] memory _milestones) external {
+    function addMilestones(uint256[] calldata _milestones, uint256 _time)
+        external
+    {
         require(!locked, "locked");
         require(_msgSender() == client, "msg.sender !client");
         require(_milestones.length > 0, "no milestones are being added");
         require(_milestones.length <= 10, "only 10 new milestones at a time");
+
+        if (_time > 0) extendTerminationTime(_time);
 
         uint256 newLength = amounts.length + _milestones.length;
         uint256[] memory baseArray = new uint256[](newLength);
@@ -156,11 +161,12 @@ contract SmartInvoice is
         for (uint256 i = 0; i < amounts.length; i++) {
             baseArray[i] = amounts[i];
         }
-
         for (uint256 i = amounts.length; i < newLength; i++) {
             baseArray[i] = _milestones[i - amounts.length];
         }
         amounts = baseArray;
+
+        emit MilestoneAdded(client, address(this));
     }
 
     function getMilestones() public view returns (uint256[] memory) {
