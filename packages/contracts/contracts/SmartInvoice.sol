@@ -13,8 +13,6 @@ import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
 
-import "hardhat/console.sol";
-
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoice is
     ISmartInvoice,
@@ -166,6 +164,7 @@ contract SmartInvoice is
         }
         amounts = baseArray;
 
+        if (_time > 0) emit TerminationExtension(client, _time);
         emit MilestoneAdded(client, address(this));
     }
 

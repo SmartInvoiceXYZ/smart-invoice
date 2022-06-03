@@ -6,6 +6,7 @@
     "build": "hardhat compile && yarn flatten",
     "test": "hardhat test",
     "milestones": "hh test ./test/Milestones.js",
+    "node-host": "hh node --hostname 0.0.0.0",
     "coverage": "hardhat coverage",
     "help": "hardhat help",
     "clean": "hardhat clean",
