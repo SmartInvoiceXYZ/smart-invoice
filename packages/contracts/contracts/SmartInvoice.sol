@@ -68,7 +68,11 @@ contract SmartInvoice is
         uint256[] amounts
     );
     event TerminationExtension(address indexed client, uint256 time);
-    event MilestoneAdded(address indexed client, address indexed invoice);
+    event MilestonesAdded(
+        address indexed client,
+        address indexed invoice,
+        uint256[] milestones
+    );
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -165,7 +169,7 @@ contract SmartInvoice is
         amounts = baseArray;
 
         if (_time > 0) emit TerminationExtension(client, _time);
-        emit MilestoneAdded(client, address(this));
+        emit MilestonesAdded(client, address(this), _milestones);
     }
 
     function getMilestones() public view returns (uint256[] memory) {
