@@ -61,13 +61,21 @@ describe("Verification Tests", function () {
     );
   });
 
-  it("Should emit ClientVerified when client calls verify()", async function () {
+  it("Should emit Verified when client calls verify()", async function () {
     await expect(invoice.connect(client).verify())
-      .to.emit(invoice, "ClientVerified")
+      .to.emit(invoice, "Verified")
       .withArgs(client.address, invoice.address);
   });
 
-  it("Should not emit ClientVerified if caller !client", async function () {
+  it("Should not emit Verified if caller !client", async function () {
     await expect(invoice.connect(randomSigner).verify()).to.be.reverted;
+  });
+
+  it("GAS TEST: change verfiied bool to true", async function () {
+    await invoice.verifyTEST();
+
+    const result = await invoice.verified();
+
+    console.log(result);
   });
 });

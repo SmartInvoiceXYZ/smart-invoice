@@ -14,14 +14,15 @@ const invoiceQuery = gql`
 `;
 
 export const getInvoice = async (chainId, queryAddress) => {
+  console.log(queryAddress, 'query');
   const address = isAddress(queryAddress);
   if (!address) return null;
   const { data, error } = await clients[chainId]
     .query(invoiceQuery, { address })
     .toPromise();
 
-  console.log({data, error });
-  
+  console.log({ data, error });
+
   if (!data) {
     if (error) {
       throw error;

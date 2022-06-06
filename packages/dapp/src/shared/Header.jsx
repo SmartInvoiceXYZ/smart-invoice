@@ -141,9 +141,10 @@ export const Header = () => {
                     fontFamily="'Roboto Mono', monospace;"
                     color="red.500"
                   >
-                    {profile && profile.name
+                    {/* {profile && profile.name
                       ? profile.name
-                      : getAccountString(account)}
+                      : getAccountString(account)} */}
+                    {profile ? profile.address : getAccountString(account)}
                   </Text>
                   <Tag
                     colorScheme="red"

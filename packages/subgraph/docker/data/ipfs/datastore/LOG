@@ -1,0 +1,79 @@
+=============== Jun 2, 2022 (UTC) ===============
+01:03:35.382678 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+01:03:35.406194 db@open opening
+01:03:35.411893 version@stat F·[] S·0B[] Sc·[]
+01:03:35.415590 db@janitor F·2 G·0
+01:03:35.416374 db@open done T·9.339963ms
+01:03:35.844514 db@close closing
+01:03:35.845543 db@close done T·979.767µs
+=============== Jun 2, 2022 (UTC) ===============
+01:03:35.871770 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+01:03:35.877224 version@stat F·[] S·0B[] Sc·[]
+01:03:35.877781 db@open opening
+01:03:35.878631 journal@recovery F·1
+01:03:35.879588 journal@recovery recovering @1
+01:03:35.887333 memdb@flush created L0@2 N·12 S·1KiB "/pi..ZDY,v10":"/pr..crQ,v12"
+01:03:35.891248 version@stat F·[1] S·1KiB[1KiB] Sc·[0.25]
+01:03:35.915967 db@janitor F·3 G·0
+01:03:35.916733 db@open done T·38.330327ms
+01:03:35.936591 db@close closing
+01:03:35.937671 db@close done T·1.082137ms
+=============== Jun 2, 2022 (UTC) ===============
+01:03:36.136343 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+01:03:36.142392 version@stat F·[1] S·1KiB[1KiB] Sc·[0.25]
+01:03:36.143306 db@open opening
+01:03:36.144313 journal@recovery F·1
+01:03:36.145374 journal@recovery recovering @3
+01:03:36.154578 memdb@flush created L0@5 N·6 S·1KiB "/F5..CGY,v19":"/pi..rty,v14"
+01:03:36.162486 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+01:03:36.180773 db@janitor F·4 G·0
+01:03:36.181663 db@open done T·37.583736ms
+01:03:36.212998 db@close closing
+01:03:36.214127 db@close done T·1.110538ms
+=============== Jun 2, 2022 (UTC) ===============
+01:03:36.401542 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+01:03:36.408065 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+01:03:36.408862 db@open opening
+01:03:36.409853 journal@recovery F·1
+01:03:36.410683 journal@recovery recovering @6
+01:03:36.424877 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+01:03:36.443596 db@janitor F·4 G·0
+01:03:36.444628 db@open done T·35.062499ms
+01:03:36.473474 db@close closing
+01:03:36.474431 db@close done T·930.522µs
+=============== Jun 2, 2022 (UTC) ===============
+01:03:36.656056 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+01:03:36.662404 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+01:03:36.663197 db@open opening
+01:03:36.664209 journal@recovery F·1
+01:03:36.666425 journal@recovery recovering @8
+01:03:36.673882 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+01:03:36.689904 db@janitor F·4 G·0
+01:03:36.690645 db@open done T·26.723873ms
+=============== Jun 3, 2022 (UTC) ===============
+13:34:43.091735 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+13:34:43.102663 version@stat F·[2] S·2KiB[2KiB] Sc·[0.50]
+13:34:43.103505 db@open opening
+13:34:43.104677 journal@recovery F·1
+13:34:43.107265 journal@recovery recovering @10
+13:34:43.119350 memdb@flush created L0@12 N·30 S·3KiB "/F5..CGY,v30":"/pr..IRW,v38"
+13:34:43.123350 version@stat F·[3] S·6KiB[6KiB] Sc·[0.75]
+13:34:43.143674 db@janitor F·5 G·0
+13:34:43.144412 db@open done T·40.009736ms
+13:50:45.492157 table@compaction L0·3 -> L1·0 S·6KiB Q·190
+13:50:45.501079 table@build created L1@15 N·22 S·3KiB "/F5..CGY,v30":"/pr..IRW,v40"
+13:50:45.502049 version@stat F·[0 1] S·3KiB[0B 3KiB] Sc·[0.00 0.00]
+13:50:45.504226 table@compaction committed F-2 S-2KiB Ke·0 D·26 T·11.152017ms
+13:50:45.506833 table@remove removed @12
+13:50:45.508812 table@remove removed @5
+13:50:45.511750 table@remove removed @2
+=============== Jun 6, 2022 (UTC) ===============
+12:20:15.847576 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+12:20:15.860467 version@stat F·[0 1] S·3KiB[0B 3KiB] Sc·[0.00 0.00]
+12:20:15.861983 db@open opening
+12:20:15.862959 journal@recovery F·1
+12:20:15.868196 journal@recovery recovering @13
+12:20:15.888138 memdb@flush created L0@16 N·505 S·30KiB "/F5..CGY,v502":"/pr..IRW,v260"
+12:20:15.892053 version@stat F·[1 1] S·33KiB[30KiB 3KiB] Sc·[0.25 0.00]
+12:20:15.912692 db@janitor F·4 G·0
+12:20:15.913552 db@open done T·50.801813ms

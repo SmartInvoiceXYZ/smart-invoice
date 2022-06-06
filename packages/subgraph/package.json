@@ -17,7 +17,8 @@
     "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
     "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
-    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet"
+    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
+    "graph": "yarn codegen && yarn create-local && yarn build && yarn deploy-local"
   },
   "license": "MIT",
   "dependencies": {

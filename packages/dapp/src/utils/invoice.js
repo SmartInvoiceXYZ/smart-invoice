@@ -14,7 +14,7 @@ export const register = async (
   detailsHash, // 32 bits hex
 ) => {
   const abi = new utils.Interface([
-    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
+    'function create(address _client, address _provider, uint8 _resolverType, address _resolver, address _token, uint256[] amounts, uint256 _terminationTime, bytes32 _details, bool _requireVerification) external',
   ]);
   const contract = new Contract(
     getInvoiceFactoryAddress(chainId),
@@ -30,8 +30,9 @@ export const register = async (
     resolver,
     token,
     amounts,
-    terminationTime,
+    100000,
     detailsHash,
+    true,
   );
 };
 

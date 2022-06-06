@@ -9,6 +9,7 @@ export const chainIds = {
   mainnet: 1,
   rinkeby: 4,
   kovan: 42,
+  hardhat: 31337,
 };
 
 export const hexChainIds = {
@@ -28,6 +29,7 @@ export const networkLabels = {
   56: 'BSC',
   77: 'Sokol',
   137: 'Matic',
+  31337: 'Hardhat',
 };
 
 export const networkNames = {
@@ -35,6 +37,7 @@ export const networkNames = {
   4: 'Rinkeby Testnet',
   42: 'Kovan Testnet',
   100: 'xDai Chain',
+  31337: 'Hardhat Network',
 };
 
 export const rpcUrls = {
@@ -42,6 +45,7 @@ export const rpcUrls = {
   4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
   42: `https://kovan.infura.io/v3/${INFURA_ID}`,
   100: 'https://rpc.xdaichain.com',
+  31337: 'http://localhost:8545',
 };
 
 export const explorerUrls = {
@@ -56,12 +60,14 @@ export const nativeSymbols = {
   4: 'ETH',
   42: 'ETH',
   100: 'XDAI',
+  31337: 'hhETH',
 };
 
 export const graphUrls = {
   1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
+  31337: 'http://localhost:8000/subgraphs/name/test/smart-invoices',
 };
 
 export const tokens = {
@@ -98,6 +104,7 @@ export const invoiceFactory = {
   1: NETWORK_CONFIG[1].INVOICE_FACTORY,
   4: NETWORK_CONFIG[4].INVOICE_FACTORY,
   100: NETWORK_CONFIG[100].INVOICE_FACTORY,
+  31337: NETWORK_CONFIG[31337].INVOICE_FACTORY,
 };
 
 export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
