@@ -67,7 +67,7 @@ contract SmartInvoice is
         address indexed provider,
         uint256[] amounts
     );
-    event TerminationExtension(address indexed client, uint256 time);
+
     event MilestonesAdded(
         address indexed client,
         address indexed invoice,
@@ -139,26 +139,15 @@ contract SmartInvoice is
         emit Register(_client, _provider, amounts);
     }
 
-    function extendTerminationTime(uint256 _time) public {
+    function addMilestones(uint256[] calldata _milestones) external {
         require(!locked, "locked");
-        require(_msgSender() == client, "msg.sender !client");
-        terminationTime += _time;
-
-        emit TerminationExtension(_msgSender(), _time);
-    }
-
-    function addMilestones(uint256[] calldata _milestones, uint256 _time)
-        external
-    {
-        require(!locked, "locked");
-        require(_msgSender() == client, "msg.sender !client");
+        require(_msgSender() == client || _msgSender() == provider, "!party");
         require(_milestones.length > 0, "no milestones are being added");
         require(_milestones.length <= 10, "only 10 new milestones at a time");
 
-        if (_time > 0) extendTerminationTime(_time);
-
         uint256 newLength = amounts.length + _milestones.length;
         uint256[] memory baseArray = new uint256[](newLength);
+        uint256 newTotal = 0;
 
         for (uint256 i = 0; i < amounts.length; i++) {
             baseArray[i] = amounts[i];
@@ -166,13 +155,17 @@ contract SmartInvoice is
         for (uint256 i = amounts.length; i < newLength; i++) {
             baseArray[i] = _milestones[i - amounts.length];
         }
+        for (uint256 i = 0; i < baseArray.length; i++) {
+            newTotal = newTotal + baseArray[i];
+        }
+
+        total = newTotal;
         amounts = baseArray;
 
-        if (_time > 0) emit TerminationExtension(client, _time);
         emit MilestonesAdded(client, address(this), _milestones);
     }
 
-    function getMilestones() public view returns (uint256[] memory) {
+    function getAmounts() public view returns (uint256[] memory) {
         return amounts;
     }
 
