@@ -64,6 +64,12 @@ contract SmartInvoice is
         address indexed provider,
         uint256[] amounts
     );
+
+    event MilestonesAdded(
+        address indexed client,
+        address indexed invoice,
+        uint256[] milestones
+    );
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -81,8 +87,6 @@ contract SmartInvoice is
         uint256 providerAward,
         uint256 ruling
     );
-    event Update(address indexed sender, uint256 amount);
-    event MilestonesAdded(address indexed sender, uint256[] amounts);
 
     // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
@@ -130,6 +134,35 @@ contract SmartInvoice is
         wrappedNativeToken = _wrappedNativeToken;
 
         emit Register(_client, _provider, amounts);
+    }
+
+    function addMilestones(uint256[] calldata _milestones) external {
+        require(!locked, "locked");
+        require(block.timestamp < terminationTime, "terminated");
+        require(_msgSender() == client || _msgSender() == provider, "!party");
+        require(_milestones.length > 0, "no milestones are being added");
+        require(_milestones.length <= 10, "only 10 new milestones at a time");
+
+        uint256 newLength = amounts.length + _milestones.length;
+        uint256[] memory baseArray = new uint256[](newLength);
+        uint256 newTotal = total;
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            baseArray[i] = amounts[i];
+        }
+        for (uint256 i = amounts.length; i < newLength; i++) {
+            baseArray[i] = _milestones[i - amounts.length];
+            newTotal += _milestones[i - amounts.length];
+        }
+
+        total = newTotal;
+        amounts = baseArray;
+
+        emit MilestonesAdded(client, address(this), _milestones);
+    }
+
+    function getAmounts() public view returns (uint256[] memory) {
+        return amounts;
     }
 
     function _release() internal {
@@ -228,51 +261,6 @@ contract SmartInvoice is
 
             IERC20(_token).safeTransfer(client, balance);
         }
-    }
-
-    function addMilestone(uint256 _amount) external {
-        _appendAmount(_amount);
-        emit Update(_msgSender(), _amount);
-    }
-
-    function addMilestones(uint256[] calldata _amounts) external {
-        require(!locked, "locked");
-        require(_amounts.length > 0, "no milestones are being added");
-        require(_amounts.length <= 10, "only 10 new milestones at a time");
-
-        uint256 newLength = amounts.length + _amounts.length;
-        uint256[] memory baseArray = new uint256[](newLength);
-        uint256 newTotal = total;
-
-        for (uint256 i = 0; i < amounts.length; i++) {
-            baseArray[i] = amounts[i];
-        }
-        for (uint256 i = amounts.length; i < newLength; i++) {
-            require(_amounts[i - amounts.length] > 0, "new amount cannot be 0");
-            baseArray[i] = _amounts[i - amounts.length];
-            newTotal += _amounts[i - amounts.length];
-        }
-
-        amounts = baseArray;
-        total = newTotal;
-
-        emit MilestonesAdded(_msgSender(), _amounts);
-    }
-
-    function _appendAmount(uint256 _amount) internal {
-        require(!locked, "locked");
-        require(_amount > 0, "amount cannot be 0");
-        require(
-            block.timestamp < terminationTime,
-            "Already passed termination time"
-        );
-
-        amounts.push(_amount);
-        total += _amount;
-    }
-
-    function getAmounts() public view returns (uint256[] memory) {
-        return amounts;
     }
 
     // client or main (0) provider can lock remainder for resolution during locker period / update request details
