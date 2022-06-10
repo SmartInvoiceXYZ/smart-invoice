@@ -27,6 +27,7 @@ import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
+import { AddMilestones } from '../components/AddMilestones';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -66,7 +67,7 @@ export const ViewInvoice = ({
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
-  
+
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
       setBalanceLoading(true);
@@ -173,6 +174,13 @@ export const ViewInvoice = ({
   const onWithdraw = async () => {
     if (isExpired && isClient) {
       setSelected(4);
+      setModal(true);
+    }
+  };
+
+  const onAddMilestones = async () => {
+    if (!isLocked & !isExpired) {
+      setSelected(5);
       setModal(true);
     }
   };
@@ -314,6 +322,13 @@ export const ViewInvoice = ({
           align="stretch"
           maxW={rightMaxW}
         >
+          <Button
+            maxW="fit-content"
+            alignSelf="flex-end"
+            onClick={onAddMilestones}
+          >
+            Add Milestones
+          </Button>
           <Flex
             bg="background"
             direction="column"
@@ -771,6 +786,14 @@ export const ViewInvoice = ({
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 5 && (
+                <AddMilestones
+                  invoice={invoice}
+                  deposited={deposited}
+                  due={due}
                   close={() => setModal(false)}
                 />
               )}
