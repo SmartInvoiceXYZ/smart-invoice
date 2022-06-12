@@ -64,6 +64,12 @@ contract SmartInvoice is
         address indexed provider,
         uint256[] amounts
     );
+
+    event MilestonesAdded(
+        address indexed client,
+        address indexed invoice,
+        uint256[] milestones
+    );
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -128,6 +134,35 @@ contract SmartInvoice is
         wrappedNativeToken = _wrappedNativeToken;
 
         emit Register(_client, _provider, amounts);
+    }
+
+    function addMilestones(uint256[] calldata _milestones) external {
+        require(!locked, "locked");
+        require(block.timestamp < terminationTime, "terminated");
+        require(_msgSender() == client || _msgSender() == provider, "!party");
+        require(_milestones.length > 0, "no milestones are being added");
+        require(_milestones.length <= 10, "only 10 new milestones at a time");
+
+        uint256 newLength = amounts.length + _milestones.length;
+        uint256[] memory baseArray = new uint256[](newLength);
+        uint256 newTotal = total;
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            baseArray[i] = amounts[i];
+        }
+        for (uint256 i = amounts.length; i < newLength; i++) {
+            baseArray[i] = _milestones[i - amounts.length];
+            newTotal += _milestones[i - amounts.length];
+        }
+
+        total = newTotal;
+        amounts = baseArray;
+
+        emit MilestonesAdded(client, address(this), _milestones);
+    }
+
+    function getAmounts() public view returns (uint256[] memory) {
+        return amounts;
     }
 
     function _release() internal {
