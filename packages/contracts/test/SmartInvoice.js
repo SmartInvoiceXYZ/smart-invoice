@@ -27,9 +27,10 @@ describe("SmartInvoice", function () {
   let client;
   let provider;
   let resolver;
+  let randomSigner;
 
   beforeEach(async function () {
-    [client, provider, resolver] = await ethers.getSigners();
+    [client, provider, resolver, randomSigner] = await ethers.getSigners();
 
     mockToken = await deployMockContract(client, IERC20.abi);
     otherMockToken = await deployMockContract(client, IERC20.abi);
@@ -1398,5 +1399,15 @@ describe("SmartInvoice", function () {
     expect(await mockWrappedNativeToken.balanceOf(invoice.address)).to.equal(
       10,
     );
+  });
+
+  it("Should emit Verified when client calls verify()", async function () {
+    await expect(invoice.connect(client).verify())
+      .to.emit(invoice, "Verified")
+      .withArgs(client.address, invoice.address);
+  });
+
+  it("Should not emit Verified if caller !client", async function () {
+    await expect(invoice.connect(randomSigner).verify()).to.be.reverted;
   });
 });

@@ -51,22 +51,29 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
-  
+
+  useEffect(() => {
+    // This useEffect will query verification
+  }, []);
+
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
       setBalanceLoading(true);
@@ -154,6 +161,12 @@ export const ViewInvoice = ({
   const onDeposit = () => {
     setSelected(1);
     setModal(true);
+  };
+
+  const onVerify = () => {
+    if (verified) {
+      setVerified(false);
+    } else setVerified(true);
   };
 
   const onRelease = async () => {
@@ -665,19 +678,33 @@ export const ViewInvoice = ({
                   Withdraw
                 </Button>
               )}
-              {isReleasable && (
+              {isReleasable &&
+                verified(
+                  <Button
+                    size={buttonSize}
+                    variant="outline"
+                    colorScheme="red"
+                    fontWeight="normal"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onDeposit()}
+                  >
+                    Deposit
+                  </Button>,
+                )}
+              {!verified && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
                   colorScheme="red"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
-                  onClick={() => onDeposit()}
+                  onClick={() => onVerify()}
                 >
-                  Deposit
+                  Verify Account to Enable Deposits
                 </Button>
               )}
+              {verified ? <Text>Account Verified!</Text> : null}
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -690,6 +717,7 @@ export const ViewInvoice = ({
                 fontWeight="normal"
                 fontFamily="mono"
                 textTransform="uppercase"
+                disabled={!verified}
                 onClick={() => (isReleasable ? onRelease() : onDeposit())}
               >
                 {isReleasable ? 'Release' : 'Deposit'}
@@ -711,6 +739,13 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
+              {verified ? (
+                <p>client account verified!</p>
+              ) : (
+                <p>
+                  deposits will be enabled when client verifies their address
+                </p>
+              )}
               <Button
                 size={buttonSize}
                 colorScheme="red"
@@ -718,8 +753,10 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
+                disabled={!verified}
               >
                 Deposit
+                {/* EDIT HERE IF NOT CLIENT */}
               </Button>
             </SimpleGrid>
           )}

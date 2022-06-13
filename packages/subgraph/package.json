@@ -4,8 +4,8 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "test": "graph test",
-    "auth": "graph auth https://api.thegraph.com/deploy/ $GRAPH_ACCESS_TOKEN",
+    "auth": "graph auth https://api.thegraph.com/deploy/485de1ce435f49678527cde2a06df0d1",
+    "verify-auth": "graph auth --product hosted-service 485de1ce435f49678527cde2a06df0d1",
     "create-local": "graph create --node http://localhost:8020/ test/smart-invoices",
     "remove-local": "graph remove --node http://localhost:8020/ test/smart-invoices",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 test/smart-invoices",
@@ -16,19 +16,16 @@
     "deploy-only-xdai": "graph deploy dan13ram/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
+    "verify-deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && graph deploy --product hosted-service psparacino/smart-invoices-rinkey-ps",
     "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
     "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
-    "graph": "yarn codegen && yarn create-local && yarn build && yarn deploy-local"
+    "graph": "yarn prepare-mainnet && yarn codegen && yarn create-local && yarn build && yarn deploy-local"
   },
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.22.1",
+    "@graphprotocol/graph-cli": "^0.22.4",
     "@graphprotocol/graph-ts": "^0.22.1",
     "jq": "^1.7.2",
-    "matchstick-as": "^0.5.0",
     "mustache": "^4.2.0"
-  },
-  "devDependencies": {
-    "matchstick-as": "^0.5.0"
   }
 }

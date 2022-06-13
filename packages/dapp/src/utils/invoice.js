@@ -1,6 +1,8 @@
-import { Contract, utils } from 'ethers';
+import { Contract, ethers, utils } from 'ethers';
 
 import { getInvoiceFactoryAddress, logError } from './helpers';
+
+// import Factory from "../abi/SmartInvoiceFactory.json"
 
 export const register = async (
   chainId,
@@ -11,10 +13,11 @@ export const register = async (
   token,
   amounts, // array of milestone payments in wei
   terminationTime, // time in seconds since epoch
-  detailsHash, // 32 bits hex
+  detailsHash,
+  requireVerification, // 32 bits hex
 ) => {
   const abi = new utils.Interface([
-    'function create(address _client, address _provider, uint8 _resolverType, address _resolver, address _token, uint256[] amounts, uint256 _terminationTime, bytes32 _details, bool _requireVerification) external',
+    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details, bool requireVerification) public',
   ]);
   const contract = new Contract(
     getInvoiceFactoryAddress(chainId),
@@ -30,9 +33,9 @@ export const register = async (
     resolver,
     token,
     amounts,
-    100000,
+    terminationTime,
     detailsHash,
-    true,
+    requireVerification,
   );
 };
 

@@ -108,6 +108,7 @@ export const CreateContextProvider = ({ children }) => {
       })
         .catch(ipfsError => {
           logError({ ipfsError });
+          console.log('ipfs uploadMetadata error:', ipfsError);
         })
         .then(hash => setDetailsHash(hash));
     }
@@ -122,6 +123,7 @@ export const CreateContextProvider = ({ children }) => {
   ]);
 
   const createInvoice = useCallback(async () => {
+    let requireVerification = true;
     if (step1Valid && step2Valid && step3Valid && detailsHash) {
       setLoading(true);
       setTx();
@@ -136,6 +138,7 @@ export const CreateContextProvider = ({ children }) => {
         payments,
         Math.floor(safetyValveDate / 1000),
         detailsHash,
+        requireVerification,
       ).catch(registerError => {
         logError({ registerError });
         setLoading(false);

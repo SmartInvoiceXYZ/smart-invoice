@@ -20,10 +20,10 @@ import {
 } from '../types/templates/SmartInvoice/SmartInvoice';
 import { addQm, updateInvoiceInfo } from './helpers';
 
-export function handleVerification(event: VerifiedEvent): void {
+export function handleVerified(event: VerifiedEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    log.info('handleVerification {}', [event.address.toHexString()]);
+    log.info('handleVerified {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
     let verification = new Verified(event.logIndex.toHexString());

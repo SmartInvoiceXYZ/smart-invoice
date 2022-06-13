@@ -17,6 +17,7 @@ export const hexChainIds = {
   mainnet: '0x01',
   rinkeby: '0x04',
   kovan: '0x2a',
+  hardhat: '0x7a69',
 };
 
 export const networkLabels = {
@@ -53,6 +54,7 @@ export const explorerUrls = {
   4: 'https://rinkeby.etherscan.io',
   42: 'https://kovan.etherscan.io',
   100: 'https://blockscout.com/poa/xdai',
+  31337: 'placeholder',
 };
 
 export const nativeSymbols = {
@@ -62,42 +64,52 @@ export const nativeSymbols = {
   100: 'XDAI',
   31337: 'hhETH',
 };
-
+// https://api.thegraph.com/subgraphs/name/psparacino/smart-invoices-rinkey-ps
 export const graphUrls = {
   1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
-  4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
+  // 4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
+  4: 'https://api.thegraph.com/subgraphs/name/psparacino/smart-invoices-rinkey-ps',
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
   31337: 'http://localhost:8000/subgraphs/name/test/smart-invoices',
 };
+
+// Build completed: QmPJ3hcLh6E5ZJcsBk4NoCtb18eRFhG6S2usAuykMXqoFD
+
+// Deployed to http://localhost:8000/subgraphs/name/test/smart-invoices/graphql
 
 export const tokens = {
   1: Object.keys(NETWORK_CONFIG[1].TOKENS),
   4: Object.keys(NETWORK_CONFIG[4].TOKENS),
   100: Object.keys(NETWORK_CONFIG[100].TOKENS),
+  31337: Object.keys(NETWORK_CONFIG[1].TOKENS),
 };
 
 export const tokenInfo = {
   1: NETWORK_CONFIG[1].TOKENS,
   4: NETWORK_CONFIG[4].TOKENS,
   100: NETWORK_CONFIG[100].TOKENS,
+  31337: Object.keys(NETWORK_CONFIG[1].TOKENS),
 };
 
 export const resolvers = {
   1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
   100: Object.keys(NETWORK_CONFIG[100].RESOLVERS),
+  31337: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
 };
 
 export const resolverInfo = {
   1: NETWORK_CONFIG[1].RESOLVERS,
   4: NETWORK_CONFIG[4].RESOLVERS,
   100: NETWORK_CONFIG[100].RESOLVERS,
+  31337: NETWORK_CONFIG[1].RESOLVERS,
 };
 
 export const wrappedNativeToken = {
   1: NETWORK_CONFIG[1].WRAPPED_NATIVE_TOKEN,
   4: NETWORK_CONFIG[4].WRAPPED_NATIVE_TOKEN,
   100: NETWORK_CONFIG[100].WRAPPED_NATIVE_TOKEN,
+  31337: NETWORK_CONFIG[1].WRAPPED_NATIVE_TOKEN,
 };
 
 export const invoiceFactory = {

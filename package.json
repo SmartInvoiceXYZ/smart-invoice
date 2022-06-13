@@ -72,5 +72,9 @@
     "*.{json,md,sol}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^5.27.0",
+    "typescript": "^4.7.2"
   }
 }

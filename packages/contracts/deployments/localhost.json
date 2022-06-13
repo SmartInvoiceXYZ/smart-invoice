@@ -1,6 +1,6 @@
 {
   "network": "localhost",
-  "factory": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-  "txHash": "0xdc3df5fab94149a2ab449fcdc6d4be26d437baad35d14fc7f8c5a9829e30b271",
-  "blockNumber": "6"
+  "factory": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "txHash": "0xb72266c2c701a094d001329c8c7b76a9d35954c50c11dee55ba271a7eeecc155",
+  "blockNumber": "2"
 }

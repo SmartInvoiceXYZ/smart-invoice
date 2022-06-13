@@ -54,7 +54,6 @@ contract SmartInvoice is
     uint256 public terminationTime;
     uint256 public resolutionRate;
     bytes32 public details;
-    bool public verified;
 
     uint256[] public amounts; // milestones split into amounts
     uint256 public total = 0;
@@ -142,11 +141,6 @@ contract SmartInvoice is
     function verify() public {
         require(msg.sender == client, "!client");
         emit Verified(client, address(this));
-    }
-
-    function verifyTEST() external {
-        require(msg.sender == client, "!client");
-        verified = true;
     }
 
     function _release() internal {
