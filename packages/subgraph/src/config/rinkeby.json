@@ -25,11 +25,6 @@
       "factoryName": "Version04",
       "startBlock": "8484551",
       "address": "0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c"
-    },
-    {
-      "factoryName": "Version05",
-      "startBlock": "10828685",
-      "address": "0x72D6aF9b21caE2b27168fCdc82647A6B98Db4C38"
     }
   ]
 }

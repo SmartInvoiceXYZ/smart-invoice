@@ -6,7 +6,6 @@ import {
   Dispute,
   Resolution,
   Deposit,
-  Verified,
 } from '../types/schema';
 
 import {
@@ -16,23 +15,8 @@ import {
   Resolve as ResolveEvent,
   Rule as RuleEvent,
   Deposit as DepositEvent,
-  Verified as VerifiedEvent,
 } from '../types/templates/SmartInvoice/SmartInvoice';
 import { addQm, updateInvoiceInfo } from './helpers';
-
-export function handleVerified(event: VerifiedEvent): void {
-  let invoice = Invoice.load(event.address.toHexString());
-  if (invoice != null) {
-    log.info('handleVerified {}', [event.address.toHexString()]);
-    invoice = updateInvoiceInfo(event.address, invoice);
-
-    let verification = new Verified(event.logIndex.toHexString());
-    verification.client = event.params.client;
-    verification.invoice = event.params.invoice;
-
-    verification.save();
-  }
-}
 
 export function handleRelease(event: ReleaseEvent): void {
   let invoice = Invoice.load(event.address.toHexString());

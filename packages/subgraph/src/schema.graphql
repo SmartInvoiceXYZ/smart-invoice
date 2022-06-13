@@ -101,10 +101,3 @@ type Token @entity {
   symbol: String!
   decimals: Int!
 }
-
-type Verified @entity {
-  id: ID!
-  client: Bytes!
-  invoice: Bytes!
-}
-
