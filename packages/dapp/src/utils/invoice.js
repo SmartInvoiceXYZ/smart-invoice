@@ -118,3 +118,11 @@ export const resolve = async (
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.resolve(clientAward, providerAward, detailsHash);
 };
+
+export const addMilestones = async (ethersProvider, address, amounts) => {
+  const abi = new utils.Interface([
+    'function addMilestones(uint256[] calldata _milestones) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.addMilestones(amounts);
+};

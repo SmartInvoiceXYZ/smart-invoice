@@ -27,6 +27,7 @@ import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
+import { AddMilestones } from '../components/AddMilestones';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -190,6 +191,13 @@ export const ViewInvoice = ({
     }
   };
 
+  const onAddMilestones = async () => {
+    if (!isLocked & !isExpired) {
+      setSelected(5);
+      setModal(true);
+    }
+  };
+
   let gridColumns;
   if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
     gridColumns = { base: 2, sm: 3 };
@@ -327,6 +335,13 @@ export const ViewInvoice = ({
           align="stretch"
           maxW={rightMaxW}
         >
+          <Button
+            maxW="fit-content"
+            alignSelf="flex-end"
+            onClick={onAddMilestones}
+          >
+            Add Milestones
+          </Button>
           <Flex
             bg="background"
             direction="column"
@@ -808,6 +823,14 @@ export const ViewInvoice = ({
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 5 && (
+                <AddMilestones
+                  invoice={invoice}
+                  deposited={deposited}
+                  due={due}
                   close={() => setModal(false)}
                 />
               )}
