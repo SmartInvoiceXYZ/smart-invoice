@@ -1472,6 +1472,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
