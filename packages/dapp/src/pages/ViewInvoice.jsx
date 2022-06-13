@@ -63,7 +63,6 @@ export const ViewInvoice = ({
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
-  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -778,10 +777,8 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
-                disabled={!verified}
               >
                 Deposit
-                {/* EDIT HERE IF NOT CLIENT */}
               </Button>
             </SimpleGrid>
           )}

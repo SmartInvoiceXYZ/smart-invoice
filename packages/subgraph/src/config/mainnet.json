@@ -3,8 +3,8 @@
   "factories": [
     {
       "factoryName": "Version00",
-      "startBlock": "0",
-      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      "startBlock": "12803981",
+      "address": "0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a"
     }
   ]
 }

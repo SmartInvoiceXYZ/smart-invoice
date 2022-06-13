@@ -108,4 +108,3 @@ type Verified @entity {
   client: Bytes!
   invoice: Bytes!
 }
-
