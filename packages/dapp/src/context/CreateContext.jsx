@@ -44,6 +44,7 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
+  const [requireVerification, setRequireVerification] = useState(true);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);
@@ -118,7 +119,6 @@ export const CreateContextProvider = ({ children }) => {
   ]);
 
   const createInvoice = useCallback(async () => {
-    let requireVerification = true;
     if (step1Valid && step2Valid && step3Valid && detailsHash) {
       setLoading(true);
       setTx();
@@ -200,6 +200,7 @@ export const CreateContextProvider = ({ children }) => {
         arbitrationProvider,
         payments,
         tx,
+        requireVerification,
         // setters
         setProjectName,
         setProjectDescription,
@@ -213,6 +214,7 @@ export const CreateContextProvider = ({ children }) => {
         setPaymentToken,
         setMilestones,
         setTermsAccepted,
+        setRequireVerification,
         setArbitrationProvider,
         setPayments,
         // creating invoice

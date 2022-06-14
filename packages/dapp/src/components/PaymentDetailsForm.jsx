@@ -36,8 +36,13 @@ export const PaymentDetailsForm = ({ display }) => {
     setPayments,
     termsAccepted,
     setTermsAccepted,
+    requireVerification,
+    setRequireVerification,
   } = useContext(CreateContext);
-  const { decimals, symbol } = useMemo(() => getTokenInfo(chainId, paymentToken), [chainId, paymentToken]);
+  const { decimals, symbol } = useMemo(
+    () => getTokenInfo(chainId, paymentToken),
+    [chainId, paymentToken],
+  );
 
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
@@ -68,6 +73,17 @@ export const PaymentDetailsForm = ({ display }) => {
         error={clientInvalid ? 'Invalid Address' : ''}
         tooltip="This will be the address used to access the invoice"
       />
+      <Checkbox
+        isChecked={requireVerification}
+        onChange={e => setRequireVerification(e.target.checked)}
+        colorScheme="red"
+        border="none"
+        size="lg"
+        fontSize="1rem"
+        color="white"
+      >
+        Require client to verify account before deposit{' '}
+      </Checkbox>
       <OrderedInput
         label="Service Provider Address"
         value={paymentAddress}

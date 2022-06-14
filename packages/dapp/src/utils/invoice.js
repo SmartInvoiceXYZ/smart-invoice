@@ -126,3 +126,9 @@ export const addMilestones = async (ethersProvider, address, amounts) => {
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.addMilestones(amounts);
 };
+
+export const verify = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function verify() public']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.verify();
+};

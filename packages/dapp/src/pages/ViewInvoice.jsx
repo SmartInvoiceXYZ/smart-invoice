@@ -28,6 +28,7 @@ import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
 import { AddMilestones } from '../components/AddMilestones';
+import { VerifyInvoice } from '../components/VerifyInvoice';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -162,12 +163,6 @@ export const ViewInvoice = ({
   const onDeposit = () => {
     setSelected(1);
     setModal(true);
-  };
-
-  const onVerify = () => {
-    if (verified) {
-      setVerified(false);
-    } else setVerified(true);
   };
 
   const onRelease = async () => {
@@ -325,6 +320,18 @@ export const ViewInvoice = ({
               </WrapItem>
               <WrapItem fontWeight="bold">
                 <AccountLink address={resolver} chainId={invoiceChainId} />
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <WrapItem>
+                <Text>{'Client Account Verified: '}</Text>
+              </WrapItem>
+              <WrapItem fontWeight="bold">
+                {verified ? (
+                  <Text color="green">Client Account Verified!</Text>
+                ) : (
+                  <Text color="red">Awaiting Verification</Text>
+                )}
               </WrapItem>
             </Wrap>
           </VStack>
@@ -707,19 +714,7 @@ export const ViewInvoice = ({
                     Deposit
                   </Button>,
                 )}
-              {!verified && (
-                <Button
-                  size={buttonSize}
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onVerify()}
-                >
-                  Verify Account to Enable Deposits
-                </Button>
-              )}
-              {verified ? <Text>Account Verified!</Text> : null}
+              {!verified && <VerifyInvoice invoice={invoice} />}
               <Button
                 size={buttonSize}
                 gridArea={{

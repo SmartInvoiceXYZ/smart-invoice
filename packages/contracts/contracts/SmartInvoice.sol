@@ -138,7 +138,7 @@ contract SmartInvoice is
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
 
-        if (_requireVerification) emit Verified(_client, address(this));
+        if (!_requireVerification) emit Verified(_client, address(this));
 
         emit Register(_client, _provider, amounts);
     }
