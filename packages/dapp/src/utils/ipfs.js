@@ -3,6 +3,8 @@ import IPFSClient from 'ipfs-http-client';
 
 import { INVOICE_VERSION } from './constants';
 
+import { getIpfsLink } from './helpers';
+
 const ipfsTheGraph = new IPFSClient({
   protocol: 'https',
   host: 'api.thegraph.com',
@@ -16,14 +18,6 @@ const ipfsInfura = new IPFSClient({
   protocol: 'https',
 });
 
-// const ipfsTheGraph = new IPFSClient({
-//   url: '/ip4/0.0.0.0/tcp/5001',
-// });
-
-// const ipfsInfura = new IPFSClient({
-//   url: '/ip4/0.0.0.0/tcp/5001',
-// });
-
 // type Metadata = {
 //   projectName: string;
 //   projectDescription: string;
@@ -34,7 +28,6 @@ const ipfsInfura = new IPFSClient({
 // }
 
 export const uploadMetadata = async meta => {
-  console.log('hitting in uploadMetadata');
   const metadata = { ...meta, version: INVOICE_VERSION };
   const objectString = JSON.stringify(metadata);
   const bufferedString = Buffer.from(objectString);
@@ -42,10 +35,11 @@ export const uploadMetadata = async meta => {
     ipfsTheGraph.add(bufferedString),
     ipfsInfura.add(bufferedString), // automatically pinned
   ]);
+  console.log(node, 'node on upload');
   const { hash } = node[0];
+  console.log('IPFS Link:', getIpfsLink(hash));
   await ipfsTheGraph.pin.add(hash);
   const bytes = Buffer.from(Base58.decode(hash));
-  console.log('uploadMetadata return:', `0x${bytes.slice(2).toString('hex')}`);
   return `0x${bytes.slice(2).toString('hex')}`;
 };
 
@@ -60,6 +54,71 @@ export const uploadDisputeDetails = async meta => {
   const { hash } = node[0];
   await ipfsTheGraph.pin.add(hash);
   const bytes = Buffer.from(Base58.decode(hash));
-  console.log('IPFSTEST:', `0x${bytes.slice(2).toString('hex')}`);
   return `0x${bytes.slice(2).toString('hex')}`;
 };
+
+// import Base58 from 'base-58';
+// import IPFSClient from 'ipfs-http-client';
+
+// import { INVOICE_VERSION } from './constants';
+
+// const ipfsTheGraph = new IPFSClient({
+//   protocol: 'https',
+//   host: 'api.thegraph.com',
+//   port: 443,
+//   'api-path': '/ipfs/api/v0/',
+// });
+
+// const ipfsInfura = new IPFSClient({
+//   host: 'ipfs.infura.io',
+//   port: '5001',
+//   protocol: 'https',
+// });
+
+// // const ipfsTheGraph = new IPFSClient({
+// //   url: '/ip4/0.0.0.0/tcp/5001',
+// // });
+
+// // const ipfsInfura = new IPFSClient({
+// //   url: '/ip4/0.0.0.0/tcp/5001',
+// // });
+
+// // type Metadata = {
+// //   projectName: string;
+// //   projectDescription: string;
+// //   projectAgreement: string;
+// //   startDate: number; // seconds since epoch
+// //   endDate: number; // seconds since epoch
+// //   version: string; // to differentiating versions of smart-invoice contract/json structure
+// // }
+
+// export const uploadMetadata = async meta => {
+//   console.log('hitting in uploadMetadata');
+//   const metadata = { ...meta, version: INVOICE_VERSION };
+//   const objectString = JSON.stringify(metadata);
+//   const bufferedString = Buffer.from(objectString);
+//   const [node] = await Promise.all([
+//     ipfsTheGraph.add(bufferedString),
+//     ipfsInfura.add(bufferedString), // automatically pinned
+//   ]);
+//   const { hash } = node[0];
+//   await ipfsTheGraph.pin.add(hash);
+//   const bytes = Buffer.from(Base58.decode(hash));
+//   console.log('uploadMetadata return:', `0x${bytes.slice(2).toString('hex')}`);
+//   return `0x${bytes.slice(2).toString('hex')}`;
+// };
+
+// export const uploadDisputeDetails = async meta => {
+//   const metadata = { ...meta, version: INVOICE_VERSION };
+//   const objectString = JSON.stringify(metadata);
+//   const bufferedString = Buffer.from(objectString);
+//   const [node] = await Promise.all([
+//     ipfsTheGraph.add(bufferedString),
+//     ipfsInfura.add(bufferedString), // automatically pinned
+//   ]);
+//   const { hash } = node[0];
+//   await ipfsTheGraph.pin.add(hash);
+//   const bytes = Buffer.from(Base58.decode(hash));
+//   console.log('IPFSTEST:', `0x${bytes.slice(2).toString('hex')}`);
+//   return `0x${bytes.slice(2).toString('hex')}`;
+// };

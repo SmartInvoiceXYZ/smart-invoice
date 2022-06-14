@@ -4,7 +4,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "auth": "graph auth https://api.thegraph.com/deploy/485de1ce435f49678527cde2a06df0d1",
+    "auth": "graph auth https://api.thegraph.com/deploy/ 485de1ce435f49678527cde2a06df0d1",
     "verify-auth": "graph auth --product hosted-service 485de1ce435f49678527cde2a06df0d1",
     "create-local": "graph create --node http://localhost:8020/ test/smart-invoices",
     "remove-local": "graph remove --node http://localhost:8020/ test/smart-invoices",
@@ -12,14 +12,12 @@
     "prepare-rinkeby": "mustache src/config/rinkeby.json subgraph.template.yaml > subgraph.yaml",
     "prepare-xdai": "mustache src/config/xdai.json subgraph.template.yaml > subgraph.yaml",
     "prepare-mainnet": "mustache src/config/mainnet.json subgraph.template.yaml > subgraph.yaml",
-    "deploy-only-rinkeby": "graph deploy dan13ram/rinkeby-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-only-rinkeby": "graph deploy psparacino/rinkeby-smart-invoice-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-xdai": "graph deploy dan13ram/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
-    "verify-deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && graph deploy --product hosted-service psparacino/smart-invoices-rinkey-ps",
     "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
-    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
-    "graph": "yarn prepare-mainnet && yarn codegen && yarn create-local && yarn build && yarn deploy-local"
+    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet"
   },
   "license": "MIT",
   "dependencies": {

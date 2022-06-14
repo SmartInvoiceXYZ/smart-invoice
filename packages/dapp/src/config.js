@@ -4,15 +4,12 @@ export const CONFIG = {
   INFURA_ID: process.env.REACT_APP_INFURA_ID,
   IPFS_ENDPOINT: 'https://ipfs.infura.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
-  // IPFS_ENDPOINT: '127.0.0.1:5001',
-  // BOX_ENDPOINT: '127.0.0.1:5001',
+
   NETWORK_CONFIG: {
     1: {
       SUBGRAPH: 'dan13ram/mainnet-smart-invoices',
-      WRAPPED_NATIVE_TOKEN:
-        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
-      INVOICE_FACTORY:
-        '0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
+      INVOICE_FACTORY: '0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a'.toLowerCase(),
       TOKENS: {
         ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase()]: {
           decimals: 18,
@@ -30,10 +27,8 @@ export const CONFIG = {
     },
     100: {
       SUBGRAPH: 'dan13ram/xdai-smart-invoices',
-      WRAPPED_NATIVE_TOKEN:
-        '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
-      INVOICE_FACTORY:
-        '0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
+      INVOICE_FACTORY: '0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d'.toLowerCase(),
       TOKENS: {
         ['0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase()]: {
           decimals: 18,
@@ -54,11 +49,9 @@ export const CONFIG = {
       },
     },
     4: {
-      SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
-      WRAPPED_NATIVE_TOKEN:
-        '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY:
-        '0x72D6aF9b21caE2b27168fCdc82647A6B98Db4C38'.toLowerCase(),
+      SUBGRAPH: 'psparacino/rinkeby-smart-invoice-ps',
+      WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
+      INVOICE_FACTORY: '0xD4F1fB1ff28d5F927607F06eb5801c9398f982FD'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,
@@ -84,10 +77,8 @@ export const CONFIG = {
     },
     31337: {
       SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
-      WRAPPED_NATIVE_TOKEN:
-        '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY:
-        '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
+      INVOICE_FACTORY: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,

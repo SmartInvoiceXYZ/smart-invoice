@@ -105,12 +105,7 @@ export const CreateContextProvider = ({ children }) => {
         projectAgreement,
         startDate: Math.floor(startDate / 1000),
         endDate: Math.floor(endDate / 1000),
-      })
-        .catch(ipfsError => {
-          logError({ ipfsError });
-          console.log('ipfs uploadMetadata error:', ipfsError);
-        })
-        .then(hash => setDetailsHash(hash));
+      }).then(hash => setDetailsHash(hash));
     }
   }, [
     step1Valid,

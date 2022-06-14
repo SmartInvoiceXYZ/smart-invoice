@@ -64,18 +64,13 @@ export const nativeSymbols = {
   100: 'XDAI',
   31337: 'hhETH',
 };
-// https://api.thegraph.com/subgraphs/name/psparacino/smart-invoices-rinkey-ps
+
 export const graphUrls = {
   1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
-  // 4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
-  4: 'https://api.thegraph.com/subgraphs/name/psparacino/smart-invoices-rinkey-ps',
+  4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
   31337: 'http://localhost:8000/subgraphs/name/test/smart-invoices',
 };
-
-// Build completed: QmPJ3hcLh6E5ZJcsBk4NoCtb18eRFhG6S2usAuykMXqoFD
-
-// Deployed to http://localhost:8000/subgraphs/name/test/smart-invoices/graphql
 
 export const tokens = {
   1: Object.keys(NETWORK_CONFIG[1].TOKENS),
