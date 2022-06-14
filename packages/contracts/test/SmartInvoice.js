@@ -1410,6 +1410,31 @@ describe("SmartInvoice", function () {
   it("Should not emit Verified if caller !client", async function () {
     await expect(invoice.connect(randomSigner).verify()).to.be.reverted;
   });
+
+  it("Should emit Verified if client verification requirement waived on invoice creation", async function () {
+    const noVerification = false;
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await expect(
+      await invoice.init(
+        client.address,
+        provider.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        amounts,
+        currentTime + 1000,
+        resolutionRate,
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+        noVerification,
+      ),
+    )
+      .to.emit(invoice, "Verified")
+      .withArgs(client.address, invoice.address);
+  });
+
   it("Should addMilestones if client", async function () {
     await invoice.connect(client).addMilestones([13, 14]);
     expect((await invoice.getAmounts()).length).to.equal(4);
