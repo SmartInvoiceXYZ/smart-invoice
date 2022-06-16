@@ -53,11 +53,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -71,10 +69,6 @@ export const ViewInvoice = ({
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
-
-  useEffect(() => {
-    // This useEffect will query verification
-  }, []);
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
@@ -324,13 +318,13 @@ export const ViewInvoice = ({
             </Wrap>
             <Wrap>
               <WrapItem>
-                <Text>{'Client Account Verified: '}</Text>
+                <Text>{'Non-Client Deposits Enabled: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
                 {verified ? (
-                  <Text color="green">Client Account Verified!</Text>
+                  <Text color="green">Enabled!</Text>
                 ) : (
-                  <Text color="red">Awaiting Verification</Text>
+                  <Text color="red">Not enabled</Text>
                 )}
               </WrapItem>
             </Wrap>
@@ -714,7 +708,6 @@ export const ViewInvoice = ({
                     Deposit
                   </Button>,
                 )}
-              {!verified && <VerifyInvoice invoice={invoice} />}
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -727,11 +720,13 @@ export const ViewInvoice = ({
                 fontWeight="normal"
                 fontFamily="mono"
                 textTransform="uppercase"
-                disabled={!verified}
                 onClick={() => (isReleasable ? onRelease() : onDeposit())}
               >
                 {isReleasable ? 'Release' : 'Deposit'}
               </Button>
+              {!verified && (
+                <VerifyInvoice invoice={invoice} setVerified={setVerified} />
+              )}
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
@@ -749,12 +744,10 @@ export const ViewInvoice = ({
                   Lock
                 </Button>
               )}
-              {verified ? (
-                <p>client account verified!</p>
-              ) : (
-                <p>
-                  deposits will be enabled when client verifies their address
-                </p>
+              {verified ? null : (
+                <Text fontWeight="bold" margin="0 auto">
+                  Client has not yet enabled non-client deposits
+                </Text>
               )}
               <Button
                 size={buttonSize}

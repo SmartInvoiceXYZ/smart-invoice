@@ -153,6 +153,7 @@ export const CreateContextProvider = ({ children }) => {
     payments,
     safetyValveDate,
     detailsHash,
+    requireVerification,
     step1Valid,
     step2Valid,
     step3Valid,

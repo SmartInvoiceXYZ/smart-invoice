@@ -52,9 +52,9 @@ export const InvoiceDetails = gql`
       resolutionFee
       timestamp
     }
-    # verified {
+    #  verified {
     #   client
     #   invoice
-    # }
+    #  }
   }
 `;
