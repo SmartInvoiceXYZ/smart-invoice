@@ -1389,6 +1389,20 @@ describe("SmartInvoice", function () {
     expect(await invoice.total()).to.equal(47);
   });
 
+  it("Should addMilestones and emit MilestonesAdded event", async function () {
+    await expect(invoice.connect(client)["addMilestones(uint256[])"]([13, 14]))
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(client.address, invoice.address, [13, 14]);
+
+    await expect(
+      invoice
+        .connect(provider)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], EMPTY_BYTES32),
+    )
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(provider.address, invoice.address, [13, 14]);
+  });
+
   it("Should revert addMilestones if executed by non-client/non-provider address", async function () {
     await expect(
       invoice.connect(randomSigner)["addMilestones(uint256[])"]([13, 14]),
@@ -1464,7 +1478,7 @@ describe("SmartInvoice", function () {
     expect(newDetails).to.equal(NEW_BYTES32);
   });
 
-  it("Should addMilestones(uint256[],bytes32) and emit event", async function () {
+  it("Should addMilestones(uint256[],bytes32) and emit DetailsUpdated event", async function () {
     const NEW_BYTES32 =
       "0x1010101000000000000000000000000000000000000000000000000000000000";
 

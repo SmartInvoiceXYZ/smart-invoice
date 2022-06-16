@@ -176,7 +176,7 @@ contract SmartInvoice is
             emit DetailsUpdated(msg.sender, _details);
         }
 
-        emit MilestonesAdded(client, address(this), _milestones);
+        emit MilestonesAdded(msg.sender, address(this), _milestones);
     }
 
     function getAmounts() public view returns (uint256[] memory) {
