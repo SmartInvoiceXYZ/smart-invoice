@@ -20,8 +20,8 @@ export const getInvoice = async (chainId, queryAddress) => {
     .query(invoiceQuery, { address })
     .toPromise();
 
-  console.log({data, error });
-  
+  console.log({ data, error });
+
   if (!data) {
     if (error) {
       throw error;

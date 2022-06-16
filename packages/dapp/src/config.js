@@ -7,8 +7,10 @@ export const CONFIG = {
   NETWORK_CONFIG: {
     1: {
       SUBGRAPH: 'dan13ram/mainnet-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
-      INVOICE_FACTORY: '0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN:
+        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
+      INVOICE_FACTORY:
+        '0xb7019c3670f5d4dd99166727a7d29f8a16f4f20a'.toLowerCase(),
       TOKENS: {
         ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase()]: {
           decimals: 18,
@@ -26,8 +28,10 @@ export const CONFIG = {
     },
     100: {
       SUBGRAPH: 'dan13ram/xdai-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
-      INVOICE_FACTORY: '0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN:
+        '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
+      INVOICE_FACTORY:
+        '0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d'.toLowerCase(),
       TOKENS: {
         ['0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase()]: {
           decimals: 18,
@@ -49,8 +53,10 @@ export const CONFIG = {
     },
     4: {
       SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY: '0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c'.toLowerCase(),
+      WRAPPED_NATIVE_TOKEN:
+        '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
+      INVOICE_FACTORY:
+        '0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,

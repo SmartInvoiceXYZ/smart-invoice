@@ -32,6 +32,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
+
   console.log(
     "Deploying SmartInvoiceFactory on network:",
     networkName[chainId],

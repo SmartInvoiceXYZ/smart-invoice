@@ -14,6 +14,8 @@ const total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 
+const requireVerification = true;
+
 describe("SmartInvoiceFactory", function () {
   let SmartInvoice;
   let smartInvoice;
@@ -88,6 +90,7 @@ describe("SmartInvoiceFactory", function () {
       amounts,
       terminationTime,
       EMPTY_BYTES32,
+      requireVerification,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
@@ -135,6 +138,7 @@ describe("SmartInvoiceFactory", function () {
       terminationTime,
       EMPTY_BYTES32,
       EMPTY_BYTES32,
+      requireVerification,
     );
 
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
@@ -174,6 +178,7 @@ describe("SmartInvoiceFactory", function () {
       amounts,
       terminationTime,
       EMPTY_BYTES32,
+      requireVerification,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
@@ -198,6 +203,7 @@ describe("SmartInvoiceFactory", function () {
       amounts,
       terminationTime,
       EMPTY_BYTES32,
+      requireVerification,
     );
     const invoice0 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactory.invoiceCount()).to.equal(1);
@@ -210,6 +216,7 @@ describe("SmartInvoiceFactory", function () {
       amounts,
       terminationTime,
       EMPTY_BYTES32,
+      requireVerification,
     );
     const invoice1 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactory.invoiceCount()).to.equal(2);

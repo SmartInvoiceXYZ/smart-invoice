@@ -44,7 +44,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         address _token,
         uint256[] calldata _amounts,
         uint256 _terminationTime,
-        bytes32 _details
+        bytes32 _details,
+        bool _requireVerification
     ) internal {
         uint256 resolutionRate = resolutionRates[_resolver];
         if (resolutionRate == 0) {
@@ -61,7 +62,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
             _terminationTime,
             resolutionRate,
             _details,
-            wrappedNativeToken
+            wrappedNativeToken,
+            _requireVerification
         );
 
         uint256 invoiceId = invoiceCount;
@@ -79,7 +81,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         address _token,
         uint256[] calldata _amounts,
         uint256 _terminationTime,
-        bytes32 _details
+        bytes32 _details,
+        bool _requireVerification
     ) external override returns (address) {
         address invoiceAddress = Clones.clone(implementation);
 
@@ -92,7 +95,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
             _token,
             _amounts,
             _terminationTime,
-            _details
+            _details,
+            _requireVerification
         );
 
         return invoiceAddress;
@@ -116,10 +120,13 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         uint256[] calldata _amounts,
         uint256 _terminationTime,
         bytes32 _details,
-        bytes32 _salt
+        bytes32 _salt,
+        bool _requireVerification
     ) external override returns (address) {
-        address invoiceAddress =
-            Clones.cloneDeterministic(implementation, _salt);
+        address invoiceAddress = Clones.cloneDeterministic(
+            implementation,
+            _salt
+        );
 
         _init(
             invoiceAddress,
@@ -130,7 +137,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
             _token,
             _amounts,
             _terminationTime,
-            _details
+            _details,
+            _requireVerification
         );
 
         return invoiceAddress;

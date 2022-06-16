@@ -13,7 +13,8 @@ interface ISmartInvoice {
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,
-        address _wrappedNativeToken
+        address _wrappedNativeToken,
+        bool _requireVerification
     ) external;
 
     function release() external;
