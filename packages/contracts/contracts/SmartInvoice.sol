@@ -66,10 +66,11 @@ contract SmartInvoice is
     );
 
     event MilestonesAdded(
-        address indexed client,
+        address indexed sender,
         address indexed invoice,
         uint256[] milestones
     );
+    event DetailsUpdated(address indexed sender, bytes32 details);
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -137,6 +138,18 @@ contract SmartInvoice is
     }
 
     function addMilestones(uint256[] calldata _milestones) external {
+        _addMilestones(_milestones, "");
+    }
+
+    function addMilestones(uint256[] calldata _milestones, bytes32 _details)
+        external
+    {
+        _addMilestones(_milestones, _details);
+    }
+
+    function _addMilestones(uint256[] calldata _milestones, bytes32 _details)
+        internal
+    {
         require(!locked, "locked");
         require(block.timestamp < terminationTime, "terminated");
         require(_msgSender() == client || _msgSender() == provider, "!party");
@@ -157,6 +170,11 @@ contract SmartInvoice is
 
         total = newTotal;
         amounts = baseArray;
+
+        if (_details.length > 0) {
+            details = _details;
+            emit DetailsUpdated(msg.sender, _details);
+        }
 
         emit MilestonesAdded(client, address(this), _milestones);
     }
