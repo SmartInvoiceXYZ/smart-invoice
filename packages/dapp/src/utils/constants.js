@@ -68,7 +68,6 @@ export const nativeSymbols = {
 export const graphUrls = {
   1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
-  // 4: `https://api.thegraph.com/subgraphs/id/Qmer7bHFYgLNJZwGLbXqp3wp1gJsMZtLPArasscjY1u3LJ`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
   31337: 'http://localhost:8000/subgraphs/name/test/smart-invoices',
 };

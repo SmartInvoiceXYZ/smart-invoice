@@ -31,6 +31,7 @@ import { AddMilestones } from '../components/AddMilestones';
 import { VerifyInvoice } from '../components/VerifyInvoice';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
+import { getVerified } from '../graphql/getVerified';
 import { CopyIcon } from '../icons/CopyIcon';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { AccountLink } from '../shared/AccountLink';
@@ -69,6 +70,26 @@ export const ViewInvoice = ({
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
+
+  useEffect(async () => {
+    if (
+      invoice &&
+      utils.isAddress(invoiceId) &&
+      !Number.isNaN(invoiceChainId)
+    ) {
+      getVerified(invoiceChainId, invoiceId).then(async i => {
+        let verifications = i.verifieds;
+        if (verifications.length > 0) {
+          for (let i = 0; i <= verifications.length; i++) {
+            if (verifications[i].invoice == invoice.address) {
+              setVerified(true);
+              break;
+            }
+          }
+        }
+      });
+    }
+  }, [invoice]);
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
