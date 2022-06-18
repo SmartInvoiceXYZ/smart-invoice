@@ -71,7 +71,7 @@ export const ViewInvoice = ({
     }
   }, [invoiceChainId, invoiceId]);
 
-  useEffect(async () => {
+  useEffect(() => {
     if (
       invoice &&
       utils.isAddress(invoiceId) &&
@@ -79,9 +79,10 @@ export const ViewInvoice = ({
     ) {
       getVerified(invoiceChainId, invoiceId).then(async i => {
         let verifications = i.verifieds;
+        console.log('verifications:', verifications);
         if (verifications.length > 0) {
           for (let i = 0; i <= verifications.length; i++) {
-            if (verifications[i].invoice == invoice.address) {
+            if (verifications[i].invoice === invoice.address) {
               setVerified(true);
               break;
             }
@@ -89,7 +90,7 @@ export const ViewInvoice = ({
         }
       });
     }
-  }, [invoice]);
+  }, [invoice, invoiceChainId, invoiceId]);
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
@@ -342,7 +343,7 @@ export const ViewInvoice = ({
                 <Text>{'Non-Client Deposits Enabled: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
-                {verified ? (
+                {invoice && verified ? (
                   <Text color="green">Enabled!</Text>
                 ) : (
                   <Text color="red">Not enabled</Text>

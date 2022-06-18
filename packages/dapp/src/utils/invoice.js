@@ -1,8 +1,6 @@
-import { Contract, ethers, utils } from 'ethers';
+import { Contract, utils } from 'ethers';
 
 import { getInvoiceFactoryAddress, logError } from './helpers';
-
-// import Factory from "../abi/SmartInvoiceFactory.json"
 
 export const register = async (
   chainId,
