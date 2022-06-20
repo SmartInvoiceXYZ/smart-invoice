@@ -44,7 +44,7 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
-  const [requireVerification, setRequireVerification] = useState(true);
+  const [noVerification, setNoVerification] = useState(false);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);
@@ -133,7 +133,7 @@ export const CreateContextProvider = ({ children }) => {
         payments,
         Math.floor(safetyValveDate / 1000),
         detailsHash,
-        requireVerification,
+        noVerification,
       ).catch(registerError => {
         logError({ registerError });
         setLoading(false);
@@ -153,7 +153,7 @@ export const CreateContextProvider = ({ children }) => {
     payments,
     safetyValveDate,
     detailsHash,
-    requireVerification,
+    noVerification,
     step1Valid,
     step2Valid,
     step3Valid,
@@ -201,7 +201,6 @@ export const CreateContextProvider = ({ children }) => {
         arbitrationProvider,
         payments,
         tx,
-        requireVerification,
         // setters
         setProjectName,
         setProjectDescription,
@@ -215,7 +214,6 @@ export const CreateContextProvider = ({ children }) => {
         setPaymentToken,
         setMilestones,
         setTermsAccepted,
-        setRequireVerification,
         setArbitrationProvider,
         setPayments,
         // creating invoice
