@@ -11,10 +11,11 @@ export const register = async (
   token,
   amounts, // array of milestone payments in wei
   terminationTime, // time in seconds since epoch
-  detailsHash, // 32 bits hex
+  detailsHash,
+  requireVerification, // 32 bits hex
 ) => {
   const abi = new utils.Interface([
-    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
+    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details, bool requireVerification) public',
   ]);
   const contract = new Contract(
     getInvoiceFactoryAddress(chainId),
@@ -32,6 +33,7 @@ export const register = async (
     amounts,
     terminationTime,
     detailsHash,
+    requireVerification,
   );
 };
 

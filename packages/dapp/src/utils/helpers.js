@@ -1,4 +1,5 @@
 import { getAddress } from '@ethersproject/address';
+import { Contract, utils } from 'ethers';
 
 import {
   chainIds,
@@ -124,7 +125,8 @@ export const copyToClipboard = value => {
   document.body.removeChild(tempInput);
 };
 
-const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
+const URL_REGEX =
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
 
 export const isValidURL = str => {
   return !!URL_REGEX.test(str);
@@ -156,3 +158,9 @@ export const getHexChainId = network =>
   hexChainIds[network] || hexChainIds.rinkeby;
 
 export const getNetworkLabel = chainId => networkLabels[chainId] || 'unknown';
+
+export const verify = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function verify() external']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.verify();
+};

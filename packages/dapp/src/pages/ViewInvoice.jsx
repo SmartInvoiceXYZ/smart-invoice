@@ -54,15 +54,18 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -89,7 +92,7 @@ export const ViewInvoice = ({
         }
       });
     }
-  }, [invoice, invoiceChainId, invoiceId]);
+  }, [invoice, invoiceChainId, invoiceId, verified]);
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
@@ -777,8 +780,10 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
+                disabled={!verified}
               >
                 Deposit
+                {/* EDIT HERE IF NOT CLIENT */}
               </Button>
             </SimpleGrid>
           )}

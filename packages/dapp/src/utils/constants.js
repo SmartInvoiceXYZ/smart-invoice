@@ -9,6 +9,7 @@ export const chainIds = {
   mainnet: 1,
   rinkeby: 4,
   kovan: 42,
+  hardhat: 31337,
 };
 
 export const hexChainIds = {
@@ -16,6 +17,7 @@ export const hexChainIds = {
   mainnet: '0x01',
   rinkeby: '0x04',
   kovan: '0x2a',
+  hardhat: '0x7a69',
 };
 
 export const networkLabels = {
@@ -28,6 +30,7 @@ export const networkLabels = {
   56: 'BSC',
   77: 'Sokol',
   137: 'Matic',
+  31337: 'Hardhat',
 };
 
 export const networkNames = {
@@ -35,6 +38,7 @@ export const networkNames = {
   4: 'Rinkeby Testnet',
   42: 'Kovan Testnet',
   100: 'xDai Chain',
+  31337: 'Hardhat Network',
 };
 
 export const rpcUrls = {
@@ -42,6 +46,7 @@ export const rpcUrls = {
   4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
   42: `https://kovan.infura.io/v3/${INFURA_ID}`,
   100: 'https://rpc.xdaichain.com',
+  31337: 'http://localhost:8545',
 };
 
 export const explorerUrls = {
@@ -49,6 +54,7 @@ export const explorerUrls = {
   4: 'https://rinkeby.etherscan.io',
   42: 'https://kovan.etherscan.io',
   100: 'https://blockscout.com/poa/xdai',
+  31337: 'placeholder',
 };
 
 export const nativeSymbols = {
@@ -56,48 +62,56 @@ export const nativeSymbols = {
   4: 'ETH',
   42: 'ETH',
   100: 'XDAI',
+  31337: 'hhETH',
 };
 
 export const graphUrls = {
   1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
+  31337: 'http://localhost:8000/subgraphs/name/test/smart-invoices',
 };
 
 export const tokens = {
   1: Object.keys(NETWORK_CONFIG[1].TOKENS),
   4: Object.keys(NETWORK_CONFIG[4].TOKENS),
   100: Object.keys(NETWORK_CONFIG[100].TOKENS),
+  31337: Object.keys(NETWORK_CONFIG[1].TOKENS),
 };
 
 export const tokenInfo = {
   1: NETWORK_CONFIG[1].TOKENS,
   4: NETWORK_CONFIG[4].TOKENS,
   100: NETWORK_CONFIG[100].TOKENS,
+  31337: Object.keys(NETWORK_CONFIG[1].TOKENS),
 };
 
 export const resolvers = {
   1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
   100: Object.keys(NETWORK_CONFIG[100].RESOLVERS),
+  31337: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
 };
 
 export const resolverInfo = {
   1: NETWORK_CONFIG[1].RESOLVERS,
   4: NETWORK_CONFIG[4].RESOLVERS,
   100: NETWORK_CONFIG[100].RESOLVERS,
+  31337: NETWORK_CONFIG[1].RESOLVERS,
 };
 
 export const wrappedNativeToken = {
   1: NETWORK_CONFIG[1].WRAPPED_NATIVE_TOKEN,
   4: NETWORK_CONFIG[4].WRAPPED_NATIVE_TOKEN,
   100: NETWORK_CONFIG[100].WRAPPED_NATIVE_TOKEN,
+  31337: NETWORK_CONFIG[1].WRAPPED_NATIVE_TOKEN,
 };
 
 export const invoiceFactory = {
   1: NETWORK_CONFIG[1].INVOICE_FACTORY,
   4: NETWORK_CONFIG[4].INVOICE_FACTORY,
   100: NETWORK_CONFIG[100].INVOICE_FACTORY,
+  31337: NETWORK_CONFIG[31337].INVOICE_FACTORY,
 };
 
 export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
