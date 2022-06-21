@@ -780,10 +780,8 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
-                disabled={!verified}
               >
                 Deposit
-                {/* EDIT HERE IF NOT CLIENT */}
               </Button>
             </SimpleGrid>
           )}

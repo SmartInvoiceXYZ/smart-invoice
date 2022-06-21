@@ -49,7 +49,6 @@ templates:
         - Deposit
         - Resolution
         - Token
-        - Verified
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
@@ -70,8 +69,11 @@ templates:
           handler: handleResolve
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
+<<<<<<< HEAD
         - event: Verified(indexed address,indexed address)
           handler: handleVerified
+=======
+>>>>>>> revamp
       file: ./src/mappings/invoice.ts
   - kind: ethereum/contract
     name: ERC20

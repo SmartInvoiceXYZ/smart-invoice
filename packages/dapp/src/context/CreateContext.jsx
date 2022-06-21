@@ -106,7 +106,11 @@ export const CreateContextProvider = ({ children }) => {
         projectAgreement,
         startDate: Math.floor(startDate / 1000),
         endDate: Math.floor(endDate / 1000),
-      }).then(hash => setDetailsHash(hash));
+      })
+        .catch(ipfsError => {
+          logError({ ipfsError });
+        })
+        .then(hash => setDetailsHash(hash));
     }
   }, [
     step1Valid,
