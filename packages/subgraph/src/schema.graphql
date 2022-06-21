@@ -102,12 +102,9 @@ type Token @entity {
   symbol: String!
   decimals: Int!
 }
-<<<<<<< HEAD
 
 type Verified @entity {
   id: ID!
   client: Bytes!
   invoice: Bytes!
 }
-=======
->>>>>>> revamp
