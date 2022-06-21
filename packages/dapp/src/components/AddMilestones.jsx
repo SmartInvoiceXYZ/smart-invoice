@@ -28,30 +28,6 @@ import {
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 
-// useEffect(() => {
-//   if (step1Valid && currentStep === 2) {
-//     uploadMetadata({
-//       projectName,
-//       projectDescription,
-//       projectAgreement,
-//       startDate: Math.floor(startDate / 1000),
-//       endDate: Math.floor(endDate / 1000),
-//     })
-//       .catch(ipfsError => {
-//         logError({ ipfsError });
-//       })
-//       .then(hash => setDetailsHash(hash));
-//   }
-// }, [
-//   step1Valid,
-//   currentStep,
-//   projectName,
-//   projectDescription,
-//   projectAgreement,
-//   startDate,
-//   endDate,
-// ]);
-
 export const AddMilestones = ({ invoice, due }) => {
   const { chainId, provider } = useContext(Web3Context);
   const {
