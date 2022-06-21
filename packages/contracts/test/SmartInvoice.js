@@ -1436,7 +1436,7 @@ describe("SmartInvoice", function () {
   });
 
   it("Should addMilestones if client", async function () {
-    await invoice.connect(client).addMilestones([13, 14]);
+    await invoice.connect(client)["addMilestones(uint256[])"]([13, 14]);
     expect((await invoice.getAmounts()).length).to.equal(4);
     expect(await invoice.amounts(0)).to.equal(10);
     expect(await invoice.amounts(1)).to.equal(10);
@@ -1445,7 +1445,7 @@ describe("SmartInvoice", function () {
   });
 
   it("Should addMilestones if provider", async function () {
-    await invoice.connect(provider).addMilestones([13, 14]);
+    await invoice.connect(provider)["addMilestones(uint256[])"]([13, 14]);
     expect((await invoice.getAmounts()).length).to.equal(4);
     expect(await invoice.amounts(0)).to.equal(10);
     expect(await invoice.amounts(1)).to.equal(10);
@@ -1454,17 +1454,31 @@ describe("SmartInvoice", function () {
   });
 
   it("Should addMilestones and update total with added milestones", async function () {
-    await invoice.connect(provider).addMilestones([13, 14]);
+    await invoice.connect(provider)["addMilestones(uint256[])"]([13, 14]);
     expect(await invoice.total()).to.equal(47);
   });
 
-  it("Should revert addMilestones() if executed by non-client/non-provider address", async function () {
+  it("Should addMilestones and emit MilestonesAdded event", async function () {
+    await expect(invoice.connect(client)["addMilestones(uint256[])"]([13, 14]))
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(client.address, invoice.address, [13, 14]);
+
     await expect(
-      invoice.connect(randomSigner).addMilestones([13, 14]),
+      invoice
+        .connect(provider)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], EMPTY_BYTES32),
+    )
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(provider.address, invoice.address, [13, 14]);
+  });
+
+  it("Should revert addMilestones if executed by non-client/non-provider address", async function () {
+    await expect(
+      invoice.connect(randomSigner)["addMilestones(uint256[])"]([13, 14]),
     ).to.be.revertedWith("!party");
   });
 
-  it("Should revert addMilestones() if locked", async function () {
+  it("Should revert addMilestones if locked", async function () {
     const lockedInvoice = await getLockedInvoice(
       SmartInvoice,
       client,
@@ -1478,11 +1492,11 @@ describe("SmartInvoice", function () {
       mockWrappedNativeToken,
     );
     await expect(
-      lockedInvoice.connect(client).addMilestones([13, 14]),
+      lockedInvoice.connect(client)["addMilestones(uint256[])"]([13, 14]),
     ).to.be.revertedWith("locked");
   });
 
-  it("Should revert addMilestones() if terminationTime passed", async function () {
+  it("Should revert addMilestones if terminationTime passed", async function () {
     const currentTime = await currentTimestamp();
     invoice = await SmartInvoice.deploy();
     await invoice.deployed();
@@ -1503,19 +1517,67 @@ describe("SmartInvoice", function () {
       currentTime + 1000,
     ]);
 
-    await expect(invoice.addMilestones([13, 14])).to.be.revertedWith(
-      "terminated",
-    );
+    await expect(
+      invoice["addMilestones(uint256[])"]([13, 14]),
+    ).to.be.revertedWith("terminated");
   });
 
-  it("Should revert addMilestones() if milestones array length is not between 1-10", async function () {
-    await expect(invoice.connect(client).addMilestones([])).to.be.revertedWith(
-      "no milestones are being added",
-    );
+  it("Should revert addMilestones if milestones array length is not between 1-10", async function () {
+    await expect(
+      invoice.connect(client)["addMilestones(uint256[])"]([]),
+    ).to.be.revertedWith("no milestones are being added");
     await expect(
       invoice
         .connect(client)
-        .addMilestones([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+        ["addMilestones(uint256[])"]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
     ).to.be.revertedWith("only 10 new milestones at a time");
+  });
+
+  it("Should addMilestones(uint256[],bytes32) and update details", async function () {
+    const NEW_BYTES32 =
+      "0x1010101000000000000000000000000000000000000000000000000000000000";
+
+    const oldDetails = await invoice.details();
+    await invoice
+      .connect(client)
+      ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32);
+    const newDetails = await invoice.details();
+
+    expect(oldDetails).to.equal(EMPTY_BYTES32);
+    expect(oldDetails).to.not.equal(newDetails);
+    expect(newDetails).to.equal(NEW_BYTES32);
+  });
+
+  it("Should addMilestones(uint256[],bytes32) and emit DetailsUpdated event", async function () {
+    const NEW_BYTES32 =
+      "0x1010101000000000000000000000000000000000000000000000000000000000";
+
+    await expect(
+      invoice
+        .connect(client)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32),
+    )
+      .to.emit(invoice, "DetailsUpdated")
+      .withArgs(client.address, NEW_BYTES32);
+
+    await expect(
+      invoice
+        .connect(provider)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32),
+    )
+      .to.emit(invoice, "DetailsUpdated")
+      .withArgs(provider.address, NEW_BYTES32);
+  });
+
+  it("Should revert addMilestones(uint256[],bytes32) if no details", async function () {
+    await expect(
+      invoice.connect(client)["addMilestones(uint256[],bytes32)"]([13, 14], ""),
+    ).to.be.reverted;
+
+    await expect(
+      invoice
+        .connect(client)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], "0x00"),
+    ).to.be.reverted;
   });
 });

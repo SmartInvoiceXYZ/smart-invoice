@@ -15,7 +15,7 @@ import {
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useState } from 'react';
 
-import { OrderedInput } from '../shared/OrderedInput';
+import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
 
 import { Web3Context } from '../context/Web3Context';
 import {
@@ -25,11 +25,22 @@ import {
   logError,
 } from '../utils/helpers';
 
-import { addMilestones } from '../utils/invoice';
+import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
+import { uploadMetadata } from '../utils/ipfs';
 
-export const AddMilestones = ({ invoice, deposited, due }) => {
+export const AddMilestones = ({ invoice, due }) => {
   const { chainId, provider } = useContext(Web3Context);
-  const { address, token, network, amounts } = invoice;
+  const {
+    address,
+    token,
+    network,
+    amounts,
+    projectName,
+    projectDescription,
+    projectAgreement,
+    startDate,
+    endDate,
+  } = invoice;
   const { decimals, symbol } = getTokenInfo(chainId, token);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
@@ -41,6 +52,9 @@ export const AddMilestones = ({ invoice, deposited, due }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
+    projectAgreement,
+  );
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -48,8 +62,28 @@ export const AddMilestones = ({ invoice, deposited, due }) => {
     if (!milestoneAmounts.length) return;
     try {
       setLoading(true);
+      let detailsHash;
+      if (revisedProjectAgreement && projectAgreement.startsWith('ipfs')) {
+        detailsHash = await uploadMetadata({
+          projectName,
+          projectDescription,
+          revisedProjectAgreement,
+          startDate: Math.floor(startDate / 1000),
+          endDate: Math.floor(endDate / 1000),
+        });
+      }
+
       let tx;
-      tx = await addMilestones(provider, address, milestoneAmounts);
+      if (detailsHash) {
+        tx = await addMilestonesWithDetails(
+          provider,
+          address,
+          milestoneAmounts,
+          detailsHash,
+        );
+      } else {
+        tx = await addMilestones(provider, address, milestoneAmounts);
+      }
       setTransaction(tx);
       await tx.wait();
       window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
@@ -70,6 +104,16 @@ export const AddMilestones = ({ invoice, deposited, due }) => {
         Add New Payment Milestones
       </Heading>
 
+      {projectAgreement.startsWith('ipfs') ? (
+        <OrderedLinkInput
+          label="Link to Project Agreement (if updated)"
+          value={revisedProjectAgreement}
+          setValue={setRevisedProjectAgreement}
+          tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
+        />
+      ) : (
+        ''
+      )}
       <SimpleGrid
         w="100%"
         columns={{ base: 2, sm: 2 }}

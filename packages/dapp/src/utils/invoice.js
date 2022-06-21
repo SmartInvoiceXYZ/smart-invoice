@@ -122,3 +122,16 @@ export const addMilestones = async (ethersProvider, address, amounts) => {
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.addMilestones(amounts);
 };
+
+export const addMilestonesWithDetails = async (
+  ethersProvider,
+  address,
+  amounts,
+  details,
+) => {
+  const abi = new utils.Interface([
+    'function addMilestones(uint256[] calldata _milestones, bytes32 _details) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.addMilestones(amounts, details);
+};
