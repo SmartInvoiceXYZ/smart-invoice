@@ -69,6 +69,8 @@ templates:
           handler: handleResolve
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
       file: ./src/mappings/invoice.ts
   - kind: ethereum/contract
     name: ERC20

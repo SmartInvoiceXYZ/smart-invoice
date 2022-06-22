@@ -28,8 +28,10 @@ import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
 import { AddMilestones } from '../components/AddMilestones';
+import { VerifyInvoice } from '../components/VerifyInvoice';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
+import { getVerified } from '../graphql/getVerified';
 import { CopyIcon } from '../icons/CopyIcon';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { AccountLink } from '../shared/AccountLink';
@@ -63,12 +65,34 @@ export const ViewInvoice = ({
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
+
+  useEffect(() => {
+    if (
+      invoice &&
+      utils.isAddress(invoiceId) &&
+      !Number.isNaN(invoiceChainId)
+    ) {
+      getVerified(invoiceChainId, invoiceId).then(async i => {
+        let verifications = i.verifieds;
+        console.log('verifications:', verifications);
+        if (verifications.length > 0) {
+          for (let i = 0; i <= verifications.length; i++) {
+            if (verifications[i].invoice === invoice.address) {
+              setVerified(true);
+              break;
+            }
+          }
+        }
+      });
+    }
+  }, [invoice, invoiceChainId, invoiceId, verified]);
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
@@ -314,6 +338,18 @@ export const ViewInvoice = ({
               </WrapItem>
               <WrapItem fontWeight="bold">
                 <AccountLink address={resolver} chainId={invoiceChainId} />
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <WrapItem>
+                <Text>{'Non-Client Deposits Enabled: '}</Text>
+              </WrapItem>
+              <WrapItem fontWeight="bold">
+                {invoice && verified ? (
+                  <Text color="green">Enabled!</Text>
+                ) : (
+                  <Text color="red">Not enabled</Text>
+                )}
               </WrapItem>
             </Wrap>
           </VStack>
@@ -682,19 +718,20 @@ export const ViewInvoice = ({
                   Withdraw
                 </Button>
               )}
-              {isReleasable && (
-                <Button
-                  size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontWeight="normal"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Deposit
-                </Button>
-              )}
+              {isReleasable &&
+                verified(
+                  <Button
+                    size={buttonSize}
+                    variant="outline"
+                    colorScheme="red"
+                    fontWeight="normal"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onDeposit()}
+                  >
+                    Deposit
+                  </Button>,
+                )}
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -711,6 +748,9 @@ export const ViewInvoice = ({
               >
                 {isReleasable ? 'Release' : 'Deposit'}
               </Button>
+              {!verified && (
+                <VerifyInvoice invoice={invoice} setVerified={setVerified} />
+              )}
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
@@ -727,6 +767,11 @@ export const ViewInvoice = ({
                 >
                   Lock
                 </Button>
+              )}
+              {verified ? null : (
+                <Text fontWeight="bold" margin="0 auto">
+                  Client has not yet enabled non-client deposits
+                </Text>
               )}
               <Button
                 size={buttonSize}

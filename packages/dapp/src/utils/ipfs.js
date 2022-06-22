@@ -34,6 +34,7 @@ export const uploadMetadata = async meta => {
     ipfsInfura.add(bufferedString), // automatically pinned
   ]);
   const { hash } = node[0];
+
   await ipfsTheGraph.pin.add(hash);
   const bytes = Buffer.from(Base58.decode(hash));
   return `0x${bytes.slice(2).toString('hex')}`;

@@ -12,9 +12,10 @@ export const register = async (
   amounts, // array of milestone payments in wei
   terminationTime, // time in seconds since epoch
   detailsHash, // 32 bits hex
+  requireVerification,
 ) => {
   const abi = new utils.Interface([
-    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details) public',
+    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details, bool requireVerification) public',
   ]);
   const contract = new Contract(
     getInvoiceFactoryAddress(chainId),
@@ -32,6 +33,7 @@ export const register = async (
     amounts,
     terminationTime,
     detailsHash,
+    requireVerification,
   );
 };
 
@@ -122,7 +124,6 @@ export const addMilestones = async (ethersProvider, address, amounts) => {
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.addMilestones(amounts);
 };
-
 export const addMilestonesWithDetails = async (
   ethersProvider,
   address,
@@ -134,4 +135,10 @@ export const addMilestonesWithDetails = async (
   ]);
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.addMilestones(amounts, details);
+};
+
+export const verify = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function verify() external']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.verify();
 };

@@ -52,9 +52,8 @@ export const AddMilestones = ({ invoice, due }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
-    projectAgreement,
-  );
+  const [revisedProjectAgreement, setRevisedProjectAgreement] =
+    useState(projectAgreement);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 

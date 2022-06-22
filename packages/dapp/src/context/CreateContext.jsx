@@ -44,6 +44,7 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
+  const [noVerification, setNoVerification] = useState(false);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);
@@ -136,6 +137,7 @@ export const CreateContextProvider = ({ children }) => {
         payments,
         Math.floor(safetyValveDate / 1000),
         detailsHash,
+        noVerification,
       ).catch(registerError => {
         logError({ registerError });
         setLoading(false);
@@ -155,6 +157,7 @@ export const CreateContextProvider = ({ children }) => {
     payments,
     safetyValveDate,
     detailsHash,
+    noVerification,
     step1Valid,
     step2Valid,
     step3Valid,

@@ -145,7 +145,7 @@ contract SmartInvoice is
     }
 
     // Client verifies address before deposits
-    function verify() public {
+    function verify() external {
         require(msg.sender == client, "!client");
         emit Verified(client, address(this));
     }

@@ -62,6 +62,9 @@ async function main() {
   await smartInvoice.initLock();
 
   const txHash = smartInvoiceFactory.deployTransaction.hash;
+
+  console.log("Transaction Hash:", txHash);
+
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
 
