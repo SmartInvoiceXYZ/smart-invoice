@@ -19,8 +19,6 @@ export const getVerified = async (chainId, queryAddress) => {
     .query(verifiedQuery, { address })
     .toPromise();
 
-  console.log('Verified Data:', data);
-
   if (!data) {
     if (error) {
       throw error;
