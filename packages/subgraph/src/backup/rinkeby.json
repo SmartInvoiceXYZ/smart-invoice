@@ -1,0 +1,40 @@
+{
+  "network": "rinkeby",
+  "factories": [
+    {
+      "factoryName": "Version00",
+      "startBlock": "8113364",
+      "address": "0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73"
+    },
+    {
+      "factoryName": "Version01",
+      "startBlock": "8249794",
+      "address": "0x06E79797c87a86FF999C6C917a7F5CeEF70c3Cd3"
+    },
+    {
+      "factoryName": "Version02",
+      "startBlock": "8267769",
+      "address": "0x838A88166E60931aFfabc9D7538A2D04cBda8932"
+    },
+    {
+      "factoryName": "Version03",
+      "startBlock": "8371074",
+      "address": "0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7"
+    },
+    {
+      "factoryName": "Version04",
+      "startBlock": "8484551",
+      "address": "0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c"
+    },
+    {
+      "factoryName": "Version05",
+      "startBlock": "10846121",
+      "address": "0xD4F1fB1ff28d5F927607F06eb5801c9398f982FD"
+    },
+    {
+      "factoryName": "Version06",
+      "startBlock": "10903675",
+      "address": "0x36fd33B2976C03444e8694cd2904457095289750"
+    }
+  ]
+}

@@ -81,7 +81,6 @@ export const ViewInvoice = ({
     ) {
       getVerified(invoiceChainId, invoiceId).then(async i => {
         let verifications = i.verifieds;
-        console.log('verifications:', verifications);
         if (verifications.length > 0) {
           for (let i = 0; i <= verifications.length; i++) {
             if (verifications[i].invoice === invoice.address) {
