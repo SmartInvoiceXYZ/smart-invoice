@@ -54,11 +54,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -363,6 +361,8 @@ export const ViewInvoice = ({
           <Button
             maxW="fit-content"
             alignSelf="flex-end"
+            colorScheme="red"
+            variant="outline"
             onClick={onAddMilestones}
           >
             Add Milestones
