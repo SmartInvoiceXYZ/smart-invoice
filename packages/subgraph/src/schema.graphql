@@ -32,7 +32,7 @@ type Invoice @entity {
   disputes: [Dispute!]!
   resolutions: [Resolution!]!
   tokenMetadata: Token!
-  verified: Verified
+  verified: [Verified!]!
 }
 
 enum ADR @entity {

@@ -31,6 +31,11 @@ export function handleVerified(event: VerifiedEvent): void {
     verification.invoice = event.params.invoice;
 
     verification.save();
+
+    let verified = invoice.verified;
+    verified.push(verification.id);
+    invoice.verified = verified;
+    invoice.save();
   }
 }
 
