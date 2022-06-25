@@ -28,7 +28,7 @@ import {
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 
-export const AddMilestones = ({ invoice, due }) => {
+export const AddMilestones = ({ invoice, due, updateInvoice }) => {
   const { chainId, provider } = useContext(Web3Context);
   const {
     address,
@@ -52,8 +52,9 @@ export const AddMilestones = ({ invoice, due }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] =
-    useState(projectAgreement);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
+    projectAgreement,
+  );
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -86,6 +87,7 @@ export const AddMilestones = ({ invoice, due }) => {
       setTransaction(tx);
       await tx.wait();
       window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
+      await updateInvoice(provider, address);
     } catch (addMilestonesError) {
       setLoading(false);
       logError({ addMilestonesError });

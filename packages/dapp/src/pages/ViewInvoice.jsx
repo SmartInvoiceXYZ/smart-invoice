@@ -48,6 +48,7 @@ import {
   getTxLink,
   logError,
 } from '../utils/helpers';
+import { getAmounts, getTotal } from '../utils/invoice';
 
 export const ViewInvoice = ({
   match: {
@@ -64,6 +65,20 @@ export const ViewInvoice = ({
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
   const [verified, setVerified] = useState(false);
+  const [amounts, setCurrentAmounts] = useState([]);
+  const [total, setCurrentTotal] = useState(BigNumber.from(0));
+
+  const checkInvoiceContract = async (provider, address) => {
+    const amountsFromContract = await getAmounts(provider, address);
+    const totalFromContract = await getTotal(provider, address);
+    if (amountsFromContract.length > invoice.amounts.length) {
+      setCurrentAmounts(amountsFromContract);
+      setCurrentTotal(totalFromContract);
+    } else {
+      setCurrentAmounts(invoice.amounts);
+      setCurrentTotal(invoice.total);
+    }
+  };
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -100,7 +115,10 @@ export const ViewInvoice = ({
           setBalance(b);
           setBalanceLoading(false);
         })
-        .catch(balanceError => logError({ balanceError }));
+        .catch(balanceError => logError({ balanceError }))
+        .finally(() => {
+          checkInvoiceContract(ethersProvider, invoice.address);
+        });
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
@@ -139,8 +157,6 @@ export const ViewInvoice = ({
     provider,
     resolver,
     currentMilestone,
-    amounts,
-    total,
     token,
     released,
     isLocked,
@@ -842,6 +858,7 @@ export const ViewInvoice = ({
                   deposited={deposited}
                   due={due}
                   close={() => setModal(false)}
+                  updateInvoice={checkInvoiceContract}
                 />
               )}
             </ModalContent>
