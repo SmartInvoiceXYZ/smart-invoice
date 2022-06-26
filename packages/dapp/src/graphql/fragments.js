@@ -25,6 +25,11 @@ export const InvoiceDetails = gql`
     projectAgreement
     startDate
     endDate
+    verified {
+      id
+      client
+      invoice
+    }
     deposits(orderBy: timestamp, orderDirection: asc) {
       txHash
       sender
