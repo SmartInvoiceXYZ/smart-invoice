@@ -228,6 +228,9 @@ export const AddMilestones = ({ invoice, due }) => {
           </HStack>
         )}
       </Flex>
+      <Text>
+        Note: new milestones may take a few minutes to appear in the list
+      </Text>
       <Button
         onClick={addNewMilestones}
         isLoading={loading}

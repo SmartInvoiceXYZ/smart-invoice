@@ -7,6 +7,7 @@ import {
   Resolution,
   Deposit,
   Verified,
+  MilestonesAdded,
 } from '../types/schema';
 
 import {
@@ -17,8 +18,37 @@ import {
   Rule as RuleEvent,
   Deposit as DepositEvent,
   Verified as VerifiedEvent,
+  MilestonesAdded as MilestonesAddedEvent,
 } from '../types/templates/SmartInvoice/SmartInvoice';
 import { addQm, updateInvoiceInfo } from './helpers';
+
+export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleMilestonesAdded {}', [event.address.toHexString()]);
+    invoice = updateInvoiceInfo(event.address, invoice);
+
+    let addition = new MilestonesAdded(event.address.toHexString());
+    addition.sender = event.params.sender;
+    addition.invoice = event.params.invoice;
+    addition.milestones = event.params.milestones;
+
+    addition.save();
+
+    let newEventMilestones = addition.milestones;
+
+    let invoiceAmounts = invoice.amounts;
+
+    let newAmounts = invoiceAmounts.concat(newEventMilestones);
+    invoice.amounts = newAmounts;
+    invoice.numMilestones += newEventMilestones.length;
+
+    let milestonesAdded = invoice.milestonesAdded;
+    milestonesAdded.push(addition.id);
+    invoice.milestonesAdded = milestonesAdded;
+    invoice.save();
+  }
+}
 
 export function handleVerified(event: VerifiedEvent): void {
   let invoice = Invoice.load(event.address.toHexString());

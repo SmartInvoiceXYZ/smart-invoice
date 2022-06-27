@@ -71,6 +71,8 @@ templates:
           handler: handleDeposit
         - event: Verified(indexed address,indexed address)
           handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
       file: ./src/mappings/invoice.ts
   - kind: ethereum/contract
     name: ERC20
