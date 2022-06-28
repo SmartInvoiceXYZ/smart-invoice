@@ -25,6 +25,12 @@ export const InvoiceDetails = gql`
     projectAgreement
     startDate
     endDate
+    milestonesAdded {
+      id
+      sender
+      invoice
+      milestones
+    }
     verified {
       id
       client

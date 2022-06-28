@@ -56,7 +56,7 @@ export const CONFIG = {
       WRAPPED_NATIVE_TOKEN:
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
-        '0x36fd33B2976C03444e8694cd2904457095289750'.toLowerCase(),
+        '0x63F13D5B895CEc81F5f1e93b7930ec60DB51E6b2'.toLowerCase(),
       TOKENS: {
         ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
           decimals: 18,

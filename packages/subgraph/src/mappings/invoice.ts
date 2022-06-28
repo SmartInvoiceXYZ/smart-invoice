@@ -28,24 +28,31 @@ export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
     log.info('handleMilestonesAdded {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let addition = new MilestonesAdded(event.address.toHexString());
+    let addition = new MilestonesAdded(event.logIndex.toHexString());
     addition.sender = event.params.sender;
     addition.invoice = event.params.invoice;
     addition.milestones = event.params.milestones;
 
     addition.save();
 
-    let newEventMilestones = addition.milestones;
-
     let invoiceAmounts = invoice.amounts;
 
+    let newEventMilestones = addition.milestones;
     let newAmounts = invoiceAmounts.concat(newEventMilestones);
-    invoice.amounts = newAmounts;
-    invoice.numMilestones += newEventMilestones.length;
 
     let milestonesAdded = invoice.milestonesAdded;
     milestonesAdded.push(addition.id);
+
+    let invoiceTotal = invoice.total;
+    for (let i = 0; i < newAmounts.length; i++) {
+      invoiceTotal.plus(newAmounts[i]);
+    }
+
+    invoice.total = invoiceTotal;
+    invoice.numMilestones += newEventMilestones.length;
+    invoice.amounts = newAmounts;
     invoice.milestonesAdded = milestonesAdded;
+
     invoice.save();
   }
 }
