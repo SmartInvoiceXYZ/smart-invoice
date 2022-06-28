@@ -61,7 +61,7 @@ contract SmartInvoice is
     uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
     uint256 public released = 0;
     uint256 public disputeId;
-    bytes32 public EMPTY_BYTES =
+    bytes32 constant EMPTY_BYTES =
         0x0000000000000000000000000000000000000000000000000000000000000000;
 
     event Register(
