@@ -151,7 +151,7 @@ contract SmartInvoice is
     }
 
     function addMilestones(uint256[] calldata _milestones) external {
-        _addMilestones(_milestones, "");
+        _addMilestones(_milestones, bytes32(0));
     }
 
     function addMilestones(uint256[] calldata _milestones, bytes32 _details)
@@ -184,7 +184,7 @@ contract SmartInvoice is
         total = newTotal;
         amounts = baseArray;
 
-        if (_details.length > 0) {
+        if (_details != bytes32(0)) {
             details = _details;
             emit DetailsUpdated(msg.sender, _details);
         }
