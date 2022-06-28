@@ -1,4 +1,35 @@
 import LexDAOLogo from './assets/lex-dao.png';
+const tokenData = require('./tokenData.json');
+// console.log("TokenData:", tokenData.rinkeby)
+
+// let tokenData;
+
+// fetch("https://ipfs.infura.io/ipfs/bafybeiaixojwq6jcf2blsnj2mlb7cicduvm3g5glumuhchmnsyhiipiily/rinkeby%20copy.json")
+// .then(response => response.json())
+// .then(data => tokenData = data);
+
+console.log('Raw Token Data:', tokenData);
+
+function getTokensToNetworks(object) {
+  let tokenObject = {};
+
+  for (const [key, value] of Object.entries(object)) {
+    let tokenDetails = {};
+
+    for (const { tokenContract, decimals, symbol } of Object.values(value)) {
+      tokenDetails[tokenContract.toLowerCase()] = {
+        decimals: decimals,
+        symbol: symbol,
+      };
+    }
+    tokenObject[key] = tokenDetails;
+  }
+
+  return tokenObject;
+}
+
+const networkTokens = getTokensToNetworks(tokenData);
+console.log('network token output:', networkTokens);
 
 export const CONFIG = {
   INFURA_ID: process.env.REACT_APP_INFURA_ID,
@@ -57,20 +88,7 @@ export const CONFIG = {
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
         '0x36fd33B2976C03444e8694cd2904457095289750'.toLowerCase(),
-      TOKENS: {
-        ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
-          decimals: 18,
-          symbol: 'WETH',
-        },
-        ['0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42'.toLowerCase()]: {
-          decimals: 18,
-          symbol: 'DAI',
-        },
-        ['0x982e00B16c313E979C0947b85230907Fce45d50e'.toLowerCase()]: {
-          decimals: 18,
-          symbol: 'TEST',
-        },
-      },
+      TOKENS: networkTokens.rinkeby,
       RESOLVERS: {
         ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
           name: 'LexDAO',

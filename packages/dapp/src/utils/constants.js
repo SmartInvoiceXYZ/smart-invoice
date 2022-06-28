@@ -70,11 +70,16 @@ export const tokens = {
   100: Object.keys(NETWORK_CONFIG[100].TOKENS),
 };
 
+console.log('constants/tokens:', tokens);
+
 export const tokenInfo = {
   1: NETWORK_CONFIG[1].TOKENS,
   4: NETWORK_CONFIG[4].TOKENS,
   100: NETWORK_CONFIG[100].TOKENS,
 };
+
+console.log('constants/tokenInfo rinkeby:', tokenInfo[4]);
+console.log('constants/tokenInfo xdai CLEAN:', tokenInfo[100]);
 
 export const resolvers = {
   1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
