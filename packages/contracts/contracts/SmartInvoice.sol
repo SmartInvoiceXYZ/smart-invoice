@@ -61,8 +61,6 @@ contract SmartInvoice is
     uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
     uint256 public released = 0;
     uint256 public disputeId;
-    bytes32 constant EMPTY_BYTES =
-        0x0000000000000000000000000000000000000000000000000000000000000000;
 
     event Register(
         address indexed client,
@@ -153,7 +151,7 @@ contract SmartInvoice is
     }
 
     function addMilestones(uint256[] calldata _milestones) external {
-        _addMilestones(_milestones, EMPTY_BYTES);
+        _addMilestones(_milestones, bytes32(0));
     }
 
     function addMilestones(uint256[] calldata _milestones, bytes32 _details)
@@ -186,7 +184,7 @@ contract SmartInvoice is
         total = newTotal;
         amounts = baseArray;
 
-        if (_details != EMPTY_BYTES) {
+        if (_details != bytes32(0)) {
             details = _details;
             emit DetailsUpdated(msg.sender, _details);
         }
