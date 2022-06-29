@@ -33,6 +33,7 @@ type Invoice @entity {
   resolutions: [Resolution!]!
   tokenMetadata: Token!
   verified: [Verified!]!
+  milestonesAdded: [MilestonesAdded!]!
 }
 
 enum ADR @entity {
@@ -107,4 +108,11 @@ type Verified @entity {
   id: ID!
   client: Bytes!
   invoice: Bytes!
+}
+
+type MilestonesAdded @entity {
+  id: ID!
+  sender: Bytes!
+  invoice: Bytes!
+  milestones: [BigInt!]!
 }

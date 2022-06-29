@@ -87,8 +87,21 @@ export const CONFIG = {
       WRAPPED_NATIVE_TOKEN:
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
-        '0x36fd33B2976C03444e8694cd2904457095289750'.toLowerCase(),
-      TOKENS: networkTokens.rinkeby,
+        '0x09eBeE5BBC4D3bcB919b19a12EeD711c4748EA60'.toLowerCase(),
+      TOKENS: {
+        ['0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase()]: {
+          decimals: 18,
+          symbol: 'WETH',
+        },
+        ['0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42'.toLowerCase()]: {
+          decimals: 18,
+          symbol: 'DAI',
+        },
+        ['0x982e00B16c313E979C0947b85230907Fce45d50e'.toLowerCase()]: {
+          decimals: 18,
+          symbol: 'TEST',
+        },
+      },
       RESOLVERS: {
         ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
           name: 'LexDAO',

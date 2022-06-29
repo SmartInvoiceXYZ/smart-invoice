@@ -13,7 +13,7 @@
     "prepare-xdai": "mustache src/config/xdai.json subgraph.template.yaml > subgraph.yaml",
     "prepare-mainnet": "mustache src/config/mainnet.json subgraph.template.yaml > subgraph.yaml",
     "deploy-only-rinkeby": "graph deploy psparacino/rinkeby-smart-invoice-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "test-deploy-only-rinkeby": "graph deploy psparacino/dev-only-smart-invoice-rinkeby --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "dev-deploy-only-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && graph deploy psparacino/dev-only-smart-invoice-rinkeby --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-xdai": "graph deploy dan13ram/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
