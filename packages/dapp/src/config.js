@@ -50,20 +50,5 @@ export const CONFIG = {
         },
       },
     },
-    31337: {
-      SUBGRAPH: 'dan13ram/rinkeby-smart-invoices',
-      WRAPPED_NATIVE_TOKEN:
-        '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
-      INVOICE_FACTORY:
-        '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'.toLowerCase(),
-      RESOLVERS: {
-        ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
-          name: 'LexDAO',
-          logoUrl: LexDAOLogo,
-          termsUrl:
-            'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
-        },
-      },
-    },
   },
 };

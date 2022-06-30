@@ -95,7 +95,7 @@ export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
 export const INVOICE_VERSION = 'smart-invoice-v0';
 
 export const IPFS_TOKEN_URL =
-  'https://bafybeihab57k6774ro4vrbfcfrqtb5ta5xtst52o4fmu75bwvig3feo2zu.ipfs.dweb.link/tokenData.v2.json';
+  'https://gateway.ipfs.io/ipns/k51qzi5uqu5dklf4denvhedxxhu5110v7x0j8wbg4ftjo7bbtlbwfjcyi70te7';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 

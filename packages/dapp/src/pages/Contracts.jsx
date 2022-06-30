@@ -1,4 +1,10 @@
-import { Heading, Link, Text, useBreakpointValue } from '@chakra-ui/react';
+import {
+  Heading,
+  Link,
+  Text,
+  useBreakpointValue,
+  Spinner,
+} from '@chakra-ui/react';
 import React from 'react';
 
 import { CONFIG } from '../config';
@@ -19,24 +25,7 @@ const networks = Object.keys(NETWORK_CONFIG);
 export const Contracts = () => {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
-  // const [symbols, setSymbols] = useState([]);
 
-  // useEffect(() => {
-  //   const getSymbols = () => {
-  //     let symbols = [];
-  //     var promises = TOKENS.map((token) => {
-  //       let symbol = (getTokenInfo(chainId, token, tokenData));
-  //       return symbol
-  //     })
-  //     Promise.all(promises).then(details => {
-  //       details.map(detail => {
-  //         return symbols.push(detail.symbol)
-  //       })
-  //   })
-  //     setSymbols(symbols);
-  //   }
-  //   getSymbols();
-  // }, [TOKENS, chainId, tokenData]);
   if (tokenData && allTokens) {
     return (
       <Container overlay color="white">
@@ -92,6 +81,12 @@ export const Contracts = () => {
       </Container>
     );
   } else {
-    return 'loading';
+    return (
+      <Container>
+        <Text>'Contract Information Loading'</Text>
+        <br />
+        <Spinner />
+      </Container>
+    );
   }
 };
