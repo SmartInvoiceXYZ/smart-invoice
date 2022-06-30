@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
+import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
 import { DepositFunds } from '../components/DepositFunds';
 import { Loader } from '../components/Loader';
@@ -53,9 +54,12 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
+  const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
@@ -131,7 +135,8 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token);
+  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
     ? BigNumber.from(0)

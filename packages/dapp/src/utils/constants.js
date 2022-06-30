@@ -64,23 +64,6 @@ export const graphUrls = {
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
 };
 
-export const tokens = {
-  1: Object.keys(NETWORK_CONFIG[1].TOKENS),
-  4: Object.keys(NETWORK_CONFIG[4].TOKENS),
-  100: Object.keys(NETWORK_CONFIG[100].TOKENS),
-};
-
-console.log('constants/tokens:', tokens);
-
-export const tokenInfo = {
-  1: NETWORK_CONFIG[1].TOKENS,
-  4: NETWORK_CONFIG[4].TOKENS,
-  100: NETWORK_CONFIG[100].TOKENS,
-};
-
-console.log('constants/tokenInfo rinkeby:', tokenInfo[4]);
-console.log('constants/tokenInfo xdai CLEAN:', tokenInfo[100]);
-
 export const resolvers = {
   1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
@@ -110,6 +93,9 @@ export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
 );
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
+
+export const IPFS_TOKEN_URL =
+  'https://bafybeihab57k6774ro4vrbfcfrqtb5ta5xtst52o4fmu75bwvig3feo2zu.ipfs.dweb.link/tokenData.v2.json';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 

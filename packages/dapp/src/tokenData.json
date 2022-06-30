@@ -1,12 +1,12 @@
 {
-  "mainnet": [
+  "1": [
     {
       "tokenContract": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
       "decimals": "18",
       "symbol": "WETH"
     }
   ],
-  "rinkeby": [
+  "4": [
     {
       "tokenContract": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
       "decimals": "18",
@@ -23,7 +23,7 @@
       "symbol": "TEST"
     }
   ],
-  "xdai": [
+  "100": [
     {
       "tokenContract": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
       "decimals": "18",
