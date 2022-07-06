@@ -37,10 +37,10 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(
-    () => getTokens(chainId, allTokens),
-    [chainId, allTokens],
-  );
+  const TOKENS = useMemo(() => getTokens(chainId, allTokens), [
+    chainId,
+    allTokens,
+  ]);
 
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -62,23 +62,6 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
       setResolutionRate,
     );
   }, [chainId, provider, arbitrationProvider]);
-
-  // useEffect(() => {
-  //   const getSymbols = () => {
-  //     let symbols = [];
-  //     var promises = TOKENS.map((token) => {
-  //       let symbol = (getTokenInfo(chainId, token, tokenData));
-  //       return symbol
-  //     })
-  //     Promise.all(promises).then(details => {
-  //       details.map(detail => {
-  //         return symbols.push(detail.symbol)
-  //       })
-  //   })
-  //     setSymbols(symbols);
-  //   }
-  //   getSymbols();
-  // }, [TOKENS, chainId, tokenData]);
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
@@ -202,9 +185,8 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
-          tooltip={`In case a dispute arises, ${
-            100 / resolutionRate
-          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
+          tooltip={`In case a dispute arises, ${100 /
+            resolutionRate}% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
           isDisabled
         />
       </SimpleGrid>
