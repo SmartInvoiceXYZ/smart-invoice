@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { formatTokenData, formatTokens } from '../utils/helpers';
-import { IPFS_TOKEN_URL } from '../utils/constants';
+import { IPFS_ENDPOINT } from '../utils/constants';
+
+import { getCID } from '../utils/firebase';
 
 export const useFetchTokensViaIPFS = () => {
   const [tokenData, setTokenData] = useState();
@@ -9,9 +11,11 @@ export const useFetchTokensViaIPFS = () => {
 
   useEffect(() => {
     const fetchTokens = async () => {
+      const CID = await getCID();
+      const IPFS_TOKENS = IPFS_ENDPOINT + `/ipfs/${CID}`;
       setIsError(false);
       try {
-        const response = fetch(IPFS_TOKEN_URL);
+        const response = fetch(IPFS_TOKENS);
         const fullData = (await response).json();
         const formattedData = formatTokenData(await fullData);
 
@@ -26,6 +30,5 @@ export const useFetchTokensViaIPFS = () => {
 
     fetchTokens();
   }, []);
-
   return [{ tokenData, isError, allTokens }];
 };
