@@ -13,16 +13,11 @@ import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
 import { getTokenInfo } from '../utils/helpers';
 
-export const PaymentChunksForm = ({ display }) => {
+export const PaymentChunksForm = ({ display, tokenData }) => {
   const { chainId } = useContext(Web3Context);
-  const {
-    paymentToken,
-    milestones,
-    payments,
-    setPayments,
-    paymentDue,
-  } = useContext(CreateContext);
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken);
+  const { paymentToken, milestones, payments, setPayments, paymentDue } =
+    useContext(CreateContext);
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
       {Array.from(Array(Number(milestones))).map((_val, index) => {

@@ -15,10 +15,9 @@ import {
 } from '../utils/helpers';
 import { getResolutionRateFromFactory } from '../utils/invoice';
 
-export const PaymentDetailsForm = ({ display }) => {
+export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
   const { chainId, provider } = useContext(Web3Context);
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
-  const TOKENS = useMemo(() => getTokens(chainId), [chainId]);
 
   const {
     clientAddress,
@@ -37,11 +36,16 @@ export const PaymentDetailsForm = ({ display }) => {
     termsAccepted,
     setTermsAccepted,
   } = useContext(CreateContext);
-  const { decimals, symbol } = useMemo(
-    () => getTokenInfo(chainId, paymentToken),
-    [chainId, paymentToken],
-  );
 
+  const TOKENS = useMemo(() => getTokens(chainId, allTokens), [
+    chainId,
+    allTokens,
+  ]);
+
+  const { decimals, symbol } = useMemo(
+    () => getTokenInfo(chainId, paymentToken, tokenData),
+    [chainId, paymentToken, tokenData],
+  );
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
@@ -51,6 +55,7 @@ export const PaymentDetailsForm = ({ display }) => {
   const [paymentInvalid, setPaymentInvalid] = useState(false);
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
   const [resolutionRate, setResolutionRate] = useState(20);
+  // const [symbols, setSymbols] = useState([]);
 
   useEffect(() => {
     getResolutionRateFromFactory(chainId, provider, arbitrationProvider).then(
@@ -112,7 +117,7 @@ export const PaymentDetailsForm = ({ display }) => {
         >
           {TOKENS.map(token => (
             <option value={token} key={token}>
-              {getTokenInfo(chainId, token).symbol}
+              {getTokenInfo(chainId, token, tokenData).symbol}
             </option>
           ))}
         </OrderedSelect>
@@ -180,9 +185,8 @@ export const PaymentDetailsForm = ({ display }) => {
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
-          tooltip={`In case a dispute arises, ${
-            100 / resolutionRate
-          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
+          tooltip={`In case a dispute arises, ${100 /
+            resolutionRate}% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
           isDisabled
         />
       </SimpleGrid>

@@ -44,7 +44,7 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
-  const [requireVerificaiton, setRequireVerificaiton] = useState(true);
+  const [requireVerificaiton, setRequireVerification] = useState(true);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);

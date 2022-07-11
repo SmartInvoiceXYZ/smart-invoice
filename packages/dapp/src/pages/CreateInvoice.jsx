@@ -1,5 +1,6 @@
 import {
   Button,
+  Text,
   Flex,
   Grid,
   Stack,
@@ -8,6 +9,8 @@ import {
 } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import { withRouter } from 'react-router-dom';
+
+import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
 import { FormConfirmation } from '../components/FormConfirmation';
 import { PaymentChunksForm } from '../components/PaymentChunksForm';
@@ -28,6 +31,7 @@ const CreateInvoiceInner = () => {
     goBackHandler,
     nextStepHandler,
   } = useContext(CreateContext);
+  const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -35,7 +39,7 @@ const CreateInvoiceInner = () => {
     <Container overlay>
       {tx ? (
         <RegisterSuccess />
-      ) : (
+      ) : tokenData ? (
         <Stack
           direction={{ base: 'column', lg: 'row' }}
           spacing="2rem"
@@ -64,14 +68,24 @@ const CreateInvoiceInner = () => {
             >
               <ProjectDetailsForm
                 display={currentStep === 1 ? 'flex' : 'none'}
+                tokenData={tokenData}
+                allTokens={allTokens}
               />
               <PaymentDetailsForm
                 display={currentStep === 2 ? 'flex' : 'none'}
+                tokenData={tokenData}
+                allTokens={allTokens}
               />
               <PaymentChunksForm
                 display={currentStep === 3 ? 'flex' : 'none'}
+                tokenData={tokenData}
+                allTokens={allTokens}
               />
-              <FormConfirmation display={currentStep === 4 ? 'flex' : 'none'} />
+              <FormConfirmation
+                display={currentStep === 4 ? 'flex' : 'none'}
+                tokenData={tokenData}
+                allTokens={allTokens}
+              />
             </Flex>
             <Grid templateColumns="1fr 4fr" gap="1rem" w="100%">
               {currentStep !== 1 ? (
@@ -105,6 +119,8 @@ const CreateInvoiceInner = () => {
             </Grid>
           </VStack>
         </Stack>
+      ) : (
+        <Text>Loading</Text>
       )}
     </Container>
   );

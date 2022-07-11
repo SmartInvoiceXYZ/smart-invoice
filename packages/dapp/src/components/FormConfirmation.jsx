@@ -7,7 +7,7 @@ import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { getDateString, getTokenInfo } from '../utils/helpers';
 
-export const FormConfirmation = ({ display }) => {
+export const FormConfirmation = ({ display, tokenData }) => {
   const { chainId } = useContext(Web3Context);
   const {
     projectName,
@@ -23,8 +23,9 @@ export const FormConfirmation = ({ display }) => {
     paymentDue,
     paymentToken,
   } = useContext(CreateContext);
-  const tokenData = getTokenInfo(chainId, paymentToken);
-  const { decimals, symbol } = tokenData;
+
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+
   return (
     <VStack
       w="100%"
