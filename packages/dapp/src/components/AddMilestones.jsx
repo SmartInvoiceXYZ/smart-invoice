@@ -28,7 +28,7 @@ import {
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 
-export const AddMilestones = ({ invoice, due }) => {
+export const AddMilestones = ({ invoice, due, tokenData }) => {
   const { chainId, provider } = useContext(Web3Context);
   const {
     address,
@@ -41,7 +41,7 @@ export const AddMilestones = ({ invoice, due }) => {
     startDate,
     endDate,
   } = invoice;
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
 
@@ -52,8 +52,9 @@ export const AddMilestones = ({ invoice, due }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] =
-    useState(projectAgreement);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
+    projectAgreement,
+  );
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 

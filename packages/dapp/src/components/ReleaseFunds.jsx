@@ -29,14 +29,14 @@ const getReleaseAmount = (currentMilestone, amounts, balance) => {
   return BigNumber.from(amounts[currentMilestone]);
 };
 
-export const ReleaseFunds = ({ invoice, balance, close }) => {
+export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
   const { network, currentMilestone, amounts, address, token } = invoice;
 
   let amount = getReleaseAmount(currentMilestone, amounts, balance);
 
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 

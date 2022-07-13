@@ -54,11 +54,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -702,20 +700,19 @@ export const ViewInvoice = ({
                   Withdraw
                 </Button>
               )}
-              {isReleasable &&
-                verifiedStatus(
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontWeight="normal"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onDeposit()}
-                  >
-                    Deposit
-                  </Button>,
-                )}
+              {verifiedStatus && isReleasable && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onDeposit()}
+                >
+                  Deposit
+                </Button>
+              )}
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -769,6 +766,7 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
+                disabled={!verifiedStatus}
               >
                 Deposit
               </Button>
@@ -793,6 +791,7 @@ export const ViewInvoice = ({
                 <LockFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -801,6 +800,7 @@ export const ViewInvoice = ({
                   invoice={invoice}
                   deposited={deposited}
                   due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -808,6 +808,7 @@ export const ViewInvoice = ({
                 <ReleaseFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -815,6 +816,7 @@ export const ViewInvoice = ({
                 <ResolveFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -822,6 +824,7 @@ export const ViewInvoice = ({
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -830,6 +833,7 @@ export const ViewInvoice = ({
                   invoice={invoice}
                   deposited={deposited}
                   due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}

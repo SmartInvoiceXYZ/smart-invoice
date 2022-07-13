@@ -43,7 +43,7 @@ const checkedAtIndex = (index, checked) => {
   return checked.map((_c, i) => i <= index);
 };
 
-export const DepositFunds = ({ invoice, deposited, due }) => {
+export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -51,7 +51,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   const [paymentType, setPaymentType] = useState(0);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
