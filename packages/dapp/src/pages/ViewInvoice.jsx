@@ -30,6 +30,7 @@ import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
 import { AddMilestones } from '../components/AddMilestones';
 import { VerifyInvoice } from '../components/VerifyInvoice';
+import { GenerateInvoicePDF } from '../components/GenerateInvoicePDF';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -54,11 +55,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -203,6 +202,7 @@ export const ViewInvoice = ({
   }
 
   let sum = BigNumber.from(0);
+
   return (
     <Container overlay>
       <Stack
@@ -223,6 +223,8 @@ export const ViewInvoice = ({
           align="stretch"
           direction="column"
         >
+          <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
+
           <VStack align="stretch" justify="center">
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
@@ -702,20 +704,19 @@ export const ViewInvoice = ({
                   Withdraw
                 </Button>
               )}
-              {isReleasable &&
-                verifiedStatus(
-                  <Button
-                    size={buttonSize}
-                    variant="outline"
-                    colorScheme="red"
-                    fontWeight="normal"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onDeposit()}
-                  >
-                    Deposit
-                  </Button>,
-                )}
+              {verifiedStatus && isReleasable && (
+                <Button
+                  size={buttonSize}
+                  variant="outline"
+                  colorScheme="red"
+                  fontWeight="normal"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onDeposit()}
+                >
+                  Deposit
+                </Button>
+              )}
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -769,6 +770,7 @@ export const ViewInvoice = ({
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
+                disabled={!verifiedStatus}
               >
                 Deposit
               </Button>
@@ -801,6 +803,7 @@ export const ViewInvoice = ({
                   invoice={invoice}
                   deposited={deposited}
                   due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -808,6 +811,7 @@ export const ViewInvoice = ({
                 <ReleaseFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
