@@ -23,10 +23,10 @@ import {
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
-export const ResolveFunds = ({ invoice, balance, close }) => {
+export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
   const { network, address, resolutionRate, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
 
@@ -100,9 +100,8 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
           ? `You’ll need to distribute the total balance of ${utils.formatUnits(
               balance,
               decimals,
-            )} ${symbol} between the client and provider, excluding the ${
-              100 / resolutionRate
-            }% arbitration fee which you shall receive.`
+            )} ${symbol} between the client and provider, excluding the ${100 /
+              resolutionRate}% arbitration fee which you shall receive.`
           : `Invoice is not locked`}
       </Text>
       {isLocked ? (

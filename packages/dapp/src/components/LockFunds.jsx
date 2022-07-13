@@ -27,10 +27,10 @@ import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
-export const LockFunds = ({ invoice, balance }) => {
+export const LockFunds = ({ invoice, balance, tokenData }) => {
   const { chainId, provider } = useContext(Web3Context);
   const { network, address, resolver, token, resolutionRate } = invoice;
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [disputeReason, setDisputeReason] = useState('');
 
   const fee = `${utils.formatUnits(
