@@ -795,6 +795,7 @@ export const ViewInvoice = ({
                 <LockFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -819,6 +820,7 @@ export const ViewInvoice = ({
                 <ResolveFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -826,6 +828,7 @@ export const ViewInvoice = ({
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -834,6 +837,7 @@ export const ViewInvoice = ({
                   invoice={invoice}
                   deposited={deposited}
                   due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
