@@ -22,9 +22,7 @@ import {
   PDFDownloadLink,
 } from '@react-pdf/renderer';
 
-import invoiceData from './InvoicePDF/data/invoice';
-
-import InvoicePDF from './InvoicePDF/InvoicePDF';
+import InvoicePDF from './InvoicePDF';
 
 // https://kags.me.ke/post/generate-dynamic-pdf-incoice-using-react-pdf/
 //  https://github.com/kagundajm/react-pdf-tables
@@ -53,7 +51,7 @@ export const GenerateInvoicePDF = ({ invoice, symbol }) => {
   //   verified,
   // } = invoice;
 
-  console.log('Invoice:', invoice);
+  // console.log('Invoice:', invoice);
 
   function InvoicePreviewModal() {
     const { isOpen, onOpen, onClose } = useDisclosure();
