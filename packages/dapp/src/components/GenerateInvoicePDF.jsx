@@ -5,85 +5,51 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Container,
   VStack,
 } from '@chakra-ui/react';
-import {
-  Page,
-  Text,
-  View,
-  Document,
-  StyleSheet,
-  PDFViewer,
-  PDFDownloadLink,
-} from '@react-pdf/renderer';
+
+import { PDFViewer } from '@react-pdf/renderer';
 
 import InvoicePDF from './InvoicePDF';
 
-// https://kags.me.ke/post/generate-dynamic-pdf-incoice-using-react-pdf/
-//  https://github.com/kagundajm/react-pdf-tables
-
 export const GenerateInvoicePDF = ({ invoice, symbol }) => {
-  // const {
-  //   projectName,
-  //   projectDescription,
-  //   projectAgreement,
-  //   startDate,
-  //   endDate,
-  //   terminationTime,
-  //   client,
-  //   provider,
-  //   resolver,
-  //   currentMilestone,
-  //   amounts,
-  //   total,
-  //   token,
-  //   released,
-  //   isLocked,
-  //   deposits,
-  //   releases,
-  //   disputes,
-  //   resolutions,
-  //   verified,
-  // } = invoice;
-
-  // console.log('Invoice:', invoice);
-
   function InvoicePreviewModal() {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     return (
       <>
-        <Button onClick={onOpen}>Preview & Download Invoice PDF Summary</Button>
+        <Button onClick={onOpen} variant="link">
+          Preview & Download Invoice PDF
+        </Button>
 
         <Modal
           id="invoicePreviewModal"
           onClose={onClose}
           isOpen={isOpen}
-          size="3xl"
+          size="5xl"
         >
           <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>HEADER</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
+          <ModalContent height="90vh" width="100vw">
+            <ModalHeader style={{ color: 'black' }}>
+              Smart Invoice {invoice.address}
+            </ModalHeader>
+            <ModalCloseButton style={{ color: 'black' }} />
+            <ModalBody height="90vh">
               <PDFViewer
-                width="100%"
-                height="900"
                 display="table"
                 margin="0 auto"
                 className="app"
+                style={{
+                  width: '100%',
+                  height: '95%',
+                }}
               >
-                <InvoicePDF height="100%" invoice={invoice} symbol={symbol} />
+                <InvoicePDF invoice={invoice} symbol={symbol} />
               </PDFViewer>
             </ModalBody>
-            <ModalFooter>
-              <Button onClick={onClose}>Close</Button>
-            </ModalFooter>
           </ModalContent>
         </Modal>
       </>
@@ -91,11 +57,8 @@ export const GenerateInvoicePDF = ({ invoice, symbol }) => {
   }
 
   return (
-    <Container>
-      <VStack align="stretch" justify="center">
-        <InvoicePreviewModal />
-        {/* <PDFDownloadLink document={<InvoicePDF />} fileName="somename.pdf">download a pdf of this invoice</PDFDownloadLink> */}
-      </VStack>
-    </Container>
+    <VStack align="stretch">
+      <InvoicePreviewModal />
+    </VStack>
   );
 };

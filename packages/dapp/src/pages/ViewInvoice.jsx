@@ -223,8 +223,6 @@ export const ViewInvoice = ({
           align="stretch"
           direction="column"
         >
-          <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
-
           <VStack align="stretch" justify="center">
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
@@ -335,6 +333,9 @@ export const ViewInvoice = ({
                   <Text color="red">Not enabled</Text>
                 )}
               </WrapItem>
+            </Wrap>
+            <Wrap>
+              <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
             </Wrap>
           </VStack>
         </Stack>

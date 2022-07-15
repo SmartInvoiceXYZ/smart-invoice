@@ -2,15 +2,16 @@ import React, { Fragment } from 'react';
 import {
   Page,
   Document,
-  Image,
   StyleSheet,
   View,
   Text,
+  Link,
 } from '@react-pdf/renderer';
 
 import { utils } from 'ethers';
 
 import { unixToDateTime } from '../utils/invoice';
+import { getHexChainId, getAccountString } from '../utils/helpers';
 
 const borderColor = 'black';
 
@@ -77,6 +78,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: '1',
     marginTop: 10,
   },
+  underline: {
+    borderBottom: 1,
+    paddingBottom: 4,
+    marginBottom: 4,
+  },
   tableContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -115,11 +121,6 @@ const styles = StyleSheet.create({
   innerTitle: {
     textAlign: 'center',
   },
-  underline: {
-    borderBottom: 1,
-    paddingBottom: 4,
-    marginBottom: 4,
-  },
   invisibleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingLeft: 10,
   },
-  disputeTitle: {
+  secondTitle: {
     color: 'black',
     letterSpacing: 4,
     fontSize: 15,
@@ -151,7 +152,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: '15',
   },
-
   multiDetailBlock: {
     borderColor: '#D3D3D3',
     border: '3',
@@ -168,30 +168,6 @@ const styles = StyleSheet.create({
     height: 24,
     fontStyle: 'bold',
   },
-  disputeRowOne: {
-    display: 'flex',
-    flexDirection: 'row',
-    textAlign: 'center',
-    borderBottomColor: 'black',
-    borderBottomWidth: 1,
-    fontStyle: 'bold',
-  },
-  arbitrator: {
-    textAlign: 'center',
-    fontStyle: 'bold',
-    borderTop: '2',
-    borderBottom: '1',
-  },
-
-  pageNumber: {
-    position: 'absolute',
-    fontSize: 12,
-    bottom: 30,
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    color: 'grey',
-  },
 });
 
 // font register for Rubik One
@@ -205,35 +181,61 @@ const InvoicePDF = ({ invoice, symbol }) => {
     terminationTime,
     client,
     provider,
-    resolver,
-    currentMilestone,
     amounts,
     network,
     createdAt,
-    total,
-    token,
-    released,
-    isLocked,
     deposits,
     releases,
     disputes,
     resolutions,
-    verified,
   } = invoice;
+
+  //  TO BE REMOVED WHEN MERGED TO MAIN
+
+  //   const disputesDemo = [
+  //     {
+  //     sender: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+  //     txHash:
+  //         '0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c',
+  //     ipfsHash: 'QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR',
+  //     details: 'www.google.com',
+  //     timestamp: '14098404',
+  //     },
+  // ]
+
+  //   const resolutionsDemo = [
+  //     {
+  //     txHash:
+  //         '0x25c4670e7ceed732423670ee5fff4ceab52af92f541a2eacfd3b4e6377ab6729',
+  //     ipfsHash: 'QmbTh45HCTHISISNOTAREALHASHLMiMPBuTGsMnR',
+  //     clientAward: '1500000000000000000',
+  //     providerAward: '0',
+  //     resolutionFee: '5000000000000000',
+  //     resolverType: 'Arbitrator',
+  //     resolver: '0x63125c0d5Cd9071de9A1ac84c400982f41C697AE',
+  //     },
+  // ]
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {console.log('invoice in PDF:', invoice)}
-
         {/* General Details */}
         <View>
           <Text style={styles.title}>Smart Invoice</Text>
 
           <View>
             <Text style={styles.address}>{invoice.address}</Text>
+            <Link
+              style={{ textAlign: 'center' }}
+              src={`https://smartinvoice.xyz/${getHexChainId(network)}/${
+                invoice.address
+              }`}
+            >
+              {getAccountString(invoice.address)} @ smartinvoice.xyz
+            </Link>
           </View>
         </View>
+
         <View style={styles.separator}></View>
 
         <View style={styles.detailsContainer}>
@@ -413,222 +415,115 @@ const InvoicePDF = ({ invoice, symbol }) => {
       </Page>
 
       {/* Disputes */}
+      {disputes.length > 0 ? (
+        <Page size="A4" style={styles.page}>
+          <View>
+            <Text style={styles.secondTitle}>Disputes</Text>
+          </View>
 
-      <Page size="A4" style={styles.page}>
-        <View>
-          <Text style={styles.disputeTitle}>Disputes</Text>
-        </View>
-
-        {[
-          {
-            sender: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-            txHash:
-              '0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c',
-            ipfsHash: 'QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR',
-            details: 'www.google.com',
-            timestamp: '14098404',
-          },
-        ].map((dispute, index) => {
-          return (
-            <View style={styles.multiDetailBlock} key={index + dispute.sender}>
-              <Text
-                style={[
-                  styles.details,
-                  { borderBottom: '3', textAlign: 'center', paddingTop: '2' },
-                ]}
+          {disputes.map((dispute, index) => {
+            return (
+              <View
+                style={styles.multiDetailBlock}
+                key={index + dispute.sender}
               >
-                Dispute #{index + 1}
-              </Text>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Sender:</Text>
-                <Text style={styles.detailRow}>{dispute.sender}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Details:</Text>
-                <Text style={styles.detailRow}>{dispute.details}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>IPFS Hash:</Text>
-                <Text style={styles.detailRow}>{dispute.ipfsHash}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>TxHash:</Text>
-                <Text style={styles.detailRow}>{dispute.txHash}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Timestamp:</Text>
-                <Text style={styles.detailRow}>
-                  {unixToDateTime(dispute.timestamp)}
+                <Text
+                  style={[
+                    styles.details,
+                    { borderBottom: '3', textAlign: 'center', paddingTop: '2' },
+                  ]}
+                >
+                  Dispute #{index + 1}
                 </Text>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Sender:</Text>
+                  <Text style={styles.detailRow}>{dispute.sender}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Details:</Text>
+                  <Text style={styles.detailRow}>{dispute.details}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>IPFS Hash:</Text>
+                  <Text style={styles.detailRow}>{dispute.ipfsHash}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>TxHash:</Text>
+                  <Text style={styles.detailRow}>{dispute.txHash}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Timestamp:</Text>
+                  <Text style={styles.detailRow}>
+                    {unixToDateTime(dispute.timestamp)}
+                  </Text>
+                </View>
               </View>
-
-              {/* <View style={styles.arbitrator}>
-                <Text>ARBITRATOR DATA</Text>
-              </View>
-              <View style={styles.row} key={dispute.invoice.toString()}>
-                <Text style={styles.description}>Dispute ID:</Text>
-                <Text style={styles.description}>{dispute.disputeID}</Text>
-              </View>
-              <View style={styles.row} key={dispute.invoice.toString()}>
-                <Text style={styles.description}>Dispute Fee:</Text>
-                <Text style={styles.description}>{dispute.disputeFee}</Text>
-              </View>
-              <View style={styles.row} key={dispute.invoice.toString()}>
-                <Text style={styles.description}>Dispute Token:</Text>
-                <Text style={styles.description}>{dispute.disputeToken}</Text>
-              </View> */}
-            </View>
-          );
-        })}
-      </Page>
+            );
+          })}
+        </Page>
+      ) : null}
 
       {/* Resolutions */}
+      {resolutions.length > 0 ? (
+        <Page size="A4" style={styles.page}>
+          <View>
+            <Text style={styles.secondTitle}>Resolutions</Text>
+          </View>
 
-      <Page size="A4" style={styles.page}>
-        <View>
-          <Text style={styles.disputeTitle}>Resolutions</Text>
-        </View>
-
-        {[
-          {
-            txHash:
-              '0x25c4670e7ceed732423670ee5fff4ceab52af92f541a2eacfd3b4e6377ab6729',
-            ipfsHash: 'QmbTh45HCTHISISNOTAREALHASHLMiMPBuTGsMnR',
-            clientAward: '1500000000000000000',
-            providerAward: '0',
-            resolutionFee: '5000000000000000',
-            resolverType: 'Arbitrator',
-            resolver: '0x63125c0d5Cd9071de9A1ac84c400982f41C697AE',
-          },
-        ].map((resolution, index) => {
-          return (
-            <View style={styles.multiDetailBlock} key={index + resolution}>
-              <Text
-                style={[
-                  styles.details,
-                  { borderBottom: '3', textAlign: 'center', paddingTop: '2' },
-                ]}
-              >
-                Resolution #{index + 1}
-              </Text>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Transaction Hash:</Text>
-                <Text style={styles.detailRow}>{resolution.txHash}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>IPFS Hash:</Text>
-                <Text style={styles.detailRow}>{resolution.ipfsHash}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Client Award:</Text>
-                <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.clientAward)} {symbol}
+          {resolutions.map((resolution, index) => {
+            return (
+              <View style={styles.multiDetailBlock} key={index + resolution}>
+                <Text
+                  style={[
+                    styles.details,
+                    { borderBottom: '3', textAlign: 'center', paddingTop: '2' },
+                  ]}
+                >
+                  Resolution #{index + 1}
                 </Text>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Transaction Hash:</Text>
+                  <Text style={styles.detailRow}>{resolution.txHash}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>IPFS Hash:</Text>
+                  <Text style={styles.detailRow}>{resolution.ipfsHash}</Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Client Award:</Text>
+                  <Text style={styles.detailRow}>
+                    {utils.formatEther(resolution.clientAward)} {symbol}
+                  </Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Provider Award:</Text>
+                  <Text style={styles.detailRow}>
+                    {utils.formatEther(resolution.providerAward)} {symbol}
+                  </Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Resolution Fee:</Text>
+                  <Text style={styles.detailRow}>
+                    {utils.formatEther(resolution.resolutionFee)} {symbol}
+                  </Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Resolver Type:</Text>
+                  <Text style={styles.detailRow}>
+                    {resolution.resolverType}
+                  </Text>
+                </View>
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Resolver:</Text>
+                  <Text style={styles.detailRow}>{resolution.resolver}</Text>
+                </View>
               </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Provider Award:</Text>
-                <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.providerAward)} {symbol}
-                </Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Resolution Fee:</Text>
-                <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.resolutionFee)} {symbol}
-                </Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Resolver Type:</Text>
-                <Text style={styles.detailRow}>{resolution.resolverType}</Text>
-              </View>
-              <View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Resolver:</Text>
-                <Text style={styles.detailRow}>{resolution.resolver}</Text>
-              </View>
-
-              {/* <View style={styles.arbitrator}>
-                <Text>ARBITRATOR DATA</Text>
-              </View>
-              <View style={styles.row} key={resolution.invoice.toString()}>
-                <Text style={styles.description}>resolution ID:</Text>
-                <Text style={styles.description}>{resolution.resolutionID}</Text>
-              </View>
-              <View style={styles.row} key={resolution.invoice.toString()}>
-                <Text style={styles.description}>resolution Fee:</Text>
-                <Text style={styles.description}>{resolution.resolutionFee}</Text>
-              </View>
-              <View style={styles.row} key={resolution.invoice.toString()}>
-                <Text style={styles.description}>resolution Token:</Text>
-                <Text style={styles.description}>{resolution.disputeToken}</Text>
-              </View> */}
-            </View>
-          );
-        })}
-      </Page>
+            );
+          })}
+        </Page>
+      ) : null}
     </Document>
   );
 };
 
 export default InvoicePDF;
-
-// {/* Deposits */}
-// <View style={styles.tableContainer}>
-//   <View style={styles.container}>
-//     <Text style={styles.listTitle}>Deposits</Text>
-//   </View>
-// </View>
-
-// {deposits.map((deposit, index) => {
-//   return (
-//     <Fragment key={index + deposit.sender}>
-//       <View style={styles.listContainer}>
-//         <View style={styles.innerTitle}>
-//           <Text style={styles.underline}>Deposit #{index+1}</Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + deposit.sender}>
-//           <Text>Sender: <Text>{deposit.sender}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + deposit.amount}>
-//           <Text>Amount: <Text>{utils.formatEther(deposit.amount)}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + deposit.timestamp}>
-//           <Text>Timestamp: <Text>{unixToDateTime(deposit.timestamp)}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + deposit.txHash}>
-//           <Text>TxHash: <Text>{deposit.txHash}</Text></Text>
-//         </View>
-//       </View>
-//     </Fragment>
-//   );
-// })}
-
-// {/* Releases */}
-// <View style={styles.tableContainer}>
-//   <View style={styles.container}>
-//     <Text style={styles.listTitle}>Releases</Text>
-//   </View>
-// </View>
-
-// {releases.map((release, index) => {
-//   return (
-//     <Fragment key={index + release.sender}>
-//       <View style={styles.listContainer}>
-//         <View style={styles.innerTitle} >
-//           <Text style={styles.underline}>Release #{index+1}</Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + release.milestone}>
-//           <Text>Milestone: <Text>{release.milestone + 1}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + release.amount}>
-//           <Text>Amount: <Text>{utils.formatEther(release.amount)} {symbol}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + release.timestamp}>
-//           <Text>Timestamp: <Text>{unixToDateTime(release.timestamp)}</Text></Text>
-//         </View>
-//         <View style={styles.invisibleRow} key={index + release.txHash}>
-//           <Text>TxHash: <Text>{release.txHash}</Text></Text>
-//         </View>
-//       </View>
-//     </Fragment>
-//   );
-// })}
