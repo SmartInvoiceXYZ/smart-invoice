@@ -55,7 +55,7 @@ export const OrderedLinkInput = ({
                 const newProtocol = e.target.value;
                 const newValue = newProtocol + input;
                 const isValid = isValidLink(newValue);
-                setValue(newValue);
+                setValue({ type: newProtocol, src: newValue });
                 setInvalid(!isValid);
                 setProtocol(newProtocol);
               }}
@@ -91,7 +91,7 @@ export const OrderedLinkInput = ({
               }
               const newValue = newProtocol + newInput;
               const isValid = isValidLink(newValue);
-              setValue(newValue);
+              setValue({ type: newProtocol, src: newValue });
               setInvalid(!isValid);
               setInput(newInput);
               setProtocol(newProtocol);

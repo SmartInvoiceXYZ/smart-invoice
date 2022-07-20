@@ -61,7 +61,7 @@ export const ProjectDetailsForm = ({ display }) => {
       />
       <OrderedLinkInput
         label="Link to Project Agreement"
-        value={projectAgreement}
+        value={projectAgreement.src}
         setValue={setProjectAgreement}
         tooltip="This agreement will be referenced in the case of a dispute"
       />

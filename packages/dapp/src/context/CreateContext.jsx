@@ -30,7 +30,10 @@ export const CreateContextProvider = ({ children }) => {
   // project details
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
-  const [projectAgreement, setProjectAgreement] = useState('');
+  const [projectAgreement, setProjectAgreement] = useState({
+    type: '',
+    src: '',
+  });
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [safetyValveDate, setSafetyValveDate] = useState();
