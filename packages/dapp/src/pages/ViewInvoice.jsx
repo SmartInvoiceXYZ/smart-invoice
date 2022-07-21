@@ -30,6 +30,7 @@ import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
 import { AddMilestones } from '../components/AddMilestones';
 import { VerifyInvoice } from '../components/VerifyInvoice';
+import { GenerateInvoicePDF } from '../components/GenerateInvoicePDF';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -201,6 +202,7 @@ export const ViewInvoice = ({
   }
 
   let sum = BigNumber.from(0);
+
   return (
     <Container overlay>
       <Stack
@@ -331,6 +333,9 @@ export const ViewInvoice = ({
                   <Text color="red">Not enabled</Text>
                 )}
               </WrapItem>
+            </Wrap>
+            <Wrap>
+              <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
             </Wrap>
           </VStack>
         </Stack>

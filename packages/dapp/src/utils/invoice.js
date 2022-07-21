@@ -142,3 +142,13 @@ export const verify = async (ethersProvider, address) => {
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.verify();
 };
+
+export const unixToDateTime = unixTimestamp => {
+  const milliseconds = unixTimestamp * 1000;
+
+  const dateObject = new Date(milliseconds);
+
+  const humanDateFormat = dateObject.toLocaleString();
+
+  return humanDateFormat;
+};

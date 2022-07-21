@@ -79,7 +79,6 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   };
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
-
   const initialStatus = getCheckedStatus(deposited, amounts);
   const [checked, setChecked] = useState(initialStatus);
 
