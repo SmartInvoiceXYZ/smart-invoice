@@ -30,10 +30,10 @@ export const CreateContextProvider = ({ children }) => {
   // project details
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
-  const [projectAgreement, setProjectAgreement] = useState({
-    type: '',
-    src: '',
-  });
+  const [projectAgreementLinkType, setProjectAgreementLinkType] =
+    useState('https');
+  const [projectAgreementSource, setProjectAgreementSource] = useState('');
+  const [projectAgreement, setProjectAgreement] = useState('');
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [safetyValveDate, setSafetyValveDate] = useState();
@@ -61,10 +61,10 @@ export const CreateContextProvider = ({ children }) => {
   const step1Valid = useMemo(
     () =>
       projectName &&
-      isValidLink(projectAgreement) &&
+      isValidLink(projectAgreementSource) &&
       safetyValveDate &&
       safetyValveDate > new Date().getTime(),
-    [projectName, projectAgreement, safetyValveDate],
+    [projectName, projectAgreementSource, safetyValveDate],
   );
 
   const step2Valid = useMemo(
@@ -101,12 +101,22 @@ export const CreateContextProvider = ({ children }) => {
     [payments, paymentDue],
   );
 
+  // useEffect(() => {
+  //   setProjectAgreement({
+  //     type: projectAgreementLinkType,
+  //     src: projectAgreementSource
+  //   })
+  // }, [projectAgreementSource, projectAgreementLinkType])
+
   useEffect(() => {
     if (step1Valid && currentStep === 2) {
       uploadMetadata({
         projectName,
         projectDescription,
-        projectAgreement,
+        projectAgreement: {
+          type: projectAgreementLinkType,
+          src: projectAgreementSource,
+        },
         startDate: Math.floor(startDate / 1000),
         endDate: Math.floor(endDate / 1000),
       })
@@ -121,6 +131,8 @@ export const CreateContextProvider = ({ children }) => {
     projectName,
     projectDescription,
     projectAgreement,
+    projectAgreementLinkType,
+    projectAgreementSource,
     startDate,
     endDate,
   ]);
@@ -196,6 +208,8 @@ export const CreateContextProvider = ({ children }) => {
         projectName,
         projectDescription,
         projectAgreement,
+        projectAgreementSource,
+        projectAgreementLinkType,
         startDate,
         endDate,
         safetyValveDate,
@@ -212,6 +226,8 @@ export const CreateContextProvider = ({ children }) => {
         setProjectName,
         setProjectDescription,
         setProjectAgreement,
+        setProjectAgreementSource,
+        setProjectAgreementLinkType,
         setStartDate,
         setEndDate,
         setSafetyValveDate,

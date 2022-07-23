@@ -34,8 +34,10 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectName,
     projectDescription,
     setProjectDescription,
-    projectAgreement,
-    setProjectAgreement,
+    projectAgreementSource,
+    setProjectAgreementSource,
+    projectAgreementLinkType,
+    setProjectAgreementLinkType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';
@@ -61,8 +63,10 @@ export const ProjectDetailsForm = ({ display }) => {
       />
       <OrderedLinkInput
         label="Link to Project Agreement"
-        value={projectAgreement.src}
-        setValue={setProjectAgreement}
+        value={projectAgreementSource}
+        setValue={setProjectAgreementSource}
+        linkType={projectAgreementLinkType}
+        setLinkType={setProjectAgreementLinkType}
         tooltip="This agreement will be referenced in the case of a dispute"
       />
       <OrderedTextarea
