@@ -22,9 +22,13 @@ export const InvoiceDetails = gql`
     terminationTime
     projectName
     projectDescription
-    projectAgreement
+    projectAgreement {
+      type
+      src
+    }
     startDate
     endDate
+    projectAgreement
     milestonesAdded {
       id
       sender

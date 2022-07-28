@@ -1,5 +1,5 @@
-import { log, dataSource, Address } from '@graphprotocol/graph-ts';
-import { Invoice } from '../types/schema';
+import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
+import { Invoice, Agreement } from '../types/schema';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../types/SmartInvoiceFactoryVersion06/SmartInvoiceFactory';
 import { ERC20, SmartInvoice } from '../types/templates';
@@ -22,6 +22,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   invoice.resolutions = new Array<string>();
   invoice.creationTxHash = event.transaction.hash;
   invoice.network = dataSource.network();
+  invoice.projectAgreement = new Array<string>();
 
   invoice = updateInvoiceInfo(event.params.invoice, invoice);
 
@@ -33,6 +34,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let token = getToken(tokenAddress);
   token.save();
   ERC20.create(tokenAddress);
+
+  // fail block: 11,087,395
 
   invoice.tokenMetadata = tokenAddress.toHexString();
   invoice.save();

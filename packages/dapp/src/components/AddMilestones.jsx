@@ -52,9 +52,8 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
-    projectAgreement,
-  );
+  const [revisedProjectAgreement, setRevisedProjectAgreement] =
+    useState(projectAgreement);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -63,7 +62,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     try {
       setLoading(true);
       let detailsHash;
-      if (revisedProjectAgreement && projectAgreement.startsWith('ipfs')) {
+      if (
+        revisedProjectAgreement &&
+        projectAgreement[projectAgreement.length - 1].type === 'ipfs'
+      ) {
         detailsHash = await uploadMetadata({
           projectName,
           projectDescription,
@@ -104,7 +106,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         Add New Payment Milestones
       </Heading>
 
-      {projectAgreement.startsWith('ipfs') ? (
+      {projectAgreement[projectAgreement.length - 1].type === 'ipfs' ? (
         <OrderedLinkInput
           label="Link to Project Agreement (if updated)"
           value={revisedProjectAgreement}
