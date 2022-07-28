@@ -5,10 +5,13 @@ import {
   ByteArray,
   ipfs,
   json,
+  JSONValueKind,
   log,
+  TypedMap,
+  Value,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice, Token } from '../types/schema';
+import { Invoice, Token, Agreement } from '../types/schema';
 import { SmartInvoice } from '../types/templates/SmartInvoice/SmartInvoice';
 import { ERC20 } from '../types/templates/ERC20/ERC20';
 
@@ -30,6 +33,20 @@ let zeroAddress = changetype<Address>(
 
 let zeroBytes = changetype<Bytes>(Bytes.fromHexString('0x'));
 
+// class Agreement {
+//   type: string
+//   src: string
+//   constructor(type: string, src: string) {
+//     this.type = type
+//     this.src = src
+//   }
+// }
+// const thing = new Thing("dog", "cat")
+// https://github.com/graphprotocol/adchain-subgraph
+
+//  figure out how to assign to object to mapping
+// included and udpate details updated event
+
 class InvoiceObject {
   client: Address;
   provider: Address;
@@ -47,7 +64,7 @@ class InvoiceObject {
   disputeId: BigInt;
   projectName: string;
   projectDescription: string;
-  projectAgreement: string;
+  projectAgreement: Agreement;
   startDate: BigInt;
   endDate: BigInt;
 
@@ -68,7 +85,7 @@ class InvoiceObject {
     this.disputeId = BigInt.fromI32(0);
     this.projectName = '';
     this.projectDescription = '';
-    this.projectAgreement = '';
+    this.projectAgreement = new Agreement('');
     this.startDate = BigInt.fromI32(0);
     this.endDate = BigInt.fromI32(0);
   }
@@ -151,7 +168,38 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
         }
         let projectAgreement = data.get('projectAgreement');
         if (projectAgreement != null && !projectAgreement.isNull()) {
-          invoiceObject.projectAgreement = projectAgreement.toString();
+          let obj = projectAgreement.toObject();
+          let type = obj.get('type');
+          let src = obj.get('src');
+          if (type && src != null) {
+            log.info('projectAgreement check: obj.type {}, obj.src {}', [
+              type.toString(),
+              src.toString(),
+            ]);
+            let typeValue = type.toString();
+            let srcValue = src.toString();
+
+            invoiceObject.projectAgreement.set(
+              'src',
+              Value.fromString(srcValue),
+            );
+            invoiceObject.projectAgreement.set(
+              'type',
+              Value.fromString(typeValue),
+            );
+
+            // let agreement = new Agreement(srcValue + typeValue);
+            // agreement.src = srcValue;
+            // agreement.type = typeValue;
+            // invoiceObject.projectAgreement = agreement.toString();
+
+            log.info('final: src1 {}, type2 {}', [
+              invoiceObject.projectAgreement.src,
+              invoiceObject.projectAgreement.type,
+              // agreement.src,
+              // agreement.type
+            ]);
+          }
         }
         let startDate = data.get('startDate');
         if (startDate != null && !startDate.isNull()) {
@@ -174,6 +222,8 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   let invoiceObject = fetchInvoiceInfo(address);
   log.info('Got details for invoice', [address.toHexString()]);
 
+  // log.info('agreement check{}', invoiceObject.projectAgreement.src, );
+
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
   invoice.provider = invoiceObject.provider;
@@ -194,9 +244,19 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   invoice.disputeId = invoiceObject.disputeId;
   invoice.projectName = invoiceObject.projectName;
   invoice.projectDescription = invoiceObject.projectDescription;
-  invoice.projectAgreement = invoiceObject.projectAgreement;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
+
+  let agreement = new Agreement(invoice.creationTxHash.toHexString());
+
+  agreement.src = invoiceObject.projectAgreement.src;
+
+  agreement.type = invoiceObject.projectAgreement.type;
+  agreement.save();
+
+  let projectAgreement = invoice.projectAgreement;
+  projectAgreement.push(agreement.id);
+  invoice.projectAgreement = projectAgreement;
 
   return invoice as Invoice;
 }

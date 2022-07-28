@@ -36,7 +36,7 @@ export const CONFIG = {
       },
     },
     4: {
-      SUBGRAPH: 'psparacino/dev-only-smart-invoice-rinkeby',
+      SUBGRAPH: 'psparacino/smart-invoices-rinkey-ps',
       WRAPPED_NATIVE_TOKEN:
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
