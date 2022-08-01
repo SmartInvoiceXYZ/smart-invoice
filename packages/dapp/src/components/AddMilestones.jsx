@@ -13,7 +13,7 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
 
@@ -52,10 +52,26 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] =
-    useState(projectAgreement);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState([
+    ...projectAgreement,
+  ]);
+  const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
+    projectAgreement[projectAgreement.length - 1].src,
+  );
+  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
+    useState(projectAgreement[projectAgreement.length - 1].type);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
+
+  useEffect(() => {
+    setRevisedProjectAgreement([
+      ...projectAgreement,
+      {
+        type: revisedProjectAgreementType,
+        src: revisedProjectAgreementSrc,
+      },
+    ]);
+  }, [revisedProjectAgreementSrc, revisedProjectAgreementType]);
 
   const addNewMilestones = async () => {
     if (!milestoneAmounts.length) return;
@@ -109,8 +125,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       {projectAgreement[projectAgreement.length - 1].type === 'ipfs' ? (
         <OrderedLinkInput
           label="Link to Project Agreement (if updated)"
-          value={revisedProjectAgreement}
-          setValue={setRevisedProjectAgreement}
+          value={revisedProjectAgreementSrc}
+          setValue={setRevisedProjectAgreementSrc}
+          linkType={revisedProjectAgreementType}
+          setLinkType={setRevisedProjectAgreementType}
           tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         />
       ) : (

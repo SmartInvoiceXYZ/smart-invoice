@@ -33,7 +33,10 @@ export const CreateContextProvider = ({ children }) => {
   const [projectAgreementLinkType, setProjectAgreementLinkType] =
     useState('https');
   const [projectAgreementSource, setProjectAgreementSource] = useState('');
-  const [projectAgreement, setProjectAgreement] = useState('');
+  const [projectAgreement, setProjectAgreement] = useState({
+    type: projectAgreementLinkType,
+    src: projectAgreementSource,
+  });
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [safetyValveDate, setSafetyValveDate] = useState();
@@ -101,22 +104,19 @@ export const CreateContextProvider = ({ children }) => {
     [payments, paymentDue],
   );
 
-  // useEffect(() => {
-  //   setProjectAgreement({
-  //     type: projectAgreementLinkType,
-  //     src: projectAgreementSource
-  //   })
-  // }, [projectAgreementSource, projectAgreementLinkType])
+  useEffect(() => {
+    setProjectAgreement({
+      type: projectAgreementLinkType,
+      src: projectAgreementSource,
+    });
+  }, [projectAgreementSource, projectAgreementLinkType]);
 
   useEffect(() => {
     if (step1Valid && currentStep === 2) {
       uploadMetadata({
         projectName,
         projectDescription,
-        projectAgreement: {
-          type: projectAgreementLinkType,
-          src: projectAgreementSource,
-        },
+        projectAgreement,
         startDate: Math.floor(startDate / 1000),
         endDate: Math.floor(endDate / 1000),
       })
