@@ -188,16 +188,9 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
               Value.fromString(typeValue),
             );
 
-            // let agreement = new Agreement(srcValue + typeValue);
-            // agreement.src = srcValue;
-            // agreement.type = typeValue;
-            // invoiceObject.projectAgreement = agreement.toString();
-
             log.info('final: src1 {}, type2 {}', [
               invoiceObject.projectAgreement.src,
               invoiceObject.projectAgreement.type,
-              // agreement.src,
-              // agreement.type
             ]);
           }
         }
@@ -250,8 +243,8 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   let agreement = new Agreement(invoice.creationTxHash.toHexString());
 
   agreement.src = invoiceObject.projectAgreement.src;
-
   agreement.type = invoiceObject.projectAgreement.type;
+
   agreement.save();
 
   let projectAgreement = invoice.projectAgreement;

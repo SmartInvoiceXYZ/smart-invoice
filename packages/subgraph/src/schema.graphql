@@ -122,3 +122,9 @@ type MilestonesAdded @entity {
   invoice: Bytes!
   milestones: [BigInt!]!
 }
+
+type DetailsUpdated @entity {
+  id: ID!
+  sender: Bytes!
+  details: Bytes!
+}

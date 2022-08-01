@@ -71,7 +71,11 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         src: revisedProjectAgreementSrc,
       },
     ]);
-  }, [revisedProjectAgreementSrc, revisedProjectAgreementType]);
+  }, [
+    revisedProjectAgreementSrc,
+    revisedProjectAgreementType,
+    projectAgreement,
+  ]);
 
   const addNewMilestones = async () => {
     if (!milestoneAmounts.length) return;
