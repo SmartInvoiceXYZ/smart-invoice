@@ -38,8 +38,13 @@ export const FormConfirmation = ({ display, tokenData }) => {
         {projectName}
       </Text>
       {projectDescription && <Text>{projectDescription}</Text>}
-      <Link href={projectAgreement} isExternal mb="1rem" textDecor="underline">
-        {projectAgreement}
+      <Link
+        href={projectAgreement.src}
+        isExternal
+        mb="1rem"
+        textDecor="underline"
+      >
+        {projectAgreement.src}
       </Link>
       <Flex justify="space-between">
         <Text>{`Client Address: `}</Text>
