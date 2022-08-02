@@ -13,7 +13,7 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
 
@@ -35,9 +35,11 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     token,
     network,
     amounts,
+    deposits,
     projectName,
     projectDescription,
     projectAgreement,
+    resolutionRate,
     startDate,
     endDate,
   } = invoice;
@@ -52,9 +54,22 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(
-    projectAgreement,
-  );
+  const [revisedProjectAgreement, setRevisedProjectAgreement] =
+    useState(projectAgreement);
+  const [remainingFunds, setRemainingFunds] = useState(0);
+
+  useEffect(() => {
+    const totalAmounts = utils.formatUnits(
+      amounts.reduce((a, b) => parseInt(a) + parseInt(b), 0),
+    );
+    const totalDeposits = utils.formatUnits(
+      deposits.reduce((a, b) => parseInt(a) + parseInt(b), 0),
+    );
+
+    const remaining = totalAmounts - totalDeposits;
+
+    setRemainingFunds(remaining);
+  }, [amounts, deposits]);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -214,6 +229,25 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           {symbol}
         </Text>
       </VStack>
+      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+        {due && (
+          <HStack>
+            <Text fontWeight="bold" color="red.500">
+              Potential Dispute Fee:
+            </Text>
+            <Text>
+              {`${
+                addedTotalInput
+                  ? (
+                      (remainingFunds + addedTotalInput) *
+                      (1 / parseInt(resolutionRate))
+                    ).toFixed(5)
+                  : (remainingFunds * (1 / parseInt(resolutionRate))).toFixed(5)
+              } ${symbol}`}
+            </Text>
+          </HStack>
+        )}
+      </Flex>
       <Flex color="white" justify="space-between" w="100%" fontSize="sm">
         {due && (
           <HStack>

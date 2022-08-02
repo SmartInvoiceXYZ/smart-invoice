@@ -219,6 +219,18 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
             <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
           </VStack>
         )}
+        {deposited && (
+          <VStack align="flex-start">
+            <Text fontWeight="bold">Potential Dispute Fee</Text>
+            <Text>{`${(
+              utils.formatUnits(
+                amount.toNumber() - deposited.toNumber(),
+                decimals,
+              ) *
+              (1 / parseInt(invoice.resolutionRate))
+            ).toFixed(6)} ${symbol}`}</Text>
+          </VStack>
+        )}
         {due && (
           <VStack>
             <Text fontWeight="bold">Total Due</Text>
