@@ -8,8 +8,6 @@ import {
   Deposit,
   Verified,
   MilestonesAdded,
-  DetailsUpdated,
-  Agreement,
 } from '../types/schema';
 
 import {
@@ -21,63 +19,8 @@ import {
   Deposit as DepositEvent,
   Verified as VerifiedEvent,
   MilestonesAdded as MilestonesAddedEvent,
-  DetailsUpdated as DetailsUpdatedEvent,
 } from '../types/templates/SmartInvoice/SmartInvoice';
 import { addQm, updateInvoiceInfo } from './helpers';
-
-export function handleDetailsUpdated(event: DetailsUpdatedEvent): void {
-  let invoice = Invoice.load(event.address.toHexString());
-  if (invoice != null) {
-    log.info('handleDetailsUpdated {}', [event.address.toHexString()]);
-    invoice = updateInvoiceInfo(event.address, invoice);
-
-    let newDetails = new DetailsUpdated(event.logIndex.toHexString());
-    newDetails.sender = event.params.sender;
-    newDetails.details = event.params.details;
-    newDetails.save();
-
-    // get agreement out of details
-
-    if (newDetails.details.value.length == 32) {
-      let hexHash = changetype<Bytes>(addQm(newDetails.details));
-      let base58Hash = hexHash.toBase58();
-      invoice.ipfsHash = base58Hash.toString();
-      let ipfsData = ipfs.cat(base58Hash);
-
-      if (ipfsData !== null) {
-        log.info('IPFS details from hash {}, data {}', [
-          base58Hash,
-          ipfsData.toString(),
-        ]);
-        let data = json.fromBytes(ipfsData).toObject();
-        let projectAgreement = data.get('projectAgreement');
-        if (projectAgreement != null && !projectAgreement.isNull()) {
-          let obj = projectAgreement.toObject();
-          let type = obj.get('type');
-          let src = obj.get('src');
-          if (type && src != null) {
-            log.info('projectAgreement check: obj.type {}, obj.src {}', [
-              type.toString(),
-              src.toString(),
-            ]);
-            let typeValue = type.toString();
-            let srcValue = src.toString();
-
-            log.info('final: src1 {}, type2 {}', [
-              invoice.projectAgreement.src,
-              invoice.projectAgreement.type,
-            ]);
-          }
-        }
-      }
-    }
-
-    let verified = invoice.verified;
-    verified.push(verification.id);
-    invoice.verified = verified;
-    invoice.save();
-  }
-}
 
 export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
   let invoice = Invoice.load(event.address.toHexString());

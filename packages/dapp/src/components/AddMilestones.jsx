@@ -69,6 +69,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       {
         type: revisedProjectAgreementType,
         src: revisedProjectAgreementSrc,
+        createdAt: Date.now().toString(),
       },
     ]);
   }, [
@@ -76,7 +77,6 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     revisedProjectAgreementType,
     projectAgreement,
   ]);
-
   const addNewMilestones = async () => {
     if (!milestoneAmounts.length) return;
     try {
@@ -86,10 +86,11 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         revisedProjectAgreement &&
         projectAgreement[projectAgreement.length - 1].type === 'ipfs'
       ) {
+        let projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
           projectName,
           projectDescription,
-          revisedProjectAgreement,
+          projectAgreement,
           startDate: Math.floor(startDate / 1000),
           endDate: Math.floor(endDate / 1000),
         });

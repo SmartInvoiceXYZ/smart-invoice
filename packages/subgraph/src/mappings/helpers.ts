@@ -9,6 +9,7 @@ import {
   log,
   TypedMap,
   Value,
+  JSONValue,
 } from '@graphprotocol/graph-ts';
 
 import { Invoice, Token, Agreement } from '../types/schema';
@@ -33,20 +34,6 @@ let zeroAddress = changetype<Address>(
 
 let zeroBytes = changetype<Bytes>(Bytes.fromHexString('0x'));
 
-// class Agreement {
-//   type: string
-//   src: string
-//   constructor(type: string, src: string) {
-//     this.type = type
-//     this.src = src
-//   }
-// }
-// const thing = new Thing("dog", "cat")
-// https://github.com/graphprotocol/adchain-subgraph
-
-//  figure out how to assign to object to mapping
-// included and udpate details updated event
-
 class InvoiceObject {
   client: Address;
   provider: Address;
@@ -64,7 +51,7 @@ class InvoiceObject {
   disputeId: BigInt;
   projectName: string;
   projectDescription: string;
-  projectAgreement: Agreement;
+  projectAgreement: Array<Agreement>;
   startDate: BigInt;
   endDate: BigInt;
 
@@ -85,7 +72,7 @@ class InvoiceObject {
     this.disputeId = BigInt.fromI32(0);
     this.projectName = '';
     this.projectDescription = '';
-    this.projectAgreement = new Agreement('');
+    this.projectAgreement = new Array<Agreement>();
     this.startDate = BigInt.fromI32(0);
     this.endDate = BigInt.fromI32(0);
   }
@@ -168,31 +155,43 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
         }
         let projectAgreement = data.get('projectAgreement');
         if (projectAgreement != null && !projectAgreement.isNull()) {
-          let obj = projectAgreement.toObject();
-          let type = obj.get('type');
-          let src = obj.get('src');
-          if (type && src != null) {
-            log.info('projectAgreement check: obj.type {}, obj.src {}', [
-              type.toString(),
-              src.toString(),
-            ]);
-            let typeValue = type.toString();
-            let srcValue = src.toString();
+          // problem here
+          let projectArray = projectAgreement.toArray();
+          let agreementArray = new Array<Agreement>();
 
-            invoiceObject.projectAgreement.set(
-              'src',
-              Value.fromString(srcValue),
-            );
-            invoiceObject.projectAgreement.set(
-              'type',
-              Value.fromString(typeValue),
-            );
+          for (let i = 0; i < projectArray.length; i++) {
+            let obj = projectArray[i].toObject();
+            let type = obj.get('type');
+            let src = obj.get('src');
+            let createdAt = obj.get('createdAt');
+            if (type && src && createdAt != null) {
+              let typeValue = type.toString();
+              let srcValue = src.toString();
+              let createdAtValue = BigInt.fromString(createdAt.toString());
 
-            log.info('final: src1 {}, type2 {}', [
-              invoiceObject.projectAgreement.src,
-              invoiceObject.projectAgreement.type,
-            ]);
+              let agreement = new Agreement(createdAtValue.toString());
+
+              agreement.type = typeValue;
+              agreement.src = srcValue;
+              agreement.createdAt = createdAtValue;
+
+              log.info(
+                'agreement commit: agreement.type {} agreement.src {} agreement.createdAt {} index {}',
+                [
+                  agreement.type,
+                  agreement.src,
+                  agreement.createdAt.toString(),
+                  i.toString(),
+                ],
+              );
+
+              agreement.save();
+
+              agreementArray[i] = agreement;
+            }
           }
+
+          invoiceObject.projectAgreement = agreementArray;
         }
         let startDate = data.get('startDate');
         if (startDate != null && !startDate.isNull()) {
@@ -214,8 +213,6 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
 export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   let invoiceObject = fetchInvoiceInfo(address);
   log.info('Got details for invoice', [address.toHexString()]);
-
-  // log.info('agreement check{}', invoiceObject.projectAgreement.src, );
 
   invoice.token = invoiceObject.token;
   invoice.client = invoiceObject.client;
@@ -240,15 +237,14 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
 
-  let agreement = new Agreement(invoice.creationTxHash.toHexString());
+  invoice.projectAgreement.length = 0;
+  let projectAgreement = new Array<string>();
+  let sourceAgreements = invoiceObject.projectAgreement;
 
-  agreement.src = invoiceObject.projectAgreement.src;
-  agreement.type = invoiceObject.projectAgreement.type;
+  for (let i = 0; i < sourceAgreements.length; i++) {
+    projectAgreement[i] = sourceAgreements[i].id;
+  }
 
-  agreement.save();
-
-  let projectAgreement = invoice.projectAgreement;
-  projectAgreement.push(agreement.id);
   invoice.projectAgreement = projectAgreement;
 
   return invoice as Invoice;

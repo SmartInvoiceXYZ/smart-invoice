@@ -54,6 +54,7 @@ type Agreement @entity {
   id: ID!
   type: String!
   src: String!
+  createdAt: BigInt!
 }
 
 
@@ -121,10 +122,4 @@ type MilestonesAdded @entity {
   sender: Bytes!
   invoice: Bytes!
   milestones: [BigInt!]!
-}
-
-type DetailsUpdated @entity {
-  id: ID!
-  sender: Bytes!
-  details: Bytes!
 }
