@@ -5,11 +5,7 @@ import {
   ByteArray,
   ipfs,
   json,
-  JSONValueKind,
   log,
-  TypedMap,
-  Value,
-  JSONValue,
 } from '@graphprotocol/graph-ts';
 
 import { Invoice, Token, Agreement } from '../types/schema';
@@ -155,7 +151,6 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
         }
         let projectAgreement = data.get('projectAgreement');
         if (projectAgreement != null && !projectAgreement.isNull()) {
-          // problem here
           let projectArray = projectAgreement.toArray();
           let agreementArray = new Array<Agreement>();
 
