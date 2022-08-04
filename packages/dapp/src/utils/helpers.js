@@ -194,3 +194,9 @@ export const formatTokens = object => {
 
   return tokenObject;
 };
+
+export const calculateResolutionFeePercentage = resolutionRate => {
+  const feePercentage = 1 / parseInt(resolutionRate);
+
+  return feePercentage;
+};

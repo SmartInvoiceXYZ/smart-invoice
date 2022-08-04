@@ -23,6 +23,7 @@ import {
   getTokenInfo,
   getTxLink,
   logError,
+  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
@@ -240,9 +241,12 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
                 addedTotalInput
                   ? (
                       (remainingFunds + addedTotalInput) *
-                      (1 / parseInt(resolutionRate))
+                      calculateResolutionFeePercentage(resolutionRate)
                     ).toFixed(5)
-                  : (remainingFunds * (1 / parseInt(resolutionRate))).toFixed(5)
+                  : (
+                      remainingFunds *
+                      calculateResolutionFeePercentage(resolutionRate)
+                    ).toFixed(5)
               } ${symbol}`}
             </Text>
           </HStack>

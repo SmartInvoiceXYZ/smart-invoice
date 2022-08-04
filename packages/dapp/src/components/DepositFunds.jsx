@@ -29,6 +29,7 @@ import {
   getTxLink,
   getWrappedNativeToken,
   logError,
+  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 const getCheckedStatus = (deposited, amounts) => {
@@ -226,8 +227,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
               utils.formatUnits(
                 amount.toNumber() - deposited.toNumber(),
                 decimals,
-              ) *
-              (1 / parseInt(invoice.resolutionRate))
+              ) * calculateResolutionFeePercentage(invoice.resolutionRate)
             ).toFixed(6)} ${symbol}`}</Text>
           </VStack>
         )}
