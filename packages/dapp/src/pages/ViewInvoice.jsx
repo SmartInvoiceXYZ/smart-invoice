@@ -252,7 +252,7 @@ export const ViewInvoice = ({
             {projectDescription && (
               <Text color="white">{projectDescription}</Text>
             )}
-            {console.log('projectAgreement:', projectAgreement)}
+
             <Link
               href={projectAgreement[projectAgreement.length - 1].src}
               isExternal

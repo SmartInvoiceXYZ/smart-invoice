@@ -35,8 +35,6 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   token.save();
   ERC20.create(tokenAddress);
 
-  // fail block: 11,087,395
-
   invoice.tokenMetadata = tokenAddress.toHexString();
   invoice.save();
 }

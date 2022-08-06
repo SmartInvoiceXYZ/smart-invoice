@@ -54,6 +54,7 @@ type Agreement @entity {
   id: ID!
   type: String!
   src: String!
+  createdAt: BigInt!
 }
 
 

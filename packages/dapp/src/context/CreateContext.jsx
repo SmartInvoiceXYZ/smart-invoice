@@ -33,10 +33,12 @@ export const CreateContextProvider = ({ children }) => {
   const [projectAgreementLinkType, setProjectAgreementLinkType] =
     useState('https');
   const [projectAgreementSource, setProjectAgreementSource] = useState('');
-  const [projectAgreement, setProjectAgreement] = useState({
-    type: projectAgreementLinkType,
-    src: projectAgreementSource,
-  });
+  const [projectAgreement, setProjectAgreement] = useState([
+    {
+      type: projectAgreementLinkType,
+      src: projectAgreementSource,
+    },
+  ]);
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [safetyValveDate, setSafetyValveDate] = useState();
@@ -105,10 +107,13 @@ export const CreateContextProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    setProjectAgreement({
-      type: projectAgreementLinkType,
-      src: projectAgreementSource,
-    });
+    setProjectAgreement([
+      {
+        type: projectAgreementLinkType,
+        src: projectAgreementSource,
+        createdAt: Date.now().toString(),
+      },
+    ]);
   }, [projectAgreementSource, projectAgreementLinkType]);
 
   useEffect(() => {

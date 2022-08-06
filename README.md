@@ -8,10 +8,11 @@ All metadata uploaded to IPFS and saved as details in a Smart Invoice contract m
 {
   projectName: "Project Name",
   projectDescription: "description",
-  projectAgreement: {
+  projectAgreement:[{
     type: "https", // or "ipfs"
-    src: "https://urlToAgreement.com" // or "ipfs://<CID>"
-  },
+    src: "https://urlToAgreement.com"
+    createdAt : "seconds since epoch"
+  }],
   startDate: UNIX_TIMESTAMP,
   endDate: UNIX_TIMESTAMP
 }
