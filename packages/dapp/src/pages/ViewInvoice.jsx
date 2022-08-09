@@ -55,9 +55,11 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -252,8 +254,9 @@ export const ViewInvoice = ({
             {projectDescription && (
               <Text color="white">{projectDescription}</Text>
             )}
+
             <Link
-              href={projectAgreement}
+              href={projectAgreement[projectAgreement.length - 1].src}
               isExternal
               textDecor="underline"
               color="white"

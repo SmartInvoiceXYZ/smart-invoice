@@ -55,8 +55,14 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [milestoneAmounts, setMilestoneAmounts] = useState([]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] =
-    useState(projectAgreement);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState([
+    ...projectAgreement,
+  ]);
+  const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
+    projectAgreement[projectAgreement.length - 1].src,
+  );
+  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
+    useState(projectAgreement[projectAgreement.length - 1].type);
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
@@ -74,16 +80,34 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
+  useEffect(() => {
+    setRevisedProjectAgreement([
+      ...projectAgreement,
+      {
+        type: revisedProjectAgreementType,
+        src: revisedProjectAgreementSrc,
+        createdAt: Date.now().toString(),
+      },
+    ]);
+  }, [
+    revisedProjectAgreementSrc,
+    revisedProjectAgreementType,
+    projectAgreement,
+  ]);
   const addNewMilestones = async () => {
     if (!milestoneAmounts.length) return;
     try {
       setLoading(true);
       let detailsHash;
-      if (revisedProjectAgreement && projectAgreement.startsWith('ipfs')) {
+      if (
+        revisedProjectAgreement &&
+        projectAgreement[projectAgreement.length - 1].type === 'ipfs'
+      ) {
+        let projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
           projectName,
           projectDescription,
-          revisedProjectAgreement,
+          projectAgreement,
           startDate: Math.floor(startDate / 1000),
           endDate: Math.floor(endDate / 1000),
         });
@@ -120,11 +144,13 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         Add New Payment Milestones
       </Heading>
 
-      {projectAgreement.startsWith('ipfs') ? (
+      {projectAgreement[projectAgreement.length - 1].type === 'ipfs' ? (
         <OrderedLinkInput
           label="Link to Project Agreement (if updated)"
-          value={revisedProjectAgreement}
-          setValue={setRevisedProjectAgreement}
+          value={revisedProjectAgreementSrc}
+          setValue={setRevisedProjectAgreementSrc}
+          linkType={revisedProjectAgreementType}
+          setLinkType={setRevisedProjectAgreementType}
           tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         />
       ) : (

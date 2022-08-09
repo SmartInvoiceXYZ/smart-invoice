@@ -36,11 +36,11 @@ export const CONFIG = {
       },
     },
     4: {
-      SUBGRAPH: 'psparacino/dev-only-smart-invoice-rinkeby',
+      SUBGRAPH: 'psparacino/smart-invoices-rinkey-ps',
       WRAPPED_NATIVE_TOKEN:
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
-        '0x09eBeE5BBC4D3bcB919b19a12EeD711c4748EA60'.toLowerCase(),
+        '0x659912E406b11D457656468c655F2e545E552259'.toLowerCase(),
       RESOLVERS: {
         ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
           name: 'LexDAO',

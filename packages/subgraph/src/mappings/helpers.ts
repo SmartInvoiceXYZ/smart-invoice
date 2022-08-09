@@ -8,7 +8,7 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice, Token } from '../types/schema';
+import { Invoice, Token, Agreement } from '../types/schema';
 import { SmartInvoice } from '../types/templates/SmartInvoice/SmartInvoice';
 import { ERC20 } from '../types/templates/ERC20/ERC20';
 
@@ -47,7 +47,7 @@ class InvoiceObject {
   disputeId: BigInt;
   projectName: string;
   projectDescription: string;
-  projectAgreement: string;
+  projectAgreement: Array<Agreement>;
   startDate: BigInt;
   endDate: BigInt;
 
@@ -68,7 +68,7 @@ class InvoiceObject {
     this.disputeId = BigInt.fromI32(0);
     this.projectName = '';
     this.projectDescription = '';
-    this.projectAgreement = '';
+    this.projectAgreement = new Array<Agreement>();
     this.startDate = BigInt.fromI32(0);
     this.endDate = BigInt.fromI32(0);
   }
@@ -151,7 +151,42 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
         }
         let projectAgreement = data.get('projectAgreement');
         if (projectAgreement != null && !projectAgreement.isNull()) {
-          invoiceObject.projectAgreement = projectAgreement.toString();
+          let projectArray = projectAgreement.toArray();
+          let agreementArray = new Array<Agreement>();
+
+          for (let i = 0; i < projectArray.length; i++) {
+            let obj = projectArray[i].toObject();
+            let type = obj.get('type');
+            let src = obj.get('src');
+            let createdAt = obj.get('createdAt');
+            if (type && src && createdAt != null) {
+              let typeValue = type.toString();
+              let srcValue = src.toString();
+              let createdAtValue = BigInt.fromString(createdAt.toString());
+
+              let agreement = new Agreement(createdAtValue.toString());
+
+              agreement.type = typeValue;
+              agreement.src = srcValue;
+              agreement.createdAt = createdAtValue;
+
+              log.info(
+                'agreement commit: agreement.type {} agreement.src {} agreement.createdAt {} index {}',
+                [
+                  agreement.type,
+                  agreement.src,
+                  agreement.createdAt.toString(),
+                  i.toString(),
+                ],
+              );
+
+              agreement.save();
+
+              agreementArray[i] = agreement;
+            }
+          }
+
+          invoiceObject.projectAgreement = agreementArray;
         }
         let startDate = data.get('startDate');
         if (startDate != null && !startDate.isNull()) {
@@ -194,9 +229,18 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
   invoice.disputeId = invoiceObject.disputeId;
   invoice.projectName = invoiceObject.projectName;
   invoice.projectDescription = invoiceObject.projectDescription;
-  invoice.projectAgreement = invoiceObject.projectAgreement;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
+
+  invoice.projectAgreement.length = 0;
+  let projectAgreement = new Array<string>();
+  let sourceAgreements = invoiceObject.projectAgreement;
+
+  for (let i = 0; i < sourceAgreements.length; i++) {
+    projectAgreement[i] = sourceAgreements[i].id;
+  }
+
+  invoice.projectAgreement = projectAgreement;
 
   return invoice as Invoice;
 }

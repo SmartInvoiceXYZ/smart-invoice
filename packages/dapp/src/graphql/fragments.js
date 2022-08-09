@@ -22,7 +22,11 @@ export const InvoiceDetails = gql`
     terminationTime
     projectName
     projectDescription
-    projectAgreement
+    projectAgreement(orderBy: createdAt, orderDirection: asc) {
+      type
+      src
+      createdAt
+    }
     startDate
     endDate
     milestonesAdded {
