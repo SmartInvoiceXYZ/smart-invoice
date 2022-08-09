@@ -3,9 +3,10 @@
 1.  **Add/Remove Token Information to tokenSchema.json:**
 
             "{NEW CHAIN ID HERE}": [{
-            "tokenContract": {CONTRACT OF TOKEN},
-            "decimals": {# of DECIMALS USED BY TOKEN},
-            "symbol": {TOKEN SYMBOL}
+            "tokenContract": "CONTRACT OF TOKEN",
+            "decimals": "# of DECIMALS USED BY TOKEN",
+            "symbol": "TOKEN SYMBOL",
+            "image": "link to hosted image"
             } , {Another Token...} ],
 
 2)  **Upload tokenSchema to IPFS (via CLI)** :

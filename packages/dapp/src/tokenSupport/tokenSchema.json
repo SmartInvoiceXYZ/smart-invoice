@@ -3,36 +3,42 @@
     {
       "tokenContract": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
       "decimals": "18",
-      "symbol": "WETH"
+      "symbol": "WETH",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/weth.png?raw=true"
     }
   ],
   "4": [
     {
       "tokenContract": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
       "decimals": "18",
-      "symbol": "WETH"
+      "symbol": "WETH",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/weth.png?raw=true"
     },
     {
       "tokenContract": "0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42",
       "decimals": "18",
-      "symbol": "DAI"
+      "symbol": "DAI",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/dai.png?raw=true"
     },
     {
       "tokenContract": "0x982e00B16c313E979C0947b85230907Fce45d50e",
       "decimals": "18",
-      "symbol": "TEST"
+      "symbol": "TEST",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/test.png?raw=true"
     }
   ],
   "100": [
     {
       "tokenContract": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
       "decimals": "18",
-      "symbol": "WXDAI"
+      "symbol": "WXDAI",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/wxDai.png?raw=true"
     },
     {
       "tokenContract": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
       "decimals": "18",
-      "symbol": "WETH"
+      "symbol": "WETH",
+      "image": "https://github.com/raid-guild/smart-invoice/blob/tokenImages/weth.png?raw=true"
     }
   ]
 }
