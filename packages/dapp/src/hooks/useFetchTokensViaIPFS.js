@@ -10,6 +10,7 @@ export const useFetchTokensViaIPFS = () => {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchTokens = async () => {
       const CID = await getCID();
       const IPFS_TOKENS = IPFS_ENDPOINT + `/ipfs/${CID}`;
@@ -29,6 +30,9 @@ export const useFetchTokensViaIPFS = () => {
     };
 
     fetchTokens();
+    return () => {
+      isMounted = false;
+    };
   }, []);
   return [{ tokenData, isError, allTokens }];
 };
