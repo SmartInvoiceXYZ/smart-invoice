@@ -23,7 +23,7 @@ type Invoice @entity {
   disputeId: BigInt!
   projectName: String!
   projectDescription: String!
-  projectAgreement: String!
+  projectAgreement: [Agreement!]!
   startDate: BigInt # seconds since epoch
   endDate: BigInt # seconds since epoch
   deposits: [Deposit!]!
@@ -48,6 +48,13 @@ type Deposit @entity {
   invoice: Invoice!
   amount: BigInt!
   timestamp: BigInt!
+}
+
+type Agreement @entity {
+  id: ID!
+  type: String!
+  src: String!
+  createdAt: BigInt!
 }
 
 

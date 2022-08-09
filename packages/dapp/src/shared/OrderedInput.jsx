@@ -16,6 +16,8 @@ import { isValidLink } from '../utils/helpers';
 
 export const OrderedLinkInput = ({
   label,
+  linkType,
+  setLinkType,
   value,
   setValue,
   infoText,
@@ -24,7 +26,7 @@ export const OrderedLinkInput = ({
   type = 'text',
   ...props
 }) => {
-  const [protocol, setProtocol] = useState('https://');
+  const [protocol, setProtocol] = useState(`${linkType}://`);
   const [input, setInput] = useState('');
   const [isInvalid, setInvalid] = useState(false);
 
@@ -56,6 +58,8 @@ export const OrderedLinkInput = ({
                 const newValue = newProtocol + input;
                 const isValid = isValidLink(newValue);
                 setValue(newValue);
+                setLinkType(newProtocol.substring(0, newProtocol.length - 3));
+                console.log(newProtocol.substring(0, newProtocol.length - 3));
                 setInvalid(!isValid);
                 setProtocol(newProtocol);
               }}
@@ -92,6 +96,7 @@ export const OrderedLinkInput = ({
               const newValue = newProtocol + newInput;
               const isValid = isValidLink(newValue);
               setValue(newValue);
+              setLinkType(newProtocol.substring(0, newProtocol.length - 3));
               setInvalid(!isValid);
               setInput(newInput);
               setProtocol(newProtocol);
