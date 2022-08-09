@@ -29,7 +29,7 @@ export const useFetchTokensViaIPFS = () => {
       }
     };
 
-    fetchTokens();
+    if (isMounted) fetchTokens();
     return () => {
       isMounted = false;
     };
