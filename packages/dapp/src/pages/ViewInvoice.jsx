@@ -55,9 +55,11 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -134,7 +136,11 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+  const { decimals, symbol, image } = getTokenInfo(
+    invoiceChainId,
+    token,
+    tokenData,
+  );
 
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)

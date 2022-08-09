@@ -29,7 +29,7 @@ const app = initializeApp(firebaseConfig);
 const dbRef = ref(getDatabase(app));
 
 export const getCID = async () => {
-  const CID = await get(child(dbRef, `CID`))
+  const CID = await get(child(dbRef, `CID2`))
     .then(snapshot => {
       if (snapshot.exists()) {
         return snapshot.val();

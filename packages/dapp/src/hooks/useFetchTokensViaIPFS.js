@@ -30,5 +30,6 @@ export const useFetchTokensViaIPFS = () => {
 
     fetchTokens();
   }, []);
+  console.log(tokenData, 'tokenData');
   return [{ tokenData, isError, allTokens }];
 };
