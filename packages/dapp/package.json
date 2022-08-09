@@ -12,6 +12,7 @@
     "@gnosis.pm/safe-apps-provider": "^0.2.4",
     "@gnosis.pm/safe-apps-sdk": "^2.2.0",
     "@gnosis.pm/safe-apps-web3modal": "^0.2.2",
+    "@react-pdf/renderer": "^2.3.0",
     "@walletconnect/web3-provider": "^1.4.1",
     "base-58": "^0.0.1",
     "ethers": "^5.1.0",

@@ -23,6 +23,7 @@ import {
   getTokenInfo,
   getTxLink,
   logError,
+  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
@@ -35,9 +36,11 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     token,
     network,
     amounts,
+    deposits,
     projectName,
     projectDescription,
     projectAgreement,
+    resolutionRate,
     startDate,
     endDate,
   } = invoice;
@@ -60,6 +63,20 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   );
   const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
     useState(projectAgreement[projectAgreement.length - 1].type);
+  const [remainingFunds, setRemainingFunds] = useState(0);
+
+  useEffect(() => {
+    const totalAmounts = utils.formatUnits(
+      amounts.reduce((a, b) => parseInt(a) + parseInt(b), 0),
+    );
+    const totalDeposits = utils.formatUnits(
+      deposits.reduce((a, b) => parseInt(a) + parseInt(b), 0),
+    );
+
+    const remaining = totalAmounts - totalDeposits;
+
+    setRemainingFunds(remaining);
+  }, [amounts, deposits]);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -239,6 +256,28 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           {symbol}
         </Text>
       </VStack>
+      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+        {due && (
+          <HStack>
+            <Text fontWeight="bold" color="red.500">
+              Potential Dispute Fee:
+            </Text>
+            <Text>
+              {`${
+                addedTotalInput
+                  ? (
+                      (remainingFunds + addedTotalInput) *
+                      calculateResolutionFeePercentage(resolutionRate)
+                    ).toFixed(5)
+                  : (
+                      remainingFunds *
+                      calculateResolutionFeePercentage(resolutionRate)
+                    ).toFixed(5)
+              } ${symbol}`}
+            </Text>
+          </HStack>
+        )}
+      </Flex>
       <Flex color="white" justify="space-between" w="100%" fontSize="sm">
         {due && (
           <HStack>

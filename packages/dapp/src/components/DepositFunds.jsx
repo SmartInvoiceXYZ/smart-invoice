@@ -29,6 +29,7 @@ import {
   getTxLink,
   getWrappedNativeToken,
   logError,
+  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 const getCheckedStatus = (deposited, amounts) => {
@@ -79,7 +80,6 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   };
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
-
   const initialStatus = getCheckedStatus(deposited, amounts);
   const [checked, setChecked] = useState(initialStatus);
 
@@ -218,6 +218,16 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
           <VStack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
             <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
+          </VStack>
+        )}
+        {deposited && (
+          <VStack align="flex-start">
+            <Text fontWeight="bold">Potential Dispute Fee</Text>
+            <Text>{`${(
+              (utils.formatUnits(amount, decimals) -
+                utils.formatUnits(deposited, decimals)) *
+              calculateResolutionFeePercentage(invoice.resolutionRate)
+            ).toFixed(6)} ${symbol}`}</Text>
           </VStack>
         )}
         {due && (
