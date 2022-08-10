@@ -15,6 +15,7 @@
     "@react-pdf/renderer": "^2.3.0",
     "@walletconnect/web3-provider": "^1.4.1",
     "base-58": "^0.0.1",
+    "dotenv": "^16.0.1",
     "ethers": "^5.1.0",
     "fake-tag": "^2.0.0",
     "firebase": "^9.8.4",
