@@ -5,10 +5,7 @@ export const StepInfo = ({ stepNum, stepTitle, stepDetails }) => {
   const maxW = useBreakpointValue({ base: '30rem', lg: '20rem' });
   return (
     <VStack spacing="1rem" maxW={maxW} align="stretch">
-      <Heading fontWeight="normal" fontSize="xl">
-        Create a Smart Invoice
-      </Heading>
-      <Text color="white">
+      <Text color="#323C47">
         Step {stepNum}: {stepTitle}
       </Text>
       {stepDetails.map((detail, index) => {

@@ -99,10 +99,7 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 export const STEPS = {
   1: {
     step_title: 'Project Details',
-    step_details: [
-      'Note: All invoice data will be stored publicly on IPFS and can be viewed by anyone.',
-      'If you have privacy concerns, we recommend taking care to add permissions to your project agreement document.',
-    ],
+    step_details: [],
     next: 'payment details',
   },
   2: {

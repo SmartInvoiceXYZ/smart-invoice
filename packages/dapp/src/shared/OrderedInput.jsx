@@ -65,8 +65,8 @@ export const OrderedLinkInput = ({
               }}
               value={protocol}
               bg="none"
-              color="white"
-              border="none"
+              color="black"
+              border="1px"
               fontWeight="bold"
               borderRadius="none"
             >
@@ -76,7 +76,7 @@ export const OrderedLinkInput = ({
           </InputLeftElement>
           <Input
             pl="7.25rem"
-            bg="black"
+            bg="white"
             type={type}
             value={input}
             maxLength={240}
@@ -102,8 +102,8 @@ export const OrderedLinkInput = ({
               setProtocol(newProtocol);
             }}
             placeholder={placeholder}
-            color="white"
-            border="none"
+            color="black"
+            border="1px"
             isInvalid={isInvalid}
             _invalid={{ border: '1px solid', borderColor: 'purple' }}
           />
@@ -153,13 +153,13 @@ export const OrderedInput = ({
       </Flex>
       <Flex direction="column" w="100%">
         <Input
-          bg="black"
+          bg="white"
           type={type}
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder={placeholder}
-          color="white"
-          border="none"
+          color="black"
+          border="1px"
           isDisabled={isDisabled}
           isInvalid={isInvalid}
           _invalid={{ border: '1px solid', borderColor: 'purple' }}
@@ -231,7 +231,7 @@ export const OrderedTextarea = ({
   type = 'text',
 }) => {
   return (
-    <VStack w="100%" spacing="0.5rem" justify="space-between" color="red.500">
+    <VStack w="100%" spacing="0.5rem" justify="space-between" color="#707683">
       <Flex justify="space-between" w="100%">
         <Text fontWeight="700">{label}</Text>
         <Flex>
@@ -244,13 +244,13 @@ export const OrderedTextarea = ({
         </Flex>
       </Flex>
       <Textarea
-        bg="black"
+        bg="white"
         type={type}
         value={value}
         onChange={e => setValue(e.target.value)}
         placeholder={placeholder}
-        color="white"
-        border="none"
+        color="black"
+        border="1px"
         isDisabled={isDisabled}
         h="4rem"
         resize="none"

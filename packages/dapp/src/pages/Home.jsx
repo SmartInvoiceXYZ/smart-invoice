@@ -68,7 +68,7 @@ export const Home = () => {
         maxW="calc(100% - 2rem)"
       >
         <Button
-          colorScheme="red"
+          colorScheme="blue"
           onClick={createInvoice}
           size={buttonSize}
           fontFamily="mono"
@@ -86,7 +86,7 @@ export const Home = () => {
           or
         </Text>
         <Button
-          colorScheme="red"
+          colorScheme="blue"
           onClick={viewInvoices}
           size={buttonSize}
           fontFamily="mono"
@@ -97,7 +97,7 @@ export const Home = () => {
         <Button
           mt="2rem"
           variant="link"
-          color="white"
+          color="black"
           textDecor="underline"
           size={buttonSize}
           fontSize={fontSize}
@@ -123,34 +123,7 @@ export const Home = () => {
             })}
         py="3rem"
         m="1rem"
-      >
-        <VStack
-          bgColor="background"
-          p={betaWarningSmallScreen ? '1rem' : '2rem'}
-          color="white"
-          spacing="1rem"
-          maxW="32rem"
-        >
-          <Text fontFamily="mono" textAlign="center" fontSize={buttonSize}>
-            This product is in beta!
-          </Text>
-          <Text fontSize={smallFontSize}>
-            The contracts Smart Invoice uses are thoroughly tested, but not
-            audited. Raid Guild does not own the contracts created by this
-            service, and does not control the money stored in them. Use at your
-            own risk.
-          </Text>
-
-          <Link
-            href="https://docs.smartinvoice.xyz"
-            textDecor="underline"
-            isExternal
-            fontSize={smallFontSize}
-          >
-            Learn more about staying safe.
-          </Link>
-        </VStack>
-      </Flex>
+      ></Flex>
     </Container>
   );
 };
