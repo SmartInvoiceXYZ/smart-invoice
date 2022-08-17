@@ -281,9 +281,22 @@ const InvoicePDF = ({ invoice, symbol }) => {
           <Text style={styles.details}>
             Description: <Text style={styles.text}>{projectDescription}</Text>
           </Text>
-          <Text style={styles.details}>
-            Agreement: <Text style={styles.text}>{projectAgreement}</Text>
-          </Text>
+          <Text style={styles.details}>Project Agreement(s):</Text>
+          {projectAgreement.map((agreement, index) => {
+            return (
+              <View key={agreement.createdAt}>
+                <Text style={[styles.text, { textTransform: 'none' }]}>
+                  Agreement #{index + 1}:
+                </Text>
+                <Text style={[styles.text, { textIndent: 20 }]}>
+                  Created At: {unixToDateTime(createdAt)}
+                </Text>
+                <Text style={[styles.text, { textIndent: 20 }]}>
+                  Agreement Source: {agreement.src}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         {/* Payment Milestones */}
