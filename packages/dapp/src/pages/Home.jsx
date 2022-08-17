@@ -1,11 +1,9 @@
 import {
   Button,
   Flex,
-  Link,
   Text,
   useBreakpointValue,
   useDisclosure,
-  VStack,
 } from '@chakra-ui/react';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -47,7 +45,6 @@ export const Home = () => {
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-  const smallFontSize = useBreakpointValue({ base: 'sm', sm: 'md' });
   const fontSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
   const smallScreen = useBreakpointValue({ base: true, sm: false });
   const betaWarningSmallScreen = useBreakpointValue({ base: true, lg: false });

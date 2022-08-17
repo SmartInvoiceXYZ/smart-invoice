@@ -2,55 +2,63 @@ import {
   Button,
   Flex,
   Heading,
-  Input,
-  InputGroup,
-  InputRightElement,
   Text,
   useBreakpointValue,
-  Grid,
   IconButton,
-  GridItem,
+  Td,
+  Tr,
+  Th,
+  Table,
+  Tbody,
+  Thead,
+  chakra,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { withRouter } from 'react-router-dom';
-
+import { useTable, useSortBy } from 'react-table';
 import { Loader } from '../components/Loader';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
 import { Container } from '../shared/Container';
-import { DragHandleIcon } from '@chakra-ui/icons';
-import { VerticalDotsIcon } from '../icons/VerticalDots';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { theme } from '../theme';
-import {
-  getHexChainId,
-  getTokenSymbol,
-  dateTimeToDate,
-} from '../utils/helpers';
+import { dateTimeToDate, getTokenInfo } from '../utils/helpers';
 import { unixToDateTime } from '../utils/invoice';
-import { formatEther } from 'ethers/lib/utils';
+import { formatUnits } from 'ethers/lib/utils';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
+import { VerticalDotsIcon } from '../icons/VerticalDots';
 
 const InvoiceStatusLabel = ({ invoice }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
   const { isLocked, terminationTime } = invoice;
   const terminated = terminationTime > Date.now();
+  const disputeResolved = label === 'Dispute Resolved';
 
   return (
     <Flex
       // backgroundColor={funded ? 'green' : 'orange'}
       backgroundColor={
-        terminated ? 'gray' : isLocked ? 'red' : funded ? 'green' : 'orange'
+        terminated
+          ? 'gray'
+          : isLocked
+          ? 'red'
+          : funded
+          ? 'green'
+          : disputeResolved
+          ? 'gray'
+          : 'orange'
       }
       padding="6px"
       borderRadius="10"
-      minWidth="155px"
+      minWidth="165px"
+      justify="center"
     >
       <Text
         color="white"
         fontWeight="bold"
         textTransform="uppercase"
-        textAlign="right"
+        textAlign="center"
         fontSize="15px"
       >
         {loading ? <Loader size="20" /> : label}
@@ -59,15 +67,152 @@ const InvoiceStatusLabel = ({ invoice }) => {
   );
 };
 
-const responsiveText = text => {
-  return (
-    <svg viewBox="0 0 56 18">
-      <text x="0" y="15">
-        {text}
-      </text>
-    </svg>
+function InvoiceDashboardTable({ result, tokenData, chainId }) {
+  const data = useMemo(() => {
+    const dataArray = [];
+
+    result.forEach((invoice, index) => {
+      const { decimals, symbol } = getTokenInfo(
+        chainId,
+        invoice.token,
+        tokenData,
+      );
+      const details = {
+        createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
+        projectName: invoice.projectName,
+        amount: formatUnits(invoice.total, decimals),
+        currency: symbol,
+        status: <InvoiceStatusLabel invoice={invoice} />,
+        action: (
+          <IconButton
+            backgroundColor="white"
+            size="lg"
+            _hover={{
+              bgColor: 'white',
+              border: '1px',
+              borderColor: 'gray.200',
+            }}
+            _active={{
+              bgColor: 'white20',
+            }}
+            icon={<VerticalDotsIcon />}
+          />
+        ),
+      };
+      dataArray.push(details);
+    });
+    return dataArray;
+  }, [chainId, result, tokenData]);
+
+  const columns = useMemo(
+    () => [
+      {
+        Header: 'Date Created',
+        accessor: 'createdAt',
+      },
+      {
+        Header: 'Invoice Name/ID',
+        accessor: 'projectName',
+      },
+      {
+        Header: 'Amount',
+        accessor: 'amount',
+        isNumeric: true,
+      },
+      {
+        Header: 'Currency',
+        accessor: 'currency',
+        isNumeric: true,
+      },
+      {
+        Header: 'Status',
+        accessor: 'status',
+      },
+      {
+        Header: 'Action',
+        accessor: 'action',
+      },
+    ],
+    [],
   );
-};
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+  } = useTable({ columns, data }, useSortBy);
+
+  //   <Button
+  //   borderTopLeftRadius="10"
+  //   borderBottomLeftRadius="10"
+  //   borderTopRightRadius="0"
+  //   borderBottomRightRadius="0"
+  //   variant="ghost"
+  //   size="lg"
+  //   backgroundColor="white"
+  //   boxShadow="sm"
+  //   onClick={() =>
+  //     history.push(
+  //       `/invoice/${getHexChainId(invoice.network)}/${
+  //         invoice.address
+  //       }`,
+  //     )
+  //   }
+  //   _hover={{
+  //     bgColor: 'white',
+  //     border: '1px',
+  //     borderColor: 'gray.200',
+  //   }}
+  //   _active={{
+  //     bgColor: 'white20',
+  //   }}
+  //   px={{ base: '0.5rem', md: '1rem' }}
+  // >
+
+  return (
+    <Table {...getTableProps()} backgroundColor="white" borderRadius="10">
+      <Thead>
+        {headerGroups.map(headerGroup => (
+          <Tr {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map(column => (
+              <Th
+                {...column.getHeaderProps(column.getSortByToggleProps())}
+                isNumeric={column.isNumeric}
+              >
+                {column.render('Header')}
+                <chakra.span pl="4">
+                  {column.isSorted ? (
+                    column.isSortedDesc ? (
+                      <TriangleDownIcon aria-label="sorted descending" />
+                    ) : (
+                      <TriangleUpIcon aria-label="sorted ascending" />
+                    )
+                  ) : null}
+                </chakra.span>
+              </Th>
+            ))}
+          </Tr>
+        ))}
+      </Thead>
+      <Tbody {...getTableBodyProps()}>
+        {rows.map(row => {
+          prepareRow(row);
+          return (
+            <Tr {...row.getRowProps()}>
+              {row.cells.map(cell => (
+                <Td {...cell.getCellProps()} isNumeric={cell.column.isNumeric}>
+                  {cell.render('Cell')}
+                </Td>
+              ))}
+            </Tr>
+          );
+        })}
+      </Tbody>
+    </Table>
+  );
+}
 
 const InvoicesInner = ({ history }) => {
   const { search, setSearch, result, fetching } = useContext(SearchContext);
@@ -101,7 +246,6 @@ const InvoicesInner = ({ history }) => {
         w={{ base: '55rem', md: '55rem' }}
         maxW="calc(100%-4rem)"
         fontSize={{ base: 'md', sm: 'lg', lg: 'xl' }}
-        // mt="6rem"
         mb="4rem"
       >
         <Heading fontWeight="bold" mb="1rem">
@@ -133,100 +277,15 @@ const InvoicesInner = ({ history }) => {
           maxH="30rem"
           overflowY="auto"
         >
-          {result &&
-            result.map((invoice, index) => (
-              <Flex key={invoice.address}>
-                <Grid
-                  templateColumns="repeat(15, 1fr)"
-                  mt="4px"
-                  minH="3rem"
-                  width="100%"
-                >
-                  <GridItem colSpan={14}>
-                    <Button
-                      borderTopLeftRadius="10"
-                      borderBottomLeftRadius="10"
-                      borderTopRightRadius="0"
-                      borderBottomRightRadius="0"
-                      variant="ghost"
-                      size="lg"
-                      backgroundColor="white"
-                      boxShadow="sm"
-                      onClick={() =>
-                        history.push(
-                          `/invoice/${getHexChainId(invoice.network)}/${
-                            invoice.address
-                          }`,
-                        )
-                      }
-                      _hover={{
-                        bgColor: 'white',
-                        border: '1px',
-                        borderColor: 'gray.200',
-                      }}
-                      _active={{
-                        bgColor: 'white20',
-                      }}
-                      px={{ base: '0.5rem', md: '1rem' }}
-                    >
-                      <Grid
-                        templateColumns={templateColumnWidth}
-                        gap={1}
-                        backgroundColor={testColor}
-                        width="100%"
-                      >
-                        <Text
-                          borderRight="1px"
-                          borderColor="gray.100"
-                          color="#323C47"
-                          textAlign="left"
-                        >
-                          {' '}
-                          {dateTimeToDate(
-                            unixToDateTime(invoice.createdAt),
-                          )}{' '}
-                        </Text>
-                        <Text color="#323C47" textAlign="left">
-                          {' '}
-                          {invoice.projectName}{' '}
-                        </Text>
-                        <Text color="#323C47" textAlign="right">
-                          {' '}
-                          {formatEther(invoice.total)}{' '}
-                        </Text>
-                        <Text color="#323C47" textAlign="left">
-                          {' '}
-                          {getTokenSymbol(
-                            invoice.token,
-                            chainId,
-                            tokenData,
-                          )}{' '}
-                        </Text>
-                        <InvoiceStatusLabel invoice={invoice} />
-                      </Grid>
-                    </Button>
-                  </GridItem>
-
-                  <IconButton
-                    backgroundColor="white"
-                    size="lg"
-                    borderTopLeftRadius="0"
-                    borderBottomLeftRadius="0"
-                    borderTopRightRadius="10"
-                    borderBottomRightRadius="10"
-                    _hover={{
-                      bgColor: 'white',
-                      border: '1px',
-                      borderColor: 'gray.200',
-                    }}
-                    _active={{
-                      bgColor: 'white20',
-                    }}
-                    icon={<VerticalDotsIcon />}
-                  />
-                </Grid>
-              </Flex>
-            ))}
+          {result && result.length !== 0 ? (
+            <InvoiceDashboardTable
+              chainId={chainId}
+              result={result}
+              tokenData={tokenData}
+            />
+          ) : (
+            'Invoices Loading'
+          )}
 
           {!fetching && result && result.length === 0 && (
             <Flex
@@ -251,13 +310,3 @@ const InvoicesWithProvider = props => (
 );
 
 export const Invoices = withRouter(InvoicesWithProvider);
-
-{
-  /* <Grid templateColumns='repeat(5, 1fr)' gap={6}>
-<Text color="#323C47" textAlign='left'>Date Created</Text>
-<Text color="#323C47" textAlign='left'>Project Name</Text>
-<Text color="#323C47" textAlign='right'>Amount</Text>
-<Text color="#323C47" textAlign='left'>Currency</Text>     
-<Text color="#323C47"> Status </Text>      
-</Grid> */
-}

@@ -1,4 +1,4 @@
-import { Button, useBreakpointValue, VStack } from '@chakra-ui/react';
+import { Button, VStack } from '@chakra-ui/react';
 import React, { useContext, useState, useEffect } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
@@ -12,13 +12,13 @@ export const VerifyInvoice = ({
   invoice,
   verified,
   client,
+  isClient,
+  verifiedStatus,
   setVerifiedStatus,
 }) => {
   const { provider } = useContext(Web3Context);
   const { address } = invoice;
   const [transaction, setTransaction] = useState();
-
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
     let status = invoice.verified[0];
@@ -42,32 +42,33 @@ export const VerifyInvoice = ({
   };
 
   return (
-    <VStack w="100%" spacing="rem">
-      {transaction ? (
-        <Button
-          size={buttonSize}
-          colorScheme="blue"
-          variant="outline"
-          fontWeight="normal"
-          fontFamily="mono"
-          textTransform="uppercase"
-        >
-          <Text>verifying...</Text>
-          <Spinner />
-        </Button>
-      ) : (
-        <Button
-          size={buttonSize}
-          colorScheme="blue"
-          variant="outline"
-          fontWeight="normal"
-          fontFamily="mono"
-          textTransform="uppercase"
-          onClick={() => verifyInvoice()}
-        >
-          <Text>Enable Non-Client Account Deposits</Text>
-        </Button>
-      )}
+    <VStack w="100%" spacing="rem" alignItems="start">
+      {verifiedStatus ? null : isClient ? (
+        transaction ? (
+          <Button
+            size="xs"
+            colorScheme="blue"
+            variant="outline"
+            fontWeight="bold"
+            fontFamily="mono"
+            textTransform="uppercase"
+          >
+            <Text>verifying...</Text>
+            <Spinner ml="1" size="sm" />
+          </Button>
+        ) : (
+          <Button
+            size="xs"
+            colorScheme="blue"
+            fontWeight="normal"
+            fontFamily="mono"
+            textTransform="uppercase"
+            onClick={() => verifyInvoice()}
+          >
+            <Text>Enable Non-Client Account Deposits</Text>
+          </Button>
+        )
+      ) : null}
     </VStack>
   );
 };

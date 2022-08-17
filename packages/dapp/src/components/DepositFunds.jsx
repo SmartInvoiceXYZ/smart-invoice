@@ -261,12 +261,12 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
         Deposit
       </Button>
       {transaction && (
-        <Text color="white" textAlign="center" fontSize="sm">
+        <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="red.500"
+            color="blue"
             textDecoration="underline"
           >
             here

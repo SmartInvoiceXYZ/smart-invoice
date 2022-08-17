@@ -28,7 +28,6 @@ import {
 
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
-import { formatEther } from 'ethers/lib/utils';
 
 export const AddMilestones = ({ invoice, due, tokenData }) => {
   const { chainId, provider } = useContext(Web3Context);
@@ -91,7 +90,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     } else {
       setRemainingFunds(totalAmounts);
     }
-  }, [amounts, deposits]);
+  }, [amounts, deposits, decimals]);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
