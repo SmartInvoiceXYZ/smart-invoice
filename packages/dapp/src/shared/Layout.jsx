@@ -21,7 +21,6 @@ export const Layout = ({ children }) => {
       justify="center"
       align="center"
       bg="#F5F6F8"
-      // bg="red" for visibility
       h="100%"
       minH="100vh"
       overflowX="hidden"

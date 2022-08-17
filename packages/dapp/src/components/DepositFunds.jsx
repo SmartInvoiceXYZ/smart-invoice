@@ -100,19 +100,20 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Pay Invoice
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         At a minimum, you’ll need to deposit enough to cover the{' '}
         {currentMilestone === 0 ? 'first' : 'next'} project payment.
       </Text>
 
-      <Text textAlign="center" color="red.500">
+      <Text textAlign="center" color="black">
         How much will you be depositing today?
       </Text>
       <VStack spacing="0.5rem">
@@ -138,11 +139,10 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
                 setAmount(newAmount);
                 setAmountInput(utils.formatUnits(newAmount, decimals));
               }}
-              colorScheme="red"
-              border="none"
+              colorScheme="blue"
               size="lg"
               fontSize="1rem"
-              color="white"
+              color="#323C47"
             >
               Payment #{i + 1} &nbsp; &nbsp;
               {utils.formatUnits(a, decimals)} {symbol}
@@ -151,7 +151,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
         })}
       </VStack>
 
-      <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
+      <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
         <Flex justify="space-between" w="100%">
           <Text fontWeight="700">Amount</Text>
           <Flex>
@@ -167,9 +167,9 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
         </Flex>
         <InputGroup>
           <Input
-            bg="black"
-            color="white"
-            border="none"
+            bg="white"
+            color="black"
+            border="1px"
             type="number"
             value={amountInput}
             onChange={e => {
@@ -192,9 +192,9 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}
                 value={paymentType}
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
               >
                 <option value="0">{symbol}</option>
                 <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
@@ -213,7 +213,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
           </Alert>
         )}
       </VStack>
-      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {deposited && (
           <VStack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
@@ -250,7 +250,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
       <Button
         onClick={deposit}
         isLoading={loading}
-        colorScheme="red"
+        colorScheme="blue"
         isDisabled={amount.lte(0)}
         textTransform="uppercase"
         size={buttonSize}

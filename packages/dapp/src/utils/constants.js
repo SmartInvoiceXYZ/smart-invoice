@@ -1,5 +1,10 @@
 import { CONFIG } from '../config';
 
+const {
+  REACT_APP_INFURA_PROJECT_ID,
+  REACT_APP_INFURA_PROJECT_SECRET,
+} = process.env;
+
 const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
 export { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT };
@@ -118,3 +123,11 @@ export const STEPS = {
     next: 'create invoice',
   },
 };
+
+export const INFURA_AUTH =
+  'Basic ' +
+  Buffer.from(
+    `${REACT_APP_INFURA_PROJECT_ID}` +
+      ':' +
+      `${REACT_APP_INFURA_PROJECT_SECRET}`,
+  ).toString('base64');

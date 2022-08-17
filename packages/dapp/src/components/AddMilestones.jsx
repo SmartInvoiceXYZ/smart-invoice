@@ -28,6 +28,7 @@ import {
 
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
+import { formatEther } from 'ethers/lib/utils';
 
 export const AddMilestones = ({ invoice, due, tokenData }) => {
   const { chainId, provider } = useContext(Web3Context);
@@ -61,21 +62,35 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
     projectAgreement[projectAgreement.length - 1].src,
   );
-  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
-    useState(projectAgreement[projectAgreement.length - 1].type);
+  const [
+    revisedProjectAgreementType,
+    setRevisedProjectAgreementType,
+  ] = useState(projectAgreement[projectAgreement.length - 1].type);
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
+    console.log(
+      utils.formatUnits(
+        amounts.reduce((a, b) => parseInt(a) + parseInt(b)),
+        decimals,
+      ),
+    );
+
     const totalAmounts = utils.formatUnits(
-      amounts.reduce((a, b) => parseInt(a) + parseInt(b), 0),
-    );
-    const totalDeposits = utils.formatUnits(
-      deposits.reduce((a, b) => parseInt(a) + parseInt(b), 0),
+      amounts.reduce((a, b) => parseInt(a) + parseInt(b)),
+      decimals,
     );
 
-    const remaining = totalAmounts - totalDeposits;
-
-    setRemainingFunds(remaining);
+    if (deposits.length > 0) {
+      const totalDeposits = utils.formatUnits(
+        deposits.reduce((a, b) => parseInt(a) + parseInt(b)),
+        decimals,
+      );
+      const remaining = totalAmounts - totalDeposits;
+      setRemainingFunds(remaining);
+    } else {
+      setRemainingFunds(totalAmounts);
+    }
   }, [amounts, deposits]);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
@@ -136,10 +151,12 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
+        size="lg"
       >
         Add New Payment Milestones
       </Heading>
@@ -151,6 +168,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           setValue={setRevisedProjectAgreementSrc}
           linkType={revisedProjectAgreementType}
           setLinkType={setRevisedProjectAgreementType}
+          backgroundColor="white"
           tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         />
       ) : (
@@ -165,6 +183,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         <OrderedInput
           label="Total Payment Added"
           type="number"
+          color="black"
           value={addedTotalInput}
           isInvalid={addedTotalInvalid}
           setValue={v => {
@@ -183,6 +202,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         <OrderedInput
           gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
           label="Number of Payments"
+          color="black"
           type="number"
           value={addedMilestones}
           isInvalid={addedMilestonesInvalid}
@@ -225,10 +245,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
               </Flex>
               <InputGroup>
                 <Input
-                  bg="black"
+                  bg="white"
                   type="text"
-                  color="white"
-                  border="none"
+                  color="black"
+                  border="1px"
                   pr="3.5rem"
                   onChange={e => {
                     if (!e.target.value || isNaN(Number(e.target.value)))
@@ -244,7 +264,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
                     console.log('addedTotal: ', addedTotal);
                   }}
                 />
-                <InputRightElement color="white" w="3.5rem">
+                <InputRightElement color="black" w="3.5rem">
                   {symbol}
                 </InputRightElement>
               </InputGroup>
@@ -256,10 +276,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           {symbol}
         </Text>
       </VStack>
-      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {due && (
           <HStack>
-            <Text fontWeight="bold" color="red.500">
+            <Text fontWeight="bold" color="black">
               Potential Dispute Fee:
             </Text>
             <Text>
@@ -278,10 +298,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           </HStack>
         )}
       </Flex>
-      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {due && (
           <HStack>
-            <Text fontWeight="bold" color="red.500">
+            <Text fontWeight="bold" color="black">
               Expected Total Due:
             </Text>
             <Text>{`${
@@ -299,20 +319,20 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       <Button
         onClick={addNewMilestones}
         isLoading={loading}
-        colorScheme="red"
+        colorScheme="blue"
         isDisabled={
           milestoneAmountsInput.reduce((t, v) => t + v, 0) !== addedTotalInput
         }
         textTransform="uppercase"
         size={buttonSize}
         fontFamily="mono"
-        fontWeight="normal"
+        fontWeight="bold"
         w="100%"
       >
         Add
       </Button>
       {transaction && (
-        <Text color="white" textAlign="center" fontSize="sm">
+        <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction.hash)}

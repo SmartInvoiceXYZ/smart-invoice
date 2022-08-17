@@ -55,11 +55,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -229,7 +227,7 @@ export const ViewInvoice = ({
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
-            <Flex align="center" color="white">
+            <Flex align="center" color="black">
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
@@ -241,7 +239,7 @@ export const ViewInvoice = ({
                   ml={4}
                   onClick={() => copyToClipboard(invoiceId.toLowerCase())}
                   variant="ghost"
-                  colorScheme="red"
+                  colorScheme="blue"
                   h="auto"
                   w="auto"
                   minW="2"
@@ -252,14 +250,14 @@ export const ViewInvoice = ({
               )}
             </Flex>
             {projectDescription && (
-              <Text color="white">{projectDescription}</Text>
+              <Text color="black">{projectDescription}</Text>
             )}
 
             <Link
               href={projectAgreement[projectAgreement.length - 1].src}
               isExternal
               textDecor="underline"
-              color="white"
+              color="black"
             >
               Details of Agreement
             </Link>
@@ -297,7 +295,7 @@ export const ViewInvoice = ({
                   ).toUTCString()}`}
                   placement="auto-start"
                 >
-                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="red.500" />
+                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
                 </Tooltip>
               </WrapItem>
             </Wrap>
@@ -351,12 +349,12 @@ export const ViewInvoice = ({
           <Button
             maxW="fit-content"
             alignSelf="flex-end"
-            colorScheme="red"
-            variant="outline"
+            colorScheme="blue"
             onClick={onAddMilestones}
           >
             Add Milestones
           </Button>
+          {console.log(invoice)}
           <Flex
             bg="background"
             direction="column"
@@ -365,7 +363,7 @@ export const ViewInvoice = ({
             py="1.5rem"
             borderRadius="0.5rem"
             w="100%"
-            color="white"
+            color="black"
           >
             <Flex
               justify="space-between"
@@ -669,7 +667,7 @@ export const ViewInvoice = ({
               ) : (
                 <Button
                   size={buttonSize}
-                  colorScheme="red"
+                  colorScheme="blue"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -712,7 +710,7 @@ export const ViewInvoice = ({
                 <Button
                   size={buttonSize}
                   variant="outline"
-                  colorScheme="red"
+                  colorScheme="blue"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -729,7 +727,7 @@ export const ViewInvoice = ({
                     : '2/1/2/span 2',
                   sm: 'auto/auto/auto/auto',
                 }}
-                colorScheme="red"
+                colorScheme="blue"
                 fontWeight="normal"
                 fontFamily="mono"
                 textTransform="uppercase"
@@ -794,6 +792,7 @@ export const ViewInvoice = ({
                 _hover={{ bgColor: 'white20' }}
                 top="0.5rem"
                 right="0.5rem"
+                color="gray"
               />
               {modal && selected === 0 && (
                 <LockFunds

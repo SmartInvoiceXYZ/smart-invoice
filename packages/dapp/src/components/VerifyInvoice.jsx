@@ -46,7 +46,7 @@ export const VerifyInvoice = ({
       {transaction ? (
         <Button
           size={buttonSize}
-          colorScheme="red"
+          colorScheme="blue"
           variant="outline"
           fontWeight="normal"
           fontFamily="mono"
@@ -58,7 +58,7 @@ export const VerifyInvoice = ({
       ) : (
         <Button
           size={buttonSize}
-          colorScheme="red"
+          colorScheme="blue"
           variant="outline"
           fontWeight="normal"
           fontFamily="mono"

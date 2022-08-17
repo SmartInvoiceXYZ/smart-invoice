@@ -57,17 +57,17 @@ export const RegisterSuccess = () => {
       maxW="30rem"
       px="1rem"
     >
-      <Heading fontWeight="normal" textAlign="center">
+      <Heading fontWeight="bold" textAlign="center">
         {invoice ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
-      <Text color="white" textAlign="center" fontSize="sm">
+      <Text color="black" textAlign="center" fontSize="sm">
         {invoice
           ? 'You can view your transaction '
           : 'You can check the progress of your transaction '}
         <Link
           href={getTxLink(chainId, tx.hash)}
           isExternal
-          color="red.500"
+          color="blue"
           textDecoration="underline"
         >
           here
@@ -90,7 +90,7 @@ export const RegisterSuccess = () => {
                 href={`/invoice/${getHexChainId(invoice.network)}/${
                   invoice.id
                 }`}
-                color="white"
+                color="charcoal"
                 overflow="hidden"
               >
                 {invoice.id}
@@ -100,7 +100,7 @@ export const RegisterSuccess = () => {
                   ml={4}
                   onClick={() => copyToClipboard(invoice.id)}
                   variant="ghost"
-                  colorScheme="red"
+                  colorScheme="blue"
                   h="auto"
                   w="auto"
                   minW="2"
@@ -126,7 +126,7 @@ export const RegisterSuccess = () => {
                 href={`/invoice/${getHexChainId(invoice.network)}/${
                   invoice.id
                 }`}
-                color="white"
+                color="charcoal"
                 overflow="hidden"
               >{`${window.location.origin}/invoice/${getHexChainId(
                 invoice.network,
@@ -142,7 +142,7 @@ export const RegisterSuccess = () => {
                     )
                   }
                   variant="ghost"
-                  colorScheme="red"
+                  colorScheme="blue"
                   h="auto"
                   w="auto"
                   minW="2"
@@ -161,11 +161,10 @@ export const RegisterSuccess = () => {
       )}
       <Button
         w="100%"
-        variant="outline"
-        colorScheme="red"
+        colorScheme="blue"
         textTransform="uppercase"
         fontFamily="mono"
-        fontWeight="normal"
+        fontWeight="bold"
         size="lg"
         onClick={() => history.push('/')}
       >

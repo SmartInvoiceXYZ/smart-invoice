@@ -15,8 +15,13 @@ import { getTokenInfo } from '../utils/helpers';
 
 export const PaymentChunksForm = ({ display, tokenData }) => {
   const { chainId } = useContext(Web3Context);
-  const { paymentToken, milestones, payments, setPayments, paymentDue } =
-    useContext(CreateContext);
+  const {
+    paymentToken,
+    milestones,
+    payments,
+    setPayments,
+    paymentDue,
+  } = useContext(CreateContext);
   const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
@@ -29,10 +34,10 @@ export const PaymentChunksForm = ({ display, tokenData }) => {
             </Flex>
             <InputGroup>
               <Input
-                bg="black"
+                bg="white"
                 type="text"
-                color="white"
-                border="none"
+                color="#323C47"
+                border="1px"
                 pr="3.5rem"
                 onChange={e => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;

@@ -35,9 +35,9 @@ export const theme = {
   },
   fonts: {
     ...chakraTheme.fonts,
-    mono: `'Rubik Mono One', sans-serif`,
+    mono: `'Poppins', sans-serif`,
     heading: `'Poppins', sans-serif`,
-    body: `'Roboto', sans-serif`,
+    body: `'Poppins', sans-serif`,
   },
 };
 
@@ -51,8 +51,8 @@ export const globalStyles = css`
   }
   *:focus {
     outline: none;
-    border-color: ${theme.colors.purple} !important;
-    box-shadow: 0 0 0 1px ${theme.colors.purple} !important;
+    border-color: ${theme.colors.blue} !important;
+    box-shadow: 0 0 0 1px ${theme.colors.blue} !important;
   }
   input[type='date']::-webkit-calendar-picker-indicator {
     opacity: 1;

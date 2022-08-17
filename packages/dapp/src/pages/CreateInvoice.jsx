@@ -34,7 +34,23 @@ const CreateInvoiceInner = () => {
   } = useContext(CreateContext);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
+  // const currentStep = 4;
+
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+
+  const stackWidth = useBreakpointValue({
+    base: '95%',
+    sm: '95%',
+    md: '85%',
+    lg: '75%',
+  });
+
+  const headingSize = useBreakpointValue({
+    base: '150%',
+    sm: '200%',
+    md: '250%',
+    lg: '300%',
+  });
 
   return (
     <Container overlay>
@@ -46,18 +62,18 @@ const CreateInvoiceInner = () => {
           spacing="2rem"
           align="center"
           justify="center"
-          w="75%"
+          w={stackWidth}
           px="1rem"
           my="8rem"
-          // backgroundColor='red'
         >
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
           >
-            <Heading fontWeight="700">Create a Smart Invoice</Heading>
-            <Text color="#90A0B7" as="i">
-              {' '}
+            <Heading fontWeight="700" fontSize={headingSize}>
+              Create a Smart Invoice
+            </Heading>
+            <Text color="#90A0B7" as="i" width="85%">
               Note: All invoice data will be stored publicly on IPFS and can be
               viewed by anyone., If you have privacy concerns, we recommend
               taking care to add permissions to your project agreement document.
@@ -97,7 +113,7 @@ const CreateInvoiceInner = () => {
                 allTokens={allTokens}
               />
               <Grid
-                templateColumns="1fr 4fr"
+                templateColumns={currentStep === 1 ? '1fr' : '1fr 4fr'}
                 gap="1rem"
                 w="100%"
                 marginTop="20px"
@@ -124,7 +140,7 @@ const CreateInvoiceInner = () => {
                   textTransform="uppercase"
                   size={buttonSize}
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                 >
                   {currentStep === 4
                     ? STEPS[currentStep].next

@@ -53,11 +53,11 @@ export const AccountLink = ({
       isExternal
       display="inline-flex"
       textAlign="right"
-      bgColor="black30"
+      bgColor="white"
       px="0.25rem"
       _hover={{
         textDecor: 'none',
-        bgColor: 'white20',
+        bgColor: '#ECECF3',
       }}
       borderRadius="5px"
       alignItems="center"
