@@ -55,11 +55,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -674,6 +672,7 @@ export const ViewInvoice = ({
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
+                  disabled={!verifiedStatus}
                 >
                   Deposit
                 </Button>
