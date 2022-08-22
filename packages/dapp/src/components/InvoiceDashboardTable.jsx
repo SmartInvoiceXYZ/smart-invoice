@@ -113,7 +113,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
       dataArray.push(details);
     });
     return dataArray;
-  }, [chainId, result, tokenData]);
+  }, [chainId, result, tokenData, history]);
 
   const columns = useMemo(
     () => [
@@ -215,6 +215,8 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
                   {row.cells.map((cell, index) => {
                     return (
                       <td
+                        // Change cell formatting here most likely through targeting getCellProps with a function
+                        // docs for react-table
                         {...cell.getCellProps({
                           className: cell.column.collapse ? 'collapse' : '',
                           // style: {backgroundColor: 'green'},
