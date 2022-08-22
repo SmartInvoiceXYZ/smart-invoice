@@ -212,13 +212,15 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
               prepareRow(row);
               return (
                 <tr {...row.getRowProps()}>
-                  {row.cells.map(cell => {
+                  {row.cells.map((cell, index) => {
                     return (
                       <td
                         {...cell.getCellProps({
                           className: cell.column.collapse ? 'collapse' : '',
+                          // style: {backgroundColor: 'green'},
                         })}
                       >
+                        {/* {console.log("cell props", cell.column.Header)} */}
                         {/* {console.log("cell:", cell)} */}
                         {cell.render('Cell')}
                       </td>

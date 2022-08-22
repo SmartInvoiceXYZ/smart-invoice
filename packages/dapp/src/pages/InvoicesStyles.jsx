@@ -7,8 +7,9 @@ export const Styles = styled.div`
   .tableWrap {
     display: block;
     max-width: 100%;
-    overflow-x: scroll;
+    ${'' /* overflow-x: scroll; */}
     overflow-y: hidden;
+    border-radius: 20px;
     background-color: white;
   }
 
