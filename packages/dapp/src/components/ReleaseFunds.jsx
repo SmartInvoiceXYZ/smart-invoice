@@ -61,35 +61,36 @@ export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Release Funds
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         Follow the instructions in your wallet to release funds from escrow to
         the project team.
       </Text>
-      <VStack my="2rem" px="5rem" py="1rem" bg="black" borderRadius="0.5rem">
-        <Text color="red.500" fontSize="0.875rem" textAlign="center">
+      <VStack my="2rem" px="5rem" py="1rem" bg="white" borderRadius="0.5rem">
+        <Text color="black" fontSize="0.875rem" textAlign="center">
           Amount To Be Released
         </Text>
         <Text
-          color="white"
+          color="black"
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
         >{`${utils.formatUnits(amount, decimals)} ${symbol}`}</Text>
       </VStack>
       {transaction && (
-        <Text color="white" textAlign="center" fontSize="sm">
+        <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="red.500"
+            color="blue"
             textDecoration="underline"
           >
             here
@@ -98,12 +99,11 @@ export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
       )}
       <Button
         onClick={close}
-        variant="outline"
-        colorScheme="red"
+        colorScheme="blue"
         textTransform="uppercase"
         size={buttonSize}
         fontFamily="mono"
-        fontWeight="normal"
+        fontWeight="bold"
         w="100%"
       >
         Close

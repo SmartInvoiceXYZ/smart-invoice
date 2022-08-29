@@ -85,6 +85,18 @@ export const ViewInvoice = ({
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
+  useEffect(() => {
+    if (invoice && ethersProvider && chainId === invoiceChainId) {
+      setBalanceLoading(true);
+      balanceOf(ethersProvider, invoice.token, invoice.address)
+        .then(b => {
+          setBalance(b);
+          setBalanceLoading(false);
+        })
+        .catch(balanceError => logError({ balanceError }));
+    }
+  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
@@ -227,7 +239,7 @@ export const ViewInvoice = ({
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
-            <Flex align="center" color="white">
+            <Flex align="center" color="black">
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
@@ -239,7 +251,7 @@ export const ViewInvoice = ({
                   ml={4}
                   onClick={() => copyToClipboard(invoiceId.toLowerCase())}
                   variant="ghost"
-                  colorScheme="red"
+                  colorScheme="blue"
                   h="auto"
                   w="auto"
                   minW="2"
@@ -250,14 +262,14 @@ export const ViewInvoice = ({
               )}
             </Flex>
             {projectDescription && (
-              <Text color="white">{projectDescription}</Text>
+              <Text color="black">{projectDescription}</Text>
             )}
 
             <Link
               href={projectAgreement[projectAgreement.length - 1].src}
               isExternal
               textDecor="underline"
-              color="white"
+              color="black"
             >
               Details of Agreement
             </Link>
@@ -295,7 +307,7 @@ export const ViewInvoice = ({
                   ).toUTCString()}`}
                   placement="auto-start"
                 >
-                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="red.500" />
+                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
                 </Tooltip>
               </WrapItem>
             </Wrap>
@@ -334,6 +346,17 @@ export const ViewInvoice = ({
                   <Text color="red">Not enabled</Text>
                 )}
               </WrapItem>
+
+              <WrapItem fontWeight="bold">
+                <VerifyInvoice
+                  invoice={invoice}
+                  client={client}
+                  isClient={isClient}
+                  verified={verified}
+                  verifiedStatus={verifiedStatus}
+                  setVerifiedStatus={setVerifiedStatus}
+                />
+              </WrapItem>
             </Wrap>
             <Wrap>
               <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
@@ -349,12 +372,12 @@ export const ViewInvoice = ({
           <Button
             maxW="fit-content"
             alignSelf="flex-end"
-            colorScheme="red"
-            variant="outline"
+            colorScheme="blue"
             onClick={onAddMilestones}
           >
             Add Milestones
           </Button>
+          {console.log(invoice)}
           <Flex
             bg="background"
             direction="column"
@@ -363,7 +386,7 @@ export const ViewInvoice = ({
             py="1.5rem"
             borderRadius="0.5rem"
             w="100%"
-            color="white"
+            color="black"
           >
             <Flex
               justify="space-between"
@@ -507,7 +530,7 @@ export const ViewInvoice = ({
               <Flex
                 justify="space-between"
                 align="center"
-                color="red.500"
+                color="black"
                 fontWeight="bold"
                 fontSize="lg"
               >
@@ -657,7 +680,7 @@ export const ViewInvoice = ({
                 <Button
                   size={buttonSize}
                   colorScheme="red"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onResolve()}
@@ -667,8 +690,8 @@ export const ViewInvoice = ({
               ) : (
                 <Button
                   size={buttonSize}
-                  colorScheme="red"
-                  fontWeight="normal"
+                  colorScheme="blue"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
@@ -684,10 +707,9 @@ export const ViewInvoice = ({
               {isLockable && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
                   colorScheme="red"
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   textTransform="uppercase"
                   onClick={() => onLock()}
                 >
@@ -697,22 +719,20 @@ export const ViewInvoice = ({
               {isExpired && balance.gt(0) && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
+                  colorScheme="blue"
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   textTransform="uppercase"
                   onClick={() => onWithdraw()}
                 >
                   Withdraw
                 </Button>
               )}
-              {verifiedStatus && isReleasable && (
+              {isReleasable && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontWeight="normal"
+                  colorScheme="blue"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
@@ -728,39 +748,42 @@ export const ViewInvoice = ({
                     : '2/1/2/span 2',
                   sm: 'auto/auto/auto/auto',
                 }}
-                colorScheme="red"
-                fontWeight="normal"
+                colorScheme="blue"
+                fontWeight="bold"
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => (isReleasable ? onRelease() : onDeposit())}
               >
                 {isReleasable ? 'Release' : 'Deposit'}
               </Button>
-              {!verifiedStatus && (
+
+              {/* {!verifiedStatus && (
                 <VerifyInvoice
+                
                   invoice={invoice}
                   client={client}
                   verified={verified}
                   setVerifiedStatus={setVerifiedStatus}
                 />
-              )}
+              )} */}
             </SimpleGrid>
           )}
+          {console.log('verified', verifiedStatus)}
           {!dispute && !resolution && !isResolver && !isClient && (
             <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
               {isLockable && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
                   colorScheme="red"
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   textTransform="uppercase"
                   onClick={() => onLock()}
                 >
                   Lock
                 </Button>
               )}
+
               {verifiedStatus ? null : (
                 <Text fontWeight="bold" margin="0 auto">
                   Client has not yet enabled non-client deposits
@@ -768,8 +791,8 @@ export const ViewInvoice = ({
               )}
               <Button
                 size={buttonSize}
-                colorScheme="red"
-                fontWeight="normal"
+                colorScheme="blue"
+                fontWeight="bold"
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => onDeposit()}
@@ -793,6 +816,7 @@ export const ViewInvoice = ({
                 _hover={{ bgColor: 'white20' }}
                 top="0.5rem"
                 right="0.5rem"
+                color="gray"
               />
               {modal && selected === 0 && (
                 <LockFunds

@@ -117,7 +117,7 @@ export const ProjectDetailsForm = ({ display }) => {
       {dateInvalid && (
         <Text
           w="100%"
-          color="purple"
+          color="red"
           textAlign="right"
           fontSize="xs"
           fontWeight="700"

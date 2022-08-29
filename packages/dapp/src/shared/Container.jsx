@@ -22,7 +22,6 @@ export const Container = ({ children, overlay, ...props }) => {
       h="100%"
       flex={1}
       m="1rem"
-      border={`2px solid ${theme.colors.red[500]}`}
       css={overlay ? overlayStyles : {}}
       {...props}
     >

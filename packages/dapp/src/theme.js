@@ -1,7 +1,7 @@
 import chakraTheme from '@chakra-ui/theme';
 import { css } from '@emotion/react';
 
-import CalendarRed from './assets/calendar-red.svg';
+import CalendarHover from './assets/calendar-hover.svg';
 import Calendar from './assets/calendar.svg';
 
 export const theme = {
@@ -22,7 +22,7 @@ export const theme = {
       900: '#200005',
     },
     green: '#38FF88',
-    background: '#262626',
+    background: 'white',
     white10: 'rgba(255,255,255,0.1)',
     white20: 'rgba(255,255,255,0.2)',
     black30: 'rgba(0,0,0,0.3)',
@@ -35,9 +35,9 @@ export const theme = {
   },
   fonts: {
     ...chakraTheme.fonts,
-    mono: `'Rubik Mono One', sans-serif`,
-    heading: `'Rubik One', sans-serif`,
-    body: `'Roboto', sans-serif`,
+    mono: `'Poppins', sans-serif`,
+    heading: `'Poppins', sans-serif`,
+    body: `'Poppins', sans-serif`,
   },
 };
 
@@ -51,8 +51,8 @@ export const globalStyles = css`
   }
   *:focus {
     outline: none;
-    border-color: ${theme.colors.purple} !important;
-    box-shadow: 0 0 0 1px ${theme.colors.purple} !important;
+    border-color: ${theme.colors.blue} !important;
+    box-shadow: 0 0 0 1px ${theme.colors.blue} !important;
   }
   input[type='date']::-webkit-calendar-picker-indicator {
     opacity: 1;
@@ -65,7 +65,7 @@ export const globalStyles = css`
     cursor: pointer;
     transition: background 0.25s;
     &:hover {
-      background: url(${CalendarRed}) no-repeat;
+      background: url(${CalendarHover}) no-repeat;
       background-size: contain;
     }
     &:hover,
@@ -76,12 +76,12 @@ export const globalStyles = css`
     }
   }
   select option {
-    background: ${theme.colors.black} !important;
-    color: ${theme.colors.white};
+    background: ${theme.colors.white} !important;
+    color: ${theme.colors.black};
   }
   body {
     font-family: ${theme.fonts.body};
-    background: ${theme.colors.black};
+    background: ${theme.colors.white};
     color: ${theme.colors.white};
   }
   .web3modal-modal-lightbox {

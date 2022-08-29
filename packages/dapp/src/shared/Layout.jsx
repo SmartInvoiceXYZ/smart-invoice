@@ -1,8 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import { useLocation } from 'react-router-dom';
-
-import BackgroundImage from '../assets/raid__cloud__castle.png';
 import { Web3Context } from '../context/Web3Context';
 import { SUPPORTED_NETWORKS } from '../utils/constants';
 import { ConnectWeb3 } from './ConnectWeb3';
@@ -22,13 +20,12 @@ export const Layout = ({ children }) => {
       direction="column"
       justify="center"
       align="center"
-      bg="black"
+      bg="#F5F6F8"
       h="100%"
       minH="100vh"
       overflowX="hidden"
-      bgImage={`url(${BackgroundImage})`}
       bgSize="cover"
-      color="red.500"
+      color="#323C47"
     >
       <Header /> {isValid ? children : <ConnectWeb3 />} <Footer />
     </Flex>
