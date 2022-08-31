@@ -43,6 +43,7 @@ export const Styles = styled.div`
       :nth-child(4),
       :nth-child(5) {
         text-align: center;
+        max-width: 100px;
       }
 
       :last-child {

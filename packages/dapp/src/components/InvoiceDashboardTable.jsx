@@ -5,14 +5,6 @@ import {
   Heading,
   IconButton,
   chakra,
-  Table,
-  TableContainer,
-  TableCaption,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
   Link,
   Menu,
   MenuButton,
@@ -36,10 +28,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { VerticalDotsIcon } from '../icons/VerticalDots';
 import { RightArrowIcon, LeftArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from '../pages/InvoicesStyles';
-import {
-  GenerateInvoicePDF,
-  GenerateInvoicePDFMenuItem,
-} from './GenerateInvoicePDF';
+import { GenerateInvoicePDFMenuItem } from './GenerateInvoicePDF';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
@@ -66,44 +55,12 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
       justify="center"
       {...props}
     >
-      <Text
-        color="white"
-        fontWeight="bold"
-        textTransform="uppercase"
-        textAlign="center"
-        fontSize="15px"
-      >
+      <Text color="white" fontWeight="bold" textAlign="center" fontSize="15px">
         {loading ? <Loader size="20" /> : label}
       </Text>
     </Flex>
   );
 };
-
-// const GoToInvoice = ({ invoice, history }) => {
-//   return (
-//     <Button
-//       size="lg"
-//       boxShadow="md"
-//       borderRadius="50"
-//       onClick={() =>
-//         history.push(
-//           `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
-//         )
-//       }
-//       _hover={{
-//         bgColor: 'white',
-//         border: '1px',
-//         borderColor: 'gray.200',
-//       }}
-//       _active={{
-//         bgColor: 'white20',
-//       }}
-//       px={{ base: '0.5rem', md: '1rem' }}
-//     >
-//       View Invoice
-//     </Button>
-//   );
-// };
 
 export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
@@ -181,10 +138,6 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
 
   const columns = useMemo(
     () => [
-      // {
-      //   Header: 'View Invoice',
-      //   accessor: 'viewInvoice',
-      // },
       {
         Header: 'Date Created',
         accessor: 'createdAt',
@@ -248,7 +201,9 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           My Invoices
         </Heading>
         <Button
-          colorScheme="blue"
+          backgroundColor="blue.1"
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           color="white"
           onClick={() => history.push('/create')}
         >
