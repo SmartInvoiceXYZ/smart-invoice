@@ -55,9 +55,11 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -359,7 +361,11 @@ export const ViewInvoice = ({
               </WrapItem>
             </Wrap>
             <Wrap>
-              <GenerateInvoicePDF invoice={invoice} symbol={symbol} />
+              <GenerateInvoicePDF
+                invoice={invoice}
+                symbol={symbol}
+                buttonText="Preview & Download Invoice PDF"
+              />
             </Wrap>
           </VStack>
         </Stack>

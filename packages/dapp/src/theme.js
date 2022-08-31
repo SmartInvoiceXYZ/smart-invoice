@@ -6,7 +6,7 @@ import Calendar from './assets/calendar.svg';
 
 export const theme = {
   ...chakraTheme,
-  initialColorMode: 'dark',
+  initialColorMode: 'light',
   useSystemColorMode: false,
   colors: {
     ...chakraTheme.colors,

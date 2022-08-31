@@ -20,7 +20,7 @@ const InvoicesInner = ({ history }) => {
   }, [account, setSearch]);
 
   return (
-    <Styles>
+    <>
       {result && result.length !== 0 && tokenData !== undefined ? (
         <InvoiceDashboardTable
           result={result}
@@ -36,7 +36,7 @@ const InvoicesInner = ({ history }) => {
           <Spinner />
         </Stack>
       )}
-    </Styles>
+    </>
   );
 };
 

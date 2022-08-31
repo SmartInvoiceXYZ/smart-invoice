@@ -67,6 +67,8 @@ export const OrderedLinkInput = ({
               bg="none"
               color="black"
               border="1px"
+              borderColor="lightgrey"
+              _hover={{ borderColor: 'lightgrey' }}
               fontWeight="normal"
               borderRadius="none"
             >
@@ -104,6 +106,8 @@ export const OrderedLinkInput = ({
             placeholder={placeholder}
             color="black"
             border="1px"
+            borderColor="lightgrey"
+            _hover={{ borderColor: 'lightgrey' }}
             isInvalid={isInvalid}
             _invalid={{ border: '1px solid', borderColor: 'red' }}
           />
@@ -164,6 +168,8 @@ export const OrderedInput = ({
           placeholder={placeholder}
           color="black"
           border="1px"
+          borderColor="lightgrey"
+          _hover={{ borderColor: 'lightgrey' }}
           isDisabled={isDisabled}
           isInvalid={isInvalid}
           _invalid={{ border: '1px solid', borderColor: 'red' }}
@@ -219,6 +225,8 @@ export const OrderedSelect = ({
         bg="white"
         color="black"
         border="1px"
+        borderColor="lightgrey"
+        _hover={{ borderColor: 'lightgrey' }}
         isDisabled={isDisabled}
       >
         {children}
@@ -259,6 +267,8 @@ export const OrderedTextarea = ({
         placeholder={placeholder}
         color="black"
         border="1px"
+        borderColor="lightgrey"
+        _hover={{ borderColor: 'lightgrey' }}
         isDisabled={isDisabled}
         h="4rem"
         resize="none"

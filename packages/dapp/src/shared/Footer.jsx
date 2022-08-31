@@ -1,24 +1,44 @@
-import { Flex, Image, Link } from '@chakra-ui/react';
+import { Box, Flex, Link as ChakraLink, Image } from '@chakra-ui/react';
 import React from 'react';
 
-import RaidGuild from '../assets/built-by-raid-guild.svg';
+import logo from '../assets/smart-invoice/white.svg';
 
-export const Footer = ({ center }) => {
+export function Footer() {
   return (
-    <Flex
-      position="absolute"
-      bottom="0"
-      right="0"
-      w="100%"
-      h="5rem"
-      py="1rem"
-      px="3rem"
-      align="center"
-      justify={center ? 'center' : { base: 'center', lg: 'flex-end' }}
+    <Box
+      background="#334D6E"
+      // position="absolute"
+      // bottom="0"
+      // right="0"
+      width="100%"
+      alignSelf="end"
+      zIndex={5}
     >
-      <Link href="https://raidguild.org" isExternal zIndex={5}>
-        <Image src={RaidGuild} alt="built-by-raid-guild" />
-      </Link>
-    </Flex>
+      <Flex
+        justify="space-between"
+        align="center"
+        paddingX={20}
+        paddingY={4}
+        textColor="white"
+      >
+        <Image src={logo} alt="Smart Invoice" width={160} height={25.34} />
+        <Flex gap={8} justify="center" align="center">
+          <ChakraLink isExternal href="https://smartinvoice.xyz/">
+            Home
+          </ChakraLink>
+          <ChakraLink
+            isExternal
+            href="https://docs.smartinvoice.xyz/"
+            target="_blank"
+          >
+            Documentation
+          </ChakraLink>
+          <ChakraLink href="#">Support</ChakraLink>
+          <ChakraLink isExternal href="#" target="_blank">
+            Twitter
+          </ChakraLink>
+        </Flex>
+      </Flex>
+    </Box>
   );
-};
+}

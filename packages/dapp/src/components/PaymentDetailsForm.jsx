@@ -37,10 +37,10 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(() => getTokens(chainId, allTokens), [
-    chainId,
-    allTokens,
-  ]);
+  const TOKENS = useMemo(
+    () => getTokens(chainId, allTokens),
+    [chainId, allTokens],
+  );
 
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -185,8 +185,9 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
-          tooltip={`In case a dispute arises, ${100 /
-            resolutionRate}% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
+          tooltip={`In case a dispute arises, ${
+            100 / resolutionRate
+          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
           isDisabled
         />
       </SimpleGrid>
@@ -210,6 +211,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           size="lg"
           fontSize="1rem"
           color="#323C47"
+          borderColor="lightgrey"
         >
           {`I agree to ${getResolverString(chainId, arbitrationProvider)} `}
           <Link

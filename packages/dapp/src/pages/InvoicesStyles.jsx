@@ -9,7 +9,6 @@ export const Styles = styled.div`
     max-width: 100%;
     ${'' /* overflow-x: scroll; */}
     overflow-y: hidden;
-    border-radius: 20px;
     background-color: white;
   }
 
@@ -30,19 +29,42 @@ export const Styles = styled.div`
       margin: 0;
       padding: 0.5rem;
       border-bottom: 5px solid #f5f6f8;
+      text-align: left;
 
       width: 1%;
       &.collapse {
         width: 0.0000000001%;
       }
 
+      :nth-child(3) {
+        text-align: right;
+      }
+
+      :nth-child(4),
+      :nth-child(5) {
+        text-align: center;
+      }
+
       :last-child {
         border-right: 0;
+        text-align: center;
       }
+    }
+
+    th {
+      color: #334d6e;
+    }
+
+    td {
+      color: #707683;
     }
   }
 
   .pagination {
     padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
   }
 `;

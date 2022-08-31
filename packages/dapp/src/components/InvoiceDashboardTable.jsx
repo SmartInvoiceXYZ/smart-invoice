@@ -1,6 +1,27 @@
-import { Button, Flex, Text, IconButton, chakra } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Text,
+  Heading,
+  IconButton,
+  chakra,
+  Table,
+  TableContainer,
+  TableCaption,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  Link,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  HStack,
+} from '@chakra-ui/react';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link as RouterLink } from 'react-router-dom';
 import { useTable, useSortBy, usePagination, useRowSelect } from 'react-table';
 import { Loader } from './Loader';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
@@ -13,9 +34,14 @@ import { dateTimeToDate, getTokenInfo, getHexChainId } from '../utils/helpers';
 import { unixToDateTime } from '../utils/invoice';
 import { formatUnits } from 'ethers/lib/utils';
 import { VerticalDotsIcon } from '../icons/VerticalDots';
+import { RightArrowIcon, LeftArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from '../pages/InvoicesStyles';
+import {
+  GenerateInvoicePDF,
+  GenerateInvoicePDFMenuItem,
+} from './GenerateInvoicePDF';
 
-const InvoiceStatusLabel = ({ invoice }) => {
+const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
   const { isLocked, terminationTime } = invoice;
   const terminated = terminationTime > Date.now();
@@ -38,6 +64,7 @@ const InvoiceStatusLabel = ({ invoice }) => {
       borderRadius="10"
       minWidth="165px"
       justify="center"
+      {...props}
     >
       <Text
         color="white"
@@ -52,31 +79,31 @@ const InvoiceStatusLabel = ({ invoice }) => {
   );
 };
 
-const GoToInvoice = ({ invoice, history }) => {
-  return (
-    <Button
-      size="lg"
-      boxShadow="md"
-      borderRadius="50"
-      onClick={() =>
-        history.push(
-          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
-        )
-      }
-      _hover={{
-        bgColor: 'white',
-        border: '1px',
-        borderColor: 'gray.200',
-      }}
-      _active={{
-        bgColor: 'white20',
-      }}
-      px={{ base: '0.5rem', md: '1rem' }}
-    >
-      View Invoice
-    </Button>
-  );
-};
+// const GoToInvoice = ({ invoice, history }) => {
+//   return (
+//     <Button
+//       size="lg"
+//       boxShadow="md"
+//       borderRadius="50"
+//       onClick={() =>
+//         history.push(
+//           `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
+//         )
+//       }
+//       _hover={{
+//         bgColor: 'white',
+//         border: '1px',
+//         borderColor: 'gray.200',
+//       }}
+//       _active={{
+//         bgColor: 'white20',
+//       }}
+//       px={{ base: '0.5rem', md: '1rem' }}
+//     >
+//       View Invoice
+//     </Button>
+//   );
+// };
 
 export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
@@ -87,27 +114,64 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
         invoice.token,
         tokenData,
       );
+      const viewInvoice = () =>
+        history.push(
+          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
+        );
       const details = {
-        viewInvoice: <GoToInvoice invoice={invoice} history={history} />,
         createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
-        projectName: invoice.projectName,
+        projectName: (
+          <Link
+            href={`/invoice/${getHexChainId(invoice.network)}/${
+              invoice.address
+            }`}
+          >
+            {invoice.projectName}
+          </Link>
+        ),
         amount: formatUnits(invoice.total, decimals),
         currency: symbol,
-        status: <InvoiceStatusLabel invoice={invoice} />,
-        action: (
-          <IconButton
-            backgroundColor="white"
-            size="lg"
-            _hover={{
-              bgColor: 'white',
-              border: '1px',
-              borderColor: 'gray.200',
-            }}
-            _active={{
-              bgColor: 'white20',
-            }}
-            icon={<VerticalDotsIcon />}
+        status: (
+          <InvoiceStatusLabel
+            invoice={invoice}
+            onClick={viewInvoice}
+            cursor="pointer"
           />
+        ),
+        action: (
+          <Menu>
+            <MenuButton padding={0} width="fit-content">
+              <VerticalDotsIcon />
+            </MenuButton>
+            <MenuList backgroundColor="white" textColor="black">
+              <MenuItem
+                _active={{
+                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
+                  color: 'white',
+                }}
+                _hover={{
+                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
+                  color: 'white',
+                }}
+                onClick={viewInvoice}
+              >
+                Manage
+              </MenuItem>
+              <GenerateInvoicePDFMenuItem
+                invoice={invoice}
+                symbol={symbol}
+                text="Download"
+                _active={{
+                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
+                  color: 'white',
+                }}
+                _hover={{
+                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
+                  color: 'white',
+                }}
+              />
+            </MenuList>
+          </Menu>
         ),
       };
       dataArray.push(details);
@@ -117,10 +181,10 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
 
   const columns = useMemo(
     () => [
-      {
-        Header: 'View Invoice',
-        accessor: 'viewInvoice',
-      },
+      // {
+      //   Header: 'View Invoice',
+      //   accessor: 'viewInvoice',
+      // },
       {
         Header: 'Date Created',
         accessor: 'createdAt',
@@ -179,6 +243,18 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   // cell props and getCellProps for individual cell control styling
   return (
     <Styles>
+      <HStack justify="space-between" align="center" mb={8}>
+        <Heading textAlign="left" color="#192A3E">
+          My Invoices
+        </Heading>
+        <Button
+          colorScheme="blue"
+          color="white"
+          onClick={() => history.push('/create')}
+        >
+          Create invoice
+        </Button>
+      </HStack>
       <div className="tableWrap">
         <table {...getTableProps()}>
           <thead>
@@ -192,16 +268,22 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                     isnumeric={column.isnumeric}
                   >
-                    {column.render('Header')}
-                    <chakra.span pl="4">
-                      {column.isSorted ? (
-                        column.isSortedDesc ? (
-                          <TriangleDownIcon aria-label="sorted descending" />
-                        ) : (
-                          <TriangleUpIcon aria-label="sorted ascending" />
-                        )
-                      ) : null}
-                    </chakra.span>
+                    {column.isSorted ? (
+                      <>
+                        <Text textColor="black">
+                          {column.render('Header')}
+                          <chakra.span pl="4">
+                            {column.isSortedDesc ? (
+                              <TriangleDownIcon aria-label="sorted descending" />
+                            ) : (
+                              <TriangleUpIcon aria-label="sorted ascending" />
+                            )}
+                          </chakra.span>
+                        </Text>
+                      </>
+                    ) : (
+                      <Text>{column.render('Header')}</Text>
+                    )}
                   </th>
                 ))}
               </tr>
@@ -235,25 +317,32 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
         </table>
       </div>
       <div className="pagination">
-        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+        {/* <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
           {'<<'}
-        </button>{' '}
-        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+        </button>{' '} */}
+        {/* <button onClick={() => previousPage()} disabled={!canPreviousPage}>
           {'<'}
-        </button>{' '}
-        <button onClick={() => nextPage()} disabled={!canNextPage}>
-          {'>'}
-        </button>{' '}
-        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-          {'>>'}
-        </button>{' '}
+        </button>{' '} */}
+        <IconButton
+          icon={<LeftArrowIcon />}
+          onClick={() => previousPage()}
+          disabled={!canPreviousPage}
+        />
         <span>
-          Page{' '}
-          <strong>
-            {pageIndex + 1} of {pageOptions.length}
-          </strong>{' '}
+          Page {pageIndex + 1} of {pageOptions.length}
         </span>
-        <span>
+        <IconButton
+          icon={<RightArrowIcon />}
+          onClick={() => nextPage()}
+          disabled={!canNextPage}
+        />
+        {/* <button onClick={() => nextPage()} disabled={!canNextPage}>
+          {'>'}
+        </button>{' '} */}
+        {/* <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+          {'>>'}
+        </button>{' '} */}
+        {/* <span>
           | Go to page:{' '}
           <input
             type="number"
@@ -264,20 +353,20 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
             }}
             style={{ width: '100px' }}
           />
-        </span>{' '}
-        <select
-          value={pageSize}
-          onChange={e => {
-            setPageSize(Number(e.target.value));
-          }}
-        >
-          {[10, 20, 30, 40, 50].map(pageSize => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
+        </span>{' '} */}
       </div>
+      {/* <select
+        value={pageSize}
+        onChange={e => {
+          setPageSize(Number(e.target.value));
+        }}
+      >
+        {[10, 20, 30, 40, 50].map(pageSize => (
+          <option key={pageSize} value={pageSize}>
+            Show {pageSize}
+          </option>
+        ))}
+      </select> */}
     </Styles>
   );
 }
