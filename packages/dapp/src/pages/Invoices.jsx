@@ -20,7 +20,7 @@ const InvoicesInner = ({ history }) => {
   }, [account, setSearch]);
 
   return (
-    <Box>
+    <Box paddingY={16}>
       {result && result.length !== 0 && tokenData !== undefined ? (
         <InvoiceDashboardTable
           result={result}

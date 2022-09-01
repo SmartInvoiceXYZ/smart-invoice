@@ -61,10 +61,8 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
     projectAgreement[projectAgreement.length - 1].src,
   );
-  const [
-    revisedProjectAgreementType,
-    setRevisedProjectAgreementType,
-  ] = useState(projectAgreement[projectAgreement.length - 1].type);
+  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
+    useState(projectAgreement[projectAgreement.length - 1].type);
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
@@ -318,7 +316,10 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       <Button
         onClick={addNewMilestones}
         isLoading={loading}
-        colorScheme="blue"
+        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        color="white"
+        backgroundColor="blue.1"
         isDisabled={
           milestoneAmountsInput.reduce((t, v) => t + v, 0) !== addedTotalInput
         }

@@ -133,7 +133,10 @@ const CreateInvoiceInner = () => {
                   <Flex />
                 )}
                 <Button
-                  colorScheme="blue"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
                   onClick={nextStepHandler}
                   isLoading={loading}
                   isDisabled={!nextStepEnabled}

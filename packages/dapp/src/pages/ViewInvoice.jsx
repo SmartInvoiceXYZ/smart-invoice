@@ -378,7 +378,10 @@ export const ViewInvoice = ({
           <Button
             maxW="fit-content"
             alignSelf="flex-end"
-            colorScheme="blue"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
+            backgroundColor="blue.1"
             onClick={onAddMilestones}
           >
             Add Milestones
@@ -696,7 +699,10 @@ export const ViewInvoice = ({
               ) : (
                 <Button
                   size={buttonSize}
-                  colorScheme="blue"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
                   fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -725,7 +731,10 @@ export const ViewInvoice = ({
               {isExpired && balance.gt(0) && (
                 <Button
                   size={buttonSize}
-                  colorScheme="blue"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
                   fontFamily="mono"
                   fontWeight="bold"
                   textTransform="uppercase"
@@ -737,7 +746,10 @@ export const ViewInvoice = ({
               {isReleasable && (
                 <Button
                   size={buttonSize}
-                  colorScheme="blue"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
                   fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -754,7 +766,10 @@ export const ViewInvoice = ({
                     : '2/1/2/span 2',
                   sm: 'auto/auto/auto/auto',
                 }}
-                colorScheme="blue"
+                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                color="white"
+                backgroundColor="blue.1"
                 fontWeight="bold"
                 fontFamily="mono"
                 textTransform="uppercase"
@@ -797,7 +812,10 @@ export const ViewInvoice = ({
               )}
               <Button
                 size={buttonSize}
-                colorScheme="blue"
+                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                color="white"
+                backgroundColor="blue.1"
                 fontWeight="bold"
                 fontFamily="mono"
                 textTransform="uppercase"

@@ -140,6 +140,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
                 setAmountInput(utils.formatUnits(newAmount, decimals));
               }}
               colorScheme="blue"
+              borderColor="lightgrey"
               size="lg"
               fontSize="1rem"
               color="#323C47"
@@ -250,7 +251,10 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
       <Button
         onClick={deposit}
         isLoading={loading}
-        colorScheme="blue"
+        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        color="white"
+        backgroundColor="blue.1"
         isDisabled={amount.lte(0)}
         textTransform="uppercase"
         size={buttonSize}
