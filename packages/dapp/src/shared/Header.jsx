@@ -83,7 +83,7 @@ export const Header = () => {
       paddingY={4}
       color="#707683"
       fontFamily="mono"
-      position="absolute"
+      // position="absolute"
       top={0}
       left={0}
       justify="space-between"

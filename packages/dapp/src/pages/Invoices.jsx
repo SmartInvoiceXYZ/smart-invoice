@@ -1,4 +1,4 @@
-import { Stack, Spinner, Heading } from '@chakra-ui/react';
+import { Stack, Spinner, Heading, Box } from '@chakra-ui/react';
 
 import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
@@ -20,7 +20,7 @@ const InvoicesInner = ({ history }) => {
   }, [account, setSearch]);
 
   return (
-    <>
+    <Box>
       {result && result.length !== 0 && tokenData !== undefined ? (
         <InvoiceDashboardTable
           result={result}
@@ -36,7 +36,7 @@ const InvoicesInner = ({ history }) => {
           <Spinner />
         </Stack>
       )}
-    </>
+    </Box>
   );
 };
 

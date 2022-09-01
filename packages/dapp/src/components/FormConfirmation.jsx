@@ -100,7 +100,7 @@ export const FormConfirmation = ({ display, tokenData }) => {
         <Text>
           {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
         </Text>
-        <Text color="red.500" ml="2.5rem" fontWeight="bold">
+        <Text color="blue.1" ml="2.5rem" fontWeight="bold">
           {`${utils.formatUnits(paymentDue, decimals)} ${symbol} Total`}
         </Text>
       </Flex>

@@ -29,6 +29,7 @@ import { VerticalDotsIcon } from '../icons/VerticalDots';
 import { RightArrowIcon, LeftArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from '../pages/InvoicesStyles';
 import { GenerateInvoicePDFMenuItem } from './GenerateInvoicePDF';
+import { FilterIcon } from '../icons/FilterIcon';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
@@ -215,7 +216,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           <thead>
             {headerGroups.map(headerGroup => (
               <tr {...headerGroup.getHeaderGroupProps()}>
-                {headerGroup.headers.map(column => (
+                {headerGroup.headers.map((column, i) => (
                   <th
                     {...column.getHeaderProps({
                       className: column.collapse ? 'collapse' : '',
@@ -223,22 +224,14 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                     isnumeric={column.isnumeric}
                   >
-                    {column.isSorted ? (
-                      <>
-                        <Text textColor="black">
-                          {column.render('Header')}
-                          <chakra.span pl="4">
-                            {column.isSortedDesc ? (
-                              <TriangleDownIcon aria-label="sorted descending" />
-                            ) : (
-                              <TriangleUpIcon aria-label="sorted ascending" />
-                            )}
-                          </chakra.span>
-                        </Text>
-                      </>
-                    ) : (
-                      <Text>{column.render('Header')}</Text>
-                    )}
+                    <Text textColor={column.isSorted ? 'black' : 'blue.dark'}>
+                      {column.render('Header')}
+                      {i !== headerGroup.headers.length - 1 && (
+                        <chakra.span pl="4">
+                          <FilterIcon width="8px" height="8px" />
+                        </chakra.span>
+                      )}
+                    </Text>
                   </th>
                 ))}
               </tr>
