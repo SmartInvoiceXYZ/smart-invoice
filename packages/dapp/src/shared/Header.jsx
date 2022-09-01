@@ -24,6 +24,7 @@ import { getProfile } from '../utils/3box';
 import { getAccountString, getNetworkLabel } from '../utils/helpers';
 import { Footer } from './Footer';
 import { ProfileButton } from './ProfileButton';
+import logo from '../assets/smart-invoice/normal.svg';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -77,36 +78,44 @@ export const Header = () => {
   return (
     <Flex
       w="100%"
-      h="8rem"
-      color="white"
+      h={75}
+      paddingX={8}
+      paddingY={4}
+      color="#707683"
       fontFamily="mono"
-      position="absolute"
+      // position="absolute"
       top={0}
       left={0}
       justify="space-between"
       align="center"
+      background="white"
+      zIndex={5}
     >
-      <Box zIndex={5}>
+      <Box width={250}>
         <RouterLink to="/">
-          <Flex align="center" p="1rem" m="1rem">
-            <Image
-              src={Logo}
-              alt="Raid Guild"
-              w={{ base: '3rem', sm: '4rem', md: '5rem' }}
-            />
-            <Image
-              src={LogoText}
-              alt="Smart Invoice"
-              h={{ base: '2rem', sm: '3rem', md: 'auto' }}
-            />
+          <Flex cursor="pointer">
+            <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
           </Flex>
         </RouterLink>
       </Box>
+
+      {/* Navigation Links */}
+      <Flex gap={8} justify="center" align="center">
+        <ChakraLink href="https://smartinvoice.xyz" target="_blank">
+          Home
+        </ChakraLink>
+        <ChakraLink href="https://docs.smartinvoice.xyz" target="_blank">
+          Documentation
+        </ChakraLink>
+        <ChakraLink href="#">Support</ChakraLink>
+      </Flex>
+
       <Flex
-        mx={{ base: '2rem', sm: '3rem' }}
+        // mx={{ base: '2rem', sm: '3rem' }}
         align="center"
         height="8rem"
         transition="width 1s ease-out"
+        width={250}
       >
         {account && (
           <Flex justify="center" align="center" zIndex={5}>
@@ -135,20 +144,32 @@ export const Header = () => {
                     bgRepeat="no-repeat"
                     bgPosition="center center"
                   />
-                  <Text
-                    px={2}
-                    display={{ base: 'none', md: 'flex' }}
-                    fontFamily="'Roboto Mono', monospace;"
-                    color="red.500"
-                  >
-                    {profile && profile.name
-                      ? profile.name
-                      : getAccountString(account)}
-                  </Text>
+                  <Flex direction="column" gap={1} align="left">
+                    <Text
+                      px={2}
+                      display={{ base: 'none', md: 'flex' }}
+                      fontFamily="'Roboto Mono', monospace;"
+                      color="#192A3E"
+                      fontWeight={500}
+                      fontSize={14}
+                    >
+                      {profile && profile.name ? profile.name : 'Anonymous'}
+                    </Text>
+                    <Text
+                      px={2}
+                      display={{ base: 'none', md: 'flex' }}
+                      fontFamily="'Roboto Mono', monospace;"
+                      color="grey"
+                      fontSize={12}
+                    >
+                      {getAccountString(account)}
+                    </Text>
+                  </Flex>
                   <Tag
-                    colorScheme="red"
+                    background="#90A0B7"
                     display={{ base: 'none', md: 'flex' }}
                     size="sm"
+                    color="white"
                   >
                     {getNetworkLabel(chainId)}
                   </Tag>
@@ -159,7 +180,7 @@ export const Header = () => {
                   onClick={() => {
                     disconnect();
                   }}
-                  colorScheme="red"
+                  colorScheme="blue"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -170,91 +191,6 @@ export const Header = () => {
             </Popover>
           </Flex>
         )}
-        <Button
-          onClick={() => onOpen(o => !o)}
-          variant="link"
-          ml={{ base: '0.5rem', sm: '1rem' }}
-          zIndex={7}
-        >
-          <HamburgerIcon
-            boxSize={{ base: '2rem', sm: '2.75rem' }}
-            transition="all 1s ease-out"
-            _hover={{
-              transition: 'all 1s ease-out',
-              transform: 'rotateZ(90deg)',
-            }}
-            color="red.500"
-          />
-        </Button>
-      </Flex>
-      <Flex
-        zIndex={6}
-        position="fixed"
-        left="0"
-        top="0"
-        bg="black"
-        h="100%"
-        w="100%"
-        direction="column"
-        justify="center"
-        align="center"
-        transition="all 2s ease-out"
-        pointerEvents={isOpen ? 'all' : 'none'}
-        css={{
-          clipPath: isOpen
-            ? 'circle(calc(100vw + 100vh) at 90% -10%)'
-            : 'circle(100px at 90% -20%)',
-        }}
-      >
-        {account && profile && chainId && (
-          <ProfileButton
-            account={account}
-            chainId={chainId}
-            profile={profile}
-            disconnect={disconnect}
-          />
-        )}
-        <StyledButton
-          onClick={() => {
-            history.push('/');
-            onOpen(false);
-          }}
-          transition="all 0.5s ease 0.4s"
-          my="1rem"
-          variant="link"
-          color="red.500"
-          fontWeight="normal"
-          fontSize="1.5rem"
-        >
-          HOME
-        </StyledButton>
-        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
-          <StyledButton
-            as="span"
-            transition="all 0.5s ease 0.4s"
-            my="1rem"
-            variant="link"
-            color="red.500"
-            fontWeight="normal"
-            fontSize="1.5rem"
-          >
-            FAQ
-          </StyledButton>
-        </ChakraLink>
-        <ChakraLink href="https://discord.gg/CanD2WcK7W" isExternal _hover={{}}>
-          <StyledButton
-            as="span"
-            transition="all 0.5s ease 0.4s"
-            my="1rem"
-            variant="link"
-            color="red.500"
-            fontWeight="normal"
-            fontSize="1.5rem"
-          >
-            SUPPORT
-          </StyledButton>
-        </ChakraLink>
-        <Footer center />
       </Flex>
     </Flex>
   );

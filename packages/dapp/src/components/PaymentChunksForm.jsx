@@ -29,10 +29,12 @@ export const PaymentChunksForm = ({ display, tokenData }) => {
             </Flex>
             <InputGroup>
               <Input
-                bg="black"
+                _hover={{ borderColor: 'lightgray' }}
+                bg="white"
                 type="text"
-                color="white"
-                border="none"
+                color="#323C47"
+                border="1px"
+                borderColor="lightgray"
                 pr="3.5rem"
                 onChange={e => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;

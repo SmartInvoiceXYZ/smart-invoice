@@ -124,8 +124,7 @@ export const copyToClipboard = value => {
   document.body.removeChild(tempInput);
 };
 
-const URL_REGEX =
-  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
+const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
 
 export const isValidURL = str => {
   return !!URL_REGEX.test(str);
@@ -199,4 +198,12 @@ export const calculateResolutionFeePercentage = resolutionRate => {
   const feePercentage = 1 / parseInt(resolutionRate);
 
   return feePercentage;
+};
+
+export const getTokenSymbol = (token, chainId, tokenData) => {
+  return tokenData[chainId][token].symbol;
+};
+
+export const dateTimeToDate = dateTime => {
+  return dateTime.split(',')[0];
 };

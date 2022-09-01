@@ -1,7 +1,7 @@
 import Base58 from 'base-58';
 import IPFSClient from 'ipfs-http-client';
 
-import { INVOICE_VERSION } from './constants';
+import { INVOICE_VERSION, INFURA_AUTH } from './constants';
 
 const ipfsTheGraph = new IPFSClient({
   protocol: 'https',
@@ -14,6 +14,9 @@ const ipfsInfura = new IPFSClient({
   host: 'ipfs.infura.io',
   port: '5001',
   protocol: 'https',
+  headers: {
+    authorization: INFURA_AUTH,
+  },
 });
 
 // type Metadata = {

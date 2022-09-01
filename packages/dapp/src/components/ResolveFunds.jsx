@@ -88,14 +88,15 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Resolve Dispute
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         {isLocked
           ? `You’ll need to distribute the total balance of ${utils.formatUnits(
               balance,
@@ -117,9 +118,9 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
             <Text fontWeight="700">Client Award</Text>
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={clientAwardInput}
                 pr="3.5rem"
@@ -146,9 +147,9 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
             <Text fontWeight="700">Provider Award</Text>
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={providerAwardInput}
                 pr="3.5rem"
@@ -175,9 +176,9 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
             <Text fontWeight="700">Resolver Award</Text>
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={utils.formatUnits(resolverAward, decimals)}
                 pr="3.5rem"
@@ -194,18 +195,18 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"
-            fontWeight="normal"
+            fontWeight="bold"
             w="100%"
           >
             Resolve
           </Button>
           {transaction && (
-            <Text color="white" textAlign="center" fontSize="sm">
+            <Text color="black" textAlign="center" fontSize="sm">
               Follow your transaction{' '}
               <Link
                 href={getTxLink(chainId, transaction.hash)}
                 isExternal
-                color="red.500"
+                color="blue"
                 textDecoration="underline"
               >
                 here

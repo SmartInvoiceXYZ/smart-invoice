@@ -145,7 +145,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
       {(paymentInvalid || milestonesInvalid) && (
         <Text
           w="100%"
-          color="purple"
+          color="red"
           textAlign="right"
           fontSize="xs"
           fontWeight="700"
@@ -207,11 +207,11 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
         <Checkbox
           isChecked={termsAccepted}
           onChange={e => setTermsAccepted(e.target.checked)}
-          colorScheme="red"
-          border="none"
+          colorScheme="blue"
           size="lg"
           fontSize="1rem"
-          color="white"
+          color="#323C47"
+          borderColor="lightgrey"
         >
           {`I agree to ${getResolverString(chainId, arbitrationProvider)} `}
           <Link
