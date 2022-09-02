@@ -21,10 +21,16 @@ export function Footer() {
         paddingY={4}
         textColor="white"
       >
-        <Image src={logo} alt="Smart Invoice" width={160} height={25.34} />
+        <ChakraLink href="/invoices">
+          <Image src={logo} alt="Smart Invoice" width={160} height={25.34} />
+        </ChakraLink>
         <Flex gap={8} justify="center" align="center">
-          <ChakraLink isExternal href="https://smartinvoice.xyz/">
-            Home
+          <ChakraLink
+            isExternal
+            href="https://smartinvoice.xyz"
+            target="_blank"
+          >
+            Website
           </ChakraLink>
           <ChakraLink
             isExternal
@@ -33,8 +39,18 @@ export function Footer() {
           >
             Documentation
           </ChakraLink>
-          <ChakraLink href="#">Support</ChakraLink>
-          <ChakraLink isExternal href="#" target="_blank">
+          <ChakraLink
+            isExternal
+            href="https://docs.smartinvoice.xyz/docs/FAQ"
+            target="_blank"
+          >
+            Support
+          </ChakraLink>
+          <ChakraLink
+            isExternal
+            href="https://twitter.com/SmartInvoiceXYZ"
+            target="_blank"
+          >
             Twitter
           </ChakraLink>
         </Flex>

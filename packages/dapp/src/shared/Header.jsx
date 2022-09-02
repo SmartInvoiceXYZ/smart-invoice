@@ -92,7 +92,7 @@ export const Header = () => {
       zIndex={5}
     >
       <Box width={250}>
-        <RouterLink to="/">
+        <RouterLink to="/invoices">
           <Flex cursor="pointer">
             <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
           </Flex>
@@ -101,13 +101,21 @@ export const Header = () => {
 
       {/* Navigation Links */}
       <Flex gap={8} justify="center" align="center">
-        <ChakraLink href="https://smartinvoice.xyz" target="_blank">
-          Home
-        </ChakraLink>
-        <ChakraLink href="https://docs.smartinvoice.xyz" target="_blank">
+        <ChakraLink href="/invoices">Dashboard</ChakraLink>
+        <ChakraLink
+          href="https://docs.smartinvoice.xyz"
+          target="_blank"
+          isExternal
+        >
           Documentation
         </ChakraLink>
-        <ChakraLink href="#">Support</ChakraLink>
+        <ChakraLink
+          href="https://docs.smartinvoice.xyz/docs/FAQ"
+          target="_blank"
+          isExternal
+        >
+          Support
+        </ChakraLink>
       </Flex>
 
       <Flex

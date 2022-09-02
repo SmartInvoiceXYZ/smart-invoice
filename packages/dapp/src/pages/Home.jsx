@@ -1,6 +1,7 @@
 import {
   Button,
   Flex,
+  Heading,
   Text,
   useBreakpointValue,
   useDisclosure,
@@ -51,27 +52,62 @@ export const Home = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
-    <Container
-      justify={{ base: 'space-between', lg: 'flex-start' }}
-      direction={{ base: 'column', lg: 'row' }}
-      pt={{ base: '6rem', sm: '8rem', lg: '0rem' }}
-    >
-      <Flex
-        direction="column"
+    <Flex direction="column" align="center" justify="center" gap={6}>
+      <Heading
+        fontWeight={700}
+        fontSize={50}
+        textAlign="center"
+        color="rgba(50, 60, 71, 1)"
+      >
+        Welcome to Smart Invoice
+      </Heading>
+      <Text fontStyle="italic" color="grey">
+        How do you want to get started?
+      </Text>
+      <Flex gap={10} width="100%" align="stretch" justify="center">
+        <Button
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
+          onClick={createInvoice}
+          size={buttonSize}
+          minW="250px"
+        >
+          Create Invoice
+        </Button>
+        <Button
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
+          onClick={viewInvoices}
+          size={buttonSize}
+          minW="250px"
+        >
+          View Existing Invoices
+        </Button>
+      </Flex>
+      {/* <Flex
+        direction="row"
         align="stretch"
         m={{ base: '1rem', md: '2rem', lg: '4rem' }}
         mr={{ base: '1rem', md: '2rem', lg: '2rem' }}
-        w={{ base: '22rem', sm: '28rem', lg: '32rem' }}
-        maxW="calc(100% - 2rem)"
+        // w={{ base: '22rem', sm: '28rem', lg: '32rem' }}
+        // maxW="calc(100% - 2rem)"
       >
         <Button
-          colorScheme="blue"
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
           onClick={createInvoice}
-          size={buttonSize}
+          // size={buttonSize}
+          // width='fit-content'
           fontFamily="mono"
           fontWeight="normal"
         >
-          {smallScreen ? 'CREATE NEW INVOICE' : 'CREATE A NEW SMART INVOICE'}
+          CREATE NEW INVOICE
         </Button>
         <Text
           fontWeight="bold"
@@ -83,13 +119,16 @@ export const Home = () => {
           or
         </Text>
         <Button
-          colorScheme="blue"
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
           onClick={viewInvoices}
           size={buttonSize}
           fontFamily="mono"
           fontWeight="normal"
         >
-          VIEW EXISTING INVOICE
+          VIEW EXISTING INVOICES
         </Button>
         <Button
           mt="2rem"
@@ -120,7 +159,7 @@ export const Home = () => {
             })}
         py="3rem"
         m="1rem"
-      ></Flex>
-    </Container>
+      ></Flex> */}
+    </Flex>
   );
 };
