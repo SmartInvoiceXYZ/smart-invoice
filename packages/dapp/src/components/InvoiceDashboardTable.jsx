@@ -31,7 +31,6 @@ import { RightArrowIcon, LeftArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from '../pages/InvoicesStyles';
 import { GenerateInvoicePDFMenuItem } from './GenerateInvoicePDF';
 import { FilterIcon } from '../icons/FilterIcon';
-import tokenSchema from '../tokenSupport/tokenData.json';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
