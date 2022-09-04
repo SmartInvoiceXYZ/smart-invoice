@@ -4,6 +4,7 @@ import {
   Text,
   Heading,
   IconButton,
+  Image as ChakraImage,
   chakra,
   Link,
   Menu,
@@ -30,6 +31,7 @@ import { RightArrowIcon, LeftArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from '../pages/InvoicesStyles';
 import { GenerateInvoicePDFMenuItem } from './GenerateInvoicePDF';
 import { FilterIcon } from '../icons/FilterIcon';
+import tokenSchema from '../tokenSupport/tokenData.json';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
@@ -67,7 +69,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
     const dataArray = [];
     result.forEach((invoice, index) => {
-      const { decimals, symbol } = getTokenInfo(
+      const { decimals, symbol, image } = getTokenInfo(
         chainId,
         invoice.token,
         tokenData,
@@ -88,7 +90,17 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           </Link>
         ),
         amount: formatUnits(invoice.total, decimals),
-        currency: symbol,
+        currency: (
+          <Flex justify="center" gap={1}>
+            <ChakraImage
+              src={image}
+              width="24px"
+              height="24px"
+              objectFit="cover"
+            />
+            <Text>{symbol}</Text>
+          </Flex>
+        ),
         status: (
           <InvoiceStatusLabel
             invoice={invoice}
