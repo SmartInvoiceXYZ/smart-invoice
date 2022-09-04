@@ -42,7 +42,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     [chainId, allTokens],
   );
 
-  const { decimals, symbol } = useMemo(
+  const { decimals, symbol, image } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
     [chainId, paymentToken, tokenData],
   );

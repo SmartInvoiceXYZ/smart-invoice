@@ -169,10 +169,13 @@ export const formatTokenData = object => {
   for (const [key, value] of Object.entries(object)) {
     let tokenDetails = {};
 
-    for (const { tokenContract, decimals, symbol } of Object.values(value)) {
+    for (const { tokenContract, decimals, symbol, image } of Object.values(
+      value,
+    )) {
       tokenDetails[tokenContract.toLowerCase()] = {
         decimals: decimals,
         symbol: symbol,
+        image: image,
       };
     }
     tokenObject[key] = tokenDetails;

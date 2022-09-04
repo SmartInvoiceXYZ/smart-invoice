@@ -148,7 +148,11 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+  const { decimals, symbol, image } = getTokenInfo(
+    invoiceChainId,
+    token,
+    tokenData,
+  );
 
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
