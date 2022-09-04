@@ -49,17 +49,28 @@ export const ProfileButton = ({ profile, account, chainId, disconnect }) => {
               bgRepeat="no-repeat"
               bgPosition="center center"
             />
-            <Text
-              px={2}
-              display="flex"
-              fontFamily="'Roboto Mono', monospace;"
-              color="red.500"
-            >
-              {profile && profile.name
-                ? profile.name
-                : getAccountString(account)}
-            </Text>
-            <Tag colorScheme="red" size="sm">
+            <Flex direction="column" gap={1} align="left">
+              <Text
+                px={2}
+                display={{ base: 'none', md: 'flex' }}
+                fontFamily="'Roboto Mono', monospace;"
+                color="#192A3E"
+                fontWeight={500}
+                fontSize={14}
+              >
+                {profile && profile.name ? profile.name : 'Anonymous'}
+              </Text>
+              <Text
+                px={2}
+                display={{ base: 'none', md: 'flex' }}
+                fontFamily="'Roboto Mono', monospace;"
+                color="grey"
+                fontSize={12}
+              >
+                {getAccountString(account)}
+              </Text>
+            </Flex>
+            <Tag background="#90A0B7" color="white" size="sm">
               {getNetworkLabel(chainId)}
             </Tag>
           </Button>

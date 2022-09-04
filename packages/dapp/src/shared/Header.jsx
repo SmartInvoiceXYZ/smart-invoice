@@ -53,7 +53,7 @@ export const NavButton = ({ onClick, children }) => (
     transition="all 0.5s ease 0.4s"
     my="1rem"
     variant="link"
-    color="red.500"
+    color="blue.1"
     fontWeight="normal"
     fontSize="1.5rem"
   >
@@ -64,13 +64,27 @@ export const NavButton = ({ onClick, children }) => (
 export const Header = () => {
   const { account, disconnect, chainId } = useContext(Web3Context);
   const [isOpen, onOpen] = useState(false);
+  const [isMobile, onMobile] = useState(false);
   const history = useHistory();
   const [profile, setProfile] = useState();
+  useEffect(() => {
+    if (window) {
+      toggleMobileMode();
+      window.addEventListener('resize', toggleMobileMode);
+    }
+  });
   useEffect(() => {
     if (account) {
       getProfile(account).then(p => setProfile(p));
     }
   }, [account]);
+  const toggleMobileMode = () => {
+    if (window.innerWidth < 850) {
+      onMobile(true);
+    } else {
+      onMobile(false);
+    }
+  };
   const buttonVariant = useBreakpointValue({
     base: isOpen ? 'ghost' : 'link',
     md: 'ghost',
@@ -83,7 +97,6 @@ export const Header = () => {
       paddingY={4}
       color="#707683"
       fontFamily="mono"
-      // position="absolute"
       top={0}
       left={0}
       justify="space-between"
@@ -92,7 +105,7 @@ export const Header = () => {
       zIndex={5}
     >
       <Box width={250}>
-        <RouterLink to="/">
+        <RouterLink to="/invoices">
           <Flex cursor="pointer">
             <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
           </Flex>
@@ -100,22 +113,32 @@ export const Header = () => {
       </Box>
 
       {/* Navigation Links */}
-      <Flex gap={8} justify="center" align="center">
-        <ChakraLink href="https://smartinvoice.xyz" target="_blank">
-          Home
-        </ChakraLink>
-        <ChakraLink href="https://docs.smartinvoice.xyz" target="_blank">
-          Documentation
-        </ChakraLink>
-        <ChakraLink href="#">Support</ChakraLink>
-      </Flex>
+      {!isMobile && (
+        <Flex gap={8} justify="center" align="center">
+          <ChakraLink href="/invoices">Dashboard</ChakraLink>
+          <ChakraLink
+            href="https://docs.smartinvoice.xyz"
+            target="_blank"
+            isExternal
+          >
+            Documentation
+          </ChakraLink>
+          <ChakraLink
+            href="https://docs.smartinvoice.xyz/docs/FAQ"
+            target="_blank"
+            isExternal
+          >
+            Support
+          </ChakraLink>
+        </Flex>
+      )}
 
       <Flex
-        // mx={{ base: '2rem', sm: '3rem' }}
         align="center"
         height="8rem"
         transition="width 1s ease-out"
         width={250}
+        justify="end"
       >
         {account && (
           <Flex justify="center" align="center" zIndex={5}>
@@ -180,7 +203,10 @@ export const Header = () => {
                   onClick={() => {
                     disconnect();
                   }}
-                  colorScheme="blue"
+                  backgroundColor="blue.1"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -191,6 +217,92 @@ export const Header = () => {
             </Popover>
           </Flex>
         )}
+        {isMobile && (
+          <Button
+            onClick={() => onOpen(o => !o)}
+            variant="link"
+            ml={{ base: '0.5rem', sm: '1rem' }}
+            zIndex={7}
+          >
+            <HamburgerIcon
+              boxSize={{ base: '2rem', sm: '2.75rem' }}
+              transition="all 1s ease-out"
+              _hover={{
+                transition: 'all 1s ease-out',
+                transform: 'rotateZ(90deg)',
+              }}
+              color="blue.1"
+            />
+          </Button>
+        )}
+      </Flex>
+      <Flex
+        zIndex={6}
+        position="fixed"
+        left="0"
+        top="0"
+        bg="white"
+        h="100%"
+        w="100%"
+        direction="column"
+        justify="center"
+        align="center"
+        transition="all 2s ease-out"
+        pointerEvents={isOpen ? 'all' : 'none'}
+        css={{
+          clipPath: isOpen
+            ? 'circle(calc(100vw + 100vh) at 90% -10%)'
+            : 'circle(100px at 90% -20%)',
+        }}
+      >
+        {account && profile && chainId && (
+          <ProfileButton
+            account={account}
+            chainId={chainId}
+            profile={profile}
+            disconnect={disconnect}
+          />
+        )}
+        <StyledButton
+          onClick={() => {
+            history.push('/invoices');
+            onOpen(false);
+          }}
+          transition="all 0.5s ease 0.4s"
+          my="1rem"
+          variant="link"
+          color="gray"
+          fontWeight="normal"
+          fontSize="1.5rem"
+        >
+          Dashboard
+        </StyledButton>
+        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
+          <StyledButton
+            as="span"
+            transition="all 0.5s ease 0.4s"
+            my="1rem"
+            variant="link"
+            color="gray"
+            fontWeight="normal"
+            fontSize="1.5rem"
+          >
+            Documentation
+          </StyledButton>
+        </ChakraLink>
+        <ChakraLink href="https://discord.gg/CanD2WcK7W" isExternal _hover={{}}>
+          <StyledButton
+            as="span"
+            transition="all 0.5s ease 0.4s"
+            my="1rem"
+            variant="link"
+            color="gray"
+            fontWeight="normal"
+            fontSize="1.5rem"
+          >
+            Support
+          </StyledButton>
+        </ChakraLink>
       </Flex>
     </Flex>
   );
