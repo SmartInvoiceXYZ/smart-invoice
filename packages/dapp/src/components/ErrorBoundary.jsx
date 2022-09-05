@@ -31,8 +31,8 @@ export class ErrorBoundary extends React.Component {
           direction="column"
           w="100%"
           minH="100vh"
-          background="black"
-          color="red.500"
+          background="#F5F6F8"
+          color="blue.1"
         >
           <Text fontSize="lg"> Something went wrong </Text>
           <Text> Please check console for errors </Text>

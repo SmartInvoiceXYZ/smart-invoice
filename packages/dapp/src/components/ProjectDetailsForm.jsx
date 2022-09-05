@@ -60,6 +60,8 @@ export const ProjectDetailsForm = ({ display }) => {
         }}
         isInvalid={nameInvalid}
         error={nameInvalid ? 'Cannot be empty' : ''}
+        tooltip="Project Name or Description"
+        required="required"
       />
       <OrderedLinkInput
         label="Link to Project Agreement"
@@ -68,13 +70,16 @@ export const ProjectDetailsForm = ({ display }) => {
         linkType={projectAgreementLinkType}
         setLinkType={setProjectAgreementLinkType}
         tooltip="This agreement will be referenced in the case of a dispute"
+        required="required"
       />
       <OrderedTextarea
         label="Project Description"
         value={projectDescription}
         setValue={setProjectDescription}
-        infoText="140 character limit • optional"
+        infoText="140 character limit"
         maxLength="140"
+        required="optional"
+        tooltip="More in-depth description of project."
       />
       <SimpleGrid
         w="100%"
@@ -87,14 +92,16 @@ export const ProjectDetailsForm = ({ display }) => {
           type="date"
           value={startDateString}
           setValue={v => setStartDate(Date.parse(v))}
-          infoText="optional"
+          required="optional"
+          tooltip="Probable project start date."
         />
         <OrderedInput
           label="Expected End Date"
           type="date"
           value={endDateString}
           setValue={v => setEndDate(Date.parse(v))}
-          infoText="optional"
+          required="optional"
+          tooltip="Probable project end date."
         />
         <OrderedInput
           gridArea={{
@@ -112,6 +119,7 @@ export const ProjectDetailsForm = ({ display }) => {
           }}
           tooltip="The funds can be withdrawn by the client after 00:00:00 GMT on this date."
           isInvalid={dateInvalid}
+          required="required"
         />
       </SimpleGrid>
       {dateInvalid && (

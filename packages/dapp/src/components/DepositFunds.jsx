@@ -270,7 +270,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
           <Link
             href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="blue"
+            color="blue.1"
             textDecoration="underline"
           >
             here

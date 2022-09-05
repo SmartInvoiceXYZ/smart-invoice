@@ -40,7 +40,12 @@ export const Styles = styled.div`
         text-align: right;
       }
 
-      :nth-child(4),
+      :nth-child(4) {
+        text-align: left;
+        padding-left: 50px;
+        max-width: 75px;
+      }
+
       :nth-child(5) {
         text-align: center;
         max-width: 100px;

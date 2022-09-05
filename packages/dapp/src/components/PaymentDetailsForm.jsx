@@ -75,6 +75,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
         tooltip="This will be the address used to access the invoice"
+        required="required"
       />
       <OrderedInput
         label="Service Provider Address"
@@ -86,6 +87,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="Recipient of the funds"
+        required="required"
       />
       <SimpleGrid
         w="100%"
@@ -109,11 +111,14 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
               setPaymentInvalid(true);
             }
           }}
+          required="required"
+          tooltip="Total payment for the entire project"
         />
         <OrderedSelect
           value={paymentToken}
           setValue={setPaymentToken}
           label="Payment Token"
+          required="required"
         >
           {TOKENS.map(token => (
             <option value={token} key={token}>
@@ -140,6 +145,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
           tooltip="Number of milestones in which the total payment will be processed"
+          required="required"
         />
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (

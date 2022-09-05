@@ -246,6 +246,8 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
                   type="text"
                   color="black"
                   border="1px"
+                  borderColor="lightgrey"
+                  _hover={{ borderColor: 'lightgrey' }}
                   pr="3.5rem"
                   onChange={e => {
                     if (!e.target.value || isNaN(Number(e.target.value)))
@@ -337,7 +339,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
           <Link
             href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="red.500"
+            color="blue.1"
             textDecoration="underline"
           >
             here

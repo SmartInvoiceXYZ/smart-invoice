@@ -4,6 +4,7 @@ import {
   Text,
   Heading,
   IconButton,
+  Image as ChakraImage,
   chakra,
   Link,
   Menu,
@@ -67,7 +68,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
     const dataArray = [];
     result.forEach((invoice, index) => {
-      const { decimals, symbol } = getTokenInfo(
+      const { decimals, symbol, image } = getTokenInfo(
         chainId,
         invoice.token,
         tokenData,
@@ -88,7 +89,17 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           </Link>
         ),
         amount: formatUnits(invoice.total, decimals),
-        currency: symbol,
+        currency: (
+          <Flex justify="left" gap={2}>
+            <ChakraImage
+              src={image}
+              width="24px"
+              height="24px"
+              objectFit="contain"
+            />
+            <Text>{symbol}</Text>
+          </Flex>
+        ),
         status: (
           <InvoiceStatusLabel
             invoice={invoice}

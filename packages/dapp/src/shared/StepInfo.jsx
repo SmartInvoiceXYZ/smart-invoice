@@ -4,10 +4,13 @@ import {
   useBreakpointValue,
   VStack,
   Divider,
+  HStack,
+  IconButton,
 } from '@chakra-ui/react';
 import React from 'react';
+import { BackArrowIcon } from '../icons/ArrowIcons';
 
-export const StepInfo = ({ stepNum, stepTitle, stepDetails }) => {
+export const StepInfo = ({ stepNum, stepTitle, stepDetails, goBack }) => {
   const maxW = useBreakpointValue({ base: '100%' });
 
   const stepSize = useBreakpointValue({
@@ -18,11 +21,29 @@ export const StepInfo = ({ stepNum, stepTitle, stepDetails }) => {
   });
   return (
     <VStack spacing="1rem" maxW={maxW} align="stretch">
-      <Heading color="#323C47" size={stepSize} align="center">
-        Step {stepNum}: {stepTitle}
-      </Heading>
+      <HStack width="100%" align="center" paddingY={4}>
+        {stepNum !== 1 && (
+          <IconButton
+            icon={<BackArrowIcon width="33px" height="24px" />}
+            position="absolute"
+            onClick={() => goBack()}
+            cursor="pointer"
+            zIndex={5}
+          />
+        )}
+        <Heading
+          position="relative"
+          color="#323C47"
+          size={stepSize}
+          align="center"
+          textAlign="center"
+          width="100%"
+        >
+          Step {stepNum}: {stepTitle}
+        </Heading>
+      </HStack>
 
-      <Divider width="100%" />
+      <Divider width="100%" background="lightgrey" />
       <br />
 
       {stepDetails.map((detail, index) => {
