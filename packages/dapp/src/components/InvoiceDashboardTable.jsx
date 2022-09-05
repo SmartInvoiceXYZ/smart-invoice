@@ -90,12 +90,12 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
         ),
         amount: formatUnits(invoice.total, decimals),
         currency: (
-          <Flex justify="center" gap={1}>
+          <Flex justify="left" gap={2}>
             <ChakraImage
               src={image}
               width="24px"
               height="24px"
-              objectFit="cover"
+              objectFit="contain"
             />
             <Text>{symbol}</Text>
           </Flex>
