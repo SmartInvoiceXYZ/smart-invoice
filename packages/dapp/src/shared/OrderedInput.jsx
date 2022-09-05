@@ -9,10 +9,45 @@ import {
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { isValidLink } from '../utils/helpers';
+
+// const Requirement = (required) => {
+//   const [requirement, setRequirement] = useState('');
+
+//   useEffect(()=>{
+//     setRequirement(required)
+//   }),[required]
+
+//   return(
+//     <>
+//      {requirement === 'null' ?
+//     <Text
+//       fontStyle='italic'
+//       fontSize='10%'
+//       marginLeft='5px'
+//       paddingTop='5px'
+//     >
+//     {console.log(requirement)}
+//     {requirement === 'required' ? 'Required' : 'Optional'}
+//     </Text> :
+//     <Text
+//       fontStyle='italic'
+//       fontSize='10%'
+//       marginLeft='5px'
+//       paddingTop='5px'
+//       visibility='hidden'
+//     >
+//     Required
+//     </Text>
+//     }
+
+//     </>
+
+//   )
+// }
 
 export const OrderedLinkInput = ({
   label,
@@ -136,6 +171,7 @@ export const OrderedInput = ({
   infoText,
   tooltip,
   placeholder,
+  required,
   isInvalid = false,
   isDisabled = false,
   type = 'text',
@@ -174,6 +210,7 @@ export const OrderedInput = ({
           isInvalid={isInvalid}
           _invalid={{ border: '1px solid', borderColor: 'red' }}
         />
+        {/* <Requirement required={required}/> */}
         {error && (
           <Text
             w="100%"

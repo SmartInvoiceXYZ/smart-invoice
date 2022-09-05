@@ -27,14 +27,14 @@ const CreateInvoiceInner = () => {
   const {
     tx,
     loading,
-    currentStep,
+    // currentStep,
     nextStepEnabled,
     goBackHandler,
     nextStepHandler,
   } = useContext(CreateContext);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
-  // const currentStep = 4;
+  const currentStep = 1;
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -64,7 +64,7 @@ const CreateInvoiceInner = () => {
           justify="center"
           w={stackWidth}
           px="1rem"
-          my="8rem"
+          my="2rem"
         >
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
@@ -73,7 +73,12 @@ const CreateInvoiceInner = () => {
             <Heading fontWeight="700" fontSize={headingSize}>
               Create a Smart Invoice
             </Heading>
-            <Text color="#90A0B7" as="i" width="85%">
+            <Text
+              color="#90A0B7"
+              as="i"
+              width="100%"
+              style={{ textIndent: 20 }}
+            >
               Note: All invoice data will be stored publicly on IPFS and can be
               viewed by anyone., If you have privacy concerns, we recommend
               taking care to add permissions to your project agreement document.
