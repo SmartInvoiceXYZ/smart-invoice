@@ -27,14 +27,12 @@ const CreateInvoiceInner = () => {
   const {
     tx,
     loading,
-    // currentStep,
+    currentStep,
     nextStepEnabled,
     goBackHandler,
     nextStepHandler,
   } = useContext(CreateContext);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
-
-  const currentStep = 1;
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -65,6 +63,7 @@ const CreateInvoiceInner = () => {
           w={stackWidth}
           px="1rem"
           my="2rem"
+          maxW="650px"
         >
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
@@ -80,7 +79,7 @@ const CreateInvoiceInner = () => {
               style={{ textIndent: 20 }}
             >
               Note: All invoice data will be stored publicly on IPFS and can be
-              viewed by anyone., If you have privacy concerns, we recommend
+              viewed by anyone. If you have privacy concerns, we recommend
               taking care to add permissions to your project agreement document.
             </Text>
 
@@ -96,6 +95,7 @@ const CreateInvoiceInner = () => {
                 stepNum={currentStep}
                 stepTitle={STEPS[currentStep].step_title}
                 stepDetails={STEPS[currentStep].step_details}
+                goBack={goBackHandler}
               />
               <ProjectDetailsForm
                 display={currentStep === 1 ? 'flex' : 'none'}
@@ -117,26 +117,7 @@ const CreateInvoiceInner = () => {
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              <Grid
-                templateColumns={currentStep === 1 ? '1fr' : '1fr 4fr'}
-                gap="1rem"
-                w="100%"
-                marginTop="20px"
-              >
-                {currentStep !== 1 ? (
-                  <Button
-                    colorScheme="blue"
-                    variant="outline"
-                    onClick={goBackHandler}
-                    size={buttonSize}
-                    fontFamily="mono"
-                    fontWeight="normal"
-                  >
-                    BACK
-                  </Button>
-                ) : (
-                  <Flex />
-                )}
+              <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
                 <Button
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
                   _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}

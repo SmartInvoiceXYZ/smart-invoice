@@ -76,7 +76,7 @@ export const ProjectDetailsForm = ({ display }) => {
         label="Project Description"
         value={projectDescription}
         setValue={setProjectDescription}
-        infoText="140 character limit • optional"
+        infoText="140 character limit"
         maxLength="140"
         required="optional"
         tooltip="More in-depth description of project."

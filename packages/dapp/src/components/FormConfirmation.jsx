@@ -37,8 +37,8 @@ export const FormConfirmation = ({ display, tokenData }) => {
   const flexWidth = useBreakpointValue({
     base: '95%',
     sm: '95%',
-    md: '60%',
-    lg: '50%',
+    md: '80%',
+    lg: '70%',
   });
 
   return (
