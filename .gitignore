@@ -61,3 +61,6 @@ packages/subgraph/src/types
 
 # yarn version
 .yarn*
+
+# firebase tmp
+.firebase/
