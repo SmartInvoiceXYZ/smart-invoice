@@ -2,7 +2,7 @@
   "network": "rinkeby",
   "factories": [
     {
-      "factoryName": "Version06",
+      "factoryName": "Version00",
       "startBlock": "11138844",
       "address": "0x659912E406b11D457656468c655F2e545E552259"
     }
