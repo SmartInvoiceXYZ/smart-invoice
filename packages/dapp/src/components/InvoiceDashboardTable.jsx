@@ -46,7 +46,7 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
           : isLocked
           ? 'red'
           : funded
-          ? 'green'
+          ? '#008000'
           : disputeResolved
           ? 'gray'
           : 'orange'

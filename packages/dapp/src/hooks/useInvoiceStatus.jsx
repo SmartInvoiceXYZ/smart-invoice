@@ -23,6 +23,7 @@ export const useInvoiceStatus = invoice => {
         terminationTime,
         disputes,
         resolutions,
+        deposits,
       } = invoice;
       balanceOf(provider, token, address)
         .then(balance => {
@@ -37,7 +38,10 @@ export const useInvoiceStatus = invoice => {
             }
           } else {
             const amount = BigNumber.from(amounts[currentMilestone]);
-            if (balance.gte(amount)) {
+            if (deposits.length > 0 && balance < amount) {
+              setFunded(!isLocked);
+              setLabel('Partially Funded');
+            } else if (balance.gte(amount)) {
               setFunded(!isLocked);
               setLabel('Funded');
             } else if (terminationTime <= new Date().getTime() / 1000) {

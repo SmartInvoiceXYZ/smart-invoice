@@ -55,11 +55,9 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chainId, account, provider: ethersProvider } = useContext(
+    Web3Context,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -781,54 +779,45 @@ export const ViewInvoice = ({
               >
                 {isReleasable ? 'Release' : 'Deposit'}
               </Button>
-
-              {/* {!verifiedStatus && (
-                <VerifyInvoice
-                
-                  invoice={invoice}
-                  client={client}
-                  verified={verified}
-                  setVerifiedStatus={setVerifiedStatus}
-                />
-              )} */}
             </SimpleGrid>
           )}
-          {console.log('verified', verifiedStatus)}
           {!dispute && !resolution && !isResolver && !isClient && (
-            <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
-              {isLockable && (
-                <Button
-                  size={buttonSize}
-                  colorScheme="red"
-                  fontFamily="mono"
-                  fontWeight="bold"
-                  textTransform="uppercase"
-                  onClick={() => onLock()}
-                >
-                  Lock
-                </Button>
-              )}
-
+            <VStack>
               {verifiedStatus ? null : (
                 <Text fontWeight="bold" margin="0 auto">
                   Client has not yet enabled non-client deposits
                 </Text>
               )}
-              <Button
-                size={buttonSize}
-                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                color="white"
-                backgroundColor="blue.1"
-                fontWeight="bold"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => onDeposit()}
-                disabled={!verifiedStatus}
-              >
-                Deposit
-              </Button>
-            </SimpleGrid>
+              <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+                {isLockable && (
+                  <Button
+                    size={buttonSize}
+                    colorScheme="red"
+                    fontFamily="mono"
+                    fontWeight="bold"
+                    textTransform="uppercase"
+                    onClick={() => onLock()}
+                  >
+                    Lock
+                  </Button>
+                )}
+
+                <Button
+                  size={buttonSize}
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onDeposit()}
+                  disabled={!verifiedStatus}
+                >
+                  Deposit
+                </Button>
+              </SimpleGrid>
+            </VStack>
           )}
         </VStack>
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>

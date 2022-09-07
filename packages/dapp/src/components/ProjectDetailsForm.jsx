@@ -60,7 +60,7 @@ export const ProjectDetailsForm = ({ display }) => {
         }}
         isInvalid={nameInvalid}
         error={nameInvalid ? 'Cannot be empty' : ''}
-        tooltip="Project Name or Description"
+        tooltip="Choose something easily identifiable by you & your client. This is how the invoice will appear on your sortable invoices list later."
         required="required"
       />
       <OrderedLinkInput
@@ -69,7 +69,7 @@ export const ProjectDetailsForm = ({ display }) => {
         setValue={setProjectAgreementSource}
         linkType={projectAgreementLinkType}
         setLinkType={setProjectAgreementLinkType}
-        tooltip="This agreement will be referenced in the case of a dispute"
+        tooltip="This agreement will be referenced if there is a payment dispute that goes to arbitration. Link a file that cannot be modified."
         required="required"
       />
       <OrderedTextarea
@@ -79,7 +79,7 @@ export const ProjectDetailsForm = ({ display }) => {
         infoText="140 character limit"
         maxLength="140"
         required="optional"
-        tooltip="More in-depth description of project."
+        tooltip="This brief description will help you & your client remember key project details in the future."
       />
       <SimpleGrid
         w="100%"
@@ -93,7 +93,7 @@ export const ProjectDetailsForm = ({ display }) => {
           value={startDateString}
           setValue={v => setStartDate(Date.parse(v))}
           required="optional"
-          tooltip="Probable project start date."
+          tooltip="This is the date you expect to begin work on this project."
         />
         <OrderedInput
           label="Expected End Date"
@@ -101,7 +101,7 @@ export const ProjectDetailsForm = ({ display }) => {
           value={endDateString}
           setValue={v => setEndDate(Date.parse(v))}
           required="optional"
-          tooltip="Probable project end date."
+          tooltip="This is the date you expect to complete work on this project."
         />
         <OrderedInput
           gridArea={{
@@ -117,7 +117,7 @@ export const ProjectDetailsForm = ({ display }) => {
             setSafetyValveDate(date);
             setDateInvalid(date < new Date().getTime());
           }}
-          tooltip="The funds can be withdrawn by the client after 00:00:00 GMT on this date."
+          tooltip="If you do not complete this project by this date, the client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
           isInvalid={dateInvalid}
           required="required"
         />

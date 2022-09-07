@@ -12,7 +12,7 @@ import {
   HStack,
   SimpleGrid,
 } from '@chakra-ui/react';
-import { BigNumber, utils } from 'ethers';
+import { BigNumber, ethers, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
@@ -61,28 +61,37 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
     projectAgreement[projectAgreement.length - 1].src,
   );
-  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
-    useState(projectAgreement[projectAgreement.length - 1].type);
+  const [
+    revisedProjectAgreementType,
+    setRevisedProjectAgreementType,
+  ] = useState(projectAgreement[projectAgreement.length - 1].type);
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
-    console.log(
-      utils.formatUnits(
-        amounts.reduce((a, b) => parseInt(a) + parseInt(b)),
-        decimals,
-      ),
-    );
-
     const totalAmounts = utils.formatUnits(
-      amounts.reduce((a, b) => parseInt(a) + parseInt(b)),
+      amounts.reduce(
+        (a, b) =>
+          parseInt(ethers.utils.formatEther(a)) +
+          parseInt(ethers.utils.formatEther(b)),
+      ),
       decimals,
     );
 
     if (deposits.length > 0) {
+      let depositAmounts = [];
+
+      for (let i = 0; i < deposits.length; i++) {
+        depositAmounts.push(deposits[i].amount);
+      }
       const totalDeposits = utils.formatUnits(
-        deposits.reduce((a, b) => parseInt(a) + parseInt(b)),
+        depositAmounts.reduce(
+          (a, b) =>
+            parseInt(ethers.utils.formatEther(a)) +
+            parseInt(ethers.utils.formatEther(b)),
+        ),
         decimals,
       );
+
       const remaining = totalAmounts - totalDeposits;
       setRemainingFunds(remaining);
     } else {

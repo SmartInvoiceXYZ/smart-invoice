@@ -77,6 +77,7 @@ const CreateInvoiceInner = () => {
               as="i"
               width="100%"
               style={{ textIndent: 20 }}
+              align="center"
             >
               Note: All invoice data will be stored publicly on IPFS and can be
               viewed by anyone. If you have privacy concerns, we recommend

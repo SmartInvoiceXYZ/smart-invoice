@@ -186,7 +186,6 @@ export const OrderedInput = ({
           isInvalid={isInvalid}
           _invalid={{ border: '1px solid', borderColor: 'red' }}
         />
-        {/* <Requirement required={required}/> */}
         {error && (
           <Text
             w="100%"
@@ -267,12 +266,14 @@ export const OrderedTextarea = ({
   type = 'text',
 }) => {
   return (
-    <VStack w="100%" spacing="0.5rem" justify="space-between">
+    <VStack w="100%" spacing="0.5rem">
       <Flex direction="column" w="100%">
         <Flex w="100%">
-          <Text fontWeight="700">{label}</Text>
+          <Text fontWeight="700" color="black">
+            {label}
+          </Text>
           {tooltip && (
-            <Tooltip label={tooltip} placement="auto-start">
+            <Tooltip color="white" label={tooltip} placement="auto-start">
               <QuestionIcon ml=".25rem" boxSize="0.75rem" />
             </Tooltip>
           )}
