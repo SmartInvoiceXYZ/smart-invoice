@@ -19,9 +19,9 @@ export const CONFIG = {
       },
     },
     100: {
-      SUBGRAPH: 'dan13ram/xdai-smart-invoices',
+      SUBGRAPH: 'psparacino/xdai-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
-      INVOICE_FACTORY: '0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d'.toLowerCase(),
+      INVOICE_FACTORY: '0x11bf4CDFB506FAC501b8583F2C1292B368e765eC'.toLowerCase(),
       RESOLVERS: {
         ['0x034CfED494EdCff96f0D7160dC2B55Cae5Ee69E1'.toLowerCase()]: {
           name: 'LexDAO',
