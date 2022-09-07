@@ -104,7 +104,7 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
           ? `Review the project agreement to decide how to distribute the disputed payment of ${utils.formatUnits(
               balance,
               decimals,
-            )} ${symbol} between the client & freelancer, excluding the ${100 /
+            )} ${symbol} between the client & provider, excluding the ${100 /
               resolutionRate}% arbitration fee you’ll receive.`
           : `Invoice is not locked`}
       </Text>
@@ -168,7 +168,7 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
               </Text>
               <Tooltip
                 color="white"
-                label="How much of the disputed payment should the freelancer receive?"
+                label="How much of the disputed payment should the provider receive?"
                 placement="auto-start"
               >
                 <QuestionIcon ml=".25rem" boxSize="0.75rem" />
@@ -183,7 +183,7 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
                 type="number"
                 value={providerAwardInput}
                 pr="3.5rem"
-                tooltip="How much of the disputed payment should the freelancer receive?"
+                tooltip="How much of the disputed payment should the provider receive?"
                 onChange={e => {
                   setProviderAwardInput(e.target.value);
                   if (e.target.value) {

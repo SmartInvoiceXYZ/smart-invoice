@@ -117,7 +117,7 @@ export const ProjectDetailsForm = ({ display }) => {
             setSafetyValveDate(date);
             setDateInvalid(date < new Date().getTime());
           }}
-          tooltip="If you do not complete this project by this date, your client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
+          tooltip="If you do not complete this project by this date, the client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
           isInvalid={dateInvalid}
           required="required"
         />

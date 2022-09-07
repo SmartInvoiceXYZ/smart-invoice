@@ -42,7 +42,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     allTokens,
   ]);
 
-  const { decimals, symbol, image } = useMemo(
+  const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
     [chainId, paymentToken, tokenData],
   );
@@ -86,7 +86,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           setProviderInvalid(!utils.isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
-        tooltip="This is your wallet address. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
+        tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
         required="required"
       />
       <SimpleGrid
@@ -145,7 +145,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             );
             setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
-          tooltip="How many milestone payments will there be for this invoice? (You’ll be able to customize the payment amount for each milestone later)."
+          tooltip="How many milestone payments will there be for this invoice? (You'll be able to customize the payment amount for each milestone in the next step)."
           required="required"
         />
       </SimpleGrid>

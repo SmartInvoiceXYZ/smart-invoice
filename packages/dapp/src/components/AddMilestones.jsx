@@ -68,13 +68,6 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
-    // console.log("TOTAL",
-    //   utils.formatUnits(
-    //     amounts.reduce((a, b) => parseInt(ethers.utils.formatEther(a)) + parseInt(ethers.utils.formatEther(b))),
-    //     decimals,
-    //   ),
-    // );
-
     const totalAmounts = utils.formatUnits(
       amounts.reduce(
         (a, b) =>
