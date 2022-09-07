@@ -5,6 +5,7 @@ import {
   InputRightElement,
   Text,
   VStack,
+  Tooltip,
 } from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useContext } from 'react';
@@ -12,20 +13,33 @@ import React, { useContext } from 'react';
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
 import { getTokenInfo } from '../utils/helpers';
+import { QuestionIcon } from '../icons/QuestionIcon';
 
 export const PaymentChunksForm = ({ display, tokenData }) => {
   const { chainId } = useContext(Web3Context);
-  const { paymentToken, milestones, payments, setPayments, paymentDue } =
-    useContext(CreateContext);
+  const {
+    paymentToken,
+    milestones,
+    payments,
+    setPayments,
+    paymentDue,
+  } = useContext(CreateContext);
   const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
       {Array.from(Array(Number(milestones))).map((_val, index) => {
         return (
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
-            <Flex justify="space-between" w="100%">
+            <Flex w="100%">
               <Text fontWeight="700">Payment #{index + 1}</Text>
-              <Flex />
+              <Flex>
+                <Tooltip
+                  label="This is the amount of tokens you’ll receive for completion of this milestone."
+                  placement="auto-start"
+                >
+                  <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+                </Tooltip>
+              </Flex>
             </Flex>
             <InputGroup>
               <Input

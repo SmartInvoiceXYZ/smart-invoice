@@ -126,7 +126,7 @@ export const LockFunds = ({ invoice, balance, tokenData }) => {
         Lock Funds
       </Heading>
 
-      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
+      <Text textAlign="center" mb="1rem" color="red">
         Locking freezes all remaining funds in the contract and initiates a
         dispute.
       </Text>
@@ -143,6 +143,7 @@ export const LockFunds = ({ invoice, balance, tokenData }) => {
         label="Dispute Reason"
         value={disputeReason}
         setValue={setDisputeReason}
+        infoText="Describe the details of your dispute below. This will be provided to your arbitrator."
       />
       <Text color="red.500" textAlign="center">
         {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}

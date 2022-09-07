@@ -37,10 +37,10 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(
-    () => getTokens(chainId, allTokens),
-    [chainId, allTokens],
-  );
+  const TOKENS = useMemo(() => getTokens(chainId, allTokens), [
+    chainId,
+    allTokens,
+  ]);
 
   const { decimals, symbol, image } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -74,7 +74,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           setClientInvalid(!utils.isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
-        tooltip="This will be the address used to access the invoice"
+        tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address. (Do NOT use a multi-sig address)."
         required="required"
       />
       <OrderedInput
@@ -86,7 +86,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           setProviderInvalid(!utils.isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
-        tooltip="Recipient of the funds"
+        tooltip="This is your wallet address. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
         required="required"
       />
       <SimpleGrid
@@ -112,13 +112,14 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             }
           }}
           required="required"
-          tooltip="Total payment for the entire project"
+          tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you’ll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
         />
         <OrderedSelect
           value={paymentToken}
           setValue={setPaymentToken}
           label="Payment Token"
           required="required"
+          tooltip="This is the cryptocurrency you’ll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you’ll be forced to start the invoice over)."
         >
           {TOKENS.map(token => (
             <option value={token} key={token}>
@@ -144,7 +145,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             );
             setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
-          tooltip="Number of milestones in which the total payment will be processed"
+          tooltip="How many milestone payments will there be for this invoice? (You’ll be able to customize the payment amount for each milestone later)."
           required="required"
         />
       </SimpleGrid>
@@ -161,7 +162,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
       )}
       <SimpleGrid w="100%" columns={2} spacing="1rem">
         <OrderedSelect
-          tooltip="Arbitration provider that will be used in case of a dispute"
+          tooltip="This arbitrator will be used in case of dispute. LexDAO is recommended, but you may include the wallet address of your preferred arbitrator."
           value={arbitrationProviderType}
           setValue={v => {
             setArbitrationProviderType(v);
@@ -191,15 +192,14 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
-          tooltip={`In case a dispute arises, ${
-            100 / resolutionRate
-          }% of the remaining funds will be deducted towards dispute resolution as an arbitration fee`}
+          tooltip={`If a disputed milestone payment goes to arbitration, ${100 /
+            resolutionRate}% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
           isDisabled
         />
       </SimpleGrid>
       {!isKnownResolver(chainId, arbitrationProvider) ? (
         <OrderedInput
-          tooltip="This will be the address used to resolve any disputes on the invoice"
+          tooltip="This arbitrator will be used in case of dispute."
           label="Arbitration Provider Address"
           value={arbitrationProvider}
           setValue={v => {

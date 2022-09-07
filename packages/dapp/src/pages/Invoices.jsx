@@ -9,7 +9,9 @@ import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
 import { Styles } from './InvoicesStyles';
 
 const InvoicesInner = ({ history }) => {
-  const { search, setSearch, result, fetching } = useContext(SearchContext);
+  const { search, setSearch, result, fetching, loading } = useContext(
+    SearchContext,
+  );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
 
@@ -20,8 +22,15 @@ const InvoicesInner = ({ history }) => {
   }, [account, setSearch]);
 
   return (
-    <Box paddingY={16}>
-      {result && result.length !== 0 && tokenData !== undefined ? (
+    <Box paddingY={16} flex={loading ? null : '1 0 100%'}>
+      {loading ? (
+        <Stack align="center">
+          <Heading color="gray" as="h1">
+            Invoices Loading
+          </Heading>
+          <Spinner />
+        </Stack>
+      ) : result && result.length > 0 && tokenData !== undefined ? (
         <InvoiceDashboardTable
           result={result}
           tokenData={tokenData}
@@ -31,9 +40,8 @@ const InvoicesInner = ({ history }) => {
       ) : (
         <Stack align="center">
           <Heading color="gray" as="h1">
-            Invoices Loading
+            No Invoices Found
           </Heading>
-          <Spinner />
         </Stack>
       )}
     </Box>
