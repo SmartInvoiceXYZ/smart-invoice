@@ -9,9 +9,8 @@ import { getNetworkName, logError } from '../utils/helpers';
 import { Container } from './Container';
 
 export const ConnectWeb3 = () => {
-  const { connectAccount, loading, account, disconnect } = useContext(
-    Web3Context,
-  );
+  const { connectAccount, loading, account, disconnect } =
+    useContext(Web3Context);
 
   if (loading) {
     return (
@@ -41,10 +40,9 @@ export const ConnectWeb3 = () => {
         p="2rem"
         maxW="27.5rem"
         mx={4}
-        color="white"
       >
         <Flex
-          bg="red.500"
+          bg="blue.1"
           borderRadius="50%"
           p="1rem"
           justify="center"
@@ -73,7 +71,10 @@ export const ConnectWeb3 = () => {
         {account && !loading ? (
           <Button
             onClick={disconnect}
-            colorScheme="red"
+            backgroundColor="blue.1"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
             px={12}
             fontFamily="mono"
             fontWeight="normal"
@@ -83,7 +84,10 @@ export const ConnectWeb3 = () => {
         ) : (
           <Button
             onClick={onClick}
-            colorScheme="red"
+            backgroundColor="blue.1"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
             px={12}
             isLoading={loading}
             fontFamily="mono"
