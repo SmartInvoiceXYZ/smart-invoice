@@ -6,7 +6,7 @@
   "providedBy": { "name": "Raid Guild", "url": "https://raidguild.org" },
   "icons": [
     {
-      "src": "favicon.ic",
+      "src": "favicon.ico",
       "sizes": "192x192",
       "type": "image/png"
     },

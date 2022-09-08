@@ -15,6 +15,7 @@
     "lint": "solhint contracts/{*,**/*}.sol",
     "deploy-local": "hardhat run scripts/deploy-factory-local.js --network localhost",
     "deploy-kovan": "hardhat run scripts/deploy-factory.js --network kovan",
+    "deploy-mainnet": "hardhat run scripts/deploy-factory.js --network mainnet",
     "deploy-rinkeby": "hardhat run scripts/deploy-factory.js --network rinkeby",
     "deploy-sokol": "hardhat run scripts/deploy-factory.js --network sokol",
     "deploy-xdai": "hardhat run scripts/deploy-factory.js --network xdai",
