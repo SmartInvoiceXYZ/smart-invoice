@@ -2,16 +2,16 @@
   "name": "Smart Invoice",
   "short_name": "Smart Invoice",
   "description": "Smart Invoice",
-  "iconPath": "android-chrome-512x512.png",
+  "iconPath": "favicon.ico",
   "providedBy": { "name": "Raid Guild", "url": "https://raidguild.org" },
   "icons": [
     {
-      "src": "android-chrome-192x192.png",
+      "src": "favicon.ic",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "android-chrome-512x512.png",
+      "src": "favicon.ico",
       "sizes": "512x512",
       "type": "image/png"
     }
