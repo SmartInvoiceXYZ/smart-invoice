@@ -42,14 +42,14 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
     <Flex
       backgroundColor={
         terminated
-          ? 'gray'
+          ? '#C2CFE0'
           : isLocked
-          ? 'red'
+          ? '#F7685B'
           : funded
-          ? '#008000'
+          ? '#2ED47A'
           : disputeResolved
-          ? 'gray'
-          : 'orange'
+          ? '#C2CFE0'
+          : '#FFB946'
       }
       padding="6px"
       borderRadius="10"
