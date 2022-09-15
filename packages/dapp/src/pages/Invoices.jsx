@@ -1,6 +1,6 @@
-import { Stack, Spinner, Heading, Box } from '@chakra-ui/react';
+import { Stack, Spinner, Heading, Box, Button } from '@chakra-ui/react';
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
@@ -9,6 +9,7 @@ import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
 import { Styles } from './InvoicesStyles';
 
 const InvoicesInner = ({ history }) => {
+  const [networkName, setNetworkName] = useState();
   const { search, setSearch, result, fetching, loading } = useContext(
     SearchContext,
   );
@@ -20,6 +21,22 @@ const InvoicesInner = ({ history }) => {
       setSearch(account);
     }
   }, [account, setSearch]);
+
+  useEffect(() => {
+    switch (chainId) {
+      case 1:
+        setNetworkName('Ethereum Mainnet');
+        break;
+      case 4:
+        setNetworkName('Rinkeby');
+        break;
+      case 100:
+        setNetworkName('Gnosis Chain');
+        break;
+      default:
+        setNetworkName(null);
+    }
+  }, [chainId]);
 
   return (
     <Box paddingY={16} flex={loading ? null : '1 0 100%'}>
@@ -39,8 +56,20 @@ const InvoicesInner = ({ history }) => {
         />
       ) : (
         <Stack align="center">
-          <Heading color="gray" as="h1">
-            No Invoices Found
+          <Button
+            backgroundColor="blue.1"
+            fontSize="30px"
+            padding="5%"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
+            marginBottom="10%"
+            onClick={() => history.push('/create')}
+          >
+            Create Invoice
+          </Button>
+          <Heading color="gray" as="h1" align="center">
+            No {networkName} Invoices Found
           </Heading>
         </Stack>
       )}

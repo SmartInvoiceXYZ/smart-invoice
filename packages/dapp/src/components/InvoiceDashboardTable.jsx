@@ -219,7 +219,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           color="white"
           onClick={() => history.push('/create')}
         >
-          Create invoice
+          Create Invoice
         </Button>
       </HStack>
       <div className="tableWrap">
