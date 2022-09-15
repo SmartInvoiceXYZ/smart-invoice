@@ -54,7 +54,7 @@ module.exports = {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
-      gasPrice: 4500000000,
+      gasPrice: 22000000000,
     },
   },
   etherscan: {

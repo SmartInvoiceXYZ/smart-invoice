@@ -15,10 +15,10 @@
     "deploy-only-rinkeby": "graph deploy psparacino/rinkeby-smart-invoice-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "dev-deploy-only-rinkey": "yarn prepare-rinkeby && yarn codegen && yarn build && graph deploy psparacino/smart-invoices-rinkey-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-xdai": "graph deploy psparacino/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "deploy-only-mainnet": "graph deploy dan13ram/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "deploy-only-mainnet": "graph deploy --studio psparacino/mainnet-smart-invoice --ipfs https://api.thegraph.com/ipfs/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
     "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
-    "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
+    "deploy-mainnet-graph": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
     "deploy-fork": "yarn codegen && yarn build && graph create --node http://localhost:8020 SmartInvoiceFactoryVersion06 && graph deploy SmartInvoiceFactoryVersion06 --debug-fork QmNPv6LWg9tFtLf4BaXTHGE34vUFaFHAgsUznnC8XXmMdu --ipfs http://localhost:5001 --node http://localhost:8020"
   },
   "license": "MIT",
