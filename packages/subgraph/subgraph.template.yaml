@@ -1,7 +1,9 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 description: Smart Invoice
 schema:
   file: ./src/schema.graphql
+features:
+  [ipfsOnEthereumContracts]
 dataSources:
   {{#factories}}
   - kind: ethereum/contract

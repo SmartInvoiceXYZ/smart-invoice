@@ -15,7 +15,7 @@
     "deploy-only-rinkeby": "graph deploy psparacino/rinkeby-smart-invoice-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "dev-deploy-only-rinkey": "yarn prepare-rinkeby && yarn codegen && yarn build && graph deploy psparacino/smart-invoices-rinkey-ps --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-only-xdai": "graph deploy psparacino/xdai-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-    "deploy-only-mainnet": "graph deploy --studio mainnet-smart-invoice --ipfs https://api.thegraph.com/ipfs/ --debug",
+    "deploy-only-mainnet": "graph deploy --product hosted-service psparacino/mainnet-smart-invoices --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
     "deploy-rinkeby": "yarn prepare-rinkeby && yarn codegen && yarn build && yarn deploy-only-rinkeby",
     "deploy-xdai": "yarn prepare-xdai && yarn codegen && yarn build && yarn deploy-only-xdai",
     "deploy-mainnet-graph": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
@@ -23,8 +23,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.22.1",
-    "@graphprotocol/graph-ts": "^0.22.1",
+    "@graphprotocol/graph-cli": "^0.33.1",
+    "@graphprotocol/graph-ts": "^0.27.0",
     "mustache": "^4.2.0"
   }
 }

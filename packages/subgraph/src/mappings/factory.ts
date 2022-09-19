@@ -23,6 +23,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   invoice.creationTxHash = event.transaction.hash;
   invoice.network = dataSource.network();
   invoice.projectAgreement = new Array<string>();
+  invoice.verified = new Array<string>();
+  invoice.milestonesAdded = new Array<string>();
 
   invoice = updateInvoiceInfo(event.params.invoice, invoice);
 
