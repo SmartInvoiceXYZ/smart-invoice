@@ -5,7 +5,6 @@
     "hardhat": "hardhat",
     "build": "hardhat compile && yarn flatten",
     "test": "hardhat test",
-    "verify": "hardhat test ./test/VerifyTest.js",
     "verify-trigger": "hardhat run scripts/verifyTrigger.js --network localhost",
     "node-graph": "hh node --hostname 0.0.0.0",
     "console-local": "npx hardhat console --network localhost",

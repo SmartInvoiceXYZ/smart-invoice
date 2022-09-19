@@ -64,7 +64,7 @@ export const nativeSymbols = {
 };
 
 export const graphUrls = {
-  1: `https://api.studio.thegraph.com/query/28985/${NETWORK_CONFIG[1].SUBGRAPH}`,
+  1: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[1].SUBGRAPH}`,
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
 };

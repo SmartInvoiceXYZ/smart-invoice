@@ -6,9 +6,9 @@ export const CONFIG = {
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
     1: {
-      SUBGRAPH: 'mainnet-smart-invoice/v0.0.1',
+      SUBGRAPH: 'psparacino/mainnet-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
-      INVOICE_FACTORY: '0xb5b23a79f0d293b5c567a9b8ff6f678daa7770b3'.toLowerCase(),
+      INVOICE_FACTORY: '0xe73251284989c4496985f16c718369bbc30ccf63'.toLowerCase(),
       RESOLVERS: {
         ['0x01b92e2c0d06325089c6fd53c98a214f5c75b2ac'.toLowerCase()]: {
           name: 'LexDAO',
