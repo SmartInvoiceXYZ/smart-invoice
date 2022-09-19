@@ -6,37 +6,21 @@ import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
-import { Styles } from './InvoicesStyles';
+import { CONFIG } from '../config';
 
 const InvoicesInner = ({ history }) => {
-  const [networkName, setNetworkName] = useState();
   const { search, setSearch, result, fetching, loading } = useContext(
     SearchContext,
   );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
+  const { NETWORK_CONFIG } = CONFIG;
 
   useEffect(() => {
     if (account) {
       setSearch(account);
     }
   }, [account, setSearch]);
-
-  useEffect(() => {
-    switch (chainId) {
-      case 1:
-        setNetworkName('Ethereum Mainnet');
-        break;
-      case 4:
-        setNetworkName('Rinkeby');
-        break;
-      case 100:
-        setNetworkName('Gnosis Chain');
-        break;
-      default:
-        setNetworkName(null);
-    }
-  }, [chainId]);
 
   return (
     <Box paddingY={16} flex={loading ? null : '1 0 100%'}>
@@ -69,7 +53,7 @@ const InvoicesInner = ({ history }) => {
             Create Invoice
           </Button>
           <Heading color="gray" as="h1" align="center">
-            No {networkName} Invoices Found
+            No {NETWORK_CONFIG[chainId].NETWORK_NAME} Invoices Found
           </Heading>
         </Stack>
       )}
