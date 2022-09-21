@@ -66,7 +66,7 @@ export const Styles = styled.div`
     }
   }
 
-  @media (max-width: 1062px) {
+  @media (max-width: 1074px) {
     .noAmount {
       display: none;
     }
