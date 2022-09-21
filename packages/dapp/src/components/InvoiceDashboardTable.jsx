@@ -13,16 +13,10 @@ import {
   MenuItem,
   HStack,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { withRouter, Link as RouterLink } from 'react-router-dom';
-import { useTable, useSortBy, usePagination, useRowSelect } from 'react-table';
+import React, { useMemo } from 'react';
+import { useTable, useSortBy, usePagination } from 'react-table';
 import { Loader } from './Loader';
-import { SearchContext, SearchContextProvider } from '../context/SearchContext';
-import { Web3Context } from '../context/Web3Context';
 import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
-import { Container } from '../shared/Container';
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { theme } from '../theme';
 import { dateTimeToDate, getTokenInfo, getHexChainId } from '../utils/helpers';
 import { unixToDateTime } from '../utils/invoice';
 import { formatUnits } from 'ethers/lib/utils';
@@ -234,6 +228,15 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
                     })}
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                     isnumeric={column.isnumeric}
+                    className={
+                      column.Header === 'Amount'
+                        ? 'noAmount'
+                        : column.Header === 'Currency'
+                        ? 'noCurrency'
+                        : column.Header === 'Date Created'
+                        ? 'noDate'
+                        : null
+                    }
                   >
                     <Text textColor={column.isSorted ? 'black' : 'blue.dark'}>
                       {column.render('Header')}
@@ -260,11 +263,17 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
                         // docs for react-table
                         {...cell.getCellProps({
                           className: cell.column.collapse ? 'collapse' : '',
-                          // style: {backgroundColor: 'green'},
                         })}
+                        className={
+                          cell.column.id === 'amount'
+                            ? 'noAmount'
+                            : cell.column.id === 'currency'
+                            ? 'noCurrency'
+                            : cell.column.id === 'createdAt'
+                            ? 'noDate'
+                            : null
+                        }
                       >
-                        {/* {console.log("cell props", cell.column.Header)} */}
-                        {/* {console.log("cell:", cell)} */}
                         {cell.render('Cell')}
                       </td>
                     );
