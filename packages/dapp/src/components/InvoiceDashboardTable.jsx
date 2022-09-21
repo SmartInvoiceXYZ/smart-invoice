@@ -37,18 +37,17 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { isLocked, terminationTime } = invoice;
   const terminated = terminationTime > Date.now();
   const disputeResolved = label === 'Dispute Resolved';
-
   return (
     <Flex
       backgroundColor={
-        terminated
+        loading
+          ? '#FFFFFF'
+          : terminated || disputeResolved || label === 'Expired'
           ? '#C2CFE0'
           : isLocked
           ? '#F7685B'
           : funded
           ? '#2ED47A'
-          : disputeResolved
-          ? '#C2CFE0'
           : '#FFB946'
       }
       padding="6px"
