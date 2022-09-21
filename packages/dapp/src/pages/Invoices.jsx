@@ -1,12 +1,12 @@
-import { Stack, Spinner, Heading, Box } from '@chakra-ui/react';
+import { Stack, Spinner, Heading, Box, Button } from '@chakra-ui/react';
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
-import { Styles } from './InvoicesStyles';
+import { CONFIG } from '../config';
 
 const InvoicesInner = ({ history }) => {
   const { search, setSearch, result, fetching, loading } = useContext(
@@ -14,6 +14,7 @@ const InvoicesInner = ({ history }) => {
   );
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
+  const { NETWORK_CONFIG } = CONFIG;
 
   useEffect(() => {
     if (account) {
@@ -39,8 +40,20 @@ const InvoicesInner = ({ history }) => {
         />
       ) : (
         <Stack align="center">
-          <Heading color="gray" as="h1">
-            No Invoices Found
+          <Button
+            backgroundColor="blue.1"
+            fontSize="30px"
+            padding="5%"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
+            marginBottom="10%"
+            onClick={() => history.push('/create')}
+          >
+            Create Invoice
+          </Button>
+          <Heading color="gray" as="h1" align="center">
+            No {NETWORK_CONFIG[chainId].NETWORK_NAME} Invoices Found
           </Heading>
         </Stack>
       )}
