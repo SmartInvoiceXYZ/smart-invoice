@@ -15,6 +15,7 @@ const total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 const resolutionRate = 20;
+const requireVerification = true;
 
 describe("SmartInvoice", function () {
   let SmartInvoice;
@@ -26,9 +27,10 @@ describe("SmartInvoice", function () {
   let client;
   let provider;
   let resolver;
+  let randomSigner;
 
   beforeEach(async function () {
-    [client, provider, resolver] = await ethers.getSigners();
+    [client, provider, resolver, randomSigner] = await ethers.getSigners();
 
     mockToken = await deployMockContract(client, IERC20.abi);
     otherMockToken = await deployMockContract(client, IERC20.abi);
@@ -55,6 +57,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
   });
 
@@ -102,6 +105,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
@@ -123,6 +127,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid client");
   });
@@ -142,6 +147,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid provider");
   });
@@ -161,6 +167,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolver");
   });
@@ -180,6 +187,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid token");
   });
@@ -198,6 +206,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       ADDRESS_ZERO,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
@@ -217,6 +226,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("duration ended");
   });
@@ -236,6 +246,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("duration too long");
   });
@@ -255,6 +266,7 @@ describe("SmartInvoice", function () {
       0,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolutionRate");
   });
@@ -274,6 +286,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(receipt).to.revertedWith("invalid resolverType");
   });
@@ -479,6 +492,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
 
     const receipt = invoice["withdraw()"]();
@@ -516,6 +530,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -543,6 +558,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -568,6 +584,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -595,6 +612,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -623,6 +641,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
 
     const receipt = invoice["withdrawTokens(address)"](otherMockToken.address);
@@ -644,6 +663,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -669,6 +689,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -694,6 +715,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(0);
     const receipt = invoice["lock(bytes32)"](EMPTY_BYTES32);
@@ -715,6 +737,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     const invoiceWithResolver = await invoice.connect(resolver);
@@ -833,6 +856,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     expect(await invoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -986,6 +1010,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     await expect(invoice["rule(uint256,uint256)"](0, 0)).to.be.revertedWith(
       "!locked",
@@ -1005,6 +1030,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1029,6 +1055,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1056,6 +1083,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1079,6 +1107,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1103,6 +1132,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1140,6 +1170,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1176,6 +1207,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1213,6 +1245,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1250,6 +1283,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1287,6 +1321,7 @@ describe("SmartInvoice", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
+      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1352,6 +1387,7 @@ describe("SmartInvoice", function () {
       resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      requireVerification,
     );
     const receipt = await client.sendTransaction({
       to: invoice.address,
@@ -1363,5 +1399,185 @@ describe("SmartInvoice", function () {
     expect(await mockWrappedNativeToken.balanceOf(invoice.address)).to.equal(
       10,
     );
+  });
+
+  it("Should emit Verified when client calls verify()", async function () {
+    await expect(invoice.connect(client).verify())
+      .to.emit(invoice, "Verified")
+      .withArgs(client.address, invoice.address);
+  });
+
+  it("Should not emit Verified if caller !client", async function () {
+    await expect(invoice.connect(randomSigner).verify()).to.be.reverted;
+  });
+
+  it("Should emit Verified if client verification requirement waived on invoice creation", async function () {
+    const noVerification = false;
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await expect(
+      await invoice.init(
+        client.address,
+        provider.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        amounts,
+        currentTime + 1000,
+        resolutionRate,
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+        noVerification,
+      ),
+    )
+      .to.emit(invoice, "Verified")
+      .withArgs(client.address, invoice.address);
+  });
+
+  it("Should addMilestones if client", async function () {
+    await invoice.connect(client)["addMilestones(uint256[])"]([13, 14]);
+    expect((await invoice.getAmounts()).length).to.equal(4);
+    expect(await invoice.amounts(0)).to.equal(10);
+    expect(await invoice.amounts(1)).to.equal(10);
+    expect(await invoice.amounts(2)).to.equal(13);
+    expect(await invoice.amounts(3)).to.equal(14);
+  });
+
+  it("Should addMilestones if provider", async function () {
+    await invoice.connect(provider)["addMilestones(uint256[])"]([13, 14]);
+    expect((await invoice.getAmounts()).length).to.equal(4);
+    expect(await invoice.amounts(0)).to.equal(10);
+    expect(await invoice.amounts(1)).to.equal(10);
+    expect(await invoice.amounts(2)).to.equal(13);
+    expect(await invoice.amounts(3)).to.equal(14);
+  });
+
+  it("Should addMilestones and update total with added milestones", async function () {
+    await invoice.connect(provider)["addMilestones(uint256[])"]([13, 14]);
+    expect(await invoice.total()).to.equal(47);
+  });
+
+  it("Should addMilestones and emit MilestonesAdded event", async function () {
+    await expect(invoice.connect(client)["addMilestones(uint256[])"]([13, 14]))
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(client.address, invoice.address, [13, 14]);
+
+    await expect(
+      invoice
+        .connect(provider)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], EMPTY_BYTES32),
+    )
+      .to.emit(invoice, "MilestonesAdded")
+      .withArgs(provider.address, invoice.address, [13, 14]);
+  });
+
+  it("Should revert addMilestones if executed by non-client/non-provider address", async function () {
+    await expect(
+      invoice.connect(randomSigner)["addMilestones(uint256[])"]([13, 14]),
+    ).to.be.revertedWith("!party");
+  });
+
+  it("Should revert addMilestones if locked", async function () {
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoice,
+      client,
+      provider,
+      individualResolverType,
+      resolver,
+      mockToken,
+      amounts,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken,
+    );
+    await expect(
+      lockedInvoice.connect(client)["addMilestones(uint256[])"]([13, 14]),
+    ).to.be.revertedWith("locked");
+  });
+
+  it("Should revert addMilestones if terminationTime passed", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoice.deploy();
+    await invoice.deployed();
+    await invoice.init(
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime + 1000,
+      resolutionRate,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      requireVerification,
+    );
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000,
+    ]);
+
+    await expect(
+      invoice["addMilestones(uint256[])"]([13, 14]),
+    ).to.be.revertedWith("terminated");
+  });
+
+  it("Should revert addMilestones if milestones array length is not between 1-10", async function () {
+    await expect(
+      invoice.connect(client)["addMilestones(uint256[])"]([]),
+    ).to.be.revertedWith("no milestones are being added");
+    await expect(
+      invoice
+        .connect(client)
+        ["addMilestones(uint256[])"]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+    ).to.be.revertedWith("only 10 new milestones at a time");
+  });
+
+  it("Should addMilestones(uint256[],bytes32) and update details", async function () {
+    const NEW_BYTES32 =
+      "0x1010101000000000000000000000000000000000000000000000000000000000";
+
+    const oldDetails = await invoice.details();
+    await invoice
+      .connect(client)
+      ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32);
+    const newDetails = await invoice.details();
+
+    expect(oldDetails).to.equal(EMPTY_BYTES32);
+    expect(oldDetails).to.not.equal(newDetails);
+    expect(newDetails).to.equal(NEW_BYTES32);
+  });
+
+  it("Should addMilestones(uint256[],bytes32) and emit DetailsUpdated event", async function () {
+    const NEW_BYTES32 =
+      "0x1010101000000000000000000000000000000000000000000000000000000000";
+
+    await expect(
+      invoice
+        .connect(client)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32),
+    )
+      .to.emit(invoice, "DetailsUpdated")
+      .withArgs(client.address, NEW_BYTES32);
+
+    await expect(
+      invoice
+        .connect(provider)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], NEW_BYTES32),
+    )
+      .to.emit(invoice, "DetailsUpdated")
+      .withArgs(provider.address, NEW_BYTES32);
+  });
+
+  it("Should revert addMilestones(uint256[],bytes32) if no details", async function () {
+    await expect(
+      invoice.connect(client)["addMilestones(uint256[],bytes32)"]([13, 14], ""),
+    ).to.be.reverted;
+
+    await expect(
+      invoice
+        .connect(client)
+        ["addMilestones(uint256[],bytes32)"]([13, 14], "0x00"),
+    ).to.be.reverted;
   });
 });

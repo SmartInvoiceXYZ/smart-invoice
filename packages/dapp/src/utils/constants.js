@@ -1,5 +1,10 @@
 import { CONFIG } from '../config';
 
+const {
+  REACT_APP_INFURA_PROJECT_ID,
+  REACT_APP_INFURA_PROJECT_SECRET,
+} = process.env;
+
 const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
 export { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT };
@@ -64,18 +69,6 @@ export const graphUrls = {
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
 };
 
-export const tokens = {
-  1: Object.keys(NETWORK_CONFIG[1].TOKENS),
-  4: Object.keys(NETWORK_CONFIG[4].TOKENS),
-  100: Object.keys(NETWORK_CONFIG[100].TOKENS),
-};
-
-export const tokenInfo = {
-  1: NETWORK_CONFIG[1].TOKENS,
-  4: NETWORK_CONFIG[4].TOKENS,
-  100: NETWORK_CONFIG[100].TOKENS,
-};
-
 export const resolvers = {
   1: Object.keys(NETWORK_CONFIG[1].RESOLVERS),
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
@@ -111,10 +104,7 @@ export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 export const STEPS = {
   1: {
     step_title: 'Project Details',
-    step_details: [
-      'Note: All invoice data will be stored publicly on IPFS and can be viewed by anyone.',
-      'If you have privacy concerns, we recommend taking care to add permissions to your project agreement document.',
-    ],
+    step_details: [],
     next: 'payment details',
   },
   2: {
@@ -133,3 +123,11 @@ export const STEPS = {
     next: 'create invoice',
   },
 };
+
+export const INFURA_AUTH =
+  'Basic ' +
+  Buffer.from(
+    `${REACT_APP_INFURA_PROJECT_ID}` +
+      ':' +
+      `${REACT_APP_INFURA_PROJECT_SECRET}`,
+  ).toString('base64');

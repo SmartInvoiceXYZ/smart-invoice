@@ -1,4 +1,12 @@
-import { Divider, Flex, Link, Text, VStack } from '@chakra-ui/react';
+import {
+  Divider,
+  Flex,
+  Link,
+  Text,
+  VStack,
+  useBreakpointValue,
+  Spacer,
+} from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
@@ -7,7 +15,7 @@ import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { getDateString, getTokenInfo } from '../utils/helpers';
 
-export const FormConfirmation = ({ display }) => {
+export const FormConfirmation = ({ display, tokenData }) => {
   const { chainId } = useContext(Web3Context);
   const {
     projectName,
@@ -23,48 +31,63 @@ export const FormConfirmation = ({ display }) => {
     paymentDue,
     paymentToken,
   } = useContext(CreateContext);
-  const tokenData = getTokenInfo(chainId, paymentToken);
-  const { decimals, symbol } = tokenData;
+
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+
+  const flexWidth = useBreakpointValue({
+    base: '95%',
+    sm: '95%',
+    md: '80%',
+    lg: '70%',
+  });
+
   return (
-    <VStack
-      w="100%"
-      spacing="1rem"
-      color="white"
-      align="stretch"
-      display={display}
-    >
-      <Text id="project-title" fontWeight="bold" fontSize="xl">
+    <VStack w="100%" spacing="1rem" color="#323C47" display={display}>
+      <Text
+        id="project-title"
+        color="#323C47"
+        fontWeight="bold"
+        fontSize="xl"
+        align="center"
+      >
         {projectName}
       </Text>
-      {projectDescription && <Text>{projectDescription}</Text>}
-      <Link href={projectAgreement} isExternal mb="1rem" textDecor="underline">
-        {projectAgreement}
+      {projectDescription && <Text align="center">{projectDescription}</Text>}
+      <Link
+        href={projectAgreement.src}
+        isExternal
+        mb="1rem"
+        textDecor="underline"
+      >
+        {projectAgreement.src}
       </Link>
-      <Flex justify="space-between">
+      <Divider />
+      <Flex justify="space-between" width={flexWidth}>
         <Text>{`Client Address: `}</Text>
+        <Spacer />
         <AccountLink address={clientAddress} />
       </Flex>
-      <Flex justify="space-between">
+      <Flex justify="space-between" width={flexWidth}>
         <Text>{`Payment Address: `}</Text>
         <AccountLink address={paymentAddress} />
       </Flex>
       {startDate && (
-        <Flex justify="space-between">
+        <Flex justify="space-between" width={flexWidth}>
           <Text>{`Project Start Date: `}</Text>
           <Text textAlign="right">{getDateString(startDate / 1000)}</Text>
         </Flex>
       )}
       {endDate && (
-        <Flex justify="space-between">
+        <Flex justify="space-between" width={flexWidth}>
           <Text>{`Expected End Date: `}</Text>
           <Text textAlign="right">{getDateString(endDate / 1000)}</Text>
         </Flex>
       )}
-      <Flex justify="space-between">
+      <Flex justify="space-between" width={flexWidth}>
         <Text>{`Safety Valve Date: `}</Text>
         <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
       </Flex>
-      <Flex justify="space-between">
+      <Flex justify="space-between" width={flexWidth}>
         <Text>{`Arbitration Provider: `}</Text>
         <AccountLink address={arbitrationProvider} />
       </Flex>
@@ -77,7 +100,7 @@ export const FormConfirmation = ({ display }) => {
         <Text>
           {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
         </Text>
-        <Text color="red.500" ml="2.5rem" fontWeight="bold">
+        <Text color="blue.1" ml="2.5rem" fontWeight="bold">
           {`${utils.formatUnits(paymentDue, decimals)} ${symbol} Total`}
         </Text>
       </Flex>

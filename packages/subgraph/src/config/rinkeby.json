@@ -3,28 +3,8 @@
   "factories": [
     {
       "factoryName": "Version00",
-      "startBlock": "8113364",
-      "address": "0x1b2532a2FF8A0308b2c3BDc937f5605e88a7dB73"
-    },
-    {
-      "factoryName": "Version01",
-      "startBlock": "8249794",
-      "address": "0x06E79797c87a86FF999C6C917a7F5CeEF70c3Cd3"
-    },
-    {
-      "factoryName": "Version02",
-      "startBlock": "8267769",
-      "address": "0x838A88166E60931aFfabc9D7538A2D04cBda8932"
-    },
-    {
-      "factoryName": "Version03",
-      "startBlock": "8371074",
-      "address": "0xFCFdbEb41b86B7Fc61200158C82f02D3666b25C7"
-    },
-    {
-      "factoryName": "Version04",
-      "startBlock": "8484551",
-      "address": "0x9c94f17C4B7A8E2a75A83466c9F9745a0D9F7e1c"
+      "startBlock": "11138844",
+      "address": "0x659912E406b11D457656468c655F2e545E552259"
     }
   ]
 }

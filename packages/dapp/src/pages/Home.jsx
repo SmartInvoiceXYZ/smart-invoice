@@ -1,24 +1,35 @@
 import {
   Button,
   Flex,
-  Link,
+  Heading,
   Text,
   useBreakpointValue,
   useDisclosure,
-  VStack,
 } from '@chakra-ui/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { WhatIsThisModal } from '../components/WhatIsThisModal';
 import { useWeb3 } from '../context/Web3Context';
-import { Container } from '../shared/Container';
 import { logError } from '../utils/helpers';
 
 export const Home = () => {
   const { connectAccount, account } = useWeb3();
 
   const history = useHistory();
+  const [isMobile, onMobile] = useState(false);
+  useEffect(() => {
+    if (window) {
+      toggleMobileMode();
+      window.addEventListener('resize', toggleMobileMode);
+    }
+  });
+  const toggleMobileMode = () => {
+    if (window.innerWidth < 600) {
+      onMobile(true);
+    } else {
+      onMobile(false);
+    }
+  };
 
   const createInvoice = async () => {
     if (account) {
@@ -47,110 +58,54 @@ export const Home = () => {
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-  const smallFontSize = useBreakpointValue({ base: 'sm', sm: 'md' });
-  const fontSize = useBreakpointValue({ base: 'lg', sm: 'xl', md: '2xl' });
-  const smallScreen = useBreakpointValue({ base: true, sm: false });
-  const betaWarningSmallScreen = useBreakpointValue({ base: true, lg: false });
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
-    <Container
-      justify={{ base: 'space-between', lg: 'flex-start' }}
-      direction={{ base: 'column', lg: 'row' }}
-      pt={{ base: '6rem', sm: '8rem', lg: '0rem' }}
-    >
+    <Flex direction="column" align="center" justify="center" gap={6}>
+      <Heading
+        fontWeight={700}
+        fontSize={50}
+        textAlign="center"
+        color="rgba(50, 60, 71, 1)"
+      >
+        Welcome to Smart Invoice
+      </Heading>
+      <Text fontStyle="italic" color="grey">
+        How do you want to get started?
+      </Text>
       <Flex
-        direction="column"
+        direction={isMobile && 'column'}
+        columnGap={10}
+        rowGap={4}
+        width="100%"
         align="stretch"
-        m={{ base: '1rem', md: '2rem', lg: '4rem' }}
-        mr={{ base: '1rem', md: '2rem', lg: '2rem' }}
-        w={{ base: '22rem', sm: '28rem', lg: '32rem' }}
-        maxW="calc(100% - 2rem)"
+        justify="center"
+        paddingX={10}
       >
         <Button
-          colorScheme="red"
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
           onClick={createInvoice}
           size={buttonSize}
-          fontFamily="mono"
-          fontWeight="normal"
+          minW="250px"
+          paddingY={6}
         >
-          {smallScreen ? 'CREATE NEW INVOICE' : 'CREATE A NEW SMART INVOICE'}
+          Create Invoice
         </Button>
-        <Text
-          fontWeight="bold"
-          my="0.5rem"
-          w="100%"
-          textAlign="center"
-          fontSize={{ base: 'md', md: 'xl' }}
-        >
-          or
-        </Text>
         <Button
-          colorScheme="red"
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.1"
           onClick={viewInvoices}
           size={buttonSize}
-          fontFamily="mono"
-          fontWeight="normal"
+          minW="250px"
+          paddingY={6}
         >
-          VIEW EXISTING INVOICE
+          View Existing Invoices
         </Button>
-        <Button
-          mt="2rem"
-          variant="link"
-          color="white"
-          textDecor="underline"
-          size={buttonSize}
-          fontSize={fontSize}
-          onClick={onOpen}
-          fontFamily="mono"
-          fontWeight="normal"
-          mx="auto"
-          w="auto"
-        >
-          What is this?
-        </Button>
-        <WhatIsThisModal isOpen={isOpen} onClose={onClose} />
       </Flex>
-      <Flex
-        {...(betaWarningSmallScreen
-          ? {}
-          : {
-              width: '100%',
-              justify: 'flex-end',
-              align: 'flex-end',
-              justifySelf: 'flex-end',
-              alignSelf: 'flex-end',
-            })}
-        py="3rem"
-        m="1rem"
-      >
-        <VStack
-          bgColor="background"
-          p={betaWarningSmallScreen ? '1rem' : '2rem'}
-          color="white"
-          spacing="1rem"
-          maxW="32rem"
-        >
-          <Text fontFamily="mono" textAlign="center" fontSize={buttonSize}>
-            This product is in beta!
-          </Text>
-          <Text fontSize={smallFontSize}>
-            The contracts Smart Invoice uses are thoroughly tested, but not
-            audited. Raid Guild does not own the contracts created by this
-            service, and does not control the money stored in them. Use at your
-            own risk.
-          </Text>
-
-          <Link
-            href="https://docs.smartinvoice.xyz"
-            textDecor="underline"
-            isExternal
-            fontSize={smallFontSize}
-          >
-            Learn more about staying safe.
-          </Link>
-        </VStack>
-      </Flex>
-    </Container>
+    </Flex>
   );
 };

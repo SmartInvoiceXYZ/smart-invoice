@@ -29,6 +29,7 @@ import {
   getTxLink,
   getWrappedNativeToken,
   logError,
+  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 const getCheckedStatus = (deposited, amounts) => {
@@ -43,7 +44,7 @@ const checkedAtIndex = (index, checked) => {
   return checked.map((_c, i) => i <= index);
 };
 
-export const DepositFunds = ({ invoice, deposited, due }) => {
+export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -51,7 +52,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   const [paymentType, setPaymentType] = useState(0);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
@@ -79,7 +80,6 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   };
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
-
   const initialStatus = getCheckedStatus(deposited, amounts);
   const [checked, setChecked] = useState(initialStatus);
 
@@ -100,19 +100,20 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Pay Invoice
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         At a minimum, you’ll need to deposit enough to cover the{' '}
         {currentMilestone === 0 ? 'first' : 'next'} project payment.
       </Text>
 
-      <Text textAlign="center" color="red.500">
+      <Text textAlign="center" color="black">
         How much will you be depositing today?
       </Text>
       <VStack spacing="0.5rem">
@@ -138,11 +139,11 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
                 setAmount(newAmount);
                 setAmountInput(utils.formatUnits(newAmount, decimals));
               }}
-              colorScheme="red"
-              border="none"
+              colorScheme="blue"
+              borderColor="lightgrey"
               size="lg"
               fontSize="1rem"
-              color="white"
+              color="#323C47"
             >
               Payment #{i + 1} &nbsp; &nbsp;
               {utils.formatUnits(a, decimals)} {symbol}
@@ -151,7 +152,7 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
         })}
       </VStack>
 
-      <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
+      <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
         <Flex justify="space-between" w="100%">
           <Text fontWeight="700">Amount</Text>
           <Flex>
@@ -167,9 +168,9 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
         </Flex>
         <InputGroup>
           <Input
-            bg="black"
-            color="white"
-            border="none"
+            bg="white"
+            color="black"
+            border="1px"
             type="number"
             value={amountInput}
             onChange={e => {
@@ -192,9 +193,9 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}
                 value={paymentType}
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
               >
                 <option value="0">{symbol}</option>
                 <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
@@ -213,11 +214,21 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
           </Alert>
         )}
       </VStack>
-      <Flex color="white" justify="space-between" w="100%" fontSize="sm">
+      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {deposited && (
           <VStack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
             <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
+          </VStack>
+        )}
+        {deposited && (
+          <VStack align="flex-start">
+            <Text fontWeight="bold">Potential Dispute Fee</Text>
+            <Text>{`${(
+              (utils.formatUnits(amount, decimals) -
+                utils.formatUnits(deposited, decimals)) *
+              calculateResolutionFeePercentage(invoice.resolutionRate)
+            ).toFixed(6)} ${symbol}`}</Text>
           </VStack>
         )}
         {due && (
@@ -240,7 +251,10 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
       <Button
         onClick={deposit}
         isLoading={loading}
-        colorScheme="red"
+        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+        color="white"
+        backgroundColor="blue.1"
         isDisabled={amount.lte(0)}
         textTransform="uppercase"
         size={buttonSize}
@@ -251,12 +265,12 @@ export const DepositFunds = ({ invoice, deposited, due }) => {
         Deposit
       </Button>
       {transaction && (
-        <Text color="white" textAlign="center" fontSize="sm">
+        <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="red.500"
+            color="blue.1"
             textDecoration="underline"
           >
             here

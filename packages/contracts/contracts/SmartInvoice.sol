@@ -41,7 +41,10 @@ contract SmartInvoice is
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
     address public wrappedNativeToken;
 
-    enum ADR {INDIVIDUAL, ARBITRATOR}
+    enum ADR {
+        INDIVIDUAL,
+        ARBITRATOR
+    }
 
     address public client;
     address public provider;
@@ -64,6 +67,13 @@ contract SmartInvoice is
         address indexed provider,
         uint256[] amounts
     );
+
+    event MilestonesAdded(
+        address indexed sender,
+        address indexed invoice,
+        uint256[] milestones
+    );
+    event DetailsUpdated(address indexed sender, bytes32 details);
     event Deposit(address indexed sender, uint256 amount);
     event Release(uint256 milestone, uint256 amount);
     event Withdraw(uint256 balance);
@@ -81,6 +91,7 @@ contract SmartInvoice is
         uint256 providerAward,
         uint256 ruling
     );
+    event Verified(address indexed client, address indexed invoice);
 
     // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
@@ -95,7 +106,8 @@ contract SmartInvoice is
         uint256 _terminationTime, // exact termination date in seconds since epoch
         uint256 _resolutionRate,
         bytes32 _details,
-        address _wrappedNativeToken
+        address _wrappedNativeToken,
+        bool _requireVerification
     ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
@@ -127,7 +139,61 @@ contract SmartInvoice is
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
 
+        if (!_requireVerification) emit Verified(_client, address(this));
+
         emit Register(_client, _provider, amounts);
+    }
+
+    // Client verifies address before deposits
+    function verify() external {
+        require(msg.sender == client, "!client");
+        emit Verified(client, address(this));
+    }
+
+    function addMilestones(uint256[] calldata _milestones) external {
+        _addMilestones(_milestones, bytes32(0));
+    }
+
+    function addMilestones(uint256[] calldata _milestones, bytes32 _details)
+        external
+    {
+        _addMilestones(_milestones, _details);
+    }
+
+    function _addMilestones(uint256[] calldata _milestones, bytes32 _details)
+        internal
+    {
+        require(!locked, "locked");
+        require(block.timestamp < terminationTime, "terminated");
+        require(_msgSender() == client || _msgSender() == provider, "!party");
+        require(_milestones.length > 0, "no milestones are being added");
+        require(_milestones.length <= 10, "only 10 new milestones at a time");
+
+        uint256 newLength = amounts.length + _milestones.length;
+        uint256[] memory baseArray = new uint256[](newLength);
+        uint256 newTotal = total;
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            baseArray[i] = amounts[i];
+        }
+        for (uint256 i = amounts.length; i < newLength; i++) {
+            baseArray[i] = _milestones[i - amounts.length];
+            newTotal += _milestones[i - amounts.length];
+        }
+
+        total = newTotal;
+        amounts = baseArray;
+
+        if (_details != bytes32(0)) {
+            details = _details;
+            emit DetailsUpdated(msg.sender, _details);
+        }
+
+        emit MilestonesAdded(msg.sender, address(this), _milestones);
+    }
+
+    function getAmounts() public view returns (uint256[] memory) {
+        return amounts;
     }
 
     function _release() internal {

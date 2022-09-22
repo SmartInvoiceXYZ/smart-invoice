@@ -34,8 +34,10 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectName,
     projectDescription,
     setProjectDescription,
-    projectAgreement,
-    setProjectAgreement,
+    projectAgreementSource,
+    setProjectAgreementSource,
+    projectAgreementLinkType,
+    setProjectAgreementLinkType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';
@@ -58,19 +60,26 @@ export const ProjectDetailsForm = ({ display }) => {
         }}
         isInvalid={nameInvalid}
         error={nameInvalid ? 'Cannot be empty' : ''}
+        tooltip="Choose something easily identifiable by you & your client. This is how the invoice will appear on your sortable invoices list later."
+        required="required"
       />
       <OrderedLinkInput
         label="Link to Project Agreement"
-        value={projectAgreement}
-        setValue={setProjectAgreement}
-        tooltip="This agreement will be referenced in the case of a dispute"
+        value={projectAgreementSource}
+        setValue={setProjectAgreementSource}
+        linkType={projectAgreementLinkType}
+        setLinkType={setProjectAgreementLinkType}
+        tooltip="This agreement will be referenced if there is a payment dispute that goes to arbitration. Link a file that cannot be modified."
+        required="required"
       />
       <OrderedTextarea
         label="Project Description"
         value={projectDescription}
         setValue={setProjectDescription}
-        infoText="140 character limit • optional"
+        infoText="140 character limit"
         maxLength="140"
+        required="optional"
+        tooltip="This brief description will help you & your client remember key project details in the future."
       />
       <SimpleGrid
         w="100%"
@@ -83,14 +92,16 @@ export const ProjectDetailsForm = ({ display }) => {
           type="date"
           value={startDateString}
           setValue={v => setStartDate(Date.parse(v))}
-          infoText="optional"
+          required="optional"
+          tooltip="This is the date you expect to begin work on this project."
         />
         <OrderedInput
           label="Expected End Date"
           type="date"
           value={endDateString}
           setValue={v => setEndDate(Date.parse(v))}
-          infoText="optional"
+          required="optional"
+          tooltip="This is the date you expect to complete work on this project."
         />
         <OrderedInput
           gridArea={{
@@ -106,14 +117,15 @@ export const ProjectDetailsForm = ({ display }) => {
             setSafetyValveDate(date);
             setDateInvalid(date < new Date().getTime());
           }}
-          tooltip="The funds can be withdrawn by the client after 00:00:00 GMT on this date."
+          tooltip="If you do not complete this project by this date, the client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
           isInvalid={dateInvalid}
+          required="required"
         />
       </SimpleGrid>
       {dateInvalid && (
         <Text
           w="100%"
-          color="purple"
+          color="red"
           textAlign="right"
           fontSize="xs"
           fontWeight="700"

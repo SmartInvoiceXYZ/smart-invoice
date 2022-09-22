@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "smart-invoice-factory"
-  }
+    "default": "smart-invoice-b0db1",
+    "smart-invoice": "smart-invoice-b0db1"
+  },
+  "targets": {}
 }

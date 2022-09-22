@@ -24,6 +24,7 @@ import { getProfile } from '../utils/3box';
 import { getAccountString, getNetworkLabel } from '../utils/helpers';
 import { Footer } from './Footer';
 import { ProfileButton } from './ProfileButton';
+import logo from '../assets/smart-invoice/normal.svg';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -52,7 +53,7 @@ export const NavButton = ({ onClick, children }) => (
     transition="all 0.5s ease 0.4s"
     my="1rem"
     variant="link"
-    color="red.500"
+    color="blue.1"
     fontWeight="normal"
     fontSize="1.5rem"
   >
@@ -63,13 +64,27 @@ export const NavButton = ({ onClick, children }) => (
 export const Header = () => {
   const { account, disconnect, chainId } = useContext(Web3Context);
   const [isOpen, onOpen] = useState(false);
+  const [isMobile, onMobile] = useState(false);
   const history = useHistory();
   const [profile, setProfile] = useState();
+  useEffect(() => {
+    if (window) {
+      toggleMobileMode();
+      window.addEventListener('resize', toggleMobileMode);
+    }
+  });
   useEffect(() => {
     if (account) {
       getProfile(account).then(p => setProfile(p));
     }
   }, [account]);
+  const toggleMobileMode = () => {
+    if (window.innerWidth < 850) {
+      onMobile(true);
+    } else {
+      onMobile(false);
+    }
+  };
   const buttonVariant = useBreakpointValue({
     base: isOpen ? 'ghost' : 'link',
     md: 'ghost',
@@ -77,36 +92,53 @@ export const Header = () => {
   return (
     <Flex
       w="100%"
-      h="8rem"
-      color="white"
+      h={75}
+      paddingX={8}
+      paddingY={4}
+      color="#707683"
       fontFamily="mono"
-      position="absolute"
       top={0}
       left={0}
       justify="space-between"
       align="center"
+      background="white"
+      zIndex={5}
     >
-      <Box zIndex={5}>
-        <RouterLink to="/">
-          <Flex align="center" p="1rem" m="1rem">
-            <Image
-              src={Logo}
-              alt="Raid Guild"
-              w={{ base: '3rem', sm: '4rem', md: '5rem' }}
-            />
-            <Image
-              src={LogoText}
-              alt="Smart Invoice"
-              h={{ base: '2rem', sm: '3rem', md: 'auto' }}
-            />
+      <Box width={250}>
+        <RouterLink to="/invoices">
+          <Flex cursor="pointer">
+            <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
           </Flex>
         </RouterLink>
       </Box>
+
+      {/* Navigation Links */}
+      {!isMobile && (
+        <Flex gap={8} justify="center" align="center">
+          <ChakraLink href="/invoices">Dashboard</ChakraLink>
+          <ChakraLink
+            href="https://help.smartinvoice.xyz"
+            target="_blank"
+            isExternal
+          >
+            Documentation
+          </ChakraLink>
+          <ChakraLink
+            href="https://help.smartinvoice.xyz/article/7-get-support"
+            target="_blank"
+            isExternal
+          >
+            Support
+          </ChakraLink>
+        </Flex>
+      )}
+
       <Flex
-        mx={{ base: '2rem', sm: '3rem' }}
         align="center"
         height="8rem"
         transition="width 1s ease-out"
+        width={250}
+        justify="end"
       >
         {account && (
           <Flex justify="center" align="center" zIndex={5}>
@@ -135,20 +167,32 @@ export const Header = () => {
                     bgRepeat="no-repeat"
                     bgPosition="center center"
                   />
-                  <Text
-                    px={2}
-                    display={{ base: 'none', md: 'flex' }}
-                    fontFamily="'Roboto Mono', monospace;"
-                    color="red.500"
-                  >
-                    {profile && profile.name
-                      ? profile.name
-                      : getAccountString(account)}
-                  </Text>
+                  <Flex direction="column" gap={1} align="left">
+                    <Text
+                      px={2}
+                      display={{ base: 'none', md: 'flex' }}
+                      fontFamily="'Roboto Mono', monospace;"
+                      color="#192A3E"
+                      fontWeight={500}
+                      fontSize={14}
+                    >
+                      {profile && profile.name ? profile.name : 'Anonymous'}
+                    </Text>
+                    <Text
+                      px={2}
+                      display={{ base: 'none', md: 'flex' }}
+                      fontFamily="'Roboto Mono', monospace;"
+                      color="grey"
+                      fontSize={12}
+                    >
+                      {getAccountString(account)}
+                    </Text>
+                  </Flex>
                   <Tag
-                    colorScheme="red"
+                    background="#90A0B7"
                     display={{ base: 'none', md: 'flex' }}
                     size="sm"
+                    color="white"
                   >
                     {getNetworkLabel(chainId)}
                   </Tag>
@@ -159,7 +203,10 @@ export const Header = () => {
                   onClick={() => {
                     disconnect();
                   }}
-                  colorScheme="red"
+                  backgroundColor="blue.1"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
                   fontWeight="normal"
                   fontFamily="mono"
                   textTransform="uppercase"
@@ -170,29 +217,31 @@ export const Header = () => {
             </Popover>
           </Flex>
         )}
-        <Button
-          onClick={() => onOpen(o => !o)}
-          variant="link"
-          ml={{ base: '0.5rem', sm: '1rem' }}
-          zIndex={7}
-        >
-          <HamburgerIcon
-            boxSize={{ base: '2rem', sm: '2.75rem' }}
-            transition="all 1s ease-out"
-            _hover={{
-              transition: 'all 1s ease-out',
-              transform: 'rotateZ(90deg)',
-            }}
-            color="red.500"
-          />
-        </Button>
+        {isMobile && (
+          <Button
+            onClick={() => onOpen(o => !o)}
+            variant="link"
+            ml={{ base: '0.5rem', sm: '1rem' }}
+            zIndex={7}
+          >
+            <HamburgerIcon
+              boxSize={{ base: '2rem', sm: '2.75rem' }}
+              transition="all 1s ease-out"
+              _hover={{
+                transition: 'all 1s ease-out',
+                transform: 'rotateZ(90deg)',
+              }}
+              color="blue.1"
+            />
+          </Button>
+        )}
       </Flex>
       <Flex
         zIndex={6}
         position="fixed"
         left="0"
         top="0"
-        bg="black"
+        bg="white"
         h="100%"
         w="100%"
         direction="column"
@@ -216,45 +265,48 @@ export const Header = () => {
         )}
         <StyledButton
           onClick={() => {
-            history.push('/');
+            history.push('/invoices');
             onOpen(false);
           }}
           transition="all 0.5s ease 0.4s"
           my="1rem"
           variant="link"
-          color="red.500"
+          color="gray"
           fontWeight="normal"
           fontSize="1.5rem"
         >
-          HOME
+          Dashboard
         </StyledButton>
-        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
+        <ChakraLink href="https://help.smartinvoice.xyz" isExternal _hover={{}}>
           <StyledButton
             as="span"
             transition="all 0.5s ease 0.4s"
             my="1rem"
             variant="link"
-            color="red.500"
+            color="gray"
             fontWeight="normal"
             fontSize="1.5rem"
           >
-            FAQ
+            Documentation
           </StyledButton>
         </ChakraLink>
-        <ChakraLink href="https://discord.gg/CanD2WcK7W" isExternal _hover={{}}>
+        <ChakraLink
+          href="https://help.smartinvoice.xyz/article/7-get-support"
+          isExternal
+          _hover={{}}
+        >
           <StyledButton
             as="span"
             transition="all 0.5s ease 0.4s"
             my="1rem"
             variant="link"
-            color="red.500"
+            color="gray"
             fontWeight="normal"
             fontSize="1.5rem"
           >
-            SUPPORT
+            Support
           </StyledButton>
         </ChakraLink>
-        <Footer center />
       </Flex>
     </Flex>
   );

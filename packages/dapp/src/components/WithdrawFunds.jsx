@@ -18,12 +18,12 @@ import {
 } from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
 
-export const WithdrawFunds = ({ invoice, balance, close }) => {
+export const WithdrawFunds = ({ invoice, balance, close, tokenData }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
   const { network, address, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 

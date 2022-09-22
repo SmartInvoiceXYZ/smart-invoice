@@ -8,9 +8,12 @@ import {
   Text,
   useBreakpointValue,
   VStack,
+  Tooltip,
+  Flex,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
+import { QuestionIcon } from '../icons/QuestionIcon';
 
 import { Web3Context } from '../context/Web3Context';
 import { OrderedTextarea } from '../shared/OrderedInput';
@@ -23,10 +26,10 @@ import {
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
-export const ResolveFunds = ({ invoice, balance, close }) => {
+export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
   const { network, address, resolutionRate, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
 
@@ -88,42 +91,56 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Resolve Dispute
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         {isLocked
-          ? `You’ll need to distribute the total balance of ${utils.formatUnits(
+          ? `Review the project agreement to decide how to distribute the disputed payment of ${utils.formatUnits(
               balance,
               decimals,
-            )} ${symbol} between the client and provider, excluding the ${
-              100 / resolutionRate
-            }% arbitration fee which you shall receive.`
+            )} ${symbol} between the client & provider, excluding the ${100 /
+              resolutionRate}% arbitration fee you’ll receive.`
           : `Invoice is not locked`}
       </Text>
       {isLocked ? (
         <>
           <OrderedTextarea
-            tooltip="Here you may explain your reasoning behind the resolution"
+            tooltip="Include a note explaining your decision."
             label="Resolution Comments"
             value={comments}
             setValue={setComments}
+            infoText="Include a note explaining your decision."
           />
 
-          <VStack spacing="0.5rem" align="stretch" color="red.500">
-            <Text fontWeight="700">Client Award</Text>
+          <VStack spacing="0.5rem" align="stretch" color="black">
+            <Flex w="100%">
+              <Text fontWeight="700" color="black">
+                Client Award
+              </Text>
+              <Tooltip
+                color="white"
+                label="How much of the disputed payment should the client receive?"
+                placement="auto-start"
+              >
+                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+              </Tooltip>
+            </Flex>
+
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={clientAwardInput}
                 pr="3.5rem"
+                tooltip="How much of the disputed payment should the client receive?"
                 onChange={e => {
                   setClientAwardInput(e.target.value);
                   if (e.target.value) {
@@ -143,16 +160,30 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
               <InputRightElement w="3.5rem">{symbol}</InputRightElement>
             </InputGroup>
           </VStack>
-          <VStack spacing="0.5rem" align="stretch" color="red.500">
-            <Text fontWeight="700">Provider Award</Text>
+          <VStack spacing="0.5rem" align="stretch" color="black">
+            {/* <Text fontWeight="700">Provider Award</Text> */}
+            <Flex w="100%">
+              <Text fontWeight="700" color="black">
+                Provider Award
+              </Text>
+              <Tooltip
+                color="white"
+                label="How much of the disputed payment should the provider receive?"
+                placement="auto-start"
+              >
+                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+              </Tooltip>
+            </Flex>
+
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={providerAwardInput}
                 pr="3.5rem"
+                tooltip="How much of the disputed payment should the provider receive?"
                 onChange={e => {
                   setProviderAwardInput(e.target.value);
                   if (e.target.value) {
@@ -172,16 +203,28 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
               <InputRightElement w="3.5rem">{symbol}</InputRightElement>
             </InputGroup>
           </VStack>
-          <VStack spacing="0.5rem" align="stretch" color="red.500" mb="1rem">
-            <Text fontWeight="700">Resolver Award</Text>
+          <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
+            <Flex w="100%">
+              <Text fontWeight="700" color="black">
+                Arbitrator Award
+              </Text>
+              <Tooltip
+                color="white"
+                label="This is how much you’ll receive as your fee for resolving this dispute."
+                placement="auto-start"
+              >
+                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+              </Tooltip>
+            </Flex>
             <InputGroup>
               <Input
-                bg="black"
-                color="white"
-                border="none"
+                bg="white"
+                color="black"
+                border="1px"
                 type="number"
                 value={utils.formatUnits(resolverAward, decimals)}
                 pr="3.5rem"
+                tooltip="This is how much you’ll receive as your fee for resolving this dispute."
                 isDisabled
               />
               <InputRightElement w="3.5rem">{symbol}</InputRightElement>
@@ -195,18 +238,18 @@ export const ResolveFunds = ({ invoice, balance, close }) => {
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"
-            fontWeight="normal"
+            fontWeight="bold"
             w="100%"
           >
             Resolve
           </Button>
           {transaction && (
-            <Text color="white" textAlign="center" fontSize="sm">
+            <Text color="black" textAlign="center" fontSize="sm">
               Follow your transaction{' '}
               <Link
                 href={getTxLink(chainId, transaction.hash)}
                 isExternal
-                color="red.500"
+                color="blue"
                 textDecoration="underline"
               >
                 here

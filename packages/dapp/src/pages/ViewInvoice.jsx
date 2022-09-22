@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
+import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
 import { DepositFunds } from '../components/DepositFunds';
 import { Loader } from '../components/Loader';
@@ -27,6 +28,9 @@ import { LockFunds } from '../components/LockFunds';
 import { ReleaseFunds } from '../components/ReleaseFunds';
 import { ResolveFunds } from '../components/ResolveFunds';
 import { WithdrawFunds } from '../components/WithdrawFunds';
+import { AddMilestones } from '../components/AddMilestones';
+import { VerifyInvoice } from '../components/VerifyInvoice';
+import { GenerateInvoicePDF } from '../components/GenerateInvoicePDF';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
@@ -54,19 +58,33 @@ export const ViewInvoice = ({
   const { chainId, account, provider: ethersProvider } = useContext(
     Web3Context,
   );
+  const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigNumber.from(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
+  const [verifiedStatus, setVerifiedStatus] = useState(false);
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
-  
+
+  useEffect(() => {
+    if (invoice && ethersProvider && chainId === invoiceChainId) {
+      setBalanceLoading(true);
+      balanceOf(ethersProvider, invoice.token, invoice.address)
+        .then(b => {
+          setBalance(b);
+          setBalanceLoading(false);
+        })
+        .catch(balanceError => logError({ balanceError }));
+    }
+  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
       setBalanceLoading(true);
@@ -123,11 +141,17 @@ export const ViewInvoice = ({
     releases,
     disputes,
     resolutions,
+    verified,
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token);
+  const { decimals, symbol, image } = getTokenInfo(
+    invoiceChainId,
+    token,
+    tokenData,
+  );
+
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
     ? BigNumber.from(0)
@@ -177,6 +201,13 @@ export const ViewInvoice = ({
     }
   };
 
+  const onAddMilestones = async () => {
+    if (!isLocked & !isExpired) {
+      setSelected(5);
+      setModal(true);
+    }
+  };
+
   let gridColumns;
   if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
     gridColumns = { base: 2, sm: 3 };
@@ -187,6 +218,7 @@ export const ViewInvoice = ({
   }
 
   let sum = BigNumber.from(0);
+
   return (
     <Container overlay>
       <Stack
@@ -211,7 +243,7 @@ export const ViewInvoice = ({
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
-            <Flex align="center" color="white">
+            <Flex align="center" color="black">
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
@@ -223,7 +255,7 @@ export const ViewInvoice = ({
                   ml={4}
                   onClick={() => copyToClipboard(invoiceId.toLowerCase())}
                   variant="ghost"
-                  colorScheme="red"
+                  colorScheme="blue"
                   h="auto"
                   w="auto"
                   minW="2"
@@ -234,13 +266,14 @@ export const ViewInvoice = ({
               )}
             </Flex>
             {projectDescription && (
-              <Text color="white">{projectDescription}</Text>
+              <Text color="black">{projectDescription}</Text>
             )}
+
             <Link
-              href={projectAgreement}
+              href={projectAgreement[projectAgreement.length - 1].src}
               isExternal
               textDecor="underline"
-              color="white"
+              color="black"
             >
               Details of Agreement
             </Link>
@@ -278,7 +311,7 @@ export const ViewInvoice = ({
                   ).toUTCString()}`}
                   placement="auto-start"
                 >
-                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="red.500" />
+                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
                 </Tooltip>
               </WrapItem>
             </Wrap>
@@ -306,6 +339,36 @@ export const ViewInvoice = ({
                 <AccountLink address={resolver} chainId={invoiceChainId} />
               </WrapItem>
             </Wrap>
+            <Wrap>
+              <WrapItem>
+                <Text>{'Non-Client Deposits Enabled: '}</Text>
+              </WrapItem>
+              <WrapItem fontWeight="bold">
+                {invoice && verifiedStatus ? (
+                  <Text color="green">Enabled!</Text>
+                ) : (
+                  <Text color="red">Not enabled</Text>
+                )}
+              </WrapItem>
+
+              <WrapItem fontWeight="bold">
+                <VerifyInvoice
+                  invoice={invoice}
+                  client={client}
+                  isClient={isClient}
+                  verified={verified}
+                  verifiedStatus={verifiedStatus}
+                  setVerifiedStatus={setVerifiedStatus}
+                />
+              </WrapItem>
+            </Wrap>
+            <Wrap>
+              <GenerateInvoicePDF
+                invoice={invoice}
+                symbol={symbol}
+                buttonText="Preview & Download Invoice PDF"
+              />
+            </Wrap>
           </VStack>
         </Stack>
         <VStack
@@ -314,6 +377,18 @@ export const ViewInvoice = ({
           align="stretch"
           maxW={rightMaxW}
         >
+          <Button
+            maxW="fit-content"
+            alignSelf="flex-end"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
+            backgroundColor="blue.1"
+            onClick={onAddMilestones}
+          >
+            Add Milestones
+          </Button>
+          {console.log(invoice)}
           <Flex
             bg="background"
             direction="column"
@@ -322,7 +397,7 @@ export const ViewInvoice = ({
             py="1.5rem"
             borderRadius="0.5rem"
             w="100%"
-            color="white"
+            color="black"
           >
             <Flex
               justify="space-between"
@@ -466,7 +541,7 @@ export const ViewInvoice = ({
               <Flex
                 justify="space-between"
                 align="center"
-                color="red.500"
+                color="black"
                 fontWeight="bold"
                 fontSize="lg"
               >
@@ -616,7 +691,7 @@ export const ViewInvoice = ({
                 <Button
                   size={buttonSize}
                   colorScheme="red"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onResolve()}
@@ -626,11 +701,15 @@ export const ViewInvoice = ({
               ) : (
                 <Button
                   size={buttonSize}
-                  colorScheme="red"
-                  fontWeight="normal"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
+                  disabled={!verifiedStatus}
                 >
                   Deposit
                 </Button>
@@ -642,10 +721,9 @@ export const ViewInvoice = ({
               {isLockable && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
                   colorScheme="red"
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   textTransform="uppercase"
                   onClick={() => onLock()}
                 >
@@ -655,10 +733,12 @@ export const ViewInvoice = ({
               {isExpired && balance.gt(0) && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
                   fontFamily="mono"
-                  fontWeight="normal"
+                  fontWeight="bold"
                   textTransform="uppercase"
                   onClick={() => onWithdraw()}
                 >
@@ -668,9 +748,11 @@ export const ViewInvoice = ({
               {isReleasable && (
                 <Button
                   size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
-                  fontWeight="normal"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
@@ -686,8 +768,11 @@ export const ViewInvoice = ({
                     : '2/1/2/span 2',
                   sm: 'auto/auto/auto/auto',
                 }}
-                colorScheme="red"
-                fontWeight="normal"
+                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                color="white"
+                backgroundColor="blue.1"
+                fontWeight="bold"
                 fontFamily="mono"
                 textTransform="uppercase"
                 onClick={() => (isReleasable ? onRelease() : onDeposit())}
@@ -697,31 +782,42 @@ export const ViewInvoice = ({
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
-            <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
-              {isLockable && (
+            <VStack>
+              {verifiedStatus ? null : (
+                <Text fontWeight="bold" margin="0 auto">
+                  Client has not yet enabled non-client deposits
+                </Text>
+              )}
+              <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+                {isLockable && (
+                  <Button
+                    size={buttonSize}
+                    colorScheme="red"
+                    fontFamily="mono"
+                    fontWeight="bold"
+                    textTransform="uppercase"
+                    onClick={() => onLock()}
+                  >
+                    Lock
+                  </Button>
+                )}
+
                 <Button
                   size={buttonSize}
-                  variant="outline"
-                  colorScheme="red"
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
                   fontFamily="mono"
-                  fontWeight="normal"
                   textTransform="uppercase"
-                  onClick={() => onLock()}
+                  onClick={() => onDeposit()}
+                  disabled={!verifiedStatus}
                 >
-                  Lock
+                  Deposit
                 </Button>
-              )}
-              <Button
-                size={buttonSize}
-                colorScheme="red"
-                fontWeight="normal"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => onDeposit()}
-              >
-                Deposit
-              </Button>
-            </SimpleGrid>
+              </SimpleGrid>
+            </VStack>
           )}
         </VStack>
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
@@ -737,11 +833,13 @@ export const ViewInvoice = ({
                 _hover={{ bgColor: 'white20' }}
                 top="0.5rem"
                 right="0.5rem"
+                color="gray"
               />
               {modal && selected === 0 && (
                 <LockFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -750,6 +848,7 @@ export const ViewInvoice = ({
                   invoice={invoice}
                   deposited={deposited}
                   due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -757,6 +856,7 @@ export const ViewInvoice = ({
                 <ReleaseFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -764,6 +864,7 @@ export const ViewInvoice = ({
                 <ResolveFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
@@ -771,6 +872,16 @@ export const ViewInvoice = ({
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
+                  tokenData={tokenData}
+                  close={() => setModal(false)}
+                />
+              )}
+              {modal && selected === 5 && (
+                <AddMilestones
+                  invoice={invoice}
+                  deposited={deposited}
+                  due={due}
+                  tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}

@@ -32,6 +32,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
+
   console.log(
     "Deploying SmartInvoiceFactory on network:",
     networkName[chainId],
@@ -61,6 +62,9 @@ async function main() {
   await smartInvoice.initLock();
 
   const txHash = smartInvoiceFactory.deployTransaction.hash;
+
+  console.log("Transaction Hash:", txHash);
+
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
 

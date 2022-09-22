@@ -1,7 +1,9 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 description: Smart Invoice
 schema:
   file: ./src/schema.graphql
+features:
+  [ipfsOnEthereumContracts]
 dataSources:
   {{#factories}}
   - kind: ethereum/contract
@@ -69,6 +71,10 @@ templates:
           handler: handleResolve
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
       file: ./src/mappings/invoice.ts
   - kind: ethereum/contract
     name: ERC20

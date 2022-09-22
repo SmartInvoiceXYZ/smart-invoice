@@ -1,4 +1,5 @@
 import { getAddress } from '@ethersproject/address';
+import { Contract, utils } from 'ethers';
 
 import {
   chainIds,
@@ -13,8 +14,6 @@ import {
   resolverInfo,
   resolvers,
   rpcUrls,
-  tokenInfo,
-  tokens,
   wrappedNativeToken,
 } from './constants';
 
@@ -56,10 +55,11 @@ export const getResolvers = chainId => resolvers[chainId] || resolvers[4];
 export const getResolverInfo = (chainId, resolver) =>
   (resolverInfo[chainId] || resolverInfo[4])[resolver];
 
-export const getTokens = chainId => tokens[chainId] || tokens[4];
+export const getTokens = (chainId, allTokens) =>
+  allTokens[chainId] || allTokens[4];
 
-export const getTokenInfo = (chainId, token) =>
-  (tokenInfo[chainId] || tokenInfo[4])[token] || {
+export const getTokenInfo = (chainId, token, tokenData) =>
+  (tokenData[chainId] || tokenData[4])[token] || {
     decimals: 18,
     symbol: 'UNKNOWN',
   };
@@ -156,3 +156,57 @@ export const getHexChainId = network =>
   hexChainIds[network] || hexChainIds.rinkeby;
 
 export const getNetworkLabel = chainId => networkLabels[chainId] || 'unknown';
+
+export const verify = async (ethersProvider, address) => {
+  const abi = new utils.Interface(['function verify() external']);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.verify();
+};
+
+export const formatTokenData = object => {
+  let tokenObject = {};
+
+  for (const [key, value] of Object.entries(object)) {
+    let tokenDetails = {};
+
+    for (const { tokenContract, decimals, symbol, image } of Object.values(
+      value,
+    )) {
+      tokenDetails[tokenContract.toLowerCase()] = {
+        decimals: decimals,
+        symbol: symbol,
+        image: image,
+      };
+    }
+    tokenObject[key] = tokenDetails;
+  }
+
+  return tokenObject;
+};
+
+export const formatTokens = object => {
+  let tokenObject = {};
+  for (const [key, value] of Object.entries(object)) {
+    let tokenArray = [];
+    for (let tokenAddress of Object.keys(value)) {
+      tokenArray.push(tokenAddress);
+    }
+    tokenObject[key] = tokenArray;
+  }
+
+  return tokenObject;
+};
+
+export const calculateResolutionFeePercentage = resolutionRate => {
+  const feePercentage = 1 / parseInt(resolutionRate);
+
+  return feePercentage;
+};
+
+export const getTokenSymbol = (token, chainId, tokenData) => {
+  return tokenData[chainId][token].symbol;
+};
+
+export const dateTimeToDate = dateTime => {
+  return dateTime.split(',')[0];
+};

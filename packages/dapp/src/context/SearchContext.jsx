@@ -11,19 +11,23 @@ export const SearchContextProvider = ({ children }) => {
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (query) {
       setFetching(true);
+      setLoading(true);
       search(chainId, query)
         .then(res => {
           setResult(res);
           setFetching(false);
+          setLoading(false);
         })
         .catch(searchError => {
           logError({ searchError });
           setResult();
           setFetching(false);
+          setLoading(false);
         });
     } else {
       setResult(undefined);
@@ -32,7 +36,7 @@ export const SearchContextProvider = ({ children }) => {
 
   return (
     <SearchContext.Provider
-      value={{ search: query, setSearch: setQuery, fetching, result }}
+      value={{ search: query, setSearch: setQuery, fetching, result, loading }}
     >
       {children}
     </SearchContext.Provider>

@@ -36,9 +36,8 @@ module.exports = {
       gasPrice: 1000000000,
     },
     xdai: {
-      url: `https://rpc.xdaichain.com`,
+      url: `https://rpc.ankr.com/gnosis`,
       accounts: [`0x${PRIVATE_KEY}`],
-      gasPrice: 1000000000,
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
@@ -55,7 +54,7 @@ module.exports = {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
-      gasPrice: 4500000000,
+      gasPrice: 22000000000,
     },
   },
   etherscan: {

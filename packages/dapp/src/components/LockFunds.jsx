@@ -27,10 +27,10 @@ import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
-export const LockFunds = ({ invoice, balance }) => {
+export const LockFunds = ({ invoice, balance, tokenData }) => {
   const { chainId, provider } = useContext(Web3Context);
   const { network, address, resolver, token, resolutionRate } = invoice;
-  const { decimals, symbol } = getTokenInfo(chainId, token);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [disputeReason, setDisputeReason] = useState('');
 
   const fee = `${utils.formatUnits(
@@ -70,20 +70,21 @@ export const LockFunds = ({ invoice, balance }) => {
     return (
       <VStack w="100%" spacing="1rem">
         <Heading
-          fontWeight="normal"
+          fontWeight="bold"
           mb="1rem"
           textTransform="uppercase"
           textAlign="center"
+          color="black"
         >
           Locking Funds
         </Heading>
         {transaction && (
-          <Text color="white" textAlign="center" fontSize="sm">
+          <Text textAlign="center" fontSize="sm" color="black">
             Follow your transaction{' '}
             <Link
               href={getTxLink(chainId, transaction.hash)}
               isExternal
-              color="red.500"
+              color="blue"
               textDecoration="underline"
             >
               here
@@ -97,7 +98,7 @@ export const LockFunds = ({ invoice, balance }) => {
           minH="7rem"
           my="3rem"
           position="relative"
-          color="red.500"
+          color="blue"
         >
           <Loader size="6rem" />
           <Flex
@@ -116,19 +117,20 @@ export const LockFunds = ({ invoice, balance }) => {
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
+        fontWeight="bold"
         mb="1rem"
         textTransform="uppercase"
         textAlign="center"
+        color="black"
       >
         Lock Funds
       </Heading>
 
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" mb="1rem" color="red">
         Locking freezes all remaining funds in the contract and initiates a
         dispute.
       </Text>
-      <Text w="100%">
+      <Text w="100%" color="black">
         {'Once a dispute has been initiated, '}
         <AccountLink address={resolver} />
         {
@@ -141,6 +143,7 @@ export const LockFunds = ({ invoice, balance }) => {
         label="Dispute Reason"
         value={disputeReason}
         setValue={setDisputeReason}
+        infoText="Describe the details of your dispute below. This will be provided to your arbitrator."
       />
       <Text color="red.500" textAlign="center">
         {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}
