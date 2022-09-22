@@ -66,6 +66,41 @@ export const Styles = styled.div`
     }
   }
 
+  @media (max-width: 1074px) {
+    .noAmount {
+      display: none;
+    }
+  }
+
+  @media (max-width: 966px) {
+    .noCurrency {
+      display: none;
+    }
+  }
+  @media (max-width: 686px) {
+    .noDate {
+      display: none;
+    }
+  }
+  @media (max-width: 450px) {
+    table {
+      th {
+        :last-child {
+          border-right: 0;
+          text-align: right;
+        }
+      }
+
+      td {
+        :last-child {
+          border-right: 0;
+          text-align: right;
+          padding-right: 5%;
+        }
+      }
+    }
+  }
+
   .pagination {
     padding: 0.5rem;
     display: flex;
