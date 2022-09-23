@@ -7,7 +7,6 @@ export const CONFIG = {
   NETWORK_CONFIG: {
     1: {
       SUBGRAPH: 'psparacino/mainnet-smart-invoices',
-      NETWORK_NAME: 'Ethereum Mainnet',
       WRAPPED_NATIVE_TOKEN:
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
       INVOICE_FACTORY:
@@ -23,7 +22,6 @@ export const CONFIG = {
     },
     100: {
       SUBGRAPH: 'psparacino/xdai-smart-invoices',
-      NETWORK_NAME: 'Gnosis Chain',
       WRAPPED_NATIVE_TOKEN:
         '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
       INVOICE_FACTORY:
@@ -39,7 +37,6 @@ export const CONFIG = {
     },
     4: {
       SUBGRAPH: 'psparacino/smart-invoices-rinkey-ps',
-      NETWORK_NAME: 'Rinkeby',
       WRAPPED_NATIVE_TOKEN:
         '0xc778417E063141139Fce010982780140Aa0cD5Ab'.toLowerCase(),
       INVOICE_FACTORY:
@@ -55,7 +52,6 @@ export const CONFIG = {
     },
     5: {
       SUBGRAPH: 'psparacino/goerli-smart-invoices',
-      NETWORK_NAME: 'Goerli',
       WRAPPED_NATIVE_TOKEN:
         '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),
       INVOICE_FACTORY:

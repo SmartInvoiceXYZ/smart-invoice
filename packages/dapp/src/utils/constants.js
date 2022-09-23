@@ -36,11 +36,11 @@ export const networkLabels = {
 };
 
 export const networkNames = {
-  1: 'ETH Mainnet',
+  1: 'Ethereum Mainnet',
   4: 'Rinkeby Testnet',
   5: 'Goerli Testnet',
   42: 'Kovan Testnet',
-  100: 'xDai Chain',
+  100: 'Gnosis Chain',
 };
 
 export const rpcUrls = {
