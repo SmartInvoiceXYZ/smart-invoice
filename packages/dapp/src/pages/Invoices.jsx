@@ -6,15 +6,13 @@ import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
-import { CONFIG } from '../config';
+import { networkNames } from '../utils/constants';
 
 const InvoicesInner = ({ history }) => {
-  const { search, setSearch, result, fetching, loading } = useContext(
-    SearchContext,
-  );
+  const { search, setSearch, result, fetching, loading } =
+    useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
-  const { NETWORK_CONFIG } = CONFIG;
 
   useEffect(() => {
     if (account) {
@@ -53,7 +51,7 @@ const InvoicesInner = ({ history }) => {
             Create Invoice
           </Button>
           <Heading color="gray" as="h1" align="center">
-            No {NETWORK_CONFIG[chainId].NETWORK_NAME} Invoices Found
+            No {networkNames[chainId]} Invoices Found
           </Heading>
         </Stack>
       )}

@@ -1,0 +1,18 @@
+{
+  "network": "goerli",
+  "startBlock": "7640975",
+  "factories": [
+    {
+      "factoryName": "Version00",
+      "startBlock": "7640975",
+      "address": "0x566ac8344a7cbBC4879e5692F32A9ebdED002e7f"
+    }
+  ],
+  "tokens": [
+    {
+      "tokenAddress": "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+      "startBlock": "7640975",
+      "tokenName": "ETH"
+    }
+  ]
+}
