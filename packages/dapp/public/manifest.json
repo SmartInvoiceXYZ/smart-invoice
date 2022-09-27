@@ -1,7 +1,7 @@
 {
   "name": "Smart Invoice",
   "short_name": "Smart Invoice",
-  "description": "Smart Invoice",
+  "description": "Smart Invoice is an easy-to-use tool that provides web3 freelancers with cryptocurrency invoicing, escrow, and arbitration.",
   "iconPath": "favicon.ico",
   "providedBy": { "name": "Raid Guild", "url": "https://raidguild.org" },
   "icons": [
@@ -16,7 +16,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#000000",
-  "background_color": "#000000",
+  "theme_color": "#3D88F8",
+  "background_color": "#FFFFFF",
   "display": "standalone"
 }
