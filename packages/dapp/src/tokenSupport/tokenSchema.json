@@ -197,8 +197,8 @@
       "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/DAI.png?alt=media"
     },
     {
-      "tokenContract": "0x7af963cF6D228E564e2A0aA0DdBF06210B38615D",
-      "symbol": "TEST",
+      "tokenContract": "0x56a76B1FB4DE43Cf9F1BdF938Ab27cB64de0F29B",
+      "symbol": "ITT",
       "decimals": 18,
       "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/TEST.png?alt=media"
     }
