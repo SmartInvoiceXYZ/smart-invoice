@@ -48,6 +48,7 @@ import {
   getTokenInfo,
   getTxLink,
   logError,
+  getAgreementLink,
 } from '../utils/helpers';
 
 export const ViewInvoice = ({
@@ -55,9 +56,11 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -270,7 +273,7 @@ export const ViewInvoice = ({
             )}
 
             <Link
-              href={projectAgreement[projectAgreement.length - 1].src}
+              href={getAgreementLink(projectAgreement)}
               isExternal
               textDecor="underline"
               color="black"
