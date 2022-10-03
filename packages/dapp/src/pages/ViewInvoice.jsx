@@ -55,9 +55,11 @@ export const ViewInvoice = ({
     params: { hexChainId, invoiceId },
   },
 }) => {
-  const { chainId, account, provider: ethersProvider } = useContext(
-    Web3Context,
-  );
+  const {
+    chainId,
+    account,
+    provider: ethersProvider,
+  } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
@@ -385,6 +387,7 @@ export const ViewInvoice = ({
             color="white"
             backgroundColor="blue.1"
             onClick={onAddMilestones}
+            disabled={isLocked}
           >
             Add Milestones
           </Button>
