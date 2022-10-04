@@ -214,7 +214,6 @@ export const dateTimeToDate = dateTime => {
 
 export const getAgreementLink = projectAgreement => {
   const address = projectAgreement[projectAgreement.length - 1].src;
-  console.log({ projectAgreement });
   if (projectAgreement[projectAgreement.length - 1].type === 'ipfs') {
     const hash = address.substring(7);
     const link = IPFS_ENDPOINT + '/ipfs/' + hash;
