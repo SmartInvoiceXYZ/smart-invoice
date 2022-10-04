@@ -18,19 +18,22 @@ import {
 } from './constants';
 
 export const getDateString = timeInSec => {
-  const date = new Date(timeInSec ? timeInSec * 1000 : 0);
-  const ye = new Intl.DateTimeFormat('en', {
-    year: 'numeric',
-  }).format(date);
-  const mo = new Intl.DateTimeFormat('en', {
-    month: 'long',
-  }).format(date);
-  const da = new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-  }).format(date);
-  return `${mo} ${da}, ${ye}`;
+  if (parseInt(timeInSec) !== 0) {
+    const date = new Date(timeInSec ? timeInSec * 1000 : 0);
+    const ye = new Intl.DateTimeFormat('en', {
+      year: 'numeric',
+    }).format(date);
+    const mo = new Intl.DateTimeFormat('en', {
+      month: 'long',
+    }).format(date);
+    const da = new Intl.DateTimeFormat('en', {
+      day: '2-digit',
+    }).format(date);
+    return `${mo} ${da}, ${ye}`;
+  } else {
+    return 'Not provided';
+  }
 };
-
 // returns the checksummed address if the address is valid, otherwise returns false
 export const isAddress = value => {
   try {
@@ -124,7 +127,8 @@ export const copyToClipboard = value => {
   document.body.removeChild(tempInput);
 };
 
-const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
+const URL_REGEX =
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
 
 export const isValidURL = str => {
   return !!URL_REGEX.test(str);
