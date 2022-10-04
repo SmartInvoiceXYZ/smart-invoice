@@ -56,8 +56,15 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  const [depositError, setDepositError] = useState(false);
+
   const deposit = async () => {
     if (!amount || !provider) return;
+    if (
+      utils.formatUnits(amount, decimals) > utils.formatUnits(balance, decimals)
+    )
+      return setDepositError(true);
+
     try {
       setLoading(true);
       let tx;
@@ -97,6 +104,15 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
     }
   }, [paymentType, token, provider, account]);
 
+  useEffect(() => {
+    if (
+      depositError &&
+      utils.formatUnits(balance, decimals) > utils.formatUnits(amount, decimals)
+    ) {
+      setDepositError(false);
+    }
+  }, [depositError, amount, balance]);
+
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
@@ -112,6 +128,16 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
         At a minimum, you’ll need to deposit enough to cover the{' '}
         {currentMilestone === 0 ? 'first' : 'next'} project payment.
       </Text>
+      {depositError ? (
+        <Flex>
+          <Alert bg="none" margin="0 auto" textAlign="center" padding="0">
+            <AlertIcon color="red.500" />
+            <AlertTitle fontSize="sm" color="red.500">
+              Not enough available {symbol} for this deposit
+            </AlertTitle>
+          </Alert>
+        </Flex>
+      ) : null}
 
       <Text textAlign="center" color="black">
         How much will you be depositing today?
