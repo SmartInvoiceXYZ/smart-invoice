@@ -43,14 +43,14 @@ export function Footer() {
           </ChakraLink>
           <ChakraLink
             isExternal
-            href="https://help.smartinvoice.xyz"
+            href="https://docs.smartinvoice.xyz"
             target="_blank"
           >
             Documentation
           </ChakraLink>
           <ChakraLink
             isExternal
-            href="https://help.smartinvoice.xyz/article/7-get-support"
+            href="https://docs.smartinvoice.xyz/misc/get-support"
             target="_blank"
           >
             Support

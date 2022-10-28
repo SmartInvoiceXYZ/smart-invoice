@@ -117,14 +117,14 @@ export const Header = () => {
         <Flex gap={8} justify="center" align="center">
           <ChakraLink href="/invoices">Dashboard</ChakraLink>
           <ChakraLink
-            href="https://help.smartinvoice.xyz"
+            href="https://docs.smartinvoice.xyz"
             target="_blank"
             isExternal
           >
             Documentation
           </ChakraLink>
           <ChakraLink
-            href="https://help.smartinvoice.xyz/article/7-get-support"
+            href="https://docs.smartinvoice.xyz/misc/get-support"
             target="_blank"
             isExternal
           >
@@ -277,7 +277,7 @@ export const Header = () => {
         >
           Dashboard
         </StyledButton>
-        <ChakraLink href="https://help.smartinvoice.xyz" isExternal _hover={{}}>
+        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
           <StyledButton
             as="span"
             transition="all 0.5s ease 0.4s"
@@ -291,7 +291,7 @@ export const Header = () => {
           </StyledButton>
         </ChakraLink>
         <ChakraLink
-          href="https://help.smartinvoice.xyz/article/7-get-support"
+          href="https://docs.smartinvoice.xyz/misc/get-support"
           isExternal
           _hover={{}}
         >
