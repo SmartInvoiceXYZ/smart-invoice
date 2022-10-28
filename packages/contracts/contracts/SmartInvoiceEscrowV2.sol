@@ -117,7 +117,7 @@ contract SmartInvoiceEscrowV2 is
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
-
+        // try making this separate internal function and/or pack these better
         (
             uint8 _resolverType,
             address _token,

@@ -80,14 +80,14 @@ contract SmartInvoiceFactory is ISmartInvoiceFactoryV2, AccessControl {
     }
 
     // not sure about _resolver
-
+    // can use internal function to decode https://soliditydeveloper.com/stacktoodeep
     function create(
         address _client,
         address _provider,
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint256 _implementationType,
+        uint256 _implementationType, //combine or make uint8
         uint256 _implementationSelector
     ) external override returns (address) {
         require(
