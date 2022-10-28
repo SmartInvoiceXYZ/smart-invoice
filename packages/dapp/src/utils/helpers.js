@@ -214,3 +214,15 @@ export const getTokenSymbol = (token, chainId, tokenData) => {
 export const dateTimeToDate = dateTime => {
   return dateTime.split(',')[0];
 };
+
+export const getAgreementLink = projectAgreement => {
+  const address = projectAgreement[projectAgreement.length - 1].src;
+  if (projectAgreement[projectAgreement.length - 1].type === 'ipfs') {
+    // address.substring(7) removes ipfs:// from the beginning of the src string
+    const hash = address.substring(7);
+    const link = IPFS_ENDPOINT + '/ipfs/' + hash;
+    return link;
+  } else {
+    return address;
+  }
+};
