@@ -12,6 +12,7 @@
     "help": "hardhat help",
     "clean": "hardhat clean",
     "lint": "solhint contracts/{*,**/*}.sol",
+    "t": "hardhat test ./test/test.js",
     "deploy-local": "hardhat run scripts/deploy-factory-local.js --network localhost",
     "deploy-kovan": "hardhat run scripts/deploy-factory.js --network kovan",
     "deploy-mainnet": "hardhat run scripts/deploy-factory.js --network mainnet",

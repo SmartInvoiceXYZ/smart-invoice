@@ -65,6 +65,7 @@ module.exports = {
     apiKey: ETHERSCAN_API_KEY,
   },
   gasReporter: {
+    enabled: false,
     coinmarketcap: COINMARKETCAP_API_KEY,
     currency: CURRENCY,
   },
