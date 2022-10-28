@@ -106,8 +106,8 @@ contract SmartInvoiceEscrowV2 is
         uint256 _resolutionRate,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
-        uint256 _implementationType,
-        uint256 _implementationSelector
+        uint8 _implementationType,
+        uint8 _implementationSelector
     ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
@@ -117,17 +117,36 @@ contract SmartInvoiceEscrowV2 is
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
-        // try making this separate internal function and/or pack these better
+
+        bool decodeResult = escrowDecode(_implementationData, _client);
+
+        require(decodeResult == true, "escrow data decode failed");
+
+        client = _client;
+        provider = _provider;
+        resolver = _resolver;
+        amounts = _amounts;
+        for (uint256 i = 0; i < amounts.length; i++) {
+            total = total + amounts[i];
+        }
+        resolutionRate = _resolutionRate;
+
+        wrappedNativeToken = _wrappedNativeToken;
+
+        emit Register(_client, _provider, amounts);
+    }
+
+    function escrowDecode(bytes calldata data, address _client)
+        internal
+        returns (bool decodeResult)
+    {
         (
             uint8 _resolverType,
             address _token,
             uint256 _terminationTime,
             bytes32 _details,
             bool _requireVerification
-        ) = abi.decode(
-                _implementationData,
-                (uint8, address, uint256, bytes32, bool)
-            );
+        ) = abi.decode(data, (uint8, address, uint256, bytes32, bool));
 
         require(
             _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
@@ -137,23 +156,13 @@ contract SmartInvoiceEscrowV2 is
         require(_terminationTime > block.timestamp, "duration ended");
         require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
 
-        client = _client;
-        provider = _provider;
         resolverType = ADR(_resolverType);
-        resolver = _resolver;
         token = _token;
-        amounts = _amounts;
-        for (uint256 i = 0; i < amounts.length; i++) {
-            total = total + amounts[i];
-        }
         terminationTime = _terminationTime;
-        resolutionRate = _resolutionRate;
         details = _details;
-        wrappedNativeToken = _wrappedNativeToken;
-
         if (!_requireVerification) emit Verified(_client, address(this));
 
-        emit Register(_client, _provider, amounts);
+        return (decodeResult);
     }
 
     // Client verifies address before deposits

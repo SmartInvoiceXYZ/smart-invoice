@@ -52,8 +52,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts, // *
         bytes calldata _implementationData,
-        uint256 _implementationType, // *
-        uint256 _implementationSelector // *
+        uint8 _implementationType, // *
+        uint8 _implementationSelector // *
     ) internal {
         uint256 resolutionRate = resolutionRates[_resolver];
         if (resolutionRate == 0) {
@@ -87,8 +87,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint256 _implementationType, //combine or make uint8
-        uint256 _implementationSelector
+        uint8 _implementationType, //combine or make uint8
+        uint8 _implementationSelector
     ) external override returns (address) {
         require(
             implementations[_implementationSelector][_implementationType] !=
@@ -116,8 +116,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactoryV2, AccessControl {
     }
 
     function predictDeterministicAddress(
-        uint256 _implementationType,
-        uint256 _implemenationSelector,
+        uint8 _implementationType,
+        uint8 _implemenationSelector,
         bytes32 _salt
     ) external view override returns (address) {
         return
@@ -133,8 +133,8 @@ contract SmartInvoiceFactory is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint256 _implementationType,
-        uint256 _implementationSelector,
+        uint8 _implementationType,
+        uint8 _implementationSelector,
         bytes32 _salt
     ) external override returns (address) {
         address invoiceAddress = Clones.cloneDeterministic(

@@ -11,8 +11,8 @@ interface ISmartInvoiceV2 {
         uint256 _resolutionRate,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
-        uint256 _implementationType,
-        uint256 _implementationSelector
+        uint8 _implementationType,
+        uint8 _implementationSelector
     ) external;
 
     function release() external;
