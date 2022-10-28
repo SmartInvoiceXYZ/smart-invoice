@@ -48,6 +48,7 @@ import {
   getTokenInfo,
   getTxLink,
   logError,
+  getAgreementLink,
 } from '../utils/helpers';
 
 export const ViewInvoice = ({
@@ -272,7 +273,7 @@ export const ViewInvoice = ({
             )}
 
             <Link
-              href={projectAgreement[projectAgreement.length - 1].src}
+              href={getAgreementLink(projectAgreement)}
               isExternal
               textDecor="underline"
               color="black"
