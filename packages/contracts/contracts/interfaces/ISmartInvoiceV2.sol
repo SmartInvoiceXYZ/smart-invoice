@@ -6,13 +6,12 @@ interface ISmartInvoiceV2 {
     function init(
         address _client,
         address _provider,
-        address _resolver,
+        bytes calldata _resolutionData,
         uint256[] calldata _amounts,
-        uint256 _resolutionRate,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
         uint8 _implementationType,
-        uint8 _implementationSelector
+        uint8 _implementationVersion
     ) external;
 
     function release() external;

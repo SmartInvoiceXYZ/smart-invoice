@@ -42,6 +42,8 @@ contract SmartInvoiceEscrowV2 is
 
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
     address public wrappedNativeToken;
+    uint8 implementationType;
+    uint8 implementationVersion;
 
     enum ADR {
         INDIVIDUAL,
@@ -101,52 +103,49 @@ contract SmartInvoiceEscrowV2 is
     function init(
         address _client,
         address _provider,
-        address _resolver,
+        bytes calldata _resolutionData,
         uint256[] calldata _amounts,
-        uint256 _resolutionRate,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
         uint8 _implementationType,
-        uint8 _implementationSelector
+        uint8 _implementationVersion
     ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
-        require(_resolver != address(0), "invalid resolver");
-        require(_resolutionRate > 0, "invalid resolutionRate");
         require(
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
 
-        bool decodeResult = escrowDecode(_implementationData, _client);
+        escrowDecode(_implementationData, _client);
 
-        require(decodeResult == true, "escrow data decode failed");
+        resolutionDecode(_resolutionData);
 
+        // resolverType = ADR(_resolverType);
         client = _client;
         provider = _provider;
-        resolver = _resolver;
+        // resolver = _resolver;
         amounts = _amounts;
+        implementationType = _implementationType;
+        implementationVersion = _implementationVersion;
+        // check this for gas optimization, shouldn't be updating state every loop
         for (uint256 i = 0; i < amounts.length; i++) {
             total = total + amounts[i];
         }
-        resolutionRate = _resolutionRate;
+        // resolutionRate = _resolutionRate;
 
         wrappedNativeToken = _wrappedNativeToken;
 
         emit Register(_client, _provider, amounts);
     }
 
-    function escrowDecode(bytes calldata data, address _client)
-        internal
-        returns (bool decodeResult)
-    {
+    function escrowDecode(bytes calldata data, address _client) internal {
         (
-            uint8 _resolverType,
             address _token,
             uint256 _terminationTime,
             bytes32 _details,
             bool _requireVerification
-        ) = abi.decode(data, (uint8, address, uint256, bytes32, bool));
+        ) = abi.decode(data, (address, uint256, bytes32, bool));
 
         require(
             _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
@@ -154,15 +153,22 @@ contract SmartInvoiceEscrowV2 is
         );
         require(_token != address(0), "invalid token");
         require(_terminationTime > block.timestamp, "duration ended");
-        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
-
-        resolverType = ADR(_resolverType);
         token = _token;
         terminationTime = _terminationTime;
         details = _details;
         if (!_requireVerification) emit Verified(_client, address(this));
+    }
 
-        return (decodeResult);
+    function resolutionDecode(bytes calldata data) internal {
+        (uint8 _resolverType, address _resolver, uint256 _resolutionRate) = abi
+            .decode(data, (uint8, address, uint256));
+
+        require(_resolver != address(0), "invalid resolver");
+        require(_resolutionRate > 0, "invalid resolutionRate");
+        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
+        resolverType = ADR(_resolverType);
+        resolver = _resolver;
+        resolutionRate = _resolutionRate;
     }
 
     // Client verifies address before deposits
