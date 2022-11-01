@@ -10,8 +10,7 @@ interface ISmartInvoiceV2 {
         uint256[] calldata _amounts,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
-        uint8 _implementationType,
-        uint8 _implementationVersion
+        bytes calldata _implementationInfoData
     ) external;
 
     function release() external;

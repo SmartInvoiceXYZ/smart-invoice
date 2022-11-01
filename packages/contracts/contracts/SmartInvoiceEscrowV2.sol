@@ -41,9 +41,14 @@ contract SmartInvoiceEscrowV2 is
     ];
 
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
+
     address public wrappedNativeToken;
-    uint8 implementationType;
-    uint8 implementationVersion;
+
+    // implementation info
+    uint256 public invoiceId;
+    bytes32 public implementationType;
+    uint8 public implementationVersion;
+    address public implementationAddress;
 
     enum ADR {
         INDIVIDUAL,
@@ -107,8 +112,7 @@ contract SmartInvoiceEscrowV2 is
         uint256[] calldata _amounts,
         address _wrappedNativeToken,
         bytes calldata _implementationData,
-        uint8 _implementationType,
-        uint8 _implementationVersion
+        bytes calldata _implementationInfoData
     ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
@@ -118,21 +122,22 @@ contract SmartInvoiceEscrowV2 is
         );
 
         escrowDecode(_implementationData, _client);
-
         resolutionDecode(_resolutionData);
+        implementationInfoDecode(_implementationInfoData);
 
-        // resolverType = ADR(_resolverType);
         client = _client;
         provider = _provider;
-        // resolver = _resolver;
         amounts = _amounts;
-        implementationType = _implementationType;
-        implementationVersion = _implementationVersion;
+        uint256 tempTotal = 0;
         // check this for gas optimization, shouldn't be updating state every loop
+        // for (uint256 i = 0; i < amounts.length; i++) {
+        //     total = total + amounts[i];
+        // }
+
         for (uint256 i = 0; i < amounts.length; i++) {
-            total = total + amounts[i];
+            tempTotal = tempTotal + amounts[i];
         }
-        // resolutionRate = _resolutionRate;
+        total = tempTotal;
 
         wrappedNativeToken = _wrappedNativeToken;
 
@@ -169,6 +174,25 @@ contract SmartInvoiceEscrowV2 is
         resolverType = ADR(_resolverType);
         resolver = _resolver;
         resolutionRate = _resolutionRate;
+    }
+
+    function implementationInfoDecode(bytes calldata data) internal {
+        (
+            bytes32 _implementationType,
+            uint8 _implementationVersion,
+            address _implementationAddress,
+            uint256 _invoiceId
+        ) = abi.decode(data, (bytes32, uint8, address, uint256));
+
+        // require(bytes32(_implementationType) != bytes32(0), "implementation type empty");
+        require(
+            _implementationAddress != address(0),
+            "must include an implementation address"
+        );
+        implementationType = _implementationType;
+        implementationVersion = _implementationVersion;
+        implementationAddress = _implementationAddress;
+        invoiceId = _invoiceId;
     }
 
     // Client verifies address before deposits

@@ -10,14 +10,8 @@ import "./interfaces/ISmartInvoiceV2.sol";
 import "hardhat/console.sol";
 
 contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
-    uint256 public totalInvoiceCount = 0;
-
-    /** @dev mapping(implementationType => mapping(implementation address => invoiceCount)) */
-    mapping(uint256 => mapping(address => uint256)) public invoiceCount;
-
-    /** @dev mapping(implementationType => mapping(implementationVersion => mapping(invoiceId => invoiceAddress))) */
-    mapping(uint256 => mapping(uint256 => mapping(uint256 => address)))
-        internal _invoices;
+    uint256 public invoiceCount = 0;
+    mapping(uint256 => address) internal _invoices;
 
     mapping(address => uint256) public resolutionRates;
 
@@ -25,7 +19,9 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
 
     /** @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats */
     /** @dev mapping(implementationType => mapping(implementationVersion => address)) */
-    mapping(uint256 => mapping(uint256 => address)) public implementations;
+    mapping(bytes32 => mapping(uint256 => address)) public implementations;
+    mapping(bytes32 => mapping(address => uint256))
+        public implementationsVersions;
 
     event LogNewInvoice(
         uint256 indexed index,
@@ -48,6 +44,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         wrappedNativeToken = _wrappedNativeToken;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN, msg.sender);
     }
 
     function _init(
@@ -58,7 +55,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint8 _implementationType,
+        bytes32 _implementationType,
         uint8 _implementationVersion,
         address _implementationAddress
     ) internal {
@@ -74,21 +71,17 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             _amounts,
             wrappedNativeToken,
             _implementationData,
-            _implementationType,
-            _implementationVersion
+            _encodeImplementationData(
+                _implementationType,
+                _implementationVersion,
+                _implementationAddress,
+                invoiceCount
+            )
         );
 
-        uint256 invoiceId = invoiceCount[_implementationType][
-            _implementationAddress
-        ];
-
-        _invoices[_implementationType][_implementationVersion][
-            invoiceId
-        ] = _invoiceAddress;
-        invoiceCount[_implementationType][_implementationAddress] =
-            invoiceCount[_implementationType][_implementationAddress] +
-            1;
-        totalInvoiceCount = totalInvoiceCount + 1;
+        uint256 invoiceId = invoiceCount;
+        _invoices[invoiceId] = _invoiceAddress;
+        invoiceCount += 1;
 
         emit LogNewInvoice(invoiceId, _invoiceAddress, _amounts);
     }
@@ -101,6 +94,21 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         return abi.encode(_resolverType, _resolver, _resolutionRate);
     }
 
+    function _encodeImplementationData(
+        bytes32 _implementationType,
+        uint8 _implementationVersion,
+        address _implementationAddress,
+        uint256 _invoiceId
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encode(
+                _implementationType,
+                _implementationVersion,
+                _implementationAddress,
+                _invoiceId
+            );
+    }
+
     function create(
         address _client,
         address _provider,
@@ -108,7 +116,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint8 _implementationType,
+        bytes32 _implementationType,
         uint8 _implementationVersion
     ) external override returns (address) {
         require(
@@ -145,7 +153,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
     }
 
     function predictDeterministicAddress(
-        uint8 _implementationType,
+        bytes32 _implementationType,
         uint8 _implemenationVersion,
         bytes32 _salt
     ) external view override returns (address) {
@@ -163,7 +171,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        uint8 _implementationType,
+        bytes32 _implementationType,
         uint8 _implementationVersion,
         bytes32 _salt
     ) external override returns (address) {
@@ -195,20 +203,13 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         return invoiceAddress;
     }
 
-    function addAdmin() public {}
-
     /**
      * @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats
      */
 
-    // function addImplementation(uint implementationType, uint implementationVersion, address implementation) external onlyRole(ADMIN) {
-    //     require(implementations[implementationType][implementationVersion] == address(0), "implementation already exists");
-    //     implementations[implementationType][implementationVersion] = implementation;
-    // }
-    // needs admin controls
     function addImplementation(
-        uint256 implementationType,
-        uint256 implementationVersion,
+        bytes32 implementationType,
+        uint8 implementationVersion,
         address implementation
     ) external {
         require(
@@ -216,24 +217,34 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
                 address(0),
             "implementation already exists"
         );
+        require(
+            hasRole(ADMIN, msg.sender),
+            "Non-admin cannot add invoice implementation"
+        );
+
+        // needs to search for first free slot
         implementations[implementationType][
             implementationVersion
         ] = implementation;
     }
 
+    // this should take the place of manually inputting new version
+    // function getLatestImplementation(bytes32 _implementationType) view public returns(address latestImplementation) {
+    //     address latestImplementation;
+    //     for (uint i = 0; j != 0; j /= 10) {
+    //         len++;
+    //     }
+    // }
+
     function getImplementation(
-        uint256 _implementationType,
+        bytes32 _implementationType,
         uint256 _implementationVersion
     ) public view returns (address) {
         return implementations[_implementationType][_implementationVersion];
     }
 
-    function getInvoiceAddress(
-        uint256 _implementationType,
-        uint256 _implementationVersion,
-        uint256 _index
-    ) public view returns (address) {
-        return _invoices[_implementationType][_implementationVersion][_index];
+    function getInvoiceAddress(uint256 _index) public view returns (address) {
+        return _invoices[_index];
     }
 
     function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
@@ -241,5 +252,15 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
     {
         resolutionRates[msg.sender] = _resolutionRate;
         emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
+    }
+
+    function addAdmin(address account) public virtual {
+        require(hasRole(ADMIN, msg.sender), "Caller is not an admin");
+        grantRole(ADMIN, account);
+    }
+
+    function revokeAdmin(address account) public virtual {
+        require(hasRole(ADMIN, msg.sender), "Caller is not an admin");
+        revokeRole(ADMIN, account);
     }
 }
