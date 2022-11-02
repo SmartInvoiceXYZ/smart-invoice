@@ -29,33 +29,27 @@ module.exports.currentTimestamp = async () => {
 };
 
 module.exports.getLockedInvoice = async (
-  SmartInvoice,
+  SmartInvoiceEscrowV2,
   client,
   provider,
-  resolverType,
-  resolver,
-  mockToken,
+  resolutionData,
   amounts,
-  resolutionRate,
-  details,
   mockWrappedNativeToken,
+  implementationData,
+  implementationInfoData,
+  mockToken,
   value = 0,
 ) => {
-  const currentTime = await module.exports.currentTimestamp();
-  const newInvoice = await SmartInvoice.deploy();
+  const newInvoice = await SmartInvoiceEscrowV2.deploy();
   await newInvoice.deployed();
   await newInvoice.init(
     client.address,
     provider.address,
-    resolverType,
-    resolver.address,
-    mockToken.address,
+    resolutionData,
     amounts,
-    currentTime + 1000,
-    resolutionRate,
-    details,
     mockWrappedNativeToken.address,
-    false,
+    implementationData,
+    implementationInfoData,
   );
   expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);

@@ -20,8 +20,8 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
     /** @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats */
     /** @dev mapping(implementationType => mapping(implementationVersion => address)) */
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
-    mapping(bytes32 => mapping(address => uint256))
-        public implementationsVersions;
+    mapping(bytes32 => uint256) public implementationsVersions;
+    mapping(address => bool) internal implementationExists;
 
     event LogNewInvoice(
         uint256 indexed index,
@@ -56,7 +56,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
         bytes32 _implementationType,
-        uint8 _implementationVersion,
+        uint256 _implementationVersion,
         address _implementationAddress
     ) internal {
         uint256 resolutionRate = resolutionRates[_resolver];
@@ -86,6 +86,10 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         emit LogNewInvoice(invoiceId, _invoiceAddress, _amounts);
     }
 
+    // ******************
+    // Encoding
+    // ******************
+
     function _encodeResolutionData(
         uint8 _resolverType,
         address _resolver,
@@ -96,7 +100,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
 
     function _encodeImplementationData(
         bytes32 _implementationType,
-        uint8 _implementationVersion,
+        uint256 _implementationVersion,
         address _implementationAddress,
         uint256 _invoiceId
     ) internal pure returns (bytes memory) {
@@ -109,6 +113,10 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             );
     }
 
+    // ******************
+    // Create
+    // ******************
+
     function create(
         address _client,
         address _provider,
@@ -116,18 +124,15 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        bytes32 _implementationType,
-        uint8 _implementationVersion
+        bytes32 _implementationType
     ) external override returns (address) {
-        require(
-            implementations[_implementationType][_implementationVersion] !=
-                address(0),
-            "Invoice implemenation does not exist"
-        );
         require(_implementationData.length != 0, "No invoice data");
+        uint256 _implemenationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
 
         address _implementationAddress = implementations[_implementationType][
-            _implementationVersion
+            _implemenationVersion
         ];
         require(
             _implementationAddress != address(0),
@@ -145,7 +150,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             _amounts,
             _implementationData,
             _implementationType,
-            _implementationVersion,
+            _implemenationVersion,
             _implementationAddress
         );
 
@@ -154,12 +159,14 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
 
     function predictDeterministicAddress(
         bytes32 _implementationType,
-        uint8 _implemenationVersion,
         bytes32 _salt
     ) external view override returns (address) {
+        uint256 _implementationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
         return
             Clones.predictDeterministicAddress(
-                implementations[_implementationType][_implemenationVersion],
+                implementations[_implementationType][_implementationVersion],
                 _salt
             );
     }
@@ -172,9 +179,14 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
         bytes32 _implementationType,
-        uint8 _implementationVersion,
         bytes32 _salt
     ) external override returns (address) {
+        // can combine this and above create into single check function maybe instead of dupes
+        require(_implementationData.length != 0, "No invoice data");
+
+        uint256 _implementationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
         address _implementationAddress = implementations[_implementationType][
             _implementationVersion
         ];
@@ -182,6 +194,7 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             _implementationAddress != address(0),
             "Invoice implementation does not exist"
         );
+
         address invoiceAddress = Clones.cloneDeterministic(
             _implementationAddress,
             _salt
@@ -203,38 +216,63 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         return invoiceAddress;
     }
 
-    /**
-     * @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats
-     */
+    /** @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats */
 
     function addImplementation(
         bytes32 implementationType,
-        uint8 implementationVersion,
         address implementation
     ) external {
         require(
-            implementations[implementationType][implementationVersion] ==
-                address(0),
-            "implementation already exists"
+            implementation != address(0),
+            "implemenation address is zero address"
         );
         require(
             hasRole(ADMIN, msg.sender),
             "Non-admin cannot add invoice implementation"
         );
+        require(
+            implementationExists[implementation] != true,
+            "implementation already added"
+        );
 
-        // needs to search for first free slot
-        implementations[implementationType][
-            implementationVersion
-        ] = implementation;
+        uint256 version = getCurrentImplementationVersion(implementationType);
+        address currentImplementation = getCurrentImplementation(
+            implementationType
+        );
+
+        if (version == 0 && currentImplementation == address(0)) {
+            implementations[implementationType][version] = implementation;
+        } else {
+            implementations[implementationType][version + 1] = implementation;
+
+            implementationsVersions[implementationType] += 1;
+        }
+        implementationExists[implementation] = true;
+    }
+
+    // ******************
+    // Getters
+    // ******************
+
+    function getCurrentImplementationVersion(bytes32 _implementationType)
+        public
+        view
+        returns (uint256 version)
+    {
+        version = implementationsVersions[_implementationType];
+        return version;
     }
 
     // this should take the place of manually inputting new version
-    // function getLatestImplementation(bytes32 _implementationType) view public returns(address latestImplementation) {
-    //     address latestImplementation;
-    //     for (uint i = 0; j != 0; j /= 10) {
-    //         len++;
-    //     }
-    // }
+    function getCurrentImplementation(bytes32 _implementationType)
+        public
+        view
+        returns (address latestImplementation)
+    {
+        uint256 version = implementationsVersions[_implementationType];
+        latestImplementation = implementations[_implementationType][version];
+        return latestImplementation;
+    }
 
     function getImplementation(
         bytes32 _implementationType,
@@ -247,12 +285,20 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         return _invoices[_index];
     }
 
+    // ******************
+    // Arbitration
+    // ******************
+
     function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
         external
     {
         resolutionRates[msg.sender] = _resolutionRate;
         emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
     }
+
+    // ******************
+    // Roles
+    // ******************
 
     function addAdmin(address account) public virtual {
         require(hasRole(ADMIN, msg.sender), "Caller is not an admin");

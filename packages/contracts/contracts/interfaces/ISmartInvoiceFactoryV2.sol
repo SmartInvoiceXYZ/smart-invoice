@@ -10,8 +10,7 @@ interface ISmartInvoiceFactoryV2 {
         address _resolver,
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
-        bytes32 _implementationType,
-        uint8 _implementationVersion
+        bytes32 _implementationType
     ) external returns (address);
 
     function createDeterministic(
@@ -22,13 +21,11 @@ interface ISmartInvoiceFactoryV2 {
         uint256[] calldata _amounts,
         bytes calldata _implementationData,
         bytes32 _implementationType,
-        uint8 _implementationVersion,
         bytes32 _salt
     ) external returns (address);
 
     function predictDeterministicAddress(
         bytes32 _implementationType,
-        uint8 _implemenationVersion,
         bytes32 _salt
     ) external returns (address);
 }

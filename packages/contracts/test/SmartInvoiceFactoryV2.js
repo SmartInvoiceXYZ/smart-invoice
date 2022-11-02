@@ -18,7 +18,7 @@ const newImplementation = "0x7Ee9AE2a2eAF3F0df8D323d555479be562ac4905";
 
 const escrowType = ethers.utils.formatBytes32String("escrow");
 const instantType = ethers.utils.formatBytes32String("instant");
-let implementationVersion = 0;
+const fakeType = ethers.utils.formatBytes32String("fugazi");
 
 describe("SmartInvoiceFactoryV2", function () {
   let SmartInvoiceV2;
@@ -73,13 +73,11 @@ describe("SmartInvoiceFactoryV2", function () {
 
     await invoiceFactoryV2.addImplementation(
       instantType,
-      0,
       smartInvoicePayNowV2.address,
     );
 
     await invoiceFactoryV2.addImplementation(
       escrowType,
-      0,
       smartInvoiceEscrowV2.address,
     );
 
@@ -136,29 +134,31 @@ describe("SmartInvoiceFactoryV2", function () {
     const blackhat = addr1;
     const receipt = invoiceFactoryV2
       .connect(blackhat)
-      .addImplementation(escrowType, 1, newImplementation);
+      .addImplementation(escrowType, newImplementation);
     await expect(receipt).to.revertedWith(
       "Non-admin cannot add invoice implementation",
     );
-  });
-
-  it("Cannot add implementation that already exists", async function () {
-    const owner = owner.address;
-    const receipt = await invoiceFactoryV2
-      .connect(blackhat)
-      .addImplementation(escrowType, 1, newImplementation);
-    console.log(receipt);
-  });
-
-  it("Should revert deploy if zero wrappedNativeToken", async function () {
-    const receipt = SmartInvoiceFactoryV2.deploy(ADDRESS_ZERO);
-    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
 
   let invoiceAddress;
   let client;
   let provider;
   let resolver;
+
+  it("Cannot add implementation that already exists", async function () {
+    owner = owner.address;
+    await invoiceFactoryV2.addImplementation(escrowType, newImplementation);
+    const dupe = invoiceFactoryV2.addImplementation(
+      escrowType,
+      newImplementation,
+    );
+    await expect(dupe).to.revertedWith("implementation already added");
+  });
+
+  it("Should revert deploy if zero wrappedNativeToken", async function () {
+    const receipt = SmartInvoiceFactoryV2.deploy(ADDRESS_ZERO);
+    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
+  });
 
   it("Should revert deploy if no implementation", async function () {
     client = owner.address;
@@ -172,12 +172,11 @@ describe("SmartInvoiceFactoryV2", function () {
       resolver,
       amounts,
       implementationData,
-      escrowType,
-      1,
+      fakeType,
     );
 
     await expect(receipt).to.revertedWith(
-      "Invoice implemenation does not exist",
+      "Invoice implementation does not exist",
     );
   });
 
@@ -194,7 +193,6 @@ describe("SmartInvoiceFactoryV2", function () {
       amounts,
       implementationData,
       escrowType,
-      implementationVersion,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
@@ -244,7 +242,6 @@ describe("SmartInvoiceFactoryV2", function () {
       amounts,
       implementationData,
       escrowType,
-      0,
       EMPTY_BYTES32,
     );
 
@@ -288,7 +285,6 @@ describe("SmartInvoiceFactoryV2", function () {
       amounts,
       implementationData,
       escrowType,
-      implementationVersion,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
@@ -314,7 +310,6 @@ describe("SmartInvoiceFactoryV2", function () {
       amounts,
       implementationData,
       escrowType,
-      implementationVersion,
     );
     const invoice0 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactoryV2.invoiceCount()).to.equal(1);
@@ -326,7 +321,6 @@ describe("SmartInvoiceFactoryV2", function () {
       amounts,
       implementationData,
       escrowType,
-      implementationVersion,
     );
     const invoice1 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactoryV2.invoiceCount()).to.equal(2);

@@ -47,7 +47,7 @@ contract SmartInvoiceEscrowV2 is
     // implementation info
     uint256 public invoiceId;
     bytes32 public implementationType;
-    uint8 public implementationVersion;
+    uint256 public implementationVersion;
     address public implementationAddress;
 
     enum ADR {
@@ -128,12 +128,8 @@ contract SmartInvoiceEscrowV2 is
         client = _client;
         provider = _provider;
         amounts = _amounts;
-        uint256 tempTotal = 0;
-        // check this for gas optimization, shouldn't be updating state every loop
-        // for (uint256 i = 0; i < amounts.length; i++) {
-        //     total = total + amounts[i];
-        // }
 
+        uint256 tempTotal = 0;
         for (uint256 i = 0; i < amounts.length; i++) {
             tempTotal = tempTotal + amounts[i];
         }
@@ -151,7 +147,6 @@ contract SmartInvoiceEscrowV2 is
             bytes32 _details,
             bool _requireVerification
         ) = abi.decode(data, (address, uint256, bytes32, bool));
-
         require(
             _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
             "duration too long"
@@ -167,7 +162,6 @@ contract SmartInvoiceEscrowV2 is
     function resolutionDecode(bytes calldata data) internal {
         (uint8 _resolverType, address _resolver, uint256 _resolutionRate) = abi
             .decode(data, (uint8, address, uint256));
-
         require(_resolver != address(0), "invalid resolver");
         require(_resolutionRate > 0, "invalid resolutionRate");
         require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
@@ -179,10 +173,10 @@ contract SmartInvoiceEscrowV2 is
     function implementationInfoDecode(bytes calldata data) internal {
         (
             bytes32 _implementationType,
-            uint8 _implementationVersion,
+            uint256 _implementationVersion,
             address _implementationAddress,
             uint256 _invoiceId
-        ) = abi.decode(data, (bytes32, uint8, address, uint256));
+        ) = abi.decode(data, (bytes32, uint256, address, uint256));
 
         // require(bytes32(_implementationType) != bytes32(0), "implementation type empty");
         require(
