@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 const { deployMockContract, provider: waffleProvider } = waffle;
-const { currentTimestamp, getLockedInvoice } = require("./utils");
+const { currentTimestamp, getLockedInvoiceV2 } = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -369,7 +369,7 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert release if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
+    const lockedInvoice = await getLockedInvoiceV2(
       SmartInvoiceEscrowV2,
       client,
       provider,
@@ -443,7 +443,7 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert release milestone if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
+    const lockedInvoice = await getLockedInvoiceV2(
       SmartInvoiceEscrowV2,
       client,
       provider,
@@ -505,7 +505,7 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert withdraw if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
+    const lockedInvoice = await getLockedInvoiceV2(
       SmartInvoiceEscrowV2,
       client,
       provider,
@@ -750,7 +750,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert lock if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -767,7 +767,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should lock if balance is greater than 0", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -789,7 +789,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if balance is 0", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -808,7 +808,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if not resolver", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -827,7 +827,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if awards do not add up", async function () {
-  //     let lockedInvoice = await getLockedInvoice(
+  //     let lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -871,7 +871,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve with correct rewards", async function () {
-  //     let lockedInvoice = await getLockedInvoice(
+  //     let lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -902,7 +902,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 clientAward", async function () {
-  //     let lockedInvoice = await getLockedInvoice(
+  //     let lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -932,7 +932,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 providerAward", async function () {
-  //     let lockedInvoice = await getLockedInvoice(
+  //     let lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -962,7 +962,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 resolutionFee", async function () {
-  //     let lockedInvoice = await getLockedInvoice(
+  //     let lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1022,7 +1022,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if not resolver", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1047,7 +1047,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if invalid disputeId", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1075,7 +1075,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if invalid ruling", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1099,7 +1099,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if balance is 0", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1124,7 +1124,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:1 for ruling 0", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1162,7 +1162,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:0 for ruling 1", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1199,7 +1199,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 3:1 for ruling 2", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1237,7 +1237,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:1 for ruling 3", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1275,7 +1275,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:3 for ruling 4", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1313,7 +1313,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 0:1 for ruling 5", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1358,7 +1358,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert receive if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1483,7 +1483,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert addMilestones if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoice(
+  //     const lockedInvoice = await getLockedInvoiceV2(
   //       SmartInvoice,
   //       client,
   //       provider,

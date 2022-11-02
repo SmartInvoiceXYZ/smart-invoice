@@ -230,7 +230,6 @@ describe("SmartInvoiceFactoryV2", function () {
 
     const predictedAddress = await invoiceFactoryV2.predictDeterministicAddress(
       escrowType,
-      0,
       EMPTY_BYTES32,
     );
 

@@ -51,7 +51,6 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         if (resolutionRate == 0) {
             resolutionRate = 20;
         }
-        // amounts out of bytes, new implementation, salt. anything at factory level can't be in bytes
         ISmartInvoice(_invoiceAddress).init(
             _client,
             _provider,
