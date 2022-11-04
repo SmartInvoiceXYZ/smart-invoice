@@ -26,7 +26,11 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
     event LogNewInvoice(
         uint256 indexed index,
         address invoice,
-        uint256[] amounts
+        uint256[] amounts,
+        bytes32 _implementationType,
+        uint256 _implementationVersion,
+        address _implementationAddress,
+        uint256 invoiceCount
     );
     event UpdateResolutionRate(
         address indexed resolver,
@@ -53,8 +57,8 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         address _provider,
         uint8 _resolverType,
         address _resolver,
-        uint256[] calldata _amounts,
-        bytes calldata _implementationData,
+        uint256[] memory _amounts,
+        bytes memory _implementationData,
         bytes32 _implementationType,
         uint256 _implementationVersion,
         address _implementationAddress
@@ -64,6 +68,10 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             resolutionRate = 20;
         }
 
+        uint256 invoiceId = invoiceCount;
+        _invoices[invoiceId] = _invoiceAddress;
+        invoiceCount += 1;
+
         ISmartInvoiceV2(_invoiceAddress).init(
             _client,
             _provider,
@@ -71,19 +79,24 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
             _amounts,
             wrappedNativeToken,
             _implementationData,
-            _encodeImplementationData(
-                _implementationType,
-                _implementationVersion,
-                _implementationAddress,
-                invoiceCount
-            )
+            invoiceId
+            // _encodeImplementationData(
+            //     _implementationType,
+            //     _implementationVersion,
+            //     _implementationAddress,
+            //     invoiceCount
+            // )
         );
 
-        uint256 invoiceId = invoiceCount;
-        _invoices[invoiceId] = _invoiceAddress;
-        invoiceCount += 1;
-
-        emit LogNewInvoice(invoiceId, _invoiceAddress, _amounts);
+        emit LogNewInvoice(
+            invoiceId,
+            _invoiceAddress,
+            _amounts,
+            _implementationType,
+            _implementationVersion,
+            _implementationAddress,
+            invoiceCount
+        );
     }
 
     // ******************
@@ -98,20 +111,20 @@ contract SmartInvoiceFactoryV2 is ISmartInvoiceFactoryV2, AccessControl {
         return abi.encode(_resolverType, _resolver, _resolutionRate);
     }
 
-    function _encodeImplementationData(
-        bytes32 _implementationType,
-        uint256 _implementationVersion,
-        address _implementationAddress,
-        uint256 _invoiceId
-    ) internal pure returns (bytes memory) {
-        return
-            abi.encode(
-                _implementationType,
-                _implementationVersion,
-                _implementationAddress,
-                _invoiceId
-            );
-    }
+    // function _encodeImplementationData(
+    //     bytes32 _implementationType,
+    //     uint256 _implementationVersion,
+    //     address _implementationAddress,
+    //     uint256 _invoiceId
+    // ) internal pure returns (bytes memory) {
+    //     return
+    //         abi.encode(
+    //             _implementationType,
+    //             _implementationVersion,
+    //             _implementationAddress,
+    //             _invoiceId
+    //         );
+    // }
 
     // ******************
     // Create
