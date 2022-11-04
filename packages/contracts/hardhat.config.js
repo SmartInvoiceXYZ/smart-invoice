@@ -19,12 +19,12 @@ const {
 module.exports = {
   solidity: {
     version: "0.8.3",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-    },
+    // settings: {
+    //   optimizer: {
+    //     enabled: true,
+    //     runs: 200,
+    //   },
+    // },
   },
   paths: {
     artifacts: "./build",

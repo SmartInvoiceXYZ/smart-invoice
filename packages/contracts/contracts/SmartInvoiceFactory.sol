@@ -1,20 +1,42 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/ISmartInvoiceFactory.sol";
 import "./interfaces/ISmartInvoice.sol";
 
-contract SmartInvoiceFactory is ISmartInvoiceFactory {
+// import "hardhat/console.sol";
+
+contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     uint256 public invoiceCount = 0;
+    // store invoice as struct by address? struct would be imp info;
     mapping(uint256 => address) internal _invoices;
+
     mapping(address => uint256) public resolutionRates;
+
+    bytes32 public constant ADMIN = keccak256("ADMIN");
+
+    /// @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats
+
+    // Implementation Storage
+    mapping(bytes32 => mapping(uint256 => address)) public implementations;
+
+    /** @dev mapping(implementationType => mapping(implementationVersion => address)) */
+    mapping(bytes32 => uint256) public currentVersions;
+    mapping(address => bool) internal implementationExists;
+
+    address public immutable wrappedNativeToken;
 
     event LogNewInvoice(
         uint256 indexed index,
         address invoice,
-        uint256[] amounts
+        uint256[] amounts,
+        bytes32 implementationType,
+        uint256 implementationVersion,
+        address implementationAddress
     );
     event UpdateResolutionRate(
         address indexed resolver,
@@ -22,17 +44,21 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         bytes32 details
     );
 
-    address public immutable implementation;
-    address public immutable wrappedNativeToken;
+    event InvoiceImplementationAdded(
+        bytes32 indexed implementationType,
+        uint256 indexed version,
+        address implementationAddress
+    );
 
-    constructor(address _implementation, address _wrappedNativeToken) {
-        require(_implementation != address(0), "invalid implementation");
+    constructor(address _wrappedNativeToken) {
         require(
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
-        implementation = _implementation;
         wrappedNativeToken = _wrappedNativeToken;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN, msg.sender);
     }
 
     function _init(
@@ -41,49 +67,80 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         address _provider,
         uint8 _resolverType,
         address _resolver,
-        address _token,
-        uint256[] calldata _amounts,
-        uint256 _terminationTime,
-        bytes32 _details,
-        bool _requireVerification
+        uint256[] memory _amounts,
+        bytes memory _invoiceData,
+        bytes32 _implementationType,
+        uint256 _implementationVersion,
+        address _implementationAddress
     ) internal {
         uint256 resolutionRate = resolutionRates[_resolver];
         if (resolutionRate == 0) {
             resolutionRate = 20;
         }
-        ISmartInvoice(_invoiceAddress).init(
-            _client,
-            _provider,
-            _resolverType,
-            _resolver,
-            _token,
-            _amounts,
-            _terminationTime,
-            resolutionRate,
-            _details,
-            wrappedNativeToken,
-            _requireVerification
-        );
 
         uint256 invoiceId = invoiceCount;
         _invoices[invoiceId] = _invoiceAddress;
-        invoiceCount = invoiceCount + 1;
+        invoiceCount += 1;
 
-        emit LogNewInvoice(invoiceId, _invoiceAddress, _amounts);
+        ISmartInvoice(_invoiceAddress).init(
+            _client,
+            _provider,
+            _encodeResolutionData(_resolverType, _resolver, resolutionRate),
+            _amounts,
+            wrappedNativeToken,
+            _invoiceData,
+            invoiceId
+        );
+
+        emit LogNewInvoice(
+            invoiceId,
+            _invoiceAddress,
+            _amounts,
+            _implementationType,
+            _implementationVersion,
+            _implementationAddress
+        );
     }
+
+    // ******************
+    // Encoding
+    // ******************
+
+    function _encodeResolutionData(
+        uint8 _resolverType,
+        address _resolver,
+        uint256 _resolutionRate
+    ) internal pure returns (bytes memory) {
+        return abi.encode(_resolverType, _resolver, _resolutionRate);
+    }
+
+    // ******************
+    // Create
+    // ******************
 
     function create(
         address _client,
         address _provider,
         uint8 _resolverType,
         address _resolver,
-        address _token,
         uint256[] calldata _amounts,
-        uint256 _terminationTime,
-        bytes32 _details,
-        bool _requireVerification
+        bytes calldata _invoiceData,
+        bytes32 _implementationType
     ) external override returns (address) {
-        address invoiceAddress = Clones.clone(implementation);
+        require(_invoiceData.length != 0, "No invoice data");
+        uint256 _implemenationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
+
+        address _implementationAddress = implementations[_implementationType][
+            _implemenationVersion
+        ];
+        require(
+            _implementationAddress != address(0),
+            "Invoice implementation does not exist"
+        );
+
+        address invoiceAddress = Clones.clone(_implementationAddress);
 
         _init(
             invoiceAddress,
@@ -91,23 +148,28 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
             _provider,
             _resolverType,
             _resolver,
-            _token,
             _amounts,
-            _terminationTime,
-            _details,
-            _requireVerification
+            _invoiceData,
+            _implementationType,
+            _implemenationVersion,
+            _implementationAddress
         );
 
         return invoiceAddress;
     }
 
-    function predictDeterministicAddress(bytes32 _salt)
-        external
-        view
-        override
-        returns (address)
-    {
-        return Clones.predictDeterministicAddress(implementation, _salt);
+    function predictDeterministicAddress(
+        bytes32 _implementationType,
+        bytes32 _salt
+    ) external view override returns (address) {
+        uint256 _implementationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
+        return
+            Clones.predictDeterministicAddress(
+                implementations[_implementationType][_implementationVersion],
+                _salt
+            );
     }
 
     function createDeterministic(
@@ -115,15 +177,27 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
         address _provider,
         uint8 _resolverType,
         address _resolver,
-        address _token,
         uint256[] calldata _amounts,
-        uint256 _terminationTime,
-        bytes32 _details,
-        bytes32 _salt,
-        bool _requireVerification
+        bytes calldata _invoiceData,
+        bytes32 _implementationType,
+        bytes32 _salt
     ) external override returns (address) {
+        // can combine this and above create into single check function maybe instead of dupes
+        require(_invoiceData.length != 0, "No invoice data");
+
+        uint256 _implementationVersion = getCurrentImplementationVersion(
+            _implementationType
+        );
+        address _implementationAddress = implementations[_implementationType][
+            _implementationVersion
+        ];
+        require(
+            _implementationAddress != address(0),
+            "Invoice implementation does not exist"
+        );
+
         address invoiceAddress = Clones.cloneDeterministic(
-            implementation,
+            _implementationAddress,
             _salt
         );
 
@@ -133,24 +207,110 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory {
             _provider,
             _resolverType,
             _resolver,
-            _token,
             _amounts,
-            _terminationTime,
-            _details,
-            _requireVerification
+            _invoiceData,
+            _implementationType,
+            _implementationVersion,
+            _implementationAddress
         );
 
         return invoiceAddress;
     }
 
-    function getInvoiceAddress(uint256 _index) public view returns (address) {
-        return _invoices[_index];
+    /** @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats */
+
+    function addImplementation(
+        bytes32 implementationType,
+        address implementationAddress
+    ) external onlyRole(ADMIN) {
+        require(
+            implementationAddress != address(0),
+            "implemenation address is zero address"
+        );
+        require(
+            implementationExists[implementationAddress] != true,
+            "implementation already added"
+        );
+
+        uint256 version = getCurrentImplementationVersion(implementationType);
+        address currentImplementation = getCurrentImplementation(
+            implementationType
+        );
+
+        if (version == 0 && currentImplementation == address(0)) {
+            implementations[implementationType][
+                version
+            ] = implementationAddress;
+        } else {
+            implementations[implementationType][
+                version + 1
+            ] = implementationAddress;
+
+            currentVersions[implementationType] += 1;
+        }
+        implementationExists[implementationAddress] = true;
+        emit InvoiceImplementationAdded(
+            implementationType,
+            version,
+            implementationAddress
+        );
     }
+
+    // ******************
+    // Getters
+    // ******************
+
+    function getCurrentImplementationVersion(bytes32 _implementationType)
+        public
+        view
+        returns (uint256 version)
+    {
+        version = currentVersions[_implementationType];
+        return version;
+    }
+
+    // this should take the place of manually inputting new version
+    function getCurrentImplementation(bytes32 _implementationType)
+        public
+        view
+        returns (address currentImplementation)
+    {
+        uint256 version = currentVersions[_implementationType];
+        currentImplementation = implementations[_implementationType][version];
+        return currentImplementation;
+    }
+
+    function getImplementation(
+        bytes32 _implementationType,
+        uint256 _implementationVersion
+    ) external view returns (address) {
+        return implementations[_implementationType][_implementationVersion];
+    }
+
+    function getInvoiceAddress(uint256 index) external view returns (address) {
+        return _invoices[index];
+    }
+
+    // ******************
+    // Arbitration
+    // ******************
 
     function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
         external
     {
         resolutionRates[msg.sender] = _resolutionRate;
         emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
+    }
+
+    // ******************
+    // Roles
+    // ******************
+
+    function addAdmin(address account) external virtual onlyRole(ADMIN) {
+        grantRole(ADMIN, account);
+    }
+
+    function revokeAdmin(address account) external virtual onlyRole(ADMIN) {
+        revokeRole(ADMIN, account);
     }
 }

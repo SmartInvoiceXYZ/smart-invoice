@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./interfaces/ISmartInvoiceV2.sol";
+import "./interfaces/ISmartInvoice.sol";
 import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
@@ -16,8 +16,8 @@ import "./interfaces/IWRAPPED.sol";
 import "hardhat/console.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
-contract SmartInvoiceEscrowV2 is
-    ISmartInvoiceV2,
+contract SmartInvoiceEscrow is
+    ISmartInvoice,
     IArbitrable,
     Initializable,
     Context,
@@ -46,9 +46,6 @@ contract SmartInvoiceEscrowV2 is
 
     // implementation info
     uint256 public invoiceId;
-    // bytes32 public implementationType;
-    // uint256 public implementationVersion;
-    // address public implementationAddress;
 
     enum ADR {
         INDIVIDUAL,
@@ -113,12 +110,7 @@ contract SmartInvoiceEscrowV2 is
         address _wrappedNativeToken,
         bytes calldata _implementationData,
         uint256 _invoiceId
-    )
-        external
-        override
-        // bytes calldata _implementationInfoData
-        initializer
-    {
+    ) external override initializer {
         require(_client != address(0), "invalid client");
         require(_provider != address(0), "invalid provider");
         require(
@@ -128,7 +120,6 @@ contract SmartInvoiceEscrowV2 is
 
         escrowDecode(_implementationData, _client);
         resolutionDecode(_resolutionData);
-        // implementationInfoDecode(_implementationInfoData);
 
         client = _client;
         provider = _provider;
@@ -176,25 +167,6 @@ contract SmartInvoiceEscrowV2 is
         resolver = _resolver;
         resolutionRate = _resolutionRate;
     }
-
-    // function implementationInfoDecode(bytes calldata data) internal {
-    //     (
-    //         bytes32 _implementationType,
-    //         uint256 _implementationVersion,
-    //         address _implementationAddress,
-    //         uint256 _invoiceId
-    //     ) = abi.decode(data, (bytes32, uint256, address, uint256));
-
-    //     // require(bytes32(_implementationType) != bytes32(0), "implementation type empty");
-    //     require(
-    //         _implementationAddress != address(0),
-    //         "must include an implementation address"
-    //     );
-    //     // implementationType = _implementationType;
-    //     // implementationVersion = _implementationVersion;
-    //     // implementationAddress = _implementationAddress;
-    //     invoiceId = _invoiceId;
-    // }
 
     // Client verifies address before deposits
     function verify() external {

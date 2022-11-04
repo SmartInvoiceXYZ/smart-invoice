@@ -10,17 +10,27 @@ const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const resolverType = 0;
 const amounts = [10, 10];
-const total = amounts.reduce((t, v) => t + v, 0);
+let total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
-
 const requireVerification = true;
+const newImplementation = "0x7Ee9AE2a2eAF3F0df8D323d555479be562ac4905";
+
+const escrowType = ethers.utils.formatBytes32String("escrow");
+const instantType = ethers.utils.formatBytes32String("instant");
+const fakeType = ethers.utils.formatBytes32String("fugazi");
 
 describe("SmartInvoiceFactory", function () {
   let SmartInvoice;
   let smartInvoice;
+  let SmartInvoiceEscrow;
+  let smartInvoiceEscrow;
+  let SmartInvoicePayNow;
+  let smartInvoicePayNow;
   let SmartInvoiceFactory;
   let invoiceFactory;
+  let implementationData;
+  let implementationInfoData;
   let owner;
   let addr1;
   let addr2;
@@ -33,12 +43,21 @@ describe("SmartInvoiceFactory", function () {
     const mockToken = await deployMockContract(owner, IERC20.abi);
     token = mockToken.address;
 
+    implementationData = ethers.utils.AbiCoder.prototype.encode(
+      ["address", "uint256", "bytes32", "bool"],
+      [token, terminationTime, EMPTY_BYTES32, requireVerification],
+    );
+
     const MockWrappedTokenFactory = await ethers.getContractFactory("MockWETH");
     const mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
 
-    SmartInvoice = await ethers.getContractFactory("SmartInvoice");
+    SmartInvoiceEscrow = await ethers.getContractFactory("SmartInvoiceEscrow");
+    smartInvoiceEscrow = await SmartInvoiceEscrow.deploy();
 
-    smartInvoice = await SmartInvoice.deploy();
+    SmartInvoicePayNow = await ethers.getContractFactory(
+      "SmartInvoicePayNowV2",
+    );
+    smartInvoicePayNow = await SmartInvoicePayNow.deploy();
 
     wrappedNativeToken = mockWrappedNativeToken.address;
 
@@ -46,30 +65,75 @@ describe("SmartInvoiceFactory", function () {
       "SmartInvoiceFactory",
     );
 
-    invoiceFactory = await SmartInvoiceFactory.deploy(
-      smartInvoice.address,
-      wrappedNativeToken,
-    );
+    invoiceFactory = await SmartInvoiceFactory.deploy(wrappedNativeToken);
 
     await invoiceFactory.deployed();
+
+    await invoiceFactory.addImplementation(
+      instantType,
+      smartInvoicePayNow.address,
+    );
+
+    await invoiceFactory.addImplementation(
+      escrowType,
+      smartInvoiceEscrow.address,
+    );
+
+    implementationInfoData = ethers.utils.AbiCoder.prototype.encode(
+      ["bytes32", "uint8", "address", "uint256"],
+      [
+        escrowType,
+        0,
+        smartInvoiceEscrow.address,
+        await invoiceFactory.invoiceCount(),
+      ],
+    );
   });
 
-  it("Should deploy with 0 invoiceCount", async function () {
+  it("Should deploy with 0 totalInvoiceCount", async function () {
     const invoiceCount = await invoiceFactory.invoiceCount();
     expect(invoiceCount).to.equal(0);
   });
 
-  it("Should revert deploy if zero implementation", async function () {
-    const receipt = SmartInvoiceFactory.deploy(ADDRESS_ZERO, ADDRESS_ZERO);
-    await expect(receipt).to.revertedWith("invalid implementation");
+  it("Should revert deploy if zero wrappedNativeToken", async function () {
+    const receipt = SmartInvoiceFactory.deploy(ADDRESS_ZERO);
+    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
 
-  it("Should revert deploy if zero wrappedNativeToken", async function () {
-    const receipt = SmartInvoiceFactory.deploy(
-      smartInvoice.address,
-      ADDRESS_ZERO,
+  it("Deploying address should have DEFAULT_ADMIN and ADMIN roles", async function () {
+    const deployer = owner.address;
+    const adminRole = await invoiceFactory.hasRole(
+      invoiceFactory.ADMIN(),
+      deployer,
     );
-    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
+    const defaultAdminRole = await invoiceFactory.hasRole(
+      invoiceFactory.DEFAULT_ADMIN_ROLE(),
+      deployer,
+    );
+    expect(adminRole).to.equal(true);
+    expect(defaultAdminRole).to.equal(true);
+  });
+
+  it("Admin can add implementation", async function () {
+    const deployer = owner.address;
+    const adminRole = await invoiceFactory.hasRole(
+      invoiceFactory.ADMIN(),
+      deployer,
+    );
+    const defaultAdminRole = await invoiceFactory.hasRole(
+      invoiceFactory.DEFAULT_ADMIN_ROLE(),
+      deployer,
+    );
+    expect(adminRole).to.equal(true);
+    expect(defaultAdminRole).to.equal(true);
+  });
+
+  it("Non-admin cannot add implementation", async function () {
+    const blackhat = addr1;
+    const receipt = invoiceFactory
+      .connect(blackhat)
+      .addImplementation(escrowType, newImplementation);
+    await expect(receipt).to.be.reverted;
   });
 
   let invoiceAddress;
@@ -77,27 +141,68 @@ describe("SmartInvoiceFactory", function () {
   let provider;
   let resolver;
 
-  it("Should deploy a SmartInvoice", async function () {
+  it("Cannot add implementation that already exists", async function () {
+    owner = owner.address;
+    await invoiceFactory.addImplementation(escrowType, newImplementation);
+    const dupe = invoiceFactory.addImplementation(
+      escrowType,
+      newImplementation,
+    );
+    await expect(dupe).to.revertedWith("implementation already added");
+  });
+
+  it("Should revert deploy if zero wrappedNativeToken", async function () {
+    const receipt = SmartInvoiceFactory.deploy(ADDRESS_ZERO);
+    await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
+  });
+
+  it("Should revert deploy if no implementation", async function () {
     client = owner.address;
     provider = addr1.address;
     resolver = addr2.address;
+
+    const receipt = invoiceFactory.create(
+      client,
+      provider,
+      resolverType,
+      resolver,
+      amounts,
+      implementationData,
+      fakeType,
+    );
+
+    await expect(receipt).to.revertedWith(
+      "Invoice implementation does not exist",
+    );
+  });
+
+  it("Should deploy a SmartInvoiceEscrow", async function () {
+    client = owner.address;
+    provider = addr1.address;
+    resolver = addr2.address;
+
     const receipt = await invoiceFactory.create(
       client,
       provider,
       resolverType,
       resolver,
-      token,
       amounts,
-      terminationTime,
-      EMPTY_BYTES32,
-      requireVerification,
+      implementationData,
+      escrowType,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
-      .withArgs(0, invoiceAddress, amounts);
+      .withArgs(
+        0,
+        invoiceAddress,
+        amounts,
+        escrowType,
+        0,
+        smartInvoiceEscrow.address,
+      );
 
-    const invoice = await SmartInvoice.attach(invoiceAddress);
+    const invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
 
     expect(await invoice.client()).to.equal(client);
     expect((await invoice.functions.provider())[0]).to.equal(provider);
@@ -125,6 +230,7 @@ describe("SmartInvoiceFactory", function () {
     resolver = addr2.address;
 
     const predictedAddress = await invoiceFactory.predictDeterministicAddress(
+      escrowType,
       EMPTY_BYTES32,
     );
 
@@ -133,18 +239,23 @@ describe("SmartInvoiceFactory", function () {
       provider,
       resolverType,
       resolver,
-      token,
       amounts,
-      terminationTime,
+      implementationData,
+      escrowType,
       EMPTY_BYTES32,
-      EMPTY_BYTES32,
-      requireVerification,
     );
 
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
-      .withArgs(0, invoiceAddress, amounts);
+      .withArgs(
+        0,
+        invoiceAddress,
+        amounts,
+        escrowType,
+        0,
+        smartInvoiceEscrow.address,
+      );
 
     expect(invoiceAddress).to.equal(predictedAddress);
     expect(await invoiceFactory.getInvoiceAddress(0)).to.equal(invoiceAddress);
@@ -174,18 +285,23 @@ describe("SmartInvoiceFactory", function () {
       provider,
       resolverType,
       resolver,
-      token,
       amounts,
-      terminationTime,
-      EMPTY_BYTES32,
-      requireVerification,
+      implementationData,
+      escrowType,
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     await expect(receipt)
       .to.emit(invoiceFactory, "LogNewInvoice")
-      .withArgs(0, invoiceAddress, amounts);
+      .withArgs(
+        0,
+        invoiceAddress,
+        amounts,
+        escrowType,
+        0,
+        smartInvoiceEscrow.address,
+      );
 
-    const invoice = await SmartInvoice.attach(invoiceAddress);
+    const invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
 
     expect(await invoice.resolutionRate()).to.equal(10);
 
@@ -199,11 +315,9 @@ describe("SmartInvoiceFactory", function () {
       provider,
       resolverType,
       resolver,
-      token,
       amounts,
-      terminationTime,
-      EMPTY_BYTES32,
-      requireVerification,
+      implementationData,
+      escrowType,
     );
     const invoice0 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactory.invoiceCount()).to.equal(1);
@@ -212,11 +326,9 @@ describe("SmartInvoiceFactory", function () {
       provider,
       resolverType,
       resolver,
-      token,
       amounts,
-      terminationTime,
-      EMPTY_BYTES32,
-      requireVerification,
+      implementationData,
+      escrowType,
     );
     const invoice1 = await awaitInvoiceAddress(await receipt.wait());
     expect(await invoiceFactory.invoiceCount()).to.equal(2);

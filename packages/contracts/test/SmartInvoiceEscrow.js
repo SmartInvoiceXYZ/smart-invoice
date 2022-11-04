@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 const { deployMockContract, provider: waffleProvider } = waffle;
-const { currentTimestamp, getLockedInvoiceV2 } = require("./utils");
+const { currentTimestamp, getLockedInvoice } = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -24,8 +24,8 @@ let _implementationAddress = "0x7Ee9AE2a2eAF3F0df8D323d555479be562ac4905";
 let _details = EMPTY_BYTES32;
 let _requireVerification = true;
 
-describe("SmartInvoiceEscrowV2", function () {
-  let SmartInvoiceEscrowV2;
+describe("SmartInvoiceEscrow", function () {
+  let SmartInvoiceEscrow;
   let invoice;
   let mockToken;
   let otherMockToken;
@@ -53,10 +53,8 @@ describe("SmartInvoiceEscrowV2", function () {
     );
     mockArbitrator = await MockArbitratorFactory.deploy(10);
 
-    SmartInvoiceEscrowV2 = await ethers.getContractFactory(
-      "SmartInvoiceEscrowV2",
-    );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    SmartInvoiceEscrow = await ethers.getContractFactory("SmartInvoiceEscrow");
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
 
     implementationData = ethers.utils.AbiCoder.prototype.encode(
@@ -81,11 +79,11 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
   });
 
-  it("Should deploy a SmartInvoiceEscrowV2", async function () {
+  it("Should deploy a SmartInvoiceEscrow", async function () {
     expect(await invoice.client()).to.equal(client.address);
     expect(await invoice["provider()"]()).to.equal(provider.address);
     expect(await invoice.resolverType()).to.equal(individualResolverType);
@@ -115,7 +113,7 @@ describe("SmartInvoiceEscrowV2", function () {
 
   it("Should revert init if initLocked", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.initLock();
     const receipt = invoice.init(
@@ -125,7 +123,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
@@ -133,7 +131,7 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert init if invalid client", async function () {
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       ADDRESS_ZERO,
@@ -142,13 +140,13 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid client");
   });
 
   it("Should revert init if invalid provider", async function () {
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -157,7 +155,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid provider");
   });
@@ -167,7 +165,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["uint8", "address", "uint256"],
       [resolverType, ADDRESS_ZERO, resolutionRate],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -176,13 +174,13 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid resolver");
   });
 
   it("Should revert init if invalid token", async function () {
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     let implementationDataInvalid = ethers.utils.AbiCoder.prototype.encode(
       ["address", "uint256", "bytes32", "bool"],
       [ADDRESS_ZERO, terminationTime, _details, _requireVerification],
@@ -195,13 +193,13 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationDataInvalid,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid token");
   });
 
   it("Should revert init if invalid wrappedNativeToken", async function () {
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -210,7 +208,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       ADDRESS_ZERO,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid wrappedNativeToken");
   });
@@ -221,7 +219,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["address", "uint256", "bytes32", "bool"],
       [mockToken.address, currentTime, _details, _requireVerification],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -230,7 +228,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationDataInvalid,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("duration ended");
   });
@@ -246,7 +244,7 @@ describe("SmartInvoiceEscrowV2", function () {
         _requireVerification,
       ],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -255,7 +253,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationDataInvalid,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("duration too long");
   });
@@ -265,7 +263,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["uint8", "address", "uint256"],
       [resolverType, resolver.address, 0],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -274,7 +272,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid resolutionRate");
   });
@@ -284,7 +282,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["uint8", "address", "uint256"],
       [5, resolver.address, resolutionRate],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     const receipt = invoice.init(
       client.address,
@@ -293,7 +291,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationData,
-      implementationInfoData,
+      0,
     );
     await expect(receipt).to.revertedWith("invalid resolverType");
   });
@@ -369,15 +367,15 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert release if locked", async function () {
-    const lockedInvoice = await getLockedInvoiceV2(
-      SmartInvoiceEscrowV2,
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoiceEscrow,
       client,
       provider,
       resolutionData,
       amounts,
       mockWrappedNativeToken,
       implementationData,
-      implementationInfoData,
+      0,
       mockToken,
     );
     expect(lockedInvoice["release()"]()).to.be.revertedWith("locked");
@@ -443,15 +441,15 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert release milestone if locked", async function () {
-    const lockedInvoice = await getLockedInvoiceV2(
-      SmartInvoiceEscrowV2,
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoiceEscrow,
       client,
       provider,
       resolutionData,
       amounts,
       mockWrappedNativeToken,
       implementationData,
-      implementationInfoData,
+      0,
       mockToken,
     );
     await expect(lockedInvoice["release(uint256)"](0)).to.be.revertedWith(
@@ -488,7 +486,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["address", "uint256", "bytes32", "bool"],
       [mockToken.address, currentTime + 3600, _details, _requireVerification],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.init(
       client.address,
@@ -497,7 +495,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationDataInvalid,
-      implementationInfoData,
+      0,
     );
 
     const receipt = invoice["withdraw()"]();
@@ -505,15 +503,15 @@ describe("SmartInvoiceEscrowV2", function () {
   });
 
   it("Should revert withdraw if locked", async function () {
-    const lockedInvoice = await getLockedInvoiceV2(
-      SmartInvoiceEscrowV2,
+    const lockedInvoice = await getLockedInvoice(
+      SmartInvoiceEscrow,
       client,
       provider,
       resolutionData,
       amounts,
       mockWrappedNativeToken,
       implementationData,
-      implementationInfoData,
+      0,
       mockToken,
     );
     await expect(lockedInvoice["withdraw()"]()).to.be.revertedWith("locked");
@@ -525,7 +523,7 @@ describe("SmartInvoiceEscrowV2", function () {
       ["address", "uint256", "bytes32", "bool"],
       [mockToken.address, currentTime + 1000, _details, _requireVerification],
     );
-    invoice = await SmartInvoiceEscrowV2.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.init(
       client.address,
@@ -534,7 +532,7 @@ describe("SmartInvoiceEscrowV2", function () {
       amounts,
       mockWrappedNativeToken.address,
       implementationDataInvalid,
-      implementationInfoData,
+      0,
     );
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
@@ -750,7 +748,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert lock if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -767,7 +765,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should lock if balance is greater than 0", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -789,7 +787,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if balance is 0", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -808,7 +806,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if not resolver", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -827,7 +825,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert resolve if awards do not add up", async function () {
-  //     let lockedInvoice = await getLockedInvoiceV2(
+  //     let lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -871,7 +869,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve with correct rewards", async function () {
-  //     let lockedInvoice = await getLockedInvoiceV2(
+  //     let lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -902,7 +900,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 clientAward", async function () {
-  //     let lockedInvoice = await getLockedInvoiceV2(
+  //     let lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -932,7 +930,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 providerAward", async function () {
-  //     let lockedInvoice = await getLockedInvoiceV2(
+  //     let lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -962,7 +960,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should resolve and not transfer if 0 resolutionFee", async function () {
-  //     let lockedInvoice = await getLockedInvoiceV2(
+  //     let lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1022,7 +1020,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if not resolver", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1047,7 +1045,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if invalid disputeId", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1075,7 +1073,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if invalid ruling", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1099,7 +1097,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert rule if balance is 0", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1124,7 +1122,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:1 for ruling 0", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1162,7 +1160,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:0 for ruling 1", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1199,7 +1197,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 3:1 for ruling 2", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1237,7 +1235,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:1 for ruling 3", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1275,7 +1273,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 1:3 for ruling 4", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1313,7 +1311,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should rule 0:1 for ruling 5", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1358,7 +1356,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert receive if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,
@@ -1483,7 +1481,7 @@ describe("SmartInvoiceEscrowV2", function () {
   //   });
 
   //   it("Should revert addMilestones if locked", async function () {
-  //     const lockedInvoice = await getLockedInvoiceV2(
+  //     const lockedInvoice = await getLockedInvoice(
   //       SmartInvoice,
   //       client,
   //       provider,

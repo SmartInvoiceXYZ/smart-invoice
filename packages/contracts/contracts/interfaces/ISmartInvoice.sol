@@ -6,15 +6,12 @@ interface ISmartInvoice {
     function init(
         address _client,
         address _provider,
-        uint8 _resolverType,
-        address _resolver,
-        address _token,
+        bytes calldata _resolutionData,
         uint256[] calldata _amounts,
-        uint256 _terminationTime, // exact termination date in seconds since epoch
-        uint256 _resolutionRate,
-        bytes32 _details,
         address _wrappedNativeToken,
-        bool _requireVerification
+        bytes calldata _invoiceData,
+        uint256 _invoiceId
+        // bytes calldata _implementationInfoData
     ) external;
 
     function release() external;
