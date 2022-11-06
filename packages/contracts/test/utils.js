@@ -7,7 +7,7 @@ const EMPTY_BYTES32 =
 module.exports.awaitInvoiceAddress = async receipt => {
   if (!receipt || !receipt.logs) return "";
   const abi = new ethers.utils.Interface([
-    "event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)",
+    "event LogNewInvoice(uint256 indexed id, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)",
   ]);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
   const eventTopic = abi.getEventTopic(eventFragment);
@@ -26,6 +26,57 @@ module.exports.awaitInvoiceAddress = async receipt => {
 module.exports.currentTimestamp = async () => {
   const block = await waffle.provider.getBlock();
   return +block.timestamp;
+};
+
+module.exports.initEscrow = async (
+  invoiceAddress,
+  invoiceFactory,
+  client,
+  provider,
+  resolverType,
+  resolver,
+  token,
+  amounts,
+  terminationTime,
+  resolutionRate,
+  details,
+  wrappedNativeToken,
+  requireVerification,
+) => {
+  await invoiceFactory.addImplementation(
+    ethers.utils.formatBytes32String("escrow"),
+    invoiceAddress,
+  );
+  const data = ethers.utils.AbiCoder.prototype.encode(
+    [
+      "address",
+      "uint8",
+      "address",
+      "address",
+      "uint256",
+      "bytes32",
+      "address",
+      "bool",
+    ],
+    [
+      client,
+      resolverType,
+      resolver,
+      token,
+      terminationTime, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+    ],
+  );
+
+  const receipt = await factory.create(
+    provider,
+    amounts,
+    data,
+    ethers.utils.formatBytes32String("escrow"),
+  );
+  return receipt;
 };
 
 module.exports.getLockedInvoice = async (
