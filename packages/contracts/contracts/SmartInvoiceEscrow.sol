@@ -70,11 +70,11 @@ contract SmartInvoiceEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
-    event Register(
-        address indexed client,
-        address indexed provider,
-        uint256[] amounts
-    );
+    // event Register(
+    //     address indexed client,
+    //     address indexed provider,
+    //     uint256[] amounts
+    // );
 
     event MilestonesAdded(
         address indexed sender,
@@ -166,12 +166,13 @@ contract SmartInvoiceEscrow is
         }
         total = _total;
         terminationTime = _terminationTime;
+        resolutionRate = _resolutionRate;
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
 
         if (!_requireVerification) emit Verified(client, address(this));
 
-        emit Register(client, provider, amounts);
+        // emit Register(client, provider, amounts);
     }
 
     // Client verifies address before deposits

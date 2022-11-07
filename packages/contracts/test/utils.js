@@ -85,9 +85,6 @@ module.exports.getLockedEscrow = async (
   resolutionRate,
   details,
   mockWrappedNativeToken,
-  implementationData,
-  invoiceId,
-  mockToken,
   value = 0,
 ) => {
   const currentTime = await module.exports.currentTimestamp();
@@ -99,8 +96,13 @@ module.exports.getLockedEscrow = async (
     invoiceType,
     client.address,
     provider.address,
-    resolutionData,
+    resolverType,
+    resolver.address,
+    mockToken.address,
     amounts,
+    currentTime + 1000,
+    resolutionRate,
+    details,
     mockWrappedNativeToken.address,
     false,
   );

@@ -10,9 +10,10 @@ const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const resolverType = 0;
 const amounts = [10, 10];
-let total = amounts.reduce((t, v) => t + v, 0);
+const total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
+
 const requireVerification = true;
 const escrowType = ethers.utils.formatBytes32String("escrow");
 
@@ -21,8 +22,6 @@ describe("SmartInvoiceFactory", function () {
   let escrow;
   let SmartInvoiceFactory;
   let invoiceFactory;
-  let implementationData;
-  let implementationInfoData;
   let owner;
   let addr1;
   let addr2;
@@ -45,11 +44,6 @@ describe("SmartInvoiceFactory", function () {
 
     const mockToken = await deployMockContract(owner, IERC20.abi);
     token = mockToken.address;
-
-    implementationData = ethers.utils.AbiCoder.prototype.encode(
-      ["address", "uint256", "bytes32", "bool"],
-      [token, terminationTime, EMPTY_BYTES32, requireVerification],
-    );
 
     const MockWrappedTokenFactory = await ethers.getContractFactory("MockWETH");
     const mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
@@ -76,26 +70,6 @@ describe("SmartInvoiceFactory", function () {
     invoiceFactory = await SmartInvoiceFactory.deploy(wrappedNativeToken);
 
     await invoiceFactory.deployed();
-
-    await invoiceFactory.addImplementation(
-      instantType,
-      smartInvoicePayNow.address,
-    );
-
-    await invoiceFactory.addImplementation(
-      escrowType,
-      smartInvoiceEscrow.address,
-    );
-
-    implementationInfoData = ethers.utils.AbiCoder.prototype.encode(
-      ["bytes32", "uint8", "address", "uint256"],
-      [
-        escrowType,
-        0,
-        smartInvoiceEscrow.address,
-        await invoiceFactory.invoiceCount(),
-      ],
-    );
   });
 
   it("Should deploy with 0 invoiceCount", async function () {
