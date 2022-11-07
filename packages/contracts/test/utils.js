@@ -7,7 +7,7 @@ const EMPTY_BYTES32 =
 module.exports.awaitInvoiceAddress = async receipt => {
   if (!receipt || !receipt.logs) return "";
   const abi = new ethers.utils.Interface([
-    "event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts, bytes32 implementationType,uint256 implementationVersion, address implementationAddress)",
+    "event LogNewInvoice(uint256 indexed id, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)",
   ]);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
   const eventTopic = abi.getEventTopic(eventFragment);
@@ -28,70 +28,91 @@ module.exports.currentTimestamp = async () => {
   return +block.timestamp;
 };
 
-// module.exports.getLockedInvoice = async (
-//   SmartInvoice,
-//   client,
-//   provider,
-//   resolverType,
-//   resolver,
-//   mockToken,
-//   amounts,
-//   resolutionRate,
-//   details,
-//   mockWrappedNativeToken,
-//   value = 0,
-// ) => {
-//   const currentTime = await module.exports.currentTimestamp();
-//   const newInvoice = await SmartInvoice.deploy();
-//   await newInvoice.deployed();
-//   await newInvoice.init(
-//     client.address,
-//     provider.address,
-//     resolverType,
-//     resolver.address,
-//     mockToken.address,
-//     amounts,
-//     currentTime + 1000,
-//     resolutionRate,
-//     details,
-//     mockWrappedNativeToken.address,
-//     false,
-//   );
-//   expect(await newInvoice["locked()"]()).to.equal(false);
-//   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
-//   const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
-//   await expect(receipt)
-//     .to.emit(newInvoice, "Lock")
-//     .withArgs(client.address, EMPTY_BYTES32);
-//   return newInvoice;
-// };
-
-module.exports.getLockedInvoice = async (
-  SmartInvoiceEscrowV2,
+module.exports.createEscrow = async (
+  factory,
+  invoice,
+  type,
   client,
   provider,
-  resolutionData,
+  resolverType,
+  resolver,
+  token,
   amounts,
+  terminationTime,
+  resolutionRate,
+  details,
+  wrappedNativeToken,
+  requireVerification,
+) => {
+  await factory.addImplementation(type, invoice.address);
+  const data = ethers.utils.AbiCoder.prototype.encode(
+    [
+      "address",
+      "uint8",
+      "address",
+      "address",
+      "uint256",
+      "bytes32",
+      "address",
+      "bool",
+    ],
+    [
+      client,
+      resolverType,
+      resolver,
+      token,
+      terminationTime, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+    ],
+  );
+
+  const receipt = await factory.create(provider, amounts, data, type);
+  return receipt;
+};
+
+module.exports.getLockedEscrow = async (
+  SmartInvoiceEscrow,
+  factory,
+  invoiceType,
+  client,
+  provider,
+  resolverType,
+  resolver,
+  mockToken,
+  amounts,
+  resolutionRate,
+  details,
   mockWrappedNativeToken,
   implementationData,
   invoiceId,
   mockToken,
   value = 0,
 ) => {
-  const newInvoice = await SmartInvoiceEscrowV2.deploy();
+  const currentTime = await module.exports.currentTimestamp();
+  let newInvoice = await SmartInvoiceEscrow.deploy();
   await newInvoice.deployed();
-  await newInvoice.init(
+  const initReceipt = await module.exports.createEscrow(
+    factory,
+    newInvoice,
+    invoiceType,
     client.address,
     provider.address,
     resolutionData,
     amounts,
     mockWrappedNativeToken.address,
-    implementationData,
-    invoiceId,
+    false,
   );
+  const newInvoiceAddress = await module.exports.awaitInvoiceAddress(
+    await initReceipt.wait(),
+  );
+  newInvoice = await SmartInvoiceEscrow.attach(newInvoiceAddress);
   expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
-  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
+  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, {
+    value: value,
+  });
   await expect(receipt)
     .to.emit(newInvoice, "Lock")
     .withArgs(client.address, EMPTY_BYTES32);

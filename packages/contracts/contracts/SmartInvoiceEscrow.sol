@@ -2,13 +2,15 @@
 // solhint-disable not-rely-on-time, max-states-count
 
 pragma solidity ^0.8.0;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./interfaces/ISmartInvoice.sol";
+import "./interfaces/ISmartInvoiceEscrow.sol";
+import "./interfaces/ISmartInvoiceFactory.sol";
 import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
@@ -17,7 +19,7 @@ import "hardhat/console.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceEscrow is
-    ISmartInvoice,
+    ISmartInvoiceEscrow,
     IArbitrable,
     Initializable,
     Context,
@@ -103,69 +105,73 @@ contract SmartInvoiceEscrow is
     function initLock() external initializer {}
 
     function init(
-        address _client,
-        address _provider,
-        bytes calldata _resolutionData,
+        address _recipient,
         uint256[] calldata _amounts,
-        address _wrappedNativeToken,
-        bytes calldata _implementationData,
-        uint256 _invoiceId
+        bytes calldata _data
     ) external override initializer {
+        (
+            address _client,
+            uint8 _resolverType,
+            address _resolver,
+            address _token,
+            uint256 _terminationTime, // exact termination date in seconds since epoch
+            bytes32 _details,
+            address _wrappedNativeToken,
+            bool _requireVerification
+        ) = abi.decode(
+                _data,
+                (
+                    address,
+                    uint8,
+                    address,
+                    address,
+                    uint256,
+                    bytes32,
+                    address,
+                    bool
+                )
+            );
+
+        uint256 _resolutionRate = ISmartInvoiceFactory(msg.sender)
+            .resolutionRateOf(_resolver);
+        if (_resolutionRate == 0) {
+            _resolutionRate = 20;
+        }
+
         require(_client != address(0), "invalid client");
-        require(_provider != address(0), "invalid provider");
+        require(_recipient != address(0), "invalid provider");
+        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
+        require(_resolver != address(0), "invalid resolver");
+        require(_token != address(0), "invalid token");
+        require(_terminationTime > block.timestamp, "duration ended");
+        require(
+            _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
+            "duration too long"
+        );
+        require(_resolutionRate > 0, "invalid resolutionRate");
         require(
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
 
-        escrowDecode(_implementationData, _client);
-        resolutionDecode(_resolutionData);
-
         client = _client;
-        provider = _provider;
-        amounts = _amounts;
-
-        uint256 tempTotal = 0;
-        for (uint256 i = 0; i < amounts.length; i++) {
-            tempTotal = tempTotal + amounts[i];
-        }
-        total = tempTotal;
-
-        wrappedNativeToken = _wrappedNativeToken;
-
-        invoiceId = _invoiceId;
-
-        emit Register(_client, _provider, amounts);
-    }
-
-    function escrowDecode(bytes calldata data, address _client) internal {
-        (
-            address _token,
-            uint256 _terminationTime,
-            bytes32 _details,
-            bool _requireVerification
-        ) = abi.decode(data, (address, uint256, bytes32, bool));
-        require(
-            _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
-            "duration too long"
-        );
-        require(_token != address(0), "invalid token");
-        require(_terminationTime > block.timestamp, "duration ended");
-        token = _token;
-        terminationTime = _terminationTime;
-        details = _details;
-        if (!_requireVerification) emit Verified(_client, address(this));
-    }
-
-    function resolutionDecode(bytes calldata data) internal {
-        (uint8 _resolverType, address _resolver, uint256 _resolutionRate) = abi
-            .decode(data, (uint8, address, uint256));
-        require(_resolver != address(0), "invalid resolver");
-        require(_resolutionRate > 0, "invalid resolutionRate");
-        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
+        provider = _recipient;
         resolverType = ADR(_resolverType);
         resolver = _resolver;
-        resolutionRate = _resolutionRate;
+        token = _token;
+        amounts = _amounts;
+        uint256 _total = 0;
+        for (uint256 i = 0; i < amounts.length; i++) {
+            _total += amounts[i];
+        }
+        total = _total;
+        terminationTime = _terminationTime;
+        details = _details;
+        wrappedNativeToken = _wrappedNativeToken;
+
+        if (!_requireVerification) emit Verified(client, address(this));
+
+        emit Register(client, provider, amounts);
     }
 
     // Client verifies address before deposits
@@ -392,7 +398,7 @@ contract SmartInvoiceEscrow is
         uint256 balance = IERC20(token).balanceOf(address(this));
         require(balance > 0, "balance is 0");
 
-        uint8[2] memory ruling = RULINGS[_ruling];
+        uint8[2] memory ruling = _getRuling(_ruling);
         uint8 clientShare = ruling[0];
         uint8 providerShare = ruling[1];
         uint8 denom = clientShare + providerShare;
@@ -411,6 +417,22 @@ contract SmartInvoiceEscrow is
 
         emit Rule(resolver, clientAward, providerAward, _ruling);
         emit Ruling(resolver, _disputeId, _ruling);
+    }
+
+    function _getRuling(uint256 _ruling)
+        internal
+        pure
+        returns (uint8[2] memory ruling)
+    {
+        uint8[2][6] memory rulings = [
+            [1, 1], // 0 = refused to arbitrate
+            [1, 0], // 1 = 100% to client
+            [3, 1], // 2 = 75% to client
+            [1, 1], // 3 = 50% to client
+            [1, 3], // 4 = 25% to client
+            [0, 1] // 5 = 0% to client
+        ];
+        ruling = rulings[_ruling];
     }
 
     // receive eth transfers
