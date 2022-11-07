@@ -28,9 +28,10 @@ module.exports.currentTimestamp = async () => {
   return +block.timestamp;
 };
 
-module.exports.initEscrow = async (
-  invoiceAddress,
-  invoiceFactory,
+module.exports.createEscrow = async (
+  factory,
+  invoice,
+  type,
   client,
   provider,
   resolverType,
@@ -43,10 +44,7 @@ module.exports.initEscrow = async (
   wrappedNativeToken,
   requireVerification,
 ) => {
-  await invoiceFactory.addImplementation(
-    ethers.utils.formatBytes32String("escrow"),
-    invoiceAddress,
-  );
+  await factory.addImplementation(type, invoice.address);
   const data = ethers.utils.AbiCoder.prototype.encode(
     [
       "address",
@@ -70,17 +68,14 @@ module.exports.initEscrow = async (
     ],
   );
 
-  const receipt = await factory.create(
-    provider,
-    amounts,
-    data,
-    ethers.utils.formatBytes32String("escrow"),
-  );
+  const receipt = await factory.create(provider, amounts, data, type);
   return receipt;
 };
 
-module.exports.getLockedInvoice = async (
-  SmartInvoice,
+module.exports.getLockedEscrow = async (
+  SmartInvoiceEscrow,
+  factory,
+  invoiceType,
   client,
   provider,
   resolverType,
@@ -93,9 +88,12 @@ module.exports.getLockedInvoice = async (
   value = 0,
 ) => {
   const currentTime = await module.exports.currentTimestamp();
-  const newInvoice = await SmartInvoice.deploy();
+  let newInvoice = await SmartInvoiceEscrow.deploy();
   await newInvoice.deployed();
-  await newInvoice.init(
+  const initReceipt = await module.exports.createEscrow(
+    factory,
+    newInvoice,
+    invoiceType,
     client.address,
     provider.address,
     resolverType,
@@ -108,9 +106,15 @@ module.exports.getLockedInvoice = async (
     mockWrappedNativeToken.address,
     false,
   );
+  const newInvoiceAddress = await module.exports.awaitInvoiceAddress(
+    await initReceipt.wait(),
+  );
+  newInvoice = await SmartInvoiceEscrow.attach(newInvoiceAddress);
   expect(await newInvoice["locked()"]()).to.equal(false);
   await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
-  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, { value });
+  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, {
+    value: value,
+  });
   await expect(receipt)
     .to.emit(newInvoice, "Lock")
     .withArgs(client.address, EMPTY_BYTES32);
