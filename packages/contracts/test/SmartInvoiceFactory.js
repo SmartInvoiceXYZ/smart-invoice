@@ -115,6 +115,27 @@ describe("SmartInvoiceFactory", function () {
       .withArgs(escrowType, version, implementation);
   });
 
+  it("Should revert if implementation already exists", async function () {
+    const implementation = escrow.address;
+    await invoiceFactory
+      .connect(owner)
+      .addImplementation(escrowType, implementation);
+    const receipt = invoiceFactory
+      .connect(owner)
+      .addImplementation(escrowType, implementation);
+    await expect(receipt).to.be.revertedWith("implementation already added");
+  });
+
+  it("Implementation getter should return correct implementation", async function () {
+    const implementation = escrow.address;
+    await invoiceFactory
+      .connect(owner)
+      .addImplementation(escrowType, implementation);
+    expect(await invoiceFactory.getImplementation(escrowType, 0)).to.be.equal(
+      implementation,
+    );
+  });
+
   it("Should revert addImplementation if non-admin", async function () {
     const blackhat = addr1;
     const implementation = escrow.address;
