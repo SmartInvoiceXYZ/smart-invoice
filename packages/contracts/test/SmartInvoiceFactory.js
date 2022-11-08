@@ -50,16 +50,6 @@ describe("SmartInvoiceFactory", function () {
 
     wrappedNativeToken = mockWrappedNativeToken.address;
     const details = EMPTY_BYTES32;
-    escrowData = [
-      client,
-      resolverType,
-      resolver,
-      token,
-      terminationTime, // exact termination date in seconds since epoch
-      details,
-      wrappedNativeToken,
-      requireVerification,
-    ];
 
     SmartInvoiceEscrow = await ethers.getContractFactory("SmartInvoiceEscrow");
     escrow = await SmartInvoiceEscrow.deploy();
@@ -70,6 +60,18 @@ describe("SmartInvoiceFactory", function () {
     invoiceFactory = await SmartInvoiceFactory.deploy(wrappedNativeToken);
 
     await invoiceFactory.deployed();
+
+    escrowData = [
+      client,
+      resolverType,
+      resolver,
+      token,
+      terminationTime, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+      invoiceFactory.address,
+    ];
   });
 
   it("Should deploy with 0 invoiceCount", async function () {
@@ -115,17 +117,6 @@ describe("SmartInvoiceFactory", function () {
       .withArgs(escrowType, version, implementation);
   });
 
-  it("Should revert if implementation already exists", async function () {
-    const implementation = escrow.address;
-    await invoiceFactory
-      .connect(owner)
-      .addImplementation(escrowType, implementation);
-    const receipt = invoiceFactory
-      .connect(owner)
-      .addImplementation(escrowType, implementation);
-    await expect(receipt).to.be.revertedWith("implementation already added");
-  });
-
   it("Implementation getter should return correct implementation", async function () {
     const implementation = escrow.address;
     await invoiceFactory
@@ -160,6 +151,7 @@ describe("SmartInvoiceFactory", function () {
         "bytes32",
         "address",
         "bool",
+        "address",
       ],
       escrowData,
     );
@@ -218,6 +210,7 @@ describe("SmartInvoiceFactory", function () {
         "bytes32",
         "address",
         "bool",
+        "address",
       ],
       escrowData,
     );
@@ -272,6 +265,7 @@ describe("SmartInvoiceFactory", function () {
         "bytes32",
         "address",
         "bool",
+        "address",
       ],
       escrowData,
     );
@@ -310,6 +304,7 @@ describe("SmartInvoiceFactory", function () {
         "bytes32",
         "address",
         "bool",
+        "address",
       ],
       escrowData,
     );

@@ -54,6 +54,7 @@ module.exports.createEscrow = async (
       "bytes32",
       "address",
       "bool",
+      "address",
     ],
     [
       client,
@@ -64,6 +65,7 @@ module.exports.createEscrow = async (
       details,
       wrappedNativeToken,
       requireVerification,
+      factory.address,
     ],
   );
 

@@ -71,6 +71,7 @@ describe("SmartInvoiceEscrow", function () {
         "bytes32",
         "address",
         "bool",
+        "address",
       ],
       [
         client.address,
@@ -81,6 +82,7 @@ describe("SmartInvoiceEscrow", function () {
         EMPTY_BYTES32,
         mockWrappedNativeToken.address,
         requireVerification,
+        factory.address,
       ],
     );
 
@@ -187,7 +189,7 @@ describe("SmartInvoiceEscrow", function () {
       resolver.address,
       mockToken.address,
       amounts,
-      currentTime - 3600,
+      currentTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,

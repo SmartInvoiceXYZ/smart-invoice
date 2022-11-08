@@ -103,6 +103,20 @@ contract SmartInvoiceEscrow is
         uint256[] calldata _amounts,
         bytes calldata _data
     ) external override initializer {
+        require(_recipient != address(0), "invalid provider");
+
+        handleData(_data);
+
+        provider = _recipient;
+        amounts = _amounts;
+        uint256 _total = 0;
+        for (uint256 i = 0; i < amounts.length; i++) {
+            _total += amounts[i];
+        }
+        total = _total;
+    }
+
+    function handleData(bytes calldata _data) internal {
         (
             address _client,
             uint8 _resolverType,
@@ -111,7 +125,8 @@ contract SmartInvoiceEscrow is
             uint256 _terminationTime, // exact termination date in seconds since epoch
             bytes32 _details,
             address _wrappedNativeToken,
-            bool _requireVerification
+            bool _requireVerification,
+            address _factory
         ) = abi.decode(
                 _data,
                 (
@@ -122,18 +137,18 @@ contract SmartInvoiceEscrow is
                     uint256,
                     bytes32,
                     address,
-                    bool
+                    bool,
+                    address
                 )
             );
 
-        uint256 _resolutionRate = ISmartInvoiceFactory(msg.sender)
+        uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
             .resolutionRateOf(_resolver);
         if (_resolutionRate == 0) {
             _resolutionRate = 20;
         }
 
         require(_client != address(0), "invalid client");
-        require(_recipient != address(0), "invalid provider");
         require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
         require(_resolver != address(0), "invalid resolver");
         require(_token != address(0), "invalid token");
@@ -149,16 +164,9 @@ contract SmartInvoiceEscrow is
         );
 
         client = _client;
-        provider = _recipient;
         resolverType = ADR(_resolverType);
         resolver = _resolver;
         token = _token;
-        amounts = _amounts;
-        uint256 _total = 0;
-        for (uint256 i = 0; i < amounts.length; i++) {
-            _total += amounts[i];
-        }
-        total = _total;
         terminationTime = _terminationTime;
         resolutionRate = _resolutionRate;
         details = _details;

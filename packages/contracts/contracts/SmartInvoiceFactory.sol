@@ -23,7 +23,6 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
     /** @dev mapping(implementationType => mapping(implementationVersion => address)) */
     mapping(bytes32 => uint256) public currentVersions;
-    mapping(address => bool) internal implementationExists;
 
     address public immutable wrappedNativeToken;
 
@@ -92,7 +91,6 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         uint256 _version = currentVersions[_type];
         address _implementation = implementations[_type][_version];
         require(_implementation != address(0), "Implementation does not exist");
-        require(_data.length != 0, "No invoice data");
 
         address invoiceAddress = Clones.clone(_implementation);
 
@@ -177,10 +175,6 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         onlyRole(ADMIN)
     {
         require(_implementation != address(0), "implemenation is zero address");
-        require(
-            implementationExists[_implementation] != true,
-            "implementation already added"
-        );
 
         uint256 _version = currentVersions[_type];
         address currentImplementation = implementations[_type][_version];
@@ -192,7 +186,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
             implementations[_type][_version] = _implementation;
             currentVersions[_type] = _version;
         }
-        implementationExists[_implementation] = true;
+
         emit AddImplementation(_type, _version, _implementation);
     }
 }
