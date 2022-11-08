@@ -46,9 +46,6 @@ contract SmartInvoiceEscrow is
 
     address public wrappedNativeToken;
 
-    // implementation info
-    uint256 public invoiceId;
-
     enum ADR {
         INDIVIDUAL,
         ARBITRATOR
@@ -105,7 +102,7 @@ contract SmartInvoiceEscrow is
     ) external override initializer {
         require(_recipient != address(0), "invalid provider");
 
-        handleData(_data);
+        _handleData(_data);
 
         provider = _recipient;
         amounts = _amounts;
@@ -116,7 +113,7 @@ contract SmartInvoiceEscrow is
         total = _total;
     }
 
-    function handleData(bytes calldata _data) internal {
+    function _handleData(bytes calldata _data) internal {
         (
             address _client,
             uint8 _resolverType,
