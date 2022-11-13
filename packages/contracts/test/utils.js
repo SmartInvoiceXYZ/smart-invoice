@@ -65,3 +65,32 @@ module.exports.getLockedInvoice = async (
     .withArgs(client.address, EMPTY_BYTES32);
   return newInvoice;
 };
+
+module.exports.createInstantInvoice = async (
+  // factory,
+  invoice,
+  // type,
+  client,
+  provider,
+  token,
+  amounts,
+  deadline,
+  details,
+  wrappedNativeToken,
+) => {
+  // await factory.addImplementation(type, invoice.address);
+  const data = ethers.utils.AbiCoder.prototype.encode(
+    ["address", "address", "uint256", "bytes32", "address"],
+    [
+      client,
+      token,
+      deadline, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+    ],
+  );
+
+  // const receipt = await factory.create(provider, amounts, data, type);
+  const receipt = invoice.init(provider, amounts, data);
+  return receipt;
+};
