@@ -60,9 +60,6 @@ export const CreateContextProvider = ({ children }) => {
   const [tx, setTx] = useState();
   const [loading, setLoading] = useState(false);
 
-  // const hre = require('hardhat');
-  // const factory = await hre.ethers.getContractAt("SmartInvoiceFactory", "0x546adED0B0179d550e87cf909939a1207Fd26fB7");
-
   // step handling
   const [currentStep, setStep] = useState(1);
   const [nextStepEnabled, setNextStepEnabled] = useState(false);
