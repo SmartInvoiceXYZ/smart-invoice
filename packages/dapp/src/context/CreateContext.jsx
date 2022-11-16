@@ -11,6 +11,7 @@ import React, {
 import {
   getResolvers,
   getWrappedNativeToken,
+  getInvoiceFactoryAddress,
   isValidLink,
   logError,
 } from '../utils/helpers';
@@ -52,7 +53,7 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
-  const [requireVerificaiton, setRequireVerification] = useState(true);
+  const [requireVerification, setRequireVerification] = useState(true);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);
@@ -142,22 +143,50 @@ export const CreateContextProvider = ({ children }) => {
     endDate,
   ]);
 
-  const createInvoice = useCallback(async () => {
+  const createEscrow = useCallback(async () => {
     if (step1Valid && step2Valid && step3Valid && detailsHash) {
       setLoading(true);
       setTx();
 
+      const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
+      const escrowType = utils.formatBytes32String('escrow');
+      const factoryAddress = getInvoiceFactoryAddress(chainId);
+      const data = utils.AbiCoder.prototype.encode(
+        [
+          'address',
+          'uint8',
+          'address',
+          'address',
+          'uint256',
+          'bytes32',
+          'address',
+          'bool',
+          'address',
+        ],
+        [
+          clientAddress,
+          resolverType,
+          arbitrationProvider,
+          paymentToken,
+          Math.floor(safetyValveDate / 1000),
+          detailsHash,
+          paymentToken,
+          requireVerification,
+          factoryAddress,
+        ],
+      );
+
+      const fee = await provider.getFeeData();
+
+      console.log({ fee });
+
       const transaction = await register(
-        chainId,
+        factoryAddress,
         provider,
-        clientAddress,
         paymentAddress,
-        arbitrationProvider,
-        paymentToken,
         payments,
-        Math.floor(safetyValveDate / 1000),
-        detailsHash,
-        requireVerificaiton,
+        data,
+        escrowType,
       ).catch(registerError => {
         logError({ registerError });
         setLoading(false);
@@ -177,7 +206,7 @@ export const CreateContextProvider = ({ children }) => {
     payments,
     safetyValveDate,
     detailsHash,
-    requireVerificaiton,
+    requireVerification,
     step1Valid,
     step2Valid,
     step3Valid,
@@ -201,11 +230,11 @@ export const CreateContextProvider = ({ children }) => {
 
   const nextStepHandler = useCallback(() => {
     if (nextStepEnabled) {
-      if (currentStep === 4) return createInvoice();
+      if (currentStep === 4) return createEscrow();
       setStep(prevState => prevState + 1);
     }
     return () => undefined;
-  }, [nextStepEnabled, currentStep, createInvoice]);
+  }, [nextStepEnabled, currentStep, createEscrow]);
 
   return (
     <CreateContext.Provider
@@ -246,7 +275,7 @@ export const CreateContextProvider = ({ children }) => {
         setPayments,
         // creating invoice
         loading,
-        createInvoice,
+        createEscrow,
         // stepHandling
         currentStep,
         nextStepEnabled,
