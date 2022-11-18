@@ -2,7 +2,12 @@ const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 const { deployMockContract, provider: waffleProvider } = waffle;
-const { currentTimestamp, getLockedInvoice } = require("./utils");
+const {
+  currentTimestamp,
+  getLockedEscrow,
+  awaitInvoiceAddress,
+  createEscrow,
+} = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -16,9 +21,11 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 const resolutionRate = 20;
 const requireVerification = true;
+const invoiceType = ethers.utils.formatBytes32String("escrow");
 
-describe("SmartInvoice", function () {
-  let SmartInvoice;
+describe("SmartInvoiceEscrow", function () {
+  let SmartInvoiceEscrow;
+  let factory;
   let invoice;
   let mockToken;
   let otherMockToken;
@@ -43,22 +50,50 @@ describe("SmartInvoice", function () {
     );
     mockArbitrator = await MockArbitratorFactory.deploy(10);
 
-    SmartInvoice = await ethers.getContractFactory("SmartInvoice");
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
-      client.address,
-      provider.address,
-      individualResolverType,
-      resolver.address,
-      mockToken.address,
-      amounts,
-      terminationTime,
-      resolutionRate,
-      EMPTY_BYTES32,
-      mockWrappedNativeToken.address,
-      requireVerification,
+    const SmartInvoiceFactory = await ethers.getContractFactory(
+      "SmartInvoiceFactory",
     );
+    factory = await SmartInvoiceFactory.deploy(mockWrappedNativeToken.address);
+    SmartInvoiceEscrow = await ethers.getContractFactory("SmartInvoiceEscrow");
+    invoice = await SmartInvoiceEscrow.deploy();
+    await invoice.deployed();
+    await factory.addImplementation(
+      ethers.utils.formatBytes32String("escrow"),
+      invoice.address,
+    );
+    const data = ethers.utils.AbiCoder.prototype.encode(
+      [
+        "address",
+        "uint8",
+        "address",
+        "address",
+        "uint256",
+        "bytes32",
+        "address",
+        "bool",
+        "address",
+      ],
+      [
+        client.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        terminationTime, // exact termination date in seconds since epoch
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+        requireVerification,
+        factory.address,
+      ],
+    );
+
+    const receipt = await factory.create(
+      provider.address,
+      amounts,
+      data,
+      ethers.utils.formatBytes32String("escrow"),
+    );
+    invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
   });
 
   it("Should deploy a SmartInvoice", async function () {
@@ -91,22 +126,32 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if initLocked", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
+    invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.initLock();
-    const receipt = invoice.init(
-      client.address,
-      provider.address,
-      individualResolverType,
-      resolver.address,
-      mockToken.address,
-      amounts,
-      currentTime - 3600,
-      resolutionRate,
-      EMPTY_BYTES32,
-      mockWrappedNativeToken.address,
-      requireVerification,
+    const data = ethers.utils.AbiCoder.prototype.encode(
+      [
+        "address",
+        "uint8",
+        "address",
+        "address",
+        "uint256",
+        "bytes32",
+        "address",
+        "bool",
+      ],
+      [
+        client.address,
+        individualResolverType,
+        resolver.address,
+        mockToken.address,
+        currentTime - 3600, // exact termination date in seconds since epoch
+        EMPTY_BYTES32,
+        mockWrappedNativeToken.address,
+        requireVerification,
+      ],
     );
+    const receipt = invoice.init(provider.address, amounts, data);
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
     );
@@ -114,9 +159,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if invalid client", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       ADDRESS_ZERO,
       provider.address,
       individualResolverType,
@@ -124,7 +170,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime - 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -134,17 +179,17 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if invalid provider", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       ADDRESS_ZERO,
       individualResolverType,
       resolver.address,
       mockToken.address,
       amounts,
-      currentTime - 3600,
-      resolutionRate,
+      currentTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -154,9 +199,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if invalid resolver", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -164,7 +210,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime - 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -174,9 +219,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if invalid token", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -184,7 +230,6 @@ describe("SmartInvoice", function () {
       ADDRESS_ZERO,
       amounts,
       currentTime - 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -193,9 +238,10 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert init if invalid wrappedNativeToken", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -203,7 +249,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       terminationTime,
-      resolutionRate,
       EMPTY_BYTES32,
       ADDRESS_ZERO,
       requireVerification,
@@ -213,9 +258,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if terminationTime has ended", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -223,7 +269,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime - 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -233,9 +278,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert init if terminationTime too long", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -243,7 +289,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 5 * 365 * 24 * 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -251,11 +296,13 @@ describe("SmartInvoice", function () {
     await expect(receipt).to.revertedWith("duration too long");
   });
 
-  it("Should revert init if resolutionRate is 0", async function () {
+  // By default, resolutionRate is set to 20 if none is found from SmartInvoiceFactory
+  it("Default resolution rate should equal 20", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -263,19 +310,21 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 365 * 24 * 3600,
-      0,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
-    await expect(receipt).to.revertedWith("invalid resolutionRate");
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
+    expect(await invoice.resolutionRate()).to.equal(20);
   });
 
   it("Should revert init if resolverType > 1", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    const receipt = invoice.init(
+    const receipt = createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       2,
@@ -283,7 +332,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 365 * 24 * 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -362,15 +410,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert release if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -437,15 +486,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert release milestone if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -479,9 +529,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert withdraw before terminationTime", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -489,26 +540,28 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 3600,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
 
     const receipt = invoice["withdraw()"]();
     await expect(receipt).to.revertedWith("!terminated");
   });
 
   it("Should revert withdraw if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -517,9 +570,10 @@ describe("SmartInvoice", function () {
 
   it("Should withdraw after terminationTime", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -527,11 +581,13 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
+
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -545,9 +601,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert withdraw after terminationTime if balance is 0", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -555,11 +612,13 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
+
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -571,9 +630,10 @@ describe("SmartInvoice", function () {
 
   it("Should call withdraw from withdrawTokens", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -581,11 +641,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -599,9 +660,10 @@ describe("SmartInvoice", function () {
 
   it("Should withdrawTokens for otherToken", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -609,11 +671,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -628,9 +691,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert withdrawTokens for otherToken if not terminated", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -638,11 +702,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
 
     const receipt = invoice["withdrawTokens(address)"](otherMockToken.address);
     await expect(receipt).to.be.revertedWith("!terminated");
@@ -650,9 +715,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert withdrawTokens for otherToken if balance is 0", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -660,11 +726,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -676,9 +743,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert lock if terminated", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -686,11 +754,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
@@ -702,9 +771,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert lock if balance is 0", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -712,11 +782,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(0);
     const receipt = invoice["lock(bytes32)"](EMPTY_BYTES32);
     await expect(receipt).to.be.revertedWith("balance is 0");
@@ -724,9 +795,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert lock if not client or provider", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -734,11 +806,12 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     const invoiceWithResolver = await invoice.connect(resolver);
     const receipt = invoiceWithResolver["lock(bytes32)"](EMPTY_BYTES32);
@@ -746,15 +819,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert lock if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -763,15 +837,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should lock if balance is greater than 0", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -785,15 +862,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert resolve if balance is 0", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -804,15 +884,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert resolve if not resolver", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -823,15 +906,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert resolve if awards do not add up", async function () {
-    let lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    let lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -843,9 +929,10 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert resolver if not individual", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       arbitratorResolverType,
@@ -853,11 +940,12 @@ describe("SmartInvoice", function () {
       mockWrappedNativeToken.address,
       amounts,
       terminationTime,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     expect(await invoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
     );
@@ -867,15 +955,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should resolve with correct rewards", async function () {
-    let lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    let lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -898,15 +989,18 @@ describe("SmartInvoice", function () {
   });
 
   it("Should resolve and not transfer if 0 clientAward", async function () {
-    let lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const newInvoice = await SmartInvoiceEscrow.deploy();
+    await newInvoice.deployed();
+    let lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -928,15 +1022,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should resolve and not transfer if 0 providerAward", async function () {
-    let lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    let lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -958,15 +1053,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should resolve and not transfer if 0 resolutionFee", async function () {
-    let lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    let lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      2000,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -997,9 +1093,10 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert rule if not locked", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       arbitratorResolverType,
@@ -1007,26 +1104,28 @@ describe("SmartInvoice", function () {
       mockWrappedNativeToken.address,
       amounts,
       terminationTime,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     await expect(invoice["rule(uint256,uint256)"](0, 0)).to.be.revertedWith(
       "!locked",
     );
   });
 
   it("Should revert rule if not resolver", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
@@ -1043,15 +1142,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert rule if invalid disputeId", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
@@ -1071,15 +1171,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert rule if invalid ruling", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
@@ -1095,15 +1196,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert rule if balance is 0", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
@@ -1120,20 +1222,21 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 1:1 for ruling 0", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
+
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
     );
@@ -1158,19 +1261,19 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 1:0 for ruling 1", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1195,19 +1298,19 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 3:1 for ruling 2", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1233,19 +1336,19 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 1:1 for ruling 3", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1271,19 +1374,19 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 1:3 for ruling 4", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1309,19 +1412,19 @@ describe("SmartInvoice", function () {
   });
 
   it("Should rule 0:1 for ruling 5", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       arbitratorResolverType,
       mockArbitrator,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1354,15 +1457,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert receive if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -1374,9 +1478,10 @@ describe("SmartInvoice", function () {
   });
 
   it("Should accept receive and convert to wrapped token", async function () {
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -1384,11 +1489,12 @@ describe("SmartInvoice", function () {
       mockWrappedNativeToken.address,
       amounts,
       terminationTime,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
     );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
     const receipt = await client.sendTransaction({
       to: invoice.address,
       value: 10,
@@ -1414,23 +1520,24 @@ describe("SmartInvoice", function () {
   it("Should emit Verified if client verification requirement waived on invoice creation", async function () {
     const noVerification = false;
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await expect(
-      await invoice.init(
-        client.address,
-        provider.address,
-        individualResolverType,
-        resolver.address,
-        mockToken.address,
-        amounts,
-        currentTime + 1000,
-        resolutionRate,
-        EMPTY_BYTES32,
-        mockWrappedNativeToken.address,
-        noVerification,
-      ),
-    )
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
+      client.address,
+      provider.address,
+      individualResolverType,
+      resolver.address,
+      mockToken.address,
+      amounts,
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      noVerification,
+    );
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
+    await expect(tx)
       .to.emit(invoice, "Verified")
       .withArgs(client.address, invoice.address);
   });
@@ -1479,15 +1586,16 @@ describe("SmartInvoice", function () {
   });
 
   it("Should revert addMilestones if locked", async function () {
-    const lockedInvoice = await getLockedInvoice(
-      SmartInvoice,
+    const lockedInvoice = await getLockedEscrow(
+      SmartInvoiceEscrow,
+      factory,
+      invoiceType,
       client,
       provider,
       individualResolverType,
       resolver,
       mockToken,
       amounts,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
     );
@@ -1498,9 +1606,10 @@ describe("SmartInvoice", function () {
 
   it("Should revert addMilestones if terminationTime passed", async function () {
     const currentTime = await currentTimestamp();
-    invoice = await SmartInvoice.deploy();
-    await invoice.deployed();
-    await invoice.init(
+    const tx = await createEscrow(
+      factory,
+      invoice,
+      invoiceType,
       client.address,
       provider.address,
       individualResolverType,
@@ -1508,7 +1617,6 @@ describe("SmartInvoice", function () {
       mockToken.address,
       amounts,
       currentTime + 1000,
-      resolutionRate,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       requireVerification,
@@ -1516,6 +1624,8 @@ describe("SmartInvoice", function () {
     await waffleProvider.send("evm_setNextBlockTimestamp", [
       currentTime + 1000,
     ]);
+    invoiceAddress = await awaitInvoiceAddress(await tx.wait());
+    invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
 
     await expect(
       invoice["addMilestones(uint256[])"]([13, 14]),

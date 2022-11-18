@@ -3,38 +3,23 @@ import { Contract, utils } from 'ethers';
 import { getInvoiceFactoryAddress, logError } from './helpers';
 
 export const register = async (
-  chainId,
+  factoryAddress,
   ethersProvider,
-  client,
   provider,
-  resolver,
-  token,
-  amounts, // array of milestone payments in wei
-  terminationTime, // time in seconds since epoch
-  detailsHash, // 32 bits hex
-  requireVerification,
+  amounts,
+  data,
+  type,
 ) => {
   const abi = new utils.Interface([
-    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details, bool requireVerification) public',
+    'function create(address _recipient, uint256[] calldata _amounts, bytes _data, bytes32 _type) public',
   ]);
   const contract = new Contract(
-    getInvoiceFactoryAddress(chainId),
+    factoryAddress,
     abi,
     ethersProvider.getSigner(),
   );
 
-  const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
-  return contract.create(
-    client,
-    provider,
-    resolverType,
-    resolver,
-    token,
-    amounts,
-    terminationTime,
-    detailsHash,
-    requireVerification,
-  );
+  return contract.create(provider, amounts, data, type);
 };
 
 export const getResolutionRateFromFactory = async (
