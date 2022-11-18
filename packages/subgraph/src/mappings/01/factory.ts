@@ -1,11 +1,11 @@
 import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
-import { Invoice, Agreement } from '../types/schema';
+import { Invoice, Agreement } from '../../types/schema';
 
-import { LogNewInvoice as LogNewInvoiceEvent } from '../types/SmartInvoiceFactoryVersion00/SmartInvoiceFactory';
-import { ERC20, SmartInvoice } from '../types/templates';
+import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactoryVersion01/SmartInvoiceFactory01';
+import { ERC20, SmartInvoiceEscrow01 } from '../../types/templates';
 import { updateInvoiceInfo, getToken } from './helpers';
 
-export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
+export function handleLogNewEscrow(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());
 
   log.info('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
@@ -13,6 +13,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   invoice.address = event.params.invoice;
   invoice.factoryAddress = event.address;
   invoice.amounts = event.params.amounts;
+  invoice.invoiceType = event.params.invoiceType.toString();
+  invoice.version = event.params.version;
   invoice.numMilestones = event.params.amounts.length;
   invoice.createdAt = event.block.timestamp;
   invoice.deposits = new Array<string>();
@@ -28,7 +30,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
 
   invoice = updateInvoiceInfo(event.params.invoice, invoice);
 
-  SmartInvoice.create(event.params.invoice);
+  SmartInvoiceEscrow01.create(event.params.invoice);
 
   let tokenAddress = changetype<Address>(
     Address.fromHexString(invoice.token.toHexString()),
