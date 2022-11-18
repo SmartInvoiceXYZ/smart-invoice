@@ -56,7 +56,6 @@ pids
 .DS_Store
 
 # subgraph
-subgraph.yaml
 packages/subgraph/src/types
 
 # yarn version

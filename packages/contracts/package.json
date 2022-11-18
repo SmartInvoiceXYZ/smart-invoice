@@ -14,7 +14,7 @@
     "lint": "solhint contracts/{*,**/*}.sol",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.js",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.js",
-    "escrow-add-goerli": "hardhat run scripts/addEscrow.js --network goerli",
+    "escrow-add-goerli": "hardhat run scripts/add-escrow.js --network goerli",
     "escrow-add-local": "hardhat run scripts/add-escrow.js --network localhost",
     "deploy-local": "hardhat run scripts/deploy-factory.js --network localhost",
     "deploy-kovan": "hardhat run scripts/deploy-factory.js --network kovan",

@@ -8,9 +8,9 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice, Token, Agreement } from '../types/schema';
-import { SmartInvoice } from '../types/templates/SmartInvoice/SmartInvoice';
-import { ERC20 } from '../types/templates/ERC20/ERC20';
+import { Invoice, Token, Agreement } from '../../types/schema';
+import { SmartInvoice00 } from '../../types/templates/SmartInvoice00/SmartInvoice00';
+import { ERC20 } from '../../types/templates/ERC20/ERC20';
 
 // Helper adding 0x12 and 0x20 to make the proper ipfs hash
 // the returned bytes32 is so [0,31]
@@ -75,7 +75,7 @@ class InvoiceObject {
 }
 
 function fetchInvoiceInfo(address: Address): InvoiceObject {
-  let invoiceInstance = SmartInvoice.bind(address);
+  let invoiceInstance = SmartInvoice00.bind(address);
   let invoiceObject = new InvoiceObject();
 
   let client = invoiceInstance.try_client();

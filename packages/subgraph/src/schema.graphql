@@ -34,6 +34,9 @@ type Invoice @entity {
   tokenMetadata: Token!
   verified: [Verified!]!
   milestonesAdded: [MilestonesAdded!]!
+  # left nullable to allow for previous factory
+  invoiceType: String
+  version: BigInt
 }
 
 enum ADR @entity {

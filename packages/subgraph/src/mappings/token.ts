@@ -2,7 +2,7 @@ import { log } from '@graphprotocol/graph-ts';
 import { Invoice, Deposit } from '../types/schema';
 import { Transfer as TransferEvent } from '../types/templates/ERC20/ERC20';
 
-import { updateInvoiceInfo } from './helpers';
+import { updateInvoiceInfo } from './01/helpers';
 
 export function handleTransfer(event: TransferEvent): void {
   let invoice = Invoice.load(event.params.to.toHexString());

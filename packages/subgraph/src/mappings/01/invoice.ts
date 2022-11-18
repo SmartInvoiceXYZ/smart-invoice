@@ -8,7 +8,7 @@ import {
   Deposit,
   Verified,
   MilestonesAdded,
-} from '../types/schema';
+} from '../../types/schema';
 
 import {
   Release as ReleaseEvent,
@@ -19,7 +19,7 @@ import {
   Deposit as DepositEvent,
   Verified as VerifiedEvent,
   MilestonesAdded as MilestonesAddedEvent,
-} from '../types/templates/SmartInvoice/SmartInvoice';
+} from '../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
 import { addQm, updateInvoiceInfo } from './helpers';
 
 export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
