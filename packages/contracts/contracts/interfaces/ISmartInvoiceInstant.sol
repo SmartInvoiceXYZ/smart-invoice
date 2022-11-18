@@ -2,13 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-interface ISmartInvoiceInstant {
-    function init(
-        address _recipient,
-        uint256[] calldata _amounts,
-        bytes calldata _data
-    ) external;
+import "./ISmartInvoice.sol";
 
+interface ISmartInvoiceInstant is ISmartInvoice {
     function withdraw() external;
 
     function withdrawTokens(address _token) external;
