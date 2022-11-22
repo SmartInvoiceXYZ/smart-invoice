@@ -16,6 +16,7 @@
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.js",
     "escrow-add-goerli": "hardhat run scripts/add-escrow.js --network goerli",
     "escrow-add-local": "hardhat run scripts/add-escrow.js --network localhost",
+    "instant-add-local": "hardhat run scripts/add-instant.js --network localhost",
     "deploy-local": "hardhat run scripts/deploy-factory.js --network localhost",
     "deploy-kovan": "hardhat run scripts/deploy-factory.js --network kovan",
     "deploy-mainnet": "hardhat run scripts/deploy-factory.js --network mainnet",
