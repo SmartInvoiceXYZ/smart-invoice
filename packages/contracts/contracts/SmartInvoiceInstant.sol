@@ -61,19 +61,20 @@ contract SmartInvoiceInstant is
     /**
      * @dev calculates the total amount due. Extensible to include late fees, etc.
      */
-    function getTotalDue() public view returns (uint256) {
+    function getTotalDue() public view override returns (uint256) {
         return total;
     }
 
     function depositTokens(address _token, uint256 _amount)
         external
+        override
         nonReentrant
     {
         require(_token == token, "!token");
-        _deposit(_token, _amount);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        _deposit(_amount);
     }
 
-    // withdraw locker remainder to client if termination time passes & no lock
     function withdraw() external override nonReentrant {
         return _withdraw();
     }
@@ -90,7 +91,7 @@ contract SmartInvoiceInstant is
         }
     }
 
-    function _deposit(address _token, uint256 _amount) internal {
+    function _deposit(uint256 _amount) internal {
         uint256 totalDue = getTotalDue();
         totalFulfilled += _amount;
         if (totalFulfilled >= totalDue) {
@@ -98,9 +99,6 @@ contract SmartInvoiceInstant is
             emit Fulfilled(_msgSender());
             if (totalFulfilled > totalDue)
                 emit Tip(_msgSender(), totalFulfilled - totalDue);
-        }
-        if (_token == wrappedNativeToken) {
-            IWRAPPED(wrappedNativeToken).deposit{value: _amount}();
         }
         emit Deposit(_msgSender(), _amount);
     }
@@ -143,11 +141,10 @@ contract SmartInvoiceInstant is
         wrappedNativeToken = _wrappedNativeToken;
     }
 
-    // receive eth transfers
+    // receive native token transfers
     receive() external payable {
         require(token == wrappedNativeToken, "!wrappedNativeToken");
-        _deposit(token, msg.value);
-        // IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
-        // emit Deposit(_msgSender(), msg.value);
+        IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
+        _deposit(msg.value);
     }
 }

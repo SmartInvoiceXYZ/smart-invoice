@@ -24,6 +24,7 @@ const requireVerification = true;
 describe("SmartInvoiceInstant", function () {
   let SmartInvoiceInstant;
   let invoice;
+  let token;
   let mockToken;
   let otherMockToken;
   let mockWrappedNativeToken;
@@ -39,13 +40,11 @@ describe("SmartInvoiceInstant", function () {
     mockToken = await deployMockContract(client, IERC20.abi);
     otherMockToken = await deployMockContract(client, IERC20.abi);
 
+    const TokenFactory = await ethers.getContractFactory("MockToken");
+    token = await TokenFactory.deploy();
+
     const MockWrappedTokenFactory = await ethers.getContractFactory("MockWETH");
     mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
-
-    // const MockArbitratorFactory = await ethers.getContractFactory(
-    //   "MockArbitrator",
-    // );
-    // mockArbitrator = await MockArbitratorFactory.deploy(10);
 
     SmartInvoiceInstant = await ethers.getContractFactory(
       "SmartInvoiceInstant",
@@ -480,21 +479,44 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
 
-    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
-    await mockToken.mock.allowance
-      .withArgs(client.address, invoice.address)
-      .returns(10);
+    await token.mint(client.address, 10);
+    await token.connect(client).approve(invoice.address, 10);
     const receipt = await invoice
       .connect(client)
-      .depositTokens(mockToken.address, 10);
+      .depositTokens(token.address, 10);
     expect(receipt).to.emit(invoice, "Deposit").withArgs(client.address, 10);
+  });
+
+  it("Should depositTokens and transfer tokens to invoice address", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await token.mint(client.address, 10);
+    await token.connect(client).approve(invoice.address, 10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(receipt)
+      .to.emit(token, "Transfer")
+      .withArgs(client.address, invoice.address, 10);
+    expect(await token.balanceOf(invoice.address)).to.equal(10);
   });
 
   it("Should depositTokens and emit Fulfilled if paid in full", async function () {
@@ -504,20 +526,18 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
 
-    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
-    await mockToken.mock.allowance
-      .withArgs(client.address, invoice.address)
-      .returns(10);
+    await token.mint(client.address, 10);
+    await token.connect(client).approve(invoice.address, 10);
     const receipt = await invoice
       .connect(client)
-      .depositTokens(mockToken.address, 10);
+      .depositTokens(token.address, 10);
     expect(receipt).to.emit(invoice, "Fulfilled").withArgs(client.address);
   });
 
@@ -528,25 +548,23 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
 
-    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
-    await mockToken.mock.allowance
-      .withArgs(client.address, invoice.address)
-      .returns(10);
+    await token.mint(client.address, 10);
+    await token.connect(client).approve(invoice.address, 10);
     const receipt = await invoice
       .connect(client)
-      .depositTokens(mockToken.address, 5);
+      .depositTokens(token.address, 5);
     expect(receipt).to.emit(invoice, "Deposit").withArgs(client.address, 5);
     expect(receipt).to.not.emit(invoice, "Fulfilled");
     const receipt2 = await invoice
       .connect(client)
-      .depositTokens(mockToken.address, 5);
+      .depositTokens(token.address, 5);
     expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
   });
 
@@ -557,20 +575,18 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
 
-    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
-    await mockToken.mock.allowance
-      .withArgs(client.address, invoice.address)
-      .returns(15);
+    await token.mint(client.address, 15);
+    await token.connect(client).approve(invoice.address, 15);
     const receipt = await invoice
       .connect(client)
-      .depositTokens(mockToken.address, 15);
+      .depositTokens(token.address, 15);
     expect(receipt).to.emit(invoice, "Fulfilled").withArgs(client.address);
     expect(receipt).to.emit(invoice, "Tip").withArgs(client.address, 5);
   });
@@ -582,18 +598,16 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
     );
 
-    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
-    await mockToken.mock.allowance
-      .withArgs(client.address, invoice.address)
-      .returns(10);
-    await invoice.connect(client).depositTokens(mockToken.address, 10);
+    await token.mint(client.address, 10);
+    await token.connect(client).approve(invoice.address, 10);
+    await invoice.connect(client).depositTokens(token.address, 10);
     expect(await invoice.fulfilled()).to.equal(true);
   });
 
@@ -604,7 +618,7 @@ describe("SmartInvoiceInstant", function () {
       invoice,
       client.address,
       provider.address,
-      mockToken.address,
+      token.address,
       [10],
       terminationTime,
       EMPTY_BYTES32,
