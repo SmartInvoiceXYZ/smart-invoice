@@ -33,6 +33,8 @@ contract SmartInvoiceInstant is
     uint256 public constant MAX_DEADLINE = 63113904; // 2-year limit on locker
 
     event Deposit(address indexed sender, uint256 amount);
+    event Fulfilled(address indexed sender);
+    event Tip(address indexed sender, uint256 amount);
     event Withdraw(address indexed recipient, uint256 amount);
 
     // solhint-disable-next-line no-empty-blocks
@@ -63,6 +65,14 @@ contract SmartInvoiceInstant is
         return total;
     }
 
+    function depositTokens(address _token, uint256 _amount)
+        external
+        nonReentrant
+    {
+        require(_token == token, "!token");
+        _deposit(_token, _amount);
+    }
+
     // withdraw locker remainder to client if termination time passes & no lock
     function withdraw() external override nonReentrant {
         return _withdraw();
@@ -80,18 +90,25 @@ contract SmartInvoiceInstant is
         }
     }
 
+    function _deposit(address _token, uint256 _amount) internal {
+        uint256 totalDue = getTotalDue();
+        totalFulfilled += _amount;
+        if (totalFulfilled >= totalDue) {
+            fulfilled = true;
+            emit Fulfilled(_msgSender());
+            if (totalFulfilled > totalDue)
+                emit Tip(_msgSender(), totalFulfilled - totalDue);
+        }
+        if (_token == wrappedNativeToken) {
+            IWRAPPED(wrappedNativeToken).deposit{value: _amount}();
+        }
+        emit Deposit(_msgSender(), _amount);
+    }
+
     function _withdraw() internal {
         uint256 balance = IERC20(token).balanceOf(address(this));
         require(balance > 0, "balance is 0");
-
-        uint256 totalDue = getTotalDue();
-        totalFulfilled = totalFulfilled + balance;
-        if (totalFulfilled >= totalDue) {
-            fulfilled = true;
-        }
-
         IERC20(token).safeTransfer(provider, balance);
-
         emit Withdraw(provider, balance);
     }
 
@@ -129,7 +146,8 @@ contract SmartInvoiceInstant is
     // receive eth transfers
     receive() external payable {
         require(token == wrappedNativeToken, "!wrappedNativeToken");
-        IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
-        emit Deposit(_msgSender(), msg.value);
+        _deposit(token, msg.value);
+        // IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
+        // emit Deposit(_msgSender(), msg.value);
     }
 }

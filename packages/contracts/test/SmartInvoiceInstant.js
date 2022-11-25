@@ -227,12 +227,6 @@ describe("SmartInvoiceInstant", function () {
       .withArgs(provider.address, 20);
   });
 
-  xit("Should withdraw and add balance to totalFulfilled");
-
-  xit(
-    "Should withdraw and set fulfilled true if totalFulfilled reaches total due",
-  );
-
   it("Should revert withdraw after terminationTime if balance is 0", async function () {
     invoice = await SmartInvoiceInstant.deploy();
     await invoice.deployed();
@@ -318,12 +312,27 @@ describe("SmartInvoiceInstant", function () {
     await expect(receipt).to.be.revertedWith("balance is 0");
   });
 
-  it("Should revert receive if not wrappedNativeToken", async function () {
-    const receipt = client.sendTransaction({
+  it("Should receive and emit Deposit", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      amounts,
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    const receipt = await client.sendTransaction({
       to: invoice.address,
       value: 10,
     });
-    await expect(receipt).to.be.revertedWith("!wrappedNativeToken");
+    await expect(receipt)
+      .to.emit(invoice, "Deposit")
+      .withArgs(client.address, 10);
   });
 
   it("Should accept receive and convert to wrapped token", async function () {
@@ -350,5 +359,265 @@ describe("SmartInvoiceInstant", function () {
     expect(await mockWrappedNativeToken.balanceOf(invoice.address)).to.equal(
       10,
     );
+  });
+
+  it("Should receive and emit Fulfilled if paid in full", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    const receipt = await client.sendTransaction({
+      to: invoice.address,
+      value: 10,
+    });
+    await expect(receipt)
+      .to.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+  });
+
+  it("Should receive and emit Fulfilled if paid in series", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    const receipt = await client.sendTransaction({
+      to: invoice.address,
+      value: 5,
+    });
+    await expect(receipt)
+      .to.not.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+
+    const receipt2 = await client.sendTransaction({
+      to: invoice.address,
+      value: 5,
+    });
+    await expect(receipt2)
+      .to.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+  });
+
+  it("Should receive and set fulfilled true if totalFulfilled at least equals totalDue", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    const receipt = await client.sendTransaction({
+      to: invoice.address,
+      value: 10,
+    });
+    await expect(receipt)
+      .to.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+
+    expect(await invoice.fulfilled()).to.equal(true);
+  });
+
+  it("Should receive and emit Tip if totalFulfilled greater than totalDue", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    const receipt = await client.sendTransaction({
+      to: invoice.address,
+      value: 15,
+    });
+    await expect(receipt)
+      .to.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+
+    await expect(receipt).to.emit(invoice, "Tip").withArgs(client.address, 5);
+  });
+
+  it("Should revert receive if not wrappedNativeToken", async function () {
+    const receipt = client.sendTransaction({
+      to: invoice.address,
+      value: 10,
+    });
+    await expect(receipt).to.be.revertedWith("!wrappedNativeToken");
+  });
+
+  it("Should depositTokens and emit Deposit", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await mockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(mockToken.address, 10);
+    expect(receipt).to.emit(invoice, "Deposit").withArgs(client.address, 10);
+  });
+
+  it("Should depositTokens and emit Fulfilled if paid in full", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await mockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(mockToken.address, 10);
+    expect(receipt).to.emit(invoice, "Fulfilled").withArgs(client.address);
+  });
+
+  it("Should depositTokens and emit Fulfilled if paid in series", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await mockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(mockToken.address, 5);
+    expect(receipt).to.emit(invoice, "Deposit").withArgs(client.address, 5);
+    expect(receipt).to.not.emit(invoice, "Fulfilled");
+    const receipt2 = await invoice
+      .connect(client)
+      .depositTokens(mockToken.address, 5);
+    expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
+  });
+
+  it("Should depositTokens and emit Tip if totalFulfilled greater than totalDue", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await mockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(15);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(mockToken.address, 15);
+    expect(receipt).to.emit(invoice, "Fulfilled").withArgs(client.address);
+    expect(receipt).to.emit(invoice, "Tip").withArgs(client.address, 5);
+  });
+
+  it("Should depositTokens and set fulfilled true if totalFulfilled at least equals totalDue", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await mockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await mockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(10);
+    await invoice.connect(client).depositTokens(mockToken.address, 10);
+    expect(await invoice.fulfilled()).to.equal(true);
+  });
+
+  it("Should revert depositTokens if _token is not token", async function () {
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockToken.address,
+      [10],
+      terminationTime,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+    );
+
+    await otherMockToken.mock.balanceOf.withArgs(client.address).returns(10);
+    await otherMockToken.mock.allowance
+      .withArgs(client.address, invoice.address)
+      .returns(10);
+    const receipt = invoice
+      .connect(client)
+      .depositTokens(otherMockToken.address, 10);
+    await expect(receipt).to.be.revertedWith("!token");
   });
 });
