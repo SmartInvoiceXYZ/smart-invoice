@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/ISmartInvoiceInstant.sol";
 import "./interfaces/IWRAPPED.sol";
 
+import "hardhat/console.sol";
+
 contract SmartInvoiceInstant is
     ISmartInvoiceInstant,
     Initializable,
@@ -31,6 +33,9 @@ contract SmartInvoiceInstant is
     uint256 public totalFulfilled = 0;
     bool public fulfilled;
     uint256 public constant MAX_DEADLINE = 63113904; // 2-year limit on locker
+
+    uint256 public lateFee = 0;
+    uint256 public lateFeeTimeInterval = 0;
 
     event Deposit(address indexed sender, uint256 amount);
     event Fulfilled(address indexed sender);
@@ -62,7 +67,18 @@ contract SmartInvoiceInstant is
      * @dev calculates the total amount due. Extensible to include late fees, etc.
      */
     function getTotalDue() public view override returns (uint256) {
-        return total;
+        uint256 totalLateFee = 0;
+        if (block.timestamp > deadline) {
+            uint256 timeAfterDeadline = block.timestamp - deadline;
+            if (timeAfterDeadline >= lateFeeTimeInterval) {
+                totalLateFee =
+                    lateFee *
+                    (timeAfterDeadline / lateFeeTimeInterval);
+            } else {
+                totalLateFee = 0;
+            }
+        }
+        return total + totalLateFee;
     }
 
     function depositTokens(address _token, uint256 _amount)
@@ -116,8 +132,13 @@ contract SmartInvoiceInstant is
             address _token,
             uint256 _deadline, // exact termination date in seconds since epoch
             bytes32 _details,
-            address _wrappedNativeToken
-        ) = abi.decode(_data, (address, address, uint256, bytes32, address));
+            address _wrappedNativeToken,
+            uint256 _lateFee,
+            uint256 _lateFeeTimeInterval
+        ) = abi.decode(
+                _data,
+                (address, address, uint256, bytes32, address, uint256, uint256)
+            );
 
         require(_client != address(0), "invalid client");
         require(_token != address(0), "invalid token");
@@ -139,6 +160,8 @@ contract SmartInvoiceInstant is
         deadline = _deadline;
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
+        lateFee = _lateFee;
+        lateFeeTimeInterval = _lateFeeTimeInterval;
     }
 
     // receive native token transfers

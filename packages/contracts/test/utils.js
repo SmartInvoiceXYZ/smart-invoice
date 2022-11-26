@@ -131,16 +131,30 @@ module.exports.createInstantInvoice = async (
   deadline,
   details,
   wrappedNativeToken,
+  lateFeeAmount,
+  lateFeeTimeInterval,
 ) => {
   // await factory.addImplementation(type, invoice.address);
+  lateFeeAmount = lateFeeAmount ?? 0;
+  lateFeeTimeInterval = lateFeeTimeInterval ?? 0;
   const data = ethers.utils.AbiCoder.prototype.encode(
-    ["address", "address", "uint256", "bytes32", "address"],
+    [
+      "address",
+      "address",
+      "uint256",
+      "bytes32",
+      "address",
+      "uint256",
+      "uint256",
+    ],
     [
       client,
       token,
       deadline, // exact termination date in seconds since epoch
       details,
       wrappedNativeToken,
+      lateFeeAmount,
+      lateFeeTimeInterval,
     ],
   );
 

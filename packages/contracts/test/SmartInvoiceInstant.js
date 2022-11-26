@@ -2,24 +2,18 @@ const { expect } = require("chai");
 const { ethers, waffle } = require("hardhat");
 
 const { deployMockContract, provider: waffleProvider } = waffle;
-const {
-  currentTimestamp,
-  getLockedInvoice,
-  createInstantInvoice,
-} = require("./utils");
+const { currentTimestamp, createInstantInvoice } = require("./utils");
 const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
-const individualResolverType = 0;
-const arbitratorResolverType = 1;
 const amounts = [10, 10];
 const total = amounts.reduce((t, v) => t + v, 0);
 const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
-const resolutionRate = 20;
-const requireVerification = true;
+const lateFeeAmount = 10;
+const lateFeeTimeInterval = 3600;
 
 describe("SmartInvoiceInstant", function () {
   let SmartInvoiceInstant;
@@ -52,13 +46,23 @@ describe("SmartInvoiceInstant", function () {
     invoice = await SmartInvoiceInstant.deploy();
     await invoice.deployed();
     const data = ethers.utils.AbiCoder.prototype.encode(
-      ["address", "address", "uint256", "bytes32", "address"],
+      [
+        "address",
+        "address",
+        "uint256",
+        "bytes32",
+        "address",
+        "uint256",
+        "uint256",
+      ],
       [
         client.address,
         mockToken.address,
         terminationTime, // exact termination date in seconds since epoch
         EMPTY_BYTES32,
         mockWrappedNativeToken.address,
+        lateFeeAmount,
+        lateFeeTimeInterval,
       ],
     );
     await invoice.init(provider.address, amounts, data);
@@ -77,6 +81,8 @@ describe("SmartInvoiceInstant", function () {
     expect(await invoice.wrappedNativeToken()).to.equal(
       mockWrappedNativeToken.address,
     );
+    expect(await invoice.lateFee()).to.equal(lateFeeAmount);
+    expect(await invoice.lateFeeTimeInterval()).to.equal(lateFeeTimeInterval);
   });
 
   it("Should revert initLock if already init", async function () {
@@ -100,6 +106,8 @@ describe("SmartInvoiceInstant", function () {
       currentTime - 3600,
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
     );
     await expect(receipt).to.revertedWith(
       "Initializable: contract is already initialized",
@@ -633,5 +641,105 @@ describe("SmartInvoiceInstant", function () {
       .connect(client)
       .depositTokens(otherMockToken.address, 10);
     await expect(receipt).to.be.revertedWith("!token");
+  });
+
+  it("Should getTotalDue and return sum greater than total if late fee", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    await token.mint(client.address, 20);
+    const totalDue = await invoice.getTotalDue();
+    expect(totalDue).to.equal(10 + 10);
+  });
+
+  it("Should depositTokens and fulfill with applied late fees", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const totalDue = await invoice.getTotalDue();
+    expect(totalDue).to.equal(10 + 10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(receipt).to.not.emit(invoice, "Fulfilled");
+    expect(await invoice.fulfilled()).to.equal(false);
+    const receipt2 = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
+    expect(await invoice.fulfilled()).to.equal(true);
+  });
+
+  it("Should receive and fulfill with applied late fees", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      mockWrappedNativeToken.address,
+      [15],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    const receipt = await client.sendTransaction({
+      to: invoice.address,
+      value: 10,
+    });
+    expect(receipt).to.not.emit(invoice, "Fulfilled");
+    expect(await invoice.fulfilled()).to.equal(false);
+
+    const receipt2 = await client.sendTransaction({
+      to: invoice.address,
+      value: 20,
+    });
+    expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
+    expect(receipt2).to.emit(invoice, "Tip").withArgs(client.address, 5);
+    expect(await invoice.fulfilled()).to.equal(true);
   });
 });
