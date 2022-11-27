@@ -1,4 +1,11 @@
-import { Stack, Spinner, Heading, Box, Button } from '@chakra-ui/react';
+import {
+  Stack,
+  Spinner,
+  Heading,
+  Box,
+  Button,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 
 import React, { useContext, useEffect, useState } from 'react';
 import { withRouter } from 'react-router-dom';
@@ -13,6 +20,8 @@ const InvoicesInner = ({ history }) => {
     useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
+
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   useEffect(() => {
     if (account) {
@@ -38,21 +47,21 @@ const InvoicesInner = ({ history }) => {
         />
       ) : (
         <Stack align="center">
+          <Heading color="gray" size="lg" align="center" mb={4}>
+            No invoices found on {networkNames[chainId]}.
+          </Heading>
           <Button
+            color="white"
             backgroundColor="blue.1"
-            fontSize="30px"
-            padding="5%"
+            size={buttonSize}
+            minW="250px"
+            paddingY={6}
             _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-            color="white"
-            marginBottom="10%"
             onClick={() => history.push('/create')}
           >
             Create Invoice
           </Button>
-          <Heading color="gray" as="h1" align="center">
-            No {networkNames[chainId]} Invoices Found
-          </Heading>
         </Stack>
       )}
     </Box>
