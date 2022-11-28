@@ -2,5 +2,6 @@
   "network": "rinkeby",
   "factory": "0xD4F1fB1ff28d5F927607F06eb5801c9398f982FD",
   "txHash": "0x1fffbfffec2769a3db151999fa7e6084f6f1abf03c7f5e7b8a19f1941cf6c73f",
-  "blockNumber": "10846121"
+  "blockNumber": "10846121",
+  "implementations": {}
 }

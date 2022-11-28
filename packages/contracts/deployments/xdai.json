@@ -2,5 +2,6 @@
   "network": "xdai",
   "factory": "0x11bf4CDFB506FAC501b8583F2C1292B368e765eC",
   "txHash": "0x02d55d5e0e864a267c60473324074899e782b1baf7f3850b89f84a6440cf8405",
-  "blockNumber": "24082851"
+  "blockNumber": "24082851",
+  "implementations": {}
 }
