@@ -2,7 +2,7 @@ import { log } from '@graphprotocol/graph-ts';
 import { Invoice, Deposit } from '../types/schema';
 import { Transfer as TransferEvent } from '../types/templates/ERC20/ERC20';
 
-import { updateInvoiceInfo } from './01/helpers';
+import { updateInvoice } from './01/utils';
 
 export function handleTransfer(event: TransferEvent): void {
   let invoice = Invoice.load(event.params.to.toHexString());
@@ -17,7 +17,8 @@ export function handleTransfer(event: TransferEvent): void {
         invoice.id,
         invoice.token.toHexString(),
       ]);
-      invoice = updateInvoiceInfo(event.params.to, invoice);
+
+      invoice = updateInvoice(event.params.to, invoice);
 
       let deposit = new Deposit(event.logIndex.toHexString());
       deposit.txHash = event.transaction.hash;
