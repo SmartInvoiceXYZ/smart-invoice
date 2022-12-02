@@ -2,7 +2,11 @@ import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
 import { Invoice, Agreement } from '../../types/schema';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactoryVersion01/SmartInvoiceFactory01';
-import { ERC20 } from '../../types/templates';
+import {
+  ERC20,
+  SmartInvoiceEscrow01,
+  SmartInvoiceInstant01,
+} from '../../types/templates';
 import { getToken } from './helpers/token';
 import { updateInvoice } from './utils';
 
@@ -33,6 +37,12 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   log.info('invoice type check {}', [invoice.invoiceType!.toString()]);
 
   invoice = updateInvoice(event.params.invoice, invoice);
+
+  if (invoice.invoiceType == 'escrow') {
+    SmartInvoiceEscrow01.create(event.params.invoice);
+  } else {
+    SmartInvoiceInstant01.create(event.params.invoice);
+  }
 
   let tokenAddress = changetype<Address>(
     Address.fromHexString(invoice.token.toHexString()),

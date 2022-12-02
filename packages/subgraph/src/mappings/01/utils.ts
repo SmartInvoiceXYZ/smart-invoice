@@ -78,12 +78,15 @@ export function addQm(a: ByteArray): ByteArray {
 }
 
 export function updateInvoice(address: Address, invoice: Invoice): Invoice {
-  const type = invoice.invoiceType;
-  let updatedInvoice: Invoice;
-  if (type === 'escrow' || type === null) {
-    updatedInvoice = updateEscrowInfo(address, invoice);
-  } else {
-    updatedInvoice = updateInstantInfo(address, invoice);
+  if (invoice != null) {
+    let type = invoice.invoiceType;
+    if (type != null) {
+      if (type == 'escrow') {
+        invoice = updateEscrowInfo(address, invoice);
+      } else {
+        invoice = updateInstantInfo(address, invoice);
+      }
+    }
   }
-  return updatedInvoice;
+  return invoice;
 }
