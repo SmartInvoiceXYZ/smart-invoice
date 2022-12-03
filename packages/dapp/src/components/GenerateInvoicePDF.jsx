@@ -16,13 +16,18 @@ import { PDFViewer } from '@react-pdf/renderer';
 
 import InvoicePDF from './InvoicePDF';
 
-export const GenerateInvoicePDF = ({ invoice, symbol, buttonText }) => {
+export const GenerateInvoicePDF = ({
+  invoice,
+  symbol,
+  buttonText,
+  buttonTextColor,
+}) => {
   function InvoicePreviewModal() {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     return (
       <>
-        <Button onClick={onOpen} variant="link">
+        <Button onClick={onOpen} variant="link" color={buttonTextColor}>
           {buttonText}
         </Button>
 
