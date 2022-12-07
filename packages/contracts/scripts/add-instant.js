@@ -64,11 +64,16 @@ async function main() {
 
   await smartInvoiceInstant.initLock();
 
-  const implementationReceipt = await factory
+  const implementationTx = await factory
     .connect(deployer)
     .addImplementation(instantType, smartInvoiceInstant.address);
 
-  await implementationReceipt.wait();
+  let implementationReceipt = await implementationTx.wait();
+  console.log(
+    "Implementation added at blocknumber:",
+    implementationReceipt.blockNumber,
+  );
+  console.log("Txn hash:", implementationReceipt.transactionHash);
 
   const version = await factory.currentVersions(instantType);
   const implementationAdded = await factory.implementations(
@@ -89,7 +94,7 @@ async function main() {
       : "verify:verify";
 
     const verifyResult = await run(TASK_VERIFY, {
-      address: smartInvoice.address,
+      address: smartInvoiceInstant.address,
       constructorArguments: [],
     });
 
