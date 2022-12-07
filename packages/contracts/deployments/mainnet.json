@@ -2,5 +2,6 @@
   "network": "mainnet",
   "factory": "0xe73251284989C4496985F16C718369BBc30ccF63",
   "txHash": "0xca2061a300f9ab38fd389aaeffa032bf229d87adcca3416221d9b940539bf226",
-  "blockNumber": "15546992"
+  "blockNumber": "15546992",
+  "implementations": {}
 }
