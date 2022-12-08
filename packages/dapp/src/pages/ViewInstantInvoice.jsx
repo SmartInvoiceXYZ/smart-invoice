@@ -323,26 +323,6 @@ export const ViewInstantInvoice = ({
             </Wrap>
             <Wrap>
               <WrapItem>
-                <Text>{'Late Fee: '}</Text>
-              </WrapItem>
-              <WrapItem>
-                <Text fontWeight="bold">
-                  {lateFee && lateFeeTimeInterval
-                    ? `${lateFee} ${symbol} every ${lateFeeTimeInterval} after deadline`
-                    : 'None'}
-                </Text>
-                <Tooltip
-                  label={`The Safety Valve gets activated on ${new Date(
-                    terminationTime * 1000,
-                  ).toUTCString()}`}
-                  placement="auto-start"
-                >
-                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
-                </Tooltip>
-              </WrapItem>
-            </Wrap>
-            <Wrap>
-              <WrapItem>
                 <Text>{'Client Account: '}</Text>
               </WrapItem>
               <WrapItem fontWeight="bold">
@@ -390,316 +370,64 @@ export const ViewInstantInvoice = ({
               fontSize="lg"
               mb="1rem"
             >
-              <Text>
-                {smallScreen ? 'Total Amount' : 'Total Project Amount'}
-              </Text>
+              <Text>Amount</Text>
               <Text>{`${utils.formatUnits(total, decimals)} ${symbol}`}</Text>
             </Flex>
-            <VStack
-              pl={{ base: '0.5rem', md: '1rem' }}
-              align="stretch"
-              spacing="0.25rem"
+            <Flex
+              justify="space-between"
+              align="center"
+              fontWeight="bold"
+              fontSize="lg"
+              mb="1rem"
             >
-              {amounts.map((amt, index) => {
-                let tot = BigNumber.from(0);
-                let ind = -1;
-                let full = false;
-                if (deposits.length > 0) {
-                  for (let i = 0; i < deposits.length; i += 1) {
-                    tot = tot.add(deposits[i].amount);
-                    if (tot.gt(sum)) {
-                      ind = i;
-                      if (tot.sub(sum).gte(amt)) {
-                        full = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-                sum = sum.add(amt);
-
-                return (
-                  <Flex
-                    key={index.toString()}
-                    justify="space-between"
-                    align={{ base: 'stretch', sm: 'center' }}
-                    direction={{ base: 'column', sm: 'row' }}
-                  >
-                    <Text>Payment Milestone #{index + 1}</Text>
-                    <HStack
-                      spacing={{ base: '0.5rem', md: '1rem' }}
-                      align="center"
-                      justify="flex-end"
-                      ml={{ base: '0.5rem', md: '1rem' }}
-                    >
-                      {index < currentMilestone && releases.length > index && (
-                        <Link
-                          fontSize="xs"
-                          isExternal
-                          color="grey"
-                          fontStyle="italic"
-                          href={getTxLink(
-                            invoiceChainId,
-                            releases[index].txHash,
-                          )}
-                        >
-                          Released{' '}
-                          {new Date(
-                            releases[index].timestamp * 1000,
-                          ).toLocaleDateString()}
-                        </Link>
-                      )}
-                      {!(index < currentMilestone && releases.length > index) &&
-                        ind !== -1 && (
-                          <Link
-                            fontSize="xs"
-                            isExternal
-                            color="grey"
-                            fontStyle="italic"
-                            href={getTxLink(
-                              invoiceChainId,
-                              deposits[ind].txHash,
-                            )}
-                          >
-                            {full ? '' : 'Partially '}Deposited{' '}
-                            {new Date(
-                              deposits[ind].timestamp * 1000,
-                            ).toLocaleDateString()}
-                          </Link>
-                        )}
-                      <Text
-                        textAlign="right"
-                        fontWeight="500"
-                      >{`${utils.formatUnits(amt, decimals)} ${symbol}`}</Text>
-                    </HStack>
-                  </Flex>
-                );
-              })}
-            </VStack>
-            <Divider
-              w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
-              ml={{ base: '-1rem', md: '-2rem' }}
-              my="1rem"
-            />
-            <VStack
-              pl={{ base: '0.5rem', md: '1rem' }}
-              align="stretch"
-              spacing="0.25rem"
-            >
-              <Flex justify="space-between" align="center">
-                <Text>{smallScreen ? '' : 'Total '}Deposited</Text>
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
-                  deposited,
-                  decimals,
-                )} ${symbol}`}</Text>
-              </Flex>
-              <Flex justify="space-between" align="center">
-                <Text>{smallScreen ? '' : 'Total '}Released</Text>
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
-                  released,
-                  decimals,
-                )} ${symbol}`}</Text>
-              </Flex>
-              <Flex
-                justify="space-between"
-                align="center"
-                textDecor={
-                  dispute || resolution || isExpired
-                    ? 'line-through'
-                    : undefined
-                }
-              >
-                <Text>Remaining{smallScreen ? '' : ' Amount Due'}</Text>
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
-                  due,
-                  decimals,
-                )} ${symbol}`}</Text>
-              </Flex>
-            </VStack>
-            <Divider
-              w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
-              ml={{ base: '-1rem', md: '-2rem' }}
-              my="1rem"
-            />
-            {!dispute && !resolution && (
-              <Flex
-                justify="space-between"
-                align="center"
-                color="black"
-                fontWeight="bold"
-                fontSize="lg"
-              >
-                {isExpired || (due.eq(0) && !isReleasable) ? (
-                  <>
-                    <Text>Remaining Balance</Text>
-                    <Text textAlign="right">{`${utils.formatUnits(
-                      balance,
-                      decimals,
-                    )} ${symbol}`}</Text>{' '}
-                  </>
-                ) : (
-                  <>
-                    <Text>
-                      {isReleasable &&
-                        (smallScreen
-                          ? 'Next Release'
-                          : 'Next Amount to Release')}
-                      {!isReleasable &&
-                        (smallScreen ? 'Due Today' : 'Total Due Today')}
-                    </Text>
-                    <Text textAlign="right">{`${utils.formatUnits(
-                      isReleasable ? amount : amount.sub(balance),
-                      decimals,
-                    )} ${symbol}`}</Text>
-                  </>
-                )}
-              </Flex>
-            )}
-            {dispute && (
-              <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  fontWeight="bold"
-                  fontSize="lg"
+              <Flex direction="column">
+                <Text>Late Fee</Text>
+                <Text
+                  fontSize="x-small"
+                  fontWeight="normal"
+                  fontStyle="italic"
+                  color="grey"
                 >
-                  <Text>Amount Locked</Text>
-                  <Text textAlign="right">{`${utils.formatUnits(
-                    balance,
-                    decimals,
-                  )} ${symbol}`}</Text>
-                </Flex>
-                <Text>
-                  {`A dispute is in progress with `}
-                  <AccountLink address={resolver} chainId={invoiceChainId} />
-                  <br />
-                  <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
-                    <u>View details on IPFS</u>
-                  </Link>
-                  <br />
-                  <Link
-                    href={getTxLink(invoiceChainId, dispute.txHash)}
-                    isExternal
-                  >
-                    <u>View transaction</u>
-                  </Link>
+                  10 WETH every 7 days after 12/25/2022
                 </Text>
-              </VStack>
-            )}
-            {resolution && (
-              <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  fontWeight="bold"
-                  fontSize="lg"
-                >
-                  <Text>Amount Dispersed</Text>
-                  <Text textAlign="right">{`${utils.formatUnits(
-                    BigNumber.from(resolution.clientAward)
-                      .add(resolution.providerAward)
-                      .add(
-                        resolution.resolutionFee ? resolution.resolutionFee : 0,
-                      ),
-                    decimals,
-                  )} ${symbol}`}</Text>
-                </Flex>
-                <Flex
-                  justify="space-between"
-                  direction={{ base: 'column', sm: 'row' }}
-                >
-                  <Flex flex={1}>
-                    <Text textAlign={{ base: 'center', sm: 'left' }}>
-                      <AccountLink
-                        address={resolver}
-                        chainId={invoiceChainId}
-                      />
-                      {
-                        ' has resolved the dispute and dispersed remaining funds'
-                      }
-                      <br />
-                      <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
-                        <u>View details on IPFS</u>
-                      </Link>
-                      <br />
-                      <Link
-                        href={getTxLink(invoiceChainId, resolution.txHash)}
-                        isExternal
-                      >
-                        <u>View transaction</u>
-                      </Link>
-                    </Text>
-                  </Flex>
-                  <VStack
-                    spacing="0.5rem"
-                    mt={{ base: '1rem', sm: '0' }}
-                    align={{ base: 'center', sm: 'stretch' }}
-                  >
-                    {resolution.resolutionFee && (
-                      <Text textAlign="right">
-                        {`${utils.formatUnits(
-                          BigNumber.from(resolution.resolutionFee),
-                          decimals,
-                        )} ${symbol} to `}
-                        <AccountLink
-                          address={resolver}
-                          chainId={invoiceChainId}
-                        />
-                      </Text>
-                    )}
-                    <Text textAlign="right">
-                      {`${utils.formatUnits(
-                        BigNumber.from(resolution.clientAward),
-                        decimals,
-                      )} ${symbol} to `}
-                      <AccountLink address={client} chainId={invoiceChainId} />
-                    </Text>
-                    <Text textAlign="right">
-                      {`${utils.formatUnits(
-                        BigNumber.from(resolution.providerAward),
-                        decimals,
-                      )} ${symbol} to `}
-                      <AccountLink
-                        address={provider}
-                        chainId={invoiceChainId}
-                      />
-                    </Text>
-                  </VStack>
-                </Flex>
-              </VStack>
-            )}
+              </Flex>
+              <Text>{`${utils.formatUnits(
+                deposited,
+                decimals,
+              )} ${symbol}`}</Text>
+            </Flex>
+            <Flex
+              justify="space-between"
+              align="center"
+              fontWeight="bold"
+              fontSize="lg"
+              mb="1rem"
+            >
+              <Text>Paid</Text>
+              <Text>{`(${utils.formatUnits(
+                released,
+                decimals,
+              )} ${symbol})`}</Text>
+            </Flex>
+            <Divider
+              w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
+              ml={{ base: '-1rem', md: '-2rem' }}
+              my="1rem"
+            />
+            <Flex
+              justify="space-between"
+              align="center"
+              color="black"
+              fontWeight="bold"
+              fontSize="lg"
+            >
+              <Text>Total Due</Text>
+              <Text textAlign="right">{`${utils.formatUnits(
+                balance,
+                decimals,
+              )} ${symbol}`}</Text>{' '}
+            </Flex>
           </Flex>
-          {isResolver && (
-            <SimpleGrid columns={1} spacing="1rem" w="100%">
-              {isLocked ? (
-                <Button
-                  size={buttonSize}
-                  colorScheme="red"
-                  fontWeight="bold"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onResolve()}
-                >
-                  Resolve
-                </Button>
-              ) : (
-                <Button
-                  size={buttonSize}
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
-                  fontWeight="bold"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                  disabled={!verifiedStatus}
-                >
-                  Deposit
-                </Button>
-              )}
-            </SimpleGrid>
-          )}
           {isClient && (
             <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
               {isReleasable && (
