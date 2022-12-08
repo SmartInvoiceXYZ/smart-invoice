@@ -29,6 +29,7 @@ export const CreateContextProvider = ({ children }) => {
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
 
   // project details
+  const [invoiceType, setInvoiceType] = useState('');
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectAgreementLinkType, setProjectAgreementLinkType] =
@@ -256,6 +257,7 @@ export const CreateContextProvider = ({ children }) => {
         arbitrationProvider,
         payments,
         tx,
+        invoiceType,
         // setters
         setProjectName,
         setProjectDescription,
@@ -273,6 +275,7 @@ export const CreateContextProvider = ({ children }) => {
         setTermsAccepted,
         setArbitrationProvider,
         setPayments,
+        setInvoiceType,
         // creating invoice
         loading,
         createEscrow,

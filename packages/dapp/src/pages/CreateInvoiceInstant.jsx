@@ -23,7 +23,7 @@ import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
 import { STEPS } from '../utils/constants';
 
-export const CreateInvoice = () => {
+export const CreateInvoiceInstant = () => {
   const {
     tx,
     loading,
