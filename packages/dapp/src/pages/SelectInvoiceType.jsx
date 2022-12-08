@@ -7,14 +7,16 @@ import {
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
+import { CreateContext } from '../context/CreateContext';
 
 import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
 
 export const SelectInvoiceType = () => {
   const { connectAccount, account } = useWeb3();
+  const { setInvoiceType } = useContext(CreateContext);
 
   const history = useHistory();
   const [isMobile, onMobile] = useState(false);
@@ -32,30 +34,22 @@ export const SelectInvoiceType = () => {
     }
   };
 
-  const createEscrow = async () => {
-    if (account) {
-      history.push('/create/escrow');
-    } else {
-      try {
-        await connectAccount();
-        history.push('/create/escrow');
-      } catch {
-        logError("Couldn't connect web3 wallet");
-      }
+  const createType = async invoiceType => {
+    try {
+      await connectAccount();
+      history.push(`/create/${invoiceType}`);
+      setInvoiceType(invoiceType);
+    } catch {
+      logError("Couldn't connect web3 wallet");
     }
   };
 
+  const createEscrow = async () => {
+    createType('escrow');
+  };
+
   const createInstant = async () => {
-    if (account) {
-      history.push('/create/instant');
-    } else {
-      try {
-        await connectAccount();
-        history.push('/create/instant');
-      } catch {
-        logError("Couldn't connect web3 wallet");
-      }
-    }
+    createType('instant');
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
