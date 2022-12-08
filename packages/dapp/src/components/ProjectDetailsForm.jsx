@@ -38,6 +38,7 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectAgreementSource,
     projectAgreementLinkType,
     setProjectAgreementLinkType,
+    invoiceType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';

@@ -12,6 +12,7 @@ import {
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Web3ContextProvider } from './context/Web3Context';
+import { CreateContextProvider } from './context/CreateContext';
 import { Contracts } from './pages/Contracts';
 import { CreateInvoice } from './pages/CreateInvoice';
 import { SelectInvoiceType } from './pages/SelectInvoiceType';
@@ -37,13 +38,19 @@ export const App = () => {
               <Switch>
                 <Route exact path="/" component={Home} />
                 <Route exact path="/contracts" component={Contracts} />
-                <Route exact path="/create" component={SelectInvoiceType} />
-                <Route exact path="/create/escrow" component={CreateInvoice} />
-                <Route
-                  exact
-                  path="/create/instant"
-                  component={CreateInvoiceInstant}
-                />
+                <CreateContextProvider>
+                  <Route exact path="/create" component={SelectInvoiceType} />
+                  <Route
+                    exact
+                    path="/create/escrow"
+                    component={CreateInvoice}
+                  />
+                  <Route
+                    exact
+                    path="/create/instant"
+                    component={CreateInvoiceInstant}
+                  />
+                </CreateContextProvider>
                 <Route exact path="/invoices" component={Invoices} />
                 <Route
                   exact

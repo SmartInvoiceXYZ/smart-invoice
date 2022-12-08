@@ -23,7 +23,7 @@ import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
 import { STEPS } from '../utils/constants';
 
-const CreateInvoiceInner = () => {
+export const CreateInvoice = () => {
   const {
     tx,
     loading,
@@ -146,11 +146,3 @@ const CreateInvoiceInner = () => {
     </Container>
   );
 };
-
-const CreateInvoiceWithProvider = props => (
-  <CreateContextProvider>
-    <CreateInvoiceInner {...props} />
-  </CreateContextProvider>
-);
-
-export const CreateInvoice = withRouter(CreateInvoiceWithProvider);
