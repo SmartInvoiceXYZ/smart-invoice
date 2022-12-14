@@ -8,20 +8,18 @@ import {
   VStack,
   Heading,
 } from '@chakra-ui/react';
-import React, { useContext } from 'react';
-import { withRouter } from 'react-router-dom';
+import React, { useContext, useEffect } from 'react';
 
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
 import { FormConfirmation } from '../components/FormConfirmation';
-import { PaymentChunksForm } from '../components/PaymentChunksForm';
-import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
+import { InstantPaymentDetailsForm } from '../components/InstantProjectDetailsForm';
 import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../components/RegisterSuccess';
-import { CreateContext, CreateContextProvider } from '../context/CreateContext';
+import { CreateContext } from '../context/CreateContext';
 import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
-import { STEPS } from '../utils/constants';
+import { INSTANT_STEPS, INVOICE_TYPES } from '../utils/constants';
 
 export const CreateInvoiceInstant = () => {
   const {
@@ -31,7 +29,16 @@ export const CreateInvoiceInstant = () => {
     nextStepEnabled,
     goBackHandler,
     nextStepHandler,
+    invoiceType,
+    setInvoiceType,
   } = useContext(CreateContext);
+
+  const { Instant } = INVOICE_TYPES;
+
+  useEffect(() => {
+    setInvoiceType(Instant);
+  }, [invoiceType, setInvoiceType]);
+
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
@@ -44,10 +51,10 @@ export const CreateInvoiceInstant = () => {
   });
 
   const headingSize = useBreakpointValue({
-    base: '150%',
-    sm: '200%',
-    md: '250%',
-    lg: '300%',
+    base: '125%',
+    sm: '175%',
+    md: '225%',
+    lg: '250%',
   });
 
   return (
@@ -70,7 +77,7 @@ export const CreateInvoiceInstant = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create a Smart Invoice
+              Create an Instant Invoice ⚡
             </Heading>
             <Text
               color="#90A0B7"
@@ -94,8 +101,8 @@ export const CreateInvoiceInstant = () => {
             >
               <StepInfo
                 stepNum={currentStep}
-                stepTitle={STEPS[currentStep].step_title}
-                stepDetails={STEPS[currentStep].step_details}
+                stepTitle={INSTANT_STEPS[currentStep].step_title}
+                stepDetails={INSTANT_STEPS[currentStep].step_details}
                 goBack={goBackHandler}
               />
               <ProjectDetailsForm
@@ -103,18 +110,13 @@ export const CreateInvoiceInstant = () => {
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              <PaymentDetailsForm
+              <InstantPaymentDetailsForm
                 display={currentStep === 2 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              <PaymentChunksForm
-                display={currentStep === 3 ? 'flex' : 'none'}
-                tokenData={tokenData}
-                allTokens={allTokens}
-              />
               <FormConfirmation
-                display={currentStep === 4 ? 'flex' : 'none'}
+                display={currentStep === 3 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
@@ -132,9 +134,9 @@ export const CreateInvoiceInstant = () => {
                   fontFamily="mono"
                   fontWeight="bold"
                 >
-                  {currentStep === 4
-                    ? STEPS[currentStep].next
-                    : `next: ${STEPS[currentStep].next}`}
+                  {currentStep === 3
+                    ? INSTANT_STEPS[currentStep].next
+                    : `next: ${INSTANT_STEPS[currentStep].next}`}
                 </Button>
               </Grid>
             </Flex>

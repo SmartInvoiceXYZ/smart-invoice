@@ -23,6 +23,8 @@ function fetchInstantInfo(address: Address): InvoiceObject {
   let token = invoiceInstance.try_token();
   let total = invoiceInstance.try_total();
   let details = invoiceInstance.try_details();
+  let lateFee = invoiceInstance.try_lateFee();
+  let lateFeeTimeInterval = invoiceInstance.try_lateFeeTimeInterval();
 
   if (!client.reverted) {
     invoiceObject.client = client.value;
@@ -35,6 +37,12 @@ function fetchInstantInfo(address: Address): InvoiceObject {
   }
   if (!total.reverted) {
     invoiceObject.total = total.value;
+  }
+  if (!lateFee.reverted) {
+    invoiceObject.lateFee = lateFee.value;
+  }
+  if (!lateFeeTimeInterval.reverted) {
+    invoiceObject.lateFeeTimeInterval = lateFeeTimeInterval.value;
   }
   if (!details.reverted) {
     //needs to be broken out based on invoice type
@@ -141,6 +149,8 @@ export function updateInstantInfo(address: Address, invoice: Invoice): Invoice {
   invoice.projectDescription = invoiceObject.projectDescription;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
+  invoice.lateFee = invoiceObject.lateFee;
+  invoice.lateFeeTimeInterval = invoiceObject.lateFeeTimeInterval;
 
   invoice.projectAgreement.length = 0;
   let projectAgreement = new Array<string>();

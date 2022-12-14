@@ -19,7 +19,11 @@ import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 import { Web3Context } from './Web3Context';
 
-const { isAddress } = utils;
+import { INSTANT_STEPS, ESCROW_STEPS } from '../utils/constants';
+
+import { INVOICE_TYPES } from '../utils/constants';
+import { useCreateInstant } from './create-hooks/useCreateInstant';
+import { useCreateEscrow } from './create-hooks/useCreateEscrow';
 
 export const CreateContext = createContext();
 
@@ -29,6 +33,7 @@ export const CreateContextProvider = ({ children }) => {
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
 
   // project details
+
   const [invoiceType, setInvoiceType] = useState('');
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -52,9 +57,16 @@ export const CreateContextProvider = ({ children }) => {
   const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
   const [paymentToken, setPaymentToken] = useState(WRAPPED_NATIVE_TOKEN);
   const [milestones, setMilestones] = useState('1');
+
+  // escrow details
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
   const [requireVerification, setRequireVerification] = useState(true);
+
+  // instant payment details
+
+  const [lateFee, setLateFee] = useState(0);
+  const [lateFeeInterval, setLateFeeInterval] = useState(0);
 
   // payments chunks
   const [payments, setPayments] = useState([BigNumber.from(0)]);
@@ -64,7 +76,11 @@ export const CreateContextProvider = ({ children }) => {
   // step handling
   const [currentStep, setStep] = useState(1);
   const [nextStepEnabled, setNextStepEnabled] = useState(false);
+  const [allValid, setAllValid] = useState(false);
 
+  const { Escrow, Instant } = INVOICE_TYPES;
+
+  // common for all invoice types
   const step1Valid = useMemo(
     () =>
       projectName &&
@@ -74,38 +90,30 @@ export const CreateContextProvider = ({ children }) => {
     [projectName, projectAgreementSource, safetyValveDate],
   );
 
-  const step2Valid = useMemo(
-    () =>
-      isAddress(clientAddress) &&
-      isAddress(paymentAddress) &&
-      isAddress(paymentToken) &&
-      isAddress(arbitrationProvider) &&
-      paymentDue.gt(0) &&
-      !isNaN(Number(milestones)) &&
-      milestones > 0 &&
-      termsAccepted &&
-      Array.from(
-        new Set([
-          clientAddress.toLowerCase(),
-          paymentAddress.toLowerCase(),
-          paymentToken.toLowerCase(),
-          arbitrationProvider.toLowerCase(),
-        ]),
-      ).length === 4,
-    [
-      clientAddress,
-      paymentAddress,
-      paymentToken,
-      arbitrationProvider,
-      paymentDue,
-      milestones,
-      termsAccepted,
-    ],
+  // handle invoice type
+  const { escrowStep2Valid, escrowStep3Valid } = useCreateEscrow(
+    step1Valid,
+    allValid,
+    clientAddress,
+    paymentAddress,
+    payments,
+    paymentToken,
+    paymentDue,
+    milestones,
+    termsAccepted,
+    arbitrationProvider,
+    { setAllValid },
   );
 
-  const step3Valid = useMemo(
-    () => payments.reduce((t, a) => t.add(a), BigNumber.from(0)).eq(paymentDue),
-    [payments, paymentDue],
+  const instantStep2Valid = useCreateInstant(
+    step1Valid,
+    allValid,
+    clientAddress,
+    paymentAddress,
+    paymentToken,
+    paymentDue,
+    milestones,
+    { setAllValid },
   );
 
   useEffect(() => {
@@ -144,42 +152,83 @@ export const CreateContextProvider = ({ children }) => {
     endDate,
   ]);
 
-  const createEscrow = useCallback(async () => {
-    if (step1Valid && step2Valid && step3Valid && detailsHash) {
+  const encodeEscrowData = factoryAddress => {
+    const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
+    const type = utils.formatBytes32String(Escrow);
+
+    const data = utils.AbiCoder.prototype.encode(
+      [
+        'address',
+        'uint8',
+        'address',
+        'address',
+        'uint256',
+        'bytes32',
+        'address',
+        'bool',
+        'address',
+      ],
+      [
+        clientAddress,
+        resolverType,
+        arbitrationProvider,
+        paymentToken,
+        Math.floor(safetyValveDate / 1000),
+        detailsHash,
+        WRAPPED_NATIVE_TOKEN,
+        requireVerification,
+        factoryAddress,
+      ],
+    );
+
+    return { type, data };
+  };
+
+  const encodeInstantData = () => {
+    const type = utils.formatBytes32String(Instant);
+    const data = utils.AbiCoder.prototype.encode(
+      [
+        'address',
+        'address',
+        'uint256',
+        'bytes32',
+        'address',
+        'uint256',
+        'uint256',
+      ],
+      [
+        clientAddress,
+        paymentToken,
+        Math.floor(safetyValveDate / 1000),
+        detailsHash,
+        WRAPPED_NATIVE_TOKEN,
+        lateFee,
+        lateFeeInterval,
+      ],
+    );
+
+    return { type, data };
+  };
+
+  const createInvoice = useCallback(async () => {
+    let type;
+    let data;
+
+    if (allValid && detailsHash) {
       setLoading(true);
       setTx();
 
-      const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
-      const escrowType = utils.formatBytes32String('escrow');
       const factoryAddress = getInvoiceFactoryAddress(chainId);
-      const data = utils.AbiCoder.prototype.encode(
-        [
-          'address',
-          'uint8',
-          'address',
-          'address',
-          'uint256',
-          'bytes32',
-          'address',
-          'bool',
-          'address',
-        ],
-        [
-          clientAddress,
-          resolverType,
-          arbitrationProvider,
-          paymentToken,
-          Math.floor(safetyValveDate / 1000),
-          detailsHash,
-          paymentToken,
-          requireVerification,
-          factoryAddress,
-        ],
-      );
 
-      const fee = await provider.getFeeData();
-
-      console.log({ fee });
+      if (invoiceType === Escrow) {
+        const escrowInfo = encodeEscrowData(factoryAddress);
+        type = escrowInfo.type;
+        data = escrowInfo.data;
+      } else if (invoiceType === Instant) {
+        const instantInfo = encodeInstantData(factoryAddress);
+        type = instantInfo.type;
+        data = instantInfo.data;
+      }
 
       const transaction = await register(
         factoryAddress,
@@ -187,7 +236,7 @@ export const CreateContextProvider = ({ children }) => {
         paymentAddress,
         payments,
         data,
-        escrowType,
+        type,
       ).catch(registerError => {
         logError({ registerError });
         setLoading(false);
@@ -209,33 +258,67 @@ export const CreateContextProvider = ({ children }) => {
     detailsHash,
     requireVerification,
     step1Valid,
-    step2Valid,
-    step3Valid,
+    escrowStep2Valid,
+    instantStep2Valid,
+    escrowStep3Valid,
+    allValid,
+    invoiceType,
   ]);
 
+  // check here
   useEffect(() => {
-    if (currentStep === 1) {
-      setNextStepEnabled(step1Valid);
-    } else if (currentStep === 2) {
-      setNextStepEnabled(step2Valid);
-    } else if (currentStep === 3) {
-      setNextStepEnabled(step3Valid);
-    } else if (currentStep === 4) {
-      setNextStepEnabled(true);
-    } else {
-      setNextStepEnabled(false);
+    if (invoiceType === Escrow) {
+      if (currentStep === 1) {
+        setNextStepEnabled(step1Valid);
+      } else if (currentStep === 2) {
+        setNextStepEnabled(escrowStep2Valid);
+      } else if (currentStep === 3) {
+        setNextStepEnabled(escrowStep3Valid);
+      } else if (currentStep === 4) {
+        setNextStepEnabled(true);
+      } else {
+        setNextStepEnabled(false);
+      }
     }
-  }, [step1Valid, step2Valid, step3Valid, currentStep]);
+
+    if (invoiceType === Instant) {
+      if (currentStep === 1) {
+        setNextStepEnabled(step1Valid);
+      } else if (currentStep === 2) {
+        setNextStepEnabled(instantStep2Valid);
+      } else if (currentStep === 3) {
+        setNextStepEnabled(true);
+      }
+    }
+  }, [
+    step1Valid,
+    escrowStep2Valid,
+    escrowStep3Valid,
+    instantStep2Valid,
+    currentStep,
+    invoiceType,
+  ]);
 
   const goBackHandler = () => setStep(prevState => prevState - 1);
 
   const nextStepHandler = useCallback(() => {
+    let maxStep;
+    switch (invoiceType) {
+      case Escrow:
+        maxStep = Object.keys(ESCROW_STEPS).length;
+        break;
+      case Instant:
+        maxStep = Object.keys(INSTANT_STEPS).length;
+        break;
+      default:
+        maxStep = 0;
+    }
     if (nextStepEnabled) {
-      if (currentStep === 4) return createEscrow();
+      if (currentStep === maxStep) return createInvoice();
       setStep(prevState => prevState + 1);
     }
     return () => undefined;
-  }, [nextStepEnabled, currentStep, createEscrow]);
+  }, [nextStepEnabled, currentStep, invoiceType, createInvoice]);
 
   return (
     <CreateContext.Provider
@@ -258,6 +341,8 @@ export const CreateContextProvider = ({ children }) => {
         payments,
         tx,
         invoiceType,
+        lateFee,
+        lateFeeInterval,
         // setters
         setProjectName,
         setProjectDescription,
@@ -276,9 +361,11 @@ export const CreateContextProvider = ({ children }) => {
         setArbitrationProvider,
         setPayments,
         setInvoiceType,
+        setLateFee,
+        setLateFeeInterval,
         // creating invoice
         loading,
-        createEscrow,
+        createInvoice,
         // stepHandling
         currentStep,
         nextStepEnabled,

@@ -226,3 +226,17 @@ export const getAgreementLink = projectAgreement => {
     return address;
   }
 };
+
+export const formatDate = date => {
+  const d = new Date(date);
+
+  let month = `${d.getUTCMonth() + 1}`;
+  if (month.length < 2) month = `0${month}`;
+
+  let day = `${d.getUTCDate()}`;
+  if (day.length < 2) day = `0${day}`;
+
+  const year = d.getUTCFullYear();
+
+  return [year, month, day].join('-');
+};

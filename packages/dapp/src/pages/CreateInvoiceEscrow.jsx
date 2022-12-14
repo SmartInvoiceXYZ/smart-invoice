@@ -8,7 +8,7 @@ import {
   VStack,
   Heading,
 } from '@chakra-ui/react';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
@@ -18,12 +18,12 @@ import { PaymentChunksForm } from '../components/PaymentChunksForm';
 import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../components/RegisterSuccess';
-import { CreateContext, CreateContextProvider } from '../context/CreateContext';
+import { CreateContext } from '../context/CreateContext';
 import { Container } from '../shared/Container';
 import { StepInfo } from '../shared/StepInfo';
-import { STEPS } from '../utils/constants';
+import { ESCROW_STEPS, INVOICE_TYPES } from '../utils/constants';
 
-export const CreateInvoice = () => {
+export const CreateInvoiceEscrow = () => {
   const {
     tx,
     loading,
@@ -31,8 +31,16 @@ export const CreateInvoice = () => {
     nextStepEnabled,
     goBackHandler,
     nextStepHandler,
+    invoiceType,
+    setInvoiceType,
   } = useContext(CreateContext);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+
+  // to protect against navigating to this page directly
+  const { Escrow } = INVOICE_TYPES;
+  useEffect(() => {
+    setInvoiceType(Escrow);
+  }, [invoiceType, setInvoiceType]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -44,10 +52,10 @@ export const CreateInvoice = () => {
   });
 
   const headingSize = useBreakpointValue({
-    base: '150%',
-    sm: '200%',
-    md: '250%',
-    lg: '300%',
+    base: '90%',
+    sm: '125%',
+    md: '150%',
+    lg: '225%',
   });
 
   return (
@@ -70,7 +78,7 @@ export const CreateInvoice = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create a Smart Invoice
+              Create a Smart Escrow Invoice 🔐
             </Heading>
             <Text
               color="#90A0B7"
@@ -94,8 +102,8 @@ export const CreateInvoice = () => {
             >
               <StepInfo
                 stepNum={currentStep}
-                stepTitle={STEPS[currentStep].step_title}
-                stepDetails={STEPS[currentStep].step_details}
+                stepTitle={ESCROW_STEPS[currentStep].step_title}
+                stepDetails={ESCROW_STEPS[currentStep].step_details}
                 goBack={goBackHandler}
               />
               <ProjectDetailsForm
@@ -133,8 +141,8 @@ export const CreateInvoice = () => {
                   fontWeight="bold"
                 >
                   {currentStep === 4
-                    ? STEPS[currentStep].next
-                    : `next: ${STEPS[currentStep].next}`}
+                    ? ESCROW_STEPS[currentStep].next
+                    : `next: ${ESCROW_STEPS[currentStep].next}`}
                 </Button>
               </Grid>
             </Flex>

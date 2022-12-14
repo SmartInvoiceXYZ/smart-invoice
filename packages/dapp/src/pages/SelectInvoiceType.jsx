@@ -16,7 +16,7 @@ import { logError } from '../utils/helpers';
 
 export const SelectInvoiceType = () => {
   const { connectAccount, account } = useWeb3();
-  const { setInvoiceType } = useContext(CreateContext);
+  const { invoiceType, setInvoiceType } = useContext(CreateContext);
 
   const history = useHistory();
   const [isMobile, onMobile] = useState(false);
@@ -97,6 +97,7 @@ export const SelectInvoiceType = () => {
             <Text mt={4}>Recommended for medium to large projects</Text>
           </Box>
         </Button>
+
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}

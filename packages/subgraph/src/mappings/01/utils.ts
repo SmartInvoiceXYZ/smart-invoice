@@ -41,6 +41,8 @@ export class InvoiceObject {
   endDate: BigInt;
   invoiceType: String;
   version: BigInt;
+  lateFee: BigInt;
+  lateFeeTimeInterval: BigInt;
 
   constructor() {
     this.client = zeroAddress;
@@ -64,6 +66,8 @@ export class InvoiceObject {
     this.endDate = BigInt.fromI32(0);
     this.invoiceType = '';
     this.version = BigInt.fromI32(0);
+    this.lateFee = BigInt.fromI32(0);
+    this.lateFeeTimeInterval = BigInt.fromI32(0);
   }
 }
 
