@@ -2,12 +2,12 @@ import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useMemo, useState } from 'react';
 
-import { CreateContext } from '../context/CreateContext';
-import { Web3Context } from '../context/Web3Context';
-import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
-import { getTokenInfo, getTokens } from '../utils/helpers';
+import { CreateContext } from '../../context/CreateContext';
+import { Web3Context } from '../../context/Web3Context';
+import { OrderedInput, OrderedSelect } from '../../shared/OrderedInput';
+import { getTokenInfo, getTokens } from '../../utils/helpers';
 
-import { formatDate } from '../utils/helpers';
+import { formatDate } from '../../utils/helpers';
 
 export const InstantPaymentDetailsForm = ({
   display,
@@ -150,22 +150,30 @@ export const InstantPaymentDetailsForm = ({
           Payment must be greater than 0
         </Text>
       )}
-      <SimpleGrid w="100%" columns={2} spacing="1rem">
+      <SimpleGrid w="100%" columns={3} spacing="1rem">
+        <OrderedInput
+          label="Deadline"
+          type="date"
+          value={lateFeeIntervalString}
+          setValue={v => setLateFeeInterval(Date.parse(v))}
+          required="optional"
+          tooltip="A specific date when the total payment is due."
+        />
         <OrderedInput
           label="Late Fee"
           type="text"
           value={lateFee}
           setValue={e => setLateFee(e)}
           required="optional"
-          tooltip={`Late fee imposed if the client does not pay by the deadline.`}
+          tooltip={`A fee imposed if the client does not pay by the deadline.`}
         />
         <OrderedInput
-          label="Late Fee Deadline"
+          label="Late Fee Interval"
           type="date"
           value={lateFeeIntervalString}
           setValue={v => setLateFeeInterval(Date.parse(v))}
           required="optional"
-          tooltip="The late fee will be imposed if the client does not pay by this deadline."
+          tooltip="The time interval in which the late fee will be charged past the deadline continuously until paid off."
         />
       </SimpleGrid>
     </VStack>

@@ -9,19 +9,21 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect } from 'react';
+import { withRouter } from 'react-router-dom';
 
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { FormConfirmation } from '../components/FormConfirmation';
-import { InstantPaymentDetailsForm } from '../components/InstantProjectDetailsForm';
-import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
-import { RegisterSuccess } from '../components/RegisterSuccess';
-import { CreateContext } from '../context/CreateContext';
-import { Container } from '../shared/Container';
-import { StepInfo } from '../shared/StepInfo';
-import { INSTANT_STEPS, INVOICE_TYPES } from '../utils/constants';
+import { FormConfirmation } from '../../components/FormConfirmation';
+import { PaymentChunksForm } from '../../components/PaymentChunksForm';
+import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
+import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
+import { RegisterSuccess } from '../../components/RegisterSuccess';
+import { CreateContext } from '../../context/CreateContext';
+import { Container } from '../../shared/Container';
+import { StepInfo } from '../../shared/StepInfo';
+import { ESCROW_STEPS, INVOICE_TYPES } from '../../utils/constants';
 
-export const CreateInvoiceInstant = () => {
+export const CreateInvoiceEscrow = () => {
   const {
     tx,
     loading,
@@ -32,14 +34,13 @@ export const CreateInvoiceInstant = () => {
     invoiceType,
     setInvoiceType,
   } = useContext(CreateContext);
-
-  const { Instant } = INVOICE_TYPES;
-
-  useEffect(() => {
-    setInvoiceType(Instant);
-  }, [invoiceType, setInvoiceType]);
-
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+
+  // to protect against navigating to this page directly
+  const { Escrow } = INVOICE_TYPES;
+  useEffect(() => {
+    setInvoiceType(Escrow);
+  }, [invoiceType, setInvoiceType]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -51,10 +52,10 @@ export const CreateInvoiceInstant = () => {
   });
 
   const headingSize = useBreakpointValue({
-    base: '125%',
-    sm: '175%',
-    md: '225%',
-    lg: '250%',
+    base: '90%',
+    sm: '125%',
+    md: '150%',
+    lg: '225%',
   });
 
   return (
@@ -77,7 +78,7 @@ export const CreateInvoiceInstant = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create an Instant Invoice ⚡
+              Create a Smart Escrow Invoice 🔐
             </Heading>
             <Text
               color="#90A0B7"
@@ -101,8 +102,8 @@ export const CreateInvoiceInstant = () => {
             >
               <StepInfo
                 stepNum={currentStep}
-                stepTitle={INSTANT_STEPS[currentStep].step_title}
-                stepDetails={INSTANT_STEPS[currentStep].step_details}
+                stepTitle={ESCROW_STEPS[currentStep].step_title}
+                stepDetails={ESCROW_STEPS[currentStep].step_details}
                 goBack={goBackHandler}
               />
               <ProjectDetailsForm
@@ -110,13 +111,18 @@ export const CreateInvoiceInstant = () => {
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              <InstantPaymentDetailsForm
+              <PaymentDetailsForm
                 display={currentStep === 2 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              <FormConfirmation
+              <PaymentChunksForm
                 display={currentStep === 3 ? 'flex' : 'none'}
+                tokenData={tokenData}
+                allTokens={allTokens}
+              />
+              <FormConfirmation
+                display={currentStep === 4 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
@@ -134,9 +140,9 @@ export const CreateInvoiceInstant = () => {
                   fontFamily="mono"
                   fontWeight="bold"
                 >
-                  {currentStep === 3
-                    ? INSTANT_STEPS[currentStep].next
-                    : `next: ${INSTANT_STEPS[currentStep].next}`}
+                  {currentStep === 4
+                    ? ESCROW_STEPS[currentStep].next
+                    : `next: ${ESCROW_STEPS[currentStep].next}`}
                 </Button>
               </Grid>
             </Flex>

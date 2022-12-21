@@ -3,11 +3,11 @@ import { utils } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
 
-import { Loader } from '../components/Loader';
-import { getInvoice } from '../graphql/getInvoice';
-import { Container } from '../shared/Container';
-import { InvoiceNotFound } from '../shared/InvoiceNotFound';
-import { getHexChainId, getIpfsLink, getTxLink } from '../utils/helpers';
+import { Loader } from '../../components/Loader';
+import { getInvoice } from '../../graphql/getInvoice';
+import { Container } from '../../shared/Container';
+import { InvoiceNotFound } from '../../shared/InvoiceNotFound';
+import { getHexChainId, getIpfsLink, getTxLink } from '../../utils/helpers';
 
 export const LockedInvoice = ({
   match: {
