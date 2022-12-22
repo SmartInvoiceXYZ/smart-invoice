@@ -1,7 +1,7 @@
 import { useMemo, useEffect } from 'react';
 import { isAddress } from '@ethersproject/address';
 
-export function useCreateInstant(
+export function useCreateInstant({
   step1Valid,
   allValid,
   clientAddress,
@@ -9,8 +9,8 @@ export function useCreateInstant(
   paymentToken,
   paymentDue,
   milestones,
-  { setAllValid },
-) {
+  setAllValid,
+}) {
   const instantStep2Valid = useMemo(
     () =>
       isAddress(clientAddress) &&
@@ -35,5 +35,5 @@ export function useCreateInstant(
     }
   }, [step1Valid, instantStep2Valid, allValid, setAllValid]);
 
-  return instantStep2Valid;
+  return { instantStep2Valid };
 }

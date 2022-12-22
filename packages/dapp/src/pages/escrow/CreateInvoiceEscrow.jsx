@@ -78,7 +78,7 @@ export const CreateInvoiceEscrow = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create a Smart Escrow Invoice 🔐
+              Create an Escrow Invoice
             </Heading>
             <Text
               color="#90A0B7"

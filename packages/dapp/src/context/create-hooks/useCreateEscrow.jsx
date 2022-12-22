@@ -2,7 +2,7 @@ import { useMemo, useEffect } from 'react';
 import { isAddress } from '@ethersproject/address';
 import { BigNumber } from 'ethers';
 
-export function useCreateEscrow(
+export function useCreateEscrow({
   step1Valid,
   allValid,
   clientAddress,
@@ -13,8 +13,8 @@ export function useCreateEscrow(
   milestones,
   termsAccepted,
   arbitrationProvider,
-  { setAllValid },
-) {
+  setAllValid,
+}) {
   const escrowStep2Valid = useMemo(
     () =>
       isAddress(clientAddress) &&

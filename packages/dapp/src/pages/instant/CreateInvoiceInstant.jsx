@@ -12,7 +12,7 @@ import React, { useContext, useEffect } from 'react';
 
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { FormConfirmation } from '../../components/FormConfirmation';
+import { FormConfirmation } from '../../components/instant/FormConfirmation';
 import { InstantPaymentDetailsForm } from '../../components/instant/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/instant/ProjectDetailsForm';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
@@ -20,9 +20,8 @@ import { CreateContext } from '../../context/CreateContext';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../utils/constants';
-import { CreateContextProvider } from '../../context/CreateInstantContext';
 
-export const CreateInvoiceInstantInner = () => {
+export const CreateInvoiceInstant = () => {
   const {
     tx,
     loading,
@@ -78,7 +77,7 @@ export const CreateInvoiceInstantInner = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create an Instant Invoice ⚡
+              Create an Instant Invoice
             </Heading>
             <Text
               color="#90A0B7"
@@ -147,13 +146,5 @@ export const CreateInvoiceInstantInner = () => {
         <Text>Loading</Text>
       )}
     </Container>
-  );
-};
-
-export const CreateInvoiceInstant = () => {
-  return (
-    <CreateContextProvider>
-      <CreateInvoiceInstantInner />
-    </CreateContextProvider>
   );
 };

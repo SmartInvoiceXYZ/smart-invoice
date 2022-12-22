@@ -30,11 +30,14 @@ export const InstantPaymentDetailsForm = ({
     lateFeeInterval,
     setLateFeeInterval,
     invoiceType,
+    deadline,
+    setDeadline,
   } = useContext(CreateContext);
 
   const lateFeeIntervalString = lateFeeInterval
     ? formatDate(lateFeeInterval)
     : '';
+  const deadlineDateString = deadline ? formatDate(deadline) : '';
 
   const TOKENS = useMemo(
     () => getTokens(chainId, allTokens),
@@ -52,6 +55,9 @@ export const InstantPaymentDetailsForm = ({
   const [paymentInvalid, setPaymentInvalid] = useState(false);
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
   // const [symbols, setSymbols] = useState([]);
+  const [lateFeeInput, setLateFeeInput] = useState('');
+  const [lateFeeIntervalInput, setLateFeeIntervalInput] = useState('');
+  const lateFeeIntervalOptions = [1, 2, 7, 14, 28];
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
@@ -117,27 +123,6 @@ export const InstantPaymentDetailsForm = ({
             </option>
           ))}
         </OrderedSelect>
-        {/* <OrderedInput
-          gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
-          label="Number of Payments"
-          type="number"
-          value={milestones}
-          isInvalid={milestonesInvalid}
-          setValue={v => {
-            const numMilestones = v ? Number(v) : 1;
-            setMilestones(v);
-            setPayments(
-              Array(numMilestones)
-                .fill(1)
-                .map(() => {
-                  return BigNumber.from(0);
-                }),
-            );
-            setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
-          }}
-          tooltip="How many milestone payments will there be for this invoice? (You'll be able to customize the payment amount for each milestone in the next step)."
-          required="required"
-        /> */}
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (
         <Text
@@ -154,27 +139,43 @@ export const InstantPaymentDetailsForm = ({
         <OrderedInput
           label="Deadline"
           type="date"
-          value={lateFeeIntervalString}
-          setValue={v => setLateFeeInterval(Date.parse(v))}
+          value={deadlineDateString}
+          setValue={v => setDeadline(Date.parse(v))}
           required="optional"
           tooltip="A specific date when the total payment is due."
         />
         <OrderedInput
           label="Late Fee"
           type="text"
-          value={lateFee}
-          setValue={e => setLateFee(e)}
+          value={lateFeeInput}
+          setValue={v => {
+            setLateFeeInput(v);
+            if (v && !isNaN(Number(v))) {
+              const p = utils.parseUnits(v, decimals);
+              setLateFee(p);
+            } else {
+              setLateFee(BigNumber.from(0));
+            }
+          }}
           required="optional"
           tooltip={`A fee imposed if the client does not pay by the deadline.`}
         />
-        <OrderedInput
+        <OrderedSelect
           label="Late Fee Interval"
-          type="date"
-          value={lateFeeIntervalString}
-          setValue={v => setLateFeeInterval(Date.parse(v))}
+          value={lateFeeIntervalInput}
+          setValue={v => {
+            setLateFeeIntervalInput(v);
+            setLateFeeInterval(parseInt(v) * 1000 * 60 * 60 * 24);
+          }}
           required="optional"
           tooltip="The time interval in which the late fee will be charged past the deadline continuously until paid off."
-        />
+        >
+          {lateFeeIntervalOptions.map(interval => (
+            <option value={interval} key={interval}>
+              {interval > 1 ? `Every ${interval} days` : 'Every day'}
+            </option>
+          ))}
+        </OrderedSelect>
       </SimpleGrid>
     </VStack>
   );

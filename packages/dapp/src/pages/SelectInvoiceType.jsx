@@ -37,8 +37,8 @@ export const SelectInvoiceType = () => {
   const createType = async invoiceType => {
     try {
       await connectAccount();
-      history.push(`/create/${invoiceType}`);
       setInvoiceType(invoiceType);
+      history.push(`/create/${invoiceType}`);
     } catch {
       logError("Couldn't connect web3 wallet");
     }

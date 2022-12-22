@@ -28,12 +28,11 @@ import { useCreateEscrow } from './create-hooks/useCreateEscrow';
 export const CreateContext = createContext();
 
 export const CreateContextProvider = ({ children }) => {
-  const { provider, chainId } = useContext(Web3Context);
+  const { provider: rpcProvider, chainId } = useContext(Web3Context);
   const RESOLVERS = getResolvers(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
 
   // project details
-
   const [invoiceType, setInvoiceType] = useState('');
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -48,7 +47,6 @@ export const CreateContextProvider = ({ children }) => {
   ]);
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
-  const [safetyValveDate, setSafetyValveDate] = useState();
   const [detailsHash, setDetailsHash] = useState(''); // ipfsHash for projectDetails
 
   // payment details
@@ -59,12 +57,13 @@ export const CreateContextProvider = ({ children }) => {
   const [milestones, setMilestones] = useState('1');
 
   // escrow details
+  const [safetyValveDate, setSafetyValveDate] = useState();
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
   const [requireVerification, setRequireVerification] = useState(true);
 
   // instant payment details
-
+  const [deadline, setDeadline] = useState();
   const [lateFee, setLateFee] = useState(0);
   const [lateFeeInterval, setLateFeeInterval] = useState(0);
 
@@ -81,17 +80,21 @@ export const CreateContextProvider = ({ children }) => {
   const { Escrow, Instant } = INVOICE_TYPES;
 
   // common for all invoice types
-  const step1Valid = useMemo(
-    () =>
-      projectName &&
-      isValidLink(projectAgreementSource) &&
-      safetyValveDate &&
-      safetyValveDate > new Date().getTime(),
-    [projectName, projectAgreementSource, safetyValveDate],
-  );
+  const step1Valid = useMemo(() => {
+    if (invoiceType === Escrow) {
+      return (
+        projectName &&
+        isValidLink(projectAgreementSource) &&
+        safetyValveDate &&
+        safetyValveDate > new Date().getTime()
+      );
+    } else if (invoiceType === Instant) {
+      return projectName && isValidLink(projectAgreementSource);
+    }
+  }, [projectName, projectAgreementSource, safetyValveDate]);
 
   // handle invoice type
-  const { escrowStep2Valid, escrowStep3Valid } = useCreateEscrow(
+  const { escrowStep2Valid, escrowStep3Valid } = useCreateEscrow({
     step1Valid,
     allValid,
     clientAddress,
@@ -102,10 +105,10 @@ export const CreateContextProvider = ({ children }) => {
     milestones,
     termsAccepted,
     arbitrationProvider,
-    { setAllValid },
-  );
+    setAllValid,
+  });
 
-  const instantStep2Valid = useCreateInstant(
+  const { instantStep2Valid } = useCreateInstant({
     step1Valid,
     allValid,
     clientAddress,
@@ -113,8 +116,8 @@ export const CreateContextProvider = ({ children }) => {
     paymentToken,
     paymentDue,
     milestones,
-    { setAllValid },
-  );
+    setAllValid,
+  });
 
   useEffect(() => {
     setProjectAgreement([
@@ -199,7 +202,7 @@ export const CreateContextProvider = ({ children }) => {
       [
         clientAddress,
         paymentToken,
-        Math.floor(safetyValveDate / 1000),
+        Math.floor(deadline / 1000),
         detailsHash,
         WRAPPED_NATIVE_TOKEN,
         lateFee,
@@ -232,7 +235,7 @@ export const CreateContextProvider = ({ children }) => {
 
       const transaction = await register(
         factoryAddress,
-        provider,
+        rpcProvider,
         paymentAddress,
         payments,
         data,
@@ -248,7 +251,7 @@ export const CreateContextProvider = ({ children }) => {
     }
   }, [
     chainId,
-    provider,
+    rpcProvider,
     clientAddress,
     paymentAddress,
     arbitrationProvider,
@@ -341,6 +344,7 @@ export const CreateContextProvider = ({ children }) => {
         payments,
         tx,
         invoiceType,
+        deadline,
         lateFee,
         lateFeeInterval,
         // setters
@@ -361,6 +365,7 @@ export const CreateContextProvider = ({ children }) => {
         setArbitrationProvider,
         setPayments,
         setInvoiceType,
+        setDeadline,
         setLateFee,
         setLateFeeInterval,
         // creating invoice
