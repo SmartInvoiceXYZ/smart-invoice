@@ -34,9 +34,6 @@ export const InstantPaymentDetailsForm = ({
     setDeadline,
   } = useContext(CreateContext);
 
-  const lateFeeIntervalString = lateFeeInterval
-    ? formatDate(lateFeeInterval)
-    : '';
   const deadlineDateString = deadline ? formatDate(deadline) : '';
 
   const TOKENS = useMemo(

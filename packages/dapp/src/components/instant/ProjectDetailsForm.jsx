@@ -31,10 +31,6 @@ export const ProjectDetailsForm = ({ display }) => {
 
   const startDateString = startDate ? formatDate(startDate) : '';
   const endDateString = endDate ? formatDate(endDate) : '';
-  const safetyValveDateString = safetyValveDate
-    ? formatDate(safetyValveDate)
-    : '';
-
   const [nameInvalid, setNameInvalid] = useState(false);
   const [dateInvalid, setDateInvalid] = useState(false);
 

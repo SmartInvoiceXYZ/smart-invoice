@@ -9,12 +9,20 @@ import {
 } from '@chakra-ui/react';
 import React, { useEffect, useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { CreateContext } from '../context/CreateContext';
+import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 
 import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
 
 export const SelectInvoiceType = () => {
+  return (
+    <CreateContextProvider>
+      <SelectInvoiceTypeInner />
+    </CreateContextProvider>
+  );
+};
+
+export const SelectInvoiceTypeInner = () => {
   const { connectAccount, account } = useWeb3();
   const { invoiceType, setInvoiceType } = useContext(CreateContext);
 

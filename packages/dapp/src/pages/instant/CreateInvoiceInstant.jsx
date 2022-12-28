@@ -16,12 +16,23 @@ import { FormConfirmation } from '../../components/instant/FormConfirmation';
 import { InstantPaymentDetailsForm } from '../../components/instant/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/instant/ProjectDetailsForm';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
-import { CreateContext } from '../../context/CreateContext';
+import {
+  CreateContext,
+  CreateContextProvider,
+} from '../../context/CreateContext';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../utils/constants';
 
 export const CreateInvoiceInstant = () => {
+  return (
+    <CreateContextProvider>
+      <CreateInvoiceInstantInner />
+    </CreateContextProvider>
+  );
+};
+
+export const CreateInvoiceInstantInner = () => {
   const {
     tx,
     loading,

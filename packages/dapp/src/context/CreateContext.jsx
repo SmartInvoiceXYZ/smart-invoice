@@ -63,8 +63,8 @@ export const CreateContextProvider = ({ children }) => {
   const [requireVerification, setRequireVerification] = useState(true);
 
   // instant payment details
-  const [deadline, setDeadline] = useState();
-  const [lateFee, setLateFee] = useState(0);
+  const [deadline, setDeadline] = useState(0);
+  const [lateFee, setLateFee] = useState(BigNumber.from(0));
   const [lateFeeInterval, setLateFeeInterval] = useState(0);
 
   // payments chunks

@@ -33,46 +33,44 @@ export const App = () => {
       <Global styles={globalStyles} />
       <ErrorBoundary>
         <Web3ContextProvider>
-          <CreateContextProvider>
-            <Router>
-              <Layout>
-                <Switch>
-                  <Route exact path="/" component={Home} />
-                  <Route exact path="/contracts" component={Contracts} />
+          <Router>
+            <Layout>
+              <Switch>
+                <Route exact path="/" component={Home} />
+                <Route exact path="/contracts" component={Contracts} />
 
-                  <Route exact path="/create" component={SelectInvoiceType} />
-                  <Route
-                    exact
-                    path="/create/escrow"
-                    component={CreateInvoiceEscrow}
-                  />
-                  <Route
-                    exact
-                    path="/create/instant"
-                    component={CreateInvoiceInstant}
-                  />
+                <Route exact path="/create" component={SelectInvoiceType} />
+                <Route
+                  exact
+                  path="/create/escrow"
+                  component={CreateInvoiceEscrow}
+                />
+                <Route
+                  exact
+                  path="/create/instant"
+                  component={CreateInvoiceInstant}
+                />
 
-                  <Route exact path="/invoices" component={Invoices} />
-                  <Route
-                    exact
-                    path="/invoice/:hexChainId/:invoiceId"
-                    component={ViewInvoice}
-                  />
-                  <Route
-                    exact
-                    path="/invoice/:hexChainId/:invoiceId/locked"
-                    component={LockedInvoice}
-                  />
-                  <Route
-                    exact
-                    path="/invoice/:hexChainId/:invoiceId/instant"
-                    component={ViewInstantInvoice}
-                  />
-                  <Redirect to="/" />
-                </Switch>
-              </Layout>
-            </Router>
-          </CreateContextProvider>
+                <Route exact path="/invoices" component={Invoices} />
+                <Route
+                  exact
+                  path="/invoice/:hexChainId/:invoiceId"
+                  component={ViewInvoice}
+                />
+                <Route
+                  exact
+                  path="/invoice/:hexChainId/:invoiceId/locked"
+                  component={LockedInvoice}
+                />
+                <Route
+                  exact
+                  path="/invoice/:hexChainId/:invoiceId/instant"
+                  component={ViewInstantInvoice}
+                />
+                <Redirect to="/" />
+              </Switch>
+            </Layout>
+          </Router>
         </Web3ContextProvider>
       </ErrorBoundary>
     </ChakraProvider>

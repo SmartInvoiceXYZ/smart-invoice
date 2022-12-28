@@ -18,12 +18,23 @@ import { PaymentChunksForm } from '../../components/PaymentChunksForm';
 import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
-import { CreateContext } from '../../context/CreateContext';
+import {
+  CreateContext,
+  CreateContextProvider,
+} from '../../context/CreateContext';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { ESCROW_STEPS, INVOICE_TYPES } from '../../utils/constants';
 
 export const CreateInvoiceEscrow = () => {
+  return (
+    <CreateContextProvider>
+      <CreateInvoiceEscrowInner />
+    </CreateContextProvider>
+  );
+};
+
+export const CreateInvoiceEscrowInner = () => {
   const {
     tx,
     loading,
