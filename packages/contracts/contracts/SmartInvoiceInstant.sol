@@ -68,7 +68,7 @@ contract SmartInvoiceInstant is
      */
     function getTotalDue() public view override returns (uint256) {
         uint256 totalLateFee = 0;
-        if (block.timestamp > deadline) {
+        if (block.timestamp > deadline && deadline > 0) {
             uint256 timeAfterDeadline = block.timestamp - deadline;
             if (timeAfterDeadline >= lateFeeTimeInterval) {
                 totalLateFee =
