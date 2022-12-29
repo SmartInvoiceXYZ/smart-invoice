@@ -136,22 +136,17 @@ export const ViewInstantInvoice = ({
     terminationTime,
     client,
     provider,
-    resolver,
     currentMilestone,
     amounts,
     total,
     token,
     released,
     isLocked,
-    deposits,
-    releases,
-    disputes,
-    resolutions,
-    verified,
+    deadline,
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
-  const isResolver = account.toLowerCase() === resolver.toLowerCase();
+  const isProvider = account.toLowerCase() === provider;
   const { decimals, symbol, image } = getTokenInfo(
     invoiceChainId,
     token,
@@ -169,17 +164,6 @@ export const ViewInstantInvoice = ({
   );
   const isReleasable = !isLocked && balance.gte(amount) && balance.gt(0);
   const isLockable = !isExpired && !isLocked && balance.gt(0);
-  const dispute =
-    isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
-  const resolution =
-    !isLocked && resolutions.length > 0
-      ? resolutions[resolutions.length - 1]
-      : undefined;
-
-  const onLock = () => {
-    setSelected(0);
-    setModal(true);
-  };
 
   const onDeposit = () => {
     setSelected(1);
@@ -187,18 +171,18 @@ export const ViewInstantInvoice = ({
   };
 
   const onRelease = async () => {
-    if (isReleasable && isClient) {
+    if (isReleasable && isProvider) {
       setSelected(2);
       setModal(true);
     }
   };
 
-  const onResolve = async () => {
-    if (isResolver) {
-      setSelected(3);
-      setModal(true);
-    }
-  };
+  // const onTip = async () => {
+  //   if (isTippable) {
+  //     setSelected(3);
+  //     setModal(true);
+  //   }
+  // }
 
   const onWithdraw = async () => {
     if (isExpired && isClient) {
@@ -207,21 +191,14 @@ export const ViewInstantInvoice = ({
     }
   };
 
-  const onAddMilestones = async () => {
-    if (!isLocked & !isExpired) {
-      setSelected(5);
-      setModal(true);
-    }
-  };
-
-  let gridColumns;
-  if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
-    gridColumns = { base: 2, sm: 3 };
-  } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
-    gridColumns = 2;
-  } else {
-    gridColumns = 1;
-  }
+  let gridColumns = 1;
+  // if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
+  //   gridColumns = { base: 2, sm: 3 };
+  // } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
+  //   gridColumns = 2;
+  // } else {
+  //   gridColumns = 1;
+  // }
 
   let sum = BigNumber.from(0);
 
@@ -501,14 +478,6 @@ export const ViewInstantInvoice = ({
                 right="0.5rem"
                 color="gray"
               />
-              {modal && selected === 0 && (
-                <LockFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
               {modal && selected === 1 && (
                 <DepositFunds
                   invoice={invoice}
@@ -526,27 +495,10 @@ export const ViewInstantInvoice = ({
                   close={() => setModal(false)}
                 />
               )}
-              {modal && selected === 3 && (
-                <ResolveFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
               {modal && selected === 4 && (
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
-              {modal && selected === 5 && (
-                <AddMilestones
-                  invoice={invoice}
-                  deposited={deposited}
-                  due={due}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
