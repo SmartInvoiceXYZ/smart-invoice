@@ -5,6 +5,8 @@ import {
   Button,
   Checkbox,
   Flex,
+  FormControl,
+  FormLabel,
   Heading,
   Input,
   InputGroup,
@@ -21,9 +23,9 @@ import {
 import { BigNumber, Contract, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
-import { Web3Context } from '../context/Web3Context';
-import { QuestionIcon } from '../icons/QuestionIcon';
-import { balanceOf } from '../utils/erc20';
+import { Web3Context } from '../../context/Web3Context';
+import { QuestionIcon } from '../../icons/QuestionIcon';
+import { balanceOf } from '../../utils/erc20';
 import {
   getHexChainId,
   getNativeTokenSymbol,
@@ -32,7 +34,7 @@ import {
   getWrappedNativeToken,
   logError,
   calculateResolutionFeePercentage,
-} from '../utils/helpers';
+} from '../../utils/helpers';
 
 const getCheckedStatus = (deposited, amounts) => {
   let sum = BigNumber.from(0);
@@ -153,43 +155,58 @@ export const DepositFunds = ({
         How much will you be depositing today?
       </Text>
       <VStack spacing="0.5rem">
-        <RadioGroup defaultValue={due}>
+        <RadioGroup defaultValue={'full'}>
           <VStack spacing="0.5rem">
-            <Radio
-              value={due}
-              colorScheme="blue"
-              borderColor="lightgrey"
-              size="lg"
-              fontSize="1rem"
-              color="#323C47"
-            >
-              Full amount &nbsp; &nbsp;
-              {utils.formatUnits(due, decimals)} {symbol}
-            </Radio>
-            <Radio
-              value={partialAmount}
-              colorScheme="blue"
-              borderColor="lightgrey"
-              size="lg"
-              fontSize="1rem"
-              color="#323C47"
-            >
-              Partial amount &nbsp; &nbsp;
-              <Input
-                type="number"
-                value={partialAmountInput}
-                onChange={e => {
-                  const v = e.currentTarget.value;
-                  setPartialAmountInput(v);
-                  if (v && !isNaN(Number(v))) {
-                    const p = utils.parseUnits(v, decimals);
-                    setPartialAmount(p);
-                  } else {
-                    setPartialAmount(BigNumber.from(0));
-                  }
-                }}
+            <FormControl display="flex" alignItems="center" gap={2}>
+              <Radio
+                value={'full'}
+                colorScheme="blue"
+                borderColor="lightgrey"
+                size="lg"
+                fontSize="1rem"
+                color="#323C47"
+                id="instant-pay-full"
               />
-            </Radio>
+              <FormLabel htmlFor="instant-pay-full" color="#323C47" mb={0}>
+                Full amount &nbsp; &nbsp;
+                {utils.formatUnits(due, decimals)} {symbol}
+              </FormLabel>
+            </FormControl>
+            <FormControl display="flex" alignItems="flex-start" gap={2}>
+              <Radio
+                value={'partial'}
+                colorScheme="blue"
+                borderColor="lightgrey"
+                size="lg"
+                fontSize="1rem"
+                color="#323C47"
+                id="instant-pay-partial"
+              />
+              <FormLabel htmlFor="instant-pay-partial" color="#323C47" mb={0}>
+                <Text>Partial amount</Text>
+                <Flex align="end" gap={1}>
+                  <Input
+                    type="number"
+                    borderColor="lightgrey"
+                    maxWidth={200}
+                    value={partialAmountInput}
+                    placeholder="Enter a partial amount"
+                    color="#323C47"
+                    onChange={e => {
+                      const v = e.currentTarget.value;
+                      setPartialAmountInput(v);
+                      if (v && !isNaN(Number(v))) {
+                        const p = utils.parseUnits(v, decimals);
+                        setPartialAmount(p);
+                      } else {
+                        setPartialAmount(BigNumber.from(0));
+                      }
+                    }}
+                  />
+                  <Text>{symbol}</Text>
+                </Flex>
+              </FormLabel>
+            </FormControl>
           </VStack>
         </RadioGroup>
         {amounts.map((a, i) => {

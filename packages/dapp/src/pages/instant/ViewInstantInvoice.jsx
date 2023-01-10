@@ -22,7 +22,7 @@ import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { DepositFunds } from '../../components/DepositFunds';
+import { DepositFunds } from '../../components/instant/DepositFunds';
 import { Loader } from '../../components/Loader';
 import { LockFunds } from '../../components/LockFunds';
 import { ReleaseFunds } from '../../components/ReleaseFunds';
@@ -50,6 +50,12 @@ import {
   logError,
   getAgreementLink,
 } from '../../utils/helpers';
+import {
+  getDeadline,
+  getLateFee,
+  getTotalDue,
+  getTotalFulfilled,
+} from '../../utils/invoice';
 
 export const ViewInstantInvoice = ({
   match: {
@@ -69,6 +75,12 @@ export const ViewInstantInvoice = ({
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
   const [verifiedStatus, setVerifiedStatus] = useState(false);
+  const [totalDue, setTotalDue] = useState(BigNumber.from(0));
+  const [totalFulfilled, setTotalFulfilled] = useState(BigNumber.from(0));
+  const [deadline, setDeadline] = useState(0);
+  const [lateFeeAmount, setLateFeeAmount] = useState(BigNumber.from(0));
+  const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
+  const [lateFeeTotal, setLateFeeTotal] = useState(BigNumber.from(0));
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -78,27 +90,65 @@ export const ViewInstantInvoice = ({
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
-      setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => logError({ balanceError }));
+      getValues(ethersProvider, invoice);
+      // setBalanceLoading(true);
+      // balanceOf(ethersProvider, invoice.token, invoice.address)
+      //   .then(b => {
+      //     setBalance(b);
+      //     setBalanceLoading(false);
+      //   })
+      //   .catch(balanceError => logError({ balanceError }));
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
   useEffect(() => {
-    if (invoice && ethersProvider && chainId === invoiceChainId) {
-      setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => logError({ balanceError }));
+    if (invoice && totalDue !== BigNumber.from(0) && deadline) {
+      setLateFeeTotal(totalDue - BigNumber.from(invoice.total));
     }
-  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+  }, [invoice, deadline, totalDue]);
+
+  const getValues = async (provider, invoice) => {
+    // Get Balance
+    try {
+      setBalanceLoading(true);
+      const b = await balanceOf(provider, invoice.token, invoice.address);
+      setBalance(b);
+      setBalanceLoading(false);
+    } catch (balanceError) {
+      logError({ balanceError });
+    }
+
+    // Get Total Due
+    try {
+      const t = await getTotalDue(provider, invoice.address);
+      setTotalDue(BigNumber.from(t));
+    } catch (totalDueError) {
+      logError({ totalDueError });
+      setTotalDue(BigNumber.from(invoice.total));
+    }
+
+    // Get Deadline, Late Fee and its time interval
+    try {
+      const d = await getDeadline(provider, invoice.address);
+      setDeadline(BigNumber.from(d).toNumber());
+      const { amount, timeInterval } = await getLateFee(
+        provider,
+        invoice.address,
+      );
+      setLateFeeAmount(BigNumber.from(amount));
+      setLateFeeTimeInterval(BigNumber.from(timeInterval).toNumber());
+    } catch (lateFeeError) {
+      logError({ lateFeeError });
+    }
+
+    // Get Total Fulfilled
+    try {
+      const tf = await getTotalFulfilled(provider, invoice.address);
+      setTotalFulfilled(tf);
+    } catch (totalFulfilledError) {
+      logError({ totalFulfilledError });
+    }
+  };
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -124,8 +174,9 @@ export const ViewInstantInvoice = ({
     );
   }
 
+  const fulfilled = false;
   const lateFee = 10;
-  const lateFeeTimeInterval = '7 days';
+  // const lateFeeTimeInterval = 14 * 1000 * 24 * 60 * 60;
 
   const {
     projectName,
@@ -142,7 +193,10 @@ export const ViewInstantInvoice = ({
     token,
     released,
     isLocked,
-    deadline,
+    // deadline,
+    // fulfilled,
+    // lateFee,
+    // lateFeeTimeInterval
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
@@ -162,8 +216,10 @@ export const ViewInstantInvoice = ({
   const amount = BigNumber.from(
     currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
   );
-  const isReleasable = !isLocked && balance.gte(amount) && balance.gt(0);
+  const isReleasable = balance.gte(amount) && balance.gt(0);
   const isLockable = !isExpired && !isLocked && balance.gt(0);
+  const isTippable = fulfilled;
+  const isWithdrawable = balance.gte(amount) && balance.gt(0);
 
   const onDeposit = () => {
     setSelected(1);
@@ -177,15 +233,15 @@ export const ViewInstantInvoice = ({
     }
   };
 
-  // const onTip = async () => {
-  //   if (isTippable) {
-  //     setSelected(3);
-  //     setModal(true);
-  //   }
-  // }
+  const onTip = async () => {
+    if (isTippable) {
+      setSelected(3);
+      setModal(true);
+    }
+  };
 
   const onWithdraw = async () => {
-    if (isExpired && isClient) {
+    if (isWithdrawable && isProvider) {
       setSelected(4);
       setModal(true);
     }
@@ -287,11 +343,11 @@ export const ViewInstantInvoice = ({
                 <Text>{'Payment Deadline: '}</Text>
               </WrapItem>
               <WrapItem>
-                <Text fontWeight="bold">{getDateString(terminationTime)}</Text>
+                <Text fontWeight="bold">{getDateString(deadline)}</Text>
                 <Tooltip
-                  label={`The Safety Valve gets activated on ${new Date(
-                    terminationTime * 1000,
-                  ).toUTCString()}`}
+                  label={`Late fees start accumulating after ${new Date(
+                    deadline * 1000,
+                  ).toUTCString()} until total amount is paid.`}
                   placement="auto-start"
                 >
                   <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
@@ -365,11 +421,18 @@ export const ViewInstantInvoice = ({
                   fontStyle="italic"
                   color="grey"
                 >
-                  10 WETH every 7 days after 12/25/2022
+                  {deadline && lateFeeAmount
+                    ? `${utils.formatUnits(
+                        lateFeeAmount,
+                        decimals,
+                      )} ${symbol} every ${
+                        lateFeeTimeInterval / (1000 * 60 * 60 * 24)
+                      } days after ${getDateString(deadline)}`
+                    : `Not applicable`}
                 </Text>
               </Flex>
               <Text>{`${utils.formatUnits(
-                deposited,
+                lateFeeTotal,
                 decimals,
               )} ${symbol}`}</Text>
             </Flex>
@@ -382,7 +445,7 @@ export const ViewInstantInvoice = ({
             >
               <Text>Paid</Text>
               <Text>{`(${utils.formatUnits(
-                released,
+                totalFulfilled,
                 decimals,
               )} ${symbol})`}</Text>
             </Flex>
@@ -400,7 +463,7 @@ export const ViewInstantInvoice = ({
             >
               <Text>Total Due</Text>
               <Text textAlign="right">{`${utils.formatUnits(
-                balance,
+                totalDue,
                 decimals,
               )} ${symbol}`}</Text>{' '}
             </Flex>
