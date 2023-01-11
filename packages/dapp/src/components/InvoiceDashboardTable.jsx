@@ -12,6 +12,7 @@ import {
   MenuList,
   MenuItem,
   HStack,
+  Badge,
 } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
 import { useTable, useSortBy, usePagination } from 'react-table';
@@ -57,6 +58,35 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
   );
 };
 
+const InvoiceBadge = ({ invoice, ...props }) => {
+  const { invoiceType } = invoice;
+  const schemes = {
+    escrow: {
+      bg: 'rgba(128, 63, 248, 0.3)',
+      color: 'rgba(128, 63, 248, 1)',
+    },
+    instant: {
+      bg: 'rgba(248, 174, 63, 0.3)',
+      color: 'rgba(248, 174, 63, 1)',
+    },
+    unknown: {
+      bg: 'rgba(150,150,150,0.3)',
+      color: 'rgba(150,150,150,1)',
+    },
+  };
+
+  return (
+    <Badge
+      backgroundColor={schemes[invoiceType ?? 'unknown'].bg}
+      color={schemes[invoiceType ?? 'unknown'].color}
+      maxW="fit-content"
+      height="fit-content"
+    >
+      {invoiceType ? invoiceType.toUpperCase() : 'UNKNOWN'}
+    </Badge>
+  );
+};
+
 export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
     const dataArray = [];
@@ -75,13 +105,22 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
       const details = {
         createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
         projectName: (
-          <Link
-            href={`/invoice/${getHexChainId(invoice.network)}/${
-              invoice.address
-            }/${invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''}`}
+          <Flex
+            gap={2}
+            width="100%"
+            align="center"
+            justify="space-between"
+            onClick={viewInvoice}
           >
-            {invoice.projectName}
-          </Link>
+            <Link
+              href={`/invoice/${getHexChainId(invoice.network)}/${
+                invoice.address
+              }/${invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''}`}
+            >
+              {invoice.projectName}
+            </Link>
+            <InvoiceBadge invoice={invoice} />
+          </Flex>
         ),
         amount: formatUnits(invoice.total, decimals),
         currency: (
