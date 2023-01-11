@@ -68,7 +68,9 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
       );
       const viewInvoice = () =>
         history.push(
-          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
+          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}/${
+            invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''
+          }`,
         );
       const details = {
         createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
@@ -76,7 +78,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           <Link
             href={`/invoice/${getHexChainId(invoice.network)}/${
               invoice.address
-            }`}
+            }/${invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''}`}
           >
             {invoice.projectName}
           </Link>
