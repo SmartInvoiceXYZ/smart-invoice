@@ -3,13 +3,17 @@ import {
   AlertIcon,
   AlertTitle,
   Button,
+  ButtonGroup,
   Checkbox,
   Flex,
   FormControl,
   FormLabel,
   Heading,
+  HStack,
   Input,
   InputGroup,
+  InputLeftElement,
+  InputRightAddon,
   InputRightElement,
   Link,
   Radio,
@@ -35,6 +39,7 @@ import {
   logError,
   calculateResolutionFeePercentage,
 } from '../../utils/helpers';
+import { depositTokens } from '../../utils/invoice';
 
 const getCheckedStatus = (deposited, amounts) => {
   let sum = BigNumber.from(0);
@@ -52,6 +57,7 @@ export const DepositFunds = ({
   invoice,
   deposited,
   due,
+  total,
   tokenData,
   fulfilled,
 }) => {
@@ -60,20 +66,28 @@ export const DepositFunds = ({
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
   const { address, token, network, amounts, currentMilestone } = invoice;
   const [paymentType, setPaymentType] = useState(0);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [amount, setAmount] = useState(BigNumber.from(0));
   const [amountInput, setAmountInput] = useState('');
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
   const [depositError, setDepositError] = useState(false);
-  const [partialAmountInput, setPartialAmountInput] = useState('');
-  const [partialAmount, setPartialAmount] = useState(BigNumber.from(0));
+  const [openTipPanel, setOpenTipPanel] = useState(false);
+  const [tipPerc, setTipPerc] = useState(0);
+  const [customTip, setCustomTip] = useState('');
+  const [tipAmount, setTipAmount] = useState(BigNumber.from(0));
+  const [totalPayment, setTotalPayment] = useState(BigNumber.from(0));
+  const [allowance, setAllowance] = useState(BigNumber.from(0));
+
+  const defaultTipPercs = [10, 15, 18];
 
   const deposit = async () => {
-    if (!amount || !provider) return;
+    setTransaction();
+    if (!totalPayment || !provider) return;
     if (
-      utils.formatUnits(amount, decimals) > utils.formatUnits(balance, decimals)
+      utils.formatUnits(totalPayment, decimals) >
+      utils.formatUnits(balance, decimals)
     )
       return setDepositError(true);
 
@@ -83,19 +97,41 @@ export const DepositFunds = ({
       if (paymentType === 1) {
         tx = await provider
           .getSigner()
-          .sendTransaction({ to: address, value: amount });
+          .sendTransaction({ to: address, value: totalPayment });
       } else {
-        const abi = ['function transfer(address, uint256) public'];
-        const tokenContract = new Contract(token, abi, provider.getSigner());
-        tx = await tokenContract.transfer(address, amount);
+        tx = await depositTokens(token, totalPayment);
       }
       setTransaction(tx);
       await tx.wait();
-      window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
+      window.location.href = `/invoice/${getHexChainId(
+        network,
+      )}/${address}/instant`;
     } catch (depositError) {
       setLoading(false);
       logError({ depositError });
     }
+  };
+
+  const approve = async () => {
+    setTransaction();
+    if (!totalPayment || !provider) return;
+    try {
+      setLoading(true);
+      let tx;
+      const approvalAmount = BigNumber.from(2).pow(256);
+      const abi = [
+        'function approve(address spender, uint256 amount) public virtual override returns (bool)',
+        'function allowance(address owner, address spender) external view returns (uint256)',
+      ];
+      const tokenContract = new Contract(token, abi, provider.getSigner());
+      tx = await tokenContract.approve(invoice.address, approvalAmount);
+      setTransaction(tx);
+      await tx.wait();
+      setAllowance(await tokenContract.allowance(account, invoice.address));
+    } catch (approvalError) {
+      logError({ approvalError });
+    }
+    setLoading(false);
   };
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
@@ -105,9 +141,23 @@ export const DepositFunds = ({
   const [balance, setBalance] = useState();
 
   useEffect(() => {
+    if (tipAmount.gt(0)) {
+      const v = BigNumber.from(amount).add(tipAmount);
+      setTotalPayment(v);
+    } else {
+      setTotalPayment(amount);
+    }
+  }, [amount, tipAmount]);
+
+  useEffect(() => {
     try {
       if (paymentType === 0) {
         balanceOf(provider, token, account).then(setBalance);
+        const abi = [
+          'function allowance(address owner, address spender) external view returns (uint256)',
+        ];
+        const tokenContract = new Contract(token, abi, provider.getSigner());
+        tokenContract.allowance(account, invoice.address).then(setAllowance);
       } else {
         provider.getBalance(account).then(setBalance);
       }
@@ -119,11 +169,12 @@ export const DepositFunds = ({
   useEffect(() => {
     if (
       depositError &&
-      utils.formatUnits(balance, decimals) > utils.formatUnits(amount, decimals)
+      utils.formatUnits(balance, decimals) >
+        utils.formatUnits(totalPayment, decimals)
     ) {
       setDepositError(false);
     }
-  }, [depositError, amount, balance]);
+  }, [depositError, amount, balance, totalPayment]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -136,10 +187,6 @@ export const DepositFunds = ({
       >
         Pay Invoice
       </Heading>
-      {/* <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
-        At a minimum, you’ll need to deposit enough to cover the{' '}
-        {currentMilestone === 0 ? 'first' : 'next'} project payment.
-      </Text> */}
       {depositError ? (
         <Flex>
           <Alert bg="none" margin="0 auto" textAlign="center" padding="0">
@@ -154,96 +201,6 @@ export const DepositFunds = ({
       <Text textAlign="center" color="black">
         How much will you be depositing today?
       </Text>
-      <VStack spacing="0.5rem">
-        <RadioGroup defaultValue={'full'}>
-          <VStack spacing="0.5rem">
-            <FormControl display="flex" alignItems="center" gap={2}>
-              <Radio
-                value={'full'}
-                colorScheme="blue"
-                borderColor="lightgrey"
-                size="lg"
-                fontSize="1rem"
-                color="#323C47"
-                id="instant-pay-full"
-              />
-              <FormLabel htmlFor="instant-pay-full" color="#323C47" mb={0}>
-                Full amount &nbsp; &nbsp;
-                {utils.formatUnits(due, decimals)} {symbol}
-              </FormLabel>
-            </FormControl>
-            <FormControl display="flex" alignItems="flex-start" gap={2}>
-              <Radio
-                value={'partial'}
-                colorScheme="blue"
-                borderColor="lightgrey"
-                size="lg"
-                fontSize="1rem"
-                color="#323C47"
-                id="instant-pay-partial"
-              />
-              <FormLabel htmlFor="instant-pay-partial" color="#323C47" mb={0}>
-                <Text>Partial amount</Text>
-                <Flex align="end" gap={1}>
-                  <Input
-                    type="number"
-                    borderColor="lightgrey"
-                    maxWidth={200}
-                    value={partialAmountInput}
-                    placeholder="Enter a partial amount"
-                    color="#323C47"
-                    onChange={e => {
-                      const v = e.currentTarget.value;
-                      setPartialAmountInput(v);
-                      if (v && !isNaN(Number(v))) {
-                        const p = utils.parseUnits(v, decimals);
-                        setPartialAmount(p);
-                      } else {
-                        setPartialAmount(BigNumber.from(0));
-                      }
-                    }}
-                  />
-                  <Text>{symbol}</Text>
-                </Flex>
-              </FormLabel>
-            </FormControl>
-          </VStack>
-        </RadioGroup>
-        {amounts.map((a, i) => {
-          return (
-            <Checkbox
-              key={i.toString()}
-              isChecked={checked[i]}
-              isDisabled={initialStatus[i]}
-              onChange={e => {
-                const newChecked = e.target.checked
-                  ? checkedAtIndex(i, checked)
-                  : checkedAtIndex(i - 1, checked);
-                const totAmount = amounts.reduce(
-                  (tot, cur, ind) => (newChecked[ind] ? tot.add(cur) : tot),
-                  BigNumber.from(0),
-                );
-                const newAmount = totAmount.gte(deposited)
-                  ? totAmount.sub(deposited)
-                  : BigNumber.from(0);
-
-                setChecked(newChecked);
-                setAmount(newAmount);
-                setAmountInput(utils.formatUnits(newAmount, decimals));
-              }}
-              colorScheme="blue"
-              borderColor="lightgrey"
-              size="lg"
-              fontSize="1rem"
-              color="#323C47"
-            >
-              Payment #{i + 1} &nbsp; &nbsp;
-              {utils.formatUnits(a, decimals)} {symbol}
-            </Checkbox>
-          );
-        })}
-      </VStack>
-
       <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
         <Flex justify="space-between" w="100%">
           <Text fontWeight="700">Amount</Text>
@@ -259,11 +216,36 @@ export const DepositFunds = ({
           </Flex>
         </Flex>
         <InputGroup>
+          <InputLeftElement>
+            <Text
+              color="blue.1"
+              mb={0}
+              _hover={{ textDecoration: 'underline' }}
+              cursor="pointer"
+              textAlign="right"
+              onClick={() => {
+                const newAmount = due;
+                if (newAmount) {
+                  setAmount(newAmount);
+                  const newAmountInput = utils
+                    .formatUnits(newAmount, decimals)
+                    .toString();
+                  setAmountInput(newAmountInput);
+                } else {
+                  setAmount(BigNumber.from(0));
+                }
+              }}
+            >
+              Max
+            </Text>
+          </InputLeftElement>
           <Input
             bg="white"
             color="black"
             border="1px"
+            borderColor="lightgrey"
             type="number"
+            textAlign="right"
             value={amountInput}
             onChange={e => {
               const newAmountInput = e.target.value;
@@ -278,9 +260,9 @@ export const DepositFunds = ({
               }
             }}
             placeholder="Amount to Deposit"
-            pr={isWRAPPED ? '6rem' : '3.5rem'}
+            pr={isWRAPPED ? '6.5rem' : '4rem'}
           />
-          <InputRightElement w={isWRAPPED ? '6rem' : '3.5rem'}>
+          <InputRightElement w={isWRAPPED ? '6.5rem' : '4rem'}>
             {isWRAPPED ? (
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}
@@ -288,6 +270,9 @@ export const DepositFunds = ({
                 bg="white"
                 color="black"
                 border="1px"
+                paddingLeft={2}
+                borderColor="lightgrey"
+                borderLeftRadius={0}
               >
                 <option value="0">{symbol}</option>
                 <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
@@ -297,6 +282,11 @@ export const DepositFunds = ({
             )}
           </InputRightElement>
         </InputGroup>
+        {due && (
+          <Text fontSize={12} mt={0}>
+            Total Due: {`${utils.formatUnits(due, decimals)} ${symbol}`}
+          </Text>
+        )}
         {amount.gt(due) && (
           <Alert bg="none">
             <AlertIcon color="red.500" />
@@ -305,28 +295,156 @@ export const DepositFunds = ({
             </AlertTitle>
           </Alert>
         )}
+        {!openTipPanel && amount.eq(due) && (
+          <Text
+            textAlign="center"
+            color="blue.1"
+            onClick={() => setOpenTipPanel(true)}
+            cursor="pointer"
+          >
+            Add a tip
+          </Text>
+        )}
       </VStack>
+      {amount === due && (
+        <VStack>
+          {openTipPanel && (
+            <>
+              <Text color="grey">Select a tip amount</Text>
+              <ButtonGroup color="blue.1">
+                <Button
+                  color="blue.1"
+                  borderColor="blue.1"
+                  cursor="pointer"
+                  fontWeight="normal"
+                  borderWidth={1}
+                  width={100}
+                  minHeight={50}
+                  onClick={() => {
+                    setCustomTip('');
+                    setTipAmount(BigNumber.from(0));
+                    setOpenTipPanel(false);
+                  }}
+                >
+                  None
+                </Button>
+                {defaultTipPercs.map(t => (
+                  <Button
+                    value={t}
+                    borderColor="blue.1"
+                    backgroundColor={tipPerc === t && 'blue.1'}
+                    color={tipPerc === t && 'white'}
+                    _hover={{
+                      backgroundColor:
+                        tipPerc === t && 'rgba(61, 136, 248, 0.7)',
+                    }}
+                    _active={{
+                      backgroundColor:
+                        tipPerc === t && 'rgba(61, 136, 248, 0.7)',
+                    }}
+                    borderWidth={1}
+                    flexDir="column"
+                    width={100}
+                    gap={1}
+                    minHeight={50}
+                    onClick={e => {
+                      setTipPerc(t);
+                      if (t && !isNaN(Number(t))) {
+                        const p = BigNumber.from(total).mul(t).div(100);
+                        setTipAmount(p);
+                      } else {
+                        setTipAmount(BigNumber.from(0));
+                      }
+                    }}
+                  >
+                    <Heading fontSize={12}>{`${t}%`}</Heading>
+                    <Text>
+                      {(utils.formatUnits(total, decimals) * t) / 100}
+                    </Text>
+                    {/* <Text fontSize={10}>{symbol}</Text> */}
+                  </Button>
+                ))}
+                <Button
+                  value="custom"
+                  borderColor="blue.1"
+                  backgroundColor={tipPerc === 'custom' && 'blue.1'}
+                  color={tipPerc === 'custom' && 'white'}
+                  _hover={{
+                    backgroundColor:
+                      tipPerc === 'custom' && 'rgba(61, 136, 248, 0.7)',
+                  }}
+                  _active={{
+                    backgroundColor:
+                      tipPerc === 'custom' && 'rgba(61, 136, 248, 0.7)',
+                  }}
+                  borderWidth={1}
+                  width={100}
+                  minHeight={50}
+                  onClick={e => {
+                    const v = e.currentTarget.value;
+                    setTipPerc(v);
+                    if (customTip && !isNaN(Number(customTip))) {
+                      const p = utils.parseUnits(customTip, decimals);
+                      setTipAmount(p);
+                    } else {
+                      setTipAmount(BigNumber.from(0));
+                    }
+                  }}
+                >
+                  Custom
+                </Button>
+              </ButtonGroup>
+              {tipPerc === 'custom' && (
+                <InputGroup maxWidth={300}>
+                  <Input
+                    type="number"
+                    value={customTip}
+                    onChange={e => {
+                      const v = e.currentTarget.value;
+                      setCustomTip(v);
+                      if (v && !isNaN(Number(v))) {
+                        const p = utils.parseUnits(v, decimals);
+                        setTipAmount(p);
+                      } else {
+                        setTipAmount(BigNumber.from(0));
+                      }
+                    }}
+                    placeholder={'Enter tip amount'}
+                    color="#323C47"
+                    borderColor="lightgrey"
+                    textAlign="right"
+                  />
+                  <InputRightAddon
+                    bg="white"
+                    color="black"
+                    border="1px"
+                    borderColor="lightgrey"
+                    borderLeftRadius={0}
+                  >
+                    <Text>
+                      {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
+                    </Text>
+                  </InputRightAddon>
+                </InputGroup>
+              )}
+            </>
+          )}
+        </VStack>
+      )}
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {deposited && (
           <VStack align="flex-start">
-            <Text fontWeight="bold">Total Deposited</Text>
+            <Text fontWeight="bold">Total Paid</Text>
             <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
           </VStack>
         )}
-        {deposited && (
-          <VStack align="flex-start">
-            <Text fontWeight="bold">Potential Dispute Fee</Text>
-            <Text>{`${(
-              (utils.formatUnits(amount, decimals) -
-                utils.formatUnits(deposited, decimals)) *
-              calculateResolutionFeePercentage(invoice.resolutionRate)
-            ).toFixed(6)} ${symbol}`}</Text>
-          </VStack>
-        )}
-        {due && (
-          <VStack>
-            <Text fontWeight="bold">Total Due</Text>
-            <Text>{`${utils.formatUnits(due, decimals)} ${symbol}`}</Text>
+        {totalPayment && (
+          <VStack color="black">
+            <Text fontWeight="bold">Total Payment</Text>
+            <Heading size="lg">
+              {utils.formatUnits(totalPayment, decimals)}{' '}
+              {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
+            </Heading>
           </VStack>
         )}
         {balance && (
@@ -340,6 +458,24 @@ export const DepositFunds = ({
           </VStack>
         )}
       </Flex>
+      {paymentType === 0 && allowance.lt(totalPayment) && (
+        <Button
+          onClick={approve}
+          isLoading={loading}
+          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+          color="white"
+          backgroundColor="blue.4"
+          isDisabled={amount.lte(0)}
+          textTransform="uppercase"
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="normal"
+          w="100%"
+        >
+          Approve
+        </Button>
+      )}
       <Button
         onClick={deposit}
         isLoading={loading}
@@ -347,14 +483,16 @@ export const DepositFunds = ({
         _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
         color="white"
         backgroundColor="blue.1"
-        isDisabled={amount.lte(0)}
+        isDisabled={
+          amount.lte(0) || (allowance.lt(totalPayment) && paymentType === 0)
+        }
         textTransform="uppercase"
         size={buttonSize}
         fontFamily="mono"
         fontWeight="normal"
         w="100%"
       >
-        Deposit
+        Pay
       </Button>
       {transaction && (
         <Text color="black" textAlign="center" fontSize="sm">

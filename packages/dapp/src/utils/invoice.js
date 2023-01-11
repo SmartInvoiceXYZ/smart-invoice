@@ -174,3 +174,16 @@ export const getLateFee = async (ethersProvider, address) => {
     timeInterval: await contract.lateFeeTimeInterval(),
   };
 };
+
+export const depositTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function depositTokens(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.depositTokens(tokenAddress, amount);
+};

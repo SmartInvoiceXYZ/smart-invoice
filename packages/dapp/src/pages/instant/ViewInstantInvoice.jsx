@@ -545,7 +545,9 @@ export const ViewInstantInvoice = ({
                 <DepositFunds
                   invoice={invoice}
                   deposited={deposited}
-                  due={due}
+                  due={totalDue}
+                  total={total}
+                  fulfilled={fulfilled}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
