@@ -27,7 +27,7 @@ import { Loader } from '../../components/Loader';
 import { LockFunds } from '../../components/LockFunds';
 import { ReleaseFunds } from '../../components/ReleaseFunds';
 import { ResolveFunds } from '../../components/ResolveFunds';
-import { WithdrawFunds } from '../../components/WithdrawFunds';
+import { WithdrawFunds } from '../../components/instant/WithdrawFunds';
 import { AddMilestones } from '../../components/AddMilestones';
 import { VerifyInvoice } from '../../components/VerifyInvoice';
 import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
@@ -219,7 +219,7 @@ export const ViewInstantInvoice = ({
   const isReleasable = balance.gte(amount) && balance.gt(0);
   const isLockable = !isExpired && !isLocked && balance.gt(0);
   const isTippable = fulfilled;
-  const isWithdrawable = balance.gte(amount) && balance.gt(0);
+  const isWithdrawable = balance.gt(0);
 
   const onDeposit = () => {
     setSelected(1);
@@ -443,7 +443,7 @@ export const ViewInstantInvoice = ({
               fontSize="lg"
               mb="1rem"
             >
-              <Text>Paid</Text>
+              <Text>Deposited</Text>
               <Text>{`(${utils.formatUnits(
                 totalFulfilled,
                 decimals,
@@ -468,7 +468,7 @@ export const ViewInstantInvoice = ({
               )} ${symbol}`}</Text>{' '}
             </Flex>
           </Flex>
-          {isClient && (
+          {/* {isClient && (
             <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
               {isReleasable && (
                 <Button
@@ -505,8 +505,8 @@ export const ViewInstantInvoice = ({
                 {isReleasable ? 'Release' : 'Deposit'}
               </Button>
             </SimpleGrid>
-          )}
-          {!isClient && (
+          )} */}
+          {isClient && (
             <VStack>
               <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
                 <Button
@@ -521,6 +521,25 @@ export const ViewInstantInvoice = ({
                   onClick={() => onDeposit()}
                 >
                   Make Payment
+                </Button>
+              </SimpleGrid>
+            </VStack>
+          )}
+          {isProvider && (
+            <VStack>
+              <SimpleGrid columns={1} spacing="1rem" w="100%">
+                <Button
+                  size={buttonSize}
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onWithdraw()}
+                >
+                  Receive
                 </Button>
               </SimpleGrid>
             </VStack>
@@ -552,14 +571,14 @@ export const ViewInstantInvoice = ({
                   close={() => setModal(false)}
                 />
               )}
-              {modal && selected === 2 && (
+              {/* {modal && selected === 2 && (
                 <ReleaseFunds
                   invoice={invoice}
                   balance={balance}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
-              )}
+              )} */}
               {modal && selected === 4 && (
                 <WithdrawFunds
                   invoice={invoice}
