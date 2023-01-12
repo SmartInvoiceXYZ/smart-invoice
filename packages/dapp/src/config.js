@@ -65,5 +65,20 @@ export const CONFIG = {
         },
       },
     },
+    31337: {
+      SUBGRAPH: 'psparacino/goerli-smart-invoices',
+      WRAPPED_NATIVE_TOKEN:
+        '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),
+      INVOICE_FACTORY:
+        '0x5FbDB2315678afecb367f032d93F642f64180aa3'.toLowerCase(),
+      RESOLVERS: {
+        ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
+          name: 'LexDAO',
+          logoUrl: LexDAOLogo,
+          termsUrl:
+            'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+        },
+      },
+    },
   },
 };

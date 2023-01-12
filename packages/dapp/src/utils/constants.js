@@ -7,12 +7,18 @@ const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
 export { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT };
 
+export const INVOICE_TYPES = {
+  Escrow: 'escrow',
+  Instant: 'instant',
+};
+
 export const chainIds = {
   xdai: 100,
   mainnet: 1,
   rinkeby: 4,
   goerli: 5,
   kovan: 42,
+  hardhat: 31337,
 };
 
 export const hexChainIds = {
@@ -21,6 +27,7 @@ export const hexChainIds = {
   rinkeby: '0x04',
   goerli: '0x05',
   kovan: '0x2a',
+  hardhat: '0x7a69',
 };
 
 export const networkLabels = {
@@ -33,6 +40,7 @@ export const networkLabels = {
   56: 'BSC',
   77: 'Sokol',
   137: 'Matic',
+  31337: 'Hardhat',
 };
 
 export const networkNames = {
@@ -41,6 +49,7 @@ export const networkNames = {
   5: 'Goerli Testnet',
   42: 'Kovan Testnet',
   100: 'Gnosis Chain',
+  31337: 'Hardhat',
 };
 
 export const rpcUrls = {
@@ -65,6 +74,7 @@ export const nativeSymbols = {
   5: 'ETH',
   42: 'ETH',
   100: 'XDAI',
+  31337: 'ETH',
 };
 
 export const graphUrls = {
@@ -72,6 +82,7 @@ export const graphUrls = {
   4: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[4].SUBGRAPH}`,
   5: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[5].SUBGRAPH}`,
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
+  31337: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[31337].SUBGRAPH}`,
 };
 
 export const resolvers = {
@@ -79,12 +90,14 @@ export const resolvers = {
   4: Object.keys(NETWORK_CONFIG[4].RESOLVERS),
   5: Object.keys(NETWORK_CONFIG[5].RESOLVERS),
   100: Object.keys(NETWORK_CONFIG[100].RESOLVERS),
+  31337: Object.keys(NETWORK_CONFIG[31337].RESOLVERS),
 };
 
 export const resolverInfo = {
   1: NETWORK_CONFIG[1].RESOLVERS,
   4: NETWORK_CONFIG[4].RESOLVERS,
   100: NETWORK_CONFIG[100].RESOLVERS,
+  31337: NETWORK_CONFIG[31337].RESOLVERS,
 };
 
 export const wrappedNativeToken = {
@@ -92,6 +105,7 @@ export const wrappedNativeToken = {
   4: NETWORK_CONFIG[4].WRAPPED_NATIVE_TOKEN,
   5: NETWORK_CONFIG[5].WRAPPED_NATIVE_TOKEN,
   100: NETWORK_CONFIG[100].WRAPPED_NATIVE_TOKEN,
+  31337: NETWORK_CONFIG[31337].WRAPPED_NATIVE_TOKEN,
 };
 
 export const invoiceFactory = {
@@ -99,6 +113,7 @@ export const invoiceFactory = {
   4: NETWORK_CONFIG[4].INVOICE_FACTORY,
   5: NETWORK_CONFIG[5].INVOICE_FACTORY,
   100: NETWORK_CONFIG[100].INVOICE_FACTORY,
+  31337: NETWORK_CONFIG[31337].INVOICE_FACTORY,
 };
 
 export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
@@ -109,7 +124,7 @@ export const INVOICE_VERSION = 'smart-invoice-v0';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
-export const STEPS = {
+export const ESCROW_STEPS = {
   1: {
     step_title: 'Project Details',
     step_details: [],
@@ -126,6 +141,24 @@ export const STEPS = {
     next: 'confirmation',
   },
   4: {
+    step_title: 'Confirmation',
+    step_details: [],
+    next: 'create invoice',
+  },
+};
+
+export const INSTANT_STEPS = {
+  1: {
+    step_title: 'Project Details',
+    step_details: [],
+    next: 'payment details',
+  },
+  2: {
+    step_title: 'Payment Details',
+    step_details: [],
+    next: 'confirm invoice',
+  },
+  3: {
     step_title: 'Confirmation',
     step_details: [],
     next: 'create invoice',

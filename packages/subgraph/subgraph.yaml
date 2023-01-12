@@ -16,7 +16,7 @@ dataSources:
       # startBlock: 7640975
       # startBlock: 8000321
       # startBlock: 8036657 
-      startBlock: 8062683
+      startBlock: 8123768
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -44,7 +44,7 @@ dataSources:
       abi: SmartInvoiceFactory01
       # prettier-ignore
       # startBlock: 7952451
-      startBlock: 8062683
+      startBlock: 8123768
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

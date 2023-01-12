@@ -39,6 +39,8 @@ type Invoice @entity {
   # left nullable to allow for previous factory
   invoiceType: String
   version: BigInt
+  lateFee: BigInt
+  lateFeeTimeInterval: BigInt
   tipAmount: [Tip!]!
 }
 

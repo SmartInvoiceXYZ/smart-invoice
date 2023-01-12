@@ -1,14 +1,14 @@
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 
-import { CreateContext } from '../context/CreateContext';
+import { CreateContext } from '../../context/CreateContext';
 import {
   OrderedInput,
   OrderedLinkInput,
   OrderedTextarea,
-} from '../shared/OrderedInput';
+} from '../../shared/OrderedInput';
 
-import { formatDate } from '../utils/helpers';
+import { formatDate } from '../../utils/helpers';
 
 export const ProjectDetailsForm = ({ display }) => {
   const {
@@ -31,10 +31,6 @@ export const ProjectDetailsForm = ({ display }) => {
 
   const startDateString = startDate ? formatDate(startDate) : '';
   const endDateString = endDate ? formatDate(endDate) : '';
-  const safetyValveDateString = safetyValveDate
-    ? formatDate(safetyValveDate)
-    : '';
-
   const [nameInvalid, setNameInvalid] = useState(false);
   const [dateInvalid, setDateInvalid] = useState(false);
 
@@ -73,7 +69,7 @@ export const ProjectDetailsForm = ({ display }) => {
       <SimpleGrid
         w="100%"
         spacing="1rem"
-        columns={{ base: 1, sm: 2, md: 3 }}
+        columns={{ base: 1, sm: 2, md: 2 }}
         mb={dateInvalid ? '-0.5rem' : ''}
       >
         <OrderedInput
@@ -92,7 +88,7 @@ export const ProjectDetailsForm = ({ display }) => {
           required="optional"
           tooltip="This is the date you expect to complete work on this project."
         />
-        <OrderedInput
+        {/* <OrderedInput
           gridArea={{
             base: 'auto/auto/auto/auto',
             sm: '2/1/2/span 2',
@@ -109,7 +105,7 @@ export const ProjectDetailsForm = ({ display }) => {
           tooltip="If you do not complete this project by this date, the client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
           isInvalid={dateInvalid}
           required="required"
-        />
+        /> */}
       </SimpleGrid>
       {dateInvalid && (
         <Text

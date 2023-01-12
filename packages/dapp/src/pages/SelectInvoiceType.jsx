@@ -9,14 +9,22 @@ import {
 } from '@chakra-ui/react';
 import React, { useEffect, useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { CreateContext } from '../context/CreateContext';
+import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 
 import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
 
 export const SelectInvoiceType = () => {
+  return (
+    <CreateContextProvider>
+      <SelectInvoiceTypeInner />
+    </CreateContextProvider>
+  );
+};
+
+export const SelectInvoiceTypeInner = () => {
   const { connectAccount, account } = useWeb3();
-  const { setInvoiceType } = useContext(CreateContext);
+  const { invoiceType, setInvoiceType } = useContext(CreateContext);
 
   const history = useHistory();
   const [isMobile, onMobile] = useState(false);
@@ -37,8 +45,8 @@ export const SelectInvoiceType = () => {
   const createType = async invoiceType => {
     try {
       await connectAccount();
-      history.push(`/create/${invoiceType}`);
       setInvoiceType(invoiceType);
+      history.push(`/create/${invoiceType}`);
     } catch {
       logError("Couldn't connect web3 wallet");
     }
@@ -97,6 +105,7 @@ export const SelectInvoiceType = () => {
             <Text mt={4}>Recommended for medium to large projects</Text>
           </Box>
         </Button>
+
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
