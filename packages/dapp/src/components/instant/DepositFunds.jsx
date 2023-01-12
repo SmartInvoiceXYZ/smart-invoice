@@ -359,7 +359,10 @@ export const DepositFunds = ({
                   >
                     <Heading fontSize={12}>{`${t}%`}</Heading>
                     <Text>
-                      {(utils.formatUnits(total, decimals) * t) / 100}
+                      {utils.formatUnits(
+                        BigNumber.from(total).mul(t).div(100),
+                        decimals,
+                      )}
                     </Text>
                     {/* <Text fontSize={10}>{symbol}</Text> */}
                   </Button>

@@ -150,9 +150,13 @@ export const getTotalDue = async (ethersProvider, address) => {
 export const getTotalFulfilled = async (ethersProvider, address) => {
   const abi = new utils.Interface([
     'function totalFulfilled() public view returns(uint256)',
+    'function fulfilled() public view returns (bool)',
   ]);
   const contract = new Contract(address, abi, ethersProvider);
-  return contract.totalFulfilled();
+  return {
+    amount: await contract.totalFulfilled(),
+    isFulfilled: await contract.fulfilled(),
+  };
 };
 
 export const getDeadline = async (ethersProvider, address) => {

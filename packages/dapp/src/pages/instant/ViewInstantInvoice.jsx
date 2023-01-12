@@ -77,6 +77,7 @@ export const ViewInstantInvoice = ({
   const [verifiedStatus, setVerifiedStatus] = useState(false);
   const [totalDue, setTotalDue] = useState(BigNumber.from(0));
   const [totalFulfilled, setTotalFulfilled] = useState(BigNumber.from(0));
+  const [fulfilled, setFulfilled] = useState(false);
   const [deadline, setDeadline] = useState(0);
   const [lateFeeAmount, setLateFeeAmount] = useState(BigNumber.from(0));
   const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
@@ -144,7 +145,8 @@ export const ViewInstantInvoice = ({
     // Get Total Fulfilled
     try {
       const tf = await getTotalFulfilled(provider, invoice.address);
-      setTotalFulfilled(tf);
+      setTotalFulfilled(tf.amount);
+      setFulfilled(tf.isFulfilled);
     } catch (totalFulfilledError) {
       logError({ totalFulfilledError });
     }
@@ -173,10 +175,6 @@ export const ViewInstantInvoice = ({
       </Container>
     );
   }
-
-  const fulfilled = false;
-  const lateFee = 10;
-  // const lateFeeTimeInterval = 14 * 1000 * 24 * 60 * 60;
 
   const {
     projectName,
@@ -208,29 +206,17 @@ export const ViewInstantInvoice = ({
   );
 
   const deposited = BigNumber.from(released).add(balance);
-  const due = deposited.gte(total)
-    ? BigNumber.from(0)
-    : BigNumber.from(total).sub(deposited);
-  const isExpired = terminationTime <= new Date().getTime() / 1000;
+  const due =
+    totalFulfilled.gte(totalDue) || fulfilled
+      ? BigNumber.from(0)
+      : BigNumber.from(totalDue).sub(totalFulfilled);
 
-  const amount = BigNumber.from(
-    currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
-  );
-  const isReleasable = balance.gte(amount) && balance.gt(0);
-  const isLockable = !isExpired && !isLocked && balance.gt(0);
   const isTippable = fulfilled;
   const isWithdrawable = balance.gt(0);
 
   const onDeposit = () => {
     setSelected(1);
     setModal(true);
-  };
-
-  const onRelease = async () => {
-    if (isReleasable && isProvider) {
-      setSelected(2);
-      setModal(true);
-    }
   };
 
   const onTip = async () => {
@@ -246,17 +232,6 @@ export const ViewInstantInvoice = ({
       setModal(true);
     }
   };
-
-  let gridColumns = 1;
-  // if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
-  //   gridColumns = { base: 2, sm: 3 };
-  // } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
-  //   gridColumns = 2;
-  // } else {
-  //   gridColumns = 1;
-  // }
-
-  let sum = BigNumber.from(0);
 
   return (
     <Container overlay>
@@ -461,54 +436,16 @@ export const ViewInstantInvoice = ({
               fontWeight="bold"
               fontSize="lg"
             >
-              <Text>Total Due</Text>
+              <Text>{totalFulfilled.gt(0) ? 'Remaining' : 'Total'} Due</Text>
               <Text textAlign="right">{`${utils.formatUnits(
-                totalDue,
+                due,
                 decimals,
               )} ${symbol}`}</Text>{' '}
             </Flex>
           </Flex>
-          {/* {isClient && (
-            <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
-              {isReleasable && (
-                <Button
-                  size={buttonSize}
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
-                  fontWeight="bold"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Pay
-                </Button>
-              )}
-              <Button
-                size={buttonSize}
-                gridArea={{
-                  base: Number.isInteger(gridColumns)
-                    ? 'auto/auto/auto/auto'
-                    : '2/1/2/span 2',
-                  sm: 'auto/auto/auto/auto',
-                }}
-                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                color="white"
-                backgroundColor="blue.1"
-                fontWeight="bold"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => (isReleasable ? onRelease() : onDeposit())}
-              >
-                {isReleasable ? 'Release' : 'Deposit'}
-              </Button>
-            </SimpleGrid>
-          )} */}
           {isClient && (
             <VStack>
-              <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+              <SimpleGrid columns={1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -519,8 +456,9 @@ export const ViewInstantInvoice = ({
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
+                  isDisabled={fulfilled}
                 >
-                  Make Payment
+                  {fulfilled ? 'Paid' : 'Make Payment'}
                 </Button>
               </SimpleGrid>
             </VStack>
@@ -538,8 +476,9 @@ export const ViewInstantInvoice = ({
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onWithdraw()}
+                  isDisabled={!balance.gt(0)}
                 >
-                  Receive
+                  {balance.eq(0) && fulfilled ? 'Received' : 'Received'}
                 </Button>
               </SimpleGrid>
             </VStack>
@@ -571,14 +510,6 @@ export const ViewInstantInvoice = ({
                   close={() => setModal(false)}
                 />
               )}
-              {/* {modal && selected === 2 && (
-                <ReleaseFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )} */}
               {modal && selected === 4 && (
                 <WithdrawFunds
                   invoice={invoice}
