@@ -29,7 +29,7 @@ import { FilterIcon } from '../icons/FilterIcon';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
-  const { isLocked, terminationTime } = invoice;
+  const { isLocked, terminationTime, invoiceType } = invoice;
   const terminated = terminationTime > Date.now();
   const disputeResolved = label === 'Dispute Resolved';
   return (
@@ -40,6 +40,8 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
           : terminated || disputeResolved || label === 'Expired'
           ? '#C2CFE0'
           : isLocked
+          ? '#F7685B'
+          : label === 'Overdue'
           ? '#F7685B'
           : funded
           ? '#2ED47A'
