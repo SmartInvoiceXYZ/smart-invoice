@@ -39,7 +39,7 @@ import {
   logError,
   calculateResolutionFeePercentage,
 } from '../../utils/helpers';
-import { depositTokens } from '../../utils/invoice';
+import { depositTokens, tipTokens } from '../../utils/invoice';
 
 const getCheckedStatus = (deposited, amounts) => {
   let sum = BigNumber.from(0);
@@ -99,7 +99,11 @@ export const DepositFunds = ({
           .getSigner()
           .sendTransaction({ to: address, value: totalPayment });
       } else {
-        tx = await depositTokens(token, totalPayment);
+        if (fulfilled) {
+          tx = await tipTokens(token, totalPayment);
+        } else {
+          tx = await depositTokens(token, totalPayment);
+        }
       }
       setTransaction(tx);
       await tx.wait();
@@ -185,7 +189,7 @@ export const DepositFunds = ({
         textAlign="center"
         color="black"
       >
-        Pay Invoice
+        {fulfilled ? 'Add Tip' : 'Pay Invoice'}
       </Heading>
       {depositError ? (
         <Flex>
@@ -199,7 +203,7 @@ export const DepositFunds = ({
       ) : null}
 
       <Text textAlign="center" color="black">
-        How much will you be depositing today?
+        How much will you be {fulfilled ? 'tipping' : 'depositing'} today?
       </Text>
       <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
         <Flex justify="space-between" w="100%">
@@ -216,29 +220,31 @@ export const DepositFunds = ({
           </Flex>
         </Flex>
         <InputGroup>
-          <InputLeftElement>
-            <Text
-              color="blue.1"
-              mb={0}
-              _hover={{ textDecoration: 'underline' }}
-              cursor="pointer"
-              textAlign="right"
-              onClick={() => {
-                const newAmount = due;
-                if (newAmount) {
-                  setAmount(newAmount);
-                  const newAmountInput = utils
-                    .formatUnits(newAmount, decimals)
-                    .toString();
-                  setAmountInput(newAmountInput);
-                } else {
-                  setAmount(BigNumber.from(0));
-                }
-              }}
-            >
-              Max
-            </Text>
-          </InputLeftElement>
+          {!fulfilled && (
+            <InputLeftElement>
+              <Text
+                color="blue.1"
+                mb={0}
+                _hover={{ textDecoration: 'underline' }}
+                cursor="pointer"
+                textAlign="right"
+                onClick={() => {
+                  const newAmount = due;
+                  if (newAmount) {
+                    setAmount(newAmount);
+                    const newAmountInput = utils
+                      .formatUnits(newAmount, decimals)
+                      .toString();
+                    setAmountInput(newAmountInput);
+                  } else {
+                    setAmount(BigNumber.from(0));
+                  }
+                }}
+              >
+                Max
+              </Text>
+            </InputLeftElement>
+          )}
           <Input
             bg="white"
             color="black"
@@ -282,12 +288,12 @@ export const DepositFunds = ({
             )}
           </InputRightElement>
         </InputGroup>
-        {due && (
+        {due && !fulfilled && (
           <Text fontSize={12} mt={0}>
             Total Due: {`${utils.formatUnits(due, decimals)} ${symbol}`}
           </Text>
         )}
-        {amount.gt(due) && (
+        {amount.gt(due) && !fulfilled && (
           <Alert bg="none">
             <AlertIcon color="red.500" />
             <AlertTitle fontSize="sm">
@@ -295,7 +301,7 @@ export const DepositFunds = ({
             </AlertTitle>
           </Alert>
         )}
-        {!openTipPanel && amount.eq(due) && (
+        {!openTipPanel && amount.eq(due) && !fulfilled && (
           <Text
             textAlign="center"
             color="blue.1"

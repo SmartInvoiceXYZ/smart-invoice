@@ -221,14 +221,14 @@ export const ViewInstantInvoice = ({
 
   const onTip = async () => {
     if (isTippable) {
-      setSelected(3);
+      setSelected(1);
       setModal(true);
     }
   };
 
   const onWithdraw = async () => {
     if (isWithdrawable && isProvider) {
-      setSelected(4);
+      setSelected(2);
       setModal(true);
     }
   };
@@ -445,7 +445,7 @@ export const ViewInstantInvoice = ({
           </Flex>
           {isClient && (
             <VStack>
-              <SimpleGrid columns={1} spacing="1rem" w="100%">
+              <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -460,6 +460,29 @@ export const ViewInstantInvoice = ({
                 >
                   {fulfilled ? 'Paid' : 'Make Payment'}
                 </Button>
+                {isTippable && (
+                  <Button
+                    size={buttonSize}
+                    _hover={{
+                      backgroundColor: 'rgba(61, 136, 248, 1)',
+                      color: 'white',
+                    }}
+                    _active={{
+                      backgroundColor: 'rgba(61, 136, 248, 1)',
+                      color: 'white',
+                    }}
+                    color="blue.1"
+                    backgroundColor="white"
+                    borderWidth={1}
+                    borderColor="blue.1"
+                    fontWeight="bold"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onTip()}
+                  >
+                    Add Tip
+                  </Button>
+                )}
               </SimpleGrid>
             </VStack>
           )}
@@ -502,15 +525,19 @@ export const ViewInstantInvoice = ({
               {modal && selected === 1 && (
                 <DepositFunds
                   invoice={invoice}
-                  deposited={deposited}
-                  due={totalDue}
+                  deposited={totalFulfilled}
+                  due={
+                    totalDue.gte(totalFulfilled)
+                      ? totalDue.sub(totalFulfilled)
+                      : 0
+                  }
                   total={total}
                   fulfilled={fulfilled}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
-              {modal && selected === 4 && (
+              {modal && selected === 2 && (
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}

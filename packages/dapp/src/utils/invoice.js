@@ -191,3 +191,16 @@ export const depositTokens = async (
   const contract = new Contract(address, abi, ethersProvider.getSigner());
   return contract.depositTokens(tokenAddress, amount);
 };
+
+export const tipTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function tip(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.tip(tokenAddress, amount);
+};
