@@ -669,6 +669,203 @@ describe("SmartInvoiceInstant", function () {
     expect(totalDue).to.equal(10 + 10);
   });
 
+  it("Should getTotalDue and return total if 0 late fee or 0 deadline", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      0,
+      0,
+    );
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    await token.mint(client.address, 20);
+    const totalDue = await invoice.getTotalDue();
+    expect(totalDue).to.equal(10);
+  });
+
+  it("Should getTotalDue and return sum of total + lateFee based on fulfillTime", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await token.mint(client.address, 25);
+    await token.connect(client).approve(invoice.address, 25);
+    const preReceipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 5);
+    expect(preReceipt)
+      .to.not.emit(invoice, "Fulfilled")
+      .withArgs(client.address);
+    expect(await invoice.getTotalDue()).to.equal(10);
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 15);
+    expect(receipt).to.emit(invoice, "Fulfilled").withArgs(client.address);
+    const totalDueAtFulfill = await invoice.getTotalDue();
+    expect(totalDueAtFulfill).to.equal(10 + 10);
+    const blockTimestamp = (await waffleProvider.getBlock(receipt.blockNumber))
+      .timestamp;
+    expect(await invoice.fulfilled()).to.equal(true);
+    expect(await invoice.fulfillTime()).to.equal(blockTimestamp);
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600 * 7,
+    ]);
+
+    const postReceipt = await invoice.connect(client).tip(token.address, 5);
+    const totalDuePostFulfill = await invoice.getTotalDue();
+    expect(totalDuePostFulfill).to.equal(totalDueAtFulfill);
+  });
+
+  it("Should tip and emit Tip event", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const depositReceipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(depositReceipt).to.emit("Fulfilled");
+
+    const tipReceipt = await invoice.connect(client).tip(token.address, 10);
+    expect(tipReceipt).to.emit("Tip").withArgs(client.address, 10);
+  });
+
+  it("Should tip and add amount to totalFulfilled", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const depositReceipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(depositReceipt).to.emit("Fulfilled");
+    expect(await invoice.totalFulfilled()).to.equal(10);
+
+    const tipReceipt = await invoice.connect(client).tip(token.address, 10);
+    expect(tipReceipt).to.emit("Tip").withArgs(client.address, 10);
+    expect(await invoice.totalFulfilled()).to.equal(20);
+  });
+
+  it("Should revert tip if fulfilled is false", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const depositReceipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 5);
+    expect(depositReceipt).to.not.emit("Fulfilled");
+
+    const tipReceipt = invoice.connect(client).tip(token.address, 10);
+
+    expect(tipReceipt).to.be.revertedWith("!fulfilled");
+    expect(await invoice.fulfilled()).to.equal(false);
+    expect(await invoice.totalFulfilled()).to.equal(5);
+  });
+
+  it("Should revert tip if not token", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const depositReceipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 5);
+    expect(depositReceipt).to.not.emit("Fulfilled");
+
+    const tipReceipt = invoice.connect(client).tip(otherMockToken.address, 10);
+
+    expect(tipReceipt).to.be.revertedWith("!token");
+    expect(await invoice.fulfilled()).to.equal(false);
+    expect(await invoice.totalFulfilled()).to.equal(5);
+  });
+
   it("Should depositTokens and fulfill with applied late fees", async function () {
     const currentTime = await currentTimestamp();
     invoice = await SmartInvoiceInstant.deploy();
@@ -699,11 +896,53 @@ describe("SmartInvoiceInstant", function () {
       .depositTokens(token.address, 10);
     expect(receipt).to.not.emit(invoice, "Fulfilled");
     expect(await invoice.fulfilled()).to.equal(false);
+    expect(await invoice.fulfillTime()).to.equal(0);
     const receipt2 = await invoice
       .connect(client)
       .depositTokens(token.address, 10);
     expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
     expect(await invoice.fulfilled()).to.equal(true);
+  });
+
+  it("Should depositTokens and update fulfillTime", async function () {
+    const currentTime = await currentTimestamp();
+    invoice = await SmartInvoiceInstant.deploy();
+    await invoice.deployed();
+    await createInstantInvoice(
+      invoice,
+      client.address,
+      provider.address,
+      token.address,
+      [10],
+      currentTime + 1000,
+      EMPTY_BYTES32,
+      mockWrappedNativeToken.address,
+      lateFeeAmount,
+      lateFeeTimeInterval,
+    );
+
+    await waffleProvider.send("evm_setNextBlockTimestamp", [
+      currentTime + 1000 + 3600,
+    ]);
+
+    await token.mint(client.address, 20);
+    await token.connect(client).approve(invoice.address, 20);
+    const totalDue = await invoice.getTotalDue();
+    expect(totalDue).to.equal(10 + 10);
+    const receipt = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(receipt).to.not.emit(invoice, "Fulfilled");
+    expect(await invoice.fulfilled()).to.equal(false);
+    expect(await invoice.fulfillTime()).to.equal(0);
+    const receipt2 = await invoice
+      .connect(client)
+      .depositTokens(token.address, 10);
+    expect(receipt2).to.emit(invoice, "Fulfilled").withArgs(client.address);
+    expect(await invoice.fulfilled()).to.equal(true);
+    const blockTimestamp = (await waffleProvider.getBlock(receipt2.blockNumber))
+      .timestamp;
+    expect(await invoice.fulfillTime()).to.equal(blockTimestamp);
   });
 
   it("Should receive and fulfill with applied late fees", async function () {

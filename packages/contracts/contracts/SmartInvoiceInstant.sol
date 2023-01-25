@@ -32,6 +32,7 @@ contract SmartInvoiceInstant is
     uint256 public total = 0;
     uint256 public totalFulfilled = 0;
     bool public fulfilled;
+    uint256 public fulfillTime = 0;
     uint256 public constant MAX_DEADLINE = 63113904; // 2-year limit on locker
 
     uint256 public lateFee = 0;
@@ -69,8 +70,18 @@ contract SmartInvoiceInstant is
     function getTotalDue() public view override returns (uint256) {
         uint256 totalLateFee = 0;
         if (block.timestamp > deadline && deadline > 0) {
-            uint256 timeAfterDeadline = block.timestamp - deadline;
-            if (timeAfterDeadline >= lateFeeTimeInterval) {
+            uint256 timeAfterDeadline = 0;
+            if (fulfilled && fulfillTime > 0) {
+                if (fulfillTime >= deadline) {
+                    timeAfterDeadline = fulfillTime - deadline;
+                }
+            } else {
+                timeAfterDeadline = block.timestamp - deadline;
+            }
+            if (
+                timeAfterDeadline >= lateFeeTimeInterval &&
+                lateFeeTimeInterval != 0
+            ) {
                 totalLateFee =
                     lateFee *
                     (timeAfterDeadline / lateFeeTimeInterval);
@@ -107,11 +118,20 @@ contract SmartInvoiceInstant is
         }
     }
 
+    function tip(address _token, uint256 _amount) external nonReentrant {
+        require(fulfilled, "!fulfilled");
+        require(_token == token, "!token");
+        totalFulfilled += _amount;
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        emit Tip(_msgSender(), _amount);
+    }
+
     function _deposit(uint256 _amount) internal {
         uint256 totalDue = getTotalDue();
         totalFulfilled += _amount;
         if (totalFulfilled >= totalDue) {
             fulfilled = true;
+            fulfillTime = block.timestamp;
             emit Fulfilled(_msgSender());
             if (totalFulfilled > totalDue)
                 emit Tip(_msgSender(), totalFulfilled - totalDue);

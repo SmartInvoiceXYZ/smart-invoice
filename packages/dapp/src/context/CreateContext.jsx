@@ -223,21 +223,24 @@ export const CreateContextProvider = ({ children }) => {
 
       const factoryAddress = getInvoiceFactoryAddress(chainId);
 
+      let paymentAmounts = [BigNumber.from(0)];
       if (invoiceType === Escrow) {
         const escrowInfo = encodeEscrowData(factoryAddress);
         type = escrowInfo.type;
         data = escrowInfo.data;
+        paymentAmounts = payments;
       } else if (invoiceType === Instant) {
         const instantInfo = encodeInstantData(factoryAddress);
         type = instantInfo.type;
         data = instantInfo.data;
+        paymentAmounts = [paymentDue];
       }
 
       const transaction = await register(
         factoryAddress,
         rpcProvider,
         paymentAddress,
-        payments,
+        paymentAmounts,
         data,
         type,
       ).catch(registerError => {
@@ -258,6 +261,9 @@ export const CreateContextProvider = ({ children }) => {
     paymentToken,
     payments,
     safetyValveDate,
+    deadline,
+    lateFee,
+    lateFeeInterval,
     detailsHash,
     requireVerification,
     step1Valid,

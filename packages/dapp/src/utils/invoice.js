@@ -137,3 +137,70 @@ export const unixToDateTime = unixTimestamp => {
 
   return humanDateFormat;
 };
+
+// Functions for Instant type
+export const getTotalDue = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function getTotalDue() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.getTotalDue();
+};
+
+export const getTotalFulfilled = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function totalFulfilled() public view returns(uint256)',
+    'function fulfilled() public view returns (bool)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.totalFulfilled(),
+    isFulfilled: await contract.fulfilled(),
+  };
+};
+
+export const getDeadline = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function deadline() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.deadline();
+};
+
+export const getLateFee = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function lateFee() public view returns(uint256)',
+    'function lateFeeTimeInterval() public view returns (uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.lateFee(),
+    timeInterval: await contract.lateFeeTimeInterval(),
+  };
+};
+
+export const depositTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function depositTokens(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.depositTokens(tokenAddress, amount);
+};
+
+export const tipTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function tip(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.tip(tokenAddress, amount);
+};

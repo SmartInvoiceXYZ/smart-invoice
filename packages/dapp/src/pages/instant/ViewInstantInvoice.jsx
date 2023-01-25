@@ -22,12 +22,12 @@ import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { DepositFunds } from '../../components/DepositFunds';
+import { DepositFunds } from '../../components/instant/DepositFunds';
 import { Loader } from '../../components/Loader';
 import { LockFunds } from '../../components/LockFunds';
 import { ReleaseFunds } from '../../components/ReleaseFunds';
 import { ResolveFunds } from '../../components/ResolveFunds';
-import { WithdrawFunds } from '../../components/WithdrawFunds';
+import { WithdrawFunds } from '../../components/instant/WithdrawFunds';
 import { AddMilestones } from '../../components/AddMilestones';
 import { VerifyInvoice } from '../../components/VerifyInvoice';
 import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
@@ -50,6 +50,12 @@ import {
   logError,
   getAgreementLink,
 } from '../../utils/helpers';
+import {
+  getDeadline,
+  getLateFee,
+  getTotalDue,
+  getTotalFulfilled,
+} from '../../utils/invoice';
 
 export const ViewInstantInvoice = ({
   match: {
@@ -69,6 +75,13 @@ export const ViewInstantInvoice = ({
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
   const [verifiedStatus, setVerifiedStatus] = useState(false);
+  const [totalDue, setTotalDue] = useState(BigNumber.from(0));
+  const [totalFulfilled, setTotalFulfilled] = useState(BigNumber.from(0));
+  const [fulfilled, setFulfilled] = useState(false);
+  const [deadline, setDeadline] = useState(0);
+  const [lateFeeAmount, setLateFeeAmount] = useState(BigNumber.from(0));
+  const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
+  const [lateFeeTotal, setLateFeeTotal] = useState(BigNumber.from(0));
 
   useEffect(() => {
     if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -78,27 +91,66 @@ export const ViewInstantInvoice = ({
 
   useEffect(() => {
     if (invoice && ethersProvider && chainId === invoiceChainId) {
-      setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => logError({ balanceError }));
+      getValues(ethersProvider, invoice);
+      // setBalanceLoading(true);
+      // balanceOf(ethersProvider, invoice.token, invoice.address)
+      //   .then(b => {
+      //     setBalance(b);
+      //     setBalanceLoading(false);
+      //   })
+      //   .catch(balanceError => logError({ balanceError }));
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
   useEffect(() => {
-    if (invoice && ethersProvider && chainId === invoiceChainId) {
-      setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => logError({ balanceError }));
+    if (invoice && totalDue !== BigNumber.from(0) && deadline) {
+      setLateFeeTotal(totalDue - BigNumber.from(invoice.total));
     }
-  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+  }, [invoice, deadline, totalDue]);
+
+  const getValues = async (provider, invoice) => {
+    // Get Balance
+    try {
+      setBalanceLoading(true);
+      const b = await balanceOf(provider, invoice.token, invoice.address);
+      setBalance(b);
+      setBalanceLoading(false);
+    } catch (balanceError) {
+      logError({ balanceError });
+    }
+
+    // Get Total Due
+    try {
+      const t = await getTotalDue(provider, invoice.address);
+      setTotalDue(BigNumber.from(t));
+    } catch (totalDueError) {
+      logError({ totalDueError });
+      setTotalDue(BigNumber.from(invoice.total));
+    }
+
+    // Get Deadline, Late Fee and its time interval
+    try {
+      const d = await getDeadline(provider, invoice.address);
+      setDeadline(BigNumber.from(d).toNumber());
+      const { amount, timeInterval } = await getLateFee(
+        provider,
+        invoice.address,
+      );
+      setLateFeeAmount(BigNumber.from(amount));
+      setLateFeeTimeInterval(BigNumber.from(timeInterval).toNumber());
+    } catch (lateFeeError) {
+      logError({ lateFeeError });
+    }
+
+    // Get Total Fulfilled
+    try {
+      const tf = await getTotalFulfilled(provider, invoice.address);
+      setTotalFulfilled(tf.amount);
+      setFulfilled(tf.isFulfilled);
+    } catch (totalFulfilledError) {
+      logError({ totalFulfilledError });
+    }
+  };
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -124,9 +176,6 @@ export const ViewInstantInvoice = ({
     );
   }
 
-  const lateFee = 10;
-  const lateFeeTimeInterval = '7 days';
-
   const {
     projectName,
     projectDescription,
@@ -136,22 +185,20 @@ export const ViewInstantInvoice = ({
     terminationTime,
     client,
     provider,
-    resolver,
     currentMilestone,
     amounts,
     total,
     token,
     released,
     isLocked,
-    deposits,
-    releases,
-    disputes,
-    resolutions,
-    verified,
+    // deadline,
+    // fulfilled,
+    // lateFee,
+    // lateFeeTimeInterval
   } = invoice;
 
   const isClient = account.toLowerCase() === client;
-  const isResolver = account.toLowerCase() === resolver.toLowerCase();
+  const isProvider = account.toLowerCase() === provider;
   const { decimals, symbol, image } = getTokenInfo(
     invoiceChainId,
     token,
@@ -159,71 +206,32 @@ export const ViewInstantInvoice = ({
   );
 
   const deposited = BigNumber.from(released).add(balance);
-  const due = deposited.gte(total)
-    ? BigNumber.from(0)
-    : BigNumber.from(total).sub(deposited);
-  const isExpired = terminationTime <= new Date().getTime() / 1000;
+  const due =
+    totalFulfilled.gte(totalDue) || fulfilled
+      ? BigNumber.from(0)
+      : BigNumber.from(totalDue).sub(totalFulfilled);
 
-  const amount = BigNumber.from(
-    currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
-  );
-  const isReleasable = !isLocked && balance.gte(amount) && balance.gt(0);
-  const isLockable = !isExpired && !isLocked && balance.gt(0);
-  const dispute =
-    isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
-  const resolution =
-    !isLocked && resolutions.length > 0
-      ? resolutions[resolutions.length - 1]
-      : undefined;
-
-  const onLock = () => {
-    setSelected(0);
-    setModal(true);
-  };
+  const isTippable = fulfilled;
+  const isWithdrawable = balance.gt(0);
 
   const onDeposit = () => {
     setSelected(1);
     setModal(true);
   };
 
-  const onRelease = async () => {
-    if (isReleasable && isClient) {
-      setSelected(2);
-      setModal(true);
-    }
-  };
-
-  const onResolve = async () => {
-    if (isResolver) {
-      setSelected(3);
+  const onTip = async () => {
+    if (isTippable) {
+      setSelected(1);
       setModal(true);
     }
   };
 
   const onWithdraw = async () => {
-    if (isExpired && isClient) {
-      setSelected(4);
+    if (isWithdrawable && isProvider) {
+      setSelected(2);
       setModal(true);
     }
   };
-
-  const onAddMilestones = async () => {
-    if (!isLocked & !isExpired) {
-      setSelected(5);
-      setModal(true);
-    }
-  };
-
-  let gridColumns;
-  if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
-    gridColumns = { base: 2, sm: 3 };
-  } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
-    gridColumns = 2;
-  } else {
-    gridColumns = 1;
-  }
-
-  let sum = BigNumber.from(0);
 
   return (
     <Container overlay>
@@ -310,11 +318,11 @@ export const ViewInstantInvoice = ({
                 <Text>{'Payment Deadline: '}</Text>
               </WrapItem>
               <WrapItem>
-                <Text fontWeight="bold">{getDateString(terminationTime)}</Text>
+                <Text fontWeight="bold">{getDateString(deadline)}</Text>
                 <Tooltip
-                  label={`The Safety Valve gets activated on ${new Date(
-                    terminationTime * 1000,
-                  ).toUTCString()}`}
+                  label={`Late fees start accumulating after ${new Date(
+                    deadline * 1000,
+                  ).toUTCString()} until total amount is paid.`}
                   placement="auto-start"
                 >
                   <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
@@ -388,11 +396,18 @@ export const ViewInstantInvoice = ({
                   fontStyle="italic"
                   color="grey"
                 >
-                  10 WETH every 7 days after 12/25/2022
+                  {deadline && lateFeeAmount
+                    ? `${utils.formatUnits(
+                        lateFeeAmount,
+                        decimals,
+                      )} ${symbol} every ${
+                        lateFeeTimeInterval / (1000 * 60 * 60 * 24)
+                      } days after ${getDateString(deadline)}`
+                    : `Not applicable`}
                 </Text>
               </Flex>
               <Text>{`${utils.formatUnits(
-                deposited,
+                lateFeeTotal,
                 decimals,
               )} ${symbol}`}</Text>
             </Flex>
@@ -403,9 +418,9 @@ export const ViewInstantInvoice = ({
               fontSize="lg"
               mb="1rem"
             >
-              <Text>Paid</Text>
+              <Text>Deposited</Text>
               <Text>{`(${utils.formatUnits(
-                released,
+                totalFulfilled,
                 decimals,
               )} ${symbol})`}</Text>
             </Flex>
@@ -421,54 +436,16 @@ export const ViewInstantInvoice = ({
               fontWeight="bold"
               fontSize="lg"
             >
-              <Text>Total Due</Text>
+              <Text>{totalFulfilled.gt(0) ? 'Remaining' : 'Total'} Due</Text>
               <Text textAlign="right">{`${utils.formatUnits(
-                balance,
+                due,
                 decimals,
               )} ${symbol}`}</Text>{' '}
             </Flex>
           </Flex>
           {isClient && (
-            <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
-              {isReleasable && (
-                <Button
-                  size={buttonSize}
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
-                  fontWeight="bold"
-                  fontFamily="mono"
-                  textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                >
-                  Pay
-                </Button>
-              )}
-              <Button
-                size={buttonSize}
-                gridArea={{
-                  base: Number.isInteger(gridColumns)
-                    ? 'auto/auto/auto/auto'
-                    : '2/1/2/span 2',
-                  sm: 'auto/auto/auto/auto',
-                }}
-                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                color="white"
-                backgroundColor="blue.1"
-                fontWeight="bold"
-                fontFamily="mono"
-                textTransform="uppercase"
-                onClick={() => (isReleasable ? onRelease() : onDeposit())}
-              >
-                {isReleasable ? 'Release' : 'Deposit'}
-              </Button>
-            </SimpleGrid>
-          )}
-          {!isClient && (
             <VStack>
-              <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
+              <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -479,8 +456,52 @@ export const ViewInstantInvoice = ({
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onDeposit()}
+                  isDisabled={fulfilled}
                 >
-                  Make Payment
+                  {fulfilled ? 'Paid' : 'Make Payment'}
+                </Button>
+                {isTippable && (
+                  <Button
+                    size={buttonSize}
+                    _hover={{
+                      backgroundColor: 'rgba(61, 136, 248, 1)',
+                      color: 'white',
+                    }}
+                    _active={{
+                      backgroundColor: 'rgba(61, 136, 248, 1)',
+                      color: 'white',
+                    }}
+                    color="blue.1"
+                    backgroundColor="white"
+                    borderWidth={1}
+                    borderColor="blue.1"
+                    fontWeight="bold"
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    onClick={() => onTip()}
+                  >
+                    Add Tip
+                  </Button>
+                )}
+              </SimpleGrid>
+            </VStack>
+          )}
+          {isProvider && (
+            <VStack>
+              <SimpleGrid columns={1} spacing="1rem" w="100%">
+                <Button
+                  size={buttonSize}
+                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                  color="white"
+                  backgroundColor="blue.1"
+                  fontWeight="bold"
+                  fontFamily="mono"
+                  textTransform="uppercase"
+                  onClick={() => onWithdraw()}
+                  isDisabled={!balance.gt(0)}
+                >
+                  {balance.eq(0) && fulfilled ? 'Received' : 'Received'}
                 </Button>
               </SimpleGrid>
             </VStack>
@@ -501,52 +522,25 @@ export const ViewInstantInvoice = ({
                 right="0.5rem"
                 color="gray"
               />
-              {modal && selected === 0 && (
-                <LockFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
               {modal && selected === 1 && (
                 <DepositFunds
                   invoice={invoice}
-                  deposited={deposited}
-                  due={due}
+                  deposited={totalFulfilled}
+                  due={
+                    totalDue.gte(totalFulfilled)
+                      ? totalDue.sub(totalFulfilled)
+                      : 0
+                  }
+                  total={total}
+                  fulfilled={fulfilled}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
               )}
               {modal && selected === 2 && (
-                <ReleaseFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
-              {modal && selected === 3 && (
-                <ResolveFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
-              {modal && selected === 4 && (
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
-              {modal && selected === 5 && (
-                <AddMilestones
-                  invoice={invoice}
-                  deposited={deposited}
-                  due={due}
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
