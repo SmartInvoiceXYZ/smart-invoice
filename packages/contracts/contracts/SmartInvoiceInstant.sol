@@ -41,7 +41,7 @@ contract SmartInvoiceInstant is
     event Deposit(address indexed sender, uint256 amount);
     event Fulfilled(address indexed sender);
     event Tip(address indexed sender, uint256 amount);
-    event Withdraw(address indexed recipient, uint256 amount);
+    event Withdraw(uint256 balance);
 
     // solhint-disable-next-line no-empty-blocks
     function initLock() external initializer {}
@@ -143,7 +143,7 @@ contract SmartInvoiceInstant is
         uint256 balance = IERC20(token).balanceOf(address(this));
         require(balance > 0, "balance is 0");
         IERC20(token).safeTransfer(provider, balance);
-        emit Withdraw(provider, balance);
+        emit Withdraw(balance);
     }
 
     function _handleData(bytes calldata _data) internal {
