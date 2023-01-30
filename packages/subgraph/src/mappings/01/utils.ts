@@ -43,6 +43,9 @@ export class InvoiceObject {
   version: BigInt;
   lateFee: BigInt;
   lateFeeTimeInterval: BigInt;
+  // tipAmount: Array<Tip>;
+  deadline: BigInt;
+  fulfilled: boolean;
 
   constructor() {
     this.client = zeroAddress;
@@ -68,6 +71,9 @@ export class InvoiceObject {
     this.version = BigInt.fromI32(0);
     this.lateFee = BigInt.fromI32(0);
     this.lateFeeTimeInterval = BigInt.fromI32(0);
+    // this.tipAmount = new Array<Tip>();
+    this.deadline = BigInt.fromI32(0);
+    this.fulfilled = false;
   }
 }
 
