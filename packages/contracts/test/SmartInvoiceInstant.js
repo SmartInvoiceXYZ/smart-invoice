@@ -229,9 +229,7 @@ describe("SmartInvoiceInstant", function () {
     await mockToken.mock.transfer.withArgs(provider.address, 20).returns(true);
 
     const receipt = invoice["withdraw()"]();
-    await expect(receipt)
-      .to.emit(invoice, "Withdraw")
-      .withArgs(provider.address, 20);
+    await expect(receipt).to.emit(invoice, "Withdraw").withArgs(20);
   });
 
   it("Should revert withdraw after terminationTime if balance is 0", async function () {
@@ -272,9 +270,7 @@ describe("SmartInvoiceInstant", function () {
     await mockToken.mock.transfer.withArgs(provider.address, 20).returns(true);
 
     const receipt = await invoice["withdrawTokens(address)"](mockToken.address);
-    await expect(receipt)
-      .to.emit(invoice, "Withdraw")
-      .withArgs(provider.address, 20);
+    await expect(receipt).to.emit(invoice, "Withdraw").withArgs(20);
   });
 
   it("Should withdrawTokens for otherToken", async function () {
