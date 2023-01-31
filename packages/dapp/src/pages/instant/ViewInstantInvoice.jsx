@@ -501,7 +501,7 @@ export const ViewInstantInvoice = ({
                   onClick={() => onWithdraw()}
                   isDisabled={!balance.gt(0)}
                 >
-                  {balance.eq(0) && fulfilled ? 'Received' : 'Received'}
+                  {balance.eq(0) && fulfilled ? 'Received' : 'Receive'}
                 </Button>
               </SimpleGrid>
             </VStack>
