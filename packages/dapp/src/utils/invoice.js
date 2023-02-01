@@ -49,7 +49,7 @@ export const getResolutionRateFromFactory = async (
 export const awaitInvoiceAddress = async (ethersProvider, tx) => {
   await tx.wait(1);
   const abi = new utils.Interface([
-    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
+    'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
   ]);
   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];

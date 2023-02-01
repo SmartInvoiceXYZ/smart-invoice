@@ -17,7 +17,7 @@ dataSources:
       # startBlock: 8000321
       # startBlock: 8036657 
       # startBlock: 8123768
-      startBlock: 8288958
+      startBlock: 8400560
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -46,7 +46,7 @@ dataSources:
       # prettier-ignore
       # startBlock: 7952451
       # startBlock: 8123768
-      startBlock: 8288958
+      startBlock: 8400560
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -173,7 +173,7 @@ templates:
         - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
-        - event: Withdraw(indexed address,uint256)
+        - event: Withdraw(uint256)
           handler: handleWithdraw
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit

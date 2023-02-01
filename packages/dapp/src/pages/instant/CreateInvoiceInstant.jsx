@@ -43,12 +43,11 @@ export const CreateInvoiceInstantInner = () => {
     invoiceType,
     setInvoiceType,
   } = useContext(CreateContext);
-
   const { Instant } = INVOICE_TYPES;
 
   useEffect(() => {
     setInvoiceType(Instant);
-  }, [invoiceType, setInvoiceType]);
+  }, [invoiceType, setInvoiceType, Instant]);
 
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 

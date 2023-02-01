@@ -4,6 +4,9 @@
   "txHash": "0xf6dc8248782f619b6d8d092e13c68166811d541a2b90f3753f4c8d89930f1fb5",
   "blockNumber": "7640975",
   "implementations": {
-    "instant": ["0xdaf812434Ec0FE33Bd6534d45aea2528235703Fd"]
+    "instant": [
+      "0xdaf812434Ec0FE33Bd6534d45aea2528235703Fd",
+      "0x2fD1852f3a4bEB1567cE61D6B57FB150f82F170C"
+    ]
   }
 }
