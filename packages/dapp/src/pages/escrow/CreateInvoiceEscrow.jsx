@@ -51,7 +51,7 @@ export const CreateInvoiceEscrowInner = () => {
   const { Escrow } = INVOICE_TYPES;
   useEffect(() => {
     setInvoiceType(Escrow);
-  }, [invoiceType, setInvoiceType]);
+  }, [invoiceType, setInvoiceType, Escrow]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 

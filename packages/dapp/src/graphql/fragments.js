@@ -24,6 +24,8 @@ export const InvoiceDetails = gql`
     terminationTime
     projectName
     projectDescription
+    invoiceType
+    version
     projectAgreement(orderBy: createdAt, orderDirection: asc) {
       type
       src

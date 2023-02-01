@@ -2,7 +2,8 @@ import LexDAOLogo from './assets/lex-dao.png';
 
 export const CONFIG = {
   INFURA_ID: process.env.REACT_APP_INFURA_ID,
-  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
+  // IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
+  IPFS_ENDPOINT: 'https://ipfs.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
     1: {
@@ -51,6 +52,7 @@ export const CONFIG = {
       },
     },
     5: {
+      // SUBGRAPH: 'psparacino/test-goerli',
       SUBGRAPH: 'psparacino/goerli-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
         '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),

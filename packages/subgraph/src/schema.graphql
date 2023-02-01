@@ -39,9 +39,12 @@ type Invoice @entity {
   # left nullable to allow for previous factory
   invoiceType: String
   version: BigInt
+  # instant type specific
   lateFee: BigInt
   lateFeeTimeInterval: BigInt
-  tipAmount: [Tip!]!
+  tipAmount: [Tip!]
+  deadline: BigInt
+  fulfilled: Boolean
 }
 
 enum ADR @entity {

@@ -2,10 +2,8 @@ const ipfsClient = require('ipfs-http-client');
 require('dotenv').config({ path: '../../.env' });
 const tokenSchema = require('./tokenSchema.json');
 
-const {
-  REACT_APP_INFURA_PROJECT_ID,
-  REACT_APP_INFURA_PROJECT_SECRET,
-} = process.env;
+const { REACT_APP_INFURA_PROJECT_ID, REACT_APP_INFURA_PROJECT_SECRET } =
+  process.env;
 
 const auth =
   'Basic ' +

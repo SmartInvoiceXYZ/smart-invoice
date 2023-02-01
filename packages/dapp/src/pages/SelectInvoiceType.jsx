@@ -5,26 +5,17 @@ import {
   Heading,
   Text,
   useBreakpointValue,
-  useDisclosure,
 } from '@chakra-ui/react';
 import React, { useEffect, useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import { CreateContext, CreateContextProvider } from '../context/CreateContext';
 
 import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
+import { INVOICE_TYPES } from '../utils/constants';
 
 export const SelectInvoiceType = () => {
-  return (
-    <CreateContextProvider>
-      <SelectInvoiceTypeInner />
-    </CreateContextProvider>
-  );
-};
-
-export const SelectInvoiceTypeInner = () => {
-  const { connectAccount, account } = useWeb3();
-  const { invoiceType, setInvoiceType } = useContext(CreateContext);
+  const { connectAccount } = useWeb3();
+  const { Instant, Escrow } = INVOICE_TYPES;
 
   const history = useHistory();
   const [isMobile, onMobile] = useState(false);
@@ -45,7 +36,6 @@ export const SelectInvoiceTypeInner = () => {
   const createType = async invoiceType => {
     try {
       await connectAccount();
-      setInvoiceType(invoiceType);
       history.push(`/create/${invoiceType}`);
     } catch {
       logError("Couldn't connect web3 wallet");
@@ -53,11 +43,11 @@ export const SelectInvoiceTypeInner = () => {
   };
 
   const createEscrow = async () => {
-    createType('escrow');
+    createType(Escrow);
   };
 
   const createInstant = async () => {
-    createType('instant');
+    createType(Instant);
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });

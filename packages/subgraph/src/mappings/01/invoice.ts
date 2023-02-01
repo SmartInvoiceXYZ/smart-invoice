@@ -237,8 +237,23 @@ export function handleTip(event: TipEvent): void {
     tip.save();
 
     let tipped = invoice.tipAmount;
-    tipped.push(tip.id);
-    invoice.tipAmount = tipped;
+    if (tipped !== null) {
+      tipped.push(tip.id);
+      invoice.tipAmount = tipped;
+      invoice.save();
+    }
+  }
+}
+
+export function handleFulfilled(event: FulfilledEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleFulfilled {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+
+    let completed = invoice.fulfilled;
+    completed = true;
+    invoice.fulfilled = completed;
     invoice.save();
   }
 }
