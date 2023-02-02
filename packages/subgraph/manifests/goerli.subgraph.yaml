@@ -15,9 +15,7 @@ dataSources:
       # prettier-ignore
       # startBlock: 7640975
       # startBlock: 8000321
-      # startBlock: 8036657 
-      # startBlock: 8123768
-      startBlock: 8400560
+      startBlock: 8036657 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -45,8 +43,7 @@ dataSources:
       abi: SmartInvoiceFactory01
       # prettier-ignore
       # startBlock: 7952451
-      # startBlock: 8123768
-      startBlock: 8400560
+      startBlock: 8036657
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -162,9 +159,9 @@ templates:
       language: wasm/assemblyscript
       entities:
         - Invoice
+        - Release
         - Deposit
         - Token
-        - Tip
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
@@ -173,14 +170,12 @@ templates:
         - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
-        - event: Withdraw(uint256)
+        - event: Withdraw(indexed address,uint256)
           handler: handleWithdraw
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit
         - event: Tip(indexed address,uint256)
-          handler: handleTip
-        - event: Fulfilled(indexed address)
-          handler: handleFulfilled
+          handler: handleDeposit
       file: ./src/mappings/01/invoice.ts
   - kind: ethereum/contract
     name: ERC20

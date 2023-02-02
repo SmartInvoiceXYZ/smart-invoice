@@ -2,10 +2,15 @@ import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
 import { Invoice, Agreement } from '../../types/schema';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactoryVersion01/SmartInvoiceFactory01';
-import { ERC20, SmartInvoiceEscrow01 } from '../../types/templates';
-import { updateInvoiceInfo, getToken } from './helpers';
+import {
+  ERC20,
+  SmartInvoiceEscrow01,
+  SmartInvoiceInstant01,
+} from '../../types/templates';
+import { getToken } from './helpers/token';
+import { updateInvoice } from './utils';
 
-export function handleLogNewEscrow(event: LogNewInvoiceEvent): void {
+export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
   let invoice = new Invoice(event.params.invoice.toHexString());
 
   log.info('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);
@@ -27,10 +32,17 @@ export function handleLogNewEscrow(event: LogNewInvoiceEvent): void {
   invoice.projectAgreement = new Array<string>();
   invoice.verified = new Array<string>();
   invoice.milestonesAdded = new Array<string>();
+  invoice.tipAmount = new Array<string>();
 
-  invoice = updateInvoiceInfo(event.params.invoice, invoice);
+  log.info('invoice type check {}', [invoice.invoiceType!.toString()]);
 
-  SmartInvoiceEscrow01.create(event.params.invoice);
+  invoice = updateInvoice(event.params.invoice, invoice);
+
+  if (invoice.invoiceType == 'escrow') {
+    SmartInvoiceEscrow01.create(event.params.invoice);
+  } else {
+    SmartInvoiceInstant01.create(event.params.invoice);
+  }
 
   let tokenAddress = changetype<Address>(
     Address.fromHexString(invoice.token.toHexString()),

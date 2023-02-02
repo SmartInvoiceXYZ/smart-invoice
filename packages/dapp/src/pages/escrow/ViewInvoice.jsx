@@ -20,25 +20,25 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { DepositFunds } from '../components/DepositFunds';
-import { Loader } from '../components/Loader';
-import { LockFunds } from '../components/LockFunds';
-import { ReleaseFunds } from '../components/ReleaseFunds';
-import { ResolveFunds } from '../components/ResolveFunds';
-import { WithdrawFunds } from '../components/WithdrawFunds';
-import { AddMilestones } from '../components/AddMilestones';
-import { VerifyInvoice } from '../components/VerifyInvoice';
-import { GenerateInvoicePDF } from '../components/GenerateInvoicePDF';
-import { Web3Context } from '../context/Web3Context';
-import { getInvoice } from '../graphql/getInvoice';
-import { CopyIcon } from '../icons/CopyIcon';
-import { QuestionIcon } from '../icons/QuestionIcon';
-import { AccountLink } from '../shared/AccountLink';
-import { Container } from '../shared/Container';
-import { InvoiceNotFound } from '../shared/InvoiceNotFound';
-import { balanceOf } from '../utils/erc20';
+import { DepositFunds } from '../../components/DepositFunds';
+import { Loader } from '../../components/Loader';
+import { LockFunds } from '../../components/LockFunds';
+import { ReleaseFunds } from '../../components/ReleaseFunds';
+import { ResolveFunds } from '../../components/ResolveFunds';
+import { WithdrawFunds } from '../../components/WithdrawFunds';
+import { AddMilestones } from '../../components/AddMilestones';
+import { VerifyInvoice } from '../../components/VerifyInvoice';
+import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
+import { Web3Context } from '../../context/Web3Context';
+import { getInvoice } from '../../graphql/getInvoice';
+import { CopyIcon } from '../../icons/CopyIcon';
+import { QuestionIcon } from '../../icons/QuestionIcon';
+import { AccountLink } from '../../shared/AccountLink';
+import { Container } from '../../shared/Container';
+import { InvoiceNotFound } from '../../shared/InvoiceNotFound';
+import { balanceOf } from '../../utils/erc20';
 import {
   copyToClipboard,
   getAccountString,
@@ -49,7 +49,7 @@ import {
   getTxLink,
   logError,
   getAgreementLink,
-} from '../utils/helpers';
+} from '../../utils/helpers';
 
 export const ViewInvoice = ({
   match: {

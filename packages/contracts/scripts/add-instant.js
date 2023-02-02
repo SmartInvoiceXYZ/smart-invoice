@@ -29,7 +29,7 @@ const networkCurrency = {
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
 
-const escrowType = ethers.utils.formatBytes32String("escrow");
+const instantType = ethers.utils.formatBytes32String("instant");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -55,24 +55,29 @@ async function main() {
     networkCurrency[chainId],
   );
 
-  const SmartInvoiceEscrow = await ethers.getContractFactory(
-    "SmartInvoiceEscrow",
+  const SmartInvoiceInstant = await ethers.getContractFactory(
+    "SmartInvoiceInstant",
   );
-  const smartInvoiceEscrow = await SmartInvoiceEscrow.deploy();
-  await smartInvoiceEscrow.deployed();
-  console.log("Deployed Implementation Address:", smartInvoiceEscrow.address);
+  const smartInvoiceInstant = await SmartInvoiceInstant.deploy();
+  await smartInvoiceInstant.deployed();
+  console.log("Deployed Implementation Address:", smartInvoiceInstant.address);
 
-  await smartInvoiceEscrow.initLock();
+  await smartInvoiceInstant.initLock();
 
-  const implementationReceipt = await factory
+  const implementationTx = await factory
     .connect(deployer)
-    .addImplementation(escrowType, smartInvoiceEscrow.address);
+    .addImplementation(instantType, smartInvoiceInstant.address);
 
-  await implementationReceipt.wait();
+  let implementationReceipt = await implementationTx.wait();
+  console.log(
+    "Implementation added at blocknumber:",
+    implementationReceipt.blockNumber,
+  );
+  console.log("Txn hash:", implementationReceipt.transactionHash);
 
-  const version = await factory.currentVersions(escrowType);
+  const version = await factory.currentVersions(instantType);
   const implementationAdded = await factory.implementations(
-    escrowType,
+    instantType,
     version,
   );
 
@@ -89,7 +94,7 @@ async function main() {
       : "verify:verify";
 
     const verifyResult = await run(TASK_VERIFY, {
-      address: smartInvoice.address,
+      address: smartInvoiceInstant.address,
       constructorArguments: [],
     });
 
@@ -103,10 +108,10 @@ async function main() {
 
   const deployment = JSON.parse(data);
 
-  if (deployment.implementations.escrow != undefined) {
-    deployment.implementations.escrow.push(smartInvoiceEscrow.address);
+  if (deployment.implementations.instant != undefined) {
+    deployment.implementations.instant.push(smartInvoiceInstant.address);
   } else {
-    deployment.implementations["escrow"] = [smartInvoiceEscrow.address];
+    deployment.implementations["instant"] = [smartInvoiceInstant.address];
   }
 
   fs.writeFileSync(

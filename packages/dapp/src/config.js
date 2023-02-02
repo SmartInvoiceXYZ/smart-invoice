@@ -2,7 +2,8 @@ import LexDAOLogo from './assets/lex-dao.png';
 
 export const CONFIG = {
   INFURA_ID: process.env.REACT_APP_INFURA_ID,
-  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
+  // IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
+  IPFS_ENDPOINT: 'https://ipfs.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
     1: {
@@ -51,11 +52,27 @@ export const CONFIG = {
       },
     },
     5: {
-      SUBGRAPH: 'psparacino/test-goerli',
+      // SUBGRAPH: 'psparacino/test-goerli',
+      SUBGRAPH: 'psparacino/goerli-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
         '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),
       INVOICE_FACTORY:
         '0x546adED0B0179d550e87cf909939a1207Fd26fB7'.toLowerCase(),
+      RESOLVERS: {
+        ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
+          name: 'LexDAO',
+          logoUrl: LexDAOLogo,
+          termsUrl:
+            'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+        },
+      },
+    },
+    31337: {
+      SUBGRAPH: 'psparacino/goerli-smart-invoices',
+      WRAPPED_NATIVE_TOKEN:
+        '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),
+      INVOICE_FACTORY:
+        '0x5FbDB2315678afecb367f032d93F642f64180aa3'.toLowerCase(),
       RESOLVERS: {
         ['0x1206b51217271FC3ffCa57d0678121983ce0390E'.toLowerCase()]: {
           name: 'LexDAO',

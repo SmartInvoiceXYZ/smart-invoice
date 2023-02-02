@@ -49,7 +49,7 @@ export const getResolutionRateFromFactory = async (
 export const awaitInvoiceAddress = async (ethersProvider, tx) => {
   await tx.wait(1);
   const abi = new utils.Interface([
-    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
+    'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
   ]);
   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
@@ -136,4 +136,71 @@ export const unixToDateTime = unixTimestamp => {
   const humanDateFormat = dateObject.toLocaleString();
 
   return humanDateFormat;
+};
+
+// Functions for Instant type
+export const getTotalDue = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function getTotalDue() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.getTotalDue();
+};
+
+export const getTotalFulfilled = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function totalFulfilled() public view returns(uint256)',
+    'function fulfilled() public view returns (bool)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.totalFulfilled(),
+    isFulfilled: await contract.fulfilled(),
+  };
+};
+
+export const getDeadline = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function deadline() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.deadline();
+};
+
+export const getLateFee = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function lateFee() public view returns(uint256)',
+    'function lateFeeTimeInterval() public view returns (uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.lateFee(),
+    timeInterval: await contract.lateFeeTimeInterval(),
+  };
+};
+
+export const depositTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function depositTokens(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.depositTokens(tokenAddress, amount);
+};
+
+export const tipTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function tip(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.tip(tokenAddress, amount);
 };

@@ -1,6 +1,14 @@
-import { Stack, Spinner, Heading, Box, Button } from '@chakra-ui/react';
+import {
+  Stack,
+  Spinner,
+  Heading,
+  Box,
+  Button,
+  useBreakpointValue,
+  Flex,
+} from '@chakra-ui/react';
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
@@ -9,10 +17,11 @@ import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
 import { networkNames } from '../utils/constants';
 
 const InvoicesInner = ({ history }) => {
-  const { search, setSearch, result, fetching, loading } =
-    useContext(SearchContext);
+  const { setSearch, result, loading } = useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
+
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   useEffect(() => {
     if (account) {
@@ -21,7 +30,14 @@ const InvoicesInner = ({ history }) => {
   }, [account, setSearch]);
 
   return (
-    <Box paddingY={16} flex={loading ? null : '1 0 100%'}>
+    <Box
+      paddingY={16}
+      flex={
+        result && result.length > 0 && tokenData !== undefined
+          ? '1 0 100%'
+          : null
+      }
+    >
       {loading ? (
         <Stack align="center">
           <Heading color="gray" as="h1">
@@ -37,23 +53,29 @@ const InvoicesInner = ({ history }) => {
           history={history}
         />
       ) : (
-        <Stack align="center">
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap={4}
+          width="100%"
+        >
+          <Heading color="gray" size="lg" align="center">
+            No invoices found on {networkNames[chainId]}.
+          </Heading>
           <Button
+            color="white"
             backgroundColor="blue.1"
-            fontSize="30px"
-            padding="5%"
+            size={buttonSize}
+            minW="250px"
+            paddingY={6}
             _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-            color="white"
-            marginBottom="10%"
             onClick={() => history.push('/create')}
           >
             Create Invoice
           </Button>
-          <Heading color="gray" as="h1" align="center">
-            No {networkNames[chainId]} Invoices Found
-          </Heading>
-        </Stack>
+        </Flex>
       )}
     </Box>
   );
