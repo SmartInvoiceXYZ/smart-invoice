@@ -88,7 +88,7 @@ export const SelectInvoiceType = () => {
           flexDir="column"
           paddingY={6}
         >
-          <Heading>Escrow</Heading>
+          <Heading>🔐 Escrow 🔓</Heading>
           <Box mt={2} textAlign="center" fontSize={12} fontWeight="normal">
             <Text>Secure funds and release payments by milestones.</Text>
             <Text>Includes arbitration.</Text>
@@ -111,7 +111,7 @@ export const SelectInvoiceType = () => {
           flexDir="column"
         >
           <Flex direction="column">
-            <Heading>Instant</Heading>
+            <Heading>⚡ Instant ⚡</Heading>
             <Box mt={2} textAlign="center" fontSize={12} fontWeight="normal">
               <Text wordBreak="break-word">Receive payment immediately.</Text>
               <Text>Does NOT include arbitration.</Text>

@@ -87,7 +87,7 @@ export const CreateInvoiceInstantInner = () => {
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create an Instant Invoice
+              ⚡ Create an Instant Invoice ⚡
             </Heading>
             <Text
               color="#90A0B7"
