@@ -7,8 +7,14 @@ import {
   useBreakpointValue,
   VStack,
   Heading,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
@@ -20,9 +26,11 @@ import {
   CreateContext,
   CreateContextProvider,
 } from '../../context/CreateContext';
+import { Web3Context } from '../../context/Web3Context';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../utils/constants';
+import { getNetworkName } from '../../utils/helpers';
 
 export const CreateInvoiceInstant = () => {
   return (
@@ -48,8 +56,17 @@ export const CreateInvoiceInstantInner = () => {
   useEffect(() => {
     setInvoiceType(Instant);
   }, [invoiceType, setInvoiceType, Instant]);
-
+  const { chainId } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const prevChainIdRef = useRef(null);
+  const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
+
+  useEffect(() => {
+    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
+      setShowChainChangeAlert(true);
+    }
+    prevChainIdRef.current = chainId;
+  }, [chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -82,6 +99,41 @@ export const CreateInvoiceInstantInner = () => {
           my="2rem"
           maxW="650px"
         >
+          <Modal
+            isOpen={showChainChangeAlert}
+            onClose={() => setShowChainChangeAlert(false)}
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader style={{ textAlign: 'center', color: 'red' }}>
+                Attention
+              </ModalHeader>
+              <ModalBody
+                style={{
+                  backgroundColor: '#ffebee',
+                  borderRadius: '5px',
+                  color: 'red',
+                  margin: '5px',
+                }}
+              >
+                <div>
+                  You are changing the network to{' '}
+                  <b>{getNetworkName(chainId)}</b>.
+                </div>
+                <hr style={{ borderTop: '1px solid red', margin: '10px 0' }} />
+                <div>
+                  You must complete all invoice creation steps on the same
+                  chain.
+                  <br />
+                  If you have not yet input any information, you can continue.
+                  <br />
+                  Otherwise, please return to Step 1 and complete all steps on
+                  the same network.
+                </div>
+              </ModalBody>
+              <ModalCloseButton color="gray.400" />
+            </ModalContent>
+          </Modal>
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
