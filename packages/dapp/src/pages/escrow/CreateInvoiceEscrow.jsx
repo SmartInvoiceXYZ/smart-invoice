@@ -7,12 +7,6 @@ import {
   useBreakpointValue,
   VStack,
   Heading,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { withRouter } from 'react-router-dom';
@@ -32,7 +26,7 @@ import { Web3Context } from '../../context/Web3Context';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { ESCROW_STEPS, INVOICE_TYPES } from '../../utils/constants';
-import { getNetworkName } from '../../utils/helpers';
+import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 
 export const CreateInvoiceEscrow = () => {
   return (
@@ -102,41 +96,11 @@ export const CreateInvoiceEscrowInner = () => {
           my="2rem"
           maxW="650px"
         >
-          <Modal
-            isOpen={showChainChangeAlert}
-            onClose={() => setShowChainChangeAlert(false)}
-          >
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader style={{ textAlign: 'center', color: 'red' }}>
-                Attention
-              </ModalHeader>
-              <ModalBody
-                style={{
-                  backgroundColor: '#ffebee',
-                  borderRadius: '5px',
-                  color: 'red',
-                  margin: '5px',
-                }}
-              >
-                <div>
-                  You are changing the network to{' '}
-                  <b>{getNetworkName(chainId)}</b>.
-                </div>
-                <hr style={{ borderTop: '1px solid red', margin: '10px 0' }} />
-                <div>
-                  You must complete all invoice creation steps on the same
-                  chain.
-                  <br />
-                  If you have not yet input any information, you can continue.
-                  <br />
-                  Otherwise, please return to Step 1 and complete all steps on
-                  the same network.
-                </div>
-              </ModalBody>
-              <ModalCloseButton color="gray.400" />
-            </ModalContent>
-          </Modal>
+          <NetworkChangeAlertModal
+            showChainChangeAlert={showChainChangeAlert}
+            setShowChainChangeAlert={setShowChainChangeAlert}
+            chainId={chainId}
+          />
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
