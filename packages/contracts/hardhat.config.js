@@ -35,6 +35,10 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
       gasPrice: 1000000000,
     },
+    polygon: {
+      url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
     xdai: {
       url: `https://rpc.ankr.com/gnosis`,
       accounts: [`0x${PRIVATE_KEY}`],

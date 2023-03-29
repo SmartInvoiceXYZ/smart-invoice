@@ -5,12 +5,14 @@
     {
       "factoryName": "Version00",
       "startBlock": "7640975",
-      "address": "0x566ac8344a7cbBC4879e5692F32A9ebdED002e7f"
+      "address": "0x566ac8344a7cbBC4879e5692F32A9ebdED002e7f",
+      "v00": true
     },
     {
       "factoryName": "Version01",
       "startBlock": "7952451",
-      "address": "0x546adED0B0179d550e87cf909939a1207Fd26fB7"
+      "address": "0x546adED0B0179d550e87cf909939a1207Fd26fB7",
+      "v01": true
     }
   ],
   "tokens": [

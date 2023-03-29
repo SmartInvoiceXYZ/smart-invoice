@@ -4,8 +4,9 @@ const fs = require("fs");
 const goerli = require("../deployments/goerli.json");
 const localhost = require("../deployments/localhost.json");
 const xdai = require("../deployments/xdai.json");
-const abi =
-  require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json").abi;
+const polygon = require("../deployments/polygon.json");
+const abi = require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json")
+  .abi;
 
 const networkName = {
   1: "mainnet",
@@ -14,6 +15,7 @@ const networkName = {
   42: "kovan",
   77: "sokol",
   100: "xdai",
+  137: "polygon",
   31337: "localhost",
 };
 
@@ -24,6 +26,7 @@ const networkCurrency = {
   42: "ETH",
   77: "SPOA",
   100: "xDai",
+  137: "MATIC",
   31337: "localhost",
 };
 
@@ -35,7 +38,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  const factories = { goerli, localhost, xdai };
+  const factories = { goerli, localhost, xdai, polygon };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,
     abi,
@@ -60,17 +63,23 @@ async function main() {
   );
   const smartInvoiceEscrow = await SmartInvoiceEscrow.deploy();
   await smartInvoiceEscrow.deployed();
+
   console.log("Deployed Implementation Address:", smartInvoiceEscrow.address);
 
   await smartInvoiceEscrow.initLock();
+
+  console.log("Initialized Lock Successful");
 
   const implementationReceipt = await factory
     .connect(deployer)
     .addImplementation(escrowType, smartInvoiceEscrow.address);
 
+  console.log("Implementation Receipt:", implementationReceipt);
+
   await implementationReceipt.wait();
 
   const version = await factory.currentVersions(escrowType);
+
   const implementationAdded = await factory.implementations(
     escrowType,
     version,
@@ -82,20 +91,6 @@ async function main() {
     "Version:",
     version.toNumber(),
   );
-
-  if (chainId !== 31337) {
-    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
-      ? "verify:verify-blockscout"
-      : "verify:verify";
-
-    const verifyResult = await run(TASK_VERIFY, {
-      address: smartInvoice.address,
-      constructorArguments: [],
-    });
-
-    console.log(verifyResult);
-    console.log("Verified Implementation");
-  }
 
   const data = fs.readFileSync(`deployments/${network.name}.json`, {
     encoding: "utf8",
@@ -113,6 +108,24 @@ async function main() {
     `deployments/${network.name}.json`,
     JSON.stringify(deployment, undefined, 2),
   );
+
+  if (chainId !== 31337) {
+    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
+      ? "verify:verify-blockscout"
+      : "verify:verify";
+
+    const address = smartInvoiceEscrow.address;
+
+    console.log("Implementations Address:", address);
+
+    const verifyResult = await run(TASK_VERIFY, {
+      address: address,
+      constructorArguments: [],
+    });
+
+    console.log(verifyResult);
+    console.log("Verified Implementation");
+  }
 }
 
 main()
