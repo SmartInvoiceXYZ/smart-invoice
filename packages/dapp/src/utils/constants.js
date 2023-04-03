@@ -22,6 +22,7 @@ export const chainIds = {
   kovan: 42,
   polygon: 137,
   hardhat: 31337,
+  mumbai: 80001,
 };
 
 export const hexChainIds = {
@@ -32,6 +33,7 @@ export const hexChainIds = {
   kovan: '0x2a',
   hardhat: '0x7a69',
   polygon: '0x89',
+  mumbai: '0x13881',
 };
 
 export const networkLabels = {
@@ -45,6 +47,7 @@ export const networkLabels = {
   77: 'Sokol',
   137: 'Matic',
   31337: 'Hardhat',
+  80001: 'Mumbai',
 };
 
 export const networkNames = {
@@ -55,6 +58,7 @@ export const networkNames = {
   100: 'Gnosis Chain',
   137: 'Polygon Mainnet',
   31337: 'Hardhat',
+  80001: 'Mumbai Testnet',
 };
 
 export const rpcUrls = {
@@ -64,6 +68,7 @@ export const rpcUrls = {
   42: `https://kovan.infura.io/v3/${INFURA_ID}`,
   100: 'https://rpc.xdaichain.com',
   137: `https://polygon-mainnet.infura.io/v3/${INFURA_ID}`,
+  80001: `https://polygon-mumbai.infura.io/v3/${INFURA_ID}`,
 };
 
 export const explorerUrls = {
@@ -73,6 +78,7 @@ export const explorerUrls = {
   42: 'https://kovan.etherscan.io',
   100: 'https://blockscout.com/poa/xdai',
   137: 'https://polygonscan.com',
+  80001: 'https://mumbai.polygonscan.com',
 };
 
 export const nativeSymbols = {
@@ -83,6 +89,7 @@ export const nativeSymbols = {
   100: 'XDAI',
   137: 'MATIC',
   31337: 'ETH',
+  80001: 'MATIC',
 };
 
 export const graphUrls = {
@@ -92,6 +99,7 @@ export const graphUrls = {
   100: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[100].SUBGRAPH}`,
   137: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[137].SUBGRAPH}`,
   31337: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[31337].SUBGRAPH}`,
+  80001: `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[80001].SUBGRAPH}`,
 };
 
 export const resolvers = {
@@ -101,6 +109,7 @@ export const resolvers = {
   100: Object.keys(NETWORK_CONFIG[100].RESOLVERS),
   137: Object.keys(NETWORK_CONFIG[137].RESOLVERS),
   31337: Object.keys(NETWORK_CONFIG[31337].RESOLVERS),
+  80001: Object.keys(NETWORK_CONFIG[80001].RESOLVERS),
 };
 
 export const resolverInfo = {
@@ -109,6 +118,7 @@ export const resolverInfo = {
   100: NETWORK_CONFIG[100].RESOLVERS,
   137: NETWORK_CONFIG[137].RESOLVERS,
   31337: NETWORK_CONFIG[31337].RESOLVERS,
+  80001: NETWORK_CONFIG[80001].RESOLVERS,
 };
 
 export const wrappedNativeToken = {
@@ -118,6 +128,7 @@ export const wrappedNativeToken = {
   100: NETWORK_CONFIG[100].WRAPPED_NATIVE_TOKEN,
   137: NETWORK_CONFIG[137].WRAPPED_NATIVE_TOKEN,
   31337: NETWORK_CONFIG[31337].WRAPPED_NATIVE_TOKEN,
+  80001: NETWORK_CONFIG[80001].WRAPPED_NATIVE_TOKEN,
 };
 
 export const invoiceFactory = {

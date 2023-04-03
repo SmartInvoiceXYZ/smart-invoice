@@ -1,0 +1,10 @@
+{
+  "network": "mumbai",
+  "factory": "0x131dcaeE86EF12D106446bf35f8Ae98A614ee5A9",
+  "txHash": "0xd667aafb98d2898a3a03181374f4ff49c999ced2efea1bb5e36009b571eb1bd1",
+  "blockNumber": "33919205",
+  "implementations": {
+    "instant": ["0xDB9B20BB0C28a7feFC00425204d77F21BDf7E89A"],
+    "escrow": ["0x7a8b2d2F1a0bb5699DA809257Ce824CAF7004818"]
+  }
+}

@@ -8,7 +8,7 @@ import {
   VStack,
   Heading,
 } from '@chakra-ui/react';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
@@ -20,9 +20,11 @@ import {
   CreateContext,
   CreateContextProvider,
 } from '../../context/CreateContext';
+import { Web3Context } from '../../context/Web3Context';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../utils/constants';
+import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 
 export const CreateInvoiceInstant = () => {
   return (
@@ -48,8 +50,17 @@ export const CreateInvoiceInstantInner = () => {
   useEffect(() => {
     setInvoiceType(Instant);
   }, [invoiceType, setInvoiceType, Instant]);
-
+  const { chainId } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const prevChainIdRef = useRef(null);
+  const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
+
+  useEffect(() => {
+    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
+      setShowChainChangeAlert(true);
+    }
+    prevChainIdRef.current = chainId;
+  }, [chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -82,6 +93,11 @@ export const CreateInvoiceInstantInner = () => {
           my="2rem"
           maxW="650px"
         >
+          <NetworkChangeAlertModal
+            showChainChangeAlert={showChainChangeAlert}
+            setShowChainChangeAlert={setShowChainChangeAlert}
+            chainId={chainId}
+          />
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}

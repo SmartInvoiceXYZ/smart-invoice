@@ -5,6 +5,7 @@ const goerli = require("../deployments/goerli.json");
 const localhost = require("../deployments/localhost.json");
 const xdai = require("../deployments/xdai.json");
 const polygon = require("../deployments/polygon.json");
+const mumbai = require("../deployments/mumbai.json");
 
 const abi = require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json")
   .abi;
@@ -18,6 +19,7 @@ const networkName = {
   100: "xdai",
   137: "polygon",
   31337: "localhost",
+  80001: "mumbai",
 };
 
 const networkCurrency = {
@@ -29,19 +31,18 @@ const networkCurrency = {
   100: "xDai",
   137: "MATIC",
   31337: "localhost",
+  80001: "MATIC",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
 
 const instantType = ethers.utils.formatBytes32String("instant");
 
-console.log("instantType", instantType);
-
 async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  const factories = { goerli, localhost, xdai, polygon };
+  const factories = { goerli, localhost, xdai, polygon, mumbai };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,
     abi,

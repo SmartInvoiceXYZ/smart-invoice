@@ -14,6 +14,7 @@ const {
   ETHERSCAN_API_KEY,
   COINMARKETCAP_API_KEY,
   CURRENCY,
+  POLYGONSCAN_API_KEY,
 } = process.env;
 
 module.exports = {
@@ -38,6 +39,13 @@ module.exports = {
     polygon: {
       url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
+    },
+    mumbai: {
+      url: `https://polygon-mumbai.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: [`0x${PRIVATE_KEY}`],
+      etherscan: {
+        apiKey: POLYGONSCAN_API_KEY,
+      },
     },
     xdai: {
       url: `https://rpc.ankr.com/gnosis`,

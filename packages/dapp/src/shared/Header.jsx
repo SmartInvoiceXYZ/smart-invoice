@@ -77,7 +77,7 @@ export const Header = () => {
     if (account) {
       getProfile(account).then(p => setProfile(p));
     }
-  }, [account]);
+  }, [account, chainId]);
   const toggleMobileMode = () => {
     if (window.innerWidth < 850) {
       onMobile(true);

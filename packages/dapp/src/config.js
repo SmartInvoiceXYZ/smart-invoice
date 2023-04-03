@@ -61,9 +61,22 @@ export const CONFIG = {
       },
     },
     137: {
-      SUBGRAPH: 'psparacino/v1-polygon-smart-invoices',
+      SUBGRAPH: 'psparacino/v1-matic-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270'.toLowerCase(),
       INVOICE_FACTORY: '0x6dcF61a9170419f30e065A43540aa3663b837342'.toLowerCase(),
+      RESOLVERS: {
+        ['0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D'.toLowerCase()]: {
+          name: 'LexDAO',
+          logoUrl: LexDAOLogo,
+          termsUrl:
+            'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+        },
+      },
+    },
+    80001: {
+      SUBGRAPH: 'psparacino/v1-mumbai-smart-invoices',
+      WRAPPED_NATIVE_TOKEN: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889'.toLowerCase(),
+      INVOICE_FACTORY: '0x131dcaeE86EF12D106446bf35f8Ae98A614ee5A9'.toLowerCase(),
       RESOLVERS: {
         ['0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D'.toLowerCase()]: {
           name: 'LexDAO',
