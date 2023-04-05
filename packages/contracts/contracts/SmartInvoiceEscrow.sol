@@ -15,8 +15,6 @@ import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
 
-import "hardhat/console.sol";
-
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
