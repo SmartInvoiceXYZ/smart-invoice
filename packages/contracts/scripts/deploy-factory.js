@@ -9,7 +9,9 @@ const wrappedTokenAddress = {
   42: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
   77: "0xc655c6D80ac92d75fBF4F40e95280aEb855B1E87",
   100: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+  137: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
   31337: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+  80001: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
 };
 
 const networkName = {
@@ -19,7 +21,9 @@ const networkName = {
   42: "kovan",
   77: "sokol",
   100: "xdai",
+  137: "polygon",
   31337: "localhost",
+  80001: "mumbai",
 };
 
 const networkCurrency = {
@@ -29,7 +33,9 @@ const networkCurrency = {
   42: "ETH",
   77: "SPOA",
   100: "xDai",
+  137: "MATIC",
   31337: "hhETH",
+  80001: "MATIC",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
@@ -66,32 +72,35 @@ async function main() {
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
   console.log("Block Number:", receipt.blockNumber);
 
-  if (chainId !== 31337) {
-    await smartInvoiceFactory.deployTransaction.wait(5);
-
-    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
-      ? "verify:verify-blockscout"
-      : "verify:verify";
-
-    await run(TASK_VERIFY, {
-      address: smartInvoiceFactory.address,
-      constructorArguments: [wrappedTokenAddress[chainId]],
-    });
-    console.log("Verified Factory");
-  }
-
   const deploymentInfo = {
     network: network.name,
     factory: smartInvoiceFactory.address,
     txHash,
     blockNumber: receipt.blockNumber.toString(),
-    implementations: [],
+    implementations: {},
   };
 
   fs.writeFileSync(
     `deployments/${network.name}.json`,
     JSON.stringify(deploymentInfo, undefined, 2),
   );
+
+  if (chainId !== 31337) {
+    await smartInvoiceFactory.deployTransaction.wait(5);
+    ``;
+    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
+      ? "verify:verify-blockscout"
+      : "verify:verify";
+
+    const address = smartInvoiceFactory.address;
+    console.log("Deployed SmartInvoiceFactory to:", address);
+    console.log("Wrapped token address:", wrappedTokenAddress[chainId]);
+    await run(TASK_VERIFY, {
+      address,
+      constructorArguments: [wrappedTokenAddress[chainId]],
+    });
+    console.log("Verified Factory");
+  }
 }
 
 main()

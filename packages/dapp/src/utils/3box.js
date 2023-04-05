@@ -9,8 +9,14 @@ export const getProfile = async account => {
     imageHash: '',
     imageUrl: `https://avatars.dicebear.com/api/jdenticon/${address}.svg`,
   };
+  const origin = window.location.origin;
+  const fetchOptions = {
+    mode: origin.startsWith('http://localhost') ? 'no-cors' : 'cors',
+  };
+
   const response = await fetch(
     `${BOX_ENDPOINT}/profile?address=${encodeURIComponent(address)}`,
+    fetchOptions,
   );
   if (response.ok && response.status === 200) {
     const boxProfile = await response.json();

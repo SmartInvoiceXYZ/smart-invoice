@@ -12,7 +12,7 @@ dataSources:
     network: {{network}}
     source:
       address: '{{address}}'
-      abi: SmartInvoiceFactory
+      abi: SmartInvoiceFactory{{factoryName}}
       # prettier-ignore
       startBlock: {{startBlock}}
     mapping:
@@ -24,23 +24,39 @@ dataSources:
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
-        - name: SmartInvoice
-          file: ./src/abis/SmartInvoice.json
-        - name: SmartInvoiceFactory
-          file: ./src/abis/SmartInvoiceFactory.json
+        {{#v00}}
+        - name: SmartInvoice{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoice{{factoryName}}.json
+        {{/v00}}
+        {{#v01}}
+        - name: SmartInvoiceEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
+        - name: SmartInvoiceInstant{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        {{/v01}}
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
       eventHandlers:
+        {{#v00}}
         - event: LogNewInvoice(indexed uint256,address,uint256[])
           handler: handleLogNewInvoice
-
-      file: ./src/mappings/factory.ts
-  {{/factories}}
+        {{/v00}}
+        {{#v01}}
+        - event: LogNewInvoice(indexed uint256,indexed address,uint256[],bytes32,uint256)
+          handler: handleLogNewInvoice
+        {{/v01}}
+          
+      file: ./src/mappings/{{factoryName}}/factory.ts
+{{/factories}}
 templates:
+{{#factories}}
+{{#v00}}
   - kind: ethereum/contract
-    name: SmartInvoice
+    name: SmartInvoice{{factoryName}}
     # prettier-ignore
     network: {{network}}
     source:
-      abi: SmartInvoice
+      abi: SmartInvoice{{factoryName}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -54,10 +70,10 @@ templates:
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
-        - name: SmartInvoice
-          file: ./src/abis/SmartInvoice.json
-        - name: SmartInvoiceFactory
-          file: ./src/abis/SmartInvoiceFactory.json
+        - name: SmartInvoice{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoice{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
       eventHandlers:
         - event: Release(uint256,uint256)
           handler: handleRelease
@@ -75,7 +91,84 @@ templates:
           handler: handleVerified
         - event: MilestonesAdded(indexed address,indexed address,uint256[])
           handler: handleMilestonesAdded
-      file: ./src/mappings/invoice.ts
+      file: ./src/mappings/{{factoryName}}/invoice.ts
+{{/v00}}
+{{#v01}}
+  - kind: ethereum/contract
+    name: SmartInvoiceEscrow{{factoryName}}
+    # prettier-ignore
+    network: {{network}}
+    source:
+      abi: SmartInvoiceEscrow{{factoryName}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
+        - Token
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+      eventHandlers:
+        - event: Release(uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed address,bytes32)
+          handler: handleLock
+        - event: Rule(indexed address,uint256,uint256,uint256)
+          handler: handleRule
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
+      file: ./src/mappings/{{factoryName}}/invoice.ts
+  - kind: ethereum/contract
+    name: SmartInvoiceInstant{{factoryName}}
+    # prettier-ignore
+    network: {{network}}
+    source:
+      abi: SmartInvoiceInstant{{factoryName}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Deposit
+        - Token
+        - Tip
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceInstant{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+      eventHandlers:
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Tip(indexed address,uint256)
+          handler: handleTip
+        - event: Fulfilled(indexed address)
+          handler: handleFulfilled
+      file: ./src/mappings/{{factoryName}}/invoice.ts
+{{/v01}}
+{{/factories}}
   - kind: ethereum/contract
     name: ERC20
     # prettier-ignore
@@ -84,7 +177,7 @@ templates:
       abi: ERC20
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Token
@@ -92,10 +185,22 @@ templates:
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
-        - name: SmartInvoice
-          file: ./src/abis/SmartInvoice.json
-        - name: SmartInvoiceFactory
-          file: ./src/abis/SmartInvoiceFactory.json
+        {{#factories}}
+        {{#v00}}
+        - name: SmartInvoice{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoice{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+        {{/v00}}
+        {{#v01}}
+        - name: SmartInvoiceEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
+        - name: SmartInvoiceInstant{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+        {{/v01}}
+        {{/factories}}
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
