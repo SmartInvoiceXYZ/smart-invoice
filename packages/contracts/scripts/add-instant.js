@@ -6,6 +6,7 @@ const localhost = require("../deployments/localhost.json");
 const xdai = require("../deployments/xdai.json");
 const polygon = require("../deployments/polygon.json");
 const mumbai = require("../deployments/polygonMumbai.json");
+const mainnet = require("../deployments/mainnet.json");
 
 const abi =
   require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json").abi;
@@ -42,7 +43,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  const factories = { goerli, localhost, xdai, polygon, mumbai };
+  const factories = { goerli, localhost, xdai, polygon, mumbai, mainnet };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,
     abi,
@@ -66,11 +67,15 @@ async function main() {
     "SmartInvoiceInstant",
   );
 
-  const gasPrice = ethers.utils.parseUnits("190", "gwei");
-  console.log("Preparing to deploy SmartInvoiceInstant...");
-  const smartInvoiceInstant = await SmartInvoiceInstant.deploy({
-    gasPrice: gasPrice,
+  const gasEstimate = await deployer.estimateGas({
+    data: SmartInvoiceInstant.bytecode,
   });
+
+  console.log(`Gas estimate for deployment: ${gasEstimate}`);
+
+  console.log("Preparing to deploy SmartInvoiceInstant...");
+  const smartInvoiceInstant = await SmartInvoiceInstant.deploy();
+
   console.log(
     "In the process of deploying SmartInvoiceInstant...",
     smartInvoiceInstant.deployTransaction.hash,
@@ -84,9 +89,7 @@ async function main() {
 
   const implementationTx = await factory
     .connect(deployer)
-    .addImplementation(instantType, smartInvoiceInstant.address, {
-      gasPrice: gasPrice,
-    });
+    .addImplementation(instantType, smartInvoiceInstant.address);
 
   let implementationReceipt = await implementationTx.wait();
   console.log(

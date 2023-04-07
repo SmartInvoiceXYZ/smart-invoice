@@ -6,6 +6,7 @@ const localhost = require("../deployments/localhost.json");
 const xdai = require("../deployments/xdai.json");
 const polygon = require("../deployments/polygon.json");
 const mumbai = require("../deployments/polygonMumbai.json");
+const mainnet = require("../deployments/mainnet.json");
 const abi =
   require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json").abi;
 
@@ -41,7 +42,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  const factories = { goerli, localhost, xdai, polygon, mumbai };
+  const factories = { goerli, localhost, xdai, polygon, mumbai, mainnet };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,
     abi,
