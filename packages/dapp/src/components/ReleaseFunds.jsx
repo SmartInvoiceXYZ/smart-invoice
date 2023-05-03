@@ -3,6 +3,8 @@ import {
   Heading,
   Link,
   Text,
+  Tooltip,
+  Flex,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
@@ -10,6 +12,7 @@ import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
+import { QuestionIcon } from '../icons/QuestionIcon';
 import {
   getHexChainId,
   getTokenInfo,
@@ -32,7 +35,14 @@ const getReleaseAmount = (currentMilestone, amounts, balance) => {
 export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
-  const { network, currentMilestone, amounts, address, token } = invoice;
+  const {
+    network,
+    currentMilestone,
+    amounts,
+    address,
+    token,
+    provider: recipient,
+  } = invoice;
 
   let amount = getReleaseAmount(currentMilestone, amounts, balance);
 
@@ -74,9 +84,17 @@ export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
         the project team.
       </Text>
       <VStack my="2rem" px="5rem" py="1rem" bg="white" borderRadius="0.5rem">
-        <Text color="black" fontSize="0.875rem" textAlign="center">
-          Amount To Be Released
-        </Text>
+        <Flex>
+          <Text color="black" fontSize="0.875rem" textAlign="center">
+            Amount To Be Released
+          </Text>
+          <Tooltip
+            label={`On release, the amount will be sent to ${recipient}`}
+            placement="auto-start"
+          >
+            <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+          </Tooltip>
+        </Flex>
         <Text
           color="black"
           fontSize="1rem"
