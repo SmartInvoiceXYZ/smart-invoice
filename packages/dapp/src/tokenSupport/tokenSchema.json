@@ -306,5 +306,31 @@
       "decimals": 18,
       "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/ROBOT.png?alt=media"
     }
+  ],
+  "137": [
+    {
+      "tokenContract": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+      "symbol": "WMATIC",
+      "decimals": 18,
+      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/MATIC.png?alt=media"
+    },
+    {
+      "tokenContract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+      "symbol": "USDT",
+      "decimals": 6,
+      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/USDT.png?alt=media"
+    },
+    {
+      "tokenContract": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+      "symbol": "USDC",
+      "decimals": 6,
+      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/USDC.png?alt=media"
+    },
+    {
+      "tokenContract": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+      "symbol": "DAI",
+      "decimals": 18,
+      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/DAI.png?alt=media"
+    }
   ]
 }
