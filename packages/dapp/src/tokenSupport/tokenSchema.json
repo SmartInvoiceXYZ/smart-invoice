@@ -163,26 +163,6 @@
       "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/ROBOT.png?alt=media"
     }
   ],
-  "4": [
-    {
-      "tokenContract": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
-      "symbol": "WETH",
-      "decimals": 18,
-      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/WETH.png?alt=media"
-    },
-    {
-      "tokenContract": "0x3af6b2f907f0c55f279e0ed65751984e6cdc4a42",
-      "symbol": "DAI",
-      "decimals": 18,
-      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/DAI.png?alt=media"
-    },
-    {
-      "tokenContract": "0x982e00B16c313E979C0947b85230907Fce45d50e",
-      "symbol": "TEST",
-      "decimals": 18,
-      "image": "https://firebasestorage.googleapis.com/v0/b/smart-invoice-b0db1.appspot.com/o/TEST.png?alt=media"
-    }
-  ],
   "5": [
     {
       "tokenContract": "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
