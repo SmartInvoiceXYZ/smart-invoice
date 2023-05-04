@@ -89,6 +89,8 @@ export const RegisterSuccess = () => {
                 ml="0.5rem"
                 href={`/invoice/${getHexChainId(invoice.network)}/${
                   invoice.id
+                }/${
+                  invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
                 }`}
                 color="charcoal"
                 overflow="hidden"
@@ -125,12 +127,16 @@ export const RegisterSuccess = () => {
                 ml="0.5rem"
                 href={`/invoice/${getHexChainId(invoice.network)}/${
                   invoice.id
+                }/${
+                  invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
                 }`}
                 color="charcoal"
                 overflow="hidden"
               >{`${window.location.origin}/invoice/${getHexChainId(
                 invoice.network,
-              )}/${invoice.id}`}</Link>
+              )}/${invoice.id}/${
+                invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
+              }`}</Link>
               {document.queryCommandSupported('copy') && (
                 <Button
                   ml={4}
@@ -138,7 +144,11 @@ export const RegisterSuccess = () => {
                     copyToClipboard(
                       `${window.location.origin}/invoice/${getHexChainId(
                         invoice.network,
-                      )}/${invoice.id}`,
+                      )}/${invoice.id}/${
+                        invoice.invoiceType === 'escrow'
+                          ? ''
+                          : invoice.invoiceType
+                      }`,
                     )
                   }
                   variant="ghost"

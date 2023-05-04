@@ -8,74 +8,13 @@ import {
   log,
 } from '@graphprotocol/graph-ts';
 
-import { Invoice, Token, Agreement } from '../types/schema';
-import { SmartInvoice } from '../types/templates/SmartInvoice/SmartInvoice';
-import { ERC20 } from '../types/templates/ERC20/ERC20';
+import { Invoice, Agreement } from '../../../types/schema';
+import { SmartInvoiceEscrow01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
+import { InvoiceObject, addQm } from '../utils';
 
-// Helper adding 0x12 and 0x20 to make the proper ipfs hash
-// the returned bytes32 is so [0,31]
-export function addQm(a: ByteArray): ByteArray {
-  let out = new Uint8Array(34);
-  out[0] = 0x12;
-  out[1] = 0x20;
-  for (let i = 0; i < 32; i++) {
-    out[i + 2] = a[i];
-  }
-  return changetype<ByteArray>(out);
-}
+function fetchEscrowInfo(address: Address): InvoiceObject {
+  let invoiceInstance = SmartInvoiceEscrow01.bind(address);
 
-let zeroAddress = changetype<Address>(
-  Address.fromHexString('0x0000000000000000000000000000000000000000'),
-);
-
-let zeroBytes = changetype<Bytes>(Bytes.fromHexString('0x'));
-
-class InvoiceObject {
-  client: Address;
-  provider: Address;
-  resolverType: i32;
-  resolver: Address;
-  resolutionRate: BigInt;
-  token: Address;
-  isLocked: boolean;
-  currentMilestone: BigInt;
-  total: BigInt;
-  released: BigInt;
-  terminationTime: BigInt;
-  details: Bytes;
-  ipfsHash: string;
-  disputeId: BigInt;
-  projectName: string;
-  projectDescription: string;
-  projectAgreement: Array<Agreement>;
-  startDate: BigInt;
-  endDate: BigInt;
-
-  constructor() {
-    this.client = zeroAddress;
-    this.provider = zeroAddress;
-    this.resolverType = 0;
-    this.resolver = zeroAddress;
-    this.resolutionRate = BigInt.fromI32(0);
-    this.token = zeroAddress;
-    this.isLocked = false;
-    this.currentMilestone = BigInt.fromI32(0);
-    this.total = BigInt.fromI32(0);
-    this.released = BigInt.fromI32(0);
-    this.terminationTime = BigInt.fromI32(0);
-    this.details = zeroBytes;
-    this.ipfsHash = '';
-    this.disputeId = BigInt.fromI32(0);
-    this.projectName = '';
-    this.projectDescription = '';
-    this.projectAgreement = new Array<Agreement>();
-    this.startDate = BigInt.fromI32(0);
-    this.endDate = BigInt.fromI32(0);
-  }
-}
-
-function fetchInvoiceInfo(address: Address): InvoiceObject {
-  let invoiceInstance = SmartInvoice.bind(address);
   let invoiceObject = new InvoiceObject();
 
   let client = invoiceInstance.try_client();
@@ -129,6 +68,7 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
     invoiceObject.disputeId = disputeId.value;
   }
   if (!details.reverted) {
+    //needs to be broken out based on invoice type
     invoiceObject.details = details.value;
     if (details.value.length == 32) {
       let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
@@ -205,8 +145,9 @@ function fetchInvoiceInfo(address: Address): InvoiceObject {
   return invoiceObject;
 }
 
-export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
-  let invoiceObject = fetchInvoiceInfo(address);
+export function updateEscrowInfo(address: Address, invoice: Invoice): Invoice {
+  let invoiceObject = fetchEscrowInfo(address);
+
   log.info('Got details for invoice', [address.toHexString()]);
 
   invoice.token = invoiceObject.token;
@@ -242,22 +183,7 @@ export function updateInvoiceInfo(address: Address, invoice: Invoice): Invoice {
 
   invoice.projectAgreement = projectAgreement;
 
+  log.info('fox tango {}', [invoice.projectName.toString()]);
+
   return invoice as Invoice;
-}
-
-export function getToken(address: Address): Token {
-  let token = Token.load(address.toHexString());
-  if (token == null) {
-    token = new Token(address.toHexString());
-
-    let erc20 = ERC20.bind(address);
-    let nameValue = erc20.try_name();
-    let symbolValue = erc20.try_symbol();
-    let decimalsValue = erc20.try_decimals();
-
-    token.name = nameValue.reverted ? '' : nameValue.value;
-    token.symbol = symbolValue.reverted ? '' : symbolValue.value;
-    token.decimals = decimalsValue.reverted ? 0 : decimalsValue.value;
-  }
-  return token as Token;
 }

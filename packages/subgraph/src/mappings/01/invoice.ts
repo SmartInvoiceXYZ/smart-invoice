@@ -8,7 +8,8 @@ import {
   Deposit,
   Verified,
   MilestonesAdded,
-} from '../types/schema';
+  Tip,
+} from '../../types/schema';
 
 import {
   Release as ReleaseEvent,
@@ -19,14 +20,21 @@ import {
   Deposit as DepositEvent,
   Verified as VerifiedEvent,
   MilestonesAdded as MilestonesAddedEvent,
-} from '../types/templates/SmartInvoice/SmartInvoice';
-import { addQm, updateInvoiceInfo } from './helpers';
+} from '../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
+
+import {
+  Tip as TipEvent,
+  Fulfilled as FulfilledEvent,
+} from '../../types/templates/SmartInvoiceInstant01/SmartInvoiceInstant01';
+
+import { updateInvoice } from './utils';
+import { addQm } from './utils';
 
 export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
     log.info('handleMilestonesAdded {}', [event.address.toHexString()]);
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let addition = new MilestonesAdded(event.logIndex.toHexString());
     addition.sender = event.params.sender;
@@ -61,7 +69,7 @@ export function handleVerified(event: VerifiedEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
     log.info('handleVerified {}', [event.address.toHexString()]);
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let verification = new Verified(event.logIndex.toHexString());
     verification.client = event.params.client;
@@ -80,7 +88,7 @@ export function handleRelease(event: ReleaseEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
     log.info('handleRelease {}', [event.address.toHexString()]);
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let release = new Release(event.logIndex.toHexString());
     release.txHash = event.transaction.hash;
@@ -100,7 +108,7 @@ export function handleRelease(event: ReleaseEvent): void {
 export function handleWithdraw(event: WithdrawEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let withdraw = new Withdraw(event.logIndex.toHexString());
     withdraw.txHash = event.transaction.hash;
@@ -119,7 +127,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
 export function handleLock(event: LockEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let dispute = new Dispute(event.logIndex.toHexString());
     dispute.txHash = event.transaction.hash;
@@ -143,7 +151,7 @@ export function handleLock(event: LockEvent): void {
 export function handleResolve(event: ResolveEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let resolution = new Resolution(event.logIndex.toHexString());
     resolution.txHash = event.transaction.hash;
@@ -171,7 +179,7 @@ export function handleResolve(event: ResolveEvent): void {
 export function handleDeposit(event: DepositEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let deposit = new Deposit(event.logIndex.toHexString());
     deposit.txHash = event.transaction.hash;
@@ -191,7 +199,7 @@ export function handleDeposit(event: DepositEvent): void {
 export function handleRule(event: RuleEvent): void {
   let invoice = Invoice.load(event.address.toHexString());
   if (invoice != null) {
-    invoice = updateInvoiceInfo(event.address, invoice);
+    invoice = updateInvoice(event.address, invoice);
 
     let resolution = new Resolution(event.logIndex.toHexString());
     resolution.txHash = event.transaction.hash;
@@ -210,6 +218,42 @@ export function handleRule(event: RuleEvent): void {
     let resolutions = invoice.resolutions;
     resolutions.push(resolution.id);
     invoice.resolutions = resolutions;
+    invoice.save();
+  }
+}
+
+// Instant Specific Events
+
+export function handleTip(event: TipEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleTip {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+
+    let tip = new Tip(event.logIndex.toHexString());
+    tip.sender = event.params.sender;
+    tip.amount = event.params.amount;
+
+    tip.save();
+
+    let tipped = invoice.tipAmount;
+    if (tipped !== null) {
+      tipped.push(tip.id);
+      invoice.tipAmount = tipped;
+      invoice.save();
+    }
+  }
+}
+
+export function handleFulfilled(event: FulfilledEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleFulfilled {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+
+    let completed = invoice.fulfilled;
+    completed = true;
+    invoice.fulfilled = completed;
     invoice.save();
   }
 }

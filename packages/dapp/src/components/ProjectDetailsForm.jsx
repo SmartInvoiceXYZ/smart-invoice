@@ -8,19 +8,7 @@ import {
   OrderedTextarea,
 } from '../shared/OrderedInput';
 
-const formatDate = date => {
-  const d = new Date(date);
-
-  let month = `${d.getUTCMonth() + 1}`;
-  if (month.length < 2) month = `0${month}`;
-
-  let day = `${d.getUTCDate()}`;
-  if (day.length < 2) day = `0${day}`;
-
-  const year = d.getUTCFullYear();
-
-  return [year, month, day].join('-');
-};
+import { formatDate } from '../utils/helpers';
 
 export const ProjectDetailsForm = ({ display }) => {
   const {
@@ -38,6 +26,7 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectAgreementSource,
     projectAgreementLinkType,
     setProjectAgreementLinkType,
+    invoiceType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';

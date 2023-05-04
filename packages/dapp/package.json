@@ -10,7 +10,7 @@
     "@emotion/react": "^11.1.4",
     "@emotion/styled": "^11.3.0",
     "@ethersproject/address": "^5.6.1",
-    "@gnosis.pm/safe-apps-provider": "^0.2.4",
+    "@gnosis.pm/safe-apps-provider": "^0.15.1",
     "@gnosis.pm/safe-apps-sdk": "^2.2.0",
     "@gnosis.pm/safe-apps-web3modal": "^0.2.2",
     "@react-pdf/renderer": "^2.3.0",

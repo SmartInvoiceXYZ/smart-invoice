@@ -8,22 +8,35 @@ import {
   VStack,
   Heading,
 } from '@chakra-ui/react';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { withRouter } from 'react-router-dom';
 
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { FormConfirmation } from '../components/FormConfirmation';
-import { PaymentChunksForm } from '../components/PaymentChunksForm';
-import { PaymentDetailsForm } from '../components/PaymentDetailsForm';
-import { ProjectDetailsForm } from '../components/ProjectDetailsForm';
-import { RegisterSuccess } from '../components/RegisterSuccess';
-import { CreateContext, CreateContextProvider } from '../context/CreateContext';
-import { Container } from '../shared/Container';
-import { StepInfo } from '../shared/StepInfo';
-import { STEPS } from '../utils/constants';
+import { FormConfirmation } from '../../components/FormConfirmation';
+import { PaymentChunksForm } from '../../components/PaymentChunksForm';
+import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
+import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
+import { RegisterSuccess } from '../../components/RegisterSuccess';
+import {
+  CreateContext,
+  CreateContextProvider,
+} from '../../context/CreateContext';
+import { Web3Context } from '../../context/Web3Context';
+import { Container } from '../../shared/Container';
+import { StepInfo } from '../../shared/StepInfo';
+import { ESCROW_STEPS, INVOICE_TYPES } from '../../utils/constants';
+import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 
-const CreateInvoiceInner = () => {
+export const CreateInvoiceEscrow = () => {
+  return (
+    <CreateContextProvider>
+      <CreateInvoiceEscrowInner />
+    </CreateContextProvider>
+  );
+};
+
+export const CreateInvoiceEscrowInner = () => {
   const {
     tx,
     loading,
@@ -31,8 +44,26 @@ const CreateInvoiceInner = () => {
     nextStepEnabled,
     goBackHandler,
     nextStepHandler,
+    invoiceType,
+    setInvoiceType,
   } = useContext(CreateContext);
+  const { chainId } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const prevChainIdRef = useRef(null);
+
+  const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
+
+  const { Escrow } = INVOICE_TYPES;
+  useEffect(() => {
+    setInvoiceType(Escrow);
+  }, [invoiceType, setInvoiceType, Escrow]);
+
+  useEffect(() => {
+    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
+      setShowChainChangeAlert(true);
+    }
+    prevChainIdRef.current = chainId;
+  }, [chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -44,10 +75,10 @@ const CreateInvoiceInner = () => {
   });
 
   const headingSize = useBreakpointValue({
-    base: '150%',
-    sm: '200%',
-    md: '250%',
-    lg: '300%',
+    base: '90%',
+    sm: '125%',
+    md: '150%',
+    lg: '225%',
   });
 
   return (
@@ -65,12 +96,17 @@ const CreateInvoiceInner = () => {
           my="2rem"
           maxW="650px"
         >
+          <NetworkChangeAlertModal
+            showChainChangeAlert={showChainChangeAlert}
+            setShowChainChangeAlert={setShowChainChangeAlert}
+            chainId={chainId}
+          />
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
           >
             <Heading fontWeight="700" fontSize={headingSize}>
-              Create a Smart Invoice
+              Create an Escrow Invoice
             </Heading>
             <Text
               color="#90A0B7"
@@ -94,8 +130,8 @@ const CreateInvoiceInner = () => {
             >
               <StepInfo
                 stepNum={currentStep}
-                stepTitle={STEPS[currentStep].step_title}
-                stepDetails={STEPS[currentStep].step_details}
+                stepTitle={ESCROW_STEPS[currentStep].step_title}
+                stepDetails={ESCROW_STEPS[currentStep].step_details}
                 goBack={goBackHandler}
               />
               <ProjectDetailsForm
@@ -133,8 +169,8 @@ const CreateInvoiceInner = () => {
                   fontWeight="bold"
                 >
                   {currentStep === 4
-                    ? STEPS[currentStep].next
-                    : `next: ${STEPS[currentStep].next}`}
+                    ? ESCROW_STEPS[currentStep].next
+                    : `next: ${ESCROW_STEPS[currentStep].next}`}
                 </Button>
               </Grid>
             </Flex>
@@ -146,11 +182,3 @@ const CreateInvoiceInner = () => {
     </Container>
   );
 };
-
-const CreateInvoiceWithProvider = props => (
-  <CreateContextProvider>
-    <CreateInvoiceInner {...props} />
-  </CreateContextProvider>
-);
-
-export const CreateInvoice = withRouter(CreateInvoiceWithProvider);

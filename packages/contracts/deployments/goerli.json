@@ -1,6 +1,13 @@
 {
   "network": "goerli",
-  "factory": "0x566ac8344a7cbBC4879e5692F32A9ebdED002e7f",
+  "factory": "0x546adED0B0179d550e87cf909939a1207Fd26fB7",
   "txHash": "0xf6dc8248782f619b6d8d092e13c68166811d541a2b90f3753f4c8d89930f1fb5",
-  "blockNumber": "7640975"
+  "blockNumber": "7640975",
+  "implementations": {
+    "instant": ["0x3e82D76CFFA638b45f142F4574B7Ca0f55DcD252"],
+    "escrow": [
+      "0x11dd8D203F65F0a3cBF05eC791f1c8DD658b914b",
+      "0x06D1E6050ed0dC62B8aec714248341F247e7dF76"
+    ]
+  }
 }

@@ -3,38 +3,23 @@ import { Contract, utils } from 'ethers';
 import { getInvoiceFactoryAddress, logError } from './helpers';
 
 export const register = async (
-  chainId,
+  factoryAddress,
   ethersProvider,
-  client,
   provider,
-  resolver,
-  token,
-  amounts, // array of milestone payments in wei
-  terminationTime, // time in seconds since epoch
-  detailsHash, // 32 bits hex
-  requireVerification,
+  amounts,
+  data,
+  type,
 ) => {
   const abi = new utils.Interface([
-    'function create(address client, address provider, uint8 resolverType, address resolver, address token, uint256[] calldata amounts, uint256 terminationTime, bytes32 details, bool requireVerification) public',
+    'function create(address _recipient, uint256[] calldata _amounts, bytes _data, bytes32 _type) public',
   ]);
   const contract = new Contract(
-    getInvoiceFactoryAddress(chainId),
+    factoryAddress,
     abi,
     ethersProvider.getSigner(),
   );
 
-  const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
-  return contract.create(
-    client,
-    provider,
-    resolverType,
-    resolver,
-    token,
-    amounts,
-    terminationTime,
-    detailsHash,
-    requireVerification,
-  );
+  return contract.create(provider, amounts, data, type);
 };
 
 export const getResolutionRateFromFactory = async (
@@ -64,7 +49,7 @@ export const getResolutionRateFromFactory = async (
 export const awaitInvoiceAddress = async (ethersProvider, tx) => {
   await tx.wait(1);
   const abi = new utils.Interface([
-    'event LogNewInvoice(uint256 indexed id, address invoice, uint256[] amounts)',
+    'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
   ]);
   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
@@ -151,4 +136,71 @@ export const unixToDateTime = unixTimestamp => {
   const humanDateFormat = dateObject.toLocaleString();
 
   return humanDateFormat;
+};
+
+// Functions for Instant type
+export const getTotalDue = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function getTotalDue() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.getTotalDue();
+};
+
+export const getTotalFulfilled = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function totalFulfilled() public view returns(uint256)',
+    'function fulfilled() public view returns (bool)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.totalFulfilled(),
+    isFulfilled: await contract.fulfilled(),
+  };
+};
+
+export const getDeadline = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function deadline() public view returns(uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return contract.deadline();
+};
+
+export const getLateFee = async (ethersProvider, address) => {
+  const abi = new utils.Interface([
+    'function lateFee() public view returns(uint256)',
+    'function lateFeeTimeInterval() public view returns (uint256)',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider);
+  return {
+    amount: await contract.lateFee(),
+    timeInterval: await contract.lateFeeTimeInterval(),
+  };
+};
+
+export const depositTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function depositTokens(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.depositTokens(tokenAddress, amount);
+};
+
+export const tipTokens = async (
+  ethersProvider,
+  address,
+  tokenAddress,
+  amount,
+) => {
+  const abi = new utils.Interface([
+    'function tip(address _token, uint256 _amount) external',
+  ]);
+  const contract = new Contract(address, abi, ethersProvider.getSigner());
+  return contract.tip(tokenAddress, amount);
 };

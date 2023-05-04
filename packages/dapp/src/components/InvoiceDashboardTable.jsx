@@ -12,6 +12,7 @@ import {
   MenuList,
   MenuItem,
   HStack,
+  Badge,
 } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
 import { useTable, useSortBy, usePagination } from 'react-table';
@@ -28,7 +29,7 @@ import { FilterIcon } from '../icons/FilterIcon';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
-  const { isLocked, terminationTime } = invoice;
+  const { isLocked, terminationTime, invoiceType } = invoice;
   const terminated = terminationTime > Date.now();
   const disputeResolved = label === 'Dispute Resolved';
   return (
@@ -39,6 +40,8 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
           : terminated || disputeResolved || label === 'Expired'
           ? '#C2CFE0'
           : isLocked
+          ? '#F7685B'
+          : label === 'Overdue'
           ? '#F7685B'
           : funded
           ? '#2ED47A'
@@ -57,6 +60,35 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
   );
 };
 
+const InvoiceBadge = ({ invoice, ...props }) => {
+  const { invoiceType } = invoice;
+  const schemes = {
+    escrow: {
+      bg: 'rgba(128, 63, 248, 0.3)',
+      color: 'rgba(128, 63, 248, 1)',
+    },
+    instant: {
+      bg: 'rgba(248, 174, 63, 0.3)',
+      color: 'rgba(248, 174, 63, 1)',
+    },
+    unknown: {
+      bg: 'rgba(150,150,150,0.3)',
+      color: 'rgba(150,150,150,1)',
+    },
+  };
+
+  return (
+    <Badge
+      backgroundColor={schemes[invoiceType ?? 'unknown'].bg}
+      color={schemes[invoiceType ?? 'unknown'].color}
+      maxW="fit-content"
+      height="fit-content"
+    >
+      {invoiceType ? invoiceType.toUpperCase() : 'UNKNOWN'}
+    </Badge>
+  );
+};
+
 export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
     const dataArray = [];
@@ -68,18 +100,29 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
       );
       const viewInvoice = () =>
         history.push(
-          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}`,
+          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}/${
+            invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''
+          }`,
         );
       const details = {
         createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
         projectName: (
-          <Link
-            href={`/invoice/${getHexChainId(invoice.network)}/${
-              invoice.address
-            }`}
+          <Flex
+            gap={2}
+            width="100%"
+            align="center"
+            justify="space-between"
+            onClick={viewInvoice}
           >
-            {invoice.projectName}
-          </Link>
+            <Link
+              href={`/invoice/${getHexChainId(invoice.network)}/${
+                invoice.address
+              }/${invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''}`}
+            >
+              {invoice.projectName}
+            </Link>
+            <InvoiceBadge invoice={invoice} />
+          </Flex>
         ),
         amount: formatUnits(invoice.total, decimals),
         currency: (
