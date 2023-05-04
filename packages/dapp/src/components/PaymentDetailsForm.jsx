@@ -37,10 +37,10 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(() => getTokens(chainId, allTokens), [
-    chainId,
-    allTokens,
-  ]);
+  const TOKENS = useMemo(
+    () => getTokens(chainId, allTokens),
+    [chainId, allTokens],
+  );
 
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -74,7 +74,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           setClientInvalid(!utils.isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
-        tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address. (Do NOT use a multi-sig address)."
+        tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address."
         required="required"
       />
       <OrderedInput
@@ -86,7 +86,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
           setProviderInvalid(!utils.isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
-        tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
+        tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address."
         required="required"
       />
       <SimpleGrid
@@ -192,8 +192,9 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
-          tooltip={`If a disputed milestone payment goes to arbitration, ${100 /
-            resolutionRate}% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
+          tooltip={`If a disputed milestone payment goes to arbitration, ${
+            100 / resolutionRate
+          }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
           isDisabled
         />
       </SimpleGrid>
