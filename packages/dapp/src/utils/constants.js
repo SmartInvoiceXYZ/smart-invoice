@@ -18,7 +18,7 @@ export const chainIds = {
   rinkeby: 4,
   goerli: 5,
   kovan: 42,
-  polygon: 137,
+  matic: 137,
   hardhat: 31337,
   mumbai: 80001,
 };
@@ -30,7 +30,7 @@ export const hexChainIds = {
   goerli: '0x05',
   kovan: '0x2a',
   hardhat: '0x7a69',
-  polygon: '0x89',
+  matic: '0x89',
   mumbai: '0x13881',
 };
 
