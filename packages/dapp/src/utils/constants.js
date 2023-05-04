@@ -64,7 +64,7 @@ export const rpcUrls = {
   4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
   5: `https://goerli.infura.io/v3/${INFURA_ID}`,
   42: `https://kovan.infura.io/v3/${INFURA_ID}`,
-  100: 'https://rpc.xdaichain.com',
+  100: 'https://rpc.gnosischain.com/',
   137: `https://polygon-mainnet.infura.io/v3/${INFURA_ID}`,
   80001: `https://polygon-mumbai.infura.io/v3/${INFURA_ID}`,
 };
