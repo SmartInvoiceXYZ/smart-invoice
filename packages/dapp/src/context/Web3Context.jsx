@@ -23,6 +23,7 @@ const providerOptions = {
         4: getRpcUrl(4),
         42: getRpcUrl(42),
         100: getRpcUrl(100),
+        137: getRpcUrl(137),
       },
     },
   },
