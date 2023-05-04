@@ -72,7 +72,7 @@ export const CONFIG = {
       INVOICE_FACTORY:
         '0x6dcF61a9170419f30e065A43540aa3663b837342'.toLowerCase(),
       RESOLVERS: {
-        ['0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D'.toLowerCase()]: {
+        ['0xc680eB3C6395C8Ab94Cbf3Bb46Cd7C3340481e40'.toLowerCase()]: {
           name: 'LexDAO',
           logoUrl: LexDAOLogo,
           termsUrl:
