@@ -4,6 +4,10 @@ const fs = require("fs");
 const goerli = require("../deployments/goerli.json");
 const localhost = require("../deployments/localhost.json");
 const xdai = require("../deployments/xdai.json");
+const polygon = require("../deployments/polygon.json");
+const mumbai = require("../deployments/polygonMumbai.json");
+const mainnet = require("../deployments/mainnet.json");
+
 const abi =
   require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json").abi;
 
@@ -14,7 +18,9 @@ const networkName = {
   42: "kovan",
   77: "sokol",
   100: "xdai",
+  137: "matic",
   31337: "localhost",
+  80001: "mumbai",
 };
 
 const networkCurrency = {
@@ -24,7 +30,9 @@ const networkCurrency = {
   42: "ETH",
   77: "SPOA",
   100: "xDai",
+  137: "MATIC",
   31337: "localhost",
+  80001: "MATIC",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
@@ -35,7 +43,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  const factories = { goerli, localhost, xdai };
+  const factories = { goerli, localhost, xdai, polygon, mumbai, mainnet };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,
     abi,
@@ -58,11 +66,26 @@ async function main() {
   const SmartInvoiceInstant = await ethers.getContractFactory(
     "SmartInvoiceInstant",
   );
+
+  const gasEstimate = await deployer.estimateGas({
+    data: SmartInvoiceInstant.bytecode,
+  });
+
+  console.log(`Gas estimate for deployment: ${gasEstimate}`);
+
+  console.log("Preparing to deploy SmartInvoiceInstant...");
   const smartInvoiceInstant = await SmartInvoiceInstant.deploy();
+
+  console.log(
+    "In the process of deploying SmartInvoiceInstant...",
+    smartInvoiceInstant.deployTransaction.hash,
+  );
   await smartInvoiceInstant.deployed();
   console.log("Deployed Implementation Address:", smartInvoiceInstant.address);
 
   await smartInvoiceInstant.initLock();
+
+  console.log("Initialized Lock Successful");
 
   const implementationTx = await factory
     .connect(deployer)
@@ -73,34 +96,19 @@ async function main() {
     "Implementation added at blocknumber:",
     implementationReceipt.blockNumber,
   );
+
   console.log("Txn hash:", implementationReceipt.transactionHash);
 
   const version = await factory.currentVersions(instantType);
-  const implementationAdded = await factory.implementations(
-    instantType,
-    version,
-  );
+
+  await factory.implementations(instantType, version);
 
   console.log(
     "Implementation Added:",
-    implementationAdded,
+    smartInvoiceInstant.address,
     "Version:",
     version.toNumber(),
   );
-
-  if (chainId !== 31337) {
-    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
-      ? "verify:verify-blockscout"
-      : "verify:verify";
-
-    const verifyResult = await run(TASK_VERIFY, {
-      address: smartInvoiceInstant.address,
-      constructorArguments: [],
-    });
-
-    console.log(verifyResult);
-    console.log("Verified Implementation");
-  }
 
   const data = fs.readFileSync(`deployments/${network.name}.json`, {
     encoding: "utf8",
@@ -118,6 +126,21 @@ async function main() {
     `deployments/${network.name}.json`,
     JSON.stringify(deployment, undefined, 2),
   );
+
+  if (chainId !== 31337 || chainId !== 137) {
+    const TASK_VERIFY = BLOCKSCOUT_CHAIN_IDS.includes(chainId)
+      ? "verify:verify-blockscout"
+      : "verify:verify";
+
+    const verifyResult = await run(TASK_VERIFY, {
+      address: smartInvoiceInstant.address,
+      constructorArguments: [],
+    });
+
+    if (verifyResult) {
+      console.log("Contract verified: ", verifyResult);
+    }
+  }
 }
 
 main()

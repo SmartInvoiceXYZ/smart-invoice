@@ -1,7 +1,10 @@
 {
   "network": "mainnet",
-  "factory": "0xe73251284989C4496985F16C718369BBc30ccF63",
-  "txHash": "0xca2061a300f9ab38fd389aaeffa032bf229d87adcca3416221d9b940539bf226",
-  "blockNumber": "15546992",
-  "implementations": {}
+  "factory": "0x5E14cF595e18F91170009946205f8BBa21b323ca",
+  "txHash": "0x6b3d6d0f7b81f45977727df08729fe150483cf31fd1a044385d91271eb9731f2",
+  "blockNumber": "16991083",
+  "implementations": {
+    "escrow": ["0xEfA83c32691e312d8c0c2973b05048fecCfab752"],
+    "instant": ["0xb54586d9032728b0d82F64845D3fC51577bB00cd"]
+  }
 }

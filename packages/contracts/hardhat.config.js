@@ -14,8 +14,8 @@ const {
   ETHERSCAN_API_KEY,
   COINMARKETCAP_API_KEY,
   CURRENCY,
+  POLYGONSCAN_API_KEY,
 } = process.env;
-
 module.exports = {
   solidity: {
     version: "0.8.3",
@@ -39,6 +39,14 @@ module.exports = {
       url: `https://rpc.ankr.com/gnosis`,
       accounts: [`0x${PRIVATE_KEY}`],
     },
+    polygon: {
+      url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
+    polygonMumbai: {
+      url: `https://polygon-mumbai.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
@@ -58,14 +66,19 @@ module.exports = {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
-      gasPrice: 4500000000,
     },
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
+      xdai: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
+      polygonMumbai: POLYGONSCAN_API_KEY,
+    },
   },
   gasReporter: {
-    // enabled: false,
+    enabled: true,
     coinmarketcap: COINMARKETCAP_API_KEY,
     currency: CURRENCY,
   },

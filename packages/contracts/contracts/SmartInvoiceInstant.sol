@@ -10,8 +10,6 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/ISmartInvoiceInstant.sol";
 import "./interfaces/IWRAPPED.sol";
 
-import "hardhat/console.sol";
-
 contract SmartInvoiceInstant is
     ISmartInvoiceInstant,
     Initializable,
