@@ -25,7 +25,7 @@ export const chainIds = {
 
 export const hexChainIds = {
   xdai: '0x64',
-  // mainnet: '0x01',
+  mainnet: '0x01',
   rinkeby: '0x04',
   goerli: '0x05',
   kovan: '0x2a',
