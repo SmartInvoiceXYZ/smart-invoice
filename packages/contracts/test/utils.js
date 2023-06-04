@@ -120,6 +120,57 @@ module.exports.getLockedEscrow = async (
   return newInvoice;
 };
 
+module.exports.createSplitEscrow = async (
+  factory,
+  invoice,
+  type,
+  client,
+  provider,
+  resolverType,
+  resolver,
+  token,
+  amounts,
+  terminationTime,
+  details,
+  wrappedNativeToken,
+  requireVerification,
+  dao,
+  daoFee,
+) => {
+  await factory.addImplementation(type, invoice.address);
+  const data = ethers.utils.AbiCoder.prototype.encode(
+    [
+      "address",
+      "uint8",
+      "address",
+      "address",
+      "uint256",
+      "bytes32",
+      "address",
+      "bool",
+      "address",
+      "address",
+      "uint256",
+    ],
+    [
+      client,
+      resolverType,
+      resolver,
+      token,
+      terminationTime, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+      factory.address,
+      dao,
+      daoFee,
+    ],
+  );
+
+  const receipt = await factory.create(provider, amounts, data, type);
+  return receipt;
+};
+
 module.exports.createInstantInvoice = async (
   // factory,
   invoice,

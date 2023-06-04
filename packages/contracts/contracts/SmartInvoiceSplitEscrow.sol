@@ -16,7 +16,7 @@ import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
-contract SmartInvoiceEscrow is
+contract SmartInvoiceSplitEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
     Initializable,
@@ -51,12 +51,16 @@ contract SmartInvoiceEscrow is
 
     address public client;
     address public provider;
+    address public dao;
+    uint256 public daoFee;
     ADR public resolverType;
     address public resolver;
     address public token;
     uint256 public terminationTime;
     uint256 public resolutionRate;
     bytes32 public details;
+    mapping(uint256 => bool) public milestoneReleased;
+    uint256 internal _remaining;
 
     uint256[] public amounts; // milestones split into amounts
     uint256 public total = 0;
@@ -116,6 +120,7 @@ contract SmartInvoiceEscrow is
             _total += amounts[i];
         }
         total = _total;
+        _remaining = amounts.length;
     }
 
     /**
@@ -132,7 +137,9 @@ contract SmartInvoiceEscrow is
             bytes32 _details,
             address _wrappedNativeToken,
             bool _requireVerification,
-            address _factory
+            address _factory,
+            address _dao,
+            uint256 _daoFee
         ) = abi.decode(
                 _data,
                 (
@@ -144,7 +151,9 @@ contract SmartInvoiceEscrow is
                     bytes32,
                     address,
                     bool,
-                    address
+                    address,
+                    address,
+                    uint256
                 )
             );
 
@@ -168,6 +177,7 @@ contract SmartInvoiceEscrow is
             _wrappedNativeToken != address(0),
             "invalid wrappedNativeToken"
         );
+        if (_daoFee > 0) require(_dao != address(0), "invalid dao");
 
         client = _client;
         resolverType = ADR(_resolverType);
@@ -177,6 +187,8 @@ contract SmartInvoiceEscrow is
         resolutionRate = _resolutionRate;
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
+        dao = _dao;
+        daoFee = _daoFee;
 
         if (!_requireVerification) emit Verified(client, address(this));
     }
@@ -256,33 +268,58 @@ contract SmartInvoiceEscrow is
     /**
      * @dev Internal function to release funds from the contract to the provider.
      */
-    function _release() internal {
-        // client transfers locker milestone funds to provider
+    function _release(uint256 _milestone) internal {
+        // client transfers locker milestone funds to provider and dao
 
         require(!locked, "locked");
         require(_msgSender() == client, "!client");
+        require(_milestone < amounts.length, "invalid milestone");
 
-        uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
 
-        if (currentMilestone < amounts.length) {
-            uint256 amount = amounts[currentMilestone];
-            if (currentMilestone == amounts.length - 1 && amount < balance) {
+        if (_remaining >= 1) {
+            uint256 amount = amounts[_milestone];
+            if (_remaining == 1 && amount < balance) {
                 amount = balance;
             }
             require(balance >= amount, "insufficient balance");
 
-            milestone = milestone + 1;
-            IERC20(token).safeTransfer(provider, amount);
+            // milestone = milestone + 1;
+            milestoneReleased[_milestone] = true;
+            uint256 daoAmount = (amount * daoFee) / 10000;
+            uint256 providerAmount = amount - daoAmount;
+            IERC20(token).safeTransfer(dao, daoAmount);
+            IERC20(token).safeTransfer(provider, providerAmount);
             released = released + amount;
-            emit Release(currentMilestone, amount);
+            unchecked {
+                _remaining = _remaining - 1;
+            }
+            emit Release(_milestone, amount);
         } else {
             require(balance > 0, "balance is 0");
 
-            IERC20(token).safeTransfer(provider, balance);
+            uint256 daoAmount = (balance * daoFee) / 10000;
+            uint256 providerAmount = balance - daoAmount;
+            IERC20(token).safeTransfer(dao, daoAmount);
+            IERC20(token).safeTransfer(provider, providerAmount);
             released = released + balance;
-            emit Release(currentMilestone, balance);
+            emit Release(_milestone, balance);
         }
+    }
+
+    /**
+     * @dev Internal function to release funds from the contract to the provider.
+     */
+    function _release() internal {
+        // client transfers locker milestone funds to provider and dao
+        uint256 currentMilestone = 0;
+        for (uint256 i = 0; i < amounts.length; i++) {
+            if (milestoneReleased[i] == false) {
+                currentMilestone = i;
+                break;
+            }
+        }
+        _release(currentMilestone);
     }
 
     /**
@@ -298,27 +335,57 @@ contract SmartInvoiceEscrow is
      * @param _milestone The milestone to release funds to
      */
     function release(uint256 _milestone) external override nonReentrant {
-        // client transfers locker funds upto certain milestone to provider
+        // client transfers locker funds upto certain milestone to provider and dao
+        require(_milestone < amounts.length, "invalid milestone");
+        _release(_milestone);
+    }
+
+    /** @dev External function to release funds from the contract to the provider.
+     * Uses the internal `_release` function to perform the actual release.
+     * @param _milestones The milestones to release funds
+     */
+    function release(uint256[] calldata _milestones) external nonReentrant {
+        // client transfers locker funds upto certain milestone to provider and dao
         require(!locked, "locked");
         require(_msgSender() == client, "!client");
-        require(_milestone >= milestone, "milestone passed");
-        require(_milestone < amounts.length, "invalid milestone");
+        // require(_milestones >= milestone, "milestone passed");
+        for (uint256 i = 0; i < _milestones.length; i++) {
+            require(_milestones[i] < amounts.length, "invalid milestone");
+            require(
+                !milestoneReleased[_milestones[i]],
+                "milestone already released"
+            );
+        }
+
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 amount = 0;
-        for (uint256 j = milestone; j <= _milestone; j++) {
-            if (j == amounts.length - 1 && amount + amounts[j] < balance) {
-                emit Release(j, balance - amount);
+        uint256 index = 0;
+        uint256 remaining = _remaining - _milestones.length;
+        for (uint256 j = 0; j < _milestones.length; j++) {
+            index = _milestones[j];
+            if (milestoneReleased[index]) {
+                for (uint256 x = 0; x < j; x++) {
+                    milestoneReleased[_milestones[x]] = false;
+                }
+                revert("duplicate milestone");
+            }
+            if (remaining == 1 && amount + amounts[index] < balance) {
+                emit Release(index, balance - amount);
                 amount = balance;
             } else {
-                emit Release(j, amounts[j]);
-                amount = amount + amounts[j];
+                emit Release(index, amounts[index]);
+                amount = amount + amounts[index];
             }
+            milestoneReleased[index] = true;
         }
         require(balance >= amount, "insufficient balance");
 
-        IERC20(token).safeTransfer(provider, amount);
+        uint256 daoAmount = (amount * daoFee) / 10000;
+        uint256 providerAmount = amount - daoAmount;
+        IERC20(token).safeTransfer(dao, daoAmount);
+        IERC20(token).safeTransfer(provider, providerAmount);
         released = released + amount;
-        milestone = _milestone + 1;
+        _remaining = remaining;
     }
 
     /**
@@ -424,7 +491,9 @@ contract SmartInvoiceEscrow is
         );
 
         if (_providerAward > 0) {
-            IERC20(token).safeTransfer(provider, _providerAward);
+            uint256 fee = (_providerAward * daoFee) / 10000;
+            IERC20(token).safeTransfer(dao, fee);
+            IERC20(token).safeTransfer(provider, _providerAward - fee);
         }
         if (_clientAward > 0) {
             IERC20(token).safeTransfer(client, _clientAward);
@@ -472,7 +541,9 @@ contract SmartInvoiceEscrow is
         uint256 clientAward = balance - providerAward;
 
         if (providerAward > 0) {
-            IERC20(token).safeTransfer(provider, providerAward);
+            uint256 fee = (providerAward * daoFee) / 10000;
+            IERC20(token).safeTransfer(dao, fee);
+            IERC20(token).safeTransfer(provider, providerAward - fee);
         }
         if (clientAward > 0) {
             IERC20(token).safeTransfer(client, clientAward);
