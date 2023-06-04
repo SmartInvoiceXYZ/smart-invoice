@@ -171,6 +171,57 @@ module.exports.createSplitEscrow = async (
   return receipt;
 };
 
+module.exports.getLockedSplitEscrow = async (
+  SmartInvoiceEscrow,
+  factory,
+  invoiceType,
+  client,
+  provider,
+  resolverType,
+  resolver,
+  mockToken,
+  amounts,
+  details,
+  mockWrappedNativeToken,
+  dao,
+  daoFee,
+  value = 0,
+) => {
+  const currentTime = await module.exports.currentTimestamp();
+  let newInvoice = await SmartInvoiceEscrow.deploy();
+  await newInvoice.deployed();
+  const initReceipt = await module.exports.createSplitEscrow(
+    factory,
+    newInvoice,
+    invoiceType,
+    client.address,
+    provider.address,
+    resolverType,
+    resolver.address,
+    mockToken.address,
+    amounts,
+    currentTime + 1000,
+    details,
+    mockWrappedNativeToken.address,
+    false,
+    dao,
+    daoFee,
+  );
+  const newInvoiceAddress = await module.exports.awaitInvoiceAddress(
+    await initReceipt.wait(),
+  );
+  newInvoice = await SmartInvoiceEscrow.attach(newInvoiceAddress);
+  expect(await newInvoice["locked()"]()).to.equal(false);
+  await mockToken.mock.balanceOf.withArgs(newInvoice.address).returns(10);
+  const receipt = newInvoice["lock(bytes32)"](EMPTY_BYTES32, {
+    value: value,
+  });
+  await expect(receipt)
+    .to.emit(newInvoice, "Lock")
+    .withArgs(client.address, EMPTY_BYTES32);
+  return newInvoice;
+};
+
 module.exports.createInstantInvoice = async (
   // factory,
   invoice,

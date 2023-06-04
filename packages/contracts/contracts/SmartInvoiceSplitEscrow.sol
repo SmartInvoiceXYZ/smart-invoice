@@ -312,7 +312,7 @@ contract SmartInvoiceSplitEscrow is
      */
     function _release() internal {
         // client transfers locker milestone funds to provider and dao
-        uint256 currentMilestone = 0;
+        uint256 currentMilestone = amounts.length - 1;
         for (uint256 i = 0; i < amounts.length; i++) {
             if (milestoneReleased[i] == false) {
                 currentMilestone = i;
@@ -337,6 +337,7 @@ contract SmartInvoiceSplitEscrow is
     function release(uint256 _milestone) external override nonReentrant {
         // client transfers locker funds upto certain milestone to provider and dao
         require(_milestone < amounts.length, "invalid milestone");
+        require(!milestoneReleased[_milestone], "milestone already released");
         _release(_milestone);
     }
 

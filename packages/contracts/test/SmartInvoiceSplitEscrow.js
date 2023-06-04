@@ -4,7 +4,7 @@ const { ethers, waffle } = require("hardhat");
 const { deployMockContract, provider: waffleProvider } = waffle;
 const {
   currentTimestamp,
-  getLockedEscrow,
+  getLockedSplitEscrow,
   awaitInvoiceAddress,
   createSplitEscrow,
 } = require("./utils");
@@ -37,6 +37,7 @@ describe("SmartInvoiceEscrow", function () {
   let resolver;
   let randomSigner;
   let dao;
+  let data;
 
   beforeEach(async function () {
     [client, provider, resolver, randomSigner, dao] = await ethers.getSigners();
@@ -65,7 +66,7 @@ describe("SmartInvoiceEscrow", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await factory.addImplementation(invoiceType, invoice.address);
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    data = ethers.utils.AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -385,66 +386,71 @@ describe("SmartInvoiceEscrow", function () {
     );
   });
 
-  it.only("Should release", async function () {
+  it("Should release", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     const receipt = await invoice["release()"]();
-    console.log("hello");
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
     expect(await invoice["released()"]()).to.equal(10);
   });
 
   it("Should release full balance at last milestone", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     let receipt = await invoice["release()"]();
     expect(await invoice["released()"]()).to.equal(10);
-    expect(await invoice["milestone()"]()).to.equal(1);
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(15);
-    await mockToken.mock.transfer.withArgs(provider.address, 15).returns(true);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
+    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
     receipt = await invoice["release()"]();
-    expect(await invoice["released()"]()).to.equal(25);
-    expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 15);
+    expect(await invoice["released()"]()).to.equal(30);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 20);
   });
 
   it("Should release full balance after all milestones are completed", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     let receipt = await invoice["release()"]();
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(15);
-    await mockToken.mock.transfer.withArgs(provider.address, 15).returns(true);
-    receipt = await invoice["release()"]();
-    expect(await invoice["released()"]()).to.equal(25);
-    expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 15);
-
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
-    await mockToken.mock.transfer.withArgs(provider.address, 20).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
     receipt = await invoice["release()"]();
-    expect(await invoice["released()"]()).to.equal(45);
-    expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(2, 20);
+    expect(await invoice["released()"]()).to.equal(30);
+    // expect(await invoice["milestone()"]()).to.equal(2);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 20);
+
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(30);
+    await mockToken.mock.transfer.withArgs(provider.address, 27).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 3).returns(true);
+    receipt = await invoice["release()"]();
+    expect(await invoice["released()"]()).to.equal(60);
+    // expect(await invoice["milestone()"]()).to.equal(2);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 30);
   });
 
   it("Should revert release if 0 balance after all milestones are completed", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     let receipt = await invoice["release()"]();
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(15);
-    await mockToken.mock.transfer.withArgs(provider.address, 15).returns(true);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
+    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
     receipt = await invoice["release()"]();
-    expect(await invoice["released()"]()).to.equal(25);
-    expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 15);
+    expect(await invoice["released()"]()).to.equal(30);
+    // expect(await invoice["milestone()"]()).to.equal(2);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 20);
 
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(0);
     await expect(invoice["release()"]()).to.be.revertedWith("balance is 0");
   });
 
   it("Should revert release if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -456,71 +462,84 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     expect(lockedInvoice["release()"]()).to.be.revertedWith("locked");
   });
 
   it("Should release with milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     const receipt = await invoice["release(uint256)"](0);
     expect(await invoice["released()"]()).to.equal(10);
-    expect(await invoice["milestone()"]()).to.equal(1);
+    // expect(await invoice["milestone()"]()).to.equal(1);
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
   });
 
   it("Should release with higher milestone number", async function () {
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
-    await mockToken.mock.transfer.withArgs(provider.address, 20).returns(true);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     const receipt = await invoice["release(uint256)"](1);
-    expect(await invoice["released()"]()).to.equal(20);
-    expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
+    expect(await invoice["released()"]()).to.equal(10);
+    expect(await invoice.milestoneReleased(0)).to.equal(false);
+    expect(await invoice.milestoneReleased(1)).to.equal(true);
+    // expect(await invoice["milestone()"]()).to.equal(2);
     await expect(receipt).to.emit(invoice, "Release").withArgs(1, 10);
   });
 
   it("Should release all with higher milestone number", async function () {
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(25);
-    await mockToken.mock.transfer.withArgs(provider.address, 25).returns(true);
-    const receipt = await invoice["release(uint256)"](1);
-    expect(await invoice["released()"]()).to.equal(25);
-    expect(await invoice["milestone()"]()).to.equal(2);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
+    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
+    const receipt = await invoice["release(uint256[])"]([0, 1]);
+    expect(await invoice["released()"]()).to.equal(20);
+    // expect(await invoice["milestone()"]()).to.equal(2);
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 15);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 10);
   });
 
   it("Should revert release with higher milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
-    const receipt = invoice["release(uint256)"](1);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 1).returns(true);
+    const receipt = invoice["release(uint256[])"]([0, 1]);
     await expect(receipt).to.revertedWith("insufficient balance");
+    expect(await invoice["released()"]()).to.equal(0);
+    expect(await invoice.milestoneReleased(0)).to.equal(false);
+    expect(await invoice.milestoneReleased(1)).to.equal(false);
   });
 
   it("Should revert release with invalid milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     const receipt = invoice["release(uint256)"](5);
     await expect(receipt).to.revertedWith("invalid milestone");
   });
 
   it("Should revert release with passed milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     await invoice["release()"]();
     const receipt = invoice["release(uint256)"](0);
-    await expect(receipt).to.revertedWith("milestone passed");
+    await expect(receipt).to.revertedWith("milestone already released");
   });
 
   it("Should revert release milestone if not client", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     invoice = await invoice.connect(provider);
     const receipt = invoice["release(uint256)"](0);
     await expect(receipt).to.revertedWith("!client");
   });
 
   it("Should revert release milestone if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -532,6 +551,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await expect(lockedInvoice["release(uint256)"](0)).to.be.revertedWith(
       "locked",
@@ -548,10 +569,11 @@ describe("SmartInvoiceEscrow", function () {
 
   it("Should call release if releaseTokens with invoice token", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 10).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     const receipt = await invoice["releaseTokens(address)"](mockToken.address);
     expect(await invoice["released()"]()).to.equal(10);
-    expect(await invoice["milestone()"]()).to.equal(1);
+    // expect(await invoice["milestone()"]()).to.equal(1);
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
   });
 
@@ -588,7 +610,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert withdraw if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -600,6 +622,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await expect(lockedInvoice["withdraw()"]()).to.be.revertedWith("locked");
   });
@@ -873,7 +897,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert lock if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -885,6 +909,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     const receipt = lockedInvoice["lock(bytes32)"](EMPTY_BYTES32);
     await expect(receipt).to.be.revertedWith("locked");
@@ -893,7 +919,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should lock if balance is greater than 0", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -905,6 +931,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     expect(await lockedInvoice["locked()"]()).to.equal(true);
   });
@@ -918,7 +946,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should revert resolve if balance is 0", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -930,6 +958,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(0);
     await expect(
@@ -940,7 +970,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should revert resolve if not resolver", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -952,6 +982,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(10);
     await expect(
@@ -962,7 +994,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should revert resolve if awards do not add up", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    let lockedInvoice = await getLockedEscrow(
+    let lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -974,6 +1006,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     lockedInvoice = await lockedInvoice.connect(resolver);
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(10);
@@ -1013,7 +1047,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should resolve with correct rewards", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    let lockedInvoice = await getLockedEscrow(
+    let lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1025,10 +1059,13 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
     await mockToken.mock.transfer.withArgs(client.address, 5).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 90).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 81).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 9).returns(true);
     await mockToken.mock.transfer.withArgs(resolver.address, 5).returns(true);
     lockedInvoice = await lockedInvoice.connect(resolver);
     const receipt = lockedInvoice["resolve(uint256,uint256,bytes32)"](
@@ -1047,7 +1084,7 @@ describe("SmartInvoiceEscrow", function () {
   it("Should resolve and not transfer if 0 clientAward", async function () {
     const newInvoice = await SmartInvoiceEscrow.deploy();
     await newInvoice.deployed();
-    let lockedInvoice = await getLockedEscrow(
+    let lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1059,26 +1096,31 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
-    await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
-    await mockToken.mock.transfer.withArgs(provider.address, 95).returns(true);
-    await mockToken.mock.transfer.withArgs(resolver.address, 5).returns(true);
+    await mockToken.mock.balanceOf
+      .withArgs(lockedInvoice.address)
+      .returns(1000);
+    await mockToken.mock.transfer.withArgs(provider.address, 855).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 95).returns(true);
+    await mockToken.mock.transfer.withArgs(resolver.address, 50).returns(true);
     lockedInvoice = await lockedInvoice.connect(resolver);
     const receipt = lockedInvoice["resolve(uint256,uint256,bytes32)"](
       0,
-      95,
+      950,
       EMPTY_BYTES32,
     );
     await expect(receipt)
       .to.emit(lockedInvoice, "Resolve")
-      .withArgs(resolver.address, 0, 95, 5, EMPTY_BYTES32);
+      .withArgs(resolver.address, 0, 950, 50, EMPTY_BYTES32);
     expect(await lockedInvoice["released()"]()).to.be.equal(0);
-    expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
+    // expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
     expect(await lockedInvoice["locked()"]()).to.be.equal(false);
   });
 
   it("Should resolve and not transfer if 0 providerAward", async function () {
-    let lockedInvoice = await getLockedEscrow(
+    let lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1090,6 +1132,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
     await mockToken.mock.transfer.withArgs(client.address, 95).returns(true);
@@ -1109,7 +1153,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should resolve and not transfer if 0 resolutionFee", async function () {
-    let lockedInvoice = await getLockedEscrow(
+    let lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1121,10 +1165,14 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      2000,
+      0,
     );
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(10);
     await mockToken.mock.transfer.withArgs(client.address, 5).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 5).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 4).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     lockedInvoice = await lockedInvoice.connect(resolver);
     const receipt = lockedInvoice["resolve(uint256,uint256,bytes32)"](
       5,
@@ -1135,7 +1183,7 @@ describe("SmartInvoiceEscrow", function () {
       .to.emit(lockedInvoice, "Resolve")
       .withArgs(resolver.address, 5, 5, 0, EMPTY_BYTES32);
     expect(await lockedInvoice["released()"]()).to.be.equal(0);
-    expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
+    // expect(await lockedInvoice["milestone()"]()).to.be.equal(2);
     expect(await lockedInvoice["locked()"]()).to.be.equal(false);
   });
 
@@ -1174,7 +1222,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert rule if not resolver", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1186,8 +1234,9 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1200,7 +1249,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert rule if invalid disputeId", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1212,8 +1261,9 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1229,7 +1279,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert rule if invalid ruling", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1241,8 +1291,9 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1254,7 +1305,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert rule if balance is 0", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1266,8 +1317,9 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
-      requireVerification,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
       arbitratorResolverType,
@@ -1280,7 +1332,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 1:1 for ruling 0", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1292,6 +1344,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
 
@@ -1302,7 +1356,8 @@ describe("SmartInvoiceEscrow", function () {
 
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
     await mockToken.mock.transfer.withArgs(client.address, 50).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 50).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 45).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 5).returns(true);
     const receipt = await mockArbitrator.executeRuling(
       lockedInvoice.address,
       0,
@@ -1319,7 +1374,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 1:0 for ruling 1", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1331,6 +1386,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
@@ -1356,7 +1413,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 3:1 for ruling 2", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1368,6 +1425,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
@@ -1375,16 +1434,19 @@ describe("SmartInvoiceEscrow", function () {
     );
     expect(await lockedInvoice["disputeId()"]()).to.be.equal(1);
 
-    await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
-    await mockToken.mock.transfer.withArgs(client.address, 75).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 25).returns(true);
+    await mockToken.mock.balanceOf
+      .withArgs(lockedInvoice.address)
+      .returns(1000);
+    await mockToken.mock.transfer.withArgs(client.address, 750).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 225).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 25).returns(true);
     const receipt = await mockArbitrator.executeRuling(
       lockedInvoice.address,
       2,
     );
     await expect(receipt)
       .to.emit(lockedInvoice, "Rule")
-      .withArgs(mockArbitrator.address, 75, 25, 2);
+      .withArgs(mockArbitrator.address, 750, 250, 2);
     await expect(receipt)
       .to.emit(lockedInvoice, "Ruling")
       .withArgs(mockArbitrator.address, 1, 2);
@@ -1394,7 +1456,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 1:1 for ruling 3", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1406,6 +1468,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
@@ -1415,7 +1479,8 @@ describe("SmartInvoiceEscrow", function () {
 
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
     await mockToken.mock.transfer.withArgs(client.address, 50).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 50).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 45).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 5).returns(true);
     const receipt = await mockArbitrator.executeRuling(
       lockedInvoice.address,
       3,
@@ -1432,7 +1497,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 1:3 for ruling 4", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1444,6 +1509,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
@@ -1451,16 +1518,19 @@ describe("SmartInvoiceEscrow", function () {
     );
     expect(await lockedInvoice["disputeId()"]()).to.be.equal(1);
 
-    await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
-    await mockToken.mock.transfer.withArgs(client.address, 25).returns(true);
-    await mockToken.mock.transfer.withArgs(provider.address, 75).returns(true);
+    await mockToken.mock.balanceOf
+      .withArgs(lockedInvoice.address)
+      .returns(1000);
+    await mockToken.mock.transfer.withArgs(client.address, 250).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 675).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 75).returns(true);
     const receipt = await mockArbitrator.executeRuling(
       lockedInvoice.address,
       4,
     );
     await expect(receipt)
       .to.emit(lockedInvoice, "Rule")
-      .withArgs(mockArbitrator.address, 25, 75, 4);
+      .withArgs(mockArbitrator.address, 250, 750, 4);
     await expect(receipt)
       .to.emit(lockedInvoice, "Ruling")
       .withArgs(mockArbitrator.address, 1, 4);
@@ -1470,7 +1540,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should rule 0:1 for ruling 5", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1482,6 +1552,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
       10,
     );
     expect(await lockedInvoice["resolverType()"]()).to.be.equal(
@@ -1490,7 +1562,8 @@ describe("SmartInvoiceEscrow", function () {
     expect(await lockedInvoice["disputeId()"]()).to.be.equal(1);
 
     await mockToken.mock.balanceOf.withArgs(lockedInvoice.address).returns(100);
-    await mockToken.mock.transfer.withArgs(provider.address, 100).returns(true);
+    await mockToken.mock.transfer.withArgs(provider.address, 90).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 10).returns(true);
     const receipt = await mockArbitrator.executeRuling(
       lockedInvoice.address,
       5,
@@ -1515,7 +1588,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert receive if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1527,6 +1600,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     const receipt = client.sendTransaction({
       to: lockedInvoice.address,
@@ -1594,6 +1669,8 @@ describe("SmartInvoiceEscrow", function () {
       EMPTY_BYTES32,
       mockWrappedNativeToken.address,
       noVerification,
+      dao.address,
+      daoFee,
     );
     invoiceAddress = await awaitInvoiceAddress(await tx.wait());
     invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
@@ -1646,7 +1723,7 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should revert addMilestones if locked", async function () {
-    const lockedInvoice = await getLockedEscrow(
+    const lockedInvoice = await getLockedSplitEscrow(
       SmartInvoiceEscrow,
       factory,
       invoiceType,
@@ -1658,6 +1735,8 @@ describe("SmartInvoiceEscrow", function () {
       amounts,
       EMPTY_BYTES32,
       mockWrappedNativeToken,
+      dao.address,
+      daoFee,
     );
     await expect(
       lockedInvoice.connect(client)["addMilestones(uint256[])"]([13, 14]),
