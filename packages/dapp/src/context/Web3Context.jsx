@@ -1,5 +1,3 @@
-import { SafeAppWeb3Modal as Web3Modal } from '@gnosis.pm/safe-apps-web3modal';
-import WalletConnectProvider from '@walletconnect/web3-provider';
 import { ethers } from 'ethers';
 import React, {
   createContext,
@@ -9,36 +7,26 @@ import React, {
   useState,
 } from 'react';
 import Web3 from 'web3';
+// import {
+//   useConnectModal,
+//   useAccountModal,
+//   useChainModal,
+// } from '@rainbow-me/rainbowkit';
 
 import { theme } from '../theme';
 import { SUPPORTED_NETWORKS } from '../utils/constants';
 import { getRpcUrl, logError } from '../utils/helpers';
 
-const providerOptions = {
-  walletconnect: {
-    package: WalletConnectProvider,
-    options: {
-      rpc: {
-        1: getRpcUrl(1),
-        4: getRpcUrl(4),
-        42: getRpcUrl(42),
-        100: getRpcUrl(100),
-        137: getRpcUrl(137),
-      },
-    },
-  },
-};
-
-const web3Modal = new Web3Modal({
-  cacheProvider: true,
-  providerOptions,
-  theme: {
-    background: theme.colors.background,
-    main: theme.colors.red[500],
-    secondary: theme.colors.white,
-    hover: theme.colors.black30,
-  },
-});
+// const web3Modal = new Web3Modal({
+//   cacheProvider: true,
+//   providerOptions,
+//   theme: {
+//     background: theme.colors.background,
+//     main: theme.colors.red[500],
+//     secondary: theme.colors.white,
+//     hover: theme.colors.black30,
+//   },
+// });
 
 export const Web3Context = createContext();
 export const useWeb3 = () => useContext(Web3Context);
@@ -80,50 +68,51 @@ export const Web3ContextProvider = ({ children }) => {
   }, [chainId]);
 
   const connectWeb3 = useCallback(async () => {
-    try {
-      setLoading(true);
-      const modalProvider = await web3Modal.requestProvider();
+    console.log('connect web3 called');
+    // try {
+    //   setLoading(true);
+    // const modalProvider = await web3Modal.requestProvider();
 
-      await setWeb3Provider(modalProvider, true);
+    // await setWeb3Provider(modalProvider, true);
 
-      const isGnosisSafe = !!modalProvider.safe;
+    // const isGnosisSafe = !!modalProvider.safe;
 
-      if (!isGnosisSafe) {
-        modalProvider.on('accountsChanged', accounts => {
-          setWeb3(_provider => ({
-            ..._provider,
-            account: accounts[0],
-          }));
-        });
-        modalProvider.on('chainChanged', () => {
-          setWeb3Provider(modalProvider);
-        });
-      }
-    } catch (web3ModalError) {
-      logError({ web3ModalError });
-      throw web3ModalError;
-    } finally {
-      setLoading(false);
-    }
+    // if (!isGnosisSafe) {
+    //   modalProvider.on('accountsChanged', accounts => {
+    //     setWeb3(_provider => ({
+    //       ..._provider,
+    //       account: accounts[0],
+    //     }));
+    //   });
+    //   modalProvider.on('chainChanged', () => {
+    //     setWeb3Provider(modalProvider);
+    //   });
+    //   }
+    // } catch (web3ModalError) {
+    //   logError({ web3ModalError });
+    //   throw web3ModalError;
+    // } finally {
+    //   setLoading(false);
+    // }
   }, []);
 
   const disconnect = useCallback(async () => {
-    web3Modal.clearCachedProvider();
+    // web3Modal.clearCachedProvider();
     setWeb3({});
   }, []);
 
-  useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.autoRefreshOnNetworkChange = false;
-    }
-    (async function load() {
-      if ((await web3Modal.canAutoConnect()) || web3Modal.cachedProvider) {
-        connectWeb3();
-      } else {
-        setLoading(false);
-      }
-    })();
-  }, [connectWeb3]);
+  // useEffect(() => {
+  //   if (window.ethereum) {
+  //     window.ethereum.autoRefreshOnNetworkChange = false;
+  //   }
+  //   (async function load() {
+  //     if ((await web3Modal.canAutoConnect()) || web3Modal.cachedProvider) {
+  //       connectWeb3();
+  //     } else {
+  //       setLoading(false);
+  //     }
+  //   })();
+  // }, [connectWeb3]);
 
   return (
     <Web3Context.Provider

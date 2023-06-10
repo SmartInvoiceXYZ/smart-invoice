@@ -14,6 +14,8 @@ import {
 import styled from '@emotion/styled';
 import React, { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, useWalletClient } from 'wagmi';
 
 import LogoText from '../assets/logo.svg';
 import Logo from '../assets/raidguild__logo.png';
@@ -62,7 +64,10 @@ export const NavButton = ({ onClick, children }) => (
 );
 
 export const Header = () => {
-  const { account, disconnect, chainId } = useContext(Web3Context);
+  const { address } = useAccount();
+  const { account, disconnect, connectAccount, chainId } =
+    useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
   const [isOpen, onOpen] = useState(false);
   const [isMobile, onMobile] = useState(false);
   const history = useHistory();
@@ -73,6 +78,11 @@ export const Header = () => {
       window.addEventListener('resize', toggleMobileMode);
     }
   });
+  useEffect(() => {
+    if (address && walletClient) {
+      connectAccount(walletClient);
+    }
+  }, [address, walletClient]);
   useEffect(() => {
     if (account) {
       getProfile(account).then(p => setProfile(p));
@@ -140,7 +150,7 @@ export const Header = () => {
         width={250}
         justify="end"
       >
-        {account && (
+        {account ? (
           <Flex justify="center" align="center" zIndex={5}>
             <Popover>
               <PopoverTrigger>
@@ -216,6 +226,8 @@ export const Header = () => {
               </PopoverContent>
             </Popover>
           </Flex>
+        ) : (
+          <ConnectButton />
         )}
         {isMobile && (
           <Button

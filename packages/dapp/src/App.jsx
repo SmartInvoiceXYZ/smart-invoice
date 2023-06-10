@@ -24,55 +24,86 @@ import { ViewInstantInvoice } from './pages/instant/ViewInstantInvoice';
 import { Layout } from './shared/Layout';
 import { globalStyles, theme } from './theme';
 import { CreateInvoiceInstant } from './pages/instant/CreateInvoiceInstant';
+// import '@rainbow-me/rainbowkit/styles.css';
+import '@rainbow-me/rainbowkit/dist/index.css';
+import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { configureChains, createConfig, WagmiConfig } from 'wagmi';
+import { mainnet, polygon, optimism, gnosis } from 'wagmi/chains';
+import { infuraProvider } from 'wagmi/providers/infura';
+import { publicProvider } from 'wagmi/providers/public';
 
 export const App = () => {
+  const { chains, publicClient } = configureChains(
+    [mainnet, polygon, gnosis],
+    [
+      infuraProvider({ apiKey: process.env.REACT_APP_INFURA_ID }),
+      publicProvider(),
+    ],
+  );
+
+  const { connectors } = getDefaultWallets({
+    appName: 'Smart Invoice',
+    projectId: '1234',
+    chains,
+  });
+
+  const wagmiConfig = createConfig({
+    autoConnect: true,
+    connectors,
+    publicClient,
+  });
+
   return (
-    <ChakraProvider theme={theme}>
-      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <CSSReset />
-      <Global styles={globalStyles} />
-      <ErrorBoundary>
-        <Web3ContextProvider>
-          <Router>
-            <Layout>
-              <Switch>
-                <Route exact path="/" component={Home} />
-                <Route exact path="/contracts" component={Contracts} />
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider chains={chains}>
+        <ChakraProvider theme={theme}>
+          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+          <CSSReset />
+          <Global styles={globalStyles} />
+          <ErrorBoundary>
+            <Web3ContextProvider>
+              <Router>
+                <Layout>
+                  <Switch>
+                    <Route exact path="/" component={Home} />
+                    <Route exact path="/contracts" component={Contracts} />
 
-                <Route exact path="/create" component={SelectInvoiceType} />
-                <Route
-                  exact
-                  path="/create/escrow"
-                  component={CreateInvoiceEscrow}
-                />
-                <Route
-                  exact
-                  path="/create/instant"
-                  component={CreateInvoiceInstant}
-                />
+                    <Route exact path="/create" component={SelectInvoiceType} />
+                    <Route
+                      exact
+                      path="/create/escrow"
+                      component={CreateInvoiceEscrow}
+                    />
+                    <Route
+                      exact
+                      path="/create/instant"
+                      component={CreateInvoiceInstant}
+                    />
 
-                <Route exact path="/invoices" component={Invoices} />
-                <Route
-                  exact
-                  path="/invoice/:hexChainId/:invoiceId"
-                  component={ViewInvoice}
-                />
-                <Route
-                  exact
-                  path="/invoice/:hexChainId/:invoiceId/locked"
-                  component={LockedInvoice}
-                />
-                <Route
-                  exact
-                  path="/invoice/:hexChainId/:invoiceId/instant"
-                  component={ViewInstantInvoice}
-                />
-                <Redirect to="/" />
-              </Switch>
-            </Layout>
-          </Router>
-        </Web3ContextProvider>
-      </ErrorBoundary>
-    </ChakraProvider>
+                    <Route exact path="/invoices" component={Invoices} />
+                    <Route
+                      exact
+                      path="/invoice/:hexChainId/:invoiceId"
+                      component={ViewInvoice}
+                    />
+                    <Route
+                      exact
+                      path="/invoice/:hexChainId/:invoiceId/locked"
+                      component={LockedInvoice}
+                    />
+                    <Route
+                      exact
+                      path="/invoice/:hexChainId/:invoiceId/instant"
+                      component={ViewInstantInvoice}
+                    />
+                    <Redirect to="/" />
+                  </Switch>
+                </Layout>
+              </Router>
+            </Web3ContextProvider>
+          </ErrorBoundary>
+        </ChakraProvider>
+      </RainbowKitProvider>
+    </WagmiConfig>
   );
 };
