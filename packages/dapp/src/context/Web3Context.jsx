@@ -36,21 +36,26 @@ export const Web3ContextProvider = ({ children }) => {
   const [{ account, provider, chainId }, setWeb3] = useState({});
 
   const setWeb3Provider = async (prov, initialCall = false) => {
+    console.log('setWeb3Provider prov: ', prov);
+    if (!prov) return;
     if (prov) {
       const web3Provider = new Web3(prov);
       const gotProvider = new ethers.providers.Web3Provider(
         web3Provider.currentProvider,
       );
-      const gotChainId = Number(prov.chainId);
+      const gotChainId = Number(prov.chain.id);
       if (initialCall) {
         const signer = gotProvider.getSigner();
+        console.log('signer: ', signer);
         const gotAccount = await signer.getAddress();
-        setWeb3(_provider => ({
-          ..._provider,
+        console.log('gotAccount: ', gotAccount);
+        console.log('gotChainId: ', gotChainId);
+
+        setWeb3({
           provider: gotProvider,
           chainId: gotChainId,
           account: gotAccount,
-        }));
+        });
       } else {
         setWeb3(_provider => ({
           ..._provider,
@@ -67,33 +72,37 @@ export const Web3ContextProvider = ({ children }) => {
     }
   }, [chainId]);
 
-  const connectWeb3 = useCallback(async () => {
-    console.log('connect web3 called');
-    // try {
-    //   setLoading(true);
-    // const modalProvider = await web3Modal.requestProvider();
+  const connectWeb3 = useCallback(async provider => {
+    console.log('connect web3 called provider: ', provider);
+    try {
+      setLoading(true);
+      // const modalProvider = await web3Modal.requestProvider();
 
-    // await setWeb3Provider(modalProvider, true);
+      await setWeb3Provider(provider, true);
 
-    // const isGnosisSafe = !!modalProvider.safe;
+      const isGnosisSafe = !!provider.safe;
+      console.log('isGnosisSafe: ', isGnosisSafe, provider.safe);
 
-    // if (!isGnosisSafe) {
-    //   modalProvider.on('accountsChanged', accounts => {
-    //     setWeb3(_provider => ({
-    //       ..._provider,
-    //       account: accounts[0],
-    //     }));
-    //   });
-    //   modalProvider.on('chainChanged', () => {
-    //     setWeb3Provider(modalProvider);
-    //   });
-    //   }
-    // } catch (web3ModalError) {
-    //   logError({ web3ModalError });
-    //   throw web3ModalError;
-    // } finally {
-    //   setLoading(false);
-    // }
+      // if (!isGnosisSafe) {
+      // provider.on('accountsChanged', accounts => {
+      //   setWeb3(_provider => ({
+      //     ..._provider,
+      //     account: accounts[0],
+      //   }));
+      // });
+      // provider.on('chainChanged', () => {
+      //   setWeb3Provider(provider);
+      // });
+      // }
+      // setWeb3(({
+      //   ...provider,
+      // }));
+    } catch (web3ModalError) {
+      logError({ web3ModalError });
+      throw web3ModalError;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const disconnect = useCallback(async () => {

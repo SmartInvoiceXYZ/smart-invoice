@@ -150,7 +150,7 @@ export const Header = () => {
         width={250}
         justify="end"
       >
-        {account ? (
+        {/* {account ? (
           <Flex justify="center" align="center" zIndex={5}>
             <Popover>
               <PopoverTrigger>
@@ -228,7 +228,8 @@ export const Header = () => {
           </Flex>
         ) : (
           <ConnectButton />
-        )}
+        )} */}
+        <ConnectButton />
         {isMobile && (
           <Button
             onClick={() => onOpen(o => !o)}

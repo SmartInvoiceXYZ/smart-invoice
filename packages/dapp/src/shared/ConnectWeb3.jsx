@@ -19,6 +19,7 @@ export const ConnectWeb3 = () => {
       </Container>
     );
   }
+  console.log('inside ConnectWeb3.js account: ', account);
 
   const onClick = async () => {
     try {
