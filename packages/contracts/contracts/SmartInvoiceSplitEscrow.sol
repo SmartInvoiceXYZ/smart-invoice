@@ -253,7 +253,10 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
     }
 
     function _splitTransfer(address _token, uint256 _amount) internal {
-        uint256 daoAmount = (_amount * daoFee) / 10000;
+        uint256 daoAmount;
+        unchecked {
+            daoAmount = (_amount * daoFee) / 10000;
+        }
         IERC20(_token).safeTransfer(dao, daoAmount);
         IERC20(_token).safeTransfer(provider, _amount - daoAmount);
     }
