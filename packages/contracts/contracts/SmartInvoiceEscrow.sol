@@ -104,7 +104,7 @@ contract SmartInvoiceEscrow is
         address _recipient,
         uint256[] calldata _amounts,
         bytes calldata _data
-    ) external override initializer {
+    ) external virtual override initializer {
         require(_recipient != address(0), "invalid provider");
 
         _handleData(_data);
@@ -122,7 +122,7 @@ contract SmartInvoiceEscrow is
      * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
      * @param _data The data to be handled and decoded
      */
-    function _handleData(bytes calldata _data) internal {
+    function _handleData(bytes calldata _data) internal virtual {
         (
             address _client,
             uint8 _resolverType,
@@ -256,7 +256,7 @@ contract SmartInvoiceEscrow is
     /**
      * @dev Internal function to release funds from the contract to the provider.
      */
-    function _release() internal {
+    function _release() internal virtual {
         // client transfers locker milestone funds to provider
 
         require(!locked, "locked");
@@ -289,7 +289,7 @@ contract SmartInvoiceEscrow is
      * @dev External function to release funds from the contract to the provider.
      * Uses the internal `_release` function to perform the actual release.
      */
-    function release() external override nonReentrant {
+    function release() external virtual override nonReentrant {
         return _release();
     }
 
@@ -297,7 +297,12 @@ contract SmartInvoiceEscrow is
      * Uses the internal `_release` function to perform the actual release.
      * @param _milestone The milestone to release funds to
      */
-    function release(uint256 _milestone) external override nonReentrant {
+    function release(uint256 _milestone)
+        external
+        virtual
+        override
+        nonReentrant
+    {
         // client transfers locker funds upto certain milestone to provider
         require(!locked, "locked");
         require(_msgSender() == client, "!client");
@@ -326,7 +331,12 @@ contract SmartInvoiceEscrow is
      * Uses the internal `_release` function to perform the actual release.
      * @param _token The milestones to release funds to
      */
-    function releaseTokens(address _token) external override nonReentrant {
+    function releaseTokens(address _token)
+        external
+        virtual
+        override
+        nonReentrant
+    {
         if (_token == token) {
             _release();
         } else {
@@ -408,7 +418,7 @@ contract SmartInvoiceEscrow is
         uint256 _clientAward,
         uint256 _providerAward,
         bytes32 _details
-    ) external override nonReentrant {
+    ) external virtual override nonReentrant {
         // called by individual
         require(resolverType == ADR.INDIVIDUAL, "!individual resolver");
         require(locked, "!locked");
@@ -452,6 +462,7 @@ contract SmartInvoiceEscrow is
      */
     function rule(uint256 _disputeId, uint256 _ruling)
         external
+        virtual
         override
         nonReentrant
     {
