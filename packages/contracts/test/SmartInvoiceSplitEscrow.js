@@ -420,7 +420,7 @@ describe("SmartInvoiceEscrow", function () {
     await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
     receipt = await invoice["release()"]();
     expect(await invoice["released()"]()).to.equal(30);
-    // expect(await invoice["milestone()"]()).to.equal(2);
+    expect(await invoice["milestone()"]()).to.equal(2);
     await expect(receipt).to.emit(invoice, "Release").withArgs(1, 20);
 
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(30);
@@ -428,8 +428,8 @@ describe("SmartInvoiceEscrow", function () {
     await mockToken.mock.transfer.withArgs(dao.address, 3).returns(true);
     receipt = await invoice["release()"]();
     expect(await invoice["released()"]()).to.equal(60);
-    // expect(await invoice["milestone()"]()).to.equal(2);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 30);
+    expect(await invoice["milestone()"]()).to.equal(2);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(2, 30);
   });
 
   it("Should revert release if 0 balance after all milestones are completed", async function () {
@@ -479,37 +479,33 @@ describe("SmartInvoiceEscrow", function () {
   });
 
   it("Should release with higher milestone number", async function () {
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
-    await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
-    await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
+    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
     const receipt = await invoice["release(uint256)"](1);
-    expect(await invoice["released()"]()).to.equal(10);
-    expect(await invoice.milestoneReleased(0)).to.equal(false);
-    expect(await invoice.milestoneReleased(1)).to.equal(true);
-    // expect(await invoice["milestone()"]()).to.equal(2);
+    expect(await invoice["released()"]()).to.equal(20);
+    expect(await invoice["milestone()"]()).to.equal(2);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
     await expect(receipt).to.emit(invoice, "Release").withArgs(1, 10);
   });
 
   it("Should release all with higher milestone number", async function () {
-    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(20);
-    await mockToken.mock.transfer.withArgs(provider.address, 18).returns(true);
-    await mockToken.mock.transfer.withArgs(dao.address, 2).returns(true);
-    const receipt = await invoice["release(uint256[])"]([0, 1]);
-    expect(await invoice["released()"]()).to.equal(20);
-    // expect(await invoice["milestone()"]()).to.equal(2);
+    await mockToken.mock.balanceOf.withArgs(invoice.address).returns(30);
+    await mockToken.mock.transfer.withArgs(provider.address, 27).returns(true);
+    await mockToken.mock.transfer.withArgs(dao.address, 3).returns(true);
+    const receipt = await invoice["release(uint256)"](1);
+    expect(await invoice["released()"]()).to.equal(30);
+    expect(await invoice["milestone()"]()).to.equal(2);
     await expect(receipt).to.emit(invoice, "Release").withArgs(0, 10);
-    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 10);
+    await expect(receipt).to.emit(invoice, "Release").withArgs(1, 20);
   });
 
   it("Should revert release with higher milestone number", async function () {
     await mockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     await mockToken.mock.transfer.withArgs(provider.address, 9).returns(true);
     await mockToken.mock.transfer.withArgs(provider.address, 1).returns(true);
-    const receipt = invoice["release(uint256[])"]([0, 1]);
+    const receipt = invoice["release(uint256)"](1);
     await expect(receipt).to.revertedWith("insufficient balance");
-    expect(await invoice["released()"]()).to.equal(0);
-    expect(await invoice.milestoneReleased(0)).to.equal(false);
-    expect(await invoice.milestoneReleased(1)).to.equal(false);
   });
 
   it("Should revert release with invalid milestone number", async function () {
@@ -526,7 +522,7 @@ describe("SmartInvoiceEscrow", function () {
     await mockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     await invoice["release()"]();
     const receipt = invoice["release(uint256)"](0);
-    await expect(receipt).to.revertedWith("milestone already released");
+    await expect(receipt).to.revertedWith("milestone passed");
   });
 
   it("Should revert release milestone if not client", async function () {
@@ -562,8 +558,9 @@ describe("SmartInvoiceEscrow", function () {
   it("Should releaseTokens with passed token", async function () {
     await otherMockToken.mock.balanceOf.withArgs(invoice.address).returns(10);
     await otherMockToken.mock.transfer
-      .withArgs(provider.address, 10)
+      .withArgs(provider.address, 9)
       .returns(true);
+    await otherMockToken.mock.transfer.withArgs(dao.address, 1).returns(true);
     await invoice["releaseTokens(address)"](otherMockToken.address);
   });
 
