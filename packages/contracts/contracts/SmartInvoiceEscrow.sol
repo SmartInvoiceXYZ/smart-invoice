@@ -273,13 +273,13 @@ contract SmartInvoiceEscrow is
             require(balance >= amount, "insufficient balance");
 
             milestone = milestone + 1;
-            IERC20(token).safeTransfer(provider, amount);
+            _transferPayment(token, amount);
             released = released + amount;
             emit Release(currentMilestone, amount);
         } else {
             require(balance > 0, "balance is 0");
 
-            IERC20(token).safeTransfer(provider, balance);
+            _transferPayment(token, balance);
             released = released + balance;
             emit Release(currentMilestone, balance);
         }
@@ -321,7 +321,7 @@ contract SmartInvoiceEscrow is
         }
         require(balance >= amount, "insufficient balance");
 
-        IERC20(token).safeTransfer(provider, amount);
+        _transferPayment(token, amount);
         released = released + amount;
         milestone = _milestone + 1;
     }
@@ -342,7 +342,7 @@ contract SmartInvoiceEscrow is
         } else {
             require(_msgSender() == client, "!client");
             uint256 balance = IERC20(_token).balanceOf(address(this));
-            IERC20(_token).safeTransfer(provider, balance);
+            _transferPayment(_token, balance);
         }
     }
 
@@ -434,7 +434,7 @@ contract SmartInvoiceEscrow is
         );
 
         if (_providerAward > 0) {
-            IERC20(token).safeTransfer(provider, _providerAward);
+            _transferPayment(token, _providerAward);
         }
         if (_clientAward > 0) {
             IERC20(token).safeTransfer(client, _clientAward);
@@ -483,7 +483,7 @@ contract SmartInvoiceEscrow is
         uint256 clientAward = balance - providerAward;
 
         if (providerAward > 0) {
-            IERC20(token).safeTransfer(provider, providerAward);
+            _transferPayment(token, providerAward);
         }
         if (clientAward > 0) {
             IERC20(token).safeTransfer(client, clientAward);
@@ -514,6 +514,13 @@ contract SmartInvoiceEscrow is
             [0, 1] // 5 = 0% to client
         ];
         ruling = rulings[_ruling];
+    }
+
+    function _transferPayment(address _token, uint256 _amount)
+        internal
+        virtual
+    {
+        IERC20(_token).safeTransfer(provider, _amount);
     }
 
     // receive eth transfers

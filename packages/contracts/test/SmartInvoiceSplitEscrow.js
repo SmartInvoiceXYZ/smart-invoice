@@ -24,7 +24,7 @@ const requireVerification = true;
 const invoiceType = ethers.utils.formatBytes32String("split-escrow");
 const daoFee = 1000; // out of 10000
 
-describe("SmartInvoiceEscrow", function () {
+describe("SmartInvoiceSplitEscrow", function () {
   let SmartInvoiceEscrow;
   let factory;
   let invoice;
