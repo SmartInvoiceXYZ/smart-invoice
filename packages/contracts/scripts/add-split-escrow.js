@@ -103,10 +103,14 @@ async function main() {
 
   const deployment = JSON.parse(data);
 
-  if (deployment.implementations.escrow != undefined) {
-    deployment.implementations.escrow.push(smartInvoiceSplitEscrow.address);
+  if (deployment.implementations["split-escrow"] != undefined) {
+    deployment.implementations["split-escrow"].push(
+      smartInvoiceSplitEscrow.address,
+    );
   } else {
-    deployment.implementations["escrow"] = [smartInvoiceSplitEscrow.address];
+    deployment.implementations["split-escrow"] = [
+      smartInvoiceSplitEscrow.address,
+    ];
   }
 
   fs.writeFileSync(
