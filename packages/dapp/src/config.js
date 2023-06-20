@@ -10,7 +10,7 @@ export const CONFIG = {
       WRAPPED_NATIVE_TOKEN:
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.toLowerCase(),
       INVOICE_FACTORY:
-        '0xe73251284989c4496985f16c718369bbc30ccf63'.toLowerCase(),
+        '0x5E14cF595e18F91170009946205f8BBa21b323ca'.toLowerCase(),
       RESOLVERS: {
         ['0x01b92e2c0d06325089c6fd53c98a214f5c75b2ac'.toLowerCase()]: {
           name: 'LexDAO',

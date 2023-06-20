@@ -14,6 +14,7 @@
     "lint": "solhint contracts/{*,**/*}.sol",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.js",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.js",
+    "test-split": "hardhat test ./test/SmartInvoiceSplitEscrow.js",
     "escrow-add-xdai": "hardhat run scripts/add-escrow.js --network xdai",
     "escrow-add-polygon": "hardhat run scripts/add-escrow.js --network polygon",
     "escrow-add-mainnet": "hardhat run scripts/add-escrow.js --network mainnet",
