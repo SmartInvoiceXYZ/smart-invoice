@@ -74,6 +74,7 @@ export const Web3ContextProvider = ({ children }) => {
 
   const connectWeb3 = useCallback(async provider => {
     console.log('connect web3 called provider: ', provider);
+    if (!provider) return;
     try {
       setLoading(true);
       // const modalProvider = await web3Modal.requestProvider();

@@ -50,6 +50,7 @@ export const CreateInvoiceEscrowInner = () => {
   const { chainId } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef(null);
+  console.log('createInvoiceEscrow render: tx, tokenData', tx, tokenData);
 
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
 
