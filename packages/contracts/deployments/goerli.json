@@ -8,6 +8,7 @@
     "escrow": [
       "0x11dd8D203F65F0a3cBF05eC791f1c8DD658b914b",
       "0x06D1E6050ed0dC62B8aec714248341F247e7dF76"
-    ]
+    ],
+    "split-escrow": ["0x1368da5F0e50D6670F61C6BF6bF4B1bf963e2514"]
   }
 }
