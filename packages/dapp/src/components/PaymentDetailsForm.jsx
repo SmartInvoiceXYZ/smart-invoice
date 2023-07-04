@@ -46,6 +46,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
     () => getTokenInfo(chainId, paymentToken, tokenData),
     [chainId, paymentToken, tokenData],
   );
+
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
@@ -55,13 +56,23 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
   const [paymentInvalid, setPaymentInvalid] = useState(false);
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
   const [resolutionRate, setResolutionRate] = useState(20);
-  // const [symbols, setSymbols] = useState([]);
 
   useEffect(() => {
     getResolutionRateFromFactory(chainId, provider, arbitrationProvider).then(
       setResolutionRate,
     );
   }, [chainId, provider, arbitrationProvider]);
+
+  useEffect(() => {
+    if (paymentDueInput && !isNaN(Number(paymentDueInput))) {
+      const p = utils.parseUnits(paymentDueInput, decimals);
+      setPaymentDue(p);
+      setPaymentInvalid(p.lte(0));
+    } else {
+      setPaymentDue(BigNumber.from(0));
+      setPaymentInvalid(true);
+    }
+  }, [paymentToken, paymentDueInput, setPaymentDue, decimals]);
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
