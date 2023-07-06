@@ -35,9 +35,7 @@ export const SelectInvoiceType = () => {
 
   const createType = async invoiceType => {
     try {
-      console.log('pre createType');
       await connectAccount();
-      console.log('post connectAccounnt createType');
 
       history.push(`/create/${invoiceType}`);
     } catch {

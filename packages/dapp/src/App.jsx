@@ -41,7 +41,7 @@ export const App = () => {
 
   const { connectors } = getDefaultWallets({
     appName: 'Smart Invoice',
-    projectId: '1234',
+    projectId: '42424242',
     chains,
   });
 

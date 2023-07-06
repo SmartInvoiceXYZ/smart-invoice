@@ -12,12 +12,6 @@ export const Layout = ({ children }) => {
   const location = useLocation();
   const isOpenPath =
     location.pathname === '/' || location.pathname === '/contracts';
-  console.log(
-    'chainId',
-    chainId,
-    SUPPORTED_NETWORKS.indexOf(chainId),
-    isOpenPath,
-  );
   const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1 || isOpenPath;
   return (
     <>
