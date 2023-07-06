@@ -61,11 +61,23 @@ export const getResolverInfo = (chainId, resolver) =>
 export const getTokens = (chainId, allTokens) =>
   allTokens[chainId] || allTokens[4];
 
-export const getTokenInfo = (chainId, token, tokenData) =>
-  (tokenData[chainId] || tokenData[4])[token] || {
-    decimals: 18,
-    symbol: 'UNKNOWN',
-  };
+export const getTokenInfo = (chainId, token, tokenData) => {
+  if (!tokenData || Object.keys(tokenData || {}).length === 0) {
+    return {
+      decimals: 18,
+      symbol: 'UNKNOWN',
+    };
+  }
+  // default chainId is 5 for goerli test network
+  const tokenDataByChain = tokenData[chainId] || tokenData[5];
+  if (!tokenDataByChain[token]) {
+    return {
+      decimals: 18,
+      symbol: 'UNKNOWN',
+    };
+  }
+  return tokenDataByChain[token];
+};
 
 export const getWrappedNativeToken = chainId =>
   wrappedNativeToken[chainId] || wrappedNativeToken[4];
@@ -216,6 +228,9 @@ export const dateTimeToDate = dateTime => {
 };
 
 export const getAgreementLink = projectAgreement => {
+  if ((projectAgreement || []).length === 0) {
+    return '';
+  }
   const address = projectAgreement[projectAgreement.length - 1].src;
   if (projectAgreement[projectAgreement.length - 1].type === 'ipfs') {
     // address.substring(7) removes ipfs:// from the beginning of the src string

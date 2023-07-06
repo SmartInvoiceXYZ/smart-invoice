@@ -4,11 +4,6 @@ import {
   Flex,
   Image,
   Link as ChakraLink,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tag,
-  Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
@@ -17,14 +12,10 @@ import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useWalletClient } from 'wagmi';
 
-import LogoText from '../assets/logo.svg';
-import Logo from '../assets/raidguild__logo.png';
 import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
-import { getAccountString, getNetworkLabel } from '../utils/helpers';
-import { Footer } from './Footer';
 import { ProfileButton } from './ProfileButton';
 import logo from '../assets/smart-invoice/normal.svg';
 
@@ -147,7 +138,6 @@ export const Header = () => {
         align="center"
         height="8rem"
         transition="width 1s ease-out"
-        width={250}
         justify="end"
       >
         {/* {account ? (

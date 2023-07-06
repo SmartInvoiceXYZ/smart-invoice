@@ -12,7 +12,6 @@ import {
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Web3ContextProvider } from './context/Web3Context';
-import { CreateContextProvider } from './context/CreateContext';
 import { Contracts } from './pages/Contracts';
 import { CreateInvoiceEscrow } from './pages/escrow/CreateInvoiceEscrow';
 import { SelectInvoiceType } from './pages/SelectInvoiceType';
@@ -24,17 +23,16 @@ import { ViewInstantInvoice } from './pages/instant/ViewInstantInvoice';
 import { Layout } from './shared/Layout';
 import { globalStyles, theme } from './theme';
 import { CreateInvoiceInstant } from './pages/instant/CreateInvoiceInstant';
-// import '@rainbow-me/rainbowkit/styles.css';
 import '@rainbow-me/rainbowkit/dist/index.css';
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, optimism, gnosis } from 'wagmi/chains';
+import { mainnet, polygon, goerli, gnosis } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
 
 export const App = () => {
   const { chains, publicClient } = configureChains(
-    [mainnet, polygon, gnosis],
+    [mainnet, polygon, gnosis, goerli],
     [
       infuraProvider({ apiKey: process.env.REACT_APP_INFURA_ID }),
       publicProvider(),
