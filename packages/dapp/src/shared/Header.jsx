@@ -86,10 +86,10 @@ export const Header = () => {
       background="white"
       zIndex={5}
     >
-      <Box>
+      <Box width="230px">
         <RouterLink to="/invoices">
           <Flex cursor="pointer">
-            <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
+            <Image src={logo} alt="Smart Invoice" height={34.84} />
           </Flex>
         </RouterLink>
       </Box>
@@ -122,8 +122,12 @@ export const Header = () => {
         justify="end"
       >
         {!isMobile && (
-          <Flex justifyContent="flex-end" width={'294px'}>
-            <ConnectButton />
+          <Flex justifyContent="flex-end" width={'230px'}>
+            <ConnectButton
+              accountStatus="address"
+              chainStatus="icon"
+              showBalance={false}
+            />
           </Flex>
         )}
         {isMobile && (
@@ -165,7 +169,11 @@ export const Header = () => {
         }}
       >
         <Flex height={'60px'} alignItems="center">
-          <ConnectButton />
+          <ConnectButton
+            accountStatus="address"
+            chainStatus="icon"
+            showBalance={false}
+          />
         </Flex>
         <StyledButton
           onClick={() => {

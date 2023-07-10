@@ -29,7 +29,7 @@ import {
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, goerli, gnosis } from 'wagmi/chains';
+import { mainnet, polygon, goerli, gnosis, polygonMumbai } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
 import {
@@ -47,7 +47,7 @@ export const App = () => {
   // this fixes this Wagmi bug. Source: https://github.com/rainbow-me/rainbowkit/issues/686#issuecomment-1295798813
   const [resetDate] = useState(0);
   const { chains, publicClient } = configureChains(
-    [mainnet, polygon, gnosis, goerli],
+    [mainnet, polygon, gnosis, goerli, polygonMumbai],
     [
       infuraProvider({ apiKey: process.env.REACT_APP_INFURA_ID }),
       publicProvider(),
