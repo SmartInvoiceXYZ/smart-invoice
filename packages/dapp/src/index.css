@@ -1,0 +1,4 @@
+/* fixes react-scripts bug: https://stackoverflow.com/questions/70499543/create-react-app-creates-this-iframe-that-prevents-me-from-clicking-or-editing */
+iframe {
+  pointer-events: none;
+}

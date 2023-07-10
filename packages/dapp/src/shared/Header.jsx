@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Flex,
-  Image,
-  Link as ChakraLink,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import React, { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
@@ -15,8 +8,6 @@ import { useAccount, useWalletClient } from 'wagmi';
 import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
-import { getProfile } from '../utils/3box';
-import { ProfileButton } from './ProfileButton';
 import logo from '../assets/smart-invoice/normal.svg';
 
 const StyledButton = styled(Button)`
@@ -56,13 +47,11 @@ export const NavButton = ({ onClick, children }) => (
 
 export const Header = () => {
   const { address } = useAccount();
-  const { account, disconnect, connectAccount, chainId } =
-    useContext(Web3Context);
+  const { connectAccount } = useContext(Web3Context);
   const { data: walletClient } = useWalletClient();
   const [isOpen, onOpen] = useState(false);
   const [isMobile, onMobile] = useState(false);
   const history = useHistory();
-  const [profile, setProfile] = useState();
   useEffect(() => {
     if (window) {
       toggleMobileMode();
@@ -74,11 +63,6 @@ export const Header = () => {
       connectAccount(walletClient);
     }
   }, [address, walletClient]);
-  useEffect(() => {
-    if (account) {
-      getProfile(account).then(p => setProfile(p));
-    }
-  }, [account]);
   const toggleMobileMode = () => {
     if (window.innerWidth < 850) {
       onMobile(true);
@@ -86,10 +70,7 @@ export const Header = () => {
       onMobile(false);
     }
   };
-  const buttonVariant = useBreakpointValue({
-    base: isOpen ? 'ghost' : 'link',
-    md: 'ghost',
-  });
+
   return (
     <Flex
       w="100%"
@@ -105,7 +86,7 @@ export const Header = () => {
       background="white"
       zIndex={5}
     >
-      <Box width={250}>
+      <Box>
         <RouterLink to="/invoices">
           <Flex cursor="pointer">
             <Image src={logo} alt="Smart Invoice" width={220} height={34.84} />
@@ -140,7 +121,11 @@ export const Header = () => {
         transition="width 1s ease-out"
         justify="end"
       >
-        <ConnectButton />
+        {!isMobile && (
+          <Flex justifyContent="flex-end" width={'294px'}>
+            <ConnectButton />
+          </Flex>
+        )}
         {isMobile && (
           <Button
             onClick={() => onOpen(o => !o)}
@@ -179,14 +164,9 @@ export const Header = () => {
             : 'circle(100px at 90% -20%)',
         }}
       >
-        {account && profile && chainId && (
-          <ProfileButton
-            account={account}
-            chainId={chainId}
-            profile={profile}
-            disconnect={disconnect}
-          />
-        )}
+        <Flex height={'60px'} alignItems="center">
+          <ConnectButton />
+        </Flex>
         <StyledButton
           onClick={() => {
             history.push('/invoices');

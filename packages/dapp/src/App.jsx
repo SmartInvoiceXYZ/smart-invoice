@@ -2,7 +2,7 @@ import 'focus-visible/dist/focus-visible';
 
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BrowserRouter as Router,
   Redirect,
@@ -24,13 +24,28 @@ import { Layout } from './shared/Layout';
 import { globalStyles, theme } from './theme';
 import { CreateInvoiceInstant } from './pages/instant/CreateInvoiceInstant';
 import '@rainbow-me/rainbowkit/dist/index.css';
-import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import {
+  connectorsForWallets,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { mainnet, polygon, goerli, gnosis } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
+import {
+  walletConnectWallet,
+  injectedWallet,
+  rainbowWallet,
+  ledgerWallet,
+  coinbaseWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+
+const APP_NAME = 'Smart Invoice';
+const PROJECT_ID = process.env.REACT_APP_WALLETCONNECT_ID;
 
 export const App = () => {
+  // this fixes this Wagmi bug. Source: https://github.com/rainbow-me/rainbowkit/issues/686#issuecomment-1295798813
+  const [resetDate] = useState(0);
   const { chains, publicClient } = configureChains(
     [mainnet, polygon, gnosis, goerli],
     [
@@ -38,12 +53,24 @@ export const App = () => {
       publicProvider(),
     ],
   );
-
-  const { connectors } = getDefaultWallets({
-    appName: 'Smart Invoice',
-    projectId: '42424242',
+  const options = {
+    appName: APP_NAME,
+    projectId: PROJECT_ID,
     chains,
-  });
+  };
+
+  const connectors = connectorsForWallets([
+    {
+      groupName: 'Recommended',
+      wallets: [
+        injectedWallet({ chains, shimDisconnect: true }),
+        rainbowWallet({ chains, projectId: PROJECT_ID }),
+        ledgerWallet({ chains, projectId: PROJECT_ID }),
+        coinbaseWallet({ appName: APP_NAME, chains }),
+        walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
+      ],
+    },
+  ]);
 
   const wagmiConfig = createConfig({
     autoConnect: true,
@@ -53,7 +80,7 @@ export const App = () => {
 
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains} key={`rainbowkit-${resetDate}`}>
         <ChakraProvider theme={theme}>
           <ColorModeScript initialColorMode={theme.config.initialColorMode} />
           <CSSReset />

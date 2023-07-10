@@ -9,7 +9,6 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { withRouter } from 'react-router-dom';
 
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
@@ -50,7 +49,6 @@ export const CreateInvoiceEscrowInner = () => {
   const { chainId } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef(null);
-  console.log('createInvoiceEscrow render: tx, tokenData', tx, tokenData);
 
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
 

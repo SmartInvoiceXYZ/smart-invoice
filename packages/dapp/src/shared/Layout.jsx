@@ -8,11 +8,12 @@ import { Footer } from './Footer';
 import { Header } from './Header';
 
 export const Layout = ({ children }) => {
-  const { chainId } = useContext(Web3Context);
+  const { chainId, account } = useContext(Web3Context);
   const location = useLocation();
   const isOpenPath =
     location.pathname === '/' || location.pathname === '/contracts';
-  const isValid = SUPPORTED_NETWORKS.indexOf(chainId) !== -1 || isOpenPath;
+  const isValid =
+    (account && SUPPORTED_NETWORKS.indexOf(chainId) !== -1) || isOpenPath;
   return (
     <>
       <Flex
