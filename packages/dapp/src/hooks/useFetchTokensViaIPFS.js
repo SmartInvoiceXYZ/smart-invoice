@@ -15,7 +15,6 @@ export const useFetchTokensViaIPFS = () => {
       const CID = await getCID();
       const IPFS_TOKENS = IPFS_ENDPOINT + `/ipfs/${CID}`;
       setIsError(false);
-
       try {
         const response = fetch(IPFS_TOKENS);
         const fullData = (await response).json();
