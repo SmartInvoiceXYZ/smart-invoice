@@ -1,4 +1,4 @@
-import { Flex, Box } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import React, { useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Web3Context } from '../context/Web3Context';

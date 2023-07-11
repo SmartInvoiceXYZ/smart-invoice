@@ -4,20 +4,14 @@ import {
   AlertTitle,
   Button,
   ButtonGroup,
-  Checkbox,
   Flex,
-  FormControl,
-  FormLabel,
   Heading,
-  HStack,
   Input,
   InputGroup,
   InputLeftElement,
   InputRightAddon,
   InputRightElement,
   Link,
-  Radio,
-  RadioGroup,
   Select,
   Text,
   Tooltip,
@@ -37,7 +31,6 @@ import {
   getTxLink,
   getWrappedNativeToken,
   logError,
-  calculateResolutionFeePercentage,
 } from '../../utils/helpers';
 import { depositTokens, tipTokens } from '../../utils/invoice';
 
@@ -47,10 +40,6 @@ const getCheckedStatus = (deposited, amounts) => {
     sum = sum.add(a);
     return deposited.gte(sum);
   });
-};
-
-const checkedAtIndex = (index, checked) => {
-  return checked.map((_c, i) => i <= index);
 };
 
 export const DepositFunds = ({
@@ -64,7 +53,7 @@ export const DepositFunds = ({
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, network, amounts, currentMilestone } = invoice;
+  const { address, token, network, amounts } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [amount, setAmount] = useState(BigNumber.from(0));
