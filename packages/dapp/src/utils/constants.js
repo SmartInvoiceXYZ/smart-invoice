@@ -12,6 +12,8 @@ export const INVOICE_TYPES = {
   Instant: 'instant',
 };
 
+export const DEFAULT_CHAIN_ID = 5;
+
 export const chainIds = {
   xdai: 100,
   mainnet: 1,

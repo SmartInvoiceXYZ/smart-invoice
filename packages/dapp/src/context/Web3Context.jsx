@@ -69,24 +69,6 @@ export const Web3ContextProvider = ({ children }) => {
       setLoading(true);
 
       await setWeb3Provider(provider);
-
-      // todo: check gnosis safe connection
-      // const isGnosisSafe = !!provider.safe;
-
-      // if (!isGnosisSafe) {
-      // provider.on('accountsChanged', accounts => {
-      //   setWeb3(_provider => ({
-      //     ..._provider,
-      //     account: accounts[0],
-      //   }));
-      // });
-      // provider.on('chainChanged', () => {
-      //   setWeb3Provider(provider);
-      // });
-      // }
-      // setWeb3(({
-      //   ...provider,
-      // }));
     } catch (web3ModalError) {
       logError({ web3ModalError });
       throw web3ModalError;

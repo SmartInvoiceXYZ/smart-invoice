@@ -15,6 +15,7 @@ import {
   resolvers,
   rpcUrls,
   wrappedNativeToken,
+  DEFAULT_CHAIN_ID,
 } from './constants';
 
 export const getDateString = timeInSec => {
@@ -46,20 +47,23 @@ export const isAddress = value => {
 export const getNetworkName = chainId =>
   networkNames[chainId] || 'Unknown Chain';
 
-export const getGraphUrl = chainId => graphUrls[chainId] || graphUrls[4];
+export const getGraphUrl = chainId =>
+  graphUrls[chainId] || graphUrls[DEFAULT_CHAIN_ID];
 
 export const getExplorerUrl = chainId =>
-  explorerUrls[chainId] || explorerUrls[4];
+  explorerUrls[chainId] || explorerUrls[DEFAULT_CHAIN_ID];
 
-export const getRpcUrl = chainId => rpcUrls[chainId] || rpcUrls[4];
+export const getRpcUrl = chainId =>
+  rpcUrls[chainId] || rpcUrls[DEFAULT_CHAIN_ID];
 
-export const getResolvers = chainId => resolvers[chainId] || resolvers[4];
+export const getResolvers = chainId =>
+  resolvers[chainId] || resolvers[DEFAULT_CHAIN_ID];
 
 export const getResolverInfo = (chainId, resolver) =>
-  (resolverInfo[chainId] || resolverInfo[4])[resolver];
+  (resolverInfo[chainId] || resolverInfo[DEFAULT_CHAIN_ID])[resolver];
 
 export const getTokens = (chainId, allTokens) =>
-  allTokens[chainId] || allTokens[4];
+  allTokens[chainId] || allTokens[DEFAULT_CHAIN_ID];
 
 export const getTokenInfo = (chainId, token, tokenData) => {
   if (!tokenData || Object.keys(tokenData || {}).length === 0) {
@@ -68,8 +72,7 @@ export const getTokenInfo = (chainId, token, tokenData) => {
       symbol: 'UNKNOWN',
     };
   }
-  // default chainId is 5 for goerli test network
-  const tokenDataByChain = tokenData[chainId] || tokenData[5];
+  const tokenDataByChain = tokenData[chainId] || tokenData[DEFAULT_CHAIN_ID];
   if (!tokenDataByChain[token]) {
     return {
       decimals: 18,
@@ -80,13 +83,13 @@ export const getTokenInfo = (chainId, token, tokenData) => {
 };
 
 export const getWrappedNativeToken = chainId =>
-  wrappedNativeToken[chainId] || wrappedNativeToken[4];
+  wrappedNativeToken[chainId] || wrappedNativeToken[DEFAULT_CHAIN_ID];
 
 export const getNativeTokenSymbol = chainId =>
-  nativeSymbols[chainId] || nativeSymbols[4];
+  nativeSymbols[chainId] || nativeSymbols[DEFAULT_CHAIN_ID];
 
 export const getInvoiceFactoryAddress = chainId =>
-  invoiceFactory[chainId] || invoiceFactory[4];
+  invoiceFactory[chainId] || invoiceFactory[DEFAULT_CHAIN_ID];
 
 export const getTxLink = (chainId, hash) =>
   `${getExplorerUrl(chainId)}/tx/${hash}`;
