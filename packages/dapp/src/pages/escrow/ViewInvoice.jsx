@@ -392,7 +392,6 @@ export const ViewInvoice = ({
           >
             Add Milestones
           </Button>
-          {console.log(invoice)}
           <Flex
             bg="background"
             direction="column"

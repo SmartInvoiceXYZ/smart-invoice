@@ -77,8 +77,9 @@ export const DepositFunds = ({
     if (
       utils.formatUnits(totalPayment, decimals) >
       utils.formatUnits(balance, decimals)
-    )
+    ) {
       return setDepositError(true);
+    }
 
     try {
       setLoading(true);
@@ -89,9 +90,9 @@ export const DepositFunds = ({
           .sendTransaction({ to: address, value: totalPayment });
       } else {
         if (fulfilled) {
-          tx = await tipTokens(token, totalPayment);
+          tx = await tipTokens(provider, address, token, totalPayment);
         } else {
-          tx = await depositTokens(token, totalPayment);
+          tx = await depositTokens(provider, address, token, totalPayment);
         }
       }
       setTransaction(tx);
@@ -101,17 +102,23 @@ export const DepositFunds = ({
       )}/${address}/instant`;
     } catch (depositError) {
       setLoading(false);
+      console.error('error during deposit: ', depositError);
       logError({ depositError });
     }
   };
 
   const approve = async () => {
     setTransaction();
-    if (!totalPayment || !provider) return;
+    if (!totalPayment || !provider) {
+      console.error(
+        `error during approve. totalPayment: ${totalPayment} provider: ${provider}`,
+      );
+      return;
+    }
     try {
       setLoading(true);
       let tx;
-      const approvalAmount = BigNumber.from(2).pow(256);
+      const approvalAmount = BigNumber.from(totalPayment);
       const abi = [
         'function approve(address spender, uint256 amount) public virtual override returns (bool)',
         'function allowance(address owner, address spender) external view returns (uint256)',
@@ -122,6 +129,7 @@ export const DepositFunds = ({
       await tx.wait();
       setAllowance(await tokenContract.allowance(account, invoice.address));
     } catch (approvalError) {
+      console.error('error during approve: ', approvalError);
       logError({ approvalError });
     }
     setLoading(false);
