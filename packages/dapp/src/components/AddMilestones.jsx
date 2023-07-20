@@ -126,7 +126,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     try {
       setLoading(true);
       let detailsHash;
-      if (revisedProjectAgreement && revisedProjectAgreementType === 'ipfs') {
+      if (revisedProjectAgreementType === 'ipfs') {
         let projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
           projectName,

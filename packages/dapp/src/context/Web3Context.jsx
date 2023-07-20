@@ -63,8 +63,11 @@ export const Web3ContextProvider = ({ children }) => {
     }
   }, [web3Context.chainId]);
 
-  const connectWeb3 = useCallback(async provider => {
-    if (!provider) return;
+  const connectAccount = useCallback(async provider => {
+    if (!provider) {
+      console.error('Attempted to set Web3 Provider without provider object.');
+      return;
+    }
     try {
       setLoading(true);
 
@@ -84,7 +87,7 @@ export const Web3ContextProvider = ({ children }) => {
         account: web3Context.account,
         provider: web3Context.provider,
         chainId: web3Context.chainId,
-        connectAccount: connectWeb3,
+        connectAccount,
       }}
     >
       {children}
