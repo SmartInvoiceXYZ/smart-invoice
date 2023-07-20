@@ -84,7 +84,10 @@ export const ViewInvoice = ({
           setBalance(b);
           setBalanceLoading(false);
         })
-        .catch(balanceError => logError({ balanceError }));
+        .catch(balanceError => {
+          logError({ balanceError });
+          setBalanceLoading(false);
+        });
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
@@ -96,7 +99,10 @@ export const ViewInvoice = ({
           setBalance(b);
           setBalanceLoading(false);
         })
-        .catch(balanceError => logError({ balanceError }));
+        .catch(balanceError => {
+          logError({ balanceError });
+          setBalanceLoading(false);
+        });
     }
   }, [invoice, ethersProvider, chainId, invoiceChainId]);
 
