@@ -4,20 +4,14 @@ import {
   AlertTitle,
   Button,
   ButtonGroup,
-  Checkbox,
   Flex,
-  FormControl,
-  FormLabel,
   Heading,
-  HStack,
   Input,
   InputGroup,
   InputLeftElement,
   InputRightAddon,
   InputRightElement,
   Link,
-  Radio,
-  RadioGroup,
   Select,
   Text,
   Tooltip,
@@ -37,7 +31,6 @@ import {
   getTxLink,
   getWrappedNativeToken,
   logError,
-  calculateResolutionFeePercentage,
 } from '../../utils/helpers';
 import { depositTokens, tipTokens } from '../../utils/invoice';
 
@@ -47,10 +40,6 @@ const getCheckedStatus = (deposited, amounts) => {
     sum = sum.add(a);
     return deposited.gte(sum);
   });
-};
-
-const checkedAtIndex = (index, checked) => {
-  return checked.map((_c, i) => i <= index);
 };
 
 export const DepositFunds = ({
@@ -64,7 +53,7 @@ export const DepositFunds = ({
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, network, amounts, currentMilestone } = invoice;
+  const { address, token, network, amounts } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [amount, setAmount] = useState(BigNumber.from(0));
@@ -88,8 +77,9 @@ export const DepositFunds = ({
     if (
       utils.formatUnits(totalPayment, decimals) >
       utils.formatUnits(balance, decimals)
-    )
+    ) {
       return setDepositError(true);
+    }
 
     try {
       setLoading(true);
@@ -100,9 +90,9 @@ export const DepositFunds = ({
           .sendTransaction({ to: address, value: totalPayment });
       } else {
         if (fulfilled) {
-          tx = await tipTokens(token, totalPayment);
+          tx = await tipTokens(provider, address, token, totalPayment);
         } else {
-          tx = await depositTokens(token, totalPayment);
+          tx = await depositTokens(provider, address, token, totalPayment);
         }
       }
       setTransaction(tx);
@@ -112,17 +102,23 @@ export const DepositFunds = ({
       )}/${address}/instant`;
     } catch (depositError) {
       setLoading(false);
+      console.error('error during deposit: ', depositError);
       logError({ depositError });
     }
   };
 
   const approve = async () => {
     setTransaction();
-    if (!totalPayment || !provider) return;
+    if (!totalPayment || !provider) {
+      console.error(
+        `error during approve. totalPayment: ${totalPayment} provider: ${provider}`,
+      );
+      return;
+    }
     try {
       setLoading(true);
       let tx;
-      const approvalAmount = BigNumber.from(2).pow(256);
+      const approvalAmount = BigNumber.from(totalPayment);
       const abi = [
         'function approve(address spender, uint256 amount) public virtual override returns (bool)',
         'function allowance(address owner, address spender) external view returns (uint256)',
@@ -133,6 +129,7 @@ export const DepositFunds = ({
       await tx.wait();
       setAllowance(await tokenContract.allowance(account, invoice.address));
     } catch (approvalError) {
+      console.error('error during approve: ', approvalError);
       logError({ approvalError });
     }
     setLoading(false);

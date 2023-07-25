@@ -4,7 +4,6 @@ import {
   Heading,
   Text,
   useBreakpointValue,
-  useDisclosure,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -13,7 +12,7 @@ import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
 
 export const Home = () => {
-  const { connectAccount, account } = useWeb3();
+  const { account } = useWeb3();
 
   const history = useHistory();
   const [isMobile, onMobile] = useState(false);
@@ -36,7 +35,6 @@ export const Home = () => {
       history.push('/create');
     } else {
       try {
-        await connectAccount();
         history.push('/create');
       } catch {
         logError("Couldn't connect web3 wallet");
@@ -49,7 +47,6 @@ export const Home = () => {
       history.push('/invoices');
     } else {
       try {
-        await connectAccount();
         history.push('/invoices');
       } catch {
         logError("Couldn't connect web3 wallet");

@@ -9,7 +9,6 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { withRouter } from 'react-router-dom';
 
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 

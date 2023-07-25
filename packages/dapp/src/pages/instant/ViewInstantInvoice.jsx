@@ -3,7 +3,6 @@ import {
   Divider,
   Flex,
   Heading,
-  HStack,
   Link,
   Modal,
   ModalCloseButton,
@@ -24,12 +23,7 @@ import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
 import { DepositFunds } from '../../components/instant/DepositFunds';
 import { Loader } from '../../components/Loader';
-import { LockFunds } from '../../components/LockFunds';
-import { ReleaseFunds } from '../../components/ReleaseFunds';
-import { ResolveFunds } from '../../components/ResolveFunds';
 import { WithdrawFunds } from '../../components/instant/WithdrawFunds';
-import { AddMilestones } from '../../components/AddMilestones';
-import { VerifyInvoice } from '../../components/VerifyInvoice';
 import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
 import { Web3Context } from '../../context/Web3Context';
 import { getInvoice } from '../../graphql/getInvoice';
@@ -44,9 +38,7 @@ import {
   getAccountString,
   getAddressLink,
   getDateString,
-  getIpfsLink,
   getTokenInfo,
-  getTxLink,
   logError,
   getAgreementLink,
 } from '../../utils/helpers';
@@ -74,7 +66,6 @@ export const ViewInstantInvoice = ({
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
-  const [verifiedStatus, setVerifiedStatus] = useState(false);
   const [totalDue, setTotalDue] = useState(BigNumber.from(0));
   const [totalFulfilled, setTotalFulfilled] = useState(BigNumber.from(0));
   const [fulfilled, setFulfilled] = useState(false);
@@ -182,15 +173,11 @@ export const ViewInstantInvoice = ({
     projectAgreement,
     startDate,
     endDate,
-    terminationTime,
     client,
     provider,
-    currentMilestone,
-    amounts,
     total,
     token,
     released,
-    isLocked,
     // deadline,
     // fulfilled,
     // lateFee,
@@ -199,13 +186,8 @@ export const ViewInstantInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isProvider = account.toLowerCase() === provider;
-  const { decimals, symbol, image } = getTokenInfo(
-    invoiceChainId,
-    token,
-    tokenData,
-  );
+  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
 
-  const deposited = BigNumber.from(released).add(balance);
   const due =
     totalFulfilled.gte(totalDue) || fulfilled
       ? BigNumber.from(0)

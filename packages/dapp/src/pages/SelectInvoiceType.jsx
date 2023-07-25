@@ -6,15 +6,13 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
 import { INVOICE_TYPES } from '../utils/constants';
 
 export const SelectInvoiceType = () => {
-  const { connectAccount } = useWeb3();
   const { Instant, Escrow } = INVOICE_TYPES;
 
   const history = useHistory();
@@ -35,7 +33,6 @@ export const SelectInvoiceType = () => {
 
   const createType = async invoiceType => {
     try {
-      await connectAccount();
       history.push(`/create/${invoiceType}`);
     } catch {
       logError("Couldn't connect web3 wallet");

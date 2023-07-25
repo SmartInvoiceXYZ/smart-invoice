@@ -58,13 +58,19 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
   const [revisedProjectAgreement, setRevisedProjectAgreement] = useState([
     ...projectAgreement,
   ]);
-  const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] = useState(
-    projectAgreement[projectAgreement.length - 1].src,
-  );
-  const [
-    revisedProjectAgreementType,
-    setRevisedProjectAgreementType,
-  ] = useState(projectAgreement[projectAgreement.length - 1].type);
+  const defaultSrc =
+    projectAgreement.length > 0
+      ? projectAgreement[projectAgreement.length - 1].src
+      : '';
+  const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
+    useState(defaultSrc);
+  const defaultProjectType =
+    projectAgreement.length > 0
+      ? projectAgreement[projectAgreement.length - 1].type
+      : '';
+
+  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
+    useState(defaultProjectType);
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
@@ -120,10 +126,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     try {
       setLoading(true);
       let detailsHash;
-      if (
-        revisedProjectAgreement &&
-        projectAgreement[projectAgreement.length - 1].type === 'ipfs'
-      ) {
+      if (revisedProjectAgreementType === 'ipfs') {
         let projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
           projectName,
@@ -167,7 +170,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         Add New Payment Milestones
       </Heading>
 
-      {projectAgreement[projectAgreement.length - 1].type === 'ipfs' ? (
+      {revisedProjectAgreementType === 'ipfs' ? (
         <OrderedLinkInput
           label="Link to Project Agreement (if updated)"
           value={revisedProjectAgreementSrc}

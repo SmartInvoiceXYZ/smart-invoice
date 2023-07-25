@@ -1,5 +1,3 @@
-import { SafeAppWeb3Modal as Web3Modal } from '@gnosis.pm/safe-apps-web3modal';
-import WalletConnectProvider from '@walletconnect/web3-provider';
 import { ethers } from 'ethers';
 import React, {
   createContext,
@@ -9,96 +7,71 @@ import React, {
   useState,
 } from 'react';
 import Web3 from 'web3';
+import { useAccount } from 'wagmi';
 
-import { theme } from '../theme';
 import { SUPPORTED_NETWORKS } from '../utils/constants';
-import { getRpcUrl, logError } from '../utils/helpers';
-
-const providerOptions = {
-  walletconnect: {
-    package: WalletConnectProvider,
-    options: {
-      rpc: {
-        1: getRpcUrl(1),
-        4: getRpcUrl(4),
-        42: getRpcUrl(42),
-        100: getRpcUrl(100),
-        137: getRpcUrl(137),
-      },
-    },
-  },
-};
-
-const web3Modal = new Web3Modal({
-  cacheProvider: true,
-  providerOptions,
-  theme: {
-    background: theme.colors.background,
-    main: theme.colors.red[500],
-    secondary: theme.colors.white,
-    hover: theme.colors.black30,
-  },
-});
+import { logError } from '../utils/helpers';
 
 export const Web3Context = createContext();
 export const useWeb3 = () => useContext(Web3Context);
 
 export const Web3ContextProvider = ({ children }) => {
-  const [loading, setLoading] = useState(true);
-  const [{ account, provider, chainId }, setWeb3] = useState({});
+  const { address } = useAccount();
 
-  const setWeb3Provider = async (prov, initialCall = false) => {
-    if (prov) {
+  const [loading, setLoading] = useState(false);
+  const defaultWeb3 = { account: null, provider: null, chainId: null };
+  const [web3Context, setWeb3Context] = useState(defaultWeb3);
+
+  useEffect(() => {
+    if (!address && web3Context.account) {
+      setWeb3Context(defaultWeb3);
+    }
+  }, [address]);
+
+  const setWeb3Provider = async prov => {
+    if (!prov) {
+      console.error(
+        'Error: attempted to set Web3 Provider without a provider. Check Web3ContextProvider.',
+      );
+    } else {
       const web3Provider = new Web3(prov);
       const gotProvider = new ethers.providers.Web3Provider(
         web3Provider.currentProvider,
       );
-      const gotChainId = Number(prov.chainId);
-      if (initialCall) {
-        const signer = gotProvider.getSigner();
-        const gotAccount = await signer.getAddress();
-        setWeb3(_provider => ({
-          ..._provider,
-          provider: gotProvider,
-          chainId: gotChainId,
-          account: gotAccount,
-        }));
-      } else {
-        setWeb3(_provider => ({
-          ..._provider,
-          provider: gotProvider,
-          chainId: gotChainId,
-        }));
-      }
+      const gotChainId = Number(prov.chain.id);
+      const signer = gotProvider.getSigner();
+      const gotAccount = await signer.getAddress();
+
+      setWeb3Context({
+        provider: gotProvider,
+        chainId: gotChainId,
+        account: gotAccount,
+      });
     }
   };
 
   useEffect(() => {
-    if (SUPPORTED_NETWORKS.indexOf(chainId) === -1) {
+    if (SUPPORTED_NETWORKS.indexOf(web3Context.chainId) === -1) {
       // TODO show error alert that invalid network is connected
+      logError(
+        `Network with Chain Id: ${
+          web3Context.chainId
+        } is not one of the supported networks. Supported networks are: ${SUPPORTED_NETWORKS.join(
+          ', ',
+        )}`,
+      );
     }
-  }, [chainId]);
+  }, [web3Context.chainId]);
 
-  const connectWeb3 = useCallback(async () => {
+  const connectAccount = useCallback(async provider => {
+    if (!provider) {
+      console.error('Attempted to set Web3 Provider without provider object.');
+      return;
+    }
     try {
       setLoading(true);
-      const modalProvider = await web3Modal.requestProvider();
 
-      await setWeb3Provider(modalProvider, true);
-
-      const isGnosisSafe = !!modalProvider.safe;
-
-      if (!isGnosisSafe) {
-        modalProvider.on('accountsChanged', accounts => {
-          setWeb3(_provider => ({
-            ..._provider,
-            account: accounts[0],
-          }));
-        });
-        modalProvider.on('chainChanged', () => {
-          setWeb3Provider(modalProvider);
-        });
-      }
+      await setWeb3Provider(provider);
     } catch (web3ModalError) {
       logError({ web3ModalError });
       throw web3ModalError;
@@ -107,33 +80,14 @@ export const Web3ContextProvider = ({ children }) => {
     }
   }, []);
 
-  const disconnect = useCallback(async () => {
-    web3Modal.clearCachedProvider();
-    setWeb3({});
-  }, []);
-
-  useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.autoRefreshOnNetworkChange = false;
-    }
-    (async function load() {
-      if ((await web3Modal.canAutoConnect()) || web3Modal.cachedProvider) {
-        connectWeb3();
-      } else {
-        setLoading(false);
-      }
-    })();
-  }, [connectWeb3]);
-
   return (
     <Web3Context.Provider
       value={{
         loading,
-        account,
-        provider,
-        chainId,
-        connectAccount: connectWeb3,
-        disconnect,
+        account: web3Context.account,
+        provider: web3Context.provider,
+        chainId: web3Context.chainId,
+        connectAccount,
       }}
     >
       {children}
