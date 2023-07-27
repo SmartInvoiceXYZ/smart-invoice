@@ -29,11 +29,7 @@ contract FeeManager is Ownable {
         exemption.endDate = endDate;
     }
 
-    function calculateInvoiceFee(uint256 _amount, address _address)
-        external
-        view
-        returns (uint256)
-    {
+    function getInvoiceFee(address _address) external view returns (uint256) {
         FeeExemption storage exemption = feeExempt[_address];
         if (
             exemption.exemptionType != ExemptionType.None &&
@@ -41,7 +37,7 @@ contract FeeManager is Ownable {
         ) {
             return 0;
         }
-        return (_amount * feePercentage) / 100;
+        return feePercentage / 100;
     }
 
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {

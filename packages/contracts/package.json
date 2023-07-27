@@ -13,6 +13,7 @@
     "clean": "hardhat clean",
     "lint": "solhint contracts/{*,**/*}.sol",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.js",
+    "test-fee-manager": "hardhat test ./test/FeeManager.js",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.js",
     "test-split": "hardhat test ./test/SmartInvoiceSplitEscrow.js",
     "escrow-add-xdai": "hardhat run scripts/add-escrow.js --network xdai",
