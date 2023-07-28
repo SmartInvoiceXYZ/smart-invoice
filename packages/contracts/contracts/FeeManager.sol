@@ -4,6 +4,8 @@ pragma solidity ^0.8.3;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract FeeManager is Ownable {
+    uint256 public version = 1;
+
     enum ExemptionType {
         None,
         Lending,
@@ -18,6 +20,10 @@ contract FeeManager is Ownable {
     uint256 public feePercentage = 0;
 
     mapping(address => FeeExemption) public feeExempt;
+
+    constructor(uint256 newVersion) {
+        version = newVersion;
+    }
 
     function setExemption(
         ExemptionType exemptionType,

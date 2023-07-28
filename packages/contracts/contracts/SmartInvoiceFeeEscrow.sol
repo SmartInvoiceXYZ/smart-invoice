@@ -17,7 +17,7 @@ import "./interfaces/IWRAPPED.sol";
 import "./FeeManager.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
-contract SmartInvoiceEscrow is
+contract SmartInvoiceFeeEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
     Initializable,
@@ -66,9 +66,11 @@ contract SmartInvoiceEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
-    // Fees
-    FeeManager public feeManager;
-    uint256 public immutable feePercentage;
+    // hardcoded fee manager address
+    FeeManager public feeManager =
+        FeeManager(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
+
+    uint256 public feePercentage;
 
     event MilestonesAdded(
         address indexed sender,
@@ -122,7 +124,7 @@ contract SmartInvoiceEscrow is
         total = _total;
 
         // set invoice fee
-        // FeeManager
+        feePercentage = feeManager.getInvoiceFee(_recipient);
     }
 
     /**
