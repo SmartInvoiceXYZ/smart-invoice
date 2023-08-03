@@ -11,6 +11,10 @@ async function main() {
 
   await feeManager.deployed();
 
+  const version = await feeManager.version();
+
+  console.log("FeeManager version:", version);
+
   console.log("FeeManager deployed to:", feeManager.address);
 }
 

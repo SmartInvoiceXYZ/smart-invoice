@@ -1,9 +1,14 @@
 {
   "network": "localhost",
-  "factory": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  "factory": "0x546adED0B0179d550e87cf909939a1207Fd26fB7",
   "txHash": "0xde0d3195ae7b25886aa86570c3b8d9c6c70ae7c258fbe6fadc7e0d77b44a68d2",
   "blockNumber": "3",
   "implementations": {
-    "feeEscrow": ["0x0165878A594ca255338adfa4d48449f69242Eb8F"]
+    "feeEscrow": [
+      "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "0xe7EFE194E57f29EDe8bE78272DBe1f25Efd6930C",
+      "0x827be5b0ccc880A3A86980915943347CA0d0DAa4",
+      "0x0792Bc6072dC771A6F436e30F21946a30c19a4DD"
+    ]
   }
 }

@@ -14,7 +14,9 @@ import "./interfaces/ISmartInvoiceFactory.sol";
 import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
-import "./FeeManager.sol";
+import {FeeManager} from "./FeeManager.sol";
+
+import "hardhat/console.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceFeeEscrow is
@@ -66,11 +68,15 @@ contract SmartInvoiceFeeEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
-    // hardcoded fee manager address
-    FeeManager public feeManager =
-        FeeManager(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
-    address public immutable daoVault =
+    // smart invoice dao vault
+    address public constant DAO_VAULT =
         0x2559fF0F61870134a1d75cE3F271878DCDb0eEE1;
+
+    address public constant FEE_MANAGER_ADDRESS =
+        0x44B2A9A793B51410D1f164e259FB4BcD1996Bd6c;
+
+    // hardcoded fee manager address
+    FeeManager public feeManager = FeeManager(FEE_MANAGER_ADDRESS);
 
     uint256 public feePercentage;
 
@@ -126,7 +132,9 @@ contract SmartInvoiceFeeEscrow is
         total = _total;
 
         // set invoice fee
-        feePercentage = feeManager.getInvoiceFee(_recipient);
+
+        // feePercentage = feeManager.getInvoiceFee(_recipient);
+        feeManager.version();
     }
 
     /**
@@ -544,7 +552,7 @@ contract SmartInvoiceFeeEscrow is
     ) internal virtual {
         (uint256 fee, uint256 adjustedAmount) = _calculateFee(_amount);
         // transfer fee to vault
-        IERC20(_token).safeTransfer(daoVault, fee);
+        IERC20(_token).safeTransfer(DAO_VAULT, fee);
         // transfer remainder to provider
         IERC20(_token).safeTransfer(_recipient, adjustedAmount);
     }
