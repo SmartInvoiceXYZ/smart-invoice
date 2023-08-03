@@ -69,6 +69,8 @@ contract SmartInvoiceFeeEscrow is
     // hardcoded fee manager address
     FeeManager public feeManager =
         FeeManager(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
+    address public immutable daoVault =
+        0x2559fF0F61870134a1d75cE3F271878DCDb0eEE1;
 
     uint256 public feePercentage;
 
@@ -282,13 +284,13 @@ contract SmartInvoiceFeeEscrow is
             require(balance >= amount, "insufficient balance");
 
             milestone = milestone + 1;
-            _transferPayment(token, amount);
+            _transferPayment(token, provider, amount);
             released = released + amount;
             emit Release(currentMilestone, amount);
         } else {
             require(balance > 0, "balance is 0");
 
-            _transferPayment(token, balance);
+            _transferPayment(token, provider, balance);
             released = released + balance;
             emit Release(currentMilestone, balance);
         }
@@ -330,7 +332,7 @@ contract SmartInvoiceFeeEscrow is
         }
         require(balance >= amount, "insufficient balance");
 
-        _transferPayment(token, amount);
+        _transferPayment(token, provider, amount);
         released = released + amount;
         milestone = _milestone + 1;
     }
@@ -351,7 +353,7 @@ contract SmartInvoiceFeeEscrow is
         } else {
             require(_msgSender() == client, "!client");
             uint256 balance = IERC20(_token).balanceOf(address(this));
-            _transferPayment(_token, balance);
+            _transferPayment(_token, provider, balance);
         }
     }
 
@@ -443,7 +445,7 @@ contract SmartInvoiceFeeEscrow is
         );
 
         if (_providerAward > 0) {
-            _transferPayment(token, _providerAward);
+            _transferPayment(token, provider, _providerAward);
         }
         if (_clientAward > 0) {
             IERC20(token).safeTransfer(client, _clientAward);
@@ -492,10 +494,10 @@ contract SmartInvoiceFeeEscrow is
         uint256 clientAward = balance - providerAward;
 
         if (providerAward > 0) {
-            _transferPayment(token, providerAward);
+            _transferPayment(token, provider, providerAward);
         }
         if (clientAward > 0) {
-            IERC20(token).safeTransfer(client, clientAward);
+            _transferPayment(token, client, clientAward);
         }
 
         milestone = amounts.length;
@@ -525,11 +527,26 @@ contract SmartInvoiceFeeEscrow is
         ruling = rulings[_ruling];
     }
 
-    function _transferPayment(address _token, uint256 _amount)
+    function _calculateFee(uint256 _amount)
         internal
-        virtual
+        view
+        returns (uint256 fee, uint256 adjustedAmount)
     {
-        IERC20(_token).safeTransfer(provider, _amount);
+        fee = (_amount * feePercentage) / 100;
+        adjustedAmount = _amount - fee;
+        return (fee, adjustedAmount);
+    }
+
+    function _transferPayment(
+        address _token,
+        address _recipient,
+        uint256 _amount
+    ) internal virtual {
+        (uint256 fee, uint256 adjustedAmount) = _calculateFee(_amount);
+        // transfer fee to vault
+        IERC20(_token).safeTransfer(daoVault, fee);
+        // transfer remainder to provider
+        IERC20(_token).safeTransfer(_recipient, adjustedAmount);
     }
 
     // receive eth transfers

@@ -15,6 +15,7 @@
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.js",
     "test-fee-manager": "hardhat test ./test/FeeManager.js",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.js",
+    "test-fee": "hardhat test ./test/SmartInvoiceFeeEscrow.js",
     "test-split": "hardhat test ./test/SmartInvoiceSplitEscrow.js",
     "fee-manager-deploy-local": "hardhat run scripts/deploy-fee-manager.js --network localhost",
     "escrow-add-xdai": "hardhat run scripts/add-escrow.js --network xdai",
