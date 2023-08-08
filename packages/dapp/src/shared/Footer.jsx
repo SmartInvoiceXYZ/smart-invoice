@@ -62,6 +62,13 @@ export function Footer() {
           >
             Twitter
           </ChakraLink>
+          <ChakraLink
+            isExternal
+            href="https://discord.gg/Rws3gEu8W7"
+            target="_blank"
+          >
+            Discord
+          </ChakraLink>
         </Flex>
       </Flex>
     </Box>
