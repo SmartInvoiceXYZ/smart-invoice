@@ -14,9 +14,7 @@ import "./interfaces/ISmartInvoiceFactory.sol";
 import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
-import {FeeManager} from "./FeeManager.sol";
-
-import "hardhat/console.sol";
+import "./FeeManager.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceFeeEscrow is
@@ -71,12 +69,6 @@ contract SmartInvoiceFeeEscrow is
     // smart invoice dao vault
     address public constant DAO_VAULT =
         0x2559fF0F61870134a1d75cE3F271878DCDb0eEE1;
-
-    address public constant FEE_MANAGER_ADDRESS =
-        0x44B2A9A793B51410D1f164e259FB4BcD1996Bd6c;
-
-    // hardcoded fee manager address
-    FeeManager public feeManager = FeeManager(FEE_MANAGER_ADDRESS);
 
     uint256 public feePercentage;
 
@@ -133,8 +125,10 @@ contract SmartInvoiceFeeEscrow is
 
         // set invoice fee
 
-        // feePercentage = feeManager.getInvoiceFee(_recipient);
-        feeManager.version();
+        FeeManager feeManager = FeeManager(
+            0x73E2B5ed14cC3e10759E5E14F68a82f76BfaDd0e
+        );
+        feePercentage = feeManager.getInvoiceFee(_recipient);
     }
 
     /**

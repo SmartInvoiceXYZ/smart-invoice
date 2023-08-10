@@ -13,7 +13,7 @@ describe("FeeManager", function () {
     [owner, addr1, addr2] = await ethers.getSigners();
 
     FeeManager = await ethers.getContractFactory("FeeManager");
-    feeManager = await FeeManager.deploy();
+    feeManager = await FeeManager.deploy(1);
 
     await feeManager.deployed();
   });
@@ -48,20 +48,17 @@ describe("FeeManager", function () {
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
-  it("Should calculate invoice fee correctly", async function () {
-    const amount = 1000;
-    const expectedFee = (amount * feePercentage) / 100;
+  it("Should return the set fee percentage", async function () {
     await feeManager.connect(owner).setFeePercentage(feePercentage);
-    const fee = await feeManager.calculateInvoiceFee(amount, addr2.address);
-    expect(fee).to.equal(expectedFee);
+    const fee = await feeManager.getInvoiceFee(addr2.address);
+    expect(fee).to.equal(feePercentage);
   });
 
-  it("Should calculate invoice fee as zero for exempted addresses", async function () {
-    const amount = 1000;
+  it("Should return fee as zero for exempted addresses", async function () {
     const endDate = Math.floor(new Date().getTime() / 1000) + 60 * 60 * 24 * 7; // one week later
     await feeManager.connect(owner).setFeePercentage(feePercentage);
     await feeManager.connect(owner).setExemption(1, endDate, addr1.address);
-    const fee = await feeManager.calculateInvoiceFee(amount, addr1.address);
+    const fee = await feeManager.getInvoiceFee(addr1.address);
     expect(fee).to.equal(0);
   });
 });

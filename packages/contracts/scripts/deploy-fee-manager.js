@@ -1,9 +1,10 @@
-// scripts/deploy.js
-
 const hre = require("hardhat");
 
 async function main() {
   const FeeManager = await hre.ethers.getContractFactory("FeeManager");
+  const { provider } = hre.ethers;
+
+  const chainId = await provider.getNetwork().then(network => network.chainId);
 
   const newVersion = 1;
 
@@ -13,7 +14,10 @@ async function main() {
 
   const version = await feeManager.version();
 
-  console.log("FeeManager version:", version);
+  if (chainId === 31337) {
+    await feeManager.setFeePercentage(6);
+    console.log("fee percentage set to 6%");
+  }
 
   console.log("FeeManager deployed to:", feeManager.address);
 }

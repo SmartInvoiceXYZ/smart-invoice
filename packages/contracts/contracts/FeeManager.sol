@@ -38,12 +38,13 @@ contract FeeManager is Ownable {
     function getInvoiceFee(address _address) external view returns (uint256) {
         FeeExemption storage exemption = feeExempt[_address];
         if (
-            exemption.exemptionType != ExemptionType.None &&
+            (exemption.exemptionType == ExemptionType.Lending ||
+                exemption.exemptionType == ExemptionType.Subscription) &&
             exemption.endDate > block.timestamp
         ) {
             return 0;
         }
-        return feePercentage / 100;
+        return feePercentage;
     }
 
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {
