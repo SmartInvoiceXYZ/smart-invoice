@@ -1,0 +1,9 @@
+{
+  "network": "lineaGoerli",
+  "factory": "0xa9c2372FdFA2ef145A0d13784C74DE96f0e3eaff",
+  "txHash": "0xe9086927b47d3f791a4953ac41ef01e0e2ec16cad8b526f6154ba1b10faccd86",
+  "blockNumber": "1319295",
+  "implementations": {
+    "escrow": ["0x457bc670d4C334BfDF4413bc31d96a1cc9c826dA"]
+  }
+}
