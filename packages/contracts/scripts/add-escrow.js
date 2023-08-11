@@ -8,6 +8,7 @@ const polygon = require("../deployments/polygon.json");
 const mumbai = require("../deployments/polygonMumbai.json");
 const mainnet = require("../deployments/mainnet.json");
 const sepolia = require("../deployments/sepolia.json");
+const lineaGoerli = require("../deployments/lineaGoerli.json");
 const abi =
   require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json").abi;
 
@@ -22,6 +23,7 @@ const networkName = {
   31337: "localhost",
   80001: "mumbai",
   11155111: "sepolia",
+  59140: "lineaGoerli",
 };
 
 const networkCurrency = {
@@ -35,6 +37,7 @@ const networkCurrency = {
   31337: "localhost",
   80001: "MATIC",
   11155111: "sETH",
+  59140: "ETH",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
@@ -53,6 +56,7 @@ async function main() {
     mumbai,
     mainnet,
     sepolia,
+    lineaGoerli,
   };
   const factory = new ethers.Contract(
     factories[networkName[chainId]].factory,

@@ -13,6 +13,7 @@ const wrappedTokenAddress = {
   31337: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
   80001: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
   11155111: "0xb16F35c0Ae2912430DAc15764477E179D9B9EbEa",
+  59140: "0x2C1b868d6596a18e32E61B901E4060C872647b6C",
 };
 
 const networkName = {
@@ -26,6 +27,7 @@ const networkName = {
   31337: "localhost",
   80001: "mumbai",
   11155111: "sepolia",
+  59140: "lineaGoerli",
 };
 
 const networkCurrency = {
@@ -39,6 +41,7 @@ const networkCurrency = {
   31337: "hhETH",
   80001: "MATIC",
   11155111: "sETH",
+  59140: "ETH",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
