@@ -12,6 +12,7 @@ const wrappedTokenAddress = {
   137: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
   31337: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
   80001: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+  11155111: "0xb16F35c0Ae2912430DAc15764477E179D9B9EbEa",
 };
 
 const networkName = {
@@ -24,6 +25,7 @@ const networkName = {
   137: "polygon",
   31337: "localhost",
   80001: "mumbai",
+  11155111: "sepolia",
 };
 
 const networkCurrency = {
@@ -36,6 +38,7 @@ const networkCurrency = {
   137: "MATIC",
   31337: "hhETH",
   80001: "MATIC",
+  11155111: "sETH",
 };
 
 const BLOCKSCOUT_CHAIN_IDS = [77, 100];
