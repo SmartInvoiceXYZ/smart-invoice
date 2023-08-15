@@ -324,7 +324,7 @@ contract SmartInvoiceEscrow is
     /**
      * @dev External function to release funds from the contract to the provider.
      * Uses the internal `_release` function to perform the actual release.
-     * @param _milestones The milestones to release funds to
+     * @param _token The token address in which funds are to be released.
      */
     function releaseTokens(address _token) external override nonReentrant {
         if (_token == token) {
