@@ -1,10 +1,10 @@
 {
-  "network": "lineaGoerli",
-  "startBlock": "1319295",
+  "network": "linea-goerli",
+  "startBlock": "1317573",
   "factories": [
     {
       "factoryName": "01",
-      "startBlock": "1319295",
+      "startBlock": "1317573",
       "address": "0xa9c2372FdFA2ef145A0d13784C74DE96f0e3eaff",
       "v01": true
     }
@@ -12,7 +12,7 @@
   "tokens": [
     {
       "tokenAddress": "0x2C1b868d6596a18e32E61B901E4060C872647b6C",
-      "startBlock": "1319295",
+      "startBlock": "1317573",
       "tokenName": "WETH"
     }
   ]

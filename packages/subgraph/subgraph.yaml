@@ -6,41 +6,14 @@ features:
   [ipfsOnEthereumContracts]
 dataSources:
   - kind: ethereum/contract
-    name: SmartInvoiceFactory00
-    # prettier-ignore
-    network: mainnet
-    source:
-      address: '0xe73251284989c4496985f16c718369bbc30ccf63'
-      abi: SmartInvoiceFactory00
-      # prettier-ignore
-      startBlock: 15546992
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Invoice
-      abis:
-        - name: ERC20
-          file: ./src/abis/ERC20.json
-        - name: SmartInvoice00
-          file: ./src/abis/00/SmartInvoice00.json
-        - name: SmartInvoiceFactory00
-          file: ./src/abis/00/SmartInvoiceFactory00.json
-      eventHandlers:
-        - event: LogNewInvoice(indexed uint256,address,uint256[])
-          handler: handleLogNewInvoice
-          
-      file: ./src/mappings/00/factory.ts
-  - kind: ethereum/contract
     name: SmartInvoiceFactory01
     # prettier-ignore
-    network: mainnet
+    network: linea-goerli
     source:
-      address: '0x5E14cF595e18F91170009946205f8BBa21b323ca'
+      address: '0xa9c2372FdFA2ef145A0d13784C74DE96f0e3eaff'
       abi: SmartInvoiceFactory01
       # prettier-ignore
-      startBlock: 16991083
+      startBlock: 1317573
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -63,50 +36,9 @@ dataSources:
       file: ./src/mappings/01/factory.ts
 templates:
   - kind: ethereum/contract
-    name: SmartInvoice00
-    # prettier-ignore
-    network: mainnet
-    source:
-      abi: SmartInvoice00
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - Invoice
-        - Release
-        - Deposit
-        - Resolution
-        - Token
-      abis:
-        - name: ERC20
-          file: ./src/abis/ERC20.json
-        - name: SmartInvoice00
-          file: ./src/abis/00/SmartInvoice00.json
-        - name: SmartInvoiceFactory00
-          file: ./src/abis/00/SmartInvoiceFactory00.json
-      eventHandlers:
-        - event: Release(uint256,uint256)
-          handler: handleRelease
-        - event: Withdraw(uint256)
-          handler: handleWithdraw
-        - event: Lock(indexed address,bytes32)
-          handler: handleLock
-        - event: Rule(indexed address,uint256,uint256,uint256)
-          handler: handleRule
-        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
-          handler: handleResolve
-        - event: Deposit(indexed address,uint256)
-          handler: handleDeposit
-        - event: Verified(indexed address,indexed address)
-          handler: handleVerified
-        - event: MilestonesAdded(indexed address,indexed address,uint256[])
-          handler: handleMilestonesAdded
-      file: ./src/mappings/00/invoice.ts
-  - kind: ethereum/contract
     name: SmartInvoiceEscrow01
     # prettier-ignore
-    network: mainnet
+    network: linea-goerli
     source:
       abi: SmartInvoiceEscrow01
     mapping:
@@ -147,7 +79,7 @@ templates:
   - kind: ethereum/contract
     name: SmartInvoiceInstant01
     # prettier-ignore
-    network: mainnet
+    network: linea-goerli
     source:
       abi: SmartInvoiceInstant01
     mapping:
@@ -179,7 +111,7 @@ templates:
   - kind: ethereum/contract
     name: ERC20
     # prettier-ignore
-    network: mainnet
+    network: linea-goerli
     source:
       abi: ERC20
     mapping:
@@ -192,10 +124,6 @@ templates:
       abis:
         - name: ERC20
           file: ./src/abis/ERC20.json
-        - name: SmartInvoice00
-          file: ./src/abis/00/SmartInvoice00.json
-        - name: SmartInvoiceFactory00
-          file: ./src/abis/00/SmartInvoiceFactory00.json
         - name: SmartInvoiceEscrow01
           file: ./src/abis/01/SmartInvoiceEscrow01.json
         - name: SmartInvoiceInstant01
