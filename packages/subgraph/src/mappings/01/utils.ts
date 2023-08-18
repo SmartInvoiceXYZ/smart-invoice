@@ -12,6 +12,7 @@ import { Agreement, Invoice } from '../../types/schema';
 
 import { updateEscrowInfo } from './helpers/escrow';
 import { updateInstantInfo } from './helpers/instant';
+import { updateSplitEscrowInfo } from './helpers/split-escrow';
 
 let zeroAddress = changetype<Address>(
   Address.fromHexString('0x0000000000000000000000000000000000000000'),
@@ -46,6 +47,8 @@ export class InvoiceObject {
   // tipAmount: Array<Tip>;
   deadline: BigInt;
   fulfilled: boolean;
+  dao: Address;
+  daoFee: BigInt;
 
   constructor() {
     this.client = zeroAddress;
@@ -74,6 +77,8 @@ export class InvoiceObject {
     // this.tipAmount = new Array<Tip>();
     this.deadline = BigInt.fromI32(0);
     this.fulfilled = false;
+    this.dao = zeroAddress;
+    this.daoFee = BigInt.fromI32(0);
   }
 }
 
@@ -93,6 +98,8 @@ export function updateInvoice(address: Address, invoice: Invoice): Invoice {
     if (type != null) {
       if (type == 'escrow') {
         invoice = updateEscrowInfo(address, invoice);
+      } else if (type == 'split-escrow') {
+        invoice = updateSplitEscrowInfo(address, invoice);
       } else {
         invoice = updateInstantInfo(address, invoice);
       }

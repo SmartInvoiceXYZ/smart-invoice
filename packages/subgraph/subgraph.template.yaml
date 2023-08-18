@@ -167,6 +167,47 @@ templates:
         - event: Fulfilled(indexed address)
           handler: handleFulfilled
       file: ./src/mappings/{{factoryName}}/invoice.ts
+  - kind: ethereum/contract
+    name: SmartInvoiceSplitEscrow{{factoryName}}
+    # prettier-ignore
+    network: {{network}}
+    source:
+      abi: SmartInvoiceSplitEscrow{{factoryName}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
+        - Token
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceSplitEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+      eventHandlers:
+        - event: Release(uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed address,bytes32)
+          handler: handleLock
+        - event: Rule(indexed address,uint256,uint256,uint256)
+          handler: handleRule
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
+      file: ./src/mappings/{{factoryName}}/invoice.ts
 {{/v01}}
 {{/factories}}
   - kind: ethereum/contract

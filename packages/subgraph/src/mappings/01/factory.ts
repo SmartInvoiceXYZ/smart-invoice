@@ -6,6 +6,7 @@ import {
   ERC20,
   SmartInvoiceEscrow01,
   SmartInvoiceInstant01,
+  SmartInvoiceSplitEscrow01,
 } from '../../types/templates';
 import { getToken } from './helpers/token';
 import { updateInvoice } from './utils';
@@ -40,6 +41,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
 
   if (invoice.invoiceType == 'escrow') {
     SmartInvoiceEscrow01.create(event.params.invoice);
+  } else if (invoice.invoiceType == 'split-escrow') {
+    SmartInvoiceSplitEscrow01.create(event.params.invoice);
   } else {
     SmartInvoiceInstant01.create(event.params.invoice);
   }
