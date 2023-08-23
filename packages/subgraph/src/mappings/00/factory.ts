@@ -1,7 +1,7 @@
 import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
 import { Invoice, Agreement } from '../../types/schema';
 
-import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactoryVersion00/SmartInvoiceFactory00';
+import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactory00/SmartInvoiceFactory00';
 import { ERC20, SmartInvoice00 } from '../../types/templates';
 import { updateInvoiceInfo, getToken } from './helpers';
 

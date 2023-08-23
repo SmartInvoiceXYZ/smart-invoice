@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "SmartInvoiceSplitEscrow",
+  "contractName": "SmartInvoiceSplitEscrow01",
   "sourceName": "contracts/SmartInvoiceSplitEscrow.sol",
   "abi": [
     {
