@@ -33,6 +33,8 @@ dataSources:
           file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
         - name: SmartInvoiceInstant{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        - name: SmartInvoiceSplitEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         {{/v01}}
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
@@ -238,6 +240,8 @@ templates:
           file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
         - name: SmartInvoiceInstant{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        - name: SmartInvoiceSplitEscrow{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
         {{/v01}}

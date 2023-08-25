@@ -57,6 +57,8 @@ dataSources:
           file: ./src/abis/01/SmartInvoiceEscrow01.json
         - name: SmartInvoiceInstant01
           file: ./src/abis/01/SmartInvoiceInstant01.json
+        - name: SmartInvoiceSplitEscrow01
+          file: ./src/abis/01/SmartInvoiceSplitEscrow01.json
         - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
