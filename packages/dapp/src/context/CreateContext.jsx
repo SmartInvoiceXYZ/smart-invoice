@@ -279,6 +279,10 @@ export const CreateContextProvider = ({ children }) => {
 
       setTx(transaction);
       setLoading(false);
+    } else {
+      console.error(
+        `unable to create invoice: allValid: ${allValid}, detailsHash: ${detailsHash}`,
+      );
     }
   }, [
     chainId,

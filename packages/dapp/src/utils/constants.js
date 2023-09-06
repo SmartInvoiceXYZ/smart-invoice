@@ -12,6 +12,8 @@ export const INVOICE_TYPES = {
   Instant: 'instant',
 };
 
+export const DEFAULT_CHAIN_ID = 5;
+
 export const chainIds = {
   xdai: 100,
   mainnet: 1,
@@ -113,6 +115,7 @@ export const resolvers = {
 export const resolverInfo = {
   1: NETWORK_CONFIG[1].RESOLVERS,
   4: NETWORK_CONFIG[4].RESOLVERS,
+  5: NETWORK_CONFIG[5].RESOLVERS,
   100: NETWORK_CONFIG[100].RESOLVERS,
   137: NETWORK_CONFIG[137].RESOLVERS,
   31337: NETWORK_CONFIG[31337].RESOLVERS,
