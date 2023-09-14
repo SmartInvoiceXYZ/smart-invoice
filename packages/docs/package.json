@@ -18,8 +18,8 @@
     "@docusaurus/preset-classic": "2.0.0-alpha.72",
     "@mdx-js/react": "^1.6.21",
     "clsx": "^1.1.1",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "browserslist": {
     "production": [
@@ -34,6 +34,6 @@
     ]
   },
   "devDependencies": {
-    "eslint-plugin-import": "2.22.1"
+    "eslint-plugin-import": "2.28.1"
   }
 }
