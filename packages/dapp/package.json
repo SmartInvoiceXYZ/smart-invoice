@@ -45,9 +45,13 @@
   ],
   "devDependencies": {
     "@craco/craco": "6.4.5",
-    "eslint-config-react-app": "^7.0.1",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.2.0",
     "ethers": "^5.1.0",
     "husky": "^6.0.0"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
   },
   "eslintConfig": {
     "env": {
@@ -56,12 +60,8 @@
     },
     "extends": [
       "eslint:recommended",
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
-  },
-  "resolutions": {
-    "react-error-overlay": "6.0.9"
   },
   "cracoConfig": "./craco.config.js"
 }
