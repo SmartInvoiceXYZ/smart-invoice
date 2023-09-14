@@ -9,11 +9,11 @@ import { Container } from '../../shared/Container';
 import { InvoiceNotFound } from '../../shared/InvoiceNotFound';
 import { getHexChainId, getIpfsLink, getTxLink } from '../../utils/helpers';
 
-export const LockedInvoice = ({
+export function LockedInvoice({
   match: {
     params: { hexChainId, invoiceId },
   },
-}) => {
+}) {
   const [invoice, setInvoice] = useState();
   const history = useHistory();
   const invoiceChainId = parseInt(hexChainId, 16);
@@ -106,4 +106,4 @@ export const LockedInvoice = ({
       </VStack>
     </Container>
   );
-};
+}

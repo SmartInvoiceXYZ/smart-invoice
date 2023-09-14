@@ -2,34 +2,32 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
   Input,
   InputGroup,
   InputRightElement,
   Link,
+  SimpleGrid,
   Text,
   useBreakpointValue,
   VStack,
-  HStack,
-  SimpleGrid,
 } from '@chakra-ui/react';
 import { BigNumber, ethers, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
-import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
-
 import { Web3Context } from '../context/Web3Context';
+import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
 import {
+  calculateResolutionFeePercentage,
   getHexChainId,
   getTokenInfo,
   getTxLink,
   logError,
-  calculateResolutionFeePercentage,
 } from '../utils/helpers';
-
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 
-export const AddMilestones = ({ invoice, due, tokenData }) => {
+export function AddMilestones({ invoice, due, tokenData }) {
   const { chainId, provider } = useContext(Web3Context);
   const {
     address,
@@ -84,7 +82,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
     );
 
     if (deposits.length > 0) {
-      let depositAmounts = [];
+      const depositAmounts = [];
 
       for (let i = 0; i < deposits.length; i++) {
         depositAmounts.push(deposits[i].amount);
@@ -127,7 +125,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       setLoading(true);
       let detailsHash;
       if (revisedProjectAgreementType === 'ipfs') {
-        let projectAgreement = revisedProjectAgreement;
+        const projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
           projectName,
           projectDescription,
@@ -221,16 +219,12 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
             setMilestoneAmounts(
               Array(numMilestones)
                 .fill(1)
-                .map(() => {
-                  return BigNumber.from(0);
-                }),
+                .map(() => BigNumber.from(0)),
             );
             setMilestoneAmountsInput(
               Array(numMilestones)
                 .fill(1)
-                .map(() => {
-                  return 0;
-                }),
+                .map(() => 0),
             );
             setAddedMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
@@ -243,8 +237,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
         spacing="1rem"
         display={addedMilestones ? 'flex' : 'none'}
       >
-        {Array.from(Array(Number(addedMilestones))).map((_val, index) => {
-          return (
+        {Array.from(Array(Number(addedMilestones))).map((_val, index) => (
             <VStack w="100%" spacing="0.5rem" key={index.toString()}>
               <Flex justify="space-between" w="100%">
                 <Text fontWeight="700">
@@ -280,8 +273,7 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
                 </InputRightElement>
               </InputGroup>
             </VStack>
-          );
-        })}
+          ))}
         <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
           Amounts Must Add Up to {utils.formatUnits(addedTotal, decimals)}{' '}
           {symbol}
@@ -360,4 +352,4 @@ export const AddMilestones = ({ invoice, due, tokenData }) => {
       )}
     </VStack>
   );
-};
+}

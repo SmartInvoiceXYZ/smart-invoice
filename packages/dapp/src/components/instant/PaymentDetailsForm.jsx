@@ -1,20 +1,14 @@
-import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useMemo, useState } from 'react';
 
 import { CreateContext } from '../../context/CreateContext';
 import { Web3Context } from '../../context/Web3Context';
 import { OrderedInput, OrderedSelect } from '../../shared/OrderedInput';
-import { getTokenInfo, getTokens } from '../../utils/helpers';
+import { formatDate, getTokenInfo, getTokens } from '../../utils/helpers';
 
-import { formatDate } from '../../utils/helpers';
-
-export const InstantPaymentDetailsForm = ({
-  display,
-  tokenData,
-  allTokens,
-}) => {
-  const { chainId, provider } = useContext(Web3Context);
+export function InstantPaymentDetailsForm({ display, tokenData, allTokens }) {
+  const { chainId } = useContext(Web3Context);
 
   const {
     clientAddress,
@@ -23,13 +17,9 @@ export const InstantPaymentDetailsForm = ({
     setPaymentAddress,
     paymentToken,
     setPaymentToken,
-    paymentDue,
     setPaymentDue,
-    lateFee,
     setLateFee,
-    lateFeeInterval,
     setLateFeeInterval,
-    invoiceType,
     deadline,
     setDeadline,
   } = useContext(CreateContext);
@@ -41,7 +31,7 @@ export const InstantPaymentDetailsForm = ({
     [chainId, allTokens],
   );
 
-  const { decimals, symbol } = useMemo(
+  const { decimals } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
     [chainId, paymentToken, tokenData],
   );
@@ -50,6 +40,7 @@ export const InstantPaymentDetailsForm = ({
   const [clientInvalid, setClientInvalid] = useState(false);
   const [providerInvalid, setProviderInvalid] = useState(false);
   const [paymentInvalid, setPaymentInvalid] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
   // const [symbols, setSymbols] = useState([]);
   const [lateFeeInput, setLateFeeInput] = useState('');
@@ -155,7 +146,7 @@ export const InstantPaymentDetailsForm = ({
             }
           }}
           required="optional"
-          tooltip={`A fee imposed if the client does not pay by the deadline.`}
+          tooltip="A fee imposed if the client does not pay by the deadline."
         />
         <OrderedSelect
           label="Late Fee Interval"
@@ -176,4 +167,4 @@ export const InstantPaymentDetailsForm = ({
       </SimpleGrid>
     </VStack>
   );
-};
+}

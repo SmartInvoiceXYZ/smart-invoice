@@ -23,13 +23,13 @@ import { Web3Context } from '../context/Web3Context';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { balanceOf } from '../utils/erc20';
 import {
+  calculateResolutionFeePercentage,
   getHexChainId,
   getNativeTokenSymbol,
   getTokenInfo,
   getTxLink,
   getWrappedNativeToken,
   logError,
-  calculateResolutionFeePercentage,
 } from '../utils/helpers';
 
 const getCheckedStatus = (deposited, amounts) => {
@@ -40,11 +40,9 @@ const getCheckedStatus = (deposited, amounts) => {
   });
 };
 
-const checkedAtIndex = (index, checked) => {
-  return checked.map((_c, i) => i <= index);
-};
+const checkedAtIndex = (index, checked) => checked.map((_c, i) => i <= index);
 
-export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
+export function DepositFunds({ invoice, deposited, due, tokenData }) {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -111,7 +109,7 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
     ) {
       setDepositError(false);
     }
-  }, [depositError, amount, balance]);
+  }, [decimals, depositError, amount, balance]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -143,39 +141,37 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
         How much will you be depositing today?
       </Text>
       <VStack spacing="0.5rem">
-        {amounts.map((a, i) => {
-          return (
-            <Checkbox
-              key={i.toString()}
-              isChecked={checked[i]}
-              isDisabled={initialStatus[i]}
-              onChange={e => {
-                const newChecked = e.target.checked
-                  ? checkedAtIndex(i, checked)
-                  : checkedAtIndex(i - 1, checked);
-                const totAmount = amounts.reduce(
-                  (tot, cur, ind) => (newChecked[ind] ? tot.add(cur) : tot),
-                  BigNumber.from(0),
-                );
-                const newAmount = totAmount.gte(deposited)
-                  ? totAmount.sub(deposited)
-                  : BigNumber.from(0);
+        {amounts.map((a, i) => (
+          <Checkbox
+            key={i.toString()}
+            isChecked={checked[i]}
+            isDisabled={initialStatus[i]}
+            onChange={e => {
+              const newChecked = e.target.checked
+                ? checkedAtIndex(i, checked)
+                : checkedAtIndex(i - 1, checked);
+              const totAmount = amounts.reduce(
+                (tot, cur, ind) => (newChecked[ind] ? tot.add(cur) : tot),
+                BigNumber.from(0),
+              );
+              const newAmount = totAmount.gte(deposited)
+                ? totAmount.sub(deposited)
+                : BigNumber.from(0);
 
-                setChecked(newChecked);
-                setAmount(newAmount);
-                setAmountInput(utils.formatUnits(newAmount, decimals));
-              }}
-              colorScheme="blue"
-              borderColor="lightgrey"
-              size="lg"
-              fontSize="1rem"
-              color="#323C47"
-            >
-              Payment #{i + 1} &nbsp; &nbsp;
-              {utils.formatUnits(a, decimals)} {symbol}
-            </Checkbox>
-          );
-        })}
+              setChecked(newChecked);
+              setAmount(newAmount);
+              setAmountInput(utils.formatUnits(newAmount, decimals));
+            }}
+            colorScheme="blue"
+            borderColor="lightgrey"
+            size="lg"
+            fontSize="1rem"
+            color="#323C47"
+          >
+            Payment #{i + 1} &nbsp; &nbsp;
+            {utils.formatUnits(a, decimals)} {symbol}
+          </Checkbox>
+        ))}
       </VStack>
 
       <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
@@ -305,4 +301,4 @@ export const DepositFunds = ({ invoice, deposited, due, tokenData }) => {
       )}
     </VStack>
   );
-};
+}

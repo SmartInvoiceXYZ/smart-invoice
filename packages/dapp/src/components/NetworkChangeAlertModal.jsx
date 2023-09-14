@@ -1,19 +1,20 @@
 import {
   Modal,
+  ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalOverlay,
   ModalHeader,
-  ModalBody,
+  ModalOverlay,
 } from '@chakra-ui/react';
 import React from 'react';
+
 import { getNetworkName } from '../utils/helpers';
 
-export const NetworkChangeAlertModal = ({
+export function NetworkChangeAlertModal({
   showChainChangeAlert,
   setShowChainChangeAlert,
   chainId,
-}) => {
+}) {
   return (
     <Modal
       isOpen={showChainChangeAlert}
@@ -49,4 +50,4 @@ export const NetworkChangeAlertModal = ({
       </ModalContent>
     </Modal>
   );
-};
+}

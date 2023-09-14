@@ -15,7 +15,7 @@ import {
 } from '../utils/helpers';
 import { getResolutionRateFromFactory } from '../utils/invoice';
 
-export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
+export function PaymentDetailsForm({ display, tokenData, allTokens }) {
   const { chainId, provider } = useContext(Web3Context);
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
 
@@ -150,9 +150,7 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
             setPayments(
               Array(numMilestones)
                 .fill(1)
-                .map(() => {
-                  return BigNumber.from(0);
-                }),
+                .map(() => BigNumber.from(0)),
             );
             setMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
           }}
@@ -243,4 +241,4 @@ export const PaymentDetailsForm = ({ display, tokenData, allTokens }) => {
       )}
     </VStack>
   );
-};
+}

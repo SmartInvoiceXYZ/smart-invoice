@@ -19,14 +19,14 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
-import { DepositFunds } from '../../components/instant/DepositFunds';
-import { Loader } from '../../components/Loader';
-import { WithdrawFunds } from '../../components/instant/WithdrawFunds';
 import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
+import { DepositFunds } from '../../components/instant/DepositFunds';
+import { WithdrawFunds } from '../../components/instant/WithdrawFunds';
+import { Loader } from '../../components/Loader';
 import { Web3Context } from '../../context/Web3Context';
 import { getInvoice } from '../../graphql/getInvoice';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { CopyIcon } from '../../icons/CopyIcon';
 import { QuestionIcon } from '../../icons/QuestionIcon';
 import { AccountLink } from '../../shared/AccountLink';
@@ -37,10 +37,10 @@ import {
   copyToClipboard,
   getAccountString,
   getAddressLink,
+  getAgreementLink,
   getDateString,
   getTokenInfo,
   logError,
-  getAgreementLink,
 } from '../../utils/helpers';
 import {
   getDeadline,
@@ -49,11 +49,11 @@ import {
   getTotalFulfilled,
 } from '../../utils/invoice';
 
-export const ViewInstantInvoice = ({
+export function ViewInstantInvoice({
   match: {
     params: { hexChainId, invoiceId },
   },
-}) => {
+}) {
   const {
     chainId,
     account,
@@ -81,8 +81,51 @@ export const ViewInstantInvoice = ({
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
+    const getValues = async provider => {
+      // Get Balance
+      try {
+        setBalanceLoading(true);
+        const b = await balanceOf(provider, invoice.token, invoice.address);
+        setBalance(b);
+        setBalanceLoading(false);
+      } catch (balanceError) {
+        logError({ balanceError });
+      }
+
+      // Get Total Due
+      try {
+        const t = await getTotalDue(provider, invoice.address);
+        setTotalDue(BigNumber.from(t));
+      } catch (totalDueError) {
+        logError({ totalDueError });
+        setTotalDue(BigNumber.from(invoice.total));
+      }
+
+      // Get Deadline, Late Fee and its time interval
+      try {
+        const d = await getDeadline(provider, invoice.address);
+        setDeadline(BigNumber.from(d).toNumber());
+        const { amount, timeInterval } = await getLateFee(
+          provider,
+          invoice.address,
+        );
+        setLateFeeAmount(BigNumber.from(amount));
+        setLateFeeTimeInterval(BigNumber.from(timeInterval).toNumber());
+      } catch (lateFeeError) {
+        logError({ lateFeeError });
+      }
+
+      // Get Total Fulfilled
+      try {
+        const tf = await getTotalFulfilled(provider, invoice.address);
+        setTotalFulfilled(tf.amount);
+        setFulfilled(tf.isFulfilled);
+      } catch (totalFulfilledError) {
+        logError({ totalFulfilledError });
+      }
+    };
     if (invoice && ethersProvider && chainId === invoiceChainId) {
-      getValues(ethersProvider, invoice);
+      getValues(ethersProvider);
       // setBalanceLoading(true);
       // balanceOf(ethersProvider, invoice.token, invoice.address)
       //   .then(b => {
@@ -99,55 +142,11 @@ export const ViewInstantInvoice = ({
     }
   }, [invoice, deadline, totalDue]);
 
-  const getValues = async (provider, invoice) => {
-    // Get Balance
-    try {
-      setBalanceLoading(true);
-      const b = await balanceOf(provider, invoice.token, invoice.address);
-      setBalance(b);
-      setBalanceLoading(false);
-    } catch (balanceError) {
-      logError({ balanceError });
-    }
-
-    // Get Total Due
-    try {
-      const t = await getTotalDue(provider, invoice.address);
-      setTotalDue(BigNumber.from(t));
-    } catch (totalDueError) {
-      logError({ totalDueError });
-      setTotalDue(BigNumber.from(invoice.total));
-    }
-
-    // Get Deadline, Late Fee and its time interval
-    try {
-      const d = await getDeadline(provider, invoice.address);
-      setDeadline(BigNumber.from(d).toNumber());
-      const { amount, timeInterval } = await getLateFee(
-        provider,
-        invoice.address,
-      );
-      setLateFeeAmount(BigNumber.from(amount));
-      setLateFeeTimeInterval(BigNumber.from(timeInterval).toNumber());
-    } catch (lateFeeError) {
-      logError({ lateFeeError });
-    }
-
-    // Get Total Fulfilled
-    try {
-      const tf = await getTotalFulfilled(provider, invoice.address);
-      setTotalFulfilled(tf.amount);
-      setFulfilled(tf.isFulfilled);
-    } catch (totalFulfilledError) {
-      logError({ totalFulfilledError });
-    }
-  };
-
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
-  const smallScreen = useBreakpointValue({ base: true, sm: false });
+  // const smallScreen = useBreakpointValue({ base: true, sm: false });
 
   if (!utils.isAddress(invoiceId) || invoice === null) {
     return <InvoiceNotFound />;
@@ -177,7 +176,7 @@ export const ViewInstantInvoice = ({
     provider,
     total,
     token,
-    released,
+    // released,
     // deadline,
     // fulfilled,
     // lateFee,
@@ -332,7 +331,7 @@ export const ViewInstantInvoice = ({
                 invoice={invoice}
                 symbol={symbol}
                 buttonText="Preview & Download Invoice PDF"
-                buttonTextColor={'blue.dark'}
+                buttonTextColor="blue.dark"
               />
             </Wrap>
           </VStack>
@@ -533,4 +532,4 @@ export const ViewInstantInvoice = ({
       </Stack>
     </Container>
   );
-};
+}

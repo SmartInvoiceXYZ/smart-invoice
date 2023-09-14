@@ -1,21 +1,21 @@
 import {
   Button,
+  Flex,
   Heading,
   Input,
   InputGroup,
   InputRightElement,
   Link,
   Text,
+  Tooltip,
   useBreakpointValue,
   VStack,
-  Tooltip,
-  Flex,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
-import { QuestionIcon } from '../icons/QuestionIcon';
 
 import { Web3Context } from '../context/Web3Context';
+import { QuestionIcon } from '../icons/QuestionIcon';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import {
   getHexChainId,
@@ -26,7 +26,7 @@ import {
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
-export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
+export function ResolveFunds({ invoice, balance, close, tokenData }) {
   const { network, address, resolutionRate, token, isLocked } = invoice;
   const { chainId, provider } = useContext(Web3Context);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
@@ -273,4 +273,4 @@ export const ResolveFunds = ({ invoice, balance, close, tokenData }) => {
       )}
     </VStack>
   );
-};
+}

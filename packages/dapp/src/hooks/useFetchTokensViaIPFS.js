@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { formatTokenData, formatTokens } from '../utils/helpers';
-import { IPFS_ENDPOINT } from '../utils/constants';
+import { useEffect,useState } from 'react';
 
+import { IPFS_ENDPOINT } from '../utils/constants';
 import { getCID } from '../utils/firebase';
+import { formatTokenData, formatTokens } from '../utils/helpers';
 
 export const useFetchTokensViaIPFS = () => {
   const [tokenData, setTokenData] = useState();
@@ -13,7 +13,7 @@ export const useFetchTokensViaIPFS = () => {
     let isMounted = true;
     const fetchTokens = async () => {
       const CID = await getCID();
-      const IPFS_TOKENS = IPFS_ENDPOINT + `/ipfs/${CID}`;
+      const IPFS_TOKENS = `${IPFS_ENDPOINT  }/ipfs/${CID}`;
       setIsError(false);
       try {
         const response = fetch(IPFS_TOKENS);

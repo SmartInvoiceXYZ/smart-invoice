@@ -38,9 +38,6 @@
     "eject": "craco eject",
     "lint": "eslint \"./src/**/*.{js,jsx}\""
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": [
     ">0.2%",
     "not dead",
@@ -48,8 +45,20 @@
   ],
   "devDependencies": {
     "@craco/craco": "6.4.5",
+    "eslint-config-react-app": "^7.0.1",
     "ethers": "^5.1.0",
     "husky": "^6.0.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "resolutions": {
     "react-error-overlay": "6.0.9"

@@ -12,10 +12,10 @@ import {
   isKnownResolver,
 } from '../utils/helpers';
 
-export const AccountLink = ({
+export function AccountLink({
   address: inputAddress,
   chainId: inputChainId,
-}) => {
+}) {
   const { chainId: walletChainId } = useContext(Web3Context);
   const address = inputAddress.toLowerCase();
   const [profile, setProfile] = useState();
@@ -83,4 +83,4 @@ export const AccountLink = ({
       </Text>
     </Link>
   );
-};
+}
