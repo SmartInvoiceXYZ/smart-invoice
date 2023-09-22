@@ -12,7 +12,9 @@ const IERC20 = require("../build/@openzeppelin/contracts/token/ERC20/IERC20.sol/
 const goerli = require("../deployments/goerli.json");
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
-const wmaticAddress = "0xDcfcef36F438ec310d8a699e3D3729398547b2BF";
+const goerliWETHAddress = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6";
+const goerliWhale = "0x88124Ef4A9EC47e691F254F2E8e348fd1e341e9B";
+
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 const individualResolverType = 0;
@@ -31,12 +33,13 @@ describe("SmartInvoiceFeeEscrow", function () {
   let factory;
   let invoice;
   let mockToken;
-  let wmaticContract;
+  let WETH;
   let mockArbitrator;
   let client;
   let provider;
   let resolver;
   let randomSigner;
+  let whaleSigner;
 
   const createValidInvoice = async () => {
     const currentTime = await currentTimestamp();
@@ -47,11 +50,11 @@ describe("SmartInvoiceFeeEscrow", function () {
       provider.address,
       individualResolverType,
       resolver.address,
-      wmaticAddress,
+      goerliWETHAddress,
       amounts,
       currentTime + 3600,
       EMPTY_BYTES32,
-      wmaticAddress,
+      goerliWETHAddress,
       requireVerification,
     );
     invoiceAddress = await awaitInvoiceAddress(await tx.wait());
@@ -59,25 +62,22 @@ describe("SmartInvoiceFeeEscrow", function () {
     return invoice;
   };
 
-  const depositAndRelease = async invoice => {};
-
   beforeEach(async function () {
     [client, provider, resolver, randomSigner] = await ethers.getSigners();
 
-    wmaticContract = await ethers.getContractAt(
-      IERC20.abi,
-      wmaticAddress,
-      client,
-    );
+    WETH = await ethers.getContractAt(IERC20.abi, goerliWETHAddress, client);
 
     await hre.network.provider.request({
       method: "hardhat_impersonateAccount",
       params: ["0x2559fF0F61870134a1d75cE3F271878DCDb0eEE1"],
     });
 
-    const deployer = await ethers.getSigner(
-      "0x2559fF0F61870134a1d75cE3F271878DCDb0eEE1",
-    );
+    await network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [goerliWhale],
+    });
+
+    whaleSigner = await ethers.provider.getSigner(goerliWhale);
 
     const SmartInvoiceFactory = await ethers.getContractFactory(
       "SmartInvoiceFactory",
@@ -107,10 +107,10 @@ describe("SmartInvoiceFeeEscrow", function () {
         client.address,
         individualResolverType,
         resolver.address,
-        wmaticAddress,
+        goerliWETHAddress,
         terminationTime, // exact termination date in seconds since epoch
         EMPTY_BYTES32,
-        wmaticAddress,
+        goerliWETHAddress,
         requireVerification,
         factory.address,
       ],
@@ -124,6 +124,7 @@ describe("SmartInvoiceFeeEscrow", function () {
     );
 
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
+
     invoice = SmartInvoiceFeeEscrow.attach(invoiceAddress);
   });
 
@@ -132,7 +133,7 @@ describe("SmartInvoiceFeeEscrow", function () {
     expect(await invoice["provider()"]()).to.equal(provider.address);
     expect(await invoice.resolverType()).to.equal(individualResolverType);
     expect(await invoice.resolver()).to.equal(resolver.address);
-    expect(await invoice.token()).to.equal(wmaticAddress);
+    expect(await invoice.token()).to.equal(goerliWETHAddress);
     amounts.map(async (v, i) => {
       expect(await invoice.amounts(i)).to.equal(v);
     });
@@ -143,10 +144,46 @@ describe("SmartInvoiceFeeEscrow", function () {
     expect(await invoice.total()).to.equal(total);
     expect(await invoice.locked()).to.equal(false);
     expect(await invoice.disputeId()).to.equal(0);
-    expect(await invoice.wrappedNativeToken()).to.equal(wmaticAddress);
+    expect(await invoice.wrappedNativeToken()).to.equal(goerliWETHAddress);
     expect(await invoice.feePercentage()).to.equal(6);
   });
   it("Should be able to pay fees", async function () {
-    const invoice = await createValidInvoice();
+    const initalProviderBalance = await WETH.balanceOf(provider.address);
+    await ethers.provider.send("hardhat_setBalance", [
+      client.address,
+      "0x56BC75E2D63100000",
+    ]);
+    await ethers.provider.send("hardhat_setBalance", [
+      goerliWhale,
+      "0x56BC75E2D63100000",
+    ]);
+    const depositAmount = ethers.utils.parseEther("50");
+
+    await WETH.connect(whaleSigner).transfer(client.address, depositAmount);
+
+    await client.sendTransaction({
+      to: invoice.address,
+      value: depositAmount,
+    });
+
+    await invoice["release()"]();
+
+    const firstRelease = ethers.utils.parseEther(amounts[0].toString());
+
+    const feePercentage = await invoice.feePercentage();
+
+    const expectedFee = firstRelease.mul(feePercentage).div(100);
+
+    const expectedProviderAmount = firstRelease.sub(expectedFee);
+
+    const newProviderBalance = initalProviderBalance.add(
+      expectedProviderAmount,
+    );
+
+    // Now, if you want to compare the balances, you can do so directly using BigNumber methods or convert them to strings for logging.
+    // For example:
+    expect(newProviderBalance).to.equal(
+      initalProviderBalance.add(expectedProviderAmount),
+    );
   });
 });

@@ -126,7 +126,7 @@ contract SmartInvoiceFeeEscrow is
         // set invoice fee
 
         FeeManager feeManager = FeeManager(
-            0x73E2B5ed14cC3e10759E5E14F68a82f76BfaDd0e
+            0x8787678DB688eaD8D53F8F96f33Ceeb0FD821d5a
         );
         feePercentage = feeManager.getInvoiceFee(_recipient);
     }
