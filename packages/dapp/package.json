@@ -27,8 +27,8 @@
     "react-table": "^7.8.0",
     "styled-components": "^5.3.5",
     "urql": "^2.2.3",
-    "viem": "1.10.13",
-    "wagmi": "1.4.1",
+    "viem": "^1.12.2",
+    "wagmi": "~1.4.2",
     "web3": "1.10.2"
   },
   "scripts": {
@@ -39,9 +39,11 @@
     "lint": "eslint \"./src/**/*.{js,jsx}\""
   },
   "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not op_mini all"
+    "chrome >= 67",
+    "edge >= 79",
+    "firefox >= 68",
+    "opera >= 54",
+    "safari >= 14"
   ],
   "devDependencies": {
     "@craco/craco": "6.4.5",
