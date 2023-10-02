@@ -5,9 +5,8 @@ const {
   getNetworkCurrency,
   getNetworkName,
   getWrappedTokenAddress,
-  verifyContract,
 } = require("./constants");
-const { writeDeploymentInfo } = require("./utils/file");
+const { verifyContract, writeDeploymentInfo } = require("./utils/file");
 
 async function main() {
   const [deployer] = await ethers.getSigners();

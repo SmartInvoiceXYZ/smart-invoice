@@ -24,6 +24,7 @@
     "deploy-factory": "hardhat run scripts/deploy-factory.js --network",
     "deploy-spoils-manager": "hardhat run scripts/deploy-spoils-manager.js --network",
     "deploy-zap": "hardhat run scripts/deploy-zap.js --network",
+    "verify-contract": "hardhat run scripts/verify-contract.js --network",
     "create-with-zap": "hardhat run scripts/create-safe-split-escrow.js --network",
     "flatten-factory": "hardhat flatten contracts/SmartInvoiceFactory.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SmartInvoiceFactory.sol",
     "flatten-instant": "hardhat flatten contracts/SmartInvoiceInstant.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SmartInvoiceInstant.sol",
