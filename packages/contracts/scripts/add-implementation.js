@@ -1,16 +1,16 @@
 /* eslint-disable no-console */
-const { ethers, run, network } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const {
   getNetworkName,
   getNetworkCurrency,
   getFactory,
-  getUseBlockscout,
 } = require("./constants");
 const {
   readDeploymentInfo,
   writeDeploymentInfo,
   appendImplementation,
-} = require("./utils");
+} = require("./utils/file");
+const { verifyContract } = require("./utils/general");
 const {
   abi: factoryAbi,
 } = require("../build/contracts/SmartInvoiceFactory.sol/SmartInvoiceFactory.json");
@@ -28,10 +28,14 @@ const ESCROW_TYPES = {
     key: "split-escrow",
     contract: "SmartInvoiceSplitEscrow",
   },
+  updatable: {
+    key: "updatable",
+    contract: "SmartInvoiceUpdatable",
+  },
 };
 
-// TODO separate if need CI/CD runs, no easy parameter strategy
-const escrowTypeData = ESCROW_TYPES.escrow;
+// TODO separate if need CI/CD runs, no easy parameter strategy afaik
+const escrowTypeData = ESCROW_TYPES.updatable;
 const escrowType = ethers.utils.formatBytes32String(escrowTypeData.key);
 
 async function main() {
@@ -69,10 +73,12 @@ async function main() {
     smartInvoiceImplementation.address,
   );
 
-  await smartInvoiceImplementation.initLock();
+  const initLockReceipt = await smartInvoiceImplementation.initLock();
+  await initLockReceipt.wait(5);
 
   console.log("Initialized Lock Successful");
 
+  // ! could not replace existing tx here
   const implementationReceipt = await factory
     .connect(deployer)
     .addImplementation(escrowType, smartInvoiceImplementation.address);
@@ -93,7 +99,7 @@ async function main() {
     version.toNumber(),
   );
 
-  const deployment = readDeploymentInfo(network);
+  const deployment = readDeploymentInfo(network.name);
 
   const updatedDeployment = appendImplementation(
     deployment,
@@ -101,23 +107,9 @@ async function main() {
     smartInvoiceImplementation.address,
   );
 
-  writeDeploymentInfo(updatedDeployment, network);
+  writeDeploymentInfo(updatedDeployment, network.name);
 
-  if (chainId === 31337) return;
-  const TASK_VERIFY = getUseBlockscout(chainId)
-    ? "verify:verify-blockscout"
-    : "verify:verify";
-
-  console.log("Implementations Address:", address);
-
-  const verifyResult = await run(TASK_VERIFY, {
-    address: smartInvoiceImplementation.address,
-    constructorArguments: [],
-  });
-
-  if (verifyResult) {
-    console.log("Contract verified: ", verifyResult);
-  }
+  verifyContract(network, smartInvoiceImplementation.address, []);
 }
 
 main()

@@ -5,7 +5,7 @@ const {
   getNetworkCurrency,
   getNetworkName,
   getWrappedTokenAddress,
-  getUseBlockscout,
+  verifyContract,
 } = require("./constants");
 const { writeDeploymentInfo } = require("./utils/file");
 
@@ -49,24 +49,16 @@ async function main() {
     implementations: {},
   };
 
-  writeDeploymentInfo(deploymentInfo, network);
+  writeDeploymentInfo(deploymentInfo, network.name);
 
-  // don't verify on local network
-  if (chainId === 31337) return;
-
-  waitForDeployTx(smartInvoiceFactory.deployTransaction, chainId);
-
-  const TASK_VERIFY = getUseBlockscout(chainId)
-    ? "verify:verify-blockscout"
-    : "verify:verify";
+  waitForDeployTx(smartInvoiceFactory, chainId, 5);
 
   console.log("Deployed SmartInvoiceFactory to:", smartInvoiceFactory.address);
-  console.log("Wrapped token address:", getWrappedTokenAddress(chainId));
-  await run(TASK_VERIFY, {
-    address: smartInvoiceFactory.address,
-    constructorArguments: getWrappedTokenAddress(chainId),
-  });
-  console.log("Verified Factory");
+  // console.log("Wrapped token address:", getWrappedTokenAddress(chainId));
+
+  verifyContract(network, smartInvoiceFactory.address, [
+    getWrappedTokenAddress(chainId),
+  ]);
 }
 
 main()

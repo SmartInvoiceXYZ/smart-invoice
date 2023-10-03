@@ -11,16 +11,18 @@
     ],
     "split-escrow": ["0x1368da5F0e50D6670F61C6BF6bF4B1bf963e2514"]
   },
-  "safeSplitsEscrowZap": "0x",
   "spoilsManager": {
-    "factory": "0x",
-    "implementations": []
+    "factory": "0x330Aa36017fB426f1595A969B7020D2A914E4873",
+    "implementations": ["0x01701b52e93dA09Ba535847Aeea1015e3376F9Bc"]
   },
   "zap": {
-    "dao": "0xa4161db839f84e27122398ae6337ad47765e6cd5",
+    "factory": "",
+    "dao": "0xa4161dB839F84E27122398aE6337AD47765E6cD5",
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
     "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
-    "spoilsManager": "0x"
+    "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
+    "spoilsManager": "0xc98ecFeBB790D971EF7390043b168C9D8e103C5d",
+    "instances": []
   }
 }

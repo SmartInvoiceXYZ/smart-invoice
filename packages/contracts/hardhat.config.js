@@ -4,9 +4,10 @@ require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
-require("hardhat-gas-reporter");
+// require("hardhat-gas-reporter");
 require("solidity-coverage");
 require("./tasks/verify-blockscout");
+require("hardhat-interface-generator");
 
 const {
   INFURA_PROJECT_ID,
@@ -19,7 +20,7 @@ const {
 } = process.env;
 module.exports = {
   solidity: {
-    version: "0.8.3",
+    version: "0.8.4",
     settings: {
       optimizer: {
         enabled: true,
@@ -67,6 +68,12 @@ module.exports = {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [`0x${PRIVATE_KEY}`],
+    },
+    hardhat: {
+      forking: {
+        enabled: process.env.FORK ? process.env.FORK === "true" : false,
+        url: `https://goerli.infura.io/v3/${INFURA_PROJECT_ID}`,
+      },
     },
   },
   etherscan: {
