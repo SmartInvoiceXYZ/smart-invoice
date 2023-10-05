@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 
-export const WhatIsThisModal = ({ isOpen, onClose }) => {
+export function WhatIsThisModal({ isOpen, onClose }) {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -87,4 +87,4 @@ export const WhatIsThisModal = ({ isOpen, onClose }) => {
       </ModalOverlay>
     </Modal>
   );
-};
+}

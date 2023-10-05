@@ -1,7 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
-
-import { getDatabase, ref, child, get } from 'firebase/database';
+import { child, get,getDatabase, ref } from 'firebase/database';
 
 const {
   REACT_APP_FIREBASE_API_KEY,
@@ -33,9 +32,9 @@ export const getCID = async () => {
     .then(snapshot => {
       if (snapshot.exists()) {
         return snapshot.val();
-      } else {
+      } 
         console.log('No firebase data available');
-      }
+      
     })
     .catch(error => {
       console.error('firebase CID retrieval error:', error);

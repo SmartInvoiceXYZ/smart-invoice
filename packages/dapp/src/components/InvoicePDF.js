@@ -1,17 +1,16 @@
-import React, { Fragment } from 'react';
 import {
-  Page,
   Document,
-  StyleSheet,
-  View,
-  Text,
   Link,
+  Page,
+  StyleSheet,
+  Text,
+  View,
 } from '@react-pdf/renderer';
-
 import { utils } from 'ethers';
+import React, { Fragment } from 'react';
 
+import { getAccountString,getHexChainId } from '../utils/helpers';
 import { unixToDateTime } from '../utils/invoice';
-import { getHexChainId, getAccountString } from '../utils/helpers';
 
 const borderColor = 'black';
 
@@ -171,7 +170,7 @@ const styles = StyleSheet.create({
 });
 
 // font register for Rubik One
-const InvoicePDF = ({ invoice, symbol }) => {
+function InvoicePDF({ invoice, symbol }) {
   const {
     projectName,
     projectDescription,
@@ -236,7 +235,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
           </View>
         </View>
 
-        <View style={styles.separator}></View>
+        <View style={styles.separator} />
 
         <View style={styles.detailsContainer}>
           <Text style={styles.details}>
@@ -273,7 +272,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
             </Text>
           ) : null}
         </View>
-        <View style={styles.separatorTwo}></View>
+        <View style={styles.separatorTwo} />
         <View style={styles.detailsContainer}>
           <Text style={styles.details}>
             Project Name: <Text style={styles.text}>{projectName}</Text>
@@ -282,8 +281,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
             Description: <Text style={styles.text}>{projectDescription}</Text>
           </Text>
           <Text style={styles.details}>Project Agreement(s):</Text>
-          {projectAgreement.map((agreement, index) => {
-            return (
+          {projectAgreement.map((agreement, index) => (
               <View key={agreement.createdAt}>
                 <Text style={[styles.text, { textTransform: 'none' }]}>
                   Agreement #{index + 1}:
@@ -295,8 +293,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
                   Agreement Source: {agreement.src}
                 </Text>
               </View>
-            );
-          })}
+            ))}
         </View>
 
         {/* Payment Milestones */}
@@ -343,8 +340,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
           </View>
         </View>
 
-        {deposits.map((deposit, index) => {
-          return (
+        {deposits.map((deposit, index) => (
             <Fragment key={index + deposit.sender}>
               <View style={styles.listContainer}>
                 <View style={styles.innerTitle}>
@@ -375,8 +371,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
                 </View>
               </View>
             </Fragment>
-          );
-        })}
+          ))}
 
         {/* Releases */}
         <View style={styles.tableContainer}>
@@ -385,8 +380,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
           </View>
         </View>
 
-        {releases.map((release, index) => {
-          return (
+        {releases.map((release, index) => (
             <Fragment key={index + release.sender}>
               <View style={styles.listContainer}>
                 <View style={styles.innerTitle}>
@@ -423,8 +417,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
                 </View>
               </View>
             </Fragment>
-          );
-        })}
+          ))}
       </Page>
 
       {/* Disputes */}
@@ -434,8 +427,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
             <Text style={styles.secondTitle}>Disputes</Text>
           </View>
 
-          {disputes.map((dispute, index) => {
-            return (
+          {disputes.map((dispute, index) => (
               <View
                 style={styles.multiDetailBlock}
                 key={index + dispute.sender}
@@ -471,8 +463,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
                   </Text>
                 </View>
               </View>
-            );
-          })}
+            ))}
         </Page>
       ) : null}
 
@@ -483,8 +474,7 @@ const InvoicePDF = ({ invoice, symbol }) => {
             <Text style={styles.secondTitle}>Resolutions</Text>
           </View>
 
-          {resolutions.map((resolution, index) => {
-            return (
+          {resolutions.map((resolution, index) => (
               <View style={styles.multiDetailBlock} key={index + resolution}>
                 <Text
                   style={[
@@ -531,12 +521,11 @@ const InvoicePDF = ({ invoice, symbol }) => {
                   <Text style={styles.detailRow}>{resolution.resolver}</Text>
                 </View>
               </View>
-            );
-          })}
+            ))}
         </Page>
       ) : null}
     </Document>
   );
-};
+}
 
 export default InvoicePDF;

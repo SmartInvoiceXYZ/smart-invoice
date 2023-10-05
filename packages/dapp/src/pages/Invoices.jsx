@@ -1,22 +1,22 @@
 import {
-  Stack,
-  Spinner,
-  Heading,
   Box,
   Button,
-  useBreakpointValue,
   Flex,
+  Heading,
+  Spinner,
+  Stack,
+  useBreakpointValue,
 } from '@chakra-ui/react';
-
 import React, { useContext, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
+
+import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
-import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
 import { networkNames } from '../utils/constants';
 
-const InvoicesInner = ({ history }) => {
+function InvoicesInner({ history }) {
   const { setSearch, result, loading } = useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
@@ -79,12 +79,12 @@ const InvoicesInner = ({ history }) => {
       )}
     </Box>
   );
-};
+}
 
-const InvoicesWithProvider = props => (
-  <SearchContextProvider>
+function InvoicesWithProvider(props) {
+  return <SearchContextProvider>
     <InvoicesInner {...props} />
   </SearchContextProvider>
-);
+}
 
 export const Invoices = withRouter(InvoicesWithProvider);

@@ -42,14 +42,14 @@ const getCheckedStatus = (deposited, amounts) => {
   });
 };
 
-export const DepositFunds = ({
+export function DepositFunds({
   invoice,
   deposited,
   due,
   total,
   tokenData,
   fulfilled,
-}) => {
+}) {
   const { chainId, provider, account } = useContext(Web3Context);
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -88,12 +88,10 @@ export const DepositFunds = ({
         tx = await provider
           .getSigner()
           .sendTransaction({ to: address, value: totalPayment });
+      } else if (fulfilled) {
+        tx = await tipTokens(provider, address, token, totalPayment);
       } else {
-        if (fulfilled) {
-          tx = await tipTokens(provider, address, token, totalPayment);
-        } else {
-          tx = await depositTokens(provider, address, token, totalPayment);
-        }
+        tx = await depositTokens(provider, address, token, totalPayment);
       }
       setTransaction(tx);
       await tx.wait();
@@ -137,6 +135,7 @@ export const DepositFunds = ({
 
   const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
   const initialStatus = getCheckedStatus(deposited, amounts);
+  // eslint-disable-next-line no-unused-vars
   const [checked, setChecked] = useState(initialStatus);
 
   const [balance, setBalance] = useState();
@@ -165,7 +164,7 @@ export const DepositFunds = ({
     } catch (balanceError) {
       logError({ balanceError });
     }
-  }, [paymentType, token, provider, account]);
+  }, [invoice.address, paymentType, token, provider, account]);
 
   useEffect(() => {
     if (
@@ -175,7 +174,7 @@ export const DepositFunds = ({
     ) {
       setDepositError(false);
     }
-  }, [depositError, amount, balance, totalPayment]);
+  }, [depositError, amount, balance, decimals, totalPayment]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -415,7 +414,7 @@ export const DepositFunds = ({
                         setTipAmount(BigNumber.from(0));
                       }
                     }}
-                    placeholder={'Enter tip amount'}
+                    placeholder="Enter tip amount"
                     color="#323C47"
                     borderColor="lightgrey"
                     textAlign="right"
@@ -515,4 +514,4 @@ export const DepositFunds = ({
       )}
     </VStack>
   );
-};
+}

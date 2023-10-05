@@ -8,26 +8,23 @@ import React, {
   useState,
 } from 'react';
 
+import { ESCROW_STEPS, INSTANT_STEPS, INVOICE_TYPES } from '../utils/constants';
 import {
+  getInvoiceFactoryAddress,
   getResolvers,
   getWrappedNativeToken,
-  getInvoiceFactoryAddress,
   isValidLink,
   logError,
 } from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
-import { Web3Context } from './Web3Context';
-
-import { INSTANT_STEPS, ESCROW_STEPS } from '../utils/constants';
-
-import { INVOICE_TYPES } from '../utils/constants';
-import { useCreateInstant } from './create-hooks/useCreateInstant';
 import { useCreateEscrow } from './create-hooks/useCreateEscrow';
+import { useCreateInstant } from './create-hooks/useCreateInstant';
+import { Web3Context } from './Web3Context';
 
 export const CreateContext = createContext();
 
-export const CreateContextProvider = ({ children }) => {
+export function CreateContextProvider({ children }) {
   const { provider: rpcProvider, chainId } = useContext(Web3Context);
   const RESOLVERS = getResolvers(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -60,6 +57,7 @@ export const CreateContextProvider = ({ children }) => {
   const [safetyValveDate, setSafetyValveDate] = useState();
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [arbitrationProvider, setArbitrationProvider] = useState(RESOLVERS[0]);
+  // eslint-disable-next-line no-unused-vars
   const [requireVerification, setRequireVerification] = useState(true);
 
   // instant payment details
@@ -88,7 +86,8 @@ export const CreateContextProvider = ({ children }) => {
         safetyValveDate &&
         safetyValveDate > new Date().getTime()
       );
-    } else if (invoiceType === Instant) {
+    }
+    if (invoiceType === Instant) {
       return projectName && isValidLink(projectAgreementSource);
     }
   }, [
@@ -432,4 +431,4 @@ export const CreateContextProvider = ({ children }) => {
       {children}
     </CreateContext.Provider>
   );
-};
+}

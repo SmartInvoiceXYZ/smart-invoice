@@ -18,7 +18,7 @@ import {
 } from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
 
-export const WithdrawFunds = ({ invoice, balance, close, tokenData }) => {
+export function WithdrawFunds({ invoice, balance, close, tokenData }) {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
   const { network, address, token } = invoice;
@@ -98,4 +98,4 @@ export const WithdrawFunds = ({ invoice, balance, close, tokenData }) => {
       </Button>
     </VStack>
   );
-};
+}

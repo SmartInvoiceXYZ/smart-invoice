@@ -1,7 +1,19 @@
 import 'focus-visible/dist/focus-visible';
+import '@rainbow-me/rainbowkit/dist/index.css';
 
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
+import {
+  connectorsForWallets,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import {
+  coinbaseWallet,
+  injectedWallet,
+  ledgerWallet,
+  rainbowWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 import React, { useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -9,41 +21,29 @@ import {
   Route,
   Switch,
 } from 'react-router-dom';
+import { configureChains, createConfig, WagmiConfig } from 'wagmi';
+import { gnosis, goerli, mainnet, polygon, polygonMumbai } from 'wagmi/chains';
+import { infuraProvider } from 'wagmi/providers/infura';
+import { publicProvider } from 'wagmi/providers/public';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Web3ContextProvider } from './context/Web3Context';
 import { Contracts } from './pages/Contracts';
 import { CreateInvoiceEscrow } from './pages/escrow/CreateInvoiceEscrow';
-import { SelectInvoiceType } from './pages/SelectInvoiceType';
-import { Home } from './pages/Home';
-import { Invoices } from './pages/Invoices';
 import { LockedInvoice } from './pages/escrow/LockedInvoice';
 import { ViewInvoice } from './pages/escrow/ViewInvoice';
+import { Home } from './pages/Home';
+import { CreateInvoiceInstant } from './pages/instant/CreateInvoiceInstant';
 import { ViewInstantInvoice } from './pages/instant/ViewInstantInvoice';
+import { Invoices } from './pages/Invoices';
+import { SelectInvoiceType } from './pages/SelectInvoiceType';
 import { Layout } from './shared/Layout';
 import { globalStyles, theme } from './theme';
-import { CreateInvoiceInstant } from './pages/instant/CreateInvoiceInstant';
-import '@rainbow-me/rainbowkit/dist/index.css';
-import {
-  connectorsForWallets,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
-import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, goerli, gnosis, polygonMumbai } from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { publicProvider } from 'wagmi/providers/public';
-import {
-  walletConnectWallet,
-  injectedWallet,
-  rainbowWallet,
-  ledgerWallet,
-  coinbaseWallet,
-} from '@rainbow-me/rainbowkit/wallets';
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.REACT_APP_WALLETCONNECT_ID;
 
-export const App = () => {
+export function App() {
   // this fixes this Wagmi bug. Source: https://github.com/rainbow-me/rainbowkit/issues/686#issuecomment-1295798813
   const [resetDate] = useState(0);
   const { chains, publicClient } = configureChains(
@@ -131,4 +131,4 @@ export const App = () => {
       </RainbowKitProvider>
     </WagmiConfig>
   );
-};
+}

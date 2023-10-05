@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Web3Context } from '../context/Web3Context';
 import { balanceOf } from '../utils/erc20';
 import { logError } from '../utils/helpers';
-import { getDeadline, getTotalDue, getTotalFulfilled } from '../utils/invoice';
+import { getDeadline, getTotalFulfilled } from '../utils/invoice';
 
 export const useInvoiceStatus = invoice => {
   const { provider } = useContext(Web3Context);
@@ -66,15 +66,13 @@ export const useInvoiceStatus = invoice => {
             if (info.isFulfilled) {
               setFunded(true);
               setLabel('Completed');
+            } else if (deposits.length > 0) {
+              setFunded(true);
+              setLabel('Partially Funded');
+            } else if (info.deadline <= new Date().getTime() / 1000) {
+              setLabel('Overdue');
             } else {
-              if (deposits.length > 0) {
-                setFunded(true);
-                setLabel('Partially Funded');
-              } else if (info.deadline <= new Date().getTime() / 1000) {
-                setLabel('Overdue');
-              } else {
-                setLabel('Awaiting Deposit');
-              }
+              setLabel('Awaiting Deposit');
             }
 
             setLoading(false);

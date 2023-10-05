@@ -1,40 +1,39 @@
 import {
   Button,
-  Text,
   Flex,
   Grid,
+  Heading,
   Stack,
+  Text,
   useBreakpointValue,
   VStack,
-  Heading,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
 import { FormConfirmation } from '../../components/instant/FormConfirmation';
 import { InstantPaymentDetailsForm } from '../../components/instant/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/instant/ProjectDetailsForm';
+import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
 import {
   CreateContext,
   CreateContextProvider,
 } from '../../context/CreateContext';
 import { Web3Context } from '../../context/Web3Context';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../utils/constants';
-import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 
-export const CreateInvoiceInstant = () => {
+export function CreateInvoiceInstant() {
   return (
     <CreateContextProvider>
       <CreateInvoiceInstantInner />
     </CreateContextProvider>
   );
-};
+}
 
-export const CreateInvoiceInstantInner = () => {
+export function CreateInvoiceInstantInner() {
   const {
     tx,
     loading,
@@ -173,4 +172,4 @@ export const CreateInvoiceInstantInner = () => {
       )}
     </Container>
   );
-};
+}

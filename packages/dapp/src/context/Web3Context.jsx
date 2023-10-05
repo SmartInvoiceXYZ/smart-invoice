@@ -6,8 +6,8 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import Web3 from 'web3';
 import { useAccount } from 'wagmi';
+import Web3 from 'web3';
 
 import { SUPPORTED_NETWORKS } from '../utils/constants';
 import { logError } from '../utils/helpers';
@@ -15,18 +15,23 @@ import { logError } from '../utils/helpers';
 export const Web3Context = createContext();
 export const useWeb3 = () => useContext(Web3Context);
 
-export const Web3ContextProvider = ({ children }) => {
+const defaultWeb3 = {
+  account: null,
+  provider: null,
+  chainId: null,
+};
+
+export function Web3ContextProvider({ children }) {
   const { address } = useAccount();
 
   const [loading, setLoading] = useState(false);
-  const defaultWeb3 = { account: null, provider: null, chainId: null };
   const [web3Context, setWeb3Context] = useState(defaultWeb3);
 
   useEffect(() => {
     if (!address && web3Context.account) {
       setWeb3Context(defaultWeb3);
     }
-  }, [address]);
+  }, [address, loading, web3Context.account]);
 
   const setWeb3Provider = async prov => {
     if (!prov) {
@@ -93,4 +98,4 @@ export const Web3ContextProvider = ({ children }) => {
       {children}
     </Web3Context.Provider>
   );
-};
+}

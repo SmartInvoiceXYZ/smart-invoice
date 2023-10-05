@@ -85,6 +85,83 @@ async function getLongVersion(shortVersion) {
   return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
 }
 
+const fetchFlatSource = async contractName => {
+  const sourcePath = `flat/${contractName}.sol`;
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(
+      `Could not find ${contractName} source file at ${sourcePath}`,
+    );
+  }
+
+  const flatSource = fs.readFileSync(sourcePath, {
+    encoding: "utf8",
+    flag: "r",
+  });
+
+  // Make sure we don't have multiple SPDX-License-Identifier statements
+  if ((flatSource.match(/SPDX-License-Identifier:/g) || []).length > 1) {
+    throw new Error(
+      "Found duplicate SPDX-License-Identifiers in the Solidity code, please provide the correct license with --license <license identifier>",
+    );
+  }
+
+  return flatSource;
+};
+
+const hasSourceCode = verificationResult =>
+  verificationResult.data &&
+  verificationResult.data.result &&
+  verificationResult.data.result.SourceCode &&
+  verificationResult.data.result.SourceCode.length > 0;
+
+const verificationStatus = async (apiUrl, address) => {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    // eslint-disable-next-line no-await-in-loop
+    await delay(1000);
+
+    try {
+      const qs = querystring.stringify({
+        module: "contract",
+        action: "getsourcecode",
+        address,
+        ignoreProxy: 1,
+      });
+
+      // eslint-disable-next-line no-await-in-loop
+      const verificationResult = await axios.get(`${apiUrl}?${qs}`);
+      if (hasSourceCode(verificationResult)) {
+        return VerificationStatus.VERIFIED;
+      }
+    } catch (error) {
+      throw new Error(`Failed to connect to Blockscout API at url ${apiUrl}`);
+    }
+  }
+};
+
+const verifyContract = async (apiUrl, postQueries) => {
+  const res = await axios.post(`${apiUrl}`, querystring.stringify(postQueries));
+  if (!res.data) {
+    throw new Error(`Failed to connect to verification API at url ${apiUrl}`);
+  }
+
+  if (
+    res.data.message
+      .toLowerCase()
+      .includes(VerificationStatus.ALREADY_VERIFIED.toLowerCase())
+  ) {
+    return VerificationStatus.ALREADY_VERIFIED;
+  }
+
+  if (res.data.status !== "1") {
+    throw new Error(res.data.result);
+  }
+  if (hasSourceCode(res)) return VerificationStatus.VERIFIED;
+
+  const contractAddress = postQueries.addressHash;
+  return verificationStatus(apiUrl, contractAddress);
+};
+
 const verifySubtask = async ({ address }, { network, run }) => {
   const chainId = parseInt(await network.provider.send("eth_chainId"), 16);
 
@@ -202,83 +279,6 @@ Possible causes are:
     `Successfully verified contract ${contractInformation.contractName} on Blockscout.
 ${contractURL}`,
   );
-};
-
-const verifyContract = async (apiUrl, postQueries) => {
-  const res = await axios.post(`${apiUrl}`, querystring.stringify(postQueries));
-  if (!res.data) {
-    throw new Error(`Failed to connect to verification API at url ${apiUrl}`);
-  }
-
-  if (
-    res.data.message
-      .toLowerCase()
-      .includes(VerificationStatus.ALREADY_VERIFIED.toLowerCase())
-  ) {
-    return VerificationStatus.ALREADY_VERIFIED;
-  }
-
-  if (res.data.status !== "1") {
-    throw new Error(res.data.result);
-  }
-  if (hasSourceCode(res)) return VerificationStatus.VERIFIED;
-
-  const contractAddress = postQueries.addressHash;
-  return verificationStatus(apiUrl, contractAddress);
-};
-
-const fetchFlatSource = async contractName => {
-  const sourcePath = `flat/${contractName}.sol`;
-  if (!fs.existsSync(sourcePath)) {
-    throw new Error(
-      `Could not find ${contractName} source file at ${sourcePath}`,
-    );
-  }
-
-  const flatSource = fs.readFileSync(sourcePath, {
-    encoding: "utf8",
-    flag: "r",
-  });
-
-  // Make sure we don't have multiple SPDX-License-Identifier statements
-  if ((flatSource.match(/SPDX-License-Identifier:/g) || []).length > 1) {
-    throw new Error(
-      "Found duplicate SPDX-License-Identifiers in the Solidity code, please provide the correct license with --license <license identifier>",
-    );
-  }
-
-  return flatSource;
-};
-
-const hasSourceCode = verificationResult =>
-  verificationResult.data &&
-  verificationResult.data.result &&
-  verificationResult.data.result.SourceCode &&
-  verificationResult.data.result.SourceCode.length > 0;
-
-const verificationStatus = async (apiUrl, address) => {
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    // eslint-disable-next-line no-await-in-loop
-    await delay(1000);
-
-    try {
-      const qs = querystring.stringify({
-        module: "contract",
-        action: "getsourcecode",
-        address,
-        ignoreProxy: 1,
-      });
-
-      // eslint-disable-next-line no-await-in-loop
-      const verificationResult = await axios.get(`${apiUrl}?${qs}`);
-      if (hasSourceCode(verificationResult)) {
-        return VerificationStatus.VERIFIED;
-      }
-    } catch (error) {
-      throw new Error(`Failed to connect to Blockscout API at url ${apiUrl}`);
-    }
-  }
 };
 
 subtask(TASK_VERIFY_VERIFY_BLOCKSCOUT)

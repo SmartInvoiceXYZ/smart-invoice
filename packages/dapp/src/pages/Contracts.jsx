@@ -1,13 +1,14 @@
 import {
   Heading,
   Link,
+  Spinner,
   Text,
   useBreakpointValue,
-  Spinner,
 } from '@chakra-ui/react';
 import React from 'react';
 
 import { CONFIG } from '../config';
+import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 import { Container } from '../shared/Container';
 import {
   getAccountString,
@@ -17,12 +18,10 @@ import {
   getTokens,
 } from '../utils/helpers';
 
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
-
 const { NETWORK_CONFIG } = CONFIG;
 const networks = Object.keys(NETWORK_CONFIG);
 
-export const Contracts = () => {
+export function Contracts() {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
@@ -80,7 +79,7 @@ export const Contracts = () => {
         })}
       </Container>
     );
-  } else {
+  } 
     return (
       <Container>
         <Text>'Contract Information Loading'</Text>
@@ -88,5 +87,5 @@ export const Contracts = () => {
         <Spinner />
       </Container>
     );
-  }
-};
+  
+}

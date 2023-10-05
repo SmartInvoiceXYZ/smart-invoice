@@ -13,7 +13,7 @@ import { Loader } from './Loader';
 
 const POLL_INTERVAL = 5000;
 
-export const RegisterSuccess = () => {
+export function RegisterSuccess() {
   const { chainId, provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState();
@@ -185,4 +185,4 @@ export const RegisterSuccess = () => {
       </Button>
     </VStack>
   );
-};
+}

@@ -20,19 +20,19 @@ import {
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 
+import { AddMilestones } from '../../components/AddMilestones';
 import { DepositFunds } from '../../components/DepositFunds';
+import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
 import { Loader } from '../../components/Loader';
 import { LockFunds } from '../../components/LockFunds';
 import { ReleaseFunds } from '../../components/ReleaseFunds';
 import { ResolveFunds } from '../../components/ResolveFunds';
-import { WithdrawFunds } from '../../components/WithdrawFunds';
-import { AddMilestones } from '../../components/AddMilestones';
 import { VerifyInvoice } from '../../components/VerifyInvoice';
-import { GenerateInvoicePDF } from '../../components/GenerateInvoicePDF';
+import { WithdrawFunds } from '../../components/WithdrawFunds';
 import { Web3Context } from '../../context/Web3Context';
 import { getInvoice } from '../../graphql/getInvoice';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { CopyIcon } from '../../icons/CopyIcon';
 import { QuestionIcon } from '../../icons/QuestionIcon';
 import { AccountLink } from '../../shared/AccountLink';
@@ -43,19 +43,19 @@ import {
   copyToClipboard,
   getAccountString,
   getAddressLink,
+  getAgreementLink,
   getDateString,
   getIpfsLink,
   getTokenInfo,
   getTxLink,
   logError,
-  getAgreementLink,
 } from '../../utils/helpers';
 
-export const ViewInvoice = ({
+export function ViewInvoice({
   match: {
     params: { hexChainId, invoiceId },
   },
-}) => {
+}) {
   const {
     chainId,
     account,
@@ -155,11 +155,7 @@ export const ViewInvoice = ({
 
   const isClient = account.toLowerCase() === client;
   const isResolver = account.toLowerCase() === resolver.toLowerCase();
-  const { decimals, symbol, image } = getTokenInfo(
-    invoiceChainId,
-    token,
-    tokenData,
-  );
+  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
 
   const deposited = BigNumber.from(released).add(balance);
   const due = deposited.gte(total)
@@ -900,4 +896,4 @@ export const ViewInvoice = ({
       </Stack>
     </Container>
   );
-};
+}

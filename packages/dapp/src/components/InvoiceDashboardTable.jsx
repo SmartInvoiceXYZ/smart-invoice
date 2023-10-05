@@ -29,7 +29,7 @@ import { FilterIcon } from '../icons/FilterIcon';
 
 const InvoiceStatusLabel = ({ invoice, ...props }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
-  const { isLocked, terminationTime, invoiceType } = invoice;
+  const { isLocked, terminationTime } = invoice;
   const terminated = terminationTime > Date.now();
   const disputeResolved = label === 'Dispute Resolved';
   return (
@@ -60,7 +60,7 @@ const InvoiceStatusLabel = ({ invoice, ...props }) => {
   );
 };
 
-const InvoiceBadge = ({ invoice, ...props }) => {
+const InvoiceBadge = ({ invoice }) => {
   const { invoiceType } = invoice;
   const schemes = {
     escrow: {
@@ -92,7 +92,7 @@ const InvoiceBadge = ({ invoice, ...props }) => {
 export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
   const data = useMemo(() => {
     const dataArray = [];
-    result.forEach((invoice, index) => {
+    result.forEach(invoice => {
       const { decimals, symbol, image } = getTokenInfo(
         chainId,
         invoice.token,
@@ -224,13 +224,10 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
     page,
     canPreviousPage,
     canNextPage,
-    pageOptions,
     pageCount,
-    gotoPage,
     nextPage,
     previousPage,
-    setPageSize,
-    state: { pageIndex, pageSize },
+    state: { pageIndex },
   } = useTable(
     {
       columns,
@@ -294,11 +291,11 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
             ))}
           </thead>
           <tbody {...getTableBodyProps()}>
-            {page.map((row, i) => {
+            {page.map(row => {
               prepareRow(row);
               return (
                 <tr {...row.getRowProps()}>
-                  {row.cells.map((cell, index) => {
+                  {row.cells.map(cell => {
                     return (
                       <td
                         // Change cell formatting here most likely through targeting getCellProps with a function

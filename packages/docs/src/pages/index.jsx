@@ -6,6 +6,7 @@ import Layout from '@theme/Layout';
 import clsx from 'clsx';
 import React from 'react';
 
+import getHashCode from '../util/getHashCode';
 import styles from './styles.module.css';
 
 const features = [
@@ -73,8 +74,8 @@ export default function Home() {
           <section className={styles.features}>
             <div className="container">
               <div className="row">
-                {features.map((props, idx) => (
-                  <Feature key={idx.toString()} {...props} />
+                {features.map(props => (
+                  <Feature key={getHashCode(props.title)} {...props} />
                 ))}
               </div>
             </div>

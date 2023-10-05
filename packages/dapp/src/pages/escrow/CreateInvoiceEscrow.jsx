@@ -1,18 +1,17 @@
 import {
   Button,
-  Text,
   Flex,
   Grid,
+  Heading,
   Stack,
+  Text,
   useBreakpointValue,
   VStack,
-  Heading,
 } from '@chakra-ui/react';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
-
 import { FormConfirmation } from '../../components/FormConfirmation';
+import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 import { PaymentChunksForm } from '../../components/PaymentChunksForm';
 import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
@@ -22,20 +21,20 @@ import {
   CreateContextProvider,
 } from '../../context/CreateContext';
 import { Web3Context } from '../../context/Web3Context';
+import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
 import { ESCROW_STEPS, INVOICE_TYPES } from '../../utils/constants';
-import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
 
-export const CreateInvoiceEscrow = () => {
+export function CreateInvoiceEscrow() {
   return (
     <CreateContextProvider>
       <CreateInvoiceEscrowInner />
     </CreateContextProvider>
   );
-};
+}
 
-export const CreateInvoiceEscrowInner = () => {
+export function CreateInvoiceEscrowInner() {
   const {
     tx,
     loading,
@@ -180,4 +179,4 @@ export const CreateInvoiceEscrowInner = () => {
       )}
     </Container>
   );
-};
+}
