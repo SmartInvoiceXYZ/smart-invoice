@@ -1,0 +1,52 @@
+diff --git a/node_modules/react-scripts/config/paths.js b/node_modules/react-scripts/config/paths.js
+index 67ba927..ab7da87 100644
+--- a/node_modules/react-scripts/config/paths.js
++++ b/node_modules/react-scripts/config/paths.js
+@@ -34,6 +34,7 @@ const buildPath = process.env.BUILD_PATH || 'build';
+ const moduleFileExtensions = [
+   'web.mjs',
+   'mjs',
++  'cjs',
+   'web.js',
+   'js',
+   'web.ts',
+diff --git a/node_modules/react-scripts/config/webpack.config.js b/node_modules/react-scripts/config/webpack.config.js
+index 26c2a65..b541923 100644
+--- a/node_modules/react-scripts/config/webpack.config.js
++++ b/node_modules/react-scripts/config/webpack.config.js
+@@ -402,7 +402,7 @@ module.exports = function (webpackEnv) {
+             // Process application JS with Babel.
+             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
+             {
+-              test: /\.(js|mjs|jsx|ts|tsx)$/,
++              test: /\.(js|mjs|jsx|cjs|ts|tsx)$/,
+               include: paths.appSrc,
+               loader: require.resolve('babel-loader'),
+               options: {
+@@ -465,7 +465,7 @@ module.exports = function (webpackEnv) {
+             // Process any JS outside of the app with Babel.
+             // Unlike the application JS, we only compile the standard ES features.
+             {
+-              test: /\.(js|mjs)$/,
++              test: /\.(js|mjs|cjs)$/,
+               exclude: /@babel(?:\/|\\{1,2})runtime/,
+               loader: require.resolve('babel-loader'),
+               options: {
+@@ -586,7 +586,7 @@ module.exports = function (webpackEnv) {
+               // its runtime that would otherwise be processed through "file" loader.
+               // Also exclude `html` and `json` extensions so they get processed
+               // by webpacks internal loaders.
+-              exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
++              exclude: [/\.(js|mjs|jsx|cjs|ts|tsx)$/, /\.html$/, /\.json$/],
+               options: {
+                 name: 'static/media/[name].[hash:8].[ext]',
+               },
+@@ -756,7 +756,7 @@ module.exports = function (webpackEnv) {
+       !disableESLintPlugin &&
+         new ESLintPlugin({
+           // Plugin options
+-          extensions: ['js', 'mjs', 'jsx', 'ts', 'tsx'],
++          extensions: ['js', 'mjs', 'cjs', 'jsx', 'ts', 'tsx'],
+           formatter: require.resolve('react-dev-utils/eslintFormatter'),
+           eslintPath: require.resolve('eslint'),
+           failOnError: !(isEnvDevelopment && emitErrorsAsWarnings),

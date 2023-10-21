@@ -1,16 +1,16 @@
 import Base58 from 'base-58';
-import IPFSClient from 'ipfs-http-client';
+import { create } from 'ipfs-http-client';
 
 import { INVOICE_VERSION, INFURA_AUTH } from './constants';
 
-const ipfsTheGraph = new IPFSClient({
+const ipfsTheGraph = create({
   protocol: 'https',
   host: 'api.thegraph.com',
   port: 443,
   'api-path': '/ipfs/api/v0/',
 });
 
-const ipfsInfura = new IPFSClient({
+const ipfsInfura = create({
   host: 'ipfs.infura.io',
   port: '5001',
   protocol: 'https',

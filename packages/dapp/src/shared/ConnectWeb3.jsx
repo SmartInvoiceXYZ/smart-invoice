@@ -1,6 +1,6 @@
 import { Button, Flex, Text } from '@chakra-ui/react';
-import React, { useContext } from 'react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import React, { useContext } from 'react';
 
 import { Loader } from '../components/Loader';
 import { Web3Context } from '../context/Web3Context';
@@ -9,7 +9,7 @@ import { SUPPORTED_NETWORKS } from '../utils/constants';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
-export const ConnectWeb3 = () => {
+export function ConnectWeb3() {
   const { loading, account } = useContext(Web3Context);
   const { openConnectModal } = useConnectModal();
 
@@ -79,4 +79,4 @@ export const ConnectWeb3 = () => {
       </Flex>
     </Container>
   );
-};
+}

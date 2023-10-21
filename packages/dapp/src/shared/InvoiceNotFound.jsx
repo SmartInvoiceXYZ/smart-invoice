@@ -6,7 +6,7 @@ import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
-export const InvoiceNotFound = ({ heading, chainId }) => {
+export function InvoiceNotFound({ heading, chainId }) {
   const history = useHistory();
   return (
     <Container>
@@ -55,4 +55,4 @@ export const InvoiceNotFound = ({ heading, chainId }) => {
       </VStack>
     </Container>
   );
-};
+}

@@ -6,7 +6,7 @@ import { Web3Context } from './Web3Context';
 
 export const SearchContext = createContext();
 
-export const SearchContextProvider = ({ children }) => {
+export function SearchContextProvider({ children }) {
   const { chainId } = useContext(Web3Context);
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
@@ -41,4 +41,4 @@ export const SearchContextProvider = ({ children }) => {
       {children}
     </SearchContext.Provider>
   );
-};
+}

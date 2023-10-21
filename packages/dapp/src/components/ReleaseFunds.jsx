@@ -1,10 +1,10 @@
 import {
   Button,
+  Flex,
   Heading,
   Link,
   Text,
   Tooltip,
-  Flex,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
@@ -32,7 +32,7 @@ const getReleaseAmount = (currentMilestone, amounts, balance) => {
   return BigNumber.from(amounts[currentMilestone]);
 };
 
-export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
+export function ReleaseFunds({ invoice, balance, close, tokenData }) {
   const [loading, setLoading] = useState(false);
   const { chainId, provider } = useContext(Web3Context);
   const {
@@ -44,7 +44,7 @@ export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
     provider: recipient,
   } = invoice;
 
-  let amount = getReleaseAmount(currentMilestone, amounts, balance);
+  const amount = getReleaseAmount(currentMilestone, amounts, balance);
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [transaction, setTransaction] = useState();
@@ -131,4 +131,4 @@ export const ReleaseFunds = ({ invoice, balance, close, tokenData }) => {
       </Button>
     </VStack>
   );
-};
+}

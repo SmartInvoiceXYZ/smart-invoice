@@ -4,18 +4,18 @@ import {
   InputGroup,
   InputRightElement,
   Text,
-  VStack,
   Tooltip,
+  VStack,
 } from '@chakra-ui/react';
 import { utils } from 'ethers';
 import React, { useContext } from 'react';
 
 import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
-import { getTokenInfo } from '../utils/helpers';
 import { QuestionIcon } from '../icons/QuestionIcon';
+import { getTokenInfo } from '../utils/helpers';
 
-export const PaymentChunksForm = ({ display, tokenData }) => {
+export function PaymentChunksForm({ display, tokenData }) {
   const { chainId } = useContext(Web3Context);
   const {
     paymentToken,
@@ -27,8 +27,7 @@ export const PaymentChunksForm = ({ display, tokenData }) => {
   const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
-      {Array.from(Array(Number(milestones))).map((_val, index) => {
-        return (
+      {Array.from(Array(Number(milestones))).map((_val, index) => (
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
             <Flex w="100%">
               <Text fontWeight="700">Payment #{index + 1}</Text>
@@ -63,12 +62,11 @@ export const PaymentChunksForm = ({ display, tokenData }) => {
               </InputRightElement>
             </InputGroup>
           </VStack>
-        );
-      })}
+        ))}
       <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
         Total Amount Must Add Up to {utils.formatUnits(paymentDue, decimals)}{' '}
         {symbol}
       </Text>
     </VStack>
   );
-};
+}

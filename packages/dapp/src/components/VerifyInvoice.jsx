@@ -1,27 +1,24 @@
-import { Button, VStack } from '@chakra-ui/react';
-import React, { useContext, useState, useEffect } from 'react';
+import { Button, Spinner, Text,VStack  } from '@chakra-ui/react';
+import React, { useContext, useEffect,useState } from 'react';
 
 import { Web3Context } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
-
-import { Spinner, Text } from '@chakra-ui/react';
-
 import { verify } from '../utils/invoice';
 
-export const VerifyInvoice = ({
+export function VerifyInvoice({
   invoice,
   verified,
   client,
   isClient,
   verifiedStatus,
   setVerifiedStatus,
-}) => {
+}) {
   const { provider } = useContext(Web3Context);
   const { address } = invoice;
   const [transaction, setTransaction] = useState();
 
   useEffect(() => {
-    let status = invoice.verified[0];
+    const status = invoice.verified[0];
     if (status && status.client === client) {
       setVerifiedStatus(true);
     }
@@ -71,4 +68,4 @@ export const VerifyInvoice = ({
       ) : null}
     </VStack>
   );
-};
+}

@@ -6,12 +6,12 @@ const { REACT_APP_INFURA_PROJECT_ID, REACT_APP_INFURA_PROJECT_SECRET } =
   process.env;
 
 const auth =
-  'Basic ' +
+  `Basic ${ 
   Buffer.from(
     `${REACT_APP_INFURA_PROJECT_ID}` +
       ':' +
       `${REACT_APP_INFURA_PROJECT_SECRET}`,
-  ).toString('base64');
+  ).toString('base64')}`;
 
 const client = new ipfsClient({
   host: 'ipfs.infura.io',

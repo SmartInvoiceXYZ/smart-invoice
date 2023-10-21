@@ -7,10 +7,9 @@ import {
   OrderedLinkInput,
   OrderedTextarea,
 } from '../shared/OrderedInput';
-
 import { formatDate } from '../utils/helpers';
 
-export const ProjectDetailsForm = ({ display }) => {
+export function ProjectDetailsForm({ display }) {
   const {
     startDate,
     setStartDate,
@@ -26,7 +25,6 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectAgreementSource,
     projectAgreementLinkType,
     setProjectAgreementLinkType,
-    invoiceType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';
@@ -124,4 +122,4 @@ export const ProjectDetailsForm = ({ display }) => {
       )}
     </VStack>
   );
-};
+}

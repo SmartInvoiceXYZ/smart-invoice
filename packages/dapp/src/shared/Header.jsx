@@ -1,14 +1,15 @@
+/* eslint-disable no-undef */
 import { Box, Button, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
 import styled from '@emotion/styled';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import React, { useContext, useEffect, useState } from 'react';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useWalletClient } from 'wagmi';
 
+import logo from '../assets/smart-invoice/normal.svg';
 import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
-import logo from '../assets/smart-invoice/normal.svg';
 
 const StyledButton = styled(Button)`
   &::after {
@@ -31,21 +32,23 @@ const StyledButton = styled(Button)`
   }
 `;
 
-export const NavButton = ({ onClick, children }) => (
-  <StyledButton
-    onClick={onClick}
-    transition="all 0.5s ease 0.4s"
-    my="1rem"
-    variant="link"
-    color="blue.1"
-    fontWeight="normal"
-    fontSize="1.5rem"
-  >
-    {children}
-  </StyledButton>
-);
+export function NavButton({ onClick, children }) {
+  return (
+    <StyledButton
+      onClick={onClick}
+      transition="all 0.5s ease 0.4s"
+      my="1rem"
+      variant="link"
+      color="blue.1"
+      fontWeight="normal"
+      fontSize="1.5rem"
+    >
+      {children}
+    </StyledButton>
+  );
+}
 
-export const Header = () => {
+export function Header() {
   const { address } = useAccount();
   const { connectAccount } = useContext(Web3Context);
   const { data: walletClient } = useWalletClient();
@@ -53,6 +56,13 @@ export const Header = () => {
   const [isMobile, onMobile] = useState(false);
   const history = useHistory();
   useEffect(() => {
+    const toggleMobileMode = () => {
+      if (window.innerWidth < 850) {
+        onMobile(true);
+      } else {
+        onMobile(false);
+      }
+    };
     if (window) {
       toggleMobileMode();
       window.addEventListener('resize', toggleMobileMode);
@@ -62,14 +72,7 @@ export const Header = () => {
     if (address && walletClient) {
       connectAccount(walletClient);
     }
-  }, [address, walletClient]);
-  const toggleMobileMode = () => {
-    if (window.innerWidth < 850) {
-      onMobile(true);
-    } else {
-      onMobile(false);
-    }
-  };
+  }, [address, connectAccount, walletClient]);
 
   return (
     <Flex
@@ -122,7 +125,7 @@ export const Header = () => {
         justify="end"
       >
         {!isMobile && (
-          <Flex justifyContent="flex-end" width={'230px'}>
+          <Flex justifyContent="flex-end" width="230px">
             <ConnectButton
               accountStatus="address"
               chainStatus="icon"
@@ -168,7 +171,7 @@ export const Header = () => {
             : 'circle(100px at 90% -20%)',
         }}
       >
-        <Flex height={'60px'} alignItems="center">
+        <Flex height="60px" alignItems="center">
           <ConnectButton
             accountStatus="address"
             chainStatus="icon"
@@ -222,4 +225,4 @@ export const Header = () => {
       </Flex>
     </Flex>
   );
-};
+}

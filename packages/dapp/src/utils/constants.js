@@ -5,7 +5,7 @@ const { REACT_APP_INFURA_PROJECT_ID, REACT_APP_INFURA_PROJECT_SECRET } =
 
 const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
-export { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT };
+export { BOX_ENDPOINT,INFURA_ID, IPFS_ENDPOINT };
 
 export const INVOICE_TYPES = {
   Escrow: 'escrow',
@@ -191,9 +191,9 @@ export const INSTANT_STEPS = {
 };
 
 export const INFURA_AUTH =
-  'Basic ' +
+  `Basic ${ 
   Buffer.from(
     `${REACT_APP_INFURA_PROJECT_ID}` +
       ':' +
       `${REACT_APP_INFURA_PROJECT_SECRET}`,
-  ).toString('base64');
+  ).toString('base64')}`;

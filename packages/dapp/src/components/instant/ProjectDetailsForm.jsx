@@ -7,17 +7,14 @@ import {
   OrderedLinkInput,
   OrderedTextarea,
 } from '../../shared/OrderedInput';
-
 import { formatDate } from '../../utils/helpers';
 
-export const ProjectDetailsForm = ({ display }) => {
+export function ProjectDetailsForm({ display }) {
   const {
     startDate,
     setStartDate,
     endDate,
     setEndDate,
-    safetyValveDate,
-    setSafetyValveDate,
     projectName,
     setProjectName,
     projectDescription,
@@ -26,12 +23,12 @@ export const ProjectDetailsForm = ({ display }) => {
     setProjectAgreementSource,
     projectAgreementLinkType,
     setProjectAgreementLinkType,
-    invoiceType,
   } = useContext(CreateContext);
 
   const startDateString = startDate ? formatDate(startDate) : '';
   const endDateString = endDate ? formatDate(endDate) : '';
   const [nameInvalid, setNameInvalid] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [dateInvalid, setDateInvalid] = useState(false);
 
   return (
@@ -120,4 +117,4 @@ export const ProjectDetailsForm = ({ display }) => {
       )}
     </VStack>
   );
-};
+}
