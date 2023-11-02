@@ -5,5 +5,17 @@
   "blockNumber": "1",
   "implementations": {
     "escrow": ["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"]
+  },
+  "spoilsManager": {
+    "factory": "0x",
+    "implementations": []
+  },
+  "zap": {
+    "dao": "0xa4161db839f84e27122398ae6337ad47765e6cd5",
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
+    "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "spoilsManager": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "instances": ["0x1291Be112d480055DaFd8a610b7d1e203891C274"]
   }
 }
