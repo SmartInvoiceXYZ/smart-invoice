@@ -20,10 +20,9 @@
     "focus-visible": "^5.2.0",
     "framer-motion": "^4.1.3",
     "ipfs-http-client": "50.1.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-router-dom": "^5.3.4",
-    "react-scripts": "4.0.3",
+    "next": "^14.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-table": "^7.8.0",
     "styled-components": "^5.3.5",
     "urql": "^2.2.3",
@@ -32,10 +31,10 @@
     "web3": "1.10.2"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco --max_old_space_size=4096 build",
-    "test": "craco test",
-    "eject": "craco eject",
+    "dev": "next dev",
+    "start": "next start",
+    "build": "next build",
+    "test": "next test",
     "lint": "eslint \"./src/**/*.{js,jsx}\""
   },
   "browserslist": [
@@ -45,25 +44,7 @@
     "opera >= 54",
     "safari >= 14"
   ],
-  "devDependencies": {
-    "@craco/craco": "6.4.5",
-    "eslint-config-react-app": "^6.0.0",
-    "eslint-plugin-flowtype": "^5.2.0",
-    "ethers": "^5.1.0",
-    "husky": "^6.0.0"
-  },
   "resolutions": {
     "react-error-overlay": "6.0.9"
-  },
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "es2021": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "react-app"
-    ]
-  },
-  "cracoConfig": "./craco.config.js"
+  }
 }
