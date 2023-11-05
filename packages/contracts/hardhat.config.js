@@ -15,6 +15,7 @@ const {
   COINMARKETCAP_API_KEY,
   CURRENCY,
   POLYGONSCAN_API_KEY,
+  GNOSISSCAN_API_KEY,
 } = process.env;
 module.exports = {
   solidity: {
@@ -72,7 +73,7 @@ module.exports = {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
       goerli: ETHERSCAN_API_KEY,
-      xdai: ETHERSCAN_API_KEY,
+      gnosis: GNOSISSCAN_API_KEY,
       polygon: POLYGONSCAN_API_KEY,
       polygonMumbai: POLYGONSCAN_API_KEY,
     },
