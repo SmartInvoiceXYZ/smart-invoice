@@ -4,7 +4,7 @@ require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
-// require("hardhat-gas-reporter");
+require("hardhat-gas-reporter");
 require("solidity-coverage");
 require("./tasks/verify-blockscout");
 require("hardhat-interface-generator");

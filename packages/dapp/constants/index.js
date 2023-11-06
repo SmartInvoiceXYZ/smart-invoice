@@ -2,8 +2,8 @@ import { CONFIG } from './config';
 
 export { CONFIG };
 
-const { NEXT_PUBLIC_INFURA_PROJECT_ID, NEXT_PUBLIC_INFURA_PROJECT_SECRET } =
-  process.env;
+const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
+const INFURA_PROJECT_SECRET = process.env.NEXT_PUBLIC_INFURA_PROJECT_SECRET;
 
 const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
@@ -193,7 +193,5 @@ export const INSTANT_STEPS = {
 };
 
 export const INFURA_AUTH = `Basic ${Buffer.from(
-  `${NEXT_PUBLIC_INFURA_PROJECT_ID}` +
-    ':' +
-    `${NEXT_PUBLIC_INFURA_PROJECT_SECRET}`,
+  `${INFURA_PROJECT_ID}:${INFURA_PROJECT_SECRET}`,
 ).toString('base64')}`;
