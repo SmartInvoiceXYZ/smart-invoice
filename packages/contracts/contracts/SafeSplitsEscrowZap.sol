@@ -226,7 +226,7 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
             escrowData.terminationTime,
             escrowData.details,
             wrappedNativeToken,
-            false, // requireVerification
+            false, // requireVerification ! should we require this?
             address(escrowFactory), // factory address
             _escrowParams[1] //  providerReceiver
         );

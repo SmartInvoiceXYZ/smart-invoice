@@ -20,6 +20,7 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import { BigNumber, utils } from 'ethers';
+import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useState } from 'react';
 
 import { AddMilestones } from '../../../../components/AddMilestones';
@@ -52,16 +53,14 @@ import {
   logError,
 } from '../../../../utils/helpers';
 
-function ViewInvoice({
-  match: {
-    params: { hexChainId, invoiceId },
-  },
-}) {
+function ViewInvoice() {
   const {
     chainId,
     account,
     provider: ethersProvider,
   } = useContext(Web3Context);
+  const router = useRouter();
+  const { invoiceId, chainId: hexChainId } = router.query;
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);

@@ -65,4 +65,4 @@ packages/subgraph/src/types
 .firebase/
 
 /packages/contracts/flat/
-
+/packages/dapp/.next/

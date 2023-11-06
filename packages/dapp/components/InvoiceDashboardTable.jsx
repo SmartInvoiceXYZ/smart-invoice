@@ -17,6 +17,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { formatUnits } from 'ethers/lib/utils';
+import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import { usePagination, useSortBy, useTable } from 'react-table';
 
@@ -92,7 +93,8 @@ function InvoiceBadge({ invoice }) {
   );
 }
 
-export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
+export function InvoiceDashboardTable({ result, tokenData, chainId }) {
+  const router = useRouter();
   const data = useMemo(() => {
     const dataArray = [];
     result.forEach(invoice => {
@@ -102,7 +104,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
         tokenData,
       );
       const viewInvoice = () =>
-        history.push(
+        router.push(
           `/invoice/${getHexChainId(invoice.network)}/${invoice.address}/${
             invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''
           }`,
@@ -185,7 +187,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
       dataArray.push(details);
     });
     return dataArray;
-  }, [chainId, result, tokenData, history]);
+  }, [chainId, result, tokenData, router]);
 
   const columns = useMemo(
     () => [
@@ -253,7 +255,7 @@ export function InvoiceDashboardTable({ result, tokenData, chainId, history }) {
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           color="white"
-          onClick={() => history.push('/create')}
+          onClick={() => router.push('/create')}
         >
           Create Invoice
         </Button>

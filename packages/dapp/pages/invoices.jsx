@@ -8,6 +8,7 @@ import {
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 import React, { useContext, useEffect } from 'react';
 
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
@@ -16,10 +17,11 @@ import { SearchContext, SearchContextProvider } from '../context/SearchContext';
 import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
-function InvoicesInner({ history }) {
+function InvoicesInner() {
   const { setSearch, result, loading } = useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const { account, chainId } = useContext(Web3Context);
+  const router = useRouter();
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -50,7 +52,6 @@ function InvoicesInner({ history }) {
           result={result}
           tokenData={tokenData}
           chainId={chainId}
-          history={history}
         />
       ) : (
         <Flex
@@ -71,7 +72,7 @@ function InvoicesInner({ history }) {
             paddingY={6}
             _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-            onClick={() => history.push('/create')}
+            onClick={() => router.push('/create')}
           >
             Create Invoice
           </Button>
