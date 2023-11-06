@@ -1,4 +1,4 @@
-import { Box, Flex, Image,Link as ChakraLink } from '@chakra-ui/react';
+import { Box, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 
 import logo from '../assets/smart-invoice/white.svg';
@@ -31,7 +31,12 @@ export function Footer() {
         rowGap={4}
       >
         <ChakraLink href="/invoices">
-          <Image src={logo} alt="Smart Invoice" width={160} height={25.34} />
+          <Image
+            src={logo.src}
+            alt="Smart Invoice"
+            width={160}
+            height={25.34}
+          />
         </ChakraLink>
         <Flex gap={8} justify="center" align="center">
           <ChakraLink
