@@ -17,8 +17,6 @@ function App({ Component, pageProps }) {
   // this fixes this Wagmi bug. Source: https://github.com/rainbow-me/rainbowkit/issues/686#issuecomment-1295798813
   const [resetDate] = useState(0);
 
-  console.log(Component, pageProps);
-
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} key={`rainbowkit-${resetDate}`}>
