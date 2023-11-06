@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.3;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract FeeManager is Ownable {
+    uint256 public version = 1;
+
+    enum ExemptionType {
+        None,
+        Lending,
+        Subscription
+    }
+
+    struct FeeExemption {
+        ExemptionType exemptionType;
+        uint256 endDate;
+    }
+
+    uint256 public feePercentage = 0;
+
+    mapping(address => FeeExemption) public feeExempt;
+
+    constructor(uint256 newVersion) {
+        version = newVersion;
+    }
+
+    function setExemption(
+        ExemptionType exemptionType,
+        uint256 endDate,
+        address _address
+    ) external onlyOwner {
+        FeeExemption storage exemption = feeExempt[_address];
+        exemption.exemptionType = exemptionType;
+        exemption.endDate = endDate;
+    }
+
+    function getInvoiceFee(address _address) external view returns (uint256) {
+        FeeExemption storage exemption = feeExempt[_address];
+        if (
+            (exemption.exemptionType == ExemptionType.Lending ||
+                exemption.exemptionType == ExemptionType.Subscription) &&
+            exemption.endDate > block.timestamp
+        ) {
+            return 0;
+        }
+        return feePercentage;
+    }
+
+    function setFeePercentage(uint256 _feePercentage) external onlyOwner {
+        require(
+            _feePercentage <= 100,
+            "Fee percentage should not be more than 100"
+        );
+        feePercentage = _feePercentage;
+    }
+}

@@ -28,6 +28,49 @@ module.exports.currentTimestamp = async () => {
   return +block.timestamp;
 };
 
+module.exports.createFeeEscrow = async (
+  factory,
+  type,
+  client,
+  provider,
+  resolverType,
+  resolver,
+  token,
+  amounts,
+  terminationTime,
+  details,
+  wrappedNativeToken,
+  requireVerification,
+) => {
+  const data = ethers.utils.AbiCoder.prototype.encode(
+    [
+      "address",
+      "uint8",
+      "address",
+      "address",
+      "uint256",
+      "bytes32",
+      "address",
+      "bool",
+      "address",
+    ],
+    [
+      client,
+      resolverType,
+      resolver,
+      token,
+      terminationTime, // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+      factory.address,
+    ],
+  );
+
+  const receipt = await factory.create(provider, amounts, data, type);
+  return receipt;
+};
+
 module.exports.createEscrow = async (
   factory,
   invoice,

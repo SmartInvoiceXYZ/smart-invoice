@@ -30,6 +30,12 @@ module.exports = {
     artifacts: "./build",
   },
   networks: {
+    hardhat: {
+      forking: {
+        url: `https://goerli.infura.io/v3/${INFURA_PROJECT_ID}`,
+        accounts: [`0x${PRIVATE_KEY}`],
+      },
+    },
     sokol: {
       url: `https://sokol.poa.network`,
       accounts: [`0x${PRIVATE_KEY}`],

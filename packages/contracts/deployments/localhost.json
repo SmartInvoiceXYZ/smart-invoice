@@ -1,9 +1,9 @@
 {
   "network": "localhost",
-  "factory": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  "txHash": "0xe73e59b9e8fdd0a02fcae72349cfdbab68ee68e9b8f8785afe6baaa36ba6e7ab",
-  "blockNumber": "1",
+  "factory": "0xfC30caa91A9c94fBAB569a39fB831349e1c03451",
+  "txHash": "0x05eb99d2754387b695dc5ae5078ed2bc6702a329cbda909b2f91f1065ee5112e",
+  "blockNumber": "9740270",
   "implementations": {
-    "escrow": ["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"]
+    "feeEscrow": ["0x3f520c57fC83025D12ED6ffa73ffB2358297b9C6"]
   }
 }
