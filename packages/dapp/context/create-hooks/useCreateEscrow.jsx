@@ -1,6 +1,6 @@
 import { isAddress } from '@ethersproject/address';
 import { BigNumber } from 'ethers';
-import { useEffect,useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export function useCreateEscrow({
   step1Valid,
@@ -22,7 +22,7 @@ export function useCreateEscrow({
       isAddress(paymentToken) &&
       isAddress(arbitrationProvider) &&
       paymentDue.gt(0) &&
-      !isNaN(Number(milestones)) &&
+      !Number.isNaN(Number(milestones)) &&
       milestones > 0 &&
       termsAccepted &&
       Array.from(

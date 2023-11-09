@@ -90,6 +90,7 @@ export function CreateContextProvider({ children }) {
     if (invoiceType === Instant) {
       return projectName && isValidLink(projectAgreementSource);
     }
+    return false;
   }, [
     projectName,
     projectAgreementSource,
@@ -345,7 +346,10 @@ export function CreateContextProvider({ children }) {
     Instant,
   ]);
 
-  const goBackHandler = () => setStep(prevState => prevState - 1);
+  const goBackHandler = useCallback(
+    () => setStep(prevState => prevState - 1),
+    [setStep],
+  );
 
   const nextStepHandler = useCallback(() => {
     let maxStep;
@@ -373,61 +377,115 @@ export function CreateContextProvider({ children }) {
     Instant,
   ]);
 
+  const returnValue = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement,
+      projectAgreementSource,
+      projectAgreementLinkType,
+      startDate,
+      endDate,
+      safetyValveDate,
+      clientAddress,
+      paymentAddress,
+      paymentDue,
+      paymentToken,
+      milestones,
+      termsAccepted,
+      arbitrationProvider,
+      payments,
+      tx,
+      invoiceType,
+      deadline,
+      lateFee,
+      lateFeeInterval,
+      // setters
+      setProjectName,
+      setProjectDescription,
+      setProjectAgreement,
+      setProjectAgreementSource,
+      setProjectAgreementLinkType,
+      setStartDate,
+      setEndDate,
+      setSafetyValveDate,
+      setClientAddress,
+      setPaymentAddress,
+      setPaymentDue,
+      setPaymentToken,
+      setMilestones,
+      setTermsAccepted,
+      setArbitrationProvider,
+      setPayments,
+      setInvoiceType,
+      setDeadline,
+      setLateFee,
+      setLateFeeInterval,
+      // creating invoice
+      loading,
+      createInvoice,
+      // stepHandling
+      currentStep,
+      nextStepEnabled,
+      goBackHandler,
+      nextStepHandler,
+    }),
+    [
+      projectName,
+      projectDescription,
+      projectAgreement,
+      projectAgreementSource,
+      projectAgreementLinkType,
+      startDate,
+      endDate,
+      safetyValveDate,
+      clientAddress,
+      paymentAddress,
+      paymentDue,
+      paymentToken,
+      milestones,
+      termsAccepted,
+      arbitrationProvider,
+      payments,
+      tx,
+      invoiceType,
+      deadline,
+      lateFee,
+      lateFeeInterval,
+      // setters
+      setProjectName,
+      setProjectDescription,
+      setProjectAgreement,
+      setProjectAgreementSource,
+      setProjectAgreementLinkType,
+      setStartDate,
+      setEndDate,
+      setSafetyValveDate,
+      setClientAddress,
+      setPaymentAddress,
+      setPaymentDue,
+      setPaymentToken,
+      setMilestones,
+      setTermsAccepted,
+      setArbitrationProvider,
+      setPayments,
+      setInvoiceType,
+      setDeadline,
+      setLateFee,
+      setLateFeeInterval,
+      // creating invoice
+      loading,
+      createInvoice,
+      // stepHandling
+      currentStep,
+      nextStepEnabled,
+      goBackHandler,
+      nextStepHandler,
+    ],
+  );
+
   return (
-    <CreateContext.Provider
-      value={{
-        projectName,
-        projectDescription,
-        projectAgreement,
-        projectAgreementSource,
-        projectAgreementLinkType,
-        startDate,
-        endDate,
-        safetyValveDate,
-        clientAddress,
-        paymentAddress,
-        paymentDue,
-        paymentToken,
-        milestones,
-        termsAccepted,
-        arbitrationProvider,
-        payments,
-        tx,
-        invoiceType,
-        deadline,
-        lateFee,
-        lateFeeInterval,
-        // setters
-        setProjectName,
-        setProjectDescription,
-        setProjectAgreement,
-        setProjectAgreementSource,
-        setProjectAgreementLinkType,
-        setStartDate,
-        setEndDate,
-        setSafetyValveDate,
-        setClientAddress,
-        setPaymentAddress,
-        setPaymentDue,
-        setPaymentToken,
-        setMilestones,
-        setTermsAccepted,
-        setArbitrationProvider,
-        setPayments,
-        setInvoiceType,
-        setDeadline,
-        setLateFee,
-        setLateFeeInterval,
-        // creating invoice
-        loading,
-        createInvoice,
-        // stepHandling
-        currentStep,
-        nextStepEnabled,
-        goBackHandler,
-        nextStepHandler,
-      }}
-    >
+    <CreateContext.Provider value={returnValue}>
       {children}
     </CreateContext.Provider>
   );

@@ -14,8 +14,15 @@ import { publicProvider } from 'wagmi/providers/public';
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID;
 
+const customGnosis = {
+  ...gnosis,
+  hasIcon: true,
+  iconUrl: '/chains/gnosis.png',
+  iconBackground: 'none',
+};
+
 const { chains, publicClient } = configureChains(
-  [mainnet, polygon, gnosis, goerli, polygonMumbai],
+  [mainnet, polygon, customGnosis, goerli, polygonMumbai],
   [
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID }),
     publicProvider(),
