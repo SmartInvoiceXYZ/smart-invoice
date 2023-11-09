@@ -1,9 +1,28 @@
 {
   "network": "localhost",
-  "factory": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "factory": "0x546adED0B0179d550e87cf909939a1207Fd26fB7",
   "txHash": "0xe73e59b9e8fdd0a02fcae72349cfdbab68ee68e9b8f8785afe6baaa36ba6e7ab",
   "blockNumber": "1",
   "implementations": {
-    "escrow": ["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"]
+    "escrow": [
+      "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+    ]
+  },
+  "spoilsManager": {
+    "factory": "0x",
+    "implementations": []
+  },
+  "zap": {
+    "dao": "0xa4161db839f84e27122398ae6337ad47765e6cd5",
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
+    "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
+    "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "spoilsManager": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "instances": [
+      "0x4067eA773C54C270e129edAC59413e78490CF451"
+    ],
+    "factory": "0xA3306B791CDdEcB11015B79002E377DC237B7eE4",
+    "implementations": []
   }
 }
