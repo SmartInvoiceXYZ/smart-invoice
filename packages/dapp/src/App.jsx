@@ -11,6 +11,7 @@ import {
   coinbaseWallet,
   injectedWallet,
   ledgerWallet,
+  metaMaskWallet,
   rainbowWallet,
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
@@ -66,6 +67,7 @@ export function App() {
         injectedWallet({ chains, shimDisconnect: true }),
         rainbowWallet({ chains, projectId: PROJECT_ID }),
         ledgerWallet({ chains, projectId: PROJECT_ID }),
+        metaMaskWallet({ chains, projectId: PROJECT_ID }),
         coinbaseWallet({ appName: APP_NAME, chains }),
         walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
       ],
