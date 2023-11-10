@@ -15,6 +15,9 @@ import "./interfaces/IArbitrable.sol";
 import "./interfaces/IArbitrator.sol";
 import "./interfaces/IWRAPPED.sol";
 
+// TODO migrate to custom errors
+// TODO update recipient to provider throughout
+
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
@@ -202,9 +205,10 @@ contract SmartInvoiceEscrow is
      * @param _milestones The array of new milestones to be added
      * @param _details Additional details for the milestones
      */
-    function addMilestones(uint256[] calldata _milestones, bytes32 _details)
-        external
-    {
+    function addMilestones(
+        uint256[] calldata _milestones,
+        bytes32 _details
+    ) external {
         _addMilestones(_milestones, _details);
     }
 
@@ -213,9 +217,10 @@ contract SmartInvoiceEscrow is
      * @param _milestones The array of new milestones to be added
      * @param _details Additional details for the milestones
      */
-    function _addMilestones(uint256[] calldata _milestones, bytes32 _details)
-        internal
-    {
+    function _addMilestones(
+        uint256[] calldata _milestones,
+        bytes32 _details
+    ) internal {
         require(!locked, "locked");
         require(block.timestamp < terminationTime, "terminated");
         require(_msgSender() == client || _msgSender() == provider, "!party");
@@ -297,12 +302,9 @@ contract SmartInvoiceEscrow is
      * Uses the internal `_release` function to perform the actual release.
      * @param _milestone The milestone to release funds to
      */
-    function release(uint256 _milestone)
-        external
-        virtual
-        override
-        nonReentrant
-    {
+    function release(
+        uint256 _milestone
+    ) external virtual override nonReentrant {
         // client transfers locker funds upto certain milestone to provider
         require(!locked, "locked");
         require(_msgSender() == client, "!client");
@@ -331,12 +333,9 @@ contract SmartInvoiceEscrow is
      * Uses the internal `_release` function to perform the actual release.
      * @param _token The milestones to release funds to
      */
-    function releaseTokens(address _token)
-        external
-        virtual
-        override
-        nonReentrant
-    {
+    function releaseTokens(
+        address _token
+    ) external virtual override nonReentrant {
         if (_token == token) {
             _release();
         } else {
@@ -460,12 +459,10 @@ contract SmartInvoiceEscrow is
      * @param _disputeId The ID of the dispute
      * @param _ruling The ruling of the arbitrator
      */
-    function rule(uint256 _disputeId, uint256 _ruling)
-        external
-        virtual
-        override
-        nonReentrant
-    {
+    function rule(
+        uint256 _disputeId,
+        uint256 _ruling
+    ) external virtual override nonReentrant {
         // called by arbitrator
         require(resolverType == ADR.ARBITRATOR, "!arbitrator resolver");
         require(locked, "!locked");
@@ -500,11 +497,9 @@ contract SmartInvoiceEscrow is
      * @dev Internal function to get the ruling of the arbitrator.
      * @param _ruling The ruling of the arbitrator
      */
-    function _getRuling(uint256 _ruling)
-        internal
-        pure
-        returns (uint8[2] memory ruling)
-    {
+    function _getRuling(
+        uint256 _ruling
+    ) internal pure returns (uint8[2] memory ruling) {
         uint8[2][6] memory rulings = [
             [1, 1], // 0 = refused to arbitrate
             [1, 0], // 1 = 100% to client
@@ -516,10 +511,10 @@ contract SmartInvoiceEscrow is
         ruling = rulings[_ruling];
     }
 
-    function _transferPayment(address _token, uint256 _amount)
-        internal
-        virtual
-    {
+    function _transferPayment(
+        address _token,
+        uint256 _amount
+    ) internal virtual {
         IERC20(_token).safeTransfer(provider, _amount);
     }
 
