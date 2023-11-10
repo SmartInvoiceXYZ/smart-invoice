@@ -1,7 +1,7 @@
 import LexDAOLogo from '../assets/lex-dao.png';
 
 export const CONFIG = {
-  INFURA_ID: process.env.REACT_APP_INFURA_ID,
+  INFURA_ID: process.env.REACT_APP_INFURA_PROJECT_ID,
   IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
