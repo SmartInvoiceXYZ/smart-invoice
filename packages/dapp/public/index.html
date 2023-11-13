@@ -67,20 +67,6 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=%REACT_APP_GA4_ID%"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-
-      gtag('config', '%REACT_APP_GA4_ID%');
-    </script>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Rubik+Mono+One&family=Rubik+One:wght@300;400;500;600;700&display=swap"
@@ -91,7 +77,7 @@
   <!-- Google tag (gtag.js) -->
   <script
     async
-    src="https://www.googletagmanager.com/gtag/js?id=G-0RWVQ5HME4"
+    src="https://www.googletagmanager.com/gtag/js?id=%NEXT_PUBLIC_GA4_ID%"
   ></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -100,7 +86,7 @@
     }
     gtag('js', new Date());
 
-    gtag('config', 'G-0RWVQ5HME4');
+    gtag('config', '%NEXT_PUBLIC_GA4_ID%');
   </script>
 
   <body>
