@@ -1,4 +1,5 @@
 import { Flex } from '@chakra-ui/react';
+import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';
 import React, { useContext } from 'react';
 
@@ -42,6 +43,7 @@ export function Layout({ children }) {
       >
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
+      <Analytics />
       <Footer />
     </Flex>
   );
