@@ -12,6 +12,7 @@
     "@ethersproject/address": "^5.6.1",
     "@rainbow-me/rainbowkit": "^1.0.11",
     "@react-pdf/renderer": "^2.3.0",
+    "@vercel/analytics": "^1.1.1",
     "base-58": "^0.0.1",
     "dotenv": "^16.0.1",
     "ethers": "^5.1.0",
