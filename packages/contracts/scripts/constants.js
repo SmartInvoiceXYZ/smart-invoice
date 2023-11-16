@@ -1,6 +1,6 @@
 const goerli = require("../deployments/goerli.json");
 const localhost = require("../deployments/localhost.json");
-const gnosis = require("../deployments/xdai.json");
+const gnosis = require("../deployments/gnosis.json");
 const polygon = require("../deployments/polygon.json");
 const mumbai = require("../deployments/polygonMumbai.json");
 const mainnet = require("../deployments/mainnet.json");

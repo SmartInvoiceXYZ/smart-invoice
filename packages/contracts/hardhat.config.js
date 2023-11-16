@@ -40,7 +40,7 @@ module.exports = {
       accounts,
       gasPrice: 1000000000,
     },
-    xdai: {
+    gnosis: {
       url: `https://rpc.ankr.com/gnosis`,
       accounts,
     },
