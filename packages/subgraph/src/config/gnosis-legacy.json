@@ -1,5 +1,5 @@
 {
-  "network": "xdai",
+  "network": "gnosis",
   "startBlock": "14673394",
   "factories": [
     {

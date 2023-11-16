@@ -17,7 +17,7 @@ export const INVOICE_TYPES = {
 export const DEFAULT_CHAIN_ID = 5;
 
 export const chainIds = {
-  xdai: 100,
+  gnosis: 100,
   mainnet: 1,
   rinkeby: 4,
   goerli: 5,
@@ -28,7 +28,7 @@ export const chainIds = {
 };
 
 export const hexChainIds = {
-  xdai: '0x64',
+  gnosis: '0x64',
   mainnet: '0x01',
   rinkeby: '0x04',
   goerli: '0x05',
@@ -78,7 +78,7 @@ export const explorerUrls = {
   4: 'https://rinkeby.etherscan.io',
   5: 'https://goerli.etherscan.io',
   42: 'https://kovan.etherscan.io',
-  100: 'https://blockscout.com/poa/xdai',
+  100: 'https://gnosis.blockscout.com',
   137: 'https://polygonscan.com',
   80001: 'https://mumbai.polygonscan.com',
 };
