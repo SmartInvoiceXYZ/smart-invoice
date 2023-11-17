@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useAccount } from 'wagmi';
@@ -35,7 +36,7 @@ export function Web3ContextProvider({ children }) {
 
   const setWeb3Provider = async prov => {
     if (!prov) {
-      console.error(
+      logError(
         'Error: attempted to set Web3 Provider without a provider. Check Web3ContextProvider.',
       );
     } else {
@@ -70,7 +71,7 @@ export function Web3ContextProvider({ children }) {
 
   const connectAccount = useCallback(async provider => {
     if (!provider) {
-      console.error('Attempted to set Web3 Provider without provider object.');
+      logError('Attempted to set Web3 Provider without provider object.');
       return;
     }
     try {
@@ -85,17 +86,24 @@ export function Web3ContextProvider({ children }) {
     }
   }, []);
 
+  const returnValue = useMemo(
+    () => ({
+      loading,
+      account: web3Context.account,
+      provider: web3Context.provider,
+      chainId: web3Context.chainId,
+      connectAccount,
+    }),
+    [
+      loading,
+      web3Context.account,
+      web3Context.provider,
+      web3Context.chainId,
+      connectAccount,
+    ],
+  );
+
   return (
-    <Web3Context.Provider
-      value={{
-        loading,
-        account: web3Context.account,
-        provider: web3Context.provider,
-        chainId: web3Context.chainId,
-        connectAccount,
-      }}
-    >
-      {children}
-    </Web3Context.Provider>
+    <Web3Context.Provider value={returnValue}>{children}</Web3Context.Provider>
   );
 }
