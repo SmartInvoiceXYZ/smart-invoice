@@ -1,3 +1,4 @@
+import { track } from '@vercel/analytics';
 import { BigNumber, utils } from 'ethers';
 import React, {
   createContext,
@@ -74,6 +75,10 @@ export function CreateContextProvider({ children }) {
   const [currentStep, setStep] = useState(1);
   const [nextStepEnabled, setNextStepEnabled] = useState(false);
   const [allValid, setAllValid] = useState(false);
+
+  useEffect(() => {
+    track('CreateInvoice', { invoiceType, currentStep });
+  }, [invoiceType, currentStep]);
 
   const { Escrow, Instant } = INVOICE_TYPES;
 
@@ -279,8 +284,10 @@ export function CreateContextProvider({ children }) {
 
       setTx(transaction);
       setLoading(false);
+
+      track('InvoiceCreated', { invoiceType });
     } else {
-      console.error(
+      logError(
         `unable to create invoice: allValid: ${allValid}, detailsHash: ${detailsHash}`,
       );
     }
