@@ -1,7 +1,8 @@
 import { Flex } from '@chakra-ui/react';
+import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 import { SUPPORTED_NETWORKS } from '../constants';
 import { Web3Context } from '../context/Web3Context';
@@ -11,11 +12,17 @@ import { Header } from './Header';
 
 export function Layout({ children }) {
   const { chainId, account } = useContext(Web3Context);
+
+  useEffect(() => {
+    track('ChainChanged', { chainId });
+  }, [chainId]);
+
   const router = useRouter();
   const isOpenPath =
     router.pathname === '/' || router.pathname === '/contracts';
   const isValid =
     (account && SUPPORTED_NETWORKS.indexOf(chainId) !== -1) || isOpenPath;
+
   return (
     <Flex
       position="relative"
