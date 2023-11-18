@@ -15,25 +15,25 @@ import "./interfaces/IWRAPPED.sol";
 
 contract SafeSplitsEscrowZap is AccessControl, Initializable {
     /// @notice The SafeL2 singleton address
-    address safeSingleton;
+    address public safeSingleton;
 
     /// @notice The fallback handler address
-    address fallbackHandler;
+    address public fallbackHandler;
 
     /// @notice The Safe proxy factory address
-    ISafeProxyFactory safeFactory;
+    ISafeProxyFactory public safeFactory;
 
     /// @notice The SplitMain address
-    ISplitMain splitMain;
+    ISplitMain public splitMain;
 
     /// @notice The SmartInvoiceFactory address
-    ISmartInvoiceFactory escrowFactory;
+    ISmartInvoiceFactory public escrowFactory;
 
     /// @notice The wrapped native token (WETH) address
-    IWRAPPED wrappedNativeToken;
+    IWRAPPED public wrappedNativeToken;
 
     /// @notice The distributor fee provided for processing 0xSplits
-    uint32 distributorFee = 0;
+    uint32 public distributorFee = 0;
 
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
@@ -314,40 +314,6 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
             _safeData,
             _escrowData
         );
-    }
-
-    // VIEW
-
-    /**
-     * @dev Views the addresses of the contracts used in the zap
-     * @return address Safe singleton address
-     * @return address Safe fallback handler address
-     * @return address SplitMain address
-     * @return address EscrowFactory address
-     * @return address SpoilsManager address
-     * @return address WrappedNativeToken address
-     */
-    function getAddresses()
-        public
-        view
-        returns (address, address, address, address, address, address)
-    {
-        return (
-            safeSingleton,
-            fallbackHandler,
-            address(safeFactory),
-            address(splitMain),
-            address(escrowFactory),
-            address(wrappedNativeToken)
-        );
-    }
-
-    /**
-     * @dev Views the distributor fee used in the zap
-     * @return uint32 The distributor fee provided for processing splits
-     */
-    function getDistributorFee() public view returns (uint32) {
-        return distributorFee;
     }
 
     function _updateAddresses(bytes calldata _data) internal {

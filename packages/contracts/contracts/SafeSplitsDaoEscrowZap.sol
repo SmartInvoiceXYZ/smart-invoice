@@ -11,12 +11,12 @@ import "./interfaces/ISpoilsManager.sol";
 
 contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     /// @notice The DAO controller address
-    address dao;
+    address public dao;
 
     error DaoSplitCreationFailed();
 
     /// @notice The DAO's SpoilsManager address
-    ISpoilsManager spoilsManager;
+    ISpoilsManager public spoilsManager;
 
     event SafeSplitsDaoEscrowCreated(
         address safe,
