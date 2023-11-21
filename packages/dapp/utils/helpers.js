@@ -1,16 +1,17 @@
+import { Contract, utils } from 'ethers';
+
 /* eslint-disable radix */
 /* eslint-disable no-restricted-syntax */
 import { getAddress } from '@ethersproject/address';
-import { Contract, utils } from 'ethers';
 
 import {
-  chainIds,
   DEFAULT_CHAIN_ID,
+  IPFS_ENDPOINT,
+  chainIds,
   explorerUrls,
   graphUrls,
   hexChainIds,
   invoiceFactory,
-  IPFS_ENDPOINT,
   nativeSymbols,
   networkLabels,
   networkNames,
@@ -250,3 +251,7 @@ export const formatDate = date => {
 
   return [year, month, day].join('-');
 };
+
+export const sum = (array) => array.reduce((total, current) => {
+      return total + current;
+  }, 0);
