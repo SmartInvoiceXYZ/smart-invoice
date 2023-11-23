@@ -14,14 +14,17 @@
     "implementation": ["0xA817ba0646001EcF56Cc271B7fE7e10269AE54dD"]
   },
   "zap": {
-    "dao": "0xa4161dB839F84E27122398aE6337AD47765E6cD5",
+    "dao": "0xf02fd4286917270cb94fbc13a0f4e1ed76f7e986",
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
     "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
     "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
-    "spoilsManager": "0x7C0Ca40d9806c71B5234eDD0f75E5baebE6eCE00",
+    "spoilsManager": "0x67aaAA970C445ef8A4F6FF1c0552Ef26cD190CD3",
     "factory": "0xbdB550A76cBa692F1a0B328ae1B3c932FEb7301F",
     "implementations": ["0xe33A71c7Cda9EDc22B40ff45c9F58F10d348B5aD"],
-    "instances": ["0xED148E49149Ed48331f4f34974568418dfb2964F"]
+    "instances": [
+      "0xDF8A3D4277423887591C5F69CAf6FF148F394f68",
+      "0x12d56CB3E841bb1aA407C9B0D3b043641BDd23dE"
+    ]
   }
 }

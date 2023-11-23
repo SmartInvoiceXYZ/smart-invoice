@@ -26,6 +26,7 @@ const ZAP_DATA = {
   saltNonce: Math.floor(new Date().getTime() / 1000), // salt nonce
   arbitration: 1,
   isDaoSplit: true,
+  isProjectSplit: true,
   token: getWrappedTokenAddress(5),
   escrowDeadline: Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60,
   details: ethers.utils.formatBytes32String("ipfs://"),
@@ -73,7 +74,7 @@ describe("SafeSplitsDaoEscrowZap", function () {
     const SpoilsManagerImplementation =
       await ethers.getContractFactory("SpoilsManager");
 
-    spoilsMgrImplementation = await SpoilsManagerImplementation.deploy();
+    const spoilsMgrImplementation = await SpoilsManagerImplementation.deploy();
     await spoilsMgrImplementation.deployed();
     expect(spoilsMgrImplementation.address).to.not.equal(
       ethers.constants.AddressZero,
@@ -163,8 +164,8 @@ describe("SafeSplitsDaoEscrowZap", function () {
       [ZAP_DATA.threshold, ZAP_DATA.saltNonce + i],
     );
     const encodedSplitData = ethers.utils.defaultAbiCoder.encode(
-      ["bool"],
-      [ZAP_DATA.isDaoSplit],
+      ["bool", "bool"],
+      [ZAP_DATA.isProjectSplit, ZAP_DATA.isDaoSplit],
     );
     const encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
       [
@@ -186,13 +187,12 @@ describe("SafeSplitsDaoEscrowZap", function () {
         ZAP_DATA.details,
       ],
     );
-    const SafeSplitsEscrowZapCreateReceipt = await zap[
-      "createSafeSplitEscrow(address[],uint32[],uint256[],bytes,bytes,bytes)"
-    ](
+    const SafeSplitsEscrowZapCreateReceipt = await zap.createSafeSplitEscrow(
       ZAP_DATA.owners,
       ZAP_DATA.percentAllocations,
       ZAP_DATA.milestoneAmounts,
       encodedSafeData,
+      ethers.constants.AddressZero,
       encodedSplitData,
       encodedEscrowData,
     );
@@ -223,14 +223,14 @@ describe("SafeSplitsDaoEscrowZap", function () {
 
   it("Should deploy a Zap instance", async function () {
     expect(zap.address).to.not.equal(ethers.constants.AddressZero);
-    expect(await zap.getAddresses()).to.deep.equal([
-      zapData.safeSingleton,
-      ZAP_DATA.fallbackHandler,
-      zapData.safeFactory,
-      zapData.splitMain,
-      getFactory(chainId),
+    expect(await zap.safeSingleton()).to.equal(zapData.safeSingleton);
+    expect(await zap.safeFactory()).to.equal(zapData.safeFactory);
+    expect(await zap.splitMain()).to.equal(zapData.splitMain);
+    expect(await zap.spoilsManager()).to.equal(spoilsManager.address);
+    expect(await zap.escrowFactory()).to.equal(getFactory(chainId));
+    expect(await zap.wrappedNativeToken()).to.equal(
       getWrappedTokenAddress(chainId),
-    ]);
+    );
   });
 
   it("Should create a Safe", async function () {
