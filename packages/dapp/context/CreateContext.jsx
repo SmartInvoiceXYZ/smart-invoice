@@ -289,7 +289,7 @@ export function CreateContextProvider({ children }) {
 
       const paymentTotal = sum(paymentAmounts);
 
-      track('InvoiceCreated', { invoiceType, paymentToken, paymentAmounts, paymentTotal });
+      track('InvoiceCreated', { chainId, invoiceType, paymentToken, paymentAmounts, paymentTotal });
     } else {
       logError(
         `unable to create invoice: allValid: ${allValid}, detailsHash: ${detailsHash}`,
