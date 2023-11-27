@@ -1,16 +1,17 @@
+import { BigNumber, utils } from 'ethers';
+import React, { useCallback, useContext, useState } from 'react';
+
 import {
   Button,
   Flex,
   Heading,
+  Image,
   Link,
   Text,
-  useBreakpointValue,
   VStack,
+  useBreakpointValue,
 } from '@chakra-ui/react';
-import { BigNumber, utils } from 'ethers';
-import React, { useCallback, useContext, useState } from 'react';
 
-import { ReactComponent as LockImage } from '../assets/lock.svg';
 import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
@@ -107,7 +108,7 @@ export function LockFunds({ invoice, balance, tokenData }) {
             top="50%"
             transform="translate(-50%,-50%)"
           >
-            <LockImage width="2rem" />
+            <Image width="2rem" src="../assets/lock.svg" alt="lock" />
           </Flex>
         </Flex>
       </VStack>
