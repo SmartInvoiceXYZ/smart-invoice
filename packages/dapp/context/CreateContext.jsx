@@ -1,4 +1,3 @@
-import { track } from '@vercel/analytics';
 import { BigNumber, utils } from 'ethers';
 import React, {
   createContext,
@@ -9,6 +8,8 @@ import React, {
   useState,
 } from 'react';
 
+import { track } from '@vercel/analytics';
+
 import { ESCROW_STEPS, INSTANT_STEPS, INVOICE_TYPES } from '../constants';
 import {
   getInvoiceFactoryAddress,
@@ -16,12 +17,13 @@ import {
   getWrappedNativeToken,
   isValidLink,
   logError,
+  sum,
 } from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
+import { Web3Context } from './Web3Context';
 import { useCreateEscrow } from './create-hooks/useCreateEscrow';
 import { useCreateInstant } from './create-hooks/useCreateInstant';
-import { Web3Context } from './Web3Context';
 
 export const CreateContext = createContext();
 
@@ -285,35 +287,31 @@ export function CreateContextProvider({ children }) {
       setTx(transaction);
       setLoading(false);
 
-      track('InvoiceCreated', { invoiceType });
+      const paymentTotal = sum(paymentAmounts);
+
+      track('InvoiceCreated', {
+        chainId,
+        invoiceType,
+        paymentToken,
+        paymentTotal,
+      });
     } else {
       logError(
         `unable to create invoice: allValid: ${allValid}, detailsHash: ${detailsHash}`,
       );
     }
   }, [
-    chainId,
-    rpcProvider,
-    // clientAddress,
-    paymentAddress,
-    // arbitrationProvider,
-    // paymentToken,
-    payments,
-    // safetyValveDate,
-    // deadline,
-    // lateFee,
-    // lateFeeInterval,
-    detailsHash,
-    // requireVerification,
-    // step1Valid,
-    // escrowStep2Valid,
-    // instantStep2Valid,
-    // escrowStep3Valid,
     allValid,
+    detailsHash,
+    chainId,
     invoiceType,
     Escrow,
     Instant,
+    rpcProvider,
+    paymentAddress,
+    paymentToken,
     encodeEscrowData,
+    payments,
     encodeInstantData,
     paymentDue,
   ]);
