@@ -293,7 +293,6 @@ export function CreateContextProvider({ children }) {
         chainId,
         invoiceType,
         paymentToken,
-        paymentAmounts,
         paymentTotal,
       });
     } else {
@@ -302,28 +301,17 @@ export function CreateContextProvider({ children }) {
       );
     }
   }, [
-    chainId,
-    rpcProvider,
-    // clientAddress,
-    paymentAddress,
-    // arbitrationProvider,
-    // paymentToken,
-    payments,
-    // safetyValveDate,
-    // deadline,
-    // lateFee,
-    // lateFeeInterval,
-    detailsHash,
-    // requireVerification,
-    // step1Valid,
-    // escrowStep2Valid,
-    // instantStep2Valid,
-    // escrowStep3Valid,
     allValid,
+    detailsHash,
+    chainId,
     invoiceType,
     Escrow,
     Instant,
+    rpcProvider,
+    paymentAddress,
+    paymentToken,
     encodeEscrowData,
+    payments,
     encodeInstantData,
     paymentDue,
   ]);
