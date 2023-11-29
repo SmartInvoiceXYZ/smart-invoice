@@ -19,7 +19,7 @@
     // Auto-sort imports
     "sort-imports": "off",
     "import/order": "off",
-    "simple-import-sort/imports": "error",
+    "simple-import-sort/imports": "off",
     "simple-import-sort/exports": "error",
 
     // Allow props spreading
