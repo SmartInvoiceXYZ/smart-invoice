@@ -17,7 +17,7 @@ import {
   getWrappedNativeToken,
   isValidLink,
   logError,
-  sum
+  sum,
 } from '../utils/helpers';
 import { register } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
@@ -289,7 +289,13 @@ export function CreateContextProvider({ children }) {
 
       const paymentTotal = sum(paymentAmounts);
 
-      track('InvoiceCreated', { chainId, invoiceType, paymentToken, paymentAmounts, paymentTotal });
+      track('InvoiceCreated', {
+        chainId,
+        invoiceType,
+        paymentToken,
+        paymentAmounts,
+        paymentTotal,
+      });
     } else {
       logError(
         `unable to create invoice: allValid: ${allValid}, detailsHash: ${detailsHash}`,
