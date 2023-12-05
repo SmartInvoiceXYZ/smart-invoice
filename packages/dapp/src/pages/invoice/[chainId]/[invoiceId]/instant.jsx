@@ -1,3 +1,6 @@
+import { BigNumber, utils } from 'ethers';
+import React, { useContext, useEffect, useState } from 'react';
+
 import {
   Button,
   Divider,
@@ -12,27 +15,25 @@ import {
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
   VStack,
   Wrap,
   WrapItem,
+  useBreakpointValue,
 } from '@chakra-ui/react';
-import { BigNumber, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
 
-import { GenerateInvoicePDF } from '../../../../components/GenerateInvoicePDF';
-import { DepositFunds } from '../../../../components/instant/DepositFunds';
-import { WithdrawFunds } from '../../../../components/instant/WithdrawFunds';
-import { Loader } from '../../../../components/Loader';
-import { Web3Context } from '../../../../context/Web3Context';
-import { getInvoice } from '../../../../graphql/getInvoice';
-import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
-import { CopyIcon } from '../../../../icons/CopyIcon';
-import { QuestionIcon } from '../../../../icons/QuestionIcon';
-import { AccountLink } from '../../../../shared/AccountLink';
-import { Container } from '../../../../shared/Container';
-import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { balanceOf } from '../../../../utils/erc20';
+import { GenerateInvoicePDF } from '../../../../../components/GenerateInvoicePDF';
+import { Loader } from '../../../../../components/Loader';
+import { DepositFunds } from '../../../../../components/instant/DepositFunds';
+import { WithdrawFunds } from '../../../../../components/instant/WithdrawFunds';
+import { Web3Context } from '../../../../../context/Web3Context';
+import { getInvoice } from '../../../../../graphql/getInvoice';
+import { useFetchTokensViaIPFS } from '../../../../../hooks/useFetchTokensViaIPFS';
+import { CopyIcon } from '../../../../../icons/CopyIcon';
+import { QuestionIcon } from '../../../../../icons/QuestionIcon';
+import { AccountLink } from '../../../../../shared/AccountLink';
+import { Container } from '../../../../../shared/Container';
+import { InvoiceNotFound } from '../../../../../shared/InvoiceNotFound';
+import { balanceOf } from '../../../../../utils/erc20';
 import {
   copyToClipboard,
   getAccountString,
@@ -41,13 +42,13 @@ import {
   getDateString,
   getTokenInfo,
   logError,
-} from '../../../../utils/helpers';
+} from '../../../../../utils/helpers';
 import {
   getDeadline,
   getLateFee,
   getTotalDue,
   getTotalFulfilled,
-} from '../../../../utils/invoice';
+} from '../../../../../utils/invoice';
 
 function ViewInstantInvoice({
   match: {

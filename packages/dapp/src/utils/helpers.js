@@ -252,6 +252,5 @@ export const formatDate = date => {
   return [year, month, day].join('-');
 };
 
-export const sum = (array) => array.reduce((total, current) => {
-      return total + current;
-  }, 0);
+export const sum = array =>
+  array.reduce((total, current) => total + current, 0);
