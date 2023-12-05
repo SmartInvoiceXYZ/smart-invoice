@@ -1,0 +1,11 @@
+{
+  "network": "gnosis",
+  "factory": "0xdDd96D43b0B2Ca179DCefA58e71798d0ce56c9c8",
+  "txHash": "0x83cc8990a93524d7689a91ecb1c908970d5831c97befd43b20e2a7861491aa9d",
+  "blockNumber": "26962709",
+  "implementations": {
+    "escrow": ["0x695252527A3bCbB006aAb3D0b7490e6d6d47faDE"],
+    "instant": ["0xaA4C3b427A441e436f624AcC9cc72E79f66B6066"],
+    "split-escrow": ["0x84c4EC5F1931b552405cB238E8FE30ef8Ac48134"]
+  }
+}

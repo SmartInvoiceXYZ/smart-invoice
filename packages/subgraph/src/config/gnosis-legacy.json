@@ -1,0 +1,38 @@
+{
+  "network": "gnosis",
+  "startBlock": "14673394",
+  "factories": [
+    {
+      "factoryName": "Version00",
+      "startBlock": "14673394",
+      "address": "0xFADd352cd43FC5Ccab88d2c37b61340518416677"
+    },
+    {
+      "factoryName": "Version01",
+      "startBlock": "15108584",
+      "address": "0x7A6f602667f22D2Ec33636148e441A7c2D124380"
+    },
+    {
+      "factoryName": "Version02",
+      "startBlock": "15414969",
+      "address": "0x01b5845ef936CDEB12155Feaba82DfdecB57AE20"
+    },
+    {
+      "factoryName": "Version03",
+      "startBlock": "15752980",
+      "address": "0x26832d296Be653C1A818B7AaF3D4e5e16A0C314d"
+    }
+  ],
+  "tokens": [
+    {
+      "tokenAddress": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+      "startBlock": "14673394",
+      "tokenName": "WXDAI"
+    },
+    {
+      "tokenAddress": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
+      "startBlock": "14673394",
+      "tokenName": "WETH"
+    }
+  ]
+}

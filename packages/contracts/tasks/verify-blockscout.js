@@ -13,12 +13,12 @@ const BLOCKSCOUT_CHAIN_IDS = [77, 100];
 
 const API_URLS = {
   77: "https://blockscout.com/poa/sokol/api",
-  100: "https://blockscout.com/xdai/mainnet/api",
+  100: "https://gnosis.blockscout.com/api",
 };
 
 const EXPLORER_URLS = {
   77: "https://blockscout.com/poa/sokol/address",
-  100: "https://blockscout.com/xdai/mainnet/address",
+  100: "https://gnosis.blockscout.com/address",
 };
 
 const VerificationStatus = {

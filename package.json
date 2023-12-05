@@ -15,6 +15,7 @@
     "subgraph:build": "yarn workspace @smart-invoice/subgraph build",
     "subgraph:deploy-kovan": "yarn workspace @smart-invoice/subgraph deploy-kovan",
     "subgraph:deploy-rinkeby": "yarn workspace @smart-invoice/subgraph deploy-rinkeby",
+    "dapp:dev": "yarn workspace @smart-invoice/dapp dev",
     "dapp:start": "yarn workspace @smart-invoice/dapp start",
     "dapp:build": "yarn workspace @smart-invoice/dapp build",
     "docs:start": "yarn workspace @smart-invoice/docs start",
@@ -25,8 +26,7 @@
     "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
     "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
     "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
-    "prepare": "husky install",
-    "postinstall": "patch-package"
+    "prepare": "husky install"
   },
   "workspaces": {
     "nohoist": [
@@ -44,22 +44,26 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@babel/eslint-parser": "^7.23.3",
+    "@typescript-eslint/parser": "^6.7.0",
     "async-prompt": "^1.0.1",
-    "babel-eslint": "^10.1.0",
     "dotenv": "^8.2.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.51.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "eslint-plugin-mocha": "^10.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-mocha": "^10.2.0",
     "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "ethers": "^5.1.0",
     "husky": "^6.0.0",
     "it-all": "^1.0.2",
     "lint-staged": "^14.0.1",
     "prettier": "^3.0.3",
-    "prettier-plugin-solidity": "^1.1.3"
+    "prettier-plugin-solidity": "^1.1.3",
+    "typescript": "^4.9.5"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -69,10 +73,5 @@
     "*.{json,md,sol}": [
       "prettier --write"
     ]
-  },
-  "dependencies": {
-    "@typescript-eslint/parser": "^6.7.0",
-    "patch-package": "^8.0.0",
-    "typescript": "^4.9.5"
   }
 }
