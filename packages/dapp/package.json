@@ -1,6 +1,7 @@
 {
   "name": "@smart-invoice/dapp",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
@@ -47,5 +48,9 @@
   ],
   "resolutions": {
     "react-error-overlay": "6.0.9"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.42",
+    "@types/react-table": "^7.7.18"
   }
 }
