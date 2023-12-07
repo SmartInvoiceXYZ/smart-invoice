@@ -12,14 +12,27 @@
     "sourceType": "module"
   },
   "rules": {
+    "react/function-component-definition": "off",
+    "react/no-unescaped-entities": "off",
     "react/prop-types": "off",
-
+    "react/require-default-props": "off",
     "import/no-default-export": "off",
-    "import/prefer-default-export": "off"
+    "import/prefer-default-export": "off",
+    "@next/next/no-page-custom-font": "off",
+    "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+       }
+    ]
   },
   "extends": [
-    "eslint:recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react/recommended"
+    "next", 
+    "prettier"
   ]
 }
