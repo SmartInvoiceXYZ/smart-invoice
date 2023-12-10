@@ -7,6 +7,7 @@ import {
   SmartInvoiceEscrow01,
   SmartInvoiceInstant01,
   SmartInvoiceSplitEscrow01,
+  SmartInvoiceUpdatable01,
 } from '../../types/templates';
 import { getToken } from './helpers/token';
 import { updateInvoice } from './utils';
@@ -43,6 +44,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
     SmartInvoiceEscrow01.create(event.params.invoice);
   } else if (invoice.invoiceType == 'split-escrow') {
     SmartInvoiceSplitEscrow01.create(event.params.invoice);
+  } else if (invoice.invoiceType == 'updatable') {
+    SmartInvoiceUpdatable01.create(event.params.invoice);
   } else {
     SmartInvoiceInstant01.create(event.params.invoice);
   }

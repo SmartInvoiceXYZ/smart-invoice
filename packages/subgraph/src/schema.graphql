@@ -48,6 +48,8 @@ type Invoice @entity {
   # split-escrow type specific
   dao: Bytes
   daoFee: BigInt
+  # updatable fields
+  providerReceiver: Bytes
 }
 
 enum ADR @entity {
@@ -70,7 +72,6 @@ type Agreement @entity {
   src: String!
   createdAt: BigInt!
 }
-
 
 type Release @entity {
   id: ID!
@@ -141,5 +142,5 @@ type MilestonesAdded @entity {
 type Tip @entity {
   id: ID!
   sender: Bytes!
-  amount: BigInt!  
+  amount: BigInt!
 }

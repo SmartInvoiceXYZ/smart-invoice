@@ -1,17 +1,20 @@
 import { Address, log } from '@graphprotocol/graph-ts';
 
 import { Invoice } from '../../../types/schema';
-import { SmartInvoiceSplitEscrow01 } from '../../../types/templates/SmartInvoiceSplitEscrow01/SmartInvoiceSplitEscrow01';
+import { SmartInvoiceEscrow01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
 import { InvoiceObject } from '../utils';
+import { SmartInvoiceUpdatable01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceUpdatable01';
 import { handleIpfsDetails } from './ipfs';
 
-function fetchSplitEscrowInfo(address: Address): InvoiceObject {
-  let invoiceInstance = SmartInvoiceSplitEscrow01.bind(address);
+function fetchEscrowInfo(address: Address): InvoiceObject {
+  let invoiceInstance = SmartInvoiceEscrow01.bind(address);
+  let updatableInstance = SmartInvoiceUpdatable01.bind(address);
 
   let invoiceObject = new InvoiceObject();
 
   let client = invoiceInstance.try_client();
   let provider = invoiceInstance.try_provider();
+  let providerReceiver = updatableInstance.try_providerReceiver();
   let resolverType = invoiceInstance.try_resolverType();
   let resolver = invoiceInstance.try_resolver();
   let resolutionRate = invoiceInstance.try_resolutionRate();
@@ -23,14 +26,15 @@ function fetchSplitEscrowInfo(address: Address): InvoiceObject {
   let terminationTime = invoiceInstance.try_terminationTime();
   let details = invoiceInstance.try_details();
   let disputeId = invoiceInstance.try_disputeId();
-  let dao = invoiceInstance.try_dao();
-  let daoFee = invoiceInstance.try_daoFee();
 
   if (!client.reverted) {
     invoiceObject.client = client.value;
   }
   if (!provider.reverted) {
     invoiceObject.provider = provider.value;
+  }
+  if (!providerReceiver.reverted) {
+    invoiceObject.providerReceiver = providerReceiver.value;
   }
   if (!resolverType.reverted) {
     invoiceObject.resolverType = resolverType.value;
@@ -66,21 +70,15 @@ function fetchSplitEscrowInfo(address: Address): InvoiceObject {
     //needs to be broken out based on invoice type
     invoiceObject = handleIpfsDetails(details.value, invoiceObject);
   }
-  if (!dao.reverted) {
-    invoiceObject.dao = dao.value;
-  }
-  if (!daoFee.reverted) {
-    invoiceObject.daoFee = daoFee.value;
-  }
 
   return invoiceObject;
 }
 
-export function updateSplitEscrowInfo(
+export function updateUpdatableInfo(
   address: Address,
   invoice: Invoice,
 ): Invoice {
-  let invoiceObject = fetchSplitEscrowInfo(address);
+  let invoiceObject = fetchEscrowInfo(address);
 
   log.info('Got details for invoice', [address.toHexString()]);
 
@@ -106,8 +104,7 @@ export function updateSplitEscrowInfo(
   invoice.projectDescription = invoiceObject.projectDescription;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
-  invoice.dao = invoiceObject.dao;
-  invoice.daoFee = invoiceObject.daoFee;
+  invoice.providerReceiver = invoiceObject.providerReceiver;
 
   invoice.projectAgreement.length = 0;
   let projectAgreement = new Array<string>();

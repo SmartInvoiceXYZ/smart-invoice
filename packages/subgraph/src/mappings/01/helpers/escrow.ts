@@ -1,16 +1,9 @@
-import {
-  Address,
-  BigInt,
-  Bytes,
-  ByteArray,
-  ipfs,
-  json,
-  log,
-} from '@graphprotocol/graph-ts';
+import { Address, log } from '@graphprotocol/graph-ts';
 
-import { Invoice, Agreement } from '../../../types/schema';
+import { Invoice } from '../../../types/schema';
 import { SmartInvoiceEscrow01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
-import { InvoiceObject, addQm } from '../utils';
+import { InvoiceObject } from '../utils';
+import { handleIpfsDetails } from './ipfs';
 
 function fetchEscrowInfo(address: Address): InvoiceObject {
   let invoiceInstance = SmartInvoiceEscrow01.bind(address);
@@ -69,77 +62,7 @@ function fetchEscrowInfo(address: Address): InvoiceObject {
   }
   if (!details.reverted) {
     //needs to be broken out based on invoice type
-    invoiceObject.details = details.value;
-    if (details.value.length == 32) {
-      let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
-      let base58Hash = hexHash.toBase58();
-      invoiceObject.ipfsHash = base58Hash.toString();
-      let ipfsData = ipfs.cat(base58Hash);
-      if (ipfsData !== null) {
-        log.info('IPFS details from hash {}, data {}', [
-          base58Hash,
-          ipfsData.toString(),
-        ]);
-        let data = json.fromBytes(ipfsData).toObject();
-        let projectName = data.get('projectName');
-        if (projectName != null && !projectName.isNull()) {
-          invoiceObject.projectName = projectName.toString();
-        }
-        let projectDescription = data.get('projectDescription');
-        if (projectDescription != null && !projectDescription.isNull()) {
-          invoiceObject.projectDescription = projectDescription.toString();
-        }
-        let projectAgreement = data.get('projectAgreement');
-        if (projectAgreement != null && !projectAgreement.isNull()) {
-          let projectArray = projectAgreement.toArray();
-          let agreementArray = new Array<Agreement>();
-
-          for (let i = 0; i < projectArray.length; i++) {
-            let obj = projectArray[i].toObject();
-            let type = obj.get('type');
-            let src = obj.get('src');
-            let createdAt = obj.get('createdAt');
-            if (type && src && createdAt != null) {
-              let typeValue = type.toString();
-              let srcValue = src.toString();
-              let createdAtValue = BigInt.fromString(createdAt.toString());
-
-              let agreement = new Agreement(createdAtValue.toString());
-
-              agreement.type = typeValue;
-              agreement.src = srcValue;
-              agreement.createdAt = createdAtValue;
-
-              log.info(
-                'agreement commit: agreement.type {} agreement.src {} agreement.createdAt {} index {}',
-                [
-                  agreement.type,
-                  agreement.src,
-                  agreement.createdAt.toString(),
-                  i.toString(),
-                ],
-              );
-
-              agreement.save();
-
-              agreementArray[i] = agreement;
-            }
-          }
-
-          invoiceObject.projectAgreement = agreementArray;
-        }
-        let startDate = data.get('startDate');
-        if (startDate != null && !startDate.isNull()) {
-          invoiceObject.startDate = startDate.toBigInt();
-        }
-        let endDate = data.get('endDate');
-        if (endDate != null && !endDate.isNull()) {
-          invoiceObject.endDate = endDate.toBigInt();
-        }
-      } else {
-        log.warning('could not get IPFS details from hash {}', [base58Hash]);
-      }
-    }
+    invoiceObject = handleIpfsDetails(details.value, invoiceObject);
   }
 
   return invoiceObject;

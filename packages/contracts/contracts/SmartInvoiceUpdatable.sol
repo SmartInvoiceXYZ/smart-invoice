@@ -14,6 +14,10 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
     /// @notice The receiving address for the provider
     address public providerReceiver;
 
+    event UpdatedClient(address indexed client);
+    event UpdatedProvider(address indexed provider);
+    event UpdatedProviderReceiver(address indexed providerReceiver);
+
     /**
      * Modifier for functions that can only be called by the provider
      */
@@ -36,6 +40,7 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
      */
     function _updateClient(address _client) internal {
         client = _client;
+        emit UpdatedClient(_client);
     }
 
     /**
@@ -53,6 +58,7 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
      */
     function _updateProviderReceiver(address _providerReceiver) internal {
         providerReceiver = _providerReceiver;
+        emit UpdatedProviderReceiver(_providerReceiver);
     }
 
     /**
@@ -72,6 +78,7 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
      */
     function _updateProvider(address _provider) internal {
         provider = _provider;
+        emit UpdatedProvider(_provider);
     }
 
     /**

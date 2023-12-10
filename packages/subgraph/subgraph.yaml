@@ -2,18 +2,15 @@ specVersion: 0.0.4
 description: Smart Invoice
 schema:
   file: ./src/schema.graphql
-features:
-  [ipfsOnEthereumContracts]
+features: [ipfsOnEthereumContracts]
 dataSources:
   - kind: ethereum/contract
     name: SmartInvoiceFactory00
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       address: '0x566ac8344a7cbBC4879e5692F32A9ebdED002e7f'
       abi: SmartInvoiceFactory00
-      # prettier-ignore
-      startBlock: 9556965
+      startBlock: 15546992
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -30,17 +27,15 @@ dataSources:
       eventHandlers:
         - event: LogNewInvoice(indexed uint256,address,uint256[])
           handler: handleLogNewInvoice
-          
+
       file: ./src/mappings/00/factory.ts
   - kind: ethereum/contract
     name: SmartInvoiceFactory01
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       address: '0x546adED0B0179d550e87cf909939a1207Fd26fB7'
       abi: SmartInvoiceFactory01
-      # prettier-ignore
-      startBlock: 9556965
+      startBlock: 16991083
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -61,13 +56,12 @@ dataSources:
       eventHandlers:
         - event: LogNewInvoice(indexed uint256,indexed address,uint256[],bytes32,uint256)
           handler: handleLogNewInvoice
-          
+
       file: ./src/mappings/01/factory.ts
 templates:
   - kind: ethereum/contract
     name: SmartInvoice00
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       abi: SmartInvoice00
     mapping:
@@ -107,8 +101,7 @@ templates:
       file: ./src/mappings/00/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceEscrow01
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       abi: SmartInvoiceEscrow01
     mapping:
@@ -126,6 +119,8 @@ templates:
           file: ./src/abis/ERC20.json
         - name: SmartInvoiceEscrow01
           file: ./src/abis/01/SmartInvoiceEscrow01.json
+        - name: SmartInvoiceUpdatable01
+          file: ./src/abis/01/SmartInvoiceUpdatable01.json
         - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
@@ -148,8 +143,7 @@ templates:
       file: ./src/mappings/01/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceInstant01
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       abi: SmartInvoiceInstant01
     mapping:
@@ -180,8 +174,7 @@ templates:
       file: ./src/mappings/01/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceSplitEscrow01
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       abi: SmartInvoiceSplitEscrow01
     mapping:
@@ -220,9 +213,54 @@ templates:
           handler: handleMilestonesAdded
       file: ./src/mappings/01/invoice.ts
   - kind: ethereum/contract
+    name: SmartInvoiceUpdatable01
+    network: mainnet
+    source:
+      abi: SmartInvoiceUpdatable01
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
+        - Token
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceUpdatable01
+          file: ./src/abis/01/SmartInvoiceUpdatable01.json
+        - name: SmartInvoiceFactory01
+          file: ./src/abis/01/SmartInvoiceFactory01.json
+      eventHandlers:
+        - event: Release(uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed address,bytes32)
+          handler: handleLock
+        - event: Rule(indexed address,uint256,uint256,uint256)
+          handler: handleRule
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
+        # - event: UpdateClient(indexed address)
+        #   handler: handleUpdateClient
+        # - event: UpdateProvider(indexed address)
+        #   handler: handleUpdateProvider
+        # - event: UpdateProviderReceiver(indexed address)
+        #   handler: handleUpdateProviderReceiver
+      file: ./src/mappings/01/invoice.ts
+  - kind: ethereum/contract
     name: ERC20
-    # prettier-ignore
-    network: goerli
+    network: mainnet
     source:
       abi: ERC20
     mapping:
