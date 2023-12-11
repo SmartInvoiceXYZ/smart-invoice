@@ -57,6 +57,8 @@ dataSources:
           file: ./src/abis/01/SmartInvoiceEscrow01.json
         - name: SmartInvoiceInstant01
           file: ./src/abis/01/SmartInvoiceInstant01.json
+        - name: SmartInvoiceSplitEscrow01
+          file: ./src/abis/01/SmartInvoiceSplitEscrow01.json
         - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
@@ -178,6 +180,47 @@ templates:
           handler: handleDeposit
       file: ./src/mappings/01/invoice.ts
   - kind: ethereum/contract
+    name: SmartInvoiceSplitEscrow01
+    # prettier-ignore
+    network: goerli
+    source:
+      abi: SmartInvoiceSplitEscrow01
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
+        - Token
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceSplitEscrow01
+          file: ./src/abis/01/SmartInvoiceSplitEscrow01.json
+        - name: SmartInvoiceFactory01
+          file: ./src/abis/01/SmartInvoiceFactory01.json
+      eventHandlers:
+        - event: Release(uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed address,bytes32)
+          handler: handleLock
+        - event: Rule(indexed address,uint256,uint256,uint256)
+          handler: handleRule
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
+      file: ./src/mappings/01/invoice.ts
+  - kind: ethereum/contract
     name: ERC20
     # prettier-ignore
     network: goerli
@@ -199,7 +242,9 @@ templates:
           file: ./src/abis/00/SmartInvoiceFactory00.json
         - name: SmartInvoiceEscrow01
           file: ./src/abis/01/SmartInvoiceEscrow01.json
-        - name: SmartInvoiceFactory
+        - name: SmartInvoiceSplitEscrow01
+          file: ./src/abis/01/SmartInvoiceSplitEscrow01.json
+        - name: SmartInvoiceFactory01
           file: ./src/abis/01/SmartInvoiceFactory01.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)

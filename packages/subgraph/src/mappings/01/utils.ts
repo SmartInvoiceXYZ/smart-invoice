@@ -1,17 +1,11 @@
-import {
-  Address,
-  BigInt,
-  Bytes,
-  ByteArray,
-  ipfs,
-  json,
-  log,
-} from '@graphprotocol/graph-ts';
+import { Address, BigInt, Bytes, ByteArray } from '@graphprotocol/graph-ts';
 
 import { Agreement, Invoice } from '../../types/schema';
 
 import { updateEscrowInfo } from './helpers/escrow';
 import { updateInstantInfo } from './helpers/instant';
+import { updateSplitEscrowInfo } from './helpers/split-escrow';
+import { updateUpdatableInfo } from './helpers/updatable-escrow';
 
 let zeroAddress = changetype<Address>(
   Address.fromHexString('0x0000000000000000000000000000000000000000'),
@@ -46,10 +40,14 @@ export class InvoiceObject {
   // tipAmount: Array<Tip>;
   deadline: BigInt;
   fulfilled: boolean;
+  dao: Address;
+  daoFee: BigInt;
+  providerReceiver: Address;
 
   constructor() {
     this.client = zeroAddress;
     this.provider = zeroAddress;
+    this.providerReceiver = zeroAddress;
     this.resolverType = 0;
     this.resolver = zeroAddress;
     this.resolutionRate = BigInt.fromI32(0);
@@ -74,6 +72,8 @@ export class InvoiceObject {
     // this.tipAmount = new Array<Tip>();
     this.deadline = BigInt.fromI32(0);
     this.fulfilled = false;
+    this.dao = zeroAddress;
+    this.daoFee = BigInt.fromI32(0);
   }
 }
 
@@ -88,15 +88,20 @@ export function addQm(a: ByteArray): ByteArray {
 }
 
 export function updateInvoice(address: Address, invoice: Invoice): Invoice {
-  if (invoice != null) {
-    let type = invoice.invoiceType;
-    if (type != null) {
-      if (type == 'escrow') {
-        invoice = updateEscrowInfo(address, invoice);
-      } else {
-        invoice = updateInstantInfo(address, invoice);
-      }
-    }
+  if (invoice == null) return invoice;
+
+  let type = invoice.invoiceType;
+  if (type == null) return invoice;
+
+  if (type == 'escrow') {
+    invoice = updateEscrowInfo(address, invoice);
+  } else if (type == 'split-escrow') {
+    invoice = updateSplitEscrowInfo(address, invoice);
+  } else if (type == 'updatable') {
+    invoice = updateUpdatableInfo(address, invoice);
+  } else {
+    invoice = updateInstantInfo(address, invoice);
   }
+
   return invoice;
 }

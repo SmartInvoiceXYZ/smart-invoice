@@ -6,8 +6,6 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const { chainId } = await deployer.provider.getNetwork();
 
-  // todo handle other networks
-  if (chainId !== 5 && chainId !== 31337) return;
   const zapData = getZapData(chainId);
   const safeSplitsEscrowZapAddress = zapData.instances && zapData.instances[0];
 
@@ -17,12 +15,29 @@ async function main() {
   }
 
   const safeSplitsEscrowZap = await ethers.getContractAt(
-    "SafeSplitsEscrowZap",
+    "SafeSplitsDaoEscrowZap",
     safeSplitsEscrowZapAddress,
   );
 
-  const addresses = await safeSplitsEscrowZap.getAddresses();
-  console.log(addresses);
+  const addressList = [
+    "safeSingleton",
+    "fallbackHandler",
+    "safeFactory",
+    "splitMain",
+    "escrowFactory",
+    "wrappedNativeToken",
+    "spoilsManager",
+    "dao",
+  ];
+
+  const addressFetch = addressList.map(async type =>
+    safeSplitsEscrowZap[type](),
+  );
+
+  const addresses = await Promise.all(addressFetch);
+  console.log(
+    addresses.map((address, index) => `${addressList[index]}: ${address}`),
+  );
 }
 
 main()

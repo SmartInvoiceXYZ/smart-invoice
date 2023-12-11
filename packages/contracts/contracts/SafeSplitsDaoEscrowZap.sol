@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.4;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -11,19 +10,14 @@ import "./interfaces/ISpoilsManager.sol";
 
 contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     /// @notice The DAO controller address
-    address dao;
+    address public dao;
 
     error DaoSplitCreationFailed();
 
     /// @notice The DAO's SpoilsManager address
-    ISpoilsManager spoilsManager;
+    ISpoilsManager public spoilsManager;
 
-    event SafeSplitsDaoEscrowCreated(
-        address safe,
-        address projectTeamSplit,
-        address daoSplit,
-        address escrow
-    );
+    event SafeSplitsDaoEscrowCreated(address safe, address projectTeamSplit, address daoSplit, address escrow);
 
     struct DaoZapData {
         ZapData zapData;
@@ -43,19 +37,21 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         bytes calldata _splitsData,
         DaoZapData memory _daoZapData
     ) internal returns (DaoZapData memory) {
-        _daoZapData.zapData.projectTeamSplit = splitMain.createSplit(
-            _owners,
-            _percentAllocations,
-            distributorFee,
-            _daoZapData.zapData.safe
-        );
-        if (_daoZapData.zapData.projectTeamSplit == address(0)) {
-            revert ProjectTeamSplitNotCreated();
+        (bool projectSplit, bool daoSplit) = abi.decode(_splitsData, (bool, bool));
+        if (projectSplit) {
+            _daoZapData.zapData.projectTeamSplit =
+                splitMain.createSplit(_owners, _percentAllocations, distributorFee, _daoZapData.zapData.safe);
         }
 
-        bool _isDaoSplit = abi.decode(_splitsData, (bool));
+        if (_daoZapData.zapData.projectTeamSplit == address(0)) {
+            if (_daoZapData.zapData.safe != address(0)) {
+                _daoZapData.zapData.projectTeamSplit = _daoZapData.zapData.safe;
+            } else {
+                revert ProjectTeamSplitNotCreated();
+            }
+        }
 
-        if (_isDaoSplit) {
+        if (daoSplit) {
             // prepare arrays
             address[] memory daoSplitRecipients = new address[](2);
             uint32[] memory daoSplitPercentAllocations = new uint32[](2);
@@ -65,14 +61,10 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
 
             // dao split amounts
             uint32 daoSplitAmount = spoilsManager.getSpoils();
-            uint32 projectSplitAmount = (100 *
-                spoilsManager.SPLIT_PERCENTAGE_SCALE()) - (daoSplitAmount);
+            uint32 projectSplitAmount = (100 * spoilsManager.SPLIT_PERCENTAGE_SCALE()) - (daoSplitAmount);
 
             // sort the addresses into the correct order
-            if (
-                uint160(daoReceiver) <
-                uint160(_daoZapData.zapData.projectTeamSplit)
-            ) {
+            if (uint160(daoReceiver) < uint160(_daoZapData.zapData.projectTeamSplit)) {
                 daoSplitRecipients[0] = daoReceiver;
                 daoSplitRecipients[1] = _daoZapData.zapData.projectTeamSplit;
                 daoSplitPercentAllocations[0] = daoSplitAmount;
@@ -85,12 +77,8 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             }
 
             // (recipients array, percent allocations array, no distributor fee, safe address)
-            _daoZapData.daoSplit = splitMain.createSplit(
-                daoSplitRecipients,
-                daoSplitPercentAllocations,
-                distributorFee,
-                dao
-            );
+            _daoZapData.daoSplit =
+                splitMain.createSplit(daoSplitRecipients, daoSplitPercentAllocations, distributorFee, dao);
             if (_daoZapData.daoSplit == address(0)) {
                 revert DaoSplitCreationFailed();
             }
@@ -99,9 +87,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         return _daoZapData;
     }
 
-    function _handleEscrowParams(
-        DaoZapData memory _daoZapData
-    ) internal view returns (address[] memory) {
+    function _handleEscrowParams(DaoZapData memory _daoZapData) internal view returns (address[] memory) {
         address[] memory escrowParams = new address[](2);
         escrowParams[0] = _daoZapData.zapData.safe;
         escrowParams[1] = _daoZapData.zapData.projectTeamSplit;
@@ -119,45 +105,28 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         uint32[] memory _percentAllocations,
         uint256[] memory _milestoneAmounts,
         bytes calldata _safeData,
+        address _safeAddress,
         bytes calldata _splitsData,
         bytes calldata _escrowData
-    ) internal {
+    ) internal override {
+        // pass safeAddress by default
         DaoZapData memory daoZapData = DaoZapData({
-            zapData: ZapData({
-                safe: address(0),
-                projectTeamSplit: address(0),
-                escrow: address(0)
-            }),
+            zapData: ZapData({safe: _safeAddress, projectTeamSplit: address(0), escrow: address(0)}),
             daoSplit: address(0)
         });
 
-        daoZapData.zapData = _deploySafe(
-            _owners,
-            _safeData,
-            daoZapData.zapData
-        );
+        if (daoZapData.zapData.safe == address(0)) {
+            daoZapData.zapData = _deploySafe(_owners, _safeData, daoZapData.zapData);
+        }
 
-        daoZapData = _createSplit(
-            _owners,
-            _percentAllocations,
-            _splitsData,
-            daoZapData
-        );
+        daoZapData = _createSplit(_owners, _percentAllocations, _splitsData, daoZapData);
 
         address[] memory escrowParams = _handleEscrowParams(daoZapData);
 
-        daoZapData.zapData = _deployEscrow(
-            _milestoneAmounts,
-            _escrowData,
-            escrowParams,
-            daoZapData.zapData
-        );
+        daoZapData.zapData = _deployEscrow(_milestoneAmounts, _escrowData, escrowParams, daoZapData.zapData);
 
         emit SafeSplitsDaoEscrowCreated(
-            daoZapData.zapData.safe,
-            daoZapData.zapData.projectTeamSplit,
-            daoZapData.daoSplit,
-            daoZapData.zapData.escrow
+            daoZapData.zapData.safe, daoZapData.zapData.projectTeamSplit, daoZapData.daoSplit, daoZapData.zapData.escrow
         );
     }
 
@@ -174,19 +143,15 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         uint32[] memory _percentAllocations,
         uint256[] memory _milestoneAmounts,
         bytes calldata _safeData,
+        address _safeAddress,
         bytes calldata _splitsData,
         bytes calldata _escrowData
-    ) public {
+    ) public override {
         if (_percentAllocations.length != _owners.length) {
             revert InvalidAllocationsOwnersData();
         }
         _createSafeSplitEscrow(
-            _owners,
-            _percentAllocations,
-            _milestoneAmounts,
-            _safeData,
-            _splitsData,
-            _escrowData
+            _owners, _percentAllocations, _milestoneAmounts, _safeData, _safeAddress, _splitsData, _escrowData
         );
     }
 
@@ -200,19 +165,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             address _escrowFactory,
             address _wrappedNativeToken,
             address _dao
-        ) = abi.decode(
-                _data,
-                (
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address
-                )
-            );
+        ) = abi.decode(_data, (address, address, address, address, address, address, address, address));
 
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;
