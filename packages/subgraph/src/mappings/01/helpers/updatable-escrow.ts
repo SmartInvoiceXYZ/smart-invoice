@@ -1,31 +1,29 @@
 import { Address, log } from '@graphprotocol/graph-ts';
 
 import { Invoice } from '../../../types/schema';
-import { SmartInvoiceEscrow01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
 import { InvoiceObject } from '../utils';
 import { SmartInvoiceUpdatable01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceUpdatable01';
 import { handleIpfsDetails } from './ipfs';
 
 function fetchEscrowInfo(address: Address): InvoiceObject {
-  let invoiceInstance = SmartInvoiceEscrow01.bind(address);
   let updatableInstance = SmartInvoiceUpdatable01.bind(address);
 
   let invoiceObject = new InvoiceObject();
 
-  let client = invoiceInstance.try_client();
-  let provider = invoiceInstance.try_provider();
+  let client = updatableInstance.try_client();
+  let provider = updatableInstance.try_provider();
   let providerReceiver = updatableInstance.try_providerReceiver();
-  let resolverType = invoiceInstance.try_resolverType();
-  let resolver = invoiceInstance.try_resolver();
-  let resolutionRate = invoiceInstance.try_resolutionRate();
-  let token = invoiceInstance.try_token();
-  let locked = invoiceInstance.try_locked();
-  let milestone = invoiceInstance.try_milestone();
-  let total = invoiceInstance.try_total();
-  let released = invoiceInstance.try_released();
-  let terminationTime = invoiceInstance.try_terminationTime();
-  let details = invoiceInstance.try_details();
-  let disputeId = invoiceInstance.try_disputeId();
+  let resolverType = updatableInstance.try_resolverType();
+  let resolver = updatableInstance.try_resolver();
+  let resolutionRate = updatableInstance.try_resolutionRate();
+  let token = updatableInstance.try_token();
+  let locked = updatableInstance.try_locked();
+  let milestone = updatableInstance.try_milestone();
+  let total = updatableInstance.try_total();
+  let released = updatableInstance.try_released();
+  let terminationTime = updatableInstance.try_terminationTime();
+  let details = updatableInstance.try_details();
+  let disputeId = updatableInstance.try_disputeId();
 
   if (!client.reverted) {
     invoiceObject.client = client.value;

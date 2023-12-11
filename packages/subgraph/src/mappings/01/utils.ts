@@ -88,19 +88,20 @@ export function addQm(a: ByteArray): ByteArray {
 }
 
 export function updateInvoice(address: Address, invoice: Invoice): Invoice {
-  if (invoice != null) {
-    let type = invoice.invoiceType;
-    if (type != null) {
-      if (type == 'escrow') {
-        invoice = updateEscrowInfo(address, invoice);
-      } else if (type == 'split-escrow') {
-        invoice = updateSplitEscrowInfo(address, invoice);
-      } else if (type == 'updatable') {
-        invoice = updateUpdatableInfo(address, invoice);
-      } else {
-        invoice = updateInstantInfo(address, invoice);
-      }
-    }
+  if (invoice == null) return invoice;
+
+  let type = invoice.invoiceType;
+  if (type == null) return invoice;
+
+  if (type == 'escrow') {
+    invoice = updateEscrowInfo(address, invoice);
+  } else if (type == 'split-escrow') {
+    invoice = updateSplitEscrowInfo(address, invoice);
+  } else if (type == 'updatable') {
+    invoice = updateUpdatableInfo(address, invoice);
+  } else {
+    invoice = updateInstantInfo(address, invoice);
   }
+
   return invoice;
 }

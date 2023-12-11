@@ -214,6 +214,45 @@
         "internalType": "address",
         "name": "client",
         "type": "address"
+      }
+    ],
+    "name": "UpdatedClient",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      }
+    ],
+    "name": "UpdatedProvider",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "providerReceiver",
+        "type": "address"
+      }
+    ],
+    "name": "UpdatedProviderReceiver",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
       },
       {
         "indexed": true,

@@ -17,7 +17,7 @@ dataSources:
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Invoice
@@ -36,7 +36,7 @@ dataSources:
         - name: SmartInvoiceSplitEscrow{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         - name: SmartInvoiceUpdatable{{factoryName}}
-          file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
         {{/v01}}
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
@@ -63,7 +63,7 @@ templates:
       abi: SmartInvoice{{factoryName}}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Invoice
@@ -212,7 +212,7 @@ templates:
         - event: MilestonesAdded(indexed address,indexed address,uint256[])
           handler: handleMilestonesAdded
       file: ./src/mappings/{{factoryName}}/invoice.ts
-      - kind: ethereum/contract
+  - kind: ethereum/contract
     name: SmartInvoiceUpdatable{{factoryName}}
     # prettier-ignore
     network: {{network}}
