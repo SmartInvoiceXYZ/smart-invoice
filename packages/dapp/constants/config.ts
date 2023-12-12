@@ -1,5 +1,3 @@
-import { ChainId } from "../types";
-
 const LexDAOLogo = '../assets/lex-dao.png';
 
 export type Resolver = {
@@ -8,22 +6,7 @@ export type Resolver = {
   termsUrl: string;
 };
 
-export type NetworkConfig = 
-{
-  SUBGRAPH: string;
-  WRAPPED_NATIVE_TOKEN: string;
-  INVOICE_FACTORY: string;
-  RESOLVERS: Record<string, Resolver>;
-}
-
-export type ConfigType = {
-  INFURA_ID?: string;
-  IPFS_ENDPOINT: string;
-  BOX_ENDPOINT: string;
-  NETWORK_CONFIG: Record<ChainId, NetworkConfig>;
-};
-
-export const CONFIG: ConfigType = {
+export const CONFIG = {
   INFURA_ID: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID,
   IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
   BOX_ENDPOINT: 'https://ipfs.3box.io',
@@ -90,8 +73,8 @@ export const CONFIG: ConfigType = {
     },
     42: {
       SUBGRAPH: 'psparacino/v1-kovan-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: '0x000' ,
-      INVOICE_FACTORY:  '0x000' ,
+      WRAPPED_NATIVE_TOKEN: '0x000',
+      INVOICE_FACTORY: '0x000',
       RESOLVERS: {} as Record<string, Resolver>,
     },
     137: {
@@ -140,4 +123,12 @@ export const CONFIG: ConfigType = {
       },
     },
   },
-};
+} as const;
+
+const { NETWORK_CONFIG } = CONFIG;
+
+export type ChainId = keyof typeof NETWORK_CONFIG;
+
+export function isOfTypeChainId(chainId: number): chainId is ChainId {
+  return chainId in NETWORK_CONFIG;
+}

@@ -9,38 +9,35 @@ import { Loader } from '../../../../components/Loader';
 import { getInvoice } from '../../../../graphql/getInvoice';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
+import { Chain, Invoice } from '../../../../types';
 import {
   getHexChainId,
   getIpfsLink,
   getTxLink,
 } from '../../../../utils/helpers';
-import { ChainId, Invoice } from '../../../../types';
 
 function LockedInvoice({
   match: {
     params: { hexChainId, invoiceId },
-  }
+  },
 }: any) {
   const [invoice, setInvoice] = useState<Invoice>();
   const router = useRouter();
-  const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
+  const invoiceChainId = parseInt(hexChainId, 16) as Chain;
 
   useEffect(() => {
-    if (utils.isAddress(invoiceId)) {
+    if (isAddress(invoiceId)) {
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceId, invoiceChainId]);
 
-  if (!utils.isAddress(invoiceId) || invoice === null) {
-    
+  if (!isAddress(invoiceId) || invoice === null) {
     return <InvoiceNotFound />;
   }
 
   if (!invoice) {
     return (
-      
       <Container overlay>
-        
         <Loader size="80" />
       </Container>
     );
@@ -52,14 +49,11 @@ function LockedInvoice({
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
 
   if (!dispute) {
-    
     return <InvoiceNotFound heading="Invoice Not Locked" />;
   }
 
   return (
-    
     <Container overlay>
-      
       <VStack
         w="100%"
         spacing="1rem"
@@ -69,14 +63,12 @@ function LockedInvoice({
         maxW="35rem"
         px="1rem"
       >
-        
         <Heading fontWeight="normal" textAlign="center">
           Funds Securely Locked
         </Heading>
-        
+
         <Text color="white" textAlign="center" fontSize="sm" mb="1rem">
           You can view the transaction{' '}
-          
           <Link
             href={getTxLink(invoiceChainId, dispute.txHash)}
             isExternal
@@ -87,7 +79,6 @@ function LockedInvoice({
           </Link>
           <br />
           You can view the details on IPFS{' '}
-          
           <Link
             href={getIpfsLink(dispute.ipfsHash)}
             isExternal
@@ -97,19 +88,18 @@ function LockedInvoice({
             here
           </Link>
         </Text>
-        
+
         <Text color="white" fontStyle="italic" textAlign="center" mb="1rem">
           Once a decision is made, the funds will be dispersed according to the
           ruling.
           <br />
           Return to the{' '}
-          
           <Link as={NextLink} to={`/invoice/${getHexChainId(network)}/${id}`}>
             <u>invoice details page</u>
           </Link>{' '}
           to view the results.
         </Text>
-        
+
         <Button
           w="100%"
           maxW="30rem"

@@ -1,6 +1,7 @@
 // @ts-expect-error TS(2792): Cannot find module 'base-58'. Did you mean to set ... Remove this comment to see the full error message
 import Base58 from 'base-58';
 import { create } from 'ipfs-http-client';
+import { Hash } from 'viem';
 
 import { INFURA_AUTH, INVOICE_VERSION } from '../constants';
 
@@ -42,7 +43,7 @@ export const uploadMetadata = async (meta: any) => {
   // the graph was failing with CORS error, need to handle failover
   await ipfsInfura.pin.add(hash);
   const bytes = Buffer.from(Base58.decode(hash));
-  return `0x${bytes.slice(2).toString('hex')}`;
+  return `0x${bytes.slice(2).toString('hex')}` as Hash;
 };
 
 export const uploadDisputeDetails = async (meta: any) => {

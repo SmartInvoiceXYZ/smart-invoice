@@ -4,13 +4,13 @@ import { SUPPORTED_NETWORKS } from '../constants';
 import { getGraphUrl } from '../utils/helpers';
 
 export const clients = SUPPORTED_NETWORKS.reduce(
-  (o, chainId) => ({
+  (o, chain) => ({
     ...o,
 
-    [chainId]: createClient({
-      url: getGraphUrl(chainId),
+    [chain]: createClient({
+      url: getGraphUrl(chain),
       exchanges: [dedupExchange, fetchExchange],
-    })
+    }),
   }),
-  {} as Record<number, ReturnType<typeof createClient>>
+  {} as Record<number, ReturnType<typeof createClient>>,
 );

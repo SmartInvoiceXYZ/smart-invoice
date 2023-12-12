@@ -1,15 +1,50 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import { search } from '../graphql/search';
-import { logError } from '../utils/helpers';
+import { Network } from '../types';
+import { logError } from '../utils';
 import { Web3Context } from './Web3Context';
 
-type SearchContextType = {
+/* eslint-disable no-unused-vars */
+export type InvoiceRow = {
+  total: bigint;
+  invoiceType: 'instant' | 'escrow' | 'unknown';
+  address: string;
+  network: Network;
+  token: string;
+  provider: string;
+  recipient: string;
+  amount: number;
+  currency: string;
+  status: string;
+  action: string;
+  createdAt: number;
+  projectName: string;
+  isLocked: boolean;
+  terminationTime: number;
+  currentMilestone: number;
+  amounts: string[];
+  paid: boolean;
+  balance: string;
+  tokenBalance: string;
+  tokenSymbol: string;
+  tokenDecimals: number;
+  tokenName: string;
+  tokenAddress: string;
+  tokenNetwork: string;
+  tokenProvider: string;
+  tokenRecipient: string;
+  tokenPaid: boolean;
+  tokenCurrentMilestone: number;
+  tokenAmounts: string[];
+};
+
+export type SearchContextType = {
   search?: string;
   setSearch: (query: string) => void;
   fetching: boolean;
-  result?: any;
   loading: boolean;
+  result?: InvoiceRow[];
 };
 
 export const SearchContext = createContext<SearchContextType>({
@@ -18,20 +53,18 @@ export const SearchContext = createContext<SearchContextType>({
   loading: false,
 });
 
-export function SearchContextProvider({
-  children
-}: any) {
-  const { chainId } = useContext(Web3Context);
+export function SearchContextProvider({ children }: any) {
+  const { chain } = useContext(Web3Context);
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState<any>();
+  const [result, setResult] = useState<InvoiceRow[]>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (query) {
+    if (chain && query) {
       setFetching(true);
       setLoading(true);
-      search(chainId, query)
+      search(chain, query)
         .then(res => {
           setResult(res);
           setFetching(false);
@@ -46,13 +79,21 @@ export function SearchContextProvider({
     } else {
       setResult(undefined);
     }
-  }, [chainId, query]);
+  }, [chain, query]);
+
+  const returnValue = useMemo(
+    () => ({
+      search: query,
+      setSearch: setQuery,
+      fetching,
+      loading,
+      result,
+    }),
+    [query, fetching, loading, result],
+  );
 
   return (
-    
-    <SearchContext.Provider
-      value={{ search: query, setSearch: setQuery, fetching, result, loading }}
-    >
+    <SearchContext.Provider value={returnValue}>
       {children}
     </SearchContext.Provider>
   );

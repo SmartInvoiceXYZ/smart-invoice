@@ -8,15 +8,15 @@ import { CreateContext } from '../context/CreateContext';
 import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
+import { Invoice } from '../types';
 import { copyToClipboard, getHexChainId, getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
-import { Invoice } from '../types';
 
 const POLL_INTERVAL = 5000;
 
 export function RegisterSuccess() {
-  const { chainId, provider } = useContext(Web3Context);
+  const { chain, provider } = useContext(Web3Context);
   const { tx } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState();
   const [invoice, setInvoice] = useState<Invoice>();
@@ -30,13 +30,13 @@ export function RegisterSuccess() {
   }, [tx, provider]);
 
   useEffect(() => {
-    if (!chainId || !invoiceId || !utils.isAddress(invoiceId) || !!invoice)
+    if (!chain || !invoiceId || !utils.isAddress(invoiceId) || !!invoice)
       return () => undefined;
 
     let isSubscribed = true;
 
     const interval = setInterval(() => {
-      getInvoice(chainId, invoiceId).then(inv => {
+      getInvoice(chain, invoiceId).then(inv => {
         if (isSubscribed && !!inv) {
           setInvoice(inv);
         }
@@ -47,7 +47,7 @@ export function RegisterSuccess() {
       isSubscribed = false;
       clearInterval(interval);
     };
-  }, [chainId, invoiceId, invoice]);
+  }, [chain, invoiceId, invoice]);
 
   return (
     <VStack
@@ -63,14 +63,14 @@ export function RegisterSuccess() {
         {invoice ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
 
-      {chainId && tx?.hash && (
+      {chain && tx?.hash && (
         <Text color="black" textAlign="center" fontSize="sm">
           {invoice
             ? 'You can view your transaction '
             : 'You can check the progress of your transaction '}
 
           <Link
-            href={getTxLink(chainId, tx.hash)}
+            href={getTxLink(chain, tx.hash)}
             isExternal
             color="blue"
             textDecoration="underline"

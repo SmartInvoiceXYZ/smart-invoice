@@ -1,206 +1,324 @@
-import { Contract, utils } from 'ethers';
+import {
+  Address,
+  Chain,
+  Hash,
+  Hex,
+  WalletClient,
+  isAddress,
+  isHex,
+} from 'viem';
 
-import { getInvoiceFactoryAddress, logError } from './helpers';
+import {
+  ISmartInvoiceEscrowAbi,
+  ISmartInvoiceFactoryAbi,
+  ISmartInvoiceInstantAbi,
+} from '../abi';
+import { readContract, writeContract } from './contracts';
+import { logError } from './helpers';
 
 export const register = async (
-  factoryAddress: any,
-  ethersProvider: any,
-  provider: any,
-  amounts: any,
-  data: any,
-  type: any,
+  address: Address,
+  walletClient: WalletClient,
+  recipient: Address,
+  amounts: bigint[],
+  data: Hex,
+  type: Hex,
 ) => {
-  const abi = new utils.Interface([
-    'function create(address _recipient, uint256[] calldata _amounts, bytes _data, bytes32 _type) public',
-  ]);
-  const contract = new Contract(
-    factoryAddress,
-    abi,
-    ethersProvider.getSigner(),
-  );
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!isAddress(recipient)) throw new Error('Invalid recipient');
+  if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
+  if (!isHex(data)) throw new Error('Invalid data');
+  if (!isHex(type)) throw new Error('Invalid type');
 
-  return contract.create(provider, amounts, data, type);
+  return writeContract({
+    abi: ISmartInvoiceFactoryAbi,
+    address,
+    walletClient,
+    functionName: 'create',
+    args: [recipient, amounts, data, type],
+  });
 };
+
+// export const awaitInvoiceAddress = async (ethersProvider: any, tx: any) => {
+//   await tx.wait(1);
+//   const abi = parseAbi([
+//     'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
+//   ]);
+//   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
+//   const eventFragment = abi.events[Object.keys(abi.events)[0]];
+//   const eventTopic = abi.getEventTopic(eventFragment);
+//   const event = receipt.logs.find((e: any) => e.topics[0] === eventTopic);
+//   if (event) {
+//     const decodedLog = abi.decodeEventLog(
+//       eventFragment,
+//       event.data,
+//       event.topics,
+//     );
+//     return decodedLog.invoice;
+//   }
+//   return '';
+// };
 
 export const getResolutionRateFromFactory = async (
-  chainId: ChainId,
-  ethersProvider: any,
-  resolver: any,
+  address: Address,
+  chain: Chain,
+  resolver: Address,
+  defaultValue: number = 20,
 ) => {
-  if (!utils.isAddress(resolver)) return 20;
+  if (!isAddress(resolver)) return defaultValue;
   try {
-    const abi = new utils.Interface([
-      'function resolutionRates(address resolver) public view returns (uint256)',
-    ]);
-    const contract = new Contract(
-      getInvoiceFactoryAddress(chainId),
-      abi,
-      ethersProvider,
-    );
-
-    const resolutionRate = Number(await contract.resolutionRates(resolver));
-    return resolutionRate > 0 ? resolutionRate : 20;
+    const [resolutionRate] = await readContract({
+      abi: ISmartInvoiceFactoryAbi,
+      address,
+      chain,
+      functionName: 'resolutionRateOf',
+      args: [resolver],
+    });
+    return resolutionRate > 0 ? resolutionRate : defaultValue;
   } catch (resolutionRateError) {
     logError({ resolutionRateError });
-    return 20;
+    return defaultValue;
   }
 };
 
-export const awaitInvoiceAddress = async (ethersProvider: any, tx: any) => {
-  await tx.wait(1);
-  const abi = new utils.Interface([
-    'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
-  ]);
-  const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
-  const eventFragment = abi.events[Object.keys(abi.events)[0]];
-  const eventTopic = abi.getEventTopic(eventFragment);
-  const event = receipt.logs.find((e: any) => e.topics[0] === eventTopic);
-  if (event) {
-    const decodedLog = abi.decodeEventLog(
-      eventFragment,
-      event.data,
-      event.topics,
-    );
-    return decodedLog.invoice;
-  }
-  return '';
+export const release = async (walletClient: WalletClient, address: Address) => {
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'release',
+    args: [],
+  });
 };
 
-export const release = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface(['function release() public']);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.release();
-};
+export const withdraw = async (
+  walletClient: WalletClient,
+  address: Address,
+) => {
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
 
-export const withdraw = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface(['function withdraw() public']);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.withdraw();
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'withdraw',
+    args: [],
+  });
 };
 
 export const lock = async (
-  ethersProvider: any,
-  address: any,
-  detailsHash: any, // 32 bits hex
+  walletClient: WalletClient,
+  address: Address,
+  detailsHash: Hash, // 32 bits hex
 ) => {
-  const abi = new utils.Interface(['function lock(bytes32 details) external']);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.lock(detailsHash);
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!isHex(detailsHash)) throw new Error('Invalid details hash');
+
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'lock',
+    args: [detailsHash],
+  });
 };
 
 export const resolve = async (
-  ethersProvider: any,
-  address: any,
+  walletClient: WalletClient,
+  address: Address,
   clientAward: any,
   providerAward: any,
-  detailsHash: any, // 32 bits hex
+  detailsHash: Hash, // 32 bits hex
 ) => {
-  const abi = new utils.Interface([
-    'function resolve(uint256 clientAward, uint256 providerAward, bytes32 details) external',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.resolve(clientAward, providerAward, detailsHash);
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!isHex(detailsHash)) throw new Error('Invalid details hash');
+
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'resolve',
+    args: [clientAward, providerAward, detailsHash],
+  });
 };
 
-export const addMilestones = async (ethersProvider: any, address: any, amounts: any) => {
-  const abi = new utils.Interface([
-    'function addMilestones(uint256[] calldata _milestones) external',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.addMilestones(amounts);
+export const addMilestones = async (
+  walletClient: WalletClient,
+  address: Address,
+  amounts: bigint[],
+) => {
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
+
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'addMilestones',
+    args: [amounts],
+  });
 };
+
 export const addMilestonesWithDetails = async (
-  ethersProvider: any,
-  address: any,
-  amounts: any,
-  details: any,
+  walletClient: WalletClient,
+  address: Address,
+  amounts: bigint[],
+  details: Hex,
 ) => {
-  const abi = new utils.Interface([
-    'function addMilestones(uint256[] calldata _milestones, bytes32 _details) external',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.addMilestones(amounts, details);
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
+  if (!isHex(details)) throw new Error('Invalid details');
+
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'addMilestones',
+    args: [amounts, details],
+  });
 };
 
-export const verify = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface(['function verify() external']);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.verify();
-};
+export const verify = async (walletClient: WalletClient, address: Address) => {
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
 
-export const unixToDateTime = (unixTimestamp: any) => {
-  const milliseconds = unixTimestamp * 1000;
-
-  const dateObject = new Date(milliseconds);
-
-  const humanDateFormat = dateObject.toLocaleString();
-
-  return humanDateFormat;
+  return writeContract({
+    abi: ISmartInvoiceEscrowAbi,
+    address,
+    walletClient,
+    functionName: 'verify',
+    args: [],
+  });
 };
 
 // Functions for Instant type
-export const getTotalDue = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface([
-    'function getTotalDue() public view returns(uint256)',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider);
-  return contract.getTotalDue();
+export const getTotalDue = async (chain: Chain, address: Address) => {
+  if (!chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+
+  return readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'getTotalDue',
+    args: [],
+  });
 };
 
-export const getTotalFulfilled = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface([
-    'function totalFulfilled() public view returns(uint256)',
-    'function fulfilled() public view returns (bool)',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider);
-  return {
-    amount: await contract.totalFulfilled(),
-    isFulfilled: await contract.fulfilled(),
-  };
+export const getTotalFulfilled = async (chain: Chain, address: Address) => {
+  if (!chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+
+  const amount = await readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'totalFulfilled',
+    args: [],
+  });
+
+  const isFulfilled = await readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'fulfilled',
+    args: [],
+  });
+
+  return { amount, isFulfilled };
 };
 
-export const getDeadline = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface([
-    'function deadline() public view returns(uint256)',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider);
-  return contract.deadline();
+export const getDeadline = async (chain: Chain, address: Address) => {
+  if (!chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+
+  return readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'deadline',
+    args: [],
+  });
 };
 
-export const getLateFee = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface([
-    'function lateFee() public view returns(uint256)',
-    'function lateFeeTimeInterval() public view returns (uint256)',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider);
-  return {
-    amount: await contract.lateFee(),
-    timeInterval: await contract.lateFeeTimeInterval(),
-  };
+export const getLateFee = async (chain: Chain, address: Address) => {
+  if (!chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+
+  const amount = await readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'lateFee',
+    args: [],
+  });
+
+  const timeInterval = await readContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    chain,
+    functionName: 'lateFeeTimeInterval',
+    args: [],
+  });
+
+  return { amount, timeInterval };
 };
 
 export const depositTokens = async (
-  ethersProvider: any,
-  address: any,
-  tokenAddress: any,
-  amount: any,
+  walletClient: WalletClient,
+  address: Address,
+  tokenAddress: Address,
+  amount: bigint,
 ) => {
-  const abi = new utils.Interface([
-    'function depositTokens(address _token, uint256 _amount) external',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.depositTokens(tokenAddress, amount);
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!isAddress(tokenAddress)) throw new Error('Invalid token address');
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  return writeContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    walletClient,
+    functionName: 'depositTokens',
+    args: [tokenAddress, amount],
+  });
 };
 
 export const tipTokens = async (
-  ethersProvider: any,
-  address: any,
-  tokenAddress: any,
-  amount: any,
+  walletClient: WalletClient,
+  address: Address,
+  tokenAddress: Address,
+  amount: bigint,
 ) => {
-  const abi = new utils.Interface([
-    'function tip(address _token, uint256 _amount) external',
-  ]);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.tip(tokenAddress, amount);
+  if (!walletClient) throw new Error('Invalid wallet client');
+  if (!walletClient.chain) throw new Error('Invalid chain');
+  if (!isAddress(address)) throw new Error('Invalid address');
+  if (!isAddress(tokenAddress)) throw new Error('Invalid token address');
+  if (amount <= 0) throw new Error('Invalid amount');
+
+  return writeContract({
+    abi: ISmartInvoiceInstantAbi,
+    address,
+    walletClient,
+    functionName: 'tip',
+    args: [tokenAddress, amount],
+  });
 };

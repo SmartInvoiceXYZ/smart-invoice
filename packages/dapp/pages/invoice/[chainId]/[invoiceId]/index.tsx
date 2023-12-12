@@ -1,6 +1,7 @@
-import { BigNumber, utils } from 'ethers';
 import { useRouter } from 'next/router';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { formatUnits, isAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 /* eslint-disable react/no-array-index-key */
 import {
@@ -21,7 +22,7 @@ import {
   VStack,
   Wrap,
   WrapItem,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { AddMilestones } from '../../../../components/AddMilestones';
@@ -33,7 +34,6 @@ import { ReleaseFunds } from '../../../../components/ReleaseFunds';
 import { ResolveFunds } from '../../../../components/ResolveFunds';
 import { VerifyInvoice } from '../../../../components/VerifyInvoice';
 import { WithdrawFunds } from '../../../../components/WithdrawFunds';
-import { Web3Context } from '../../../../context/Web3Context';
 import { getInvoice } from '../../../../graphql/getInvoice';
 import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
 import { CopyIcon } from '../../../../icons/CopyIcon';
@@ -41,6 +41,7 @@ import { QuestionIcon } from '../../../../icons/QuestionIcon';
 import { AccountLink } from '../../../../shared/AccountLink';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
+import { Invoice } from '../../../../types';
 import { balanceOf } from '../../../../utils/erc20';
 import {
   copyToClipboard,
@@ -53,36 +54,31 @@ import {
   getTxLink,
   logError,
 } from '../../../../utils/helpers';
-import { ChainId, Invoice } from '../../../../types';
 
 function ViewInvoice() {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
   const router = useRouter();
-  const { invoiceId: invId, chainId: hexChainId } = router.query;
+  const { invoiceId: invId, chain: hexChainId } = router.query;
   const invoiceId = String(invId) as `0x${string}`;
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState<Invoice>();
   const [balanceLoading, setBalanceLoading] = useState(true);
-  const [balance, setBalance] = useState(BigNumber.from(0));
+  const [balance, setBalance] = useState(BigInt(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
-  const invoiceChainId = parseInt(String(hexChainId), 16) as ChainId;
+  const invoiceChainId = parseInt(String(hexChainId), 16);
   const [verifiedStatus, setVerifiedStatus] = useState(false);
 
   useEffect(() => {
-    if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
+    if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
       getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
-    if (invoice && ethersProvider && chainId === invoiceChainId) {
+    if (invoice && walletClient?.chain?.id === invoiceChainId) {
       setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
+      balanceOf(walletClient.chain, invoice.token, invoice.address)
         .then(b => {
           setBalance(b);
           setBalanceLoading(false);
@@ -92,12 +88,12 @@ function ViewInvoice() {
           setBalanceLoading(false);
         });
     }
-  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+  }, [invoice, walletClient?.chain, invoiceChainId]);
 
   useEffect(() => {
-    if (invoice && ethersProvider && chainId === invoiceChainId) {
+    if (invoice && walletClient?.chain?.id === invoiceChainId) {
       setBalanceLoading(true);
-      balanceOf(ethersProvider, invoice.token, invoice.address)
+      balanceOf(walletClient.chain, invoice.token, invoice.address)
         .then(b => {
           setBalance(b);
           setBalanceLoading(false);
@@ -107,7 +103,7 @@ function ViewInvoice() {
           setBalanceLoading(false);
         });
     }
-  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+  }, [invoice, walletClient?.chain, invoiceChainId]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -115,23 +111,19 @@ function ViewInvoice() {
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   const smallScreen = useBreakpointValue({ base: true, sm: false });
 
-  if (!utils.isAddress(invoiceId) || invoice === null) {
-    
+  if (!isAddress(invoiceId) || invoice === null) {
     return <InvoiceNotFound />;
   }
 
-  if (invoice && chainId !== invoiceChainId) {
+  if (invoice && walletClient?.chain?.id !== invoiceChainId) {
     return (
-      
-      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+      <InvoiceNotFound chain={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
   if (!invoice || balanceLoading) {
     return (
-      
       <Container overlay>
-        
         <Loader size="80" />
       </Container>
     );
@@ -160,21 +152,20 @@ function ViewInvoice() {
     verified,
   } = invoice;
 
-  const isClient = account?.toLowerCase() === client;
-  const isResolver = account?.toLowerCase() === resolver.toLowerCase();
+  const account = walletClient?.account?.address?.toLowerCase();
+  const isClient = account === client;
+  const isResolver = account === resolver.toLowerCase();
   const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
 
-  const deposited = BigNumber.from(released).add(balance);
-  const due = deposited.gte(total)
-    ? BigNumber.from(0)
-    : BigNumber.from(total).sub(deposited);
+  const deposited = BigInt(released) + balance;
+  const due = deposited >= total ? BigInt(0) : BigInt(total) - deposited;
   const isExpired = terminationTime <= new Date().getTime() / 1000;
 
-  const amount = BigNumber.from(
+  const amount = BigInt(
     currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
   );
-  const isReleasable = !isLocked && balance.gte(amount) && balance.gt(0);
-  const isLockable = !isExpired && !isLocked && balance.gt(0);
+  const isReleasable = !isLocked && balance > amount && balance > 0;
+  const isLockable = !isExpired && !isLocked && balance > 0;
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
   const resolution =
@@ -221,20 +212,18 @@ function ViewInvoice() {
   };
 
   let gridColumns;
-  if (isReleasable && (isLockable || (isExpired && balance.gt(0)))) {
+  if (isReleasable && (isLockable || (isExpired && balance > 0))) {
     gridColumns = { base: 2, sm: 3 };
-  } else if (isLockable || isReleasable || (isExpired && balance.gt(0))) {
+  } else if (isLockable || isReleasable || (isExpired && balance > 0)) {
     gridColumns = 2;
   } else {
     gridColumns = 1;
   }
 
-  let sum = BigNumber.from(0);
+  let sum = BigInt(0);
 
   return (
-    
     <Container overlay>
-      
       <Stack
         spacing="2rem"
         justify="center"
@@ -244,7 +233,6 @@ function ViewInvoice() {
         px="1rem"
         py="8rem"
       >
-        
         <Stack
           spacing="1rem"
           minW={leftMinW}
@@ -254,15 +242,12 @@ function ViewInvoice() {
           align="stretch"
           direction="column"
         >
-          
           <VStack align="stretch" justify="center">
-            
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
-            
+
             <Flex align="center" color="black">
-              
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
@@ -270,7 +255,6 @@ function ViewInvoice() {
                 {getAccountString(invoiceId)}
               </Link>
               {document.queryCommandSupported('copy') && (
-                
                 <Button
                   ml={4}
                   onClick={() => copyToClipboard(invoiceId.toLowerCase())}
@@ -281,17 +265,14 @@ function ViewInvoice() {
                   minW="2"
                   p={2}
                 >
-                  
                   <CopyIcon boxSize={4} />
                 </Button>
               )}
             </Flex>
             {projectDescription && (
-              
               <Text color="black">{projectDescription}</Text>
             )}
 
-            
             <Link
               href={getAgreementLink(projectAgreement)}
               isExternal
@@ -301,121 +282,94 @@ function ViewInvoice() {
               Details of Agreement
             </Link>
           </VStack>
-          
+
           <VStack fontSize="sm" color="grey" align="stretch" justify="center">
             {startDate && (
-              
               <Wrap>
-                
                 <WrapItem>
-                  
                   <Text>{'Project Start Date: '}</Text>
                 </WrapItem>
-                
+
                 <WrapItem>
-                  
                   <Text fontWeight="bold">{getDateString(startDate)}</Text>
                 </WrapItem>
               </Wrap>
             )}
             {endDate && (
-              
               <Wrap>
-                
                 <WrapItem>
-                  
                   <Text>{'Project End Date: '}</Text>
                 </WrapItem>
-                
+
                 <WrapItem>
-                  
                   <Text fontWeight="bold">{getDateString(endDate)}</Text>
                 </WrapItem>
               </Wrap>
             )}
-            
+
             <Wrap>
-              
               <WrapItem>
-                
                 <Text>{'Safety Valve Withdrawal Date: '}</Text>
               </WrapItem>
-              
+
               <WrapItem>
-                
                 <Text fontWeight="bold">{getDateString(terminationTime)}</Text>
-                
+
                 <Tooltip
                   label={`The Safety Valve gets activated on ${new Date(
                     terminationTime * 1000,
                   ).toUTCString()}`}
                   placement="auto-start"
                 >
-                  
                   <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
                 </Tooltip>
               </WrapItem>
             </Wrap>
-            
+
             <Wrap>
-              
               <WrapItem>
-                
                 <Text>{'Client Account: '}</Text>
               </WrapItem>
-              
+
               <WrapItem fontWeight="bold">
-                
-                <AccountLink address={client} chainId={invoiceChainId} />
+                <AccountLink address={client} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
-            
+
             <Wrap>
-              
               <WrapItem>
-                
                 <Text>{'Provider Account: '}</Text>
               </WrapItem>
-              
+
               <WrapItem fontWeight="bold">
-                
-                <AccountLink address={provider} chainId={invoiceChainId} />
+                <AccountLink address={provider} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
-            
+
             <Wrap>
-              
               <WrapItem>
-                
                 <Text>{'Arbitration Provider: '}</Text>
               </WrapItem>
-              
+
               <WrapItem fontWeight="bold">
-                
-                <AccountLink address={resolver} chainId={invoiceChainId} />
+                <AccountLink address={resolver} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
-            
+
             <Wrap>
-              
               <WrapItem>
-                
                 <Text>{'Non-Client Deposits Enabled: '}</Text>
               </WrapItem>
-              
+
               <WrapItem fontWeight="bold">
                 {invoice && verifiedStatus ? (
-                  
                   <Text color="green">Enabled!</Text>
                 ) : (
-                  
                   <Text color="red">Not enabled</Text>
                 )}
               </WrapItem>
 
-              
               <WrapItem fontWeight="bold">
-                
                 <VerifyInvoice
                   invoice={invoice}
                   client={client}
@@ -426,9 +380,8 @@ function ViewInvoice() {
                 />
               </WrapItem>
             </Wrap>
-            
+
             <Wrap>
-              
               <GenerateInvoicePDF
                 invoice={invoice}
                 symbol={symbol}
@@ -437,14 +390,13 @@ function ViewInvoice() {
             </Wrap>
           </VStack>
         </Stack>
-        
+
         <VStack
           spacing={{ base: '2rem', lg: '1.5rem' }}
           w="100%"
           align="stretch"
           maxW={rightMaxW}
         >
-          
           <Button
             maxW="fit-content"
             alignSelf="flex-end"
@@ -457,7 +409,7 @@ function ViewInvoice() {
           >
             Add Milestones
           </Button>
-          
+
           <Flex
             bg="background"
             direction="column"
@@ -468,7 +420,6 @@ function ViewInvoice() {
             w="100%"
             color="black"
           >
-            
             <Flex
               justify="space-between"
               align="center"
@@ -476,48 +427,45 @@ function ViewInvoice() {
               fontSize="lg"
               mb="1rem"
             >
-              
               <Text>
                 {smallScreen ? 'Total Amount' : 'Total Project Amount'}
               </Text>
-              
-              <Text>{`${utils.formatUnits(total, decimals)} ${symbol}`}</Text>
+
+              <Text>{`${formatUnits(BigInt(total), decimals)} ${symbol}`}</Text>
             </Flex>
-            
+
             <VStack
               pl={{ base: '0.5rem', md: '1rem' }}
               align="stretch"
               spacing="0.25rem"
             >
               {amounts.map((amt: any, index: any) => {
-                let tot = BigNumber.from(0);
+                let tot = BigInt(0);
                 let ind = -1;
                 let full = false;
                 if (deposits.length > 0) {
                   for (let i = 0; i < deposits.length; i += 1) {
-                    tot = tot.add(deposits[i].amount);
-                    if (tot.gt(sum)) {
+                    tot += deposits[i].amount;
+                    if (tot > sum) {
                       ind = i;
-                      if (tot.sub(sum).gte(amt)) {
+                      if (tot - sum >= amt) {
                         full = true;
                         break;
                       }
                     }
                   }
                 }
-                sum = sum.add(amt);
+                sum += amt;
 
                 return (
-                  
                   <Flex
                     key={index.toString()}
                     justify="space-between"
                     align={{ base: 'stretch', sm: 'center' }}
                     direction={{ base: 'column', sm: 'row' }}
                   >
-                    
                     <Text>Payment Milestone #{index + 1}</Text>
-                    
+
                     <HStack
                       spacing={{ base: '0.5rem', md: '1rem' }}
                       align="center"
@@ -525,7 +473,6 @@ function ViewInvoice() {
                       ml={{ base: '0.5rem', md: '1rem' }}
                     >
                       {index < currentMilestone && releases.length > index && (
-                        
                         <Link
                           fontSize="xs"
                           isExternal
@@ -544,7 +491,6 @@ function ViewInvoice() {
                       )}
                       {!(index < currentMilestone && releases.length > index) &&
                         ind !== -1 && (
-                          
                           <Link
                             fontSize="xs"
                             isExternal
@@ -561,49 +507,46 @@ function ViewInvoice() {
                             ).toLocaleDateString()}
                           </Link>
                         )}
-                      
-                      <Text
-                        textAlign="right"
-                        fontWeight="500"
-                      >{`${utils.formatUnits(amt, decimals)} ${symbol}`}</Text>
+
+                      <Text textAlign="right" fontWeight="500">{`${formatUnits(
+                        amt,
+                        decimals,
+                      )} ${symbol}`}</Text>
                     </HStack>
                   </Flex>
                 );
               })}
             </VStack>
-            
+
             <Divider
               w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
               ml={{ base: '-1rem', md: '-2rem' }}
               my="1rem"
             />
-            
+
             <VStack
               pl={{ base: '0.5rem', md: '1rem' }}
               align="stretch"
               spacing="0.25rem"
             >
-              
               <Flex justify="space-between" align="center">
-                
                 <Text>{smallScreen ? '' : 'Total '}Deposited</Text>
-                
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
+
+                <Text fontWeight="500" textAlign="right">{`${formatUnits(
                   deposited,
                   decimals,
                 )} ${symbol}`}</Text>
               </Flex>
-              
+
               <Flex justify="space-between" align="center">
-                
                 <Text>{smallScreen ? '' : 'Total '}Released</Text>
-                
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
-                  released,
+
+                <Text fontWeight="500" textAlign="right">{`${formatUnits(
+                  BigInt(released),
                   decimals,
                 )} ${symbol}`}</Text>
               </Flex>
-              
+
               <Flex
                 justify="space-between"
                 align="center"
@@ -613,23 +556,21 @@ function ViewInvoice() {
                     : undefined
                 }
               >
-                
                 <Text>Remaining{smallScreen ? '' : ' Amount Due'}</Text>
-                
-                <Text fontWeight="500" textAlign="right">{`${utils.formatUnits(
+
+                <Text fontWeight="500" textAlign="right">{`${formatUnits(
                   due,
                   decimals,
                 )} ${symbol}`}</Text>
               </Flex>
             </VStack>
-            
+
             <Divider
               w={{ base: 'calc(100% + 2rem)', md: 'calc(100% + 4rem)' }}
               ml={{ base: '-1rem', md: '-2rem' }}
               my="1rem"
             />
             {!dispute && !resolution && (
-              
               <Flex
                 justify="space-between"
                 align="center"
@@ -637,21 +578,16 @@ function ViewInvoice() {
                 fontWeight="bold"
                 fontSize="lg"
               >
-                {isExpired || (due.eq(0) && !isReleasable) ? (
-                  
+                {isExpired || (due === BigInt(0) && !isReleasable) ? (
                   <>
-                    
                     <Text>Remaining Balance</Text>
-                    
-                    <Text textAlign="right">{`${utils.formatUnits(
+                    <Text textAlign="right">{`${formatUnits(
                       balance,
                       decimals,
                     )} ${symbol}`}</Text>{' '}
                   </>
                 ) : (
-                  
                   <>
-                    
                     <Text>
                       {isReleasable &&
                         (smallScreen
@@ -660,9 +596,9 @@ function ViewInvoice() {
                       {!isReleasable &&
                         (smallScreen ? 'Due Today' : 'Total Due Today')}
                     </Text>
-                    
-                    <Text textAlign="right">{`${utils.formatUnits(
-                      isReleasable ? amount : amount.sub(balance),
+
+                    <Text textAlign="right">{`${formatUnits(
+                      isReleasable ? amount : amount - balance,
                       decimals,
                     )} ${symbol}`}</Text>
                   </>
@@ -670,35 +606,32 @@ function ViewInvoice() {
               </Flex>
             )}
             {dispute && (
-              
               <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
-                
                 <Flex
                   justify="space-between"
                   align="center"
                   fontWeight="bold"
                   fontSize="lg"
                 >
-                  
                   <Text>Amount Locked</Text>
-                  
-                  <Text textAlign="right">{`${utils.formatUnits(
+
+                  <Text textAlign="right">{`${formatUnits(
                     balance,
                     decimals,
                   )} ${symbol}`}</Text>
                 </Flex>
-                
+
                 <Text>
                   {`A dispute is in progress with `}
-                  
-                  <AccountLink address={resolver} chainId={invoiceChainId} />
+
+                  <AccountLink address={resolver} chain={invoiceChainId} />
                   <br />
-                  
+
                   <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
                     <u>View details on IPFS</u>
                   </Link>
                   <br />
-                  
+
                   <Link
                     href={getTxLink(invoiceChainId, dispute.txHash)}
                     isExternal
@@ -709,51 +642,42 @@ function ViewInvoice() {
               </VStack>
             )}
             {resolution && (
-              
               <VStack w="100%" align="stretch" spacing="1rem" color="red.500">
-                
                 <Flex
                   justify="space-between"
                   align="center"
                   fontWeight="bold"
                   fontSize="lg"
                 >
-                  
                   <Text>Amount Dispersed</Text>
-                  
-                  <Text textAlign="right">{`${utils.formatUnits(
-                    BigNumber.from(resolution.clientAward)
-                      .add(resolution.providerAward)
-                      .add(
-                        resolution.resolutionFee ? resolution.resolutionFee : 0,
-                      ),
+
+                  <Text textAlign="right">{`${formatUnits(
+                    BigInt(resolution.clientAward) +
+                      resolution.providerAward +
+                      (resolution.resolutionFee
+                        ? resolution.resolutionFee
+                        : BigInt(0)),
                     decimals,
                   )} ${symbol}`}</Text>
                 </Flex>
-                
+
                 <Flex
                   justify="space-between"
                   direction={{ base: 'column', sm: 'row' }}
                 >
-                  
                   <Flex flex={1}>
-                    
                     <Text textAlign={{ base: 'center', sm: 'left' }}>
-                      
-                      <AccountLink
-                        address={resolver}
-                        chainId={invoiceChainId}
-                      />
+                      <AccountLink address={resolver} chain={invoiceChainId} />
                       {
                         ' has resolved the dispute and dispersed remaining funds'
                       }
                       <br />
-                      
+
                       <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
                         <u>View details on IPFS</u>
                       </Link>
                       <br />
-                      
+
                       <Link
                         href={getTxLink(invoiceChainId, resolution.txHash)}
                         isExternal
@@ -762,46 +686,42 @@ function ViewInvoice() {
                       </Link>
                     </Text>
                   </Flex>
-                  
+
                   <VStack
                     spacing="0.5rem"
                     mt={{ base: '1rem', sm: '0' }}
                     align={{ base: 'center', sm: 'stretch' }}
                   >
-                    {resolution.resolutionFee && (
-                      
+                    {resolution.resolutionFee ? (
                       <Text textAlign="right">
-                        {`${utils.formatUnits(
-                          BigNumber.from(resolution.resolutionFee),
+                        {`${formatUnits(
+                          BigInt(resolution.resolutionFee),
                           decimals,
                         )} ${symbol} to `}
-                        
+
                         <AccountLink
                           address={resolver}
-                          chainId={invoiceChainId}
+                          chain={invoiceChainId}
                         />
                       </Text>
-                    )}
-                    
+                    ) : null}
+
                     <Text textAlign="right">
-                      {`${utils.formatUnits(
-                        BigNumber.from(resolution.clientAward),
+                      {`${formatUnits(
+                        BigInt(resolution.clientAward),
                         decimals,
                       )} ${symbol} to `}
-                      
-                      <AccountLink address={client} chainId={invoiceChainId} />
+
+                      <AccountLink address={client} chain={invoiceChainId} />
                     </Text>
-                    
+
                     <Text textAlign="right">
-                      {`${utils.formatUnits(
-                        BigNumber.from(resolution.providerAward),
+                      {`${formatUnits(
+                        BigInt(resolution.providerAward),
                         decimals,
                       )} ${symbol} to `}
-                      
-                      <AccountLink
-                        address={provider}
-                        chainId={invoiceChainId}
-                      />
+
+                      <AccountLink address={provider} chain={invoiceChainId} />
                     </Text>
                   </VStack>
                 </Flex>
@@ -809,10 +729,8 @@ function ViewInvoice() {
             )}
           </Flex>
           {isResolver && (
-            
             <SimpleGrid columns={1} spacing="1rem" w="100%">
               {isLocked ? (
-                
                 <Button
                   size={buttonSize}
                   colorScheme="red"
@@ -824,7 +742,6 @@ function ViewInvoice() {
                   Resolve
                 </Button>
               ) : (
-                
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -843,10 +760,8 @@ function ViewInvoice() {
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && isClient && (
-            
             <SimpleGrid columns={gridColumns} spacing="1rem" w="100%">
               {isLockable && (
-                
                 <Button
                   size={buttonSize}
                   colorScheme="red"
@@ -858,8 +773,7 @@ function ViewInvoice() {
                   Lock
                 </Button>
               )}
-              {isExpired && balance.gt(0) && (
-                
+              {isExpired && balance > 0 && (
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -875,7 +789,6 @@ function ViewInvoice() {
                 </Button>
               )}
               {isReleasable && (
-                
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -890,7 +803,7 @@ function ViewInvoice() {
                   Deposit
                 </Button>
               )}
-              
+
               <Button
                 size={buttonSize}
                 gridArea={{
@@ -913,18 +826,15 @@ function ViewInvoice() {
             </SimpleGrid>
           )}
           {!dispute && !resolution && !isResolver && !isClient && (
-            
             <VStack>
               {verifiedStatus ? null : (
-                
                 <Text fontWeight="bold" margin="0 auto">
                   Client has not yet enabled non-client deposits
                 </Text>
               )}
-              
+
               <SimpleGrid columns={isLockable ? 2 : 1} spacing="1rem" w="100%">
                 {isLockable && (
-                  
                   <Button
                     size={buttonSize}
                     colorScheme="red"
@@ -937,7 +847,6 @@ function ViewInvoice() {
                   </Button>
                 )}
 
-                
                 <Button
                   size={buttonSize}
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -956,11 +865,9 @@ function ViewInvoice() {
             </VStack>
           )}
         </VStack>
-        
+
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
-          
           <ModalOverlay>
-            
             <ModalContent
               p="2rem"
               maxW="40rem"
@@ -968,7 +875,6 @@ function ViewInvoice() {
               borderRadius="0.5rem"
               color="white"
             >
-              
               <ModalCloseButton
                 _hover={{ bgColor: 'white20' }}
                 top="0.5rem"
@@ -976,7 +882,6 @@ function ViewInvoice() {
                 color="gray"
               />
               {modal && selected === 0 && (
-                
                 <LockFunds
                   invoice={invoice}
                   balance={balance}
@@ -985,7 +890,6 @@ function ViewInvoice() {
                 />
               )}
               {modal && selected === 1 && (
-                
                 <DepositFunds
                   invoice={invoice}
                   deposited={deposited}
@@ -995,7 +899,6 @@ function ViewInvoice() {
                 />
               )}
               {modal && selected === 2 && (
-                
                 <ReleaseFunds
                   invoice={invoice}
                   balance={balance}
@@ -1004,7 +907,6 @@ function ViewInvoice() {
                 />
               )}
               {modal && selected === 3 && (
-                
                 <ResolveFunds
                   invoice={invoice}
                   balance={balance}
@@ -1013,7 +915,6 @@ function ViewInvoice() {
                 />
               )}
               {modal && selected === 4 && (
-                
                 <WithdrawFunds
                   invoice={invoice}
                   balance={balance}
@@ -1022,10 +923,9 @@ function ViewInvoice() {
                 />
               )}
               {modal && selected === 5 && (
-                
                 <AddMilestones
                   invoice={invoice}
-                  deposited={deposited}
+                  // deposited={deposited}
                   due={due}
                   tokenData={tokenData}
                   close={() => setModal(false)}

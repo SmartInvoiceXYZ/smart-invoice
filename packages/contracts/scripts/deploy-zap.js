@@ -87,11 +87,11 @@ async function main() {
     getWrappedTokenAddress(chainId), //     wrapped token
     zapData.dao, //                         dao
   ];
-  const encodedData = ethers.utils.defaultAbiCoder.encode(
+  const encodedData = defaultAbiCoder.encode(
     Array.from({ length: zapDeployData.length }, () => "address"),
     zapDeployData,
   );
-  const saltNonce = ethers.utils.formatBytes32String(
+  const saltNonce = formatBytes32String(
     String(Math.floor(new Date().getTime() / 1000)),
   );
 

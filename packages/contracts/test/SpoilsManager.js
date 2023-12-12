@@ -40,7 +40,7 @@ describe("SpoilsManagerFactory", function () {
       spoilsValues.percentageScale,
       spoilsValues.receiver,
       spoilsValues.newOwner,
-      ethers.utils.formatBytes32String(String(currentTimestamp())),
+      formatBytes32String(String(currentTimestamp())),
     );
     const spoilsManagerDeploy = await spoilsManagerReceipt.wait();
     const spoilsManagerAddress = spoilsManagerDeploy.logs[0].address;
@@ -61,7 +61,7 @@ describe("SpoilsManagerFactory", function () {
         spoilsValues.percentageScale,
         spoilsValues.receiver,
         spoilsValues.newOwner,
-        ethers.utils.formatBytes32String(String(currentTimestamp())),
+        formatBytes32String(String(currentTimestamp())),
       ),
     ).to.be.revertedWith("InvalidSpoilsAmount()");
   });
@@ -73,7 +73,7 @@ describe("SpoilsManagerFactory", function () {
         spoilsValues.percentageScale,
         ethers.constants.AddressZero,
         spoilsValues.newOwner,
-        ethers.utils.formatBytes32String(String(currentTimestamp())),
+        formatBytes32String(String(currentTimestamp())),
       ),
     ).to.be.revertedWith("InvalidReceiverAddress()");
   });
@@ -85,7 +85,7 @@ describe("SpoilsManagerFactory", function () {
         spoilsValues.percentageScale,
         spoilsValues.receiver,
         ethers.constants.AddressZero,
-        ethers.utils.formatBytes32String(String(currentTimestamp())),
+        formatBytes32String(String(currentTimestamp())),
       ),
     ).to.not.be.reverted;
   });
@@ -108,7 +108,7 @@ describe("SpoilsManagerFactory", function () {
       spoilsValues.percentageScale,
       spoilsValues.receiver,
       ethers.constants.AddressZero,
-      ethers.utils.formatBytes32String(String(currentTimestamp())),
+      formatBytes32String(String(currentTimestamp())),
     );
     const spoilsManagerDeploy = await spoilsManagerReceipt.wait();
     const spoilsManagerAddress = spoilsManagerDeploy.logs[0].address;
@@ -125,7 +125,7 @@ describe("SpoilsManagerFactory", function () {
       spoilsValues.percentageScale,
       spoilsValues.receiver,
       ethers.constants.AddressZero,
-      ethers.utils.formatBytes32String(String(currentTimestamp())),
+      formatBytes32String(String(currentTimestamp())),
     );
     const spoilsManagerDeploy = await spoilsManagerReceipt.wait();
     const spoilsManagerAddress = spoilsManagerDeploy.logs[0].address;
@@ -181,7 +181,7 @@ describe("SpoilsManager", function () {
       spoilsValues.percentageScale,
       spoilsValues.receiver,
       spoilsValues.newOwner,
-      ethers.utils.formatBytes32String(String(currentTimestamp())),
+      formatBytes32String(String(currentTimestamp())),
     );
     const spoilsManagerDeploy = await spoilsManagerReceipt.wait();
     const spoilsManagerAddress = spoilsManagerDeploy.logs[0].address;

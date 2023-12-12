@@ -1,12 +1,11 @@
 /* eslint-disable no-unused-vars */
-import { BigNumber, Transaction, utils } from 'ethers';
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
-  useState
+  useState,
 } from 'react';
 
 import { track } from '@vercel/analytics';
@@ -27,47 +26,47 @@ import { useCreateEscrow } from './create-hooks/useCreateEscrow';
 import { useCreateInstant } from './create-hooks/useCreateInstant';
 
 export type CreateContextType = {
-  projectName: string;  
+  projectName: string;
   projectDescription: string;
   projectAgreement: any;
-  projectAgreementSource: string;  
+  projectAgreementSource: string;
   projectAgreementLinkType: string;
   startDate: any;
   endDate: any;
   safetyValveDate: number;
   clientAddress: string;
   paymentAddress: string;
-  paymentDue: BigNumber;
+  paymentDue: bigint;
   paymentToken: string;
   milestones: number;
   termsAccepted: boolean;
   arbitrationProvider: string;
-  payments: BigNumber[];
+  payments: bigint[];
   tx?: Transaction;
   invoiceType: string;
   deadline: number;
-  lateFee: BigNumber;
+  lateFee: bigint;
   lateFeeInterval: number;
   // setters
   setProjectName: (v: string) => void;
   setProjectDescription: (v: string) => void;
-  setProjectAgreement : (v: any) => void;
+  setProjectAgreement: (v: any) => void;
   setProjectAgreementSource: (v: string) => void;
   setProjectAgreementLinkType: (v: string) => void;
   setStartDate: (v: any) => void;
   setEndDate: (v: any) => void;
   setSafetyValveDate: (v: number) => void;
-  setClientAddress  : (v: string) => void;
+  setClientAddress: (v: string) => void;
   setPaymentAddress: (v: string) => void;
-  setPaymentDue: (v: BigNumber) => void;
-  setPaymentToken: (v: string) => void; 
+  setPaymentDue: (v: bigint) => void;
+  setPaymentToken: (v: string) => void;
   setMilestones: (v: number) => void;
   setTermsAccepted: (v: boolean) => void;
   setArbitrationProvider: (v: string) => void;
-  setPayments: (v: BigNumber[]) => void;
-  setInvoiceType  : (v: string) => void;
+  setPayments: (v: bigint[]) => void;
+  setInvoiceType: (v: string) => void;
   setDeadline: (v: number) => void;
-  setLateFee  : (v: BigNumber) => void;
+  setLateFee: (v: bigint) => void;
   setLateFeeInterval: (v: number) => void;
   // creating invoice
   loading: boolean;
@@ -90,16 +89,16 @@ export const CreateContext = createContext<CreateContextType>({
   safetyValveDate: 0,
   clientAddress: '',
   paymentAddress: '',
-  paymentDue: BigNumber.from(0),
+  paymentDue: BigInt(0),
   paymentToken: '',
   milestones: 0,
   termsAccepted: false,
   arbitrationProvider: '',
-  payments: [BigNumber.from(0)],
+  payments: [BigInt(0)],
   tx: undefined,
   invoiceType: '',
   deadline: 0,
-  lateFee: BigNumber.from(0),
+  lateFee: BigInt(0),
   lateFeeInterval: 0,
   // setters
   setProjectName: () => undefined,
@@ -132,12 +131,10 @@ export const CreateContext = createContext<CreateContextType>({
   nextStepHandler: () => undefined,
 });
 
-export function CreateContextProvider({
-  children
-}: any) {
-  const { provider: rpcProvider, chainId } = useContext(Web3Context);
-  const RESOLVERS = getResolvers(chainId);
-  const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
+export function CreateContextProvider({ children }: any) {
+  const walletClient = await getWalletClient();
+  const RESOLVERS = getResolvers(chain);
+  const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chain);
 
   // project details
   const [invoiceType, setInvoiceType] = useState('');
@@ -160,7 +157,7 @@ export function CreateContextProvider({
   // payment details
   const [clientAddress, setClientAddress] = useState('');
   const [paymentAddress, setPaymentAddress] = useState('');
-  const [paymentDue, setPaymentDue] = useState(BigNumber.from(0));
+  const [paymentDue, setPaymentDue] = useState(BigInt(0));
   const [paymentToken, setPaymentToken] = useState(WRAPPED_NATIVE_TOKEN);
   const [milestones, setMilestones] = useState(1);
 
@@ -173,11 +170,11 @@ export function CreateContextProvider({
 
   // instant payment details
   const [deadline, setDeadline] = useState(0);
-  const [lateFee, setLateFee] = useState(BigNumber.from(0));
+  const [lateFee, setLateFee] = useState(BigInt(0));
   const [lateFeeInterval, setLateFeeInterval] = useState(0);
 
   // payments chunks
-  const [payments, setPayments] = useState([BigNumber.from(0)]);
+  const [payments, setPayments] = useState([BigInt(0)]);
   const [tx, setTx] = useState();
   const [loading, setLoading] = useState(false);
 
@@ -260,10 +257,10 @@ export function CreateContextProvider({
         startDate: Math.floor(startDate / 1000),
         endDate: Math.floor(endDate / 1000),
       })
-      .then(hash => setDetailsHash(hash))
-      .catch(ipfsError => {
-        logError({ ipfsError });
-      });
+        .then(hash => setDetailsHash(hash))
+        .catch(ipfsError => {
+          logError({ ipfsError });
+        });
     }
   }, [
     step1Valid,
@@ -280,9 +277,9 @@ export function CreateContextProvider({
   const encodeEscrowData = useCallback(
     (factoryAddress: any) => {
       const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
-      const type = utils.formatBytes32String(Escrow);
+      const type = formatBytes32String(Escrow);
 
-      const data = utils.AbiCoder.prototype.encode(
+      const data = AbiCoder.prototype.encode(
         [
           'address',
           'uint8',
@@ -322,8 +319,8 @@ export function CreateContextProvider({
   );
 
   const encodeInstantData = useCallback(() => {
-    const type = utils.formatBytes32String(Instant);
-    const data = utils.AbiCoder.prototype.encode(
+    const type = formatBytes32String(Instant);
+    const data = AbiCoder.prototype.encode(
       [
         'address',
         'address',
@@ -360,13 +357,13 @@ export function CreateContextProvider({
     let type;
     let data;
 
-    if (chainId && allValid && detailsHash) {
+    if (chain && allValid && detailsHash) {
       setLoading(true);
       setTx(undefined);
 
-      const factoryAddress = getInvoiceFactoryAddress(chainId);
+      const factoryAddress = getInvoiceFactoryAddress(chain);
 
-      let paymentAmounts = [BigNumber.from(0)];
+      let paymentAmounts = [BigInt(0)];
       if (invoiceType === Escrow) {
         const escrowInfo = encodeEscrowData(factoryAddress);
         type = escrowInfo.type;
@@ -398,7 +395,7 @@ export function CreateContextProvider({
       const paymentTotal = sum(paymentAmounts);
 
       track('InvoiceCreated', {
-        chainId: (chainId ?? -1),
+        chain: chain ?? -1,
         invoiceType,
         paymentToken,
         paymentTotal,
@@ -411,7 +408,7 @@ export function CreateContextProvider({
   }, [
     allValid,
     detailsHash,
-    chainId,
+    chain,
     invoiceType,
     Escrow,
     Instant,
@@ -598,7 +595,6 @@ export function CreateContextProvider({
   );
 
   return (
-    
     <CreateContext.Provider value={returnValue}>
       {children}
     </CreateContext.Provider>

@@ -57,11 +57,11 @@ const addressSearchQuery = gql`
   ${InvoiceDetails}
 `;
 
-export const search = async (chainId: ChainId, searchInput: any, first = 10) => {
+export const search = async (chain: number, searchInput: any, first = 10) => {
   const isAddressSearch = isAddress(searchInput);
 
   const query = isAddressSearch ? addressSearchQuery : searchQuery;
-  const { data, error } = await clients[chainId]
+  const { data, error } = await clients[chain]
     .query(query, {
       first,
       search: isAddressSearch || searchInput,

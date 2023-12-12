@@ -1,4 +1,4 @@
-import { BigNumber, Transaction, utils } from 'ethers';
+import { Transaction, bigint, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
 
 import {
@@ -29,19 +29,17 @@ import { uploadDisputeDetails } from '../utils/ipfs';
 
 export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
   const { network, address, resolutionRate, token, isLocked } = invoice;
-  const { chainId, provider } = useContext(Web3Context);
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { chain, provider } = useContext(Web3Context);
+  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [transaction, setTransaction] = useState<Transaction>();
 
-  const resolverAward = balance.gt(0)
-    ? balance.div(resolutionRate)
-    : BigNumber.from(0);
+  const resolverAward = balance.gt(0) ? balance.div(resolutionRate) : BigInt(0);
   const availableFunds = balance.sub(resolverAward);
   const [clientAward, setClientAward] = useState(availableFunds);
-  const [providerAward, setProviderAward] = useState(BigNumber.from(0));
+  const [providerAward, setProviderAward] = useState(BigInt(0));
   const [clientAwardInput, setClientAwardInput] = useState(
-    utils.formatUnits(availableFunds, decimals),
+    formatUnits(availableFunds, decimals),
   );
   const [providerAwardInput, setProviderAwardInput] = useState('0');
   const [comments, setComments] = useState('');
@@ -103,7 +101,7 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
 
       <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
         {isLocked
-          ? `Review the project agreement to decide how to distribute the disputed payment of ${utils.formatUnits(
+          ? `Review the project agreement to decide how to distribute the disputed payment of ${formatUnits(
               balance,
               decimals,
             )} ${symbol} between the client & provider, excluding the ${
@@ -148,15 +146,15 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
                 onChange={(e: any) => {
                   setClientAwardInput(e.target.value);
                   if (e.target.value) {
-                    let award = utils.parseUnits(e.target.value, decimals);
+                    let award = parseUnits(e.target.value, decimals);
                     if (award.gt(availableFunds)) {
                       award = availableFunds;
-                      setClientAwardInput(utils.formatUnits(award, decimals));
+                      setClientAwardInput(formatUnits(award, decimals));
                     }
                     setClientAward(award);
                     award = availableFunds.sub(award);
                     setProviderAward(award);
-                    setProviderAwardInput(utils.formatUnits(award, decimals));
+                    setProviderAwardInput(formatUnits(award, decimals));
                   }
                 }}
                 placeholder="Client Award"
@@ -257,11 +255,11 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
           >
             Resolve
           </Button>
-          {chainId && transaction?.hash && (
+          {chain && transaction?.hash && (
             <Text color="black" textAlign="center" fontSize="sm">
               Follow your transaction{' '}
               <Link
-                href={getTxLink(chainId, transaction.hash)}
+                href={getTxLink(chain, transaction.hash)}
                 isExternal
                 color="blue"
                 textDecoration="underline"

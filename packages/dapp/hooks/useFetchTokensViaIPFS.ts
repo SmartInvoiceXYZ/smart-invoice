@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 
 import { IPFS_ENDPOINT } from '../constants';
+import { ChainId } from '../constants/config';
+import { TokenData } from '../types';
 import { getCID } from '../utils/firebase';
 import { formatTokenData, formatTokens } from '../utils/helpers';
-import { ChainId, TokenData } from '../types';
 
 export const useFetchTokensViaIPFS = () => {
-  const [tokenData, setTokenData] = useState({} as Record<ChainId, Record<string, TokenData>>);
+  const [tokenData, setTokenData] = useState(
+    {} as Record<ChainId, Record<string, TokenData>>,
+  );
   const [allTokens, setAllTokens] = useState({} as Record<ChainId, string[]>);
   const [isError, setIsError] = useState(false);
 
@@ -20,7 +23,6 @@ export const useFetchTokensViaIPFS = () => {
         const response = fetch(IPFS_TOKENS);
         const fullData = (await response).json();
         const formattedData = formatTokenData(await fullData);
-
         const formattedTokens = formatTokens(formattedData);
 
         setAllTokens(formattedTokens);

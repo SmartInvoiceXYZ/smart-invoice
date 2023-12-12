@@ -83,7 +83,7 @@ async function deploySpoilsManager(
     PERCENTAGE_SCALE,
     receiver,
     newOwner,
-    ethers.utils.formatBytes32String(
+    formatBytes32String(
       String(Math.floor(new Date().getTime() / 1000)),
     ),
   );

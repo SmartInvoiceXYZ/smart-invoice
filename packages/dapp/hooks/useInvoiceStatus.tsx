@@ -1,5 +1,5 @@
 // @ts-expect-error TS(2792): Cannot find module 'ethers'. Did you mean to set t... Remove this comment to see the full error message
-import { BigNumber } from 'ethers';
+import { bigint } from 'ethers';
 // @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import { useContext, useEffect, useState } from 'react';
 
@@ -43,7 +43,7 @@ export const useInvoiceStatus = (invoice: any) => {
                 setLabel('Completed');
               }
             } else {
-              const amount = BigNumber.from(amounts[currentMilestone]);
+              const amount = BigInt(amounts[currentMilestone]);
               if (deposits.length > 0 && balance < amount) {
                 setFunded(!isLocked);
                 setLabel('Partially Funded');
@@ -73,7 +73,7 @@ export const useInvoiceStatus = (invoice: any) => {
             } else if (deposits.length > 0) {
               setFunded(true);
               setLabel('Partially Funded');
-            // @ts-expect-error TS(2532): Object is possibly 'undefined'.
+              // @ts-expect-error TS(2532): Object is possibly 'undefined'.
             } else if (info.deadline <= new Date().getTime() / 1000) {
               setLabel('Overdue');
             } else {

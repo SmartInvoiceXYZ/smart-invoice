@@ -1,10 +1,34 @@
-// @ts-expect-error TS(2792): Cannot find module 'ethers'. Did you mean to set t... Remove this comment to see the full error message
-import { Contract, utils } from 'ethers';
+import { Address, Chain, WalletClient } from 'viem';
 
-export const balanceOf = async (ethersProvider: any, token: any, address: any) => {
-  const abi = new utils.Interface([
-    'function balanceOf(address account) view returns(uint256)',
-  ]);
-  const contract = new Contract(token, abi, ethersProvider);
-  return contract.balanceOf(address);
+import { IERC20Abi } from '../abi';
+import { readContract, writeContract } from "./contracts";
+
+export const approve = async (walletClient: WalletClient, token: Address, spender: Address, amount: bigint) => writeContract({
+    abi: IERC20Abi,
+    address: token,
+    walletClient,
+    functionName: 'approve',
+    args: [spender, amount],
+  });
+
+export const balanceOf = async (chain: Chain, token: Address, address: Address) => {
+  const [balance] = await readContract({
+    abi: IERC20Abi,
+    address: token,
+    chain,
+    functionName: 'balanceOf',
+    args: [address],
+  });
+  return balance;
+};
+
+export const getAllowance = async (chain: Chain, token: Address, owner: Address, spender: Address) => {
+  const [allowance] = await readContract({
+    abi: IERC20Abi,
+    address: token,
+    chain,
+    functionName: 'allowance',
+    args: [owner, spender],
+  });
+  return allowance;
 };

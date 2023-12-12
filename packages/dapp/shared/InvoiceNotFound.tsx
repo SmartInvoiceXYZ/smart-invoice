@@ -12,15 +12,10 @@ import { getNetworkName } from '../utils/helpers';
 // @ts-expect-error TS(6142): Module './Container' was resolved to '/Users/moc/d... Remove this comment to see the full error message
 import { Container } from './Container';
 
-export function InvoiceNotFound({
-  heading,
-  chainId
-}: any) {
+export function InvoiceNotFound({ heading, chain }: any) {
   const router = useRouter();
   return (
-    
     <Container>
-      
       <VStack
         spacing="1rem"
         background="background"
@@ -32,8 +27,7 @@ export function InvoiceNotFound({
         mx={4}
         color="white"
       >
-        {chainId && (
-          
+        {chain && (
           <Flex
             bg="red.500"
             borderRadius="50%"
@@ -42,24 +36,22 @@ export function InvoiceNotFound({
             align="center"
             color="white"
           >
-            
             <WalletFilledIcon boxSize="1.75rem" />
           </Flex>
         )}
-        
+
         <Text fontSize="2xl" textAlign="center" fontFamily="heading">
           {heading || 'Invoice Not Found'}
         </Text>
-        {chainId && (
-          
+        {chain && (
           <Text color="greyText">
-            // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
-            Please switch to <b>{getNetworkName(chainId)}</b> to view this
+            // @ts-expect-error TS(7026): JSX element implicitly has type 'any'
+            because no i... Remove this comment to see the full error message
+            Please switch to <b>{getNetworkName(chain)}</b> to view this
             invoice.
           </Text>
         )}
 
-        
         <Button
           colorScheme="red"
           px={12}

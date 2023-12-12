@@ -9,7 +9,7 @@ import {
   Stack,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { FormConfirmation } from '../../components/FormConfirmation';
@@ -19,15 +19,15 @@ import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
 import { ESCROW_STEPS, INVOICE_TYPES } from '../../constants';
+import { ChainId } from '../../constants/config';
 import {
   CreateContext,
-  CreateContextProvider
+  CreateContextProvider,
 } from '../../context/CreateContext';
 import { Web3Context } from '../../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
-import { ChainId } from '../../types';
 
 type EscrowStepNumber = keyof typeof ESCROW_STEPS;
 
@@ -42,7 +42,7 @@ export function CreateInvoiceEscrowInner() {
     invoiceType,
     setInvoiceType,
   } = useContext(CreateContext);
-  const { chainId } = useContext(Web3Context);
+  const { chain } = useContext(Web3Context);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef<ChainId>();
 
@@ -54,11 +54,11 @@ export function CreateInvoiceEscrowInner() {
   }, [invoiceType, setInvoiceType, Escrow]);
 
   useEffect(() => {
-    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
+    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chain) {
       setShowChainChangeAlert(true);
     }
-    prevChainIdRef.current = chainId;
-  }, [chainId]);
+    prevChainIdRef.current = chain;
+  }, [chain]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -77,13 +77,10 @@ export function CreateInvoiceEscrowInner() {
   });
 
   return (
-    
     <Container overlay>
       {tx ? (
-        
         <RegisterSuccess />
       ) : tokenData ? (
-        
         <Stack
           direction={{ base: 'column', lg: 'column' }}
           spacing="2rem"
@@ -94,22 +91,20 @@ export function CreateInvoiceEscrowInner() {
           my="2rem"
           maxW="650px"
         >
-          
           <NetworkChangeAlertModal
             showChainChangeAlert={showChainChangeAlert}
             setShowChainChangeAlert={setShowChainChangeAlert}
-            chainId={chainId}
+            chain={chain}
           />
-          
+
           <VStack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
           >
-            
             <Heading fontWeight="700" fontSize={headingSize}>
               Create an Escrow Invoice
             </Heading>
-            
+
             <Text
               color="#90A0B7"
               as="i"
@@ -122,7 +117,6 @@ export function CreateInvoiceEscrowInner() {
               taking care to add permissions to your project agreement document.
             </Text>
 
-            
             <Flex
               bg="background"
               direction="column"
@@ -131,40 +125,42 @@ export function CreateInvoiceEscrowInner() {
               borderRadius="0.5rem"
               w="100%"
             >
-              
               <StepInfo
                 stepNum={currentStep}
-                stepTitle={ESCROW_STEPS[currentStep as EscrowStepNumber].step_title}
-                stepDetails={ESCROW_STEPS[currentStep as EscrowStepNumber].step_details}
+                stepTitle={
+                  ESCROW_STEPS[currentStep as EscrowStepNumber].step_title
+                }
+                stepDetails={
+                  ESCROW_STEPS[currentStep as EscrowStepNumber].step_details
+                }
                 goBack={goBackHandler}
               />
-              
+
               <ProjectDetailsForm
                 display={currentStep === 1 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              
+
               <PaymentDetailsForm
                 display={currentStep === 2 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              
+
               <PaymentChunksForm
                 display={currentStep === 3 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              
+
               <FormConfirmation
                 display={currentStep === 4 ? 'flex' : 'none'}
                 tokenData={tokenData}
                 allTokens={allTokens}
               />
-              
+
               <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
-                
                 <Button
                   _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
                   _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -180,14 +176,15 @@ export function CreateInvoiceEscrowInner() {
                 >
                   {currentStep === 4
                     ? ESCROW_STEPS[currentStep].next
-                    : `next: ${ESCROW_STEPS[currentStep as EscrowStepNumber].next}`}
+                    : `next: ${
+                        ESCROW_STEPS[currentStep as EscrowStepNumber].next
+                      }`}
                 </Button>
               </Grid>
             </Flex>
           </VStack>
         </Stack>
       ) : (
-        
         <Text>Loading</Text>
       )}
     </Container>

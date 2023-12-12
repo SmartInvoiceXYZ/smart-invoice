@@ -1,5 +1,6 @@
-import { BigNumber, Transaction, ethers, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Hash, formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable no-restricted-globals */
@@ -21,11 +22,11 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { Web3Context } from '../context/Web3Context';
+import { ChainId } from '../constants/config';
 import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
+import { Invoice, TokenData } from '../types';
 import {
   calculateResolutionFeePercentage,
-  getHexChainId,
   getTokenInfo,
   getTxLink,
   logDebug,
@@ -33,17 +34,19 @@ import {
 } from '../utils/helpers';
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
+import { waitForTransaction } from '../utils/transactions';
 
-export function AddMilestones({
-  invoice,
-  due,
-  tokenData
-}: any) {
-  const { chainId, provider } = useContext(Web3Context);
+export type AddMilestonesProps = {
+  invoice: Invoice;
+  due: any;
+  tokenData: Record<ChainId, Record<string, TokenData>>;
+};
+
+export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
+  const { data: walletClient } = useWalletClient();
   const {
     address,
     token,
-    network,
     amounts,
     deposits,
     projectName,
@@ -53,15 +56,20 @@ export function AddMilestones({
     startDate,
     endDate,
   } = invoice;
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { decimals, symbol } = useMemo(
+    () => getTokenInfo(walletClient?.chain?.id, token, tokenData),
+    [walletClient, token, tokenData],
+  );
   const [loading, setLoading] = useState(false);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const [txHash, setTxHash] = useState<Hash>();
 
-  const [addedTotal, setAddedTotal] = useState(BigNumber.from(0));
+  const [addedTotal, setAddedTotal] = useState(BigInt(0));
   const [addedTotalInput, setAddedTotalInput] = useState(0);
   const [addedMilestones, setAddedMilestones] = useState(0);
-  const [milestoneAmountsInput, setMilestoneAmountsInput] = useState([] as number[]);
-  const [milestoneAmounts, setMilestoneAmounts] = useState([] as BigNumber[]);
+  const [milestoneAmountsInput, setMilestoneAmountsInput] = useState(
+    [] as number[],
+  );
+  const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
   const [revisedProjectAgreement, setRevisedProjectAgreement] = useState([
@@ -83,12 +91,8 @@ export function AddMilestones({
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
-    const totalAmounts = utils.formatUnits(
-      amounts.reduce(
-        (a: any, b: any) =>
-          parseInt(ethers.utils.formatEther(a)) +
-          parseInt(ethers.utils.formatEther(b)),
-      ),
+    const totalAmounts = formatUnits(
+      amounts.reduce((a, b) => a + b),
       decimals,
     );
 
@@ -98,12 +102,8 @@ export function AddMilestones({
       for (let i = 0; i < deposits.length; i++) {
         depositAmounts.push(deposits[i].amount);
       }
-      const totalDeposits = utils.formatUnits(
-        depositAmounts.reduce(
-          (a, b) =>
-            parseInt(ethers.utils.formatEther(a)) +
-            parseInt(ethers.utils.formatEther(b)),
-        ),
+      const totalDeposits = formatUnits(
+        depositAmounts.reduce((a, b) => a + b),
         decimals,
       );
 
@@ -134,7 +134,7 @@ export function AddMilestones({
     if (!milestoneAmounts.length) return;
     try {
       setLoading(true);
-      let detailsHash;
+      let detailsHash: Hash | undefined;
       if (revisedProjectAgreementType === 'ipfs') {
         const projectAgreement = revisedProjectAgreement;
         detailsHash = await uploadMetadata({
@@ -146,20 +146,24 @@ export function AddMilestones({
         });
       }
 
-      let tx;
-      if (detailsHash) {
-        tx = await addMilestonesWithDetails(
-          provider,
-          address,
-          milestoneAmounts,
-          detailsHash,
-        );
-      } else {
-        tx = await addMilestones(provider, address, milestoneAmounts);
+      if (walletClient) {
+        let hash: Hash | undefined;
+        if (detailsHash) {
+          hash = await addMilestonesWithDetails(
+            walletClient,
+            address,
+            milestoneAmounts,
+            detailsHash,
+          );
+        } else {
+          hash = await addMilestones(walletClient, address, milestoneAmounts);
+        }
+
+        setTxHash(hash);
+        const { chain } = walletClient;
+        await waitForTransaction(chain, hash);
+        window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
       }
-      setTransaction(tx);
-      await tx.wait();
-      window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
     } catch (addMilestonesError) {
       setLoading(false);
       logError({ addMilestonesError });
@@ -167,9 +171,7 @@ export function AddMilestones({
   };
 
   return (
-    
     <VStack w="100%" spacing="1rem">
-      
       <Heading
         fontWeight="bold"
         mb="1rem"
@@ -182,7 +184,6 @@ export function AddMilestones({
       </Heading>
 
       {revisedProjectAgreementType === 'ipfs' ? (
-        
         <OrderedLinkInput
           label="Link to Project Agreement (if updated)"
           value={revisedProjectAgreementSrc}
@@ -195,14 +196,13 @@ export function AddMilestones({
       ) : (
         ''
       )}
-      
+
       <SimpleGrid
         w="100%"
         columns={{ base: 2, sm: 2 }}
         spacing="1rem"
         mb={addedTotalInvalid ? '-0.5rem' : ''}
       >
-        
         <OrderedInput
           label="Total Payment Added"
           type="number"
@@ -212,17 +212,17 @@ export function AddMilestones({
           setValue={(v: any) => {
             if (v && !isNaN(Number(v))) {
               setAddedTotalInput(Number(v));
-              const p = utils.parseUnits(v, decimals);
+              const p = parseUnits(v, decimals);
               setAddedTotal(p);
-              setAddedTotalInvalid(p.lte(0));
+              setAddedTotalInvalid(p < 0);
             } else {
               setAddedTotalInput(v);
-              setAddedTotal(BigNumber.from(0));
+              setAddedTotal(BigInt(0));
               setAddedTotalInvalid(true);
             }
           }}
         />
-        
+
         <OrderedInput
           gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
           label="Number of Payments"
@@ -236,7 +236,7 @@ export function AddMilestones({
             setMilestoneAmounts(
               Array(numMilestones)
                 .fill(1)
-                .map(() => BigNumber.from(0)),
+                .map(() => BigInt(0)),
             );
             setMilestoneAmountsInput(
               Array(numMilestones)
@@ -249,7 +249,6 @@ export function AddMilestones({
         />
       </SimpleGrid>
 
-      
       <VStack
         w="100%"
         spacing="1rem"
@@ -257,18 +256,15 @@ export function AddMilestones({
       >
         {Array.from(Array(Number(addedMilestones))).map((_val, index) => (
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
-            
             <Flex justify="space-between" w="100%">
-              
               <Text fontWeight="700">
                 Payment #{amounts.length + index + 1}
               </Text>
-              
+
               <Flex />
             </Flex>
-            
+
             <InputGroup>
-              
               <Input
                 bg="white"
                 type="text"
@@ -279,7 +275,7 @@ export function AddMilestones({
                 pr="3.5rem"
                 onChange={(e: any) => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;
-                  const amount = utils.parseUnits(e.target.value, decimals);
+                  const amount = parseUnits(e.target.value, decimals);
                   const newAmounts = milestoneAmounts.slice();
                   newAmounts[index] = amount;
                   setMilestoneAmounts(newAmounts);
@@ -290,29 +286,26 @@ export function AddMilestones({
                   logDebug('addedTotal: ', addedTotal);
                 }}
               />
-              
+
               <InputRightElement color="black" w="3.5rem">
                 {symbol}
               </InputRightElement>
             </InputGroup>
           </VStack>
         ))}
-        
+
         <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
-          Amounts Must Add Up to {utils.formatUnits(addedTotal, decimals)}{' '}
-          {symbol}
+          Amounts Must Add Up to {formatUnits(addedTotal, decimals)} {symbol}
         </Text>
       </VStack>
-      
+
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {due && (
-          
           <HStack>
-            
             <Text fontWeight="bold" color="black">
               Potential Dispute Fee:
             </Text>
-            
+
             <Text>
               {`${
                 addedTotalInput
@@ -329,30 +322,27 @@ export function AddMilestones({
           </HStack>
         )}
       </Flex>
-      
+
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {due && (
-          
           <HStack>
-            
             <Text fontWeight="bold" color="black">
               Expected Total Due:
             </Text>
-            
+
             <Text>{`${
               addedTotalInput
-                ? parseFloat(utils.formatUnits(due, decimals)) +
-                  addedTotalInput
-                : utils.formatUnits(due, decimals)
+                ? parseFloat(formatUnits(due, decimals)) + addedTotalInput
+                : formatUnits(due, decimals)
             } ${symbol}`}</Text>
           </HStack>
         )}
       </Flex>
-      
+
       <Text>
         Note: new milestones may take a few minutes to appear in the list
       </Text>
-      
+
       <Button
         onClick={addNewMilestones}
         isLoading={loading}
@@ -361,7 +351,8 @@ export function AddMilestones({
         color="white"
         backgroundColor="blue.1"
         isDisabled={
-          milestoneAmountsInput.reduce((t: any, v: any) => t + v, 0) !== addedTotalInput
+          milestoneAmountsInput.reduce((t: any, v: any) => t + v, 0) !==
+          addedTotalInput
         }
         textTransform="uppercase"
         size={buttonSize}
@@ -371,13 +362,11 @@ export function AddMilestones({
       >
         Add
       </Button>
-      {chainId && transaction?.hash && (
-        
+      {walletClient?.chain?.id && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
-          
           <Link
-            href={getTxLink(chainId, transaction.hash)}
+            href={getTxLink(walletClient?.chain?.id, txHash)}
             isExternal
             color="blue.1"
             textDecoration="underline"

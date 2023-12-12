@@ -1,8 +1,7 @@
-import { Contract, utils } from 'ethers';
-
-/* eslint-disable radix */
 /* eslint-disable no-restricted-syntax */
-import { getAddress } from '@ethersproject/address';
+/* eslint-disable radix */
+
+import { getAddress } from 'viem';
 
 import {
   ADDRESS_ZERO,
@@ -19,9 +18,10 @@ import {
   resolverInfo,
   resolvers,
   rpcUrls,
-  wrappedNativeToken
+  wrappedNativeToken,
 } from '../constants';
-import { ChainId, Network, TokenData } from '../types';
+import { ChainId, isOfTypeChainId } from '../constants/config';
+import { Network, TokenData } from '../types';
 
 export const getDateString = (timeInSec: any) => {
   if (parseInt(timeInSec) !== 0) {
@@ -48,31 +48,62 @@ export const isAddress = (value: any) => {
   }
 };
 
-export const getNetworkName = (chainId: ChainId) => networkNames[chainId] || 'Unknown Chain';
+export const getNetworkName = (chainId: number) =>
+  isOfTypeChainId(chainId) ? networkNames[chainId] : 'Unknown Chain';
 
-export const getGraphUrl = (chainId?: ChainId) =>chainId ?  graphUrls[chainId] : graphUrls[DEFAULT_CHAIN_ID];
+export const getGraphUrl = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? graphUrls[chainId]
+    : graphUrls[DEFAULT_CHAIN_ID];
 
-export const getExplorerUrl = (chainId?: ChainId) => chainId ? explorerUrls[chainId] : explorerUrls[DEFAULT_CHAIN_ID];
+export const getExplorerUrl = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? explorerUrls[chainId]
+    : explorerUrls[DEFAULT_CHAIN_ID];
 
-export const getRpcUrl = (chainId?: ChainId) => chainId ? rpcUrls[chainId] : rpcUrls[DEFAULT_CHAIN_ID];
+export const getRpcUrl = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? rpcUrls[chainId]
+    : rpcUrls[DEFAULT_CHAIN_ID];
 
-export const getResolvers = (chainId?: ChainId) => chainId ? resolvers[chainId] : resolvers[DEFAULT_CHAIN_ID];
+export const getResolvers = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? resolvers[chainId]
+    : resolvers[DEFAULT_CHAIN_ID];
 
-export const getResolverInfo = (resolver: string, chainId?: ChainId) =>
-  (chainId ? resolverInfo[chainId] : resolverInfo[DEFAULT_CHAIN_ID])[resolver];
+export const getResolverInfo = (resolver: string, chainId?: number) =>
+  (chainId && isOfTypeChainId(chainId)
+    ? resolverInfo[chainId]
+    : resolverInfo[DEFAULT_CHAIN_ID])[resolver];
 
-export const getTokens = (allTokens: Record<ChainId, string[]>, chainId?: ChainId) =>
-  chainId ? allTokens[chainId] : allTokens[DEFAULT_CHAIN_ID];
+export const getTokens = (
+  allTokens: Record<ChainId, string[]>,
+  chainId?: number,
+) =>
+  chainId && isOfTypeChainId(chainId)
+    ? allTokens[chainId]
+    : allTokens[DEFAULT_CHAIN_ID];
 
-export const getTokenInfo = (chainId?: ChainId, token?: string, tokenData?: Record<ChainId, Record<string, TokenData>>) => {
-  if (!chainId || !token || !tokenData || Object.keys(tokenData || {}).length === 0) {
+export const getTokenInfo = (
+  chainId?: number,
+  token?: string,
+  tokenData?: Record<ChainId, Record<string, TokenData>>,
+) => {
+  if (
+    !chainId ||
+    !isOfTypeChainId(chainId) ||
+    !token ||
+    !tokenData ||
+    Object.keys(tokenData || {}).length === 0
+  ) {
     return {
       address: ADDRESS_ZERO,
       decimals: 18,
       symbol: 'UNKNOWN',
     };
   }
-  const tokenDataByChain = tokenData[chainId] || tokenData[DEFAULT_CHAIN_ID];
+  const tokenDataByChain =
+    tokenData[chainId as ChainId] || tokenData[DEFAULT_CHAIN_ID];
   if (!tokenDataByChain[token]) {
     return {
       address: ADDRESS_ZERO,
@@ -83,37 +114,47 @@ export const getTokenInfo = (chainId?: ChainId, token?: string, tokenData?: Reco
   return tokenDataByChain[token];
 };
 
-export const getWrappedNativeToken = (chainId?: ChainId) => chainId ? wrappedNativeToken[chainId] : wrappedNativeToken[DEFAULT_CHAIN_ID];
+export const getWrappedNativeToken = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? wrappedNativeToken[chainId]
+    : wrappedNativeToken[DEFAULT_CHAIN_ID];
 
-export const getNativeTokenSymbol = (chainId?: ChainId) => chainId ? nativeSymbols[chainId] : nativeSymbols[DEFAULT_CHAIN_ID];
+export const getNativeTokenSymbol = (chainId?: number) =>
+  chainId && isOfTypeChainId(chainId)
+    ? nativeSymbols[chainId]
+    : nativeSymbols[DEFAULT_CHAIN_ID];
 
-export const getInvoiceFactoryAddress = (chainId: ChainId) => invoiceFactory[chainId] || invoiceFactory[DEFAULT_CHAIN_ID];
+export const getInvoiceFactoryAddress = (chainId: number) =>
+  isOfTypeChainId(chainId)
+    ? invoiceFactory[chainId]
+    : invoiceFactory[DEFAULT_CHAIN_ID];
 
-export const getTxLink = (chainId: ChainId, hash: string) =>
+export const getTxLink = (chainId: number, hash: string) =>
   `${getExplorerUrl(chainId)}/tx/${hash}`;
 
-export const getAddressLink = (chainId: ChainId, hash: string) =>
+export const getAddressLink = (chainId: number, hash: string) =>
   `${getExplorerUrl(chainId)}/address/${hash}`;
 
 // bytes58 QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51
 // is the same as
 // bytes64 12200000000000000000000000000000000000000000000000000000000000000000
 // which means an all zeros bytes32 was input on the contract
-export const getIpfsLink = (hash: any) => hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51'
-  ? ''
-  : `${IPFS_ENDPOINT}/ipfs/${hash}`;
+export const getIpfsLink = (hash: string) =>
+  hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51'
+    ? ''
+    : `${IPFS_ENDPOINT}/ipfs/${hash}`;
 
-export const getAccountString = (account: any) => {
+export const getAccountString = (account: string) => {
   const len = account.length;
   return `0x${account.substr(2, 3).toUpperCase()}...${account
     .substr(len - 3, len - 1)
     .toUpperCase()}`;
 };
 
-export const isKnownResolver = (resolver: string, chainId?: ChainId) =>
+export const isKnownResolver = (resolver: string, chainId?: number) =>
   getResolvers(chainId).indexOf(resolver.toLowerCase()) !== -1;
 
-export const getResolverString = (resolver: string, chainId?: ChainId) => {
+export const getResolverString = (resolver: string, chainId?: number) => {
   const info = getResolverInfo(resolver, chainId);
   return info ? info.name : getAccountString(resolver);
 };
@@ -147,10 +188,11 @@ export const isValidURL = (str: any) => !!URL_REGEX.test(str);
 const BASE32_REGEX = /^[a-zA-Z2-7]+=*$/;
 const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+=*$/;
 
-export const isValidCID = (hash: any) => (hash.length === 59 &&
-  hash.startsWith('bafy') &&
-  !!BASE32_REGEX.test(hash)) ||
-(hash.length === 46 && hash.startsWith('Qm') && !!BASE58_REGEX.test(hash));
+export const isValidCID = (hash: any) =>
+  (hash.length === 59 &&
+    hash.startsWith('bafy') &&
+    !!BASE32_REGEX.test(hash)) ||
+  (hash.length === 46 && hash.startsWith('Qm') && !!BASE58_REGEX.test(hash));
 
 export const isValidLink = (url: any) => {
   if (!url) return false;
@@ -160,17 +202,14 @@ export const isValidLink = (url: any) => {
   return isValidURL(url);
 };
 
-export const getChainId = (network: Network) => chainIds[network] || chainIds.rinkeby;
+export const getChainId = (network: Network) =>
+  chainIds[network] || chainIds.rinkeby;
 
-export const getHexChainId = (network: Network) => hexChainIds[network] || hexChainIds.rinkeby;
+export const getHexChainId = (network: Network) =>
+  hexChainIds[network] || hexChainIds.rinkeby;
 
-export const getNetworkLabel = (chainId: ChainId) => networkLabels[chainId] || 'unknown';
-
-export const verify = async (ethersProvider: any, address: any) => {
-  const abi = new utils.Interface(['function verify() external']);
-  const contract = new Contract(address, abi, ethersProvider.getSigner());
-  return contract.verify();
-};
+export const getNetworkLabel = (chainId: number) =>
+  isOfTypeChainId(chainId) ? networkLabels[chainId] : 'unknown';
 
 export const formatTokenData = (object: any) => {
   const tokenObject = {} as Record<ChainId, Record<string, TokenData>>;
@@ -184,20 +223,22 @@ export const formatTokenData = (object: any) => {
       value,
     )) {
       const address = tokenContract.toLowerCase();
-       tokenDetails[address] = {
+      tokenDetails[address] = {
         address,
         decimals,
         symbol,
         image,
       };
     }
-       tokenObject[Number(key) as ChainId] = tokenDetails;
+    tokenObject[Number(key) as ChainId] = tokenDetails;
   }
 
   return tokenObject;
 };
 
-export const formatTokens = (object: Record<ChainId, Record<string, TokenData>>) => {
+export const formatTokens = (
+  object: Record<ChainId, Record<string, TokenData>>,
+) => {
   const tokenObject = {} as Record<ChainId, string[]>;
   for (const [key, value] of Object.entries(object)) {
     const tokenArray = [];
@@ -216,7 +257,7 @@ export const calculateResolutionFeePercentage = (resolutionRate: any) => {
   return feePercentage;
 };
 
-export const getTokenSymbol = (token: any, chainId: ChainId, tokenData: any) =>
+export const getTokenSymbol = (token: any, chainId: number, tokenData: any) =>
   tokenData[chainId][token].symbol;
 
 export const dateTimeToDate = (dateTime: any) => dateTime.split(',')[0];
@@ -249,6 +290,5 @@ export const formatDate = (date: any) => {
   return [year, month, day].join('-');
 };
 
-export const sum = (array: any) => array.reduce((total: any, current: any) => total + current, 0);
-
-export const getKeys = <T extends string | number | symbol>(record: Record<T, any>) => Object.keys(record) as T[];
+export const sum = (array: any) =>
+  array.reduce((total: any, current: any) => total + current, 0);

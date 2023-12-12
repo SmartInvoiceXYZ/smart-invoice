@@ -1,3 +1,4 @@
+import { getKeys } from '../utils/getKeys';
 import { CONFIG } from './config';
 
 export { CONFIG };
@@ -14,7 +15,7 @@ export const INVOICE_TYPES = {
   Instant: 'instant',
 };
 
-export const DEFAULT_CHAIN_ID = 5;  
+export const DEFAULT_CHAIN_ID = 5;
 
 export const chainIds = {
   gnosis: 100,
@@ -151,9 +152,7 @@ export const invoiceFactory = {
   80001: NETWORK_CONFIG[80001].INVOICE_FACTORY,
 };
 
-export const SUPPORTED_NETWORKS = Object.keys(NETWORK_CONFIG).map(n =>
-  Number(n),
-);
+export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG);
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
 

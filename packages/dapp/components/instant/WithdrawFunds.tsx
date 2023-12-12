@@ -1,4 +1,4 @@
-import { BigNumber, Transaction, utils } from 'ethers';
+import { Transaction, bigint, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import {
@@ -7,10 +7,11 @@ import {
   Link,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { Web3Context } from '../../context/Web3Context';
+import { Chain, Invoice, TokenData } from '../../types';
 import {
   getHexChainId,
   getTokenInfo,
@@ -18,26 +19,25 @@ import {
   logError,
 } from '../../utils/helpers';
 import { withdraw } from '../../utils/invoice';
-import { ChainId, Invoice, TokenData } from '../../types';
 
 export type WithdrawFundsProps = {
   invoice: Invoice;
-  balance: BigNumber;
+  balance: bigint;
   close: () => void;
-  tokenData: Record<ChainId, Record<string, TokenData>>;
-}
+  tokenData: Record<Chain, Record<string, TokenData>>;
+};
 
 export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   invoice,
   balance,
   close,
-  tokenData
+  tokenData,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { chainId, provider } = useContext(Web3Context);
+  const { chain, provider } = useContext(Web3Context);
   const { network, address, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
   const [transaction, setTransaction] = useState<Transaction>();
   const [invalid, setInvalid] = useState(false);
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
@@ -67,9 +67,7 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   };
 
   return (
-    
     <VStack w="100%" spacing="1rem" color="black">
-      
       <Heading
         fontWeight="normal"
         mb="1rem"
@@ -78,12 +76,12 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
       >
         Withdraw Funds
       </Heading>
-      
+
       <Text textAlign="center" fontSize="sm" mb="1rem">
         Follow the instructions in your wallet to withdraw remaining funds from
         the invoice.
       </Text>
-      
+
       <VStack
         my="2rem"
         px="5rem"
@@ -93,11 +91,10 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
         borderColor="blue.1"
         borderRadius="0.5rem"
       >
-        
         <Text color="blue.1" fontSize="0.875rem" textAlign="center">
           Amount To Be Withdrawn
         </Text>
-        
+
         <Text
           color="blue.dark"
           fontSize="1rem"
@@ -105,13 +102,11 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
           textAlign="center"
         >{`${utils.formatUnits(balance, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chainId && transaction?.hash && (
-        
+      {chain && transaction?.hash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
-          
           <Link
-            href={getTxLink(chainId, transaction.hash)}
+            href={getTxLink(chain, transaction.hash)}
             isExternal
             color="blue.1"
             textDecoration="underline"
@@ -121,7 +116,6 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
         </Text>
       )}
       {!invalid && (
-        
         <Button
           onClick={send}
           backgroundColor="blue.1"
@@ -138,7 +132,7 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
           Confirm
         </Button>
       )}
-      
+
       <Button
         onClick={close}
         color="blue.1"
@@ -150,4 +144,4 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
       </Button>
     </VStack>
   );
-}
+};

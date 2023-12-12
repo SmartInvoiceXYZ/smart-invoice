@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers';
+import { bigint } from 'ethers';
 import { useEffect, useMemo } from 'react';
 
 import { isAddress } from '@ethersproject/address';
@@ -14,7 +14,7 @@ export function useCreateEscrow({
   milestones,
   termsAccepted,
   arbitrationProvider,
-  setAllValid
+  setAllValid,
 }: any) {
   const escrowStep2Valid = useMemo(
     () =>
@@ -46,7 +46,8 @@ export function useCreateEscrow({
   );
 
   const escrowStep3Valid = useMemo(
-    () => payments.reduce((t: any, a: any) => t.add(a), BigNumber.from(0)).eq(paymentDue),
+    () =>
+      payments.reduce((t: any, a: any) => t.add(a), BigInt(0)).eq(paymentDue),
     [payments, paymentDue],
   );
 

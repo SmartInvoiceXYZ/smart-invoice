@@ -1,4 +1,4 @@
-import { BigNumber, Transaction, utils } from 'ethers';
+import { Transaction, bigint, utils } from 'ethers';
 import React, { useCallback, useContext, useState } from 'react';
 
 import {
@@ -9,7 +9,7 @@ import {
   Link,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { Web3Context } from '../context/Web3Context';
@@ -28,18 +28,14 @@ import { lock } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
-export function LockFunds({
-  invoice,
-  balance,
-  tokenData
-}: any) {
-  const { chainId, provider } = useContext(Web3Context);
+export function LockFunds({ invoice, balance, tokenData }: any) {
+  const { chain, provider } = useContext(Web3Context);
   const { network, address, resolver, token, resolutionRate } = invoice;
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
   const [disputeReason, setDisputeReason] = useState('');
 
   const fee = `${utils.formatUnits(
-    BigNumber.from(balance).div(resolutionRate),
+    BigInt(balance).div(resolutionRate),
     decimals,
   )} ${symbol}`;
 
@@ -73,9 +69,7 @@ export function LockFunds({
 
   if (locking) {
     return (
-      
       <VStack w="100%" spacing="1rem">
-        
         <Heading
           fontWeight="bold"
           mb="1rem"
@@ -86,12 +80,10 @@ export function LockFunds({
           Locking Funds
         </Heading>
         {transaction?.hash && (
-          
           <Text textAlign="center" fontSize="sm" color="black">
             Follow your transaction{' '}
-            
             <Link
-              href={getTxLink(chainId, transaction.hash)}
+              href={getTxLink(chain, transaction.hash)}
               isExternal
               color="blue"
               textDecoration="underline"
@@ -100,7 +92,7 @@ export function LockFunds({
             </Link>
           </Text>
         )}
-        
+
         <Flex
           w="100%"
           justify="center"
@@ -110,16 +102,14 @@ export function LockFunds({
           position="relative"
           color="blue"
         >
-          
           <Loader size="6rem" />
-          
+
           <Flex
             position="absolute"
             left="50%"
             top="50%"
             transform="translate(-50%,-50%)"
           >
-            
             <Image width="2rem" src="../assets/lock.svg" alt="lock" />
           </Flex>
         </Flex>
@@ -128,9 +118,7 @@ export function LockFunds({
   }
 
   return (
-    
     <VStack w="100%" spacing="1rem">
-      
       <Heading
         fontWeight="bold"
         mb="1rem"
@@ -141,22 +129,20 @@ export function LockFunds({
         Lock Funds
       </Heading>
 
-      
       <Text textAlign="center" mb="1rem" color="red">
         Locking freezes all remaining funds in the contract and initiates a
         dispute.
       </Text>
-      
+
       <Text w="100%" color="black">
         {'Once a dispute has been initiated, '}
-        
-        <AccountLink address={resolver} chainId={chainId} />
+
+        <AccountLink address={resolver} chain={chain} />
         {
           ' will review your case, the project agreement and dispute reasoning before making a decision on how to fairly distribute remaining funds.'
         }
       </Text>
 
-      
       <OrderedTextarea
         tooltip="Why do you want to lock these funds?"
         label="Dispute Reason"
@@ -164,14 +150,14 @@ export function LockFunds({
         setValue={setDisputeReason}
         infoText="Describe the details of your dispute below. This will be provided to your arbitrator."
       />
-      
+
       <Text color="red.500" textAlign="center">
         {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}
-        
-        <AccountLink address={resolver} chainId={chainId} />
+
+        <AccountLink address={resolver} chain={chain} />
         {` for helping resolve this dispute.`}
       </Text>
-      
+
       <Button
         onClick={lockFunds}
         colorScheme="red"
@@ -184,15 +170,14 @@ export function LockFunds({
       >
         {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
       </Button>
-      {isKnownResolver(chainId, resolver) && (
-        
+      {isKnownResolver(chain, resolver) && (
         <Link
-          href={getResolverInfo(chainId, resolver).termsUrl}
+          href={getResolverInfo(chain, resolver).termsUrl}
           isExternal
           color="red.500"
           textDecor="underline"
         >
-          Learn about {getResolverString(chainId, resolver)} dispute process &
+          Learn about {getResolverString(chain, resolver)} dispute process &
           terms
         </Link>
       )}

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useContext, useEffect } from 'react';
+import { useWalletClient } from 'wagmi';
 
 /* eslint-disable no-nested-ternary */
 import {
@@ -9,19 +10,19 @@ import {
   Heading,
   Spinner,
   Stack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
-import {  networkNames } from '../constants';
 import { SearchContext, SearchContextProvider } from '../context/SearchContext';
-import { Web3Context } from '../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
 function InvoicesInner() {
   const { setSearch, result, loading } = useContext(SearchContext);
   const [{ tokenData }] = useFetchTokensViaIPFS();
-  const { account, chainId } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
+  const account = walletClient?.account?.address;
+  const chain = walletClient?.chain;
   const router = useRouter();
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
@@ -33,7 +34,6 @@ function InvoicesInner() {
   }, [account, setSearch]);
 
   return (
-    
     <Box
       paddingY={16}
       flex={
@@ -43,24 +43,20 @@ function InvoicesInner() {
       }
     >
       {loading ? (
-        
         <Stack align="center">
-          
           <Heading color="gray" as="h1">
             Invoices Loading
           </Heading>
-          
+
           <Spinner />
         </Stack>
       ) : result && result.length > 0 && tokenData !== undefined ? (
-        
         <InvoiceDashboardTable
           result={result}
           tokenData={tokenData}
-          chainId={chainId}
+          chain={chain}
         />
       ) : (
-        
         <Flex
           direction="column"
           align="center"
@@ -68,11 +64,16 @@ function InvoicesInner() {
           gap={4}
           width="100%"
         >
-          
-          { chainId && (<Heading color="gray" size="lg">
-            No invoices found on {networkNames[chainId]}.
-          </Heading>)}
-          
+          {chain ? (
+            <Heading color="gray" size="lg">
+              No invoices found on {chain.name}.
+            </Heading>
+          ) : (
+            <Heading color="gray" size="lg">
+              Wallet not connected.
+            </Heading>
+          )}
+
           <Button
             color="white"
             backgroundColor="blue.1"
@@ -93,9 +94,7 @@ function InvoicesInner() {
 
 function InvoicesWithProvider(props: any) {
   return (
-    
     <SearchContextProvider>
-      
       <InvoicesInner {...props} />
     </SearchContextProvider>
   );

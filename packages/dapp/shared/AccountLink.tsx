@@ -19,16 +19,16 @@ import {
 } from '../utils/helpers';
 
 // @ts-expect-error TS(7031): Binding element 'inputAddress' implicitly has an '... Remove this comment to see the full error message
-export function AccountLink({ address: inputAddress, chainId: inputChainId }) {
-  const { chainId: walletChainId } = useContext(Web3Context);
+export function AccountLink({ address: inputAddress, chain: inputChainId }) {
+  const { chain: walletChainId } = useContext(Web3Context);
   const address = inputAddress.toLowerCase();
   const [profile, setProfile] = useState();
-  const chainId = inputChainId || walletChainId;
-  const isResolver = isKnownResolver(chainId, address);
+  const chain = inputChainId || walletChainId;
+  const isResolver = isKnownResolver(chain, address);
 
   useEffect(() => {
     let isSubscribed = true;
-    if (!isResolver && utils.isAddress(address)) {
+    if (!isResolver && isAddress(address)) {
       getProfile(address).then(p => (isSubscribed ? setProfile(p) : undefined));
     }
     return () => {
@@ -36,10 +36,10 @@ export function AccountLink({ address: inputAddress, chainId: inputChainId }) {
     };
   }, [address, isResolver]);
 
-  let displayString = getResolverString(chainId, address);
+  let displayString = getResolverString(chain, address);
 
   let imageUrl = isResolver
-    ? getResolverInfo(chainId, address).logoUrl
+    ? getResolverInfo(chain, address).logoUrl
     : undefined;
 
   if (!isResolver && profile) {
@@ -52,9 +52,8 @@ export function AccountLink({ address: inputAddress, chainId: inputChainId }) {
   }
 
   return (
-    
     <Link
-      href={getAddressLink(chainId, address)}
+      href={getAddressLink(chain, address)}
       isExternal
       display="inline-flex"
       textAlign="right"
@@ -68,7 +67,6 @@ export function AccountLink({ address: inputAddress, chainId: inputChainId }) {
       alignItems="center"
       fontWeight="bold"
     >
-      
       <Flex
         as="span"
         borderRadius="50%"
@@ -84,7 +82,7 @@ export function AccountLink({ address: inputAddress, chainId: inputChainId }) {
         bgRepeat="no-repeat"
         bgPosition="center center"
       />
-      
+
       <Text as="span" pl="0.25rem" fontSize="sm">
         {displayString}
       </Text>

@@ -21,23 +21,20 @@ import { Footer } from './Footer';
 // @ts-expect-error TS(6142): Module './Header' was resolved to '/Users/moc/dev/... Remove this comment to see the full error message
 import { Header } from './Header';
 
-export function Layout({
-  children
-}: any) {
-  const { chainId, account } = useContext(Web3Context);
+export function Layout({ children }: any) {
+  const { chain, account } = useContext(Web3Context);
 
   useEffect(() => {
-    track('ChainChanged', { chainId });
-  }, [chainId]);
+    track('ChainChanged', { chain });
+  }, [chain]);
 
   const router = useRouter();
   const isOpenPath =
     router.pathname === '/' || router.pathname === '/contracts';
   const isValid =
-    (account && SUPPORTED_NETWORKS.indexOf(chainId) !== -1) || isOpenPath;
+    (account && SUPPORTED_NETWORKS.indexOf(chain) !== -1) || isOpenPath;
 
   return (
-    
     <Flex
       position="relative"
       w="100%"
@@ -52,9 +49,9 @@ export function Layout({
       color="#323C47"
     >
       {/* <NavBar /> {isValid ? children : <ConnectWeb3 />} <Footer /> */}
-      
+
       <Header />
-      
+
       <Flex
         flexGrow={1}
         position="relative"
@@ -64,12 +61,11 @@ export function Layout({
         align="center"
         h="100%"
       >
-        
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
-      
+
       <Analytics />
-      
+
       <Footer />
     </Flex>
   );

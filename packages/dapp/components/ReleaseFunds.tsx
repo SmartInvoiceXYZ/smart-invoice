@@ -1,4 +1,4 @@
-import { BigNumber, Transaction, utils } from 'ethers';
+import { Transaction, bigint, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 
 import {
@@ -34,12 +34,12 @@ const getReleaseAmount = (
   ) {
     return balance;
   }
-  return BigNumber.from(amounts[currentMilestone]);
+  return BigInt(amounts[currentMilestone]);
 };
 
 export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
   const [loading, setLoading] = useState(false);
-  const { chainId, provider } = useContext(Web3Context);
+  const { chain, provider } = useContext(Web3Context);
   const {
     network,
     currentMilestone,
@@ -51,7 +51,7 @@ export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
 
   const amount = getReleaseAmount(currentMilestone, amounts, balance);
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
   const [transaction, setTransaction] = useState<Transaction>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -111,11 +111,11 @@ export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
           textAlign="center"
         >{`${utils.formatUnits(amount, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chainId && transaction?.hash && (
+      {chain && transaction?.hash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, transaction?.hash)}
+            href={getTxLink(chain, transaction?.hash)}
             isExternal
             color="blue"
             textDecoration="underline"

@@ -21,7 +21,7 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 // const resolutionRate = 20;
 const requireVerification = true;
-const invoiceType = ethers.utils.formatBytes32String("updatable");
+const invoiceType = formatBytes32String("updatable");
 
 describe("SmartInvoiceUpdatable", function () {
   let SmartInvoiceEscrow;
@@ -76,7 +76,7 @@ describe("SmartInvoiceUpdatable", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await factory.addImplementation(invoiceType, invoice.address);
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -147,7 +147,7 @@ describe("SmartInvoiceUpdatable", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.initLock();
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    const data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",

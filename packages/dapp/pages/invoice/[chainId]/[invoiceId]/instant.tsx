@@ -1,5 +1,5 @@
 // @ts-expect-error TS(2792): Cannot find module 'ethers'. Did you mean to set t... Remove this comment to see the full error message
-import { BigNumber, utils } from 'ethers';
+import { bigint, utils } from 'ethers';
 // @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import React, { useContext, useEffect, useState } from 'react';
 
@@ -70,28 +70,24 @@ function ViewInstantInvoice({
     params: { hexChainId, invoiceId },
   },
 }: any) {
-  const {
-    chainId,
-    account,
-    provider: ethersProvider,
-  } = useContext(Web3Context);
+  const { chain, account, provider: ethersProvider } = useContext(Web3Context);
   const [{ tokenData }] = useFetchTokensViaIPFS();
   const [invoice, setInvoice] = useState();
   const [balanceLoading, setBalanceLoading] = useState(true);
-  const [balance, setBalance] = useState(BigNumber.from(0));
+  const [balance, setBalance] = useState(BigInt(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(hexChainId, 16);
-  const [totalDue, setTotalDue] = useState(BigNumber.from(0));
-  const [totalFulfilled, setTotalFulfilled] = useState(BigNumber.from(0));
+  const [totalDue, setTotalDue] = useState(BigInt(0));
+  const [totalFulfilled, setTotalFulfilled] = useState(BigInt(0));
   const [fulfilled, setFulfilled] = useState(false);
   const [deadline, setDeadline] = useState(0);
-  const [lateFeeAmount, setLateFeeAmount] = useState(BigNumber.from(0));
+  const [lateFeeAmount, setLateFeeAmount] = useState(BigInt(0));
   const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
-  const [lateFeeTotal, setLateFeeTotal] = useState(BigNumber.from(0));
+  const [lateFeeTotal, setLateFeeTotal] = useState(BigInt(0));
 
   useEffect(() => {
-    if (utils.isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
+    if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
       getInvoice(invoiceChainId, invoiceId).then((i: any) => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
@@ -111,22 +107,22 @@ function ViewInstantInvoice({
       // Get Total Due
       try {
         const t = await getTotalDue(provider, invoice.address);
-        setTotalDue(BigNumber.from(t));
+        setTotalDue(BigInt(t));
       } catch (totalDueError) {
         logError({ totalDueError });
-        setTotalDue(BigNumber.from(invoice.total));
+        setTotalDue(BigInt(invoice.total));
       }
 
       // Get Deadline, Late Fee and its time interval
       try {
         const d = await getDeadline(provider, invoice.address);
-        setDeadline(BigNumber.from(d).toNumber());
+        setDeadline(BigInt(d).toNumber());
         const { amount, timeInterval } = await getLateFee(
           provider,
           invoice.address,
         );
-        setLateFeeAmount(BigNumber.from(amount));
-        setLateFeeTimeInterval(BigNumber.from(timeInterval).toNumber());
+        setLateFeeAmount(BigInt(amount));
+        setLateFeeTimeInterval(BigInt(timeInterval).toNumber());
       } catch (lateFeeError) {
         logError({ lateFeeError });
       }
@@ -140,7 +136,7 @@ function ViewInstantInvoice({
         logError({ totalFulfilledError });
       }
     };
-    if (invoice && ethersProvider && chainId === invoiceChainId) {
+    if (invoice && ethersProvider && chain === invoiceChainId) {
       getValues(ethersProvider);
       // setBalanceLoading(true);
       // balanceOf(ethersProvider, invoice.token, invoice.address)
@@ -150,11 +146,11 @@ function ViewInstantInvoice({
       //   })
       //   .catch(balanceError => logError({ balanceError }));
     }
-  }, [invoice, ethersProvider, chainId, invoiceChainId]);
+  }, [invoice, ethersProvider, chain, invoiceChainId]);
 
   useEffect(() => {
-    if (invoice && totalDue !== BigNumber.from(0) && deadline) {
-      setLateFeeTotal(totalDue - BigNumber.from(invoice.total));
+    if (invoice && totalDue !== BigInt(0) && deadline) {
+      setLateFeeTotal(totalDue - BigInt(invoice.total));
     }
   }, [invoice, deadline, totalDue]);
 
@@ -164,13 +160,13 @@ function ViewInstantInvoice({
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   // const smallScreen = useBreakpointValue({ base: true, sm: false });
 
-  if (!utils.isAddress(invoiceId) || invoice === null) {
+  if (!isAddress(invoiceId) || invoice === null) {
     return <InvoiceNotFound />;
   }
 
-  if (invoice && chainId !== invoiceChainId) {
+  if (invoice && chain !== invoiceChainId) {
     return (
-      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+      <InvoiceNotFound chain={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
@@ -205,8 +201,8 @@ function ViewInstantInvoice({
 
   const due =
     totalFulfilled.gte(totalDue) || fulfilled
-      ? BigNumber.from(0)
-      : BigNumber.from(totalDue).sub(totalFulfilled);
+      ? BigInt(0)
+      : BigInt(totalDue).sub(totalFulfilled);
 
   const isTippable = fulfilled;
   const isWithdrawable = balance.gt(0);
@@ -340,7 +336,7 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={client} chainId={invoiceChainId} />
+                <AccountLink address={client} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
 
@@ -350,7 +346,7 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={provider} chainId={invoiceChainId} />
+                <AccountLink address={provider} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
 
@@ -390,7 +386,7 @@ function ViewInstantInvoice({
             >
               <Text>Amount</Text>
 
-              <Text>{`${utils.formatUnits(total, decimals)} ${symbol}`}</Text>
+              <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
             </Flex>
 
             <Flex
@@ -410,7 +406,7 @@ function ViewInstantInvoice({
                   color="grey"
                 >
                   {deadline && lateFeeAmount
-                    ? `${utils.formatUnits(
+                    ? `${formatUnits(
                         lateFeeAmount,
                         decimals,
                       )} ${symbol} every ${
@@ -420,7 +416,7 @@ function ViewInstantInvoice({
                 </Text>
               </Flex>
 
-              <Text>{`${utils.formatUnits(
+              <Text>{`${formatUnits(
                 lateFeeTotal,
                 decimals,
               )} ${symbol}`}</Text>
@@ -435,7 +431,7 @@ function ViewInstantInvoice({
             >
               <Text>Deposited</Text>
 
-              <Text>{`(${utils.formatUnits(
+              <Text>{`(${formatUnits(
                 totalFulfilled,
                 decimals,
               )} ${symbol})`}</Text>
@@ -455,7 +451,7 @@ function ViewInstantInvoice({
               fontSize="lg"
             >
               <Text>{totalFulfilled.gt(0) ? 'Remaining' : 'Total'} Due</Text>
-              <Text textAlign="right">{`${utils.formatUnits(
+              <Text textAlign="right">{`${formatUnits(
                 due,
                 decimals,
               )} ${symbol}`}</Text>{' '}

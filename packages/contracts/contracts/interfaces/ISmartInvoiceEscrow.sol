@@ -2,14 +2,23 @@
 
 pragma solidity ^0.8.0;
 
-import "./ISmartInvoice.sol";
+import {ISmartInvoice} from "./ISmartInvoice.sol";
 
 interface ISmartInvoiceEscrow is ISmartInvoice {
+    function addMilestones(uint256[] calldata _milestones) external;
+
+    function addMilestones(
+        uint256[] calldata _milestones,
+        bytes32 _details
+    ) external;
+
     function release() external;
 
     function release(uint256 _milestone) external;
 
     function releaseTokens(address _token) external;
+
+    function verify() external;
 
     function withdraw() external;
 

@@ -15,10 +15,10 @@ const invoiceQuery = gql`
   ${InvoiceDetails}
 `;
 
-export const getInvoice = async (chainId: number, queryAddress: Address) => {
+export const getInvoice = async (chain: number, queryAddress: Address) => {
   const address = isAddress(queryAddress);
   if (!address) return null;
-  const { data, error } = await clients[chainId]
+  const { data, error } = await clients[chain]
     .query(invoiceQuery, { address })
     .toPromise();
 

@@ -15,7 +15,7 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 
 const requireVerification = true;
-const escrowType = ethers.utils.formatBytes32String("escrow");
+const escrowType = formatBytes32String("escrow");
 
 describe("SmartInvoiceFactory", function () {
   let SmartInvoiceEscrow;
@@ -141,7 +141,7 @@ describe("SmartInvoiceFactory", function () {
       .connect(owner)
       .addImplementation(escrowType, escrow.address);
     const version = await invoiceFactory.currentVersions(escrowType);
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -188,8 +188,8 @@ describe("SmartInvoiceFactory", function () {
   });
 
   it("Should revert create if no implementation of _type", async function () {
-    const fakeType = ethers.utils.formatBytes32String("fake");
-    data = ethers.utils.AbiCoder.prototype.encode(["string"], [""]);
+    const fakeType = formatBytes32String("fake");
+    data = AbiCoder.prototype.encode(["string"], [""]);
     const receipt = invoiceFactory.create(provider, amounts, "0x", fakeType);
 
     await expect(receipt).to.revertedWith("Implementation does not exist");
@@ -200,7 +200,7 @@ describe("SmartInvoiceFactory", function () {
       .connect(owner)
       .addImplementation(escrowType, escrow.address);
     const version = await invoiceFactory.currentVersions(escrowType);
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -255,7 +255,7 @@ describe("SmartInvoiceFactory", function () {
       .connect(owner)
       .addImplementation(escrowType, escrow.address);
     const version = 0;
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -294,7 +294,7 @@ describe("SmartInvoiceFactory", function () {
       .connect(owner)
       .addImplementation(escrowType, escrow.address);
     const version = 0;
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",

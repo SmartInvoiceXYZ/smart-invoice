@@ -1,69 +1,77 @@
-import { BigNumber } from "ethers";
-import { Network } from "./network";
+import { Address, Hash } from 'viem';
+
+import { Network } from './network';
 
 export type DisputeDetails = {
-    id: string;
-    invoice: string;
-    ipfsHash: string;
-    txHash: string;
-    timestamp: number;
-    amount: BigNumber;
-    reason: string;
-    status: string;
-    resolver: string;
-    disputeTx: string;
-    resolutionTx: string;
-  };
+  id: string;
+  invoice: Address;
+  ipfsHash: Hash;
+  txHash: Hash;
+  timestamp: number;
+  amount: bigint;
+  reason: string;
+  status: string;
+  resolver: Address;
+  disputeTx: Hash;
+  resolutionTx: Hash;
+};
 
 export type InvoiceTx = {
-    id: string;
-    invoice: string;
-    amount: BigNumber;    
-    timestamp: number;
-    txHash: string;
-  };
+  id: string;
+  invoice: Address;
+  amount: bigint;
+  timestamp: number;
+  txHash: Hash;
+};
 
-  export type ResolutionDetails = {
-    id: string;
-    invoice: string;
-    ipfsHash: string;
-    txHash: string;
-    timestamp: number;
-    amount: BigNumber;
-    reason: string;
-    status: string;
-    resolver: string;
-    disputeTx: string;
-    resolutionTx: string;
-    clientAward: BigNumber;
-    providerAward: BigNumber;
-    resolutionFee: BigNumber;
-  };
+export type ResolutionDetails = {
+  id: string;
+  invoice: Address;
+  ipfsHash: string;
+  txHash: Hash;
+  timestamp: number;
+  amount: bigint;
+  reason: string;
+  status: string;
+  resolver: Address;
+  disputeTx: Hash;
+  resolutionTx: Hash;
+  clientAward: bigint;
+  providerAward: bigint;
+  resolutionFee: bigint;
+};
+
+export type ProjectAgreementDocument = {
+  src: string;
+  type: string;
+  createdAt: string;
+};
 
 export type Invoice = {
-    id: string;
-    address: string;
-    network: Network;
-    invoiceType: 'escrow' | 'instant';
-    token: string;
-    projectName: string;
-    projectDescription: string;
-    projectAgreement: string;
-    startDate: Date;
-    endDate: Date;
-    terminationTime: number;
-    client: string;
-    provider: string;
-    resolver: string;
-    currentMilestone: number;
-    amounts: number[];
-    total: number;
-    released: number;
-    isLocked: boolean;
-    deposits: InvoiceTx[];
-    releases: InvoiceTx[];
-    disputes: DisputeDetails[];
-    resolutions: ResolutionDetails[];
-    verified: boolean;
-  };
-  
+  id: string;
+  createdAt: number;
+  address: Address;
+  network: Network;
+  invoiceType: 'escrow' | 'instant';
+  token: Address;
+  projectName: string;
+  projectDescription: string;
+  projectAgreement: ProjectAgreementDocument[];
+  startDate: number;
+  endDate: number;
+  terminationTime: number;
+  client: Address;
+  provider: Address;
+  resolver: Address;
+  currentMilestone: number;
+  amounts: bigint[];
+  total: bigint;
+  released: bigint;
+  isLocked: boolean;
+  deposits: InvoiceTx[];
+  releases: InvoiceTx[];
+  disputes: DisputeDetails[];
+  resolutions: ResolutionDetails[];
+  resolutionRate: number;
+  verified: boolean;
+};

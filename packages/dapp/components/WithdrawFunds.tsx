@@ -21,10 +21,10 @@ import { withdraw } from '../utils/invoice';
 
 export function WithdrawFunds({ invoice, balance, close, tokenData }: any) {
   const [loading, setLoading] = useState(false);
-  const { chainId, provider } = useContext(Web3Context);
+  const { chain, provider } = useContext(Web3Context);
   const { network, address, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
   const [transaction, setTransaction] = useState<Transaction>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
@@ -75,11 +75,11 @@ export function WithdrawFunds({ invoice, balance, close, tokenData }: any) {
           textAlign="center"
         >{`${utils.formatUnits(balance, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chainId && transaction?.hash && (
+      {chain && transaction?.hash && (
         <Text color="white" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, transaction.hash)}
+            href={getTxLink(chain, transaction.hash)}
             isExternal
             color="red.500"
             textDecoration="underline"
