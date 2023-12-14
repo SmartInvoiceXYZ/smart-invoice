@@ -21,7 +21,7 @@ export const CONFIG = {
       },
     },
     100: {
-      SUBGRAPH: 'psparacino/v1-xdai-smart-invoices',
+      SUBGRAPH: 'scottrepreneur/smart-invoice-gnosis',
       WRAPPED_NATIVE_TOKEN:
         '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
       INVOICE_FACTORY:

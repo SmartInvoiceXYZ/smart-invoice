@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-const { currentTimestamp } = require("./utils");
+const { currentTimestamp, ZERO_ADDRESS } = require("./utils");
 
 const {
   getZapData,
@@ -52,6 +52,9 @@ describe("SafeSplitsDaoEscrowZap", function () {
   let escrow;
   let token;
   let receiver;
+  let encodedSafeData;
+  let encodedSplitData;
+  let encodedEscrowData;
   let i = 0;
 
   before(async function () {
@@ -157,17 +160,16 @@ describe("SafeSplitsDaoEscrowZap", function () {
 
   beforeEach(async function () {
     i++; // increment to avoid nonce collisions in Create2 deployments
-
     // create with zap
-    const encodedSafeData = ethers.utils.defaultAbiCoder.encode(
+    encodedSafeData = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "uint256"],
       [ZAP_DATA.threshold, ZAP_DATA.saltNonce + i],
     );
-    const encodedSplitData = ethers.utils.defaultAbiCoder.encode(
+    encodedSplitData = ethers.utils.defaultAbiCoder.encode(
       ["bool", "bool"],
       [ZAP_DATA.isProjectSplit, ZAP_DATA.isDaoSplit],
     );
-    const encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+    encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
       [
         "address",
         "uint32",
@@ -358,6 +360,150 @@ describe("SafeSplitsDaoEscrowZap", function () {
     expect(await clientToken.balanceOf(alternate.address)).to.equal(
       startingAlternateBalance.add(teamSplitAmount.div(2)).sub(2),
     );
+  });
+
+  it("Should let the deployer skip the safe deploy", async function () {
+    const localEncodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+      [
+        "address",
+        "uint32",
+        "address",
+        "address",
+        "uint256",
+        "uint256",
+        "bytes32",
+      ],
+      [
+        ZAP_DATA.client,
+        ZAP_DATA.arbitration,
+        ZAP_DATA.resolver,
+        ZAP_DATA.token,
+        ZAP_DATA.escrowDeadline,
+        ZAP_DATA.saltNonce + 200 * i,
+        ZAP_DATA.details,
+      ],
+    );
+    const SafeSplitsEscrowZapCreateReceipt = await zap.createSafeSplitEscrow(
+      ZAP_DATA.owners,
+      ZAP_DATA.percentAllocations,
+      ZAP_DATA.milestoneAmounts,
+      encodedSafeData,
+      deployer.address,
+      encodedSplitData,
+      localEncodedEscrowData,
+    );
+    const zapCreateTx = await SafeSplitsEscrowZapCreateReceipt.wait();
+    const zapCreatedEvent = zapCreateTx.events.find(
+      e => e.event === "SafeSplitsDaoEscrowCreated",
+    );
+    const [safeAddress, teamSplitAddress, daoSplitAddress, escrowAddress] =
+      ethers.utils.defaultAbiCoder.decode(
+        ["address", "address", "address", "address"],
+        zapCreatedEvent.data,
+      );
+    expect(safeAddress).to.equal(deployer.address);
+  });
+
+  it("Should let the deployer skip the team split", async function () {
+    const localEncodedSafeData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "uint256"],
+      [ZAP_DATA.threshold, ZAP_DATA.saltNonce + 100 * i],
+    );
+    const localEncodedSplitData = ethers.utils.defaultAbiCoder.encode(
+      ["bool", "bool"],
+      [false, true],
+    );
+    const localEncodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+      [
+        "address",
+        "uint32",
+        "address",
+        "address",
+        "uint256",
+        "uint256",
+        "bytes32",
+      ],
+      [
+        ZAP_DATA.client,
+        ZAP_DATA.arbitration,
+        ZAP_DATA.resolver,
+        ZAP_DATA.token,
+        ZAP_DATA.escrowDeadline,
+        ZAP_DATA.saltNonce + 100 * i,
+        ZAP_DATA.details,
+      ],
+    );
+    const SafeSplitsEscrowZapCreateReceipt = await zap.createSafeSplitEscrow(
+      ZAP_DATA.owners,
+      ZAP_DATA.percentAllocations,
+      ZAP_DATA.milestoneAmounts,
+      localEncodedSafeData,
+      ethers.constants.AddressZero,
+      localEncodedSplitData,
+      localEncodedEscrowData,
+    );
+    const zapCreateTx = await SafeSplitsEscrowZapCreateReceipt.wait();
+    const zapCreatedEvent = zapCreateTx.events.find(
+      e => e.event === "SafeSplitsDaoEscrowCreated",
+    );
+    const [safeAddress, teamSplitAddress, daoSplitAddress, escrowAddress] =
+      ethers.utils.defaultAbiCoder.decode(
+        ["address", "address", "address", "address"],
+        zapCreatedEvent.data,
+      );
+
+    expect(teamSplitAddress).to.equal(safeAddress);
+  });
+
+  it("Should let the deployer skip the dao split", async function () {
+    const localEncodedSafeData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "uint256"],
+      [ZAP_DATA.threshold, ZAP_DATA.saltNonce + 300 * i],
+    );
+    const localEncodedSplitData = ethers.utils.defaultAbiCoder.encode(
+      ["bool", "bool"],
+      [true, false],
+    );
+    const localEncodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+      [
+        "address",
+        "uint32",
+        "address",
+        "address",
+        "uint256",
+        "uint256",
+        "bytes32",
+      ],
+      [
+        ZAP_DATA.client,
+        ZAP_DATA.arbitration,
+        ZAP_DATA.resolver,
+        ZAP_DATA.token,
+        ZAP_DATA.escrowDeadline,
+        ZAP_DATA.saltNonce + 300 * i,
+        ZAP_DATA.details,
+      ],
+    );
+    const SafeSplitsEscrowZapCreateReceipt = await zap.createSafeSplitEscrow(
+      ZAP_DATA.owners,
+      ZAP_DATA.percentAllocations,
+      ZAP_DATA.milestoneAmounts,
+      localEncodedSafeData,
+      ethers.constants.AddressZero,
+      localEncodedSplitData,
+      localEncodedEscrowData,
+    );
+    const zapCreateTx = await SafeSplitsEscrowZapCreateReceipt.wait();
+    const zapCreatedEvent = zapCreateTx.events.find(
+      e => e.event === "SafeSplitsDaoEscrowCreated",
+    );
+    const [safeAddress, teamSplitAddress, daoSplitAddress, escrowAddress] =
+      ethers.utils.defaultAbiCoder.decode(
+        ["address", "address", "address", "address"],
+        zapCreatedEvent.data,
+      );
+
+    expect(daoSplitAddress).to.equal(ZERO_ADDRESS);
   });
 
   // it should let the safe update the split - handle from Safe UI for now
