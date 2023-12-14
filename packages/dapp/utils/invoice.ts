@@ -13,8 +13,8 @@ import {
   ISmartInvoiceFactoryAbi,
   ISmartInvoiceInstantAbi,
 } from '../abi';
-import { readContract, writeContract } from './contracts';
-import { logError } from './helpers';
+import { readContract, readEvent, writeContract } from './contracts';
+import { getInvoiceFactoryAddress, logError } from './helpers';
 
 export const register = async (
   address: Address,
@@ -41,34 +41,32 @@ export const register = async (
   });
 };
 
-// export const awaitInvoiceAddress = async (ethersProvider: any, tx: any) => {
-//   await tx.wait(1);
-//   const abi = parseAbi([
-//     'event LogNewInvoice(uint256 indexed index, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
-//   ]);
-//   const receipt = await ethersProvider.getTransactionReceipt(tx.hash);
-//   const eventFragment = abi.events[Object.keys(abi.events)[0]];
-//   const eventTopic = abi.getEventTopic(eventFragment);
-//   const event = receipt.logs.find((e: any) => e.topics[0] === eventTopic);
-//   if (event) {
-//     const decodedLog = abi.decodeEventLog(
-//       eventFragment,
-//       event.data,
-//       event.topics,
-//     );
-//     return decodedLog.invoice;
-//   }
-//   return '';
-// };
+export const awaitInvoiceAddress = async (chainId:number, hash: Hash) => {
+  // const receipt = await waitForTransaction({ chainId: chain.id, hash });
+  const abi = ISmartInvoiceFactoryAbi;
+  const [, address, , ,  ] = await readEvent({abi, chainId, hash, name: 'LogNewInvoice'});
+  // const eventFragment = abi.events[Object.keys(abi.events)[0]];
+  // const eventTopic = abi.getEventTopic(eventFragment);
+  // const event = receipt.logs.find((e) => e.topics[0] === eventTopic);
+  // if (event) {
+  //   const decodedLog = abi.decodeEventLog(
+  //     eventFragment,
+  //     event.data,
+  //     event.topics,
+  //   );
+  //   return decodedLog.invoice;
+  // }
+  return address;
+};
 
 export const getResolutionRateFromFactory = async (
-  address: Address,
   chain: Chain,
   resolver: Address,
   defaultValue: number = 20,
 ) => {
   if (!isAddress(resolver)) return defaultValue;
   try {
+    const address = getInvoiceFactoryAddress(chain.id);
     const [resolutionRate] = await readContract({
       abi: ISmartInvoiceFactoryAbi,
       address,
@@ -76,7 +74,7 @@ export const getResolutionRateFromFactory = async (
       functionName: 'resolutionRateOf',
       args: [resolver],
     });
-    return resolutionRate > 0 ? resolutionRate : defaultValue;
+    return resolutionRate > 0 ? Number(resolutionRate) : defaultValue;
   } catch (resolutionRateError) {
     logError({ resolutionRateError });
     return defaultValue;
@@ -213,20 +211,22 @@ export const getTotalDue = async (chain: Chain, address: Address) => {
   if (!chain) throw new Error('Invalid chain');
   if (!isAddress(address)) throw new Error('Invalid address');
 
-  return readContract({
+  const [totalDue] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,
     functionName: 'getTotalDue',
     args: [],
-  });
+  })
+
+  return totalDue;
 };
 
 export const getTotalFulfilled = async (chain: Chain, address: Address) => {
   if (!chain) throw new Error('Invalid chain');
   if (!isAddress(address)) throw new Error('Invalid address');
 
-  const amount = await readContract({
+  const [amount] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,
@@ -234,7 +234,7 @@ export const getTotalFulfilled = async (chain: Chain, address: Address) => {
     args: [],
   });
 
-  const isFulfilled = await readContract({
+  const [isFulfilled] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,
@@ -249,20 +249,22 @@ export const getDeadline = async (chain: Chain, address: Address) => {
   if (!chain) throw new Error('Invalid chain');
   if (!isAddress(address)) throw new Error('Invalid address');
 
-  return readContract({
+  const [deadline] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,
     functionName: 'deadline',
     args: [],
-  });
+  })
+
+  return deadline;
 };
 
 export const getLateFee = async (chain: Chain, address: Address) => {
   if (!chain) throw new Error('Invalid chain');
   if (!isAddress(address)) throw new Error('Invalid address');
 
-  const amount = await readContract({
+  const [amount] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,
@@ -270,7 +272,7 @@ export const getLateFee = async (chain: Chain, address: Address) => {
     args: [],
   });
 
-  const timeInterval = await readContract({
+  const [timeInterval] = await readContract({
     abi: ISmartInvoiceInstantAbi,
     address,
     chain,

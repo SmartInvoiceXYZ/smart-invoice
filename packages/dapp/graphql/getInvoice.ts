@@ -2,7 +2,8 @@
 import gql from 'fake-tag';
 import { Address } from 'viem';
 
-import { isAddress } from '../utils/helpers';
+import { Invoice } from '../types';
+import { isAddress, logDebug } from '../utils/helpers';
 import { clients } from './client';
 import { InvoiceDetails } from './fragments';
 
@@ -22,7 +23,7 @@ export const getInvoice = async (chain: number, queryAddress: Address) => {
     .query(invoiceQuery, { address })
     .toPromise();
 
-  console.log({ data, error, address });
+  logDebug({ data, error, address });
 
   if (!data) {
     if (error) {
@@ -30,5 +31,5 @@ export const getInvoice = async (chain: number, queryAddress: Address) => {
     }
     return null;
   }
-  return data.invoice;
+  return data.invoice as Invoice;
 };

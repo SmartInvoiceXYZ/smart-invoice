@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Address } from 'viem';
 
 import { IPFS_ENDPOINT } from '../constants';
 import { ChainId } from '../constants/config';
@@ -8,9 +9,9 @@ import { formatTokenData, formatTokens } from '../utils/helpers';
 
 export const useFetchTokensViaIPFS = () => {
   const [tokenData, setTokenData] = useState(
-    {} as Record<ChainId, Record<string, TokenData>>,
+    {} as Record<ChainId, Record<Address, TokenData>>,
   );
-  const [allTokens, setAllTokens] = useState({} as Record<ChainId, string[]>);
+  const [allTokens, setAllTokens] = useState({} as Record<ChainId, Address[]>);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {

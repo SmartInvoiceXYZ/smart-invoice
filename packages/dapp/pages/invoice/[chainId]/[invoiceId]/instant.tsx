@@ -1,7 +1,6 @@
-// @ts-expect-error TS(2792): Cannot find module 'ethers'. Did you mean to set t... Remove this comment to see the full error message
-import { bigint, utils } from 'ethers';
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { formatUnits, isAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -23,31 +22,19 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-// @ts-expect-error TS(2792): Cannot find module '../../../../../components/Gene... Remove this comment to see the full error message
 import { GenerateInvoicePDF } from '../../../../components/GenerateInvoicePDF';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../components/Load... Remove this comment to see the full error message
 import { Loader } from '../../../../components/Loader';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../components/inst... Remove this comment to see the full error message
 import { DepositFunds } from '../../../../components/instant/DepositFunds';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../components/inst... Remove this comment to see the full error message
 import { WithdrawFunds } from '../../../../components/instant/WithdrawFunds';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../context/Web3Con... Remove this comment to see the full error message
-import { Web3Context } from '../../../../context/Web3Context';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../graphql/getInvo... Remove this comment to see the full error message
+import { ChainId } from '../../../../constants/config';
 import { getInvoice } from '../../../../graphql/getInvoice';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../hooks/useFetchT... Remove this comment to see the full error message
 import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../icons/CopyIcon'... Remove this comment to see the full error message
 import { CopyIcon } from '../../../../icons/CopyIcon';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../icons/QuestionI... Remove this comment to see the full error message
 import { QuestionIcon } from '../../../../icons/QuestionIcon';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../shared/AccountL... Remove this comment to see the full error message
 import { AccountLink } from '../../../../shared/AccountLink';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../shared/Containe... Remove this comment to see the full error message
 import { Container } from '../../../../shared/Container';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../shared/InvoiceN... Remove this comment to see the full error message
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-// @ts-expect-error TS(2792): Cannot find module '../../../../../utils/erc20'. D... Remove this comment to see the full error message
+import { Invoice } from '../../../../types';
 import { balanceOf } from '../../../../utils/erc20';
 import {
   copyToClipboard,
@@ -70,14 +57,16 @@ function ViewInstantInvoice({
     params: { hexChainId, invoiceId },
   },
 }: any) {
-  const { chain, account, provider: ethersProvider } = useContext(Web3Context);
+  const { data:walletClient } = useWalletClient();
+  const account = walletClient?.account?.address;
+  const chain = walletClient?.chain;
   const [{ tokenData }] = useFetchTokensViaIPFS();
-  const [invoice, setInvoice] = useState();
+  const [invoice, setInvoice] = useState<Invoice|null>();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigInt(0));
   const [modal, setModal] = useState(false);
   const [selected, setSelected] = useState(0);
-  const invoiceChainId = parseInt(hexChainId, 16);
+  const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
   const [totalDue, setTotalDue] = useState(BigInt(0));
   const [totalFulfilled, setTotalFulfilled] = useState(BigInt(0));
   const [fulfilled, setFulfilled] = useState(false);
@@ -88,16 +77,17 @@ function ViewInstantInvoice({
 
   useEffect(() => {
     if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
-      getInvoice(invoiceChainId, invoiceId).then((i: any) => setInvoice(i));
+      getInvoice(invoiceChainId, invoiceId).then(setInvoice);
     }
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
-    const getValues = async (provider: any) => {
+    const getValues = async () => {
+      if (!invoice || !chain) return;
       // Get Balance
       try {
         setBalanceLoading(true);
-        const b = await balanceOf(provider, invoice.token, invoice.address);
+        const b = await balanceOf(chain, invoice.token, invoice.address);
         setBalance(b);
         setBalanceLoading(false);
       } catch (balanceError) {
@@ -106,47 +96,39 @@ function ViewInstantInvoice({
 
       // Get Total Due
       try {
-        const t = await getTotalDue(provider, invoice.address);
-        setTotalDue(BigInt(t));
+        const t = await getTotalDue(chain, invoice.address);
+        setTotalDue(t);
       } catch (totalDueError) {
         logError({ totalDueError });
-        setTotalDue(BigInt(invoice.total));
+        setTotalDue(invoice.total);
       }
 
       // Get Deadline, Late Fee and its time interval
       try {
-        const d = await getDeadline(provider, invoice.address);
-        setDeadline(BigInt(d).toNumber());
+        const d = await getDeadline(chain, invoice.address);
+        setDeadline(Number(d));
         const { amount, timeInterval } = await getLateFee(
-          provider,
+          chain,
           invoice.address,
         );
-        setLateFeeAmount(BigInt(amount));
-        setLateFeeTimeInterval(BigInt(timeInterval).toNumber());
+        setLateFeeAmount(amount);
+        setLateFeeTimeInterval(Number(timeInterval));
       } catch (lateFeeError) {
         logError({ lateFeeError });
       }
 
       // Get Total Fulfilled
       try {
-        const tf = await getTotalFulfilled(provider, invoice.address);
+        const tf = await getTotalFulfilled(chain, invoice.address);
         setTotalFulfilled(tf.amount);
         setFulfilled(tf.isFulfilled);
       } catch (totalFulfilledError) {
         logError({ totalFulfilledError });
       }
     };
-    if (invoice && ethersProvider && chain === invoiceChainId) {
-      getValues(ethersProvider);
-      // setBalanceLoading(true);
-      // balanceOf(ethersProvider, invoice.token, invoice.address)
-      //   .then(b => {
-      //     setBalance(b);
-      //     setBalanceLoading(false);
-      //   })
-      //   .catch(balanceError => logError({ balanceError }));
-    }
-  }, [invoice, ethersProvider, chain, invoiceChainId]);
+
+    getValues();
+  }, [chain, invoice]);
 
   useEffect(() => {
     if (invoice && totalDue !== BigInt(0) && deadline) {
@@ -164,7 +146,7 @@ function ViewInstantInvoice({
     return <InvoiceNotFound />;
   }
 
-  if (invoice && chain !== invoiceChainId) {
+  if (invoice && chain?.id !== invoiceChainId) {
     return (
       <InvoiceNotFound chain={invoiceChainId} heading="Incorrect Network" />
     );
@@ -185,7 +167,6 @@ function ViewInstantInvoice({
     startDate,
     endDate,
     client,
-    provider,
     total,
     token,
     // released,
@@ -195,17 +176,17 @@ function ViewInstantInvoice({
     // lateFeeTimeInterval
   } = invoice;
 
-  const isClient = account.toLowerCase() === client;
-  const isProvider = account.toLowerCase() === provider;
+  const isClient = account?.toLowerCase() === client;
+  const isProvider = account?.toLowerCase() === walletClient;
   const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
 
   const due =
-    totalFulfilled.gte(totalDue) || fulfilled
+    totalFulfilled >= totalDue || fulfilled
       ? BigInt(0)
-      : BigInt(totalDue).sub(totalFulfilled);
+      : totalDue - totalFulfilled;
 
   const isTippable = fulfilled;
-  const isWithdrawable = balance.gt(0);
+  const isWithdrawable = balance > (0);
 
   const onDeposit = () => {
     setSelected(1);
@@ -346,7 +327,7 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={provider} chain={invoiceChainId} />
+                <AccountLink address={walletClient} chain={invoiceChainId} />
               </WrapItem>
             </Wrap>
 
@@ -450,7 +431,7 @@ function ViewInstantInvoice({
               fontWeight="bold"
               fontSize="lg"
             >
-              <Text>{totalFulfilled.gt(0) ? 'Remaining' : 'Total'} Due</Text>
+              <Text>{totalFulfilled > (0) ? 'Remaining' : 'Total'} Due</Text>
               <Text textAlign="right">{`${formatUnits(
                 due,
                 decimals,
@@ -513,9 +494,9 @@ function ViewInstantInvoice({
                   fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onWithdraw()}
-                  isDisabled={!balance.gt(0)}
+                  isDisabled={balance <= 0}
                 >
-                  {balance.eq(0) && fulfilled ? 'Received' : 'Receive'}
+                  {balance === BigInt(0) && fulfilled ? 'Received' : 'Receive'}
                 </Button>
               </SimpleGrid>
             </VStack>
@@ -542,9 +523,9 @@ function ViewInstantInvoice({
                   invoice={invoice}
                   deposited={totalFulfilled}
                   due={
-                    totalDue.gte(totalFulfilled)
-                      ? totalDue.sub(totalFulfilled)
-                      : 0
+                    totalDue >= totalFulfilled
+                      ? totalDue - totalFulfilled
+                      : BigInt(0)
                   }
                   total={total}
                   fulfilled={fulfilled}

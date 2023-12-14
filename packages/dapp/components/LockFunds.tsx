@@ -1,5 +1,6 @@
-import { Transaction, bigint, utils } from 'ethers';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { Hash, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -10,9 +11,10 @@ import {
   Text,
   VStack,
   useBreakpointValue,
+  useToast
 } from '@chakra-ui/react';
+import { waitForTransaction } from '@wagmi/core';
 
-import { Web3Context } from '../context/Web3Context';
 import { AccountLink } from '../shared/AccountLink';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import {
@@ -29,22 +31,24 @@ import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
 export function LockFunds({ invoice, balance, tokenData }: any) {
-  const { chain, provider } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient(); 
+  const chainId = walletClient?.chain?.id;
   const { network, address, resolver, token, resolutionRate } = invoice;
-  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [disputeReason, setDisputeReason] = useState('');
+  const toast = useToast();
 
-  const fee = `${utils.formatUnits(
-    BigInt(balance).div(resolutionRate),
+  const fee = `${formatUnits(
+    BigInt(balance) / (resolutionRate),
     decimals,
   )} ${symbol}`;
 
   const [locking, setLocking] = useState(false);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const [txHash, setTxHash] = useState<Hash>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   const lockFunds = useCallback(async () => {
-    if (provider && !locking && balance.gt(0) && disputeReason) {
+    if (walletClient && !locking && balance > (0) && disputeReason) {
       try {
         setLocking(true);
         const detailsHash = await uploadDisputeDetails({
@@ -52,20 +56,26 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
           invoice: address,
           amount: balance.toString(),
         });
-        const tx = await lock(provider, address, detailsHash);
-        setTransaction(tx);
-        await tx.wait();
+        const hash = await lock(walletClient, address, detailsHash);
+        setTxHash(hash);
+        const txReceipt = await waitForTransaction({chainId, hash});
+        setLocking(false);
+        if (txReceipt.status === 'success') {
         setTimeout(() => {
           window.location.href = `/invoice/${getHexChainId(
             network,
           )}/${address}`;
         }, 2000);
+      }
+      else {          
+        toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
+      }
       } catch (lockError) {
         setLocking(false);
         logError({ lockError });
       }
     }
-  }, [network, provider, locking, balance, address, disputeReason]);
+  }, [walletClient, locking, balance, disputeReason, address, chainId, network, toast]);
 
   if (locking) {
     return (
@@ -79,11 +89,11 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
         >
           Locking Funds
         </Heading>
-        {transaction?.hash && (
+        {chainId && txHash && (
           <Text textAlign="center" fontSize="sm" color="black">
             Follow your transaction{' '}
             <Link
-              href={getTxLink(chain, transaction.hash)}
+              href={getTxLink(chainId, txHash)}
               isExternal
               color="blue"
               textDecoration="underline"
@@ -137,7 +147,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
       <Text w="100%" color="black">
         {'Once a dispute has been initiated, '}
 
-        <AccountLink address={resolver} chain={chain} />
+        <AccountLink address={resolver} chain={chainId} />
         {
           ' will review your case, the project agreement and dispute reasoning before making a decision on how to fairly distribute remaining funds.'
         }
@@ -154,7 +164,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
       <Text color="red.500" textAlign="center">
         {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}
 
-        <AccountLink address={resolver} chain={chain} />
+        <AccountLink address={resolver} chain={chainId} />
         {` for helping resolve this dispute.`}
       </Text>
 
@@ -168,16 +178,16 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
         fontWeight="normal"
         w="100%"
       >
-        {`Lock ${utils.formatUnits(balance, decimals)} ${symbol}`}
+        {`Lock ${formatUnits(balance, decimals)} ${symbol}`}
       </Button>
-      {isKnownResolver(chain, resolver) && (
+      {isKnownResolver(resolver, chainId) && (
         <Link
-          href={getResolverInfo(chain, resolver).termsUrl}
+          href={getResolverInfo(resolver, chainId).termsUrl}
           isExternal
           color="red.500"
           textDecor="underline"
         >
-          Learn about {getResolverString(chain, resolver)} dispute process &
+          Learn about {getResolverString(resolver, chainId)} dispute process &
           terms
         </Link>
       )}

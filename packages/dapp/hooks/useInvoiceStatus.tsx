@@ -3,14 +3,15 @@ import { bigint } from 'ethers';
 // @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import { useContext, useEffect, useState } from 'react';
 
-// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
-import { Web3Context } from '../context/Web3Context';
 import { balanceOf } from '../utils/erc20';
 import { logError } from '../utils/helpers';
 import { getDeadline, getTotalFulfilled } from '../utils/invoice';
 
+// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
+
+
 export const useInvoiceStatus = (invoice: any) => {
-  const { provider } = useContext(Web3Context);
+  const { provider } = useWalletClient();
 
   const [loading, setLoading] = useState(true);
   const [funded, setFunded] = useState(false);

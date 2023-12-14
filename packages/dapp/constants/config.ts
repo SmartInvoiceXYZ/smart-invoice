@@ -1,9 +1,18 @@
+import { Address } from "viem";
+
 const LexDAOLogo = '../assets/lex-dao.png';
 
 export type Resolver = {
   name: string;
   logoUrl: string;
   termsUrl: string;
+};
+
+export type NetworkConfig = {
+  SUBGRAPH: string;
+  WRAPPED_NATIVE_TOKEN: Address;
+  INVOICE_FACTORY: Address;
+  RESOLVERS: Record<Address, Resolver>;
 };
 
 export const CONFIG = {
@@ -24,8 +33,8 @@ export const CONFIG = {
           termsUrl:
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
-      },
-    },
+      } ,
+    } as NetworkConfig,
     100: {
       SUBGRAPH: 'psparacino/v1-xdai-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
@@ -40,7 +49,7 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
     4: {
       SUBGRAPH: 'psparacino/smart-invoices-rinkey-ps',
       WRAPPED_NATIVE_TOKEN:
@@ -55,7 +64,7 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
     5: {
       SUBGRAPH: 'psparacino/goerli-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
@@ -70,13 +79,13 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
     42: {
       SUBGRAPH: 'psparacino/v1-kovan-smart-invoices',
       WRAPPED_NATIVE_TOKEN: '0x000',
       INVOICE_FACTORY: '0x000',
       RESOLVERS: {} as Record<string, Resolver>,
-    },
+    } as NetworkConfig,
     137: {
       SUBGRAPH: 'psparacino/v1-matic-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
@@ -91,7 +100,7 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
     80001: {
       SUBGRAPH: 'psparacino/v1-mumbai-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
@@ -106,7 +115,7 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
     31337: {
       SUBGRAPH: 'psparacino/goerli-smart-invoices',
       WRAPPED_NATIVE_TOKEN:
@@ -121,7 +130,7 @@ export const CONFIG = {
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
       },
-    },
+    } as NetworkConfig,
   },
 } as const;
 

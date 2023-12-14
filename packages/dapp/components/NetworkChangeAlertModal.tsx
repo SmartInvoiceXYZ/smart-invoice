@@ -6,7 +6,7 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalHeader,
-  ModalOverlay
+  ModalOverlay,
 } from '@chakra-ui/react';
 
 import { getNetworkName } from '../utils/helpers';
@@ -14,23 +14,20 @@ import { getNetworkName } from '../utils/helpers';
 export function NetworkChangeAlertModal({
   showChainChangeAlert,
   setShowChainChangeAlert,
-  chainId
+  chain,
 }: any) {
   return (
-    
     <Modal
       isOpen={showChainChangeAlert}
       onClose={() => setShowChainChangeAlert(false)}
     >
-      
       <ModalOverlay />
-      
+
       <ModalContent>
-        
         <ModalHeader style={{ textAlign: 'center', color: 'red' }}>
           Attention
         </ModalHeader>
-        
+
         <ModalBody
           style={{
             backgroundColor: '#ffebee',
@@ -40,7 +37,7 @@ export function NetworkChangeAlertModal({
           }}
         >
           <div>
-            You are changing the network to <b>{getNetworkName(chainId)}</b>.
+            You are changing the network to <b>{getNetworkName(chain)}</b>.
           </div>
           <hr style={{ borderTop: '1px solid red', margin: '10px 0' }} />
           <div>
@@ -52,7 +49,7 @@ export function NetworkChangeAlertModal({
             same network.
           </div>
         </ModalBody>
-        
+
         <ModalCloseButton color="gray.400" />
       </ModalContent>
     </Modal>

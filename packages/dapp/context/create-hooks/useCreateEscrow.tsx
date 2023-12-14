@@ -22,7 +22,7 @@ export function useCreateEscrow({
       isAddress(paymentAddress) &&
       isAddress(paymentToken) &&
       isAddress(arbitrationProvider) &&
-      paymentDue.gt(0) &&
+      paymentDue > (0) &&
       !Number.isNaN(Number(milestones)) &&
       milestones > 0 &&
       termsAccepted &&
@@ -47,7 +47,7 @@ export function useCreateEscrow({
 
   const escrowStep3Valid = useMemo(
     () =>
-      payments.reduce((t: any, a: any) => t.add(a), BigInt(0)).eq(paymentDue),
+      payments.reduce((t: any, a: any) => t + (a), BigInt(0)) === (paymentDue),
     [payments, paymentDue],
   );
 

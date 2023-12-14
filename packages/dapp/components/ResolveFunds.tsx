@@ -1,5 +1,6 @@
-import { Transaction, bigint, utils } from 'ethers';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { Hash, formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -13,13 +14,15 @@ import {
   Tooltip,
   VStack,
   useBreakpointValue,
+  useToast,
 } from '@chakra-ui/react';
+import { waitForTransaction } from '@wagmi/core';
 
-import { Web3Context } from '../context/Web3Context';
+import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { OrderedTextarea } from '../shared/OrderedInput';
+import { Invoice, TokenData } from '../types';
 import {
-  getHexChainId,
   getTokenInfo,
   getTxLink,
   logError,
@@ -27,15 +30,24 @@ import {
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
-export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
-  const { network, address, resolutionRate, token, isLocked } = invoice;
-  const { chain, provider } = useContext(Web3Context);
-  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
-  const [loading, setLoading] = useState(false);
-  const [transaction, setTransaction] = useState<Transaction>();
+export type ResolveFundsProps = {
+  invoice: Invoice;
+  balance: bigint;
+  close: any;
+  tokenData: Record<ChainId, Record<string, TokenData>>;
+}
 
-  const resolverAward = balance.gt(0) ? balance.div(resolutionRate) : BigInt(0);
-  const availableFunds = balance.sub(resolverAward);
+export function ResolveFunds({ invoice, balance, close, tokenData }: ResolveFundsProps) {
+  const { address, resolutionRate, token, isLocked } = invoice;
+  const { data: walletClient } = useWalletClient(); 
+const chainId = walletClient?.chain?.id;
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const [loading, setLoading] = useState(false);
+  const [txHash, setTxHash] = useState<Hash>();
+  const toast = useToast();
+
+  const resolverAward = balance > (0) ? balance / BigInt(resolutionRate) : BigInt(0);
+  const availableFunds = balance - (resolverAward);
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigInt(0));
   const [clientAwardInput, setClientAwardInput] = useState(
@@ -47,11 +59,12 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
 
   const resolveFunds = useCallback(async () => {
     if (
-      provider &&
+      walletClient &&
+      chainId &&
       isLocked &&
       comments &&
-      balance.eq(clientAward.add(providerAward).add(resolverAward)) &&
-      balance.gt(0)
+      balance === (clientAward + (providerAward) + (resolverAward)) &&
+      balance > (0)
     ) {
       try {
         setLoading(true);
@@ -60,32 +73,27 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
           invoice: address,
           amount: balance.toString(),
         });
-        const tx = await resolve(
-          provider,
+        const hash = await resolve(
+          walletClient,
           address,
           clientAward,
           providerAward,
           detailsHash,
         );
-        setTransaction(tx);
-        await tx.wait();
-        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
+        setTxHash(hash);
+        const txReceipt = await waitForTransaction({chainId, hash});
+        setLoading(false);
+        if (txReceipt.status === 'success') {
+          window.location.href = `/invoice/${chainId.toString(16)}/${address}`;
+        } else {
+          toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
+        }
       } catch (depositError) {
         setLoading(false);
         logError({ depositError });
       }
     }
-  }, [
-    provider,
-    isLocked,
-    balance,
-    comments,
-    clientAward,
-    providerAward,
-    resolverAward,
-    address,
-    network,
-  ]);
+  }, [walletClient, chainId, isLocked, comments, balance, clientAward, providerAward, resolverAward, address, toast]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -147,12 +155,12 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
                   setClientAwardInput(e.target.value);
                   if (e.target.value) {
                     let award = parseUnits(e.target.value, decimals);
-                    if (award.gt(availableFunds)) {
+                    if (award > (availableFunds)) {
                       award = availableFunds;
                       setClientAwardInput(formatUnits(award, decimals));
                     }
                     setClientAward(award);
-                    award = availableFunds.sub(award);
+                    award = availableFunds - (award);
                     setProviderAward(award);
                     setProviderAwardInput(formatUnits(award, decimals));
                   }
@@ -193,15 +201,15 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
                 onChange={(e: any) => {
                   setProviderAwardInput(e.target.value);
                   if (e.target.value) {
-                    let award = utils.parseUnits(e.target.value, decimals);
-                    if (award.gt(availableFunds)) {
+                    let award = parseUnits(e.target.value, decimals);
+                    if (award > (availableFunds)) {
                       award = availableFunds;
-                      setProviderAwardInput(utils.formatUnits(award, decimals));
+                      setProviderAwardInput(formatUnits(award, decimals));
                     }
                     setProviderAward(award);
-                    award = availableFunds.sub(award);
+                    award = availableFunds - (award);
                     setClientAward(award);
-                    setClientAwardInput(utils.formatUnits(award, decimals));
+                    setClientAwardInput(formatUnits(award, decimals));
                   }
                 }}
                 placeholder="Provider Award"
@@ -232,7 +240,7 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
                 color="black"
                 border="1px"
                 type="number"
-                value={utils.formatUnits(resolverAward, decimals)}
+                value={formatUnits(resolverAward, decimals)}
                 pr="3.5rem"
                 alt="This is how much you’ll receive as your fee for resolving this dispute."
                 isDisabled
@@ -246,7 +254,7 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
             onClick={resolveFunds}
             isLoading={loading}
             colorScheme="red"
-            isDisabled={resolverAward.lte(0) || !comments}
+            isDisabled={resolverAward <= (0) || !comments}
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"
@@ -255,11 +263,11 @@ export function ResolveFunds({ invoice, balance, close, tokenData }: any) {
           >
             Resolve
           </Button>
-          {chain && transaction?.hash && (
+          {chainId && txHash && (
             <Text color="black" textAlign="center" fontSize="sm">
               Follow your transaction{' '}
               <Link
-                href={getTxLink(chain, transaction.hash)}
+                href={getTxLink(chainId, txHash)}
                 isExternal
                 color="blue"
                 textDecoration="underline"

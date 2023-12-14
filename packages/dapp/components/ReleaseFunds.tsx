@@ -1,5 +1,6 @@
-import { Transaction, bigint, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Hash, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -10,12 +11,14 @@ import {
   Tooltip,
   VStack,
   useBreakpointValue,
+  useToast,
 } from '@chakra-ui/react';
+import { waitForTransaction } from '@wagmi/core';
 
-import { Web3Context } from '../context/Web3Context';
+import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
+import { Invoice, TokenData } from '../types';
 import {
-  getHexChainId,
   getTokenInfo,
   getTxLink,
   logError,
@@ -23,23 +26,32 @@ import {
 import { release } from '../utils/invoice';
 
 const getReleaseAmount = (
-  currentMilestone: any,
-  amounts: any,
-  balance: any,
+  currentMilestone: number,
+  amounts: bigint[],
+  balance: bigint,
 ) => {
   if (
     currentMilestone >= amounts.length ||
     (currentMilestone === amounts.length - 1 &&
-      balance.gte(amounts[currentMilestone]))
+      balance > (amounts[currentMilestone]))
   ) {
     return balance;
   }
   return BigInt(amounts[currentMilestone]);
 };
 
-export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
+export type ReleaseFundsProps = {
+  invoice: Invoice;
+  balance: bigint;
+  close: any;
+  tokenData: Record<ChainId, Record<string, TokenData>>;
+};
+
+export function ReleaseFunds({ invoice, balance, close, tokenData }: ReleaseFundsProps) {
   const [loading, setLoading] = useState(false);
-  const { chain, provider } = useContext(Web3Context);
+  const toast = useToast();
+  const { data: walletClient } = useWalletClient(); 
+const chainId = walletClient?.chain?.id;
   const {
     network,
     currentMilestone,
@@ -51,27 +63,33 @@ export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
 
   const amount = getReleaseAmount(currentMilestone, amounts, balance);
 
-  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const [txHash, setTxHash] = useState<Hash>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
     const send = async () => {
+      if (loading || !walletClient || !chainId) return;
       try {
         setLoading(true);
-        const tx = await release(provider, address);
-        setTransaction(tx);
-        await tx.wait();
-        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
+        const hash = await release(walletClient, address);
+        setTxHash(hash);
+        const txReceipt = await waitForTransaction({chainId, hash});
+        setLoading(false);
+        if (txReceipt.status === 'success') {
+          window.location.href = `/invoice/${chainId.toString(16)}/${address}`;
+        } else {
+          toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
+        }
       } catch (releaseError) {
         logError({ releaseError });
         close();
       }
     };
-    if (!loading && provider && balance && balance.gte(amount)) {
+    if (balance && balance > amount) {
       send();
     }
-  }, [network, amount, address, provider, balance, loading, close]);
+  }, [network, amount, address, walletClient, balance, loading, close, chainId, toast]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -109,13 +127,13 @@ export function ReleaseFunds({ invoice, balance, close, tokenData }: any) {
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{`${utils.formatUnits(amount, decimals)} ${symbol}`}</Text>
+        >{`${formatUnits(amount, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chain && transaction?.hash && (
+      {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chain, transaction?.hash)}
+            href={getTxLink(chainId,txHash)}
             isExternal
             color="blue"
             textDecoration="underline"

@@ -1,11 +1,11 @@
-import { utils } from 'ethers';
 import NextLink from 'next/link';
 import React, { useContext, useEffect, useState } from 'react';
+import { Address, isAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
 import { CreateContext } from '../context/CreateContext';
-import { Web3Context } from '../context/Web3Context';
 import { getInvoice } from '../graphql/getInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
 import { Invoice } from '../types';
@@ -16,27 +16,28 @@ import { Loader } from './Loader';
 const POLL_INTERVAL = 5000;
 
 export function RegisterSuccess() {
-  const { chain, provider } = useContext(Web3Context);
-  const { tx } = useContext(CreateContext);
-  const [invoiceId, setInvoiceID] = useState();
+  const { data: walletClient } = useWalletClient(); 
+  const chainId = walletClient?.chain?.id;
+  const { txHash } = useContext(CreateContext);
+  const [invoiceId, setInvoiceID] = useState<Address>();
   const [invoice, setInvoice] = useState<Invoice>();
 
   useEffect(() => {
-    if (tx && provider) {
-      awaitInvoiceAddress(provider, tx).then(id => {
-        setInvoiceID(id.toLowerCase());
+    if (txHash && chainId) {
+      awaitInvoiceAddress(chainId, txHash).then(id => {
+        setInvoiceID(id);
       });
     }
-  }, [tx, provider]);
+  }, [txHash, chainId]);
 
   useEffect(() => {
-    if (!chain || !invoiceId || !utils.isAddress(invoiceId) || !!invoice)
+    if (!chainId || !invoiceId || !isAddress(invoiceId) || !!invoice)
       return () => undefined;
 
     let isSubscribed = true;
 
     const interval = setInterval(() => {
-      getInvoice(chain, invoiceId).then(inv => {
+      getInvoice(chainId, invoiceId).then(inv => {
         if (isSubscribed && !!inv) {
           setInvoice(inv);
         }
@@ -47,7 +48,7 @@ export function RegisterSuccess() {
       isSubscribed = false;
       clearInterval(interval);
     };
-  }, [chain, invoiceId, invoice]);
+  }, [chainId, invoiceId, invoice]);
 
   return (
     <VStack
@@ -63,14 +64,14 @@ export function RegisterSuccess() {
         {invoice ? 'Invoice Registered' : 'Invoice Registration Received'}
       </Heading>
 
-      {chain && tx?.hash && (
+      {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           {invoice
             ? 'You can view your transaction '
             : 'You can check the progress of your transaction '}
 
           <Link
-            href={getTxLink(chain, tx.hash)}
+            href={getTxLink(chainId, txHash)}
             isExternal
             color="blue"
             textDecoration="underline"

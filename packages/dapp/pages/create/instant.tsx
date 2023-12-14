@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useWalletClient } from 'wagmi';
 
 /* eslint-disable no-nested-ternary */
 import {
@@ -18,12 +19,10 @@ import { FormConfirmation } from '../../components/instant/FormConfirmation';
 import { InstantPaymentDetailsForm } from '../../components/instant/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/instant/ProjectDetailsForm';
 import { INSTANT_STEPS, INVOICE_TYPES } from '../../constants';
-import { ChainId } from '../../constants/config';
 import {
   CreateContext,
   CreateContextProvider,
 } from '../../context/CreateContext';
-import { Web3Context } from '../../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
@@ -32,7 +31,7 @@ type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
 export function CreateInvoiceInstantInner() {
   const {
-    tx,
+    txHash,
     loading,
     currentStep,
     nextStepEnabled,
@@ -46,17 +45,18 @@ export function CreateInvoiceInstantInner() {
   useEffect(() => {
     setInvoiceType(Instant);
   }, [invoiceType, setInvoiceType, Instant]);
-  const { chain } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
-  const prevChainIdRef = useRef<ChainId>();
+  const prevChainIdRef = useRef<number>();
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
 
   useEffect(() => {
-    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chain) {
+    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
       setShowChainChangeAlert(true);
     }
-    prevChainIdRef.current = chain;
-  }, [chain]);
+    prevChainIdRef.current = chainId;
+  }, [chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -76,7 +76,7 @@ export function CreateInvoiceInstantInner() {
 
   return (
     <Container overlay>
-      {tx ? (
+      {txHash ? (
         <RegisterSuccess />
       ) : tokenData ? (
         <Stack
@@ -92,7 +92,7 @@ export function CreateInvoiceInstantInner() {
           <NetworkChangeAlertModal
             showChainChangeAlert={showChainChangeAlert}
             setShowChainChangeAlert={setShowChainChangeAlert}
-            chain={chain}
+            chain={chainId}
           />
 
           <VStack

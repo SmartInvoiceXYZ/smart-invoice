@@ -1,5 +1,6 @@
-import { Transaction, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Hash, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -10,42 +11,44 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { Web3Context } from '../context/Web3Context';
 import {
-  getHexChainId,
   getTokenInfo,
   getTxLink,
   logError,
 } from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
+import { waitForTransaction } from '../utils/transactions';
 
 export function WithdrawFunds({ invoice, balance, close, tokenData }: any) {
   const [loading, setLoading] = useState(false);
-  const { chain, provider } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient(); 
+const chainId = walletClient?.chain?.id;
   const { network, address, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const [txHash, setTxHash] = useState<Hash>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
     const send = async () => {
       try {
+        if (!walletClient) return;
         setLoading(true);
-        const tx = await withdraw(provider, address);
-        setTransaction(tx);
-        await tx.wait();
-        window.location.href = `/invoice/${getHexChainId(network)}/${address}`;
+        const hash = await withdraw(walletClient, address);
+        setTxHash(hash);
+        const {chain} = walletClient;
+        await waitForTransaction(chain, hash);
+        window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
         setLoading(false);
       } catch (withdrawError) {
         close();
         logError({ withdrawError });
       }
     };
-    if (!loading && provider && balance.gte(0)) {
+    if (!loading && walletClient && balance > 0) {
       send();
     }
-  }, [network, balance, address, provider, loading, close]);
+  }, [network, balance, address, walletClient, loading, close]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -73,13 +76,13 @@ export function WithdrawFunds({ invoice, balance, close, tokenData }: any) {
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{`${utils.formatUnits(balance, decimals)} ${symbol}`}</Text>
+        >{`${formatUnits(balance, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chain && transaction?.hash && (
+      {chainId && txHash && (
         <Text color="white" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chain, transaction.hash)}
+            href={getTxLink(chainId, txHash)}
             isExternal
             color="red.500"
             textDecoration="underline"

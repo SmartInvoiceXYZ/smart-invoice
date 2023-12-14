@@ -1,17 +1,17 @@
-import { utils } from 'ethers';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
+import { isAddress } from 'viem';
 
 import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
 import { Loader } from '../../../../components/Loader';
+import { ChainId } from '../../../../constants/config';
 import { getInvoice } from '../../../../graphql/getInvoice';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { Chain, Invoice } from '../../../../types';
+import { Invoice } from '../../../../types';
 import {
-  getHexChainId,
   getIpfsLink,
   getTxLink,
 } from '../../../../utils/helpers';
@@ -21,13 +21,13 @@ function LockedInvoice({
     params: { hexChainId, invoiceId },
   },
 }: any) {
-  const [invoice, setInvoice] = useState<Invoice>();
+  const [invoice, setInvoice] = useState<Invoice | null>();
   const router = useRouter();
-  const invoiceChainId = parseInt(hexChainId, 16) as Chain;
+  const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
 
   useEffect(() => {
     if (isAddress(invoiceId)) {
-      getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
+      getInvoice(invoiceChainId, invoiceId).then(setInvoice);
     }
   }, [invoiceId, invoiceChainId]);
 
@@ -43,7 +43,7 @@ function LockedInvoice({
     );
   }
 
-  const { id, network, disputes, isLocked } = invoice;
+  const { id, disputes, isLocked } = invoice;
 
   const dispute =
     isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
@@ -94,7 +94,7 @@ function LockedInvoice({
           ruling.
           <br />
           Return to the{' '}
-          <Link as={NextLink} to={`/invoice/${getHexChainId(network)}/${id}`}>
+          <Link as={NextLink} href={`/invoice/${invoiceChainId.toString(16)}/${id}`}>
             <u>invoice details page</u>
           </Link>{' '}
           to view the results.

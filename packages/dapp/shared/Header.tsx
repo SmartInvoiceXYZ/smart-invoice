@@ -4,12 +4,11 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 
 import { Box, Button, Link as ChakraLink, Flex, Image } from '@chakra-ui/react';
+import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import logo from '../assets/smart-invoice/normal.svg';
-import { Web3Context } from '../context/Web3Context';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
-import styled from '@emotion/styled';
 import { theme } from '../theme';
 
 export const StyledButton = styled(Button)`
@@ -35,7 +34,7 @@ export const StyledButton = styled(Button)`
 
 export function Header() {
   const { address } = useAccount();
-  const { connectAccount } = useContext(Web3Context);
+  const { connectAccount } = useWalletClient();
   const { data: walletClient } = useWalletClient();
   const [isOpen, onOpen] = useState(false);
   const [isMobile, onMobile] = useState(false);

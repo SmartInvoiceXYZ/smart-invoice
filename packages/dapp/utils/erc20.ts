@@ -11,6 +11,15 @@ export const approve = async (walletClient: WalletClient, token: Address, spende
     args: [spender, amount],
   });
 
+  export const transfer = async (walletClient: WalletClient, token: Address, recipient: Address, amount: bigint) => writeContract({
+      abi: IERC20Abi,
+      address: token,
+      walletClient,
+      functionName: 'transfer',
+      args: [recipient, amount],
+    });
+  
+
 export const balanceOf = async (chain: Chain, token: Address, address: Address) => {
   const [balance] = await readContract({
     abi: IERC20Abi,

@@ -1,3 +1,5 @@
+import { Address } from 'viem';
+
 import { getKeys } from '../utils/getKeys';
 import { CONFIG } from './config';
 
@@ -117,7 +119,7 @@ export const resolvers = {
   137: Object.keys(NETWORK_CONFIG[137].RESOLVERS),
   31337: Object.keys(NETWORK_CONFIG[31337].RESOLVERS),
   80001: Object.keys(NETWORK_CONFIG[80001].RESOLVERS),
-};
+} as Record<number, Address[]>;
 
 export const resolverInfo = {
   1: NETWORK_CONFIG[1].RESOLVERS,

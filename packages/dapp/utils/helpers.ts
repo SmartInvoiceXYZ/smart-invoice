@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable radix */
 
-import { getAddress } from 'viem';
+import { Address, getAddress } from 'viem';
 
 import {
   ADDRESS_ZERO,
@@ -42,7 +42,7 @@ export const getDateString = (timeInSec: any) => {
 // returns the checksummed address if the address is valid, otherwise returns false
 export const isAddress = (value: any) => {
   try {
-    return getAddress(value).toLowerCase();
+    return getAddress(value).toLowerCase() as Address;
   } catch (err) {
     return false;
   }
@@ -71,7 +71,7 @@ export const getResolvers = (chainId?: number) =>
     ? resolvers[chainId]
     : resolvers[DEFAULT_CHAIN_ID];
 
-export const getResolverInfo = (resolver: string, chainId?: number) =>
+export const getResolverInfo = (resolver: Address, chainId?: number) =>
   (chainId && isOfTypeChainId(chainId)
     ? resolverInfo[chainId]
     : resolverInfo[DEFAULT_CHAIN_ID])[resolver];
@@ -151,10 +151,10 @@ export const getAccountString = (account: string) => {
     .toUpperCase()}`;
 };
 
-export const isKnownResolver = (resolver: string, chainId?: number) =>
-  getResolvers(chainId).indexOf(resolver.toLowerCase()) !== -1;
+export const isKnownResolver = (resolver: Address, chainId?: number) =>
+  getResolvers(chainId).indexOf(resolver.toLowerCase() as Address) !== -1;
 
-export const getResolverString = (resolver: string, chainId?: number) => {
+export const getResolverString = (resolver: Address, chainId?: number) => {
   const info = getResolverInfo(resolver, chainId);
   return info ? info.name : getAccountString(resolver);
 };
@@ -237,13 +237,13 @@ export const formatTokenData = (object: any) => {
 };
 
 export const formatTokens = (
-  object: Record<ChainId, Record<string, TokenData>>,
+  object: Record<ChainId, Record<Address, TokenData>>,
 ) => {
-  const tokenObject = {} as Record<ChainId, string[]>;
+  const tokenObject = {} as Record<ChainId, Address[]>;
   for (const [key, value] of Object.entries(object)) {
-    const tokenArray = [];
+    const tokenArray = [] as Address[];
     for (const tokenAddress of Object.keys(value)) {
-      tokenArray.push(tokenAddress);
+      tokenArray.push(getAddress(tokenAddress));
     }
     tokenObject[Number(key) as ChainId] = tokenArray;
   }

@@ -1,5 +1,6 @@
-import { Transaction, bigint, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Hash, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Button,
@@ -10,21 +11,21 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { Web3Context } from '../../context/Web3Context';
-import { Chain, Invoice, TokenData } from '../../types';
+import { ChainId } from '../../constants/config';
+import { Invoice, TokenData } from '../../types';
 import {
-  getHexChainId,
   getTokenInfo,
   getTxLink,
   logError,
 } from '../../utils/helpers';
 import { withdraw } from '../../utils/invoice';
+import { waitForTransaction } from '../../utils/transactions';
 
 export type WithdrawFundsProps = {
   invoice: Invoice;
   balance: bigint;
   close: () => void;
-  tokenData: Record<Chain, Record<string, TokenData>>;
+  tokenData: Record<ChainId, Record<string, TokenData>>;
 };
 
 export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
@@ -34,31 +35,32 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   tokenData,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { chain, provider } = useContext(Web3Context);
+  const {data:walletClient} = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const { network, address, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chain, token, tokenData);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const [txHash, setTxHash] = useState<Hash>();
   const [invalid, setInvalid] = useState(false);
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
-    if (!loading && provider && balance.gte(0)) {
+    if (!loading && walletClient && balance >(0)) {
       setInvalid(false);
     } else {
       setInvalid(true);
     }
-  }, [loading, network, balance, address, provider, close]);
+  }, [loading, network, balance, address, walletClient, close]);
 
   const send = async () => {
     try {
+      if (!walletClient?.chain) return;
       setLoading(true);
-      const tx = await withdraw(provider, address);
-      setTransaction(tx);
-      await tx.wait();
-      window.location.href = `/invoice/${getHexChainId(
-        network,
-      )}/${address}/instant`;
+      const hash = await withdraw(walletClient, address);
+      setTxHash(hash);
+      const {chain} =walletClient;
+      await waitForTransaction(chain, hash);
+      window.location.href = `/invoice/${chain.id.toString(16)}/${address}/instant`;
       setLoading(false);
     } catch (withdrawError) {
       close();
@@ -100,13 +102,13 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{`${utils.formatUnits(balance, decimals)} ${symbol}`}</Text>
+        >{`${formatUnits(balance, decimals)} ${symbol}`}</Text>
       </VStack>
-      {chain && transaction?.hash && (
+      {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chain, transaction.hash)}
+            href={getTxLink(chainId, txHash)}
             isExternal
             color="blue.1"
             textDecoration="underline"

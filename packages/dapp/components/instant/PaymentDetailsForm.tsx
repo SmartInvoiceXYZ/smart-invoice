@@ -1,19 +1,28 @@
-import { BigNumber, utils } from 'ethers';
 import React, { useContext, useMemo, useState } from 'react';
+import { Address, isAddress, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 
+import { ChainId } from '../../constants/config';
 import { CreateContext } from '../../context/CreateContext';
-import { Web3Context } from '../../context/Web3Context';
 import { OrderedInput, OrderedSelect } from '../../shared/OrderedInput';
+import { TokenData } from '../../types';
 import { formatDate, getTokenInfo, getTokens } from '../../utils/helpers';
+
+export type InstantPaymentDetailsFormProps = {
+  display: string;
+  tokenData: Record<ChainId, Record<Address, TokenData>>;
+  allTokens: Record<ChainId, Address[]>;
+};
 
 export function InstantPaymentDetailsForm({
   display,
   tokenData,
-  allTokens
-}: any) {
-  const { chainId } = useContext(Web3Context);
+  allTokens,
+}: InstantPaymentDetailsFormProps) {
+  const { data: walletClient } = useWalletClient();
+  const chain = walletClient?.chain?.id;
 
   const {
     clientAddress,
@@ -31,14 +40,11 @@ export function InstantPaymentDetailsForm({
 
   const deadlineDateString = deadline ? formatDate(deadline) : '';
 
-  const TOKENS = useMemo(
-    () => getTokens(allTokens, chainId),
-    [chainId, allTokens],
-  );
+  const TOKENS = useMemo(() => getTokens(allTokens, chain), [chain, allTokens]);
 
   const { decimals } = useMemo(
-    () => getTokenInfo(chainId, paymentToken, tokenData),
-    [chainId, paymentToken, tokenData],
+    () => getTokenInfo(chain, paymentToken, tokenData),
+    [chain, paymentToken, tokenData],
   );
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
@@ -53,42 +59,39 @@ export function InstantPaymentDetailsForm({
   const lateFeeIntervalOptions = [1, 2, 7, 14, 28];
 
   return (
-    
     <VStack w="100%" spacing="1rem" display={display}>
-      
       <OrderedInput
         label="Client Address"
         value={clientAddress}
         isInvalid={clientInvalid}
         setValue={(v: any) => {
           setClientAddress(v);
-          setClientInvalid(!utils.isAddress(v));
+          setClientInvalid(!isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
         tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address. (Do NOT use a multi-sig address)."
         required="required"
       />
-      
+
       <OrderedInput
         label="Service Provider Address"
         value={paymentAddress}
         isInvalid={providerInvalid}
         setValue={(v: any) => {
           setPaymentAddress(v);
-          setProviderInvalid(!utils.isAddress(v));
+          setProviderInvalid(!isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
         required="required"
       />
-      
+
       <SimpleGrid
         w="100%"
         columns={{ base: 2, sm: 2 }}
         spacing="1rem"
         mb={paymentInvalid ? '-0.5rem' : ''}
       >
-        
         <OrderedInput
           label="Total Payment Due"
           type="number"
@@ -97,18 +100,18 @@ export function InstantPaymentDetailsForm({
           setValue={(v: any) => {
             setPaymentDueInput(v);
             if (v && !Number.isNaN(Number(v))) {
-              const p = utils.parseUnits(v, decimals);
+              const p = parseUnits(v, decimals);
               setPaymentDue(p);
-              setPaymentInvalid(p.lte(0));
+              setPaymentInvalid(p <=(0));
             } else {
-              setPaymentDue(BigNumber.from(0));
+              setPaymentDue(BigInt(0));
               setPaymentInvalid(true);
             }
           }}
           required="required"
           tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you’ll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
         />
-        
+
         <OrderedSelect
           value={paymentToken}
           setValue={setPaymentToken}
@@ -116,13 +119,14 @@ export function InstantPaymentDetailsForm({
           required="required"
           tooltip="This is the cryptocurrency you’ll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you’ll be forced to start the invoice over)."
         >
-             {TOKENS.map((token: any) => <option value={token} key={token}>
-            {getTokenInfo(chainId, token, tokenData).symbol}
-          </option>)}
+          {TOKENS.map((token: any) => (
+            <option value={token} key={token}>
+              {getTokenInfo(chain, token, tokenData).symbol}
+            </option>
+          ))}
         </OrderedSelect>
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (
-        
         <Text
           w="100%"
           color="red"
@@ -133,9 +137,8 @@ export function InstantPaymentDetailsForm({
           Payment must be greater than 0
         </Text>
       )}
-      
+
       <SimpleGrid w="100%" columns={3} spacing="1rem">
-        
         <OrderedInput
           label="Deadline"
           type="date"
@@ -144,7 +147,7 @@ export function InstantPaymentDetailsForm({
           required="optional"
           tooltip="A specific date when the total payment is due."
         />
-        
+
         <OrderedInput
           label="Late Fee"
           type="text"
@@ -152,16 +155,16 @@ export function InstantPaymentDetailsForm({
           setValue={(v: any) => {
             setLateFeeInput(v);
             if (v && !Number.isNaN(Number(v))) {
-              const p = utils.parseUnits(v, decimals);
+              const p = parseUnits(v, decimals);
               setLateFee(p);
             } else {
-              setLateFee(BigNumber.from(0));
+              setLateFee(BigInt(0));
             }
           }}
           required="optional"
           tooltip="A fee imposed if the client does not pay by the deadline."
         />
-        
+
         <OrderedSelect
           label="Late Fee Interval"
           value={lateFeeIntervalInput}

@@ -5,13 +5,12 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 import { Loader } from '../components/Loader';
 import { SUPPORTED_NETWORKS } from '../constants';
-import { Web3Context } from '../context/Web3Context';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
 export function ConnectWeb3() {
-  const { loading, account } = useContext(Web3Context);
+  const { loading, account } = useWalletClient();
   const { openConnectModal } = useConnectModal();
 
   if (loading) {

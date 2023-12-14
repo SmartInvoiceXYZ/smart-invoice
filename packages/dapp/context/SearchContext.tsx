@@ -54,7 +54,7 @@ export const SearchContext = createContext<SearchContextType>({
 });
 
 export function SearchContextProvider({ children }: any) {
-  const { chain } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<InvoiceRow[]>();

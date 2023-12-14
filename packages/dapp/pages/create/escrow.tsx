@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useWalletClient } from 'wagmi';
 
 /* eslint-disable no-nested-ternary */
 import {
@@ -19,12 +20,10 @@ import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
 import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
 import { RegisterSuccess } from '../../components/RegisterSuccess';
 import { ESCROW_STEPS, INVOICE_TYPES } from '../../constants';
-import { ChainId } from '../../constants/config';
 import {
   CreateContext,
   CreateContextProvider,
 } from '../../context/CreateContext';
-import { Web3Context } from '../../context/Web3Context';
 import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
 import { Container } from '../../shared/Container';
 import { StepInfo } from '../../shared/StepInfo';
@@ -33,7 +32,7 @@ type EscrowStepNumber = keyof typeof ESCROW_STEPS;
 
 export function CreateInvoiceEscrowInner() {
   const {
-    tx,
+    txHash,
     loading,
     currentStep,
     nextStepEnabled,
@@ -42,9 +41,10 @@ export function CreateInvoiceEscrowInner() {
     invoiceType,
     setInvoiceType,
   } = useContext(CreateContext);
-  const { chain } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
-  const prevChainIdRef = useRef<ChainId>();
+  const prevChainIdRef = useRef<number>();
 
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
 
@@ -54,11 +54,12 @@ export function CreateInvoiceEscrowInner() {
   }, [invoiceType, setInvoiceType, Escrow]);
 
   useEffect(() => {
-    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chain) {
+    if (chainId === undefined) return;
+    if (prevChainIdRef.current !== undefined && prevChainIdRef.current !== chainId) {
       setShowChainChangeAlert(true);
     }
-    prevChainIdRef.current = chain;
-  }, [chain]);
+    prevChainIdRef.current = chainId;
+  }, [chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -78,7 +79,7 @@ export function CreateInvoiceEscrowInner() {
 
   return (
     <Container overlay>
-      {tx ? (
+      {txHash ? (
         <RegisterSuccess />
       ) : tokenData ? (
         <Stack
@@ -94,7 +95,7 @@ export function CreateInvoiceEscrowInner() {
           <NetworkChangeAlertModal
             showChainChangeAlert={showChainChangeAlert}
             setShowChainChangeAlert={setShowChainChangeAlert}
-            chain={chain}
+            chain={chainId}
           />
 
           <VStack

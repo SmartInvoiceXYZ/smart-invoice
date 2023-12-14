@@ -57,5 +57,5 @@ export const uploadDisputeDetails = async (meta: any) => {
   // the graph was failing with CORS error, need to handle failover
   await ipfsInfura.pin.add(hash);
   const bytes = Buffer.from(Base58.decode(hash));
-  return `0x${bytes.slice(2).toString('hex')}`;
+  return `0x${bytes.slice(2).toString('hex')}` as Hash;
 };

@@ -1,5 +1,6 @@
-import { utils } from 'ethers';
 import React, { useContext } from 'react';
+import { formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import {
   Divider,
@@ -12,12 +13,12 @@ import {
 } from '@chakra-ui/react';
 
 import { CreateContext } from '../../context/CreateContext';
-import { Web3Context } from '../../context/Web3Context';
 import { AccountLink } from '../../shared/AccountLink';
 import { getDateString, getTokenInfo } from '../../utils/helpers';
 
 export function FormConfirmation({ display, tokenData }: any) {
-  const { chain } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const {
     projectName,
     projectDescription,
@@ -33,7 +34,7 @@ export function FormConfirmation({ display, tokenData }: any) {
     paymentToken,
   } = useContext(CreateContext);
 
-  const { decimals, symbol } = getTokenInfo(chain, paymentToken, tokenData);
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
 
   const flexWidth = useBreakpointValue({
     base: '95%',
@@ -72,13 +73,13 @@ export function FormConfirmation({ display, tokenData }: any) {
 
         <Spacer />
 
-        <AccountLink address={clientAddress} chain={chain} />
+        <AccountLink address={clientAddress} chain={chainId} />
       </Flex>
 
       <Flex justify="space-between" width={flexWidth}>
         <Text>{`Payment Address: `}</Text>
 
-        <AccountLink address={paymentAddress} chain={chain} />
+        <AccountLink address={paymentAddress} chain={chainId} />
       </Flex>
       {startDate && (
         <Flex justify="space-between" width={flexWidth}>
@@ -106,7 +107,7 @@ export function FormConfirmation({ display, tokenData }: any) {
           <Text>{`Late Fee: `}</Text>
 
           <Text textAlign="right">
-            {`${utils.formatUnits(lateFee, decimals)} ${symbol} 
+            {`${formatUnits(lateFee, decimals)} ${symbol} 
               every ${lateFeeInterval / (1000 * 60 * 60 * 24)} 
               day${lateFeeInterval / (1000 * 60 * 60 * 24) > 1 && 's'}`}
           </Text>
@@ -121,7 +122,7 @@ export function FormConfirmation({ display, tokenData }: any) {
 
       <Flex justify="flex-end">
         <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-          {`${utils.formatUnits(paymentDue, decimals)} ${symbol} Total`}
+          {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
         </Text>
       </Flex>
     </VStack>

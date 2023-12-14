@@ -21,7 +21,7 @@ import {
 } from '../utils/helpers';
 
 const { NETWORK_CONFIG } = CONFIG;
-const networks = getKeys(NETWORK_CONFIG);
+const chainIds = getKeys(NETWORK_CONFIG);
 
 const Contracts: React.FC = () => {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
@@ -41,19 +41,18 @@ const Contracts: React.FC = () => {
           Contracts
         </Heading>
 
-        {networks.map(chain => {
-          const INVOICE_FACTORY = getInvoiceFactoryAddress(chain);
-
-          const TOKENS = getTokens(chain, allTokens);
+        {chainIds.map(chainId => {
+          const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId);
+          const TOKENS = getTokens(allTokens, chainId);
 
           return (
             <>
-              <Text textAlign="center">NETWORK CHAIN ID: {chain}</Text>
+              <Text textAlign="center">NETWORK CHAIN ID: {chainId}</Text>
 
               <Text textAlign="center">
                 INVOICE FACTORY:{' '}
                 <Link
-                  href={getAddressLink(chain, INVOICE_FACTORY)}
+                  href={getAddressLink(chainId, INVOICE_FACTORY)}
                   isExternal
                   color="red.500"
                 >
@@ -66,11 +65,11 @@ const Contracts: React.FC = () => {
               {TOKENS.map(token => (
                 <Text textAlign="center" key={token}>
                   {`ERC20 TOKEN ${
-                    getTokenInfo(chain, token, tokenData).symbol
+                    getTokenInfo(chainId, token, tokenData).symbol
                   }: `}
 
                   <Link
-                    href={getAddressLink(chain, token)}
+                    href={getAddressLink(chainId, token)}
                     isExternal
                     color="red.500"
                   >

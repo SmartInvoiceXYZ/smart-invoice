@@ -1,4 +1,3 @@
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import React, { useState } from 'react';
 
 import {
@@ -13,9 +12,8 @@ import {
   VStack
 } from '@chakra-ui/react';
 
-// @ts-expect-error TS(6142): Module '../icons/QuestionIcon' was resolved to '/U... Remove this comment to see the full error message
 import { QuestionIcon } from '../icons/QuestionIcon';
-import { isValidLink } from '../utils/helpers';
+import { isValidLink, logDebug } from '../utils/helpers';
 
 export const OrderedLinkInput = ({
   label,
@@ -75,13 +73,13 @@ export const OrderedLinkInput = ({
           >
             
             <Select
-              onChange={(e: any) => {
+              onChange={(e) => {
                 const newProtocol = e.target.value;
                 const newValue = newProtocol + input;
                 const isValid = isValidLink(newValue);
                 setValue(newValue);
                 setLinkType(newProtocol.substring(0, newProtocol.length - 3));
-                console.log(newProtocol.substring(0, newProtocol.length - 3));
+                logDebug(newProtocol.substring(0, newProtocol.length - 3));
                 setInvalid(!isValid);
                 setProtocol(newProtocol);
               }}
@@ -94,9 +92,7 @@ export const OrderedLinkInput = ({
               fontWeight="normal"
               borderRadius="none"
             >
-              // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
               <option value="https://">https://</option>
-              // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
               <option value="ipfs://">ipfs://</option>
             </Select>
           </InputLeftElement>
@@ -107,7 +103,7 @@ export const OrderedLinkInput = ({
             type={type}
             value={input}
             maxLength={240}
-            onChange={(e: any) => {
+            onChange={(e) => {
               let newInput = e.target.value;
               let newProtocol = protocol;
               if (newInput.startsWith('https://') && newInput.length > 8) {
@@ -168,8 +164,7 @@ export const OrderedInput = ({
   type = 'text',
   error = '',
   ...props
-}: any) => {
-  return (
+}: any) => (
     
     <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
       
@@ -207,7 +202,7 @@ export const OrderedInput = ({
           bg="white"
           type={type}
           value={value}
-          onChange={(e: any) => setValue(e.target.value)}
+          onChange={(e) => setValue(e.target.value)}
           placeholder={placeholder}
           color="black"
           border="1px"
@@ -233,7 +228,6 @@ export const OrderedInput = ({
       </Flex>
     </VStack>
   );
-};
 
 export const OrderedSelect = ({
   label,
@@ -244,8 +238,7 @@ export const OrderedSelect = ({
   required,
   isDisabled = false,
   children
-}: any) => {
-  return (
+}: any) => (
     
     <VStack w="100%" spacing="0.5rem" justify="space-between">
       
@@ -279,7 +272,7 @@ export const OrderedSelect = ({
       
       <Select
         value={value}
-        onChange={(e: any) => {
+        onChange={(e) => {
           setValue(e.target.value);
         }}
         bg="white"
@@ -293,7 +286,6 @@ export const OrderedSelect = ({
       </Select>
     </VStack>
   );
-};
 
 export const OrderedTextarea = ({
   label,
@@ -304,10 +296,8 @@ export const OrderedTextarea = ({
   placeholder,
   maxLength,
   required,
-  isDisabled = false,
-  type = 'text'
-}: any) => {
-  return (
+  isDisabled = false
+}: any) => (
     
     <VStack w="100%" spacing="0.5rem">
       
@@ -333,8 +323,7 @@ export const OrderedTextarea = ({
             <Text fontSize="xs">
               {infoText}{' '}
               {required && (
-                // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
-                <span style={{ fontStyle: 'italic' }}>• {required}</span>
+                <Text as='i'>• {required}</Text>
               )}
             </Text>
           )}
@@ -349,7 +338,6 @@ export const OrderedTextarea = ({
       
       <Textarea
         bg="white"
-        type={type}
         value={value}
         onChange={(e: any) => setValue(e.target.value)}
         placeholder={placeholder}
@@ -364,4 +352,3 @@ export const OrderedTextarea = ({
       />
     </VStack>
   );
-};

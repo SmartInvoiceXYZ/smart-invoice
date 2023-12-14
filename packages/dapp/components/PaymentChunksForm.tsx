@@ -1,8 +1,7 @@
-import { utils } from 'ethers';
 import React, { useContext } from 'react';
+import { formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
-/* eslint-disable no-restricted-globals */
-/* eslint-disable react/no-array-index-key */
 import {
   Flex,
   Input,
@@ -14,21 +13,21 @@ import {
 } from '@chakra-ui/react';
 
 import { CreateContext } from '../context/CreateContext';
-import { Web3Context } from '../context/Web3Context';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { getTokenInfo } from '../utils/helpers';
 
 export function PaymentChunksForm({ display, tokenData }: any) {
-  const { chain } = useContext(Web3Context);
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const { paymentToken, milestones, payments, setPayments, paymentDue } =
     useContext(CreateContext);
-  const { decimals, symbol } = getTokenInfo(chain, paymentToken, tokenData);
+  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
-      {Array.from(Array(Number(milestones))).map((_val, index) => (
-        <VStack w="100%" spacing="0.5rem" key={index.toString()}>
+      {Array.from(Array(Number(milestones))).map((_val) => (
+        <VStack w="100%" spacing="0.5rem" key={_val}>
           <Flex w="100%">
-            <Text fontWeight="700">Payment #{index + 1}</Text>
+            <Text fontWeight="700">Payment #{_val}</Text>
 
             <Flex>
               <Tooltip
@@ -49,11 +48,11 @@ export function PaymentChunksForm({ display, tokenData }: any) {
               border="1px"
               borderColor="lightgray"
               pr="3.5rem"
-              onChange={(e: any) => {
-                if (!e.target.value || isNaN(Number(e.target.value))) return;
+              onChange={(e) => {
+                if (!payments || !e.target.value || Number.isNaN(Number(e.target.value))) return;
                 const amount = parseUnits(e.target.value, decimals);
                 const newPayments = payments.slice();
-                newPayments[index] = amount;
+                newPayments[_val - 1] = amount;
                 setPayments(newPayments);
               }}
             />
@@ -65,10 +64,10 @@ export function PaymentChunksForm({ display, tokenData }: any) {
         </VStack>
       ))}
 
-      <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
+      {paymentDue ? (<Text w="100%" textAlign="right" color="grey" fontWeight="bold">
         Total Amount Must Add Up to {formatUnits(paymentDue, decimals)}{' '}
         {symbol}
-      </Text>
+      </Text>): null}
     </VStack>
   );
 }

@@ -1,11 +1,13 @@
-import { BigNumber, utils } from 'ethers';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Address, formatUnits, isAddress, parseUnits, zeroAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 
+import { ChainId } from '../constants/config';
 import { CreateContext } from '../context/CreateContext';
-import { Web3Context } from '../context/Web3Context';
 import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
+import { TokenData } from '../types';
 import {
   getResolverInfo,
   getResolverString,
@@ -16,8 +18,16 @@ import {
 } from '../utils/helpers';
 import { getResolutionRateFromFactory } from '../utils/invoice';
 
-export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
-  const { chainId, provider } = useContext(Web3Context);
+export type PaymentDetailsFormProps = {
+  display: any;
+  tokenData: Record<ChainId, Record<Address, TokenData>>;
+  allTokens: Record<ChainId, Address[]>;
+};
+
+export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDetailsFormProps) {
+  const { data: walletClient } = useWalletClient(); 
+  const {chain} = walletClient || {};
+  const {id:chainId} =chain || {};
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
 
   const {
@@ -38,10 +48,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(
-    () => getTokens(allTokens, chainId),
-    [chainId, allTokens],
-  );
+  const TOKENS = useMemo(() => getTokens(allTokens, chainId), [chainId, allTokens]);
 
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -59,18 +66,19 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
   const [resolutionRate, setResolutionRate] = useState(20);
 
   useEffect(() => {
-    getResolutionRateFromFactory(chainId, provider, arbitrationProvider).then(
+    if (!chain || !arbitrationProvider) return;
+    getResolutionRateFromFactory(chain, arbitrationProvider).then(
       setResolutionRate,
     );
-  }, [chainId, provider, arbitrationProvider]);
+  }, [arbitrationProvider, chain]);
 
   useEffect(() => {
     if (paymentDueInput && !Number.isNaN(Number(paymentDueInput))) {
-      const p = utils.parseUnits(paymentDueInput, decimals);
+      const p = parseUnits(paymentDueInput, decimals);
       setPaymentDue(p);
-      setPaymentInvalid(p.lte(0));
+      setPaymentInvalid(p <= (0));
     } else {
-      setPaymentDue(BigNumber.from(0));
+      setPaymentDue(BigInt(0));
       setPaymentInvalid(true);
     }
   }, [paymentToken, paymentDueInput, setPaymentDue, decimals]);
@@ -83,7 +91,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
         isInvalid={clientInvalid}
         setValue={(v: any) => {
           setClientAddress(v);
-          setClientInvalid(!utils.isAddress(v));
+          setClientInvalid(!isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
         tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address."
@@ -96,7 +104,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
         isInvalid={providerInvalid}
         setValue={(v: any) => {
           setPaymentAddress(v);
-          setProviderInvalid(!utils.isAddress(v));
+          setProviderInvalid(!isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address."
@@ -117,11 +125,11 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
           setValue={(v: any) => {
             setPaymentDueInput(v);
             if (v && !Number.isNaN(Number(v))) {
-              const p = utils.parseUnits(v, decimals);
+              const p = parseUnits(v, decimals);
               setPaymentDue(p);
-              setPaymentInvalid(p.lte(0));
+              setPaymentInvalid(p <= (0));
             } else {
-              setPaymentDue(BigNumber.from(0));
+              setPaymentDue(BigInt(0));
               setPaymentInvalid(true);
             }
           }}
@@ -136,13 +144,10 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
           required="required"
           tooltip="This is the cryptocurrency you’ll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you’ll be forced to start the invoice over)."
         >
-          because no i... Remove this comment to see the full error message
           {TOKENS.map((token: any) => (
             <option value={token} key={token}>
               {getTokenInfo(chainId, token, tokenData).symbol}
-              'any' because no i... Remove this comment to see the full error
-              message
-            </option>
+           </option>
           ))}
         </OrderedSelect>
 
@@ -158,7 +163,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
             setPayments(
               Array(numMilestones)
                 .fill(1)
-                .map(() => BigNumber.from(0)),
+                .map(() => BigInt(0)),
             );
             setMilestonesInvalid(Number.isNaN(Number(v)) || Number(v) === 0);
           }}
@@ -182,13 +187,13 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
         <OrderedSelect
           tooltip="This arbitrator will be used in case of dispute. LexDAO is recommended, but you may include the wallet address of your preferred arbitrator."
           value={arbitrationProviderType}
-          setValue={(v: any) => {
+          setValue={(v: Address) => {
             setArbitrationProviderType(v);
             if (isKnownResolver(v, chainId)) {
               setArbitrationProvider(v);
               setTermsAccepted(false);
             } else {
-              setArbitrationProvider('');
+              setArbitrationProvider(zeroAddress);
               setResolverInvalid(false);
               setTermsAccepted(true);
             }
@@ -203,28 +208,28 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: any) {
           <option value="custom">Custom</option>
         </OrderedSelect>
 
-        <OrderedInput
+        {paymentDue ? (<OrderedInput
           label="Potential Dispute Fee"
           type="text"
-          value={`${utils.formatUnits(
-            paymentDue.div(resolutionRate),
+          value={`${formatUnits(
+            paymentDue * BigInt(resolutionRate) / BigInt(100),
             decimals,
           )} ${symbol}`}
           setValue={() => undefined}
           tooltip={`If a disputed milestone payment goes to arbitration, ${
-            100 / resolutionRate
+            resolutionRate / 100
           }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
           isDisabled
-        />
+        />) : null}
       </SimpleGrid>
-      {!isKnownResolver(arbitrationProvider, chainId) ? (
+      {!arbitrationProvider || !isKnownResolver(arbitrationProvider, chainId) ? (
         <OrderedInput
           tooltip="This arbitrator will be used in case of dispute."
           label="Arbitration Provider Address"
           value={arbitrationProvider}
           setValue={(v: any) => {
             setArbitrationProvider(v);
-            setResolverInvalid(!utils.isAddress(v));
+            setResolverInvalid(!isAddress(v));
           }}
           isInvalid={resolverInvalid}
           error={resolverInvalid ? 'Invalid Address' : ''}

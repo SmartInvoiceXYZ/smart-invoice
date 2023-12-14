@@ -1,8 +1,6 @@
-import { utils } from 'ethers';
 import React, { Fragment } from 'react';
+import { formatEther } from 'viem';
 
-/* eslint-disable react/no-array-index-key */
-/* eslint-disable radix */
 import {
   Document,
   Link,
@@ -12,6 +10,7 @@ import {
   View,
 } from '@react-pdf/renderer';
 
+import { Invoice } from '../types';
 import { getAccountString, getHexChainId } from '../utils/helpers';
 import { unixToDateTime } from '../utils/unixToDateTime';
 
@@ -172,9 +171,15 @@ const styles = StyleSheet.create({
   },
 });
 
+export type InvoicePDFProps = {
+  invoice: Invoice;
+  symbol: string;
+};
+
 // font register for Rubik One
-function InvoicePDF({ invoice, symbol }: any) {
+function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
   const {
+    address,
     projectName,
     projectDescription,
     projectAgreement,
@@ -192,32 +197,6 @@ function InvoicePDF({ invoice, symbol }: any) {
     resolutions,
   } = invoice;
 
-  //  TO BE REMOVED WHEN MERGED TO MAIN
-
-  //   const disputesDemo = [
-  //     {
-  //     sender: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-  //     txHash:
-  //         '0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c',
-  //     ipfsHash: 'QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR',
-  //     details: 'www.google.com',
-  //     timestamp: '14098404',
-  //     },
-  // ]
-
-  //   const resolutionsDemo = [
-  //     {
-  //     txHash:
-  //         '0x25c4670e7ceed732423670ee5fff4ceab52af92f541a2eacfd3b4e6377ab6729',
-  //     ipfsHash: 'QmbTh45HCTHISISNOTAREALHASHLMiMPBuTGsMnR',
-  //     clientAward: '1500000000000000000',
-  //     providerAward: '0',
-  //     resolutionFee: '5000000000000000',
-  //     resolverType: 'Arbitrator',
-  //     resolver: '0x63125c0d5Cd9071de9A1ac84c400982f41C697AE',
-  //     },
-  // ]
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -229,13 +208,11 @@ function InvoicePDF({ invoice, symbol }: any) {
           <View>
             <Text style={styles.address}>{invoice.address}</Text>
 
-            <Link
-              style={{ textAlign: 'center' }}
-              href={`https://smartinvoice.xyz/${getHexChainId(network)}/${
-                invoice.address
-              }`}
-            >
-              {getAccountString(invoice.address)} @ smartinvoice.xyz
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <Link src={`https://smartinvoice.xyz/${getHexChainId(network)}/${address}`}>
+              <Text style={{ textAlign: 'center'}}>
+                {getAccountString(address)} @ smartinvoice.xyz
+              </Text>
             </Link>
           </View>
         </View>
@@ -270,13 +247,13 @@ function InvoicePDF({ invoice, symbol }: any) {
             Termination Time:{' '}
             <Text style={styles.text}>{unixToDateTime(terminationTime)}</Text>
           </Text>
-          {parseInt(startDate) !== 0 ? (
+          {startDate !== 0 ? (
             <Text style={styles.details}>
               Project Start Date:{' '}
               <Text style={styles.text}>{unixToDateTime(startDate)}</Text>
             </Text>
           ) : null}
-          {parseInt(endDate) !== 0 ? (
+          {endDate !== 0 ? (
             <Text style={styles.details}>
               Expected Project End Date:{' '}
               <Text style={styles.text}>{unixToDateTime(endDate)}</Text>
@@ -298,7 +275,7 @@ function InvoicePDF({ invoice, symbol }: any) {
           <Text style={styles.details}>Project Agreement(s):</Text>
           {projectAgreement.map((agreement: any, index: any) => (
             <View key={agreement.createdAt}>
-              <Text style={[styles.text, { textTransform: 'none' }]}>
+              <Text style={[styles.text]}>
                 Agreement #{index + 1}:
               </Text>
 
@@ -322,33 +299,33 @@ function InvoicePDF({ invoice, symbol }: any) {
             <Text style={styles.amount}>Amount</Text>
           </View>
         </View>
-        {amounts.map((amount: any, index: any) => {
-          let amountTotal = 0;
+        {amounts.map((amount, index) => {
+          let amountTotal = BigInt(0);
 
           if (index + 1 === amounts.length) {
             const sum = amounts.reduce(
-              (a: any, b: any) => parseInt(a) + parseInt(b),
-              0,
+              (a, b) => a + b,
+              BigInt(0),
             );
             amountTotal = sum;
           }
           return (
-            <View key={index}>
-              <View style={styles.row} key={amount + index}>
+            <View key={amount + BigInt(index)}>
+              <View style={styles.row}>
                 <Text style={styles.description}>
                   Payment Milestone # {index + 1}
                 </Text>
 
                 <Text style={styles.amount}>
-                  {utils.formatEther(amount)} {symbol}
+                  {formatEther(amount)} {symbol}
                 </Text>
               </View>
               {amountTotal > 0 ? (
-                <View style={styles.row} key={amountTotal + index}>
+                <View style={styles.row}>
                   <Text style={styles.totalDescription}>TOTAL</Text>
 
                   <Text style={styles.amount}>
-                    {utils.formatEther(amountTotal.toString())} {symbol}
+                    {formatEther(amountTotal)} {symbol}
                   </Text>
                 </View>
               ) : null}
@@ -364,32 +341,32 @@ function InvoicePDF({ invoice, symbol }: any) {
           </View>
         </View>
 
-        {deposits.map((deposit: any, index: any) => (
-          <Fragment key={index + deposit.sender}>
+        {deposits.map((deposit, index) => (
+          <Fragment key={deposit.txHash}>
             <View style={styles.listContainer}>
               <View style={styles.innerTitle}>
                 <Text style={styles.underline}>Deposit #{index + 1}</Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + deposit.sender}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   Sender: <Text>{deposit.sender}</Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + deposit.amount}>
+              <View style={styles.invisibleRow}>
                 <Text>
-                  Amount: <Text>{utils.formatEther(deposit.amount)}</Text>
+                  Amount: <Text>{formatEther(deposit.amount)}</Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + deposit.timestamp}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   Timestamp: <Text>{unixToDateTime(deposit.timestamp)}</Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + deposit.txHash}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   TxHash: <Text>{deposit.txHash}</Text>
                 </Text>
@@ -406,35 +383,35 @@ function InvoicePDF({ invoice, symbol }: any) {
           </View>
         </View>
 
-        {releases.map((release: any, index: any) => (
-          <Fragment key={index + release.sender}>
+        {releases.map((release, index) => (
+          <Fragment key={release.txHash}>
             <View style={styles.listContainer}>
               <View style={styles.innerTitle}>
                 <Text style={styles.underline}>Release #{index + 1}</Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + release.milestone}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   Milestone: <Text>{release.milestone + 1}</Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + release.amount}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   Amount:{' '}
                   <Text>
-                    {utils.formatEther(release.amount)} {symbol}
+                    {formatEther(release.amount)} {symbol}
                   </Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + release.timestamp}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   Timestamp: <Text>{unixToDateTime(release.timestamp)}</Text>
                 </Text>
               </View>
 
-              <View style={styles.invisibleRow} key={index + release.txHash}>
+              <View style={styles.invisibleRow}>
                 <Text>
                   TxHash: <Text>{release.txHash}</Text>
                 </Text>
@@ -451,8 +428,8 @@ function InvoicePDF({ invoice, symbol }: any) {
             <Text style={styles.secondTitle}>Disputes</Text>
           </View>
 
-          {disputes.map((dispute: any, index: any) => (
-            <View style={styles.multiDetailBlock} key={index + dispute.sender}>
+          {disputes.map((dispute, index) => (
+            <View style={styles.multiDetailBlock} key={dispute.disputeTx}>
               <Text
                 style={[
                   styles.details,
@@ -505,8 +482,8 @@ function InvoicePDF({ invoice, symbol }: any) {
             <Text style={styles.secondTitle}>Resolutions</Text>
           </View>
 
-          {resolutions.map((resolution: any, index: any) => (
-            <View style={styles.multiDetailBlock} key={index + resolution}>
+          {resolutions.map((resolution, index) => (
+            <View style={styles.multiDetailBlock} key={resolution.txHash}>
               <Text
                 style={[
                   styles.details,
@@ -532,7 +509,7 @@ function InvoicePDF({ invoice, symbol }: any) {
                 <Text style={styles.invisibleRow}>Client Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.clientAward)} {symbol}
+                  {formatEther(resolution.clientAward)} {symbol}
                 </Text>
               </View>
 
@@ -540,7 +517,7 @@ function InvoicePDF({ invoice, symbol }: any) {
                 <Text style={styles.invisibleRow}>Provider Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.providerAward)} {symbol}
+                  {formatEther(resolution.providerAward)} {symbol}
                 </Text>
               </View>
 
@@ -548,7 +525,7 @@ function InvoicePDF({ invoice, symbol }: any) {
                 <Text style={styles.invisibleRow}>Resolution Fee:</Text>
 
                 <Text style={styles.detailRow}>
-                  {utils.formatEther(resolution.resolutionFee)} {symbol}
+                  {formatEther(resolution.resolutionFee)} {symbol}
                 </Text>
               </View>
 

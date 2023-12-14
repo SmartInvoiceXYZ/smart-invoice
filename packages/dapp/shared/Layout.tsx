@@ -12,8 +12,6 @@ import { Analytics } from '@vercel/analytics/react';
 
 // @ts-expect-error TS(2792): Cannot find module '../constants'. Did you mean to... Remove this comment to see the full error message
 import { SUPPORTED_NETWORKS } from '../constants';
-// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
-import { Web3Context } from '../context/Web3Context';
 // @ts-expect-error TS(6142): Module './ConnectWeb3' was resolved to '/Users/moc... Remove this comment to see the full error message
 import { ConnectWeb3 } from './ConnectWeb3';
 // @ts-expect-error TS(6142): Module './Footer' was resolved to '/Users/moc/dev/... Remove this comment to see the full error message
@@ -21,8 +19,11 @@ import { Footer } from './Footer';
 // @ts-expect-error TS(6142): Module './Header' was resolved to '/Users/moc/dev/... Remove this comment to see the full error message
 import { Header } from './Header';
 
+// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
+
+
 export function Layout({ children }: any) {
-  const { chain, account } = useContext(Web3Context);
+  const { chain, account } = useWalletClient();
 
   useEffect(() => {
     track('ChainChanged', { chain });

@@ -5,11 +5,13 @@ import { Network } from './network';
 export type DisputeDetails = {
   id: string;
   invoice: Address;
+  sender: Address;
   ipfsHash: Hash;
   txHash: Hash;
   timestamp: number;
   amount: bigint;
   reason: string;
+  details: string;
   status: string;
   resolver: Address;
   disputeTx: Hash;
@@ -24,6 +26,14 @@ export type InvoiceTx = {
   txHash: Hash;
 };
 
+export type Deposit = InvoiceTx & {
+  sender: Address;
+};
+
+export type Release = InvoiceTx & {
+  milestone: number;
+};
+
 export type ResolutionDetails = {
   id: string;
   invoice: Address;
@@ -34,6 +44,7 @@ export type ResolutionDetails = {
   reason: string;
   status: string;
   resolver: Address;
+  resolverType: string;
   disputeTx: Hash;
   resolutionTx: Hash;
   clientAward: bigint;
@@ -68,8 +79,8 @@ export type Invoice = {
   total: bigint;
   released: bigint;
   isLocked: boolean;
-  deposits: InvoiceTx[];
-  releases: InvoiceTx[];
+  deposits: Deposit[];
+  releases: Release[];
   disputes: DisputeDetails[];
   resolutions: ResolutionDetails[];
   resolutionRate: number;

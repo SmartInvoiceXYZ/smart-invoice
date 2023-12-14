@@ -6,8 +6,6 @@ import React, { useContext, useEffect, useState } from 'react';
 // @ts-expect-error TS(2792): Cannot find module '@chakra-ui/react'. Did you mea... Remove this comment to see the full error message
 import { Flex, Link, Text } from '@chakra-ui/react';
 
-// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
-import { Web3Context } from '../context/Web3Context';
 // @ts-expect-error TS(2792): Cannot find module '../theme'. Did you mean to set... Remove this comment to see the full error message
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
@@ -18,9 +16,12 @@ import {
   isKnownResolver,
 } from '../utils/helpers';
 
+// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
+
+
 // @ts-expect-error TS(7031): Binding element 'inputAddress' implicitly has an '... Remove this comment to see the full error message
 export function AccountLink({ address: inputAddress, chain: inputChainId }) {
-  const { chain: walletChainId } = useContext(Web3Context);
+  const { chain: walletChainId } = useWalletClient();
   const address = inputAddress.toLowerCase();
   const [profile, setProfile] = useState();
   const chain = inputChainId || walletChainId;

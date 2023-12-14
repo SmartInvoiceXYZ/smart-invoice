@@ -1,8 +1,7 @@
-import { BigNumber, BigNumberish, Contract, Transaction, utils } from 'ethers';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Hash, formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
-/* eslint-disable no-restricted-globals */
-/* eslint-disable no-use-before-define */
 import {
   Alert,
   AlertIcon,
@@ -24,11 +23,11 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { Web3Context } from '../../context/Web3Context';
+import { ChainId } from '../../constants/config';
 import { QuestionIcon } from '../../icons/QuestionIcon';
-import { balanceOf } from '../../utils/erc20';
+import { Invoice, TokenData } from '../../types';
+import { approve, balanceOf, getAllowance } from '../../utils/erc20';
 import {
-  getHexChainId,
   getNativeTokenSymbol,
   getTokenInfo,
   getTxLink,
@@ -36,13 +35,24 @@ import {
   logError,
 } from '../../utils/helpers';
 import { depositTokens, tipTokens } from '../../utils/invoice';
+import { waitForTransaction } from '../../utils/transactions';
 
-const getCheckedStatus = (deposited: any, amounts: any) => {
-  let sum = BigNumber.from(0);
-  return amounts.map((a: any) => {
-    sum = sum.add(a);
-    return deposited.gte(sum);
+const getCheckedStatus = (deposited: bigint, amounts: bigint[]) => {
+  let sum = BigInt(0);
+  return amounts.map(a => {
+    sum += a;
+    return deposited > sum;
   });
+};
+
+export type DepositFundsProps = {
+  invoice: Invoice;
+  deposited: bigint;
+  due: bigint;
+  total: bigint;
+  tokenData: Record<ChainId, Record<string, TokenData>>;
+  fulfilled: boolean;
+  close?: () => void;
 };
 
 export function DepositFunds({
@@ -52,55 +62,61 @@ export function DepositFunds({
   total,
   tokenData,
   fulfilled,
-}: any) {
-  const { chainId, provider, account } = useContext(Web3Context);
+  // eslint-disable-next-line no-unused-vars
+  close, // TODO: use this?
+}: DepositFundsProps) {
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, network, amounts } = invoice;
+  const { address, token, amounts } = invoice;
   const [paymentType, setPaymentType] = useState(0);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
-  const [amount, setAmount] = useState(BigNumber.from(0));
+  const [amount, setAmount] = useState(BigInt(0));
   const [amountInput, setAmountInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [transaction, setTransaction] = useState<Transaction>();
+  const [txHash, setTxHash] = useState<Hash>();
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
   const [depositError, setDepositError] = useState(false);
   const [openTipPanel, setOpenTipPanel] = useState(false);
   const [tipPerc, setTipPerc] = useState<number | 'custom'>(0);
   const [customTip, setCustomTip] = useState('');
-  const [tipAmount, setTipAmount] = useState(BigNumber.from(0));
-  const [totalPayment, setTotalPayment] = useState(BigNumber.from(0));
-  const [allowance, setAllowance] = useState(BigNumber.from(0));
+  const [tipAmount, setTipAmount] = useState(BigInt(0));
+  const [totalPayment, setTotalPayment] = useState(BigInt(0));
+  const [allowance, setAllowance] = useState(BigInt(0));
+  const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
+  const initialStatus = getCheckedStatus(deposited, amounts);
+  // eslint-disable-next-line no-unused-vars
+  const [checked, setChecked] = useState(initialStatus);
+  const [balance, setBalance] = useState<bigint>();
 
   const defaultTipPercs = [10, 15, 18];
 
   const deposit = async () => {
-    setTransaction(undefined);
-    if (!totalPayment || !provider || !balance) return;
-    if (
-      utils.formatUnits(totalPayment, decimals) >
-      utils.formatUnits(balance, decimals)
-    ) {
+    setTxHash(undefined);
+    if (!totalPayment || !walletClient || !balance) return;
+    if (formatUnits(totalPayment, decimals) > formatUnits(balance, decimals)) {
       setDepositError(true);
       return;
     }
 
     try {
       setLoading(true);
-      let tx;
+      let hash;
       if (paymentType === 1) {
-        tx = await provider
-          .getSigner()
-          .sendTransaction({ to: address, value: totalPayment });
+        hash = await walletClient.sendTransaction({
+          to: address,
+          value: totalPayment,
+        });
       } else if (fulfilled) {
-        tx = await tipTokens(provider, address, token, totalPayment);
+        hash = await tipTokens(walletClient, address, token, totalPayment);
       } else {
-        tx = await depositTokens(provider, address, token, totalPayment);
+        hash = await depositTokens(walletClient, address, token, totalPayment);
       }
-      setTransaction(tx);
-      await tx.wait();
-      window.location.href = `/invoice/${getHexChainId(
-        network,
+      setTxHash(hash);
+      const { chain } = walletClient;
+      window.location.href = `/invoice/${chain.id.toString(
+        16,
       )}/${address}/instant`;
     } catch (e) {
       setLoading(false);
@@ -108,42 +124,38 @@ export function DepositFunds({
     }
   };
 
-  const approve = async () => {
-    setTransaction(undefined);
-    if (!totalPayment || !provider) {
+  const doApprove = async () => {
+    setTxHash(undefined);
+    if (!totalPayment || !walletClient) {
       logError(
-        `error during approve. totalPayment: ${totalPayment} provider: ${provider}`,
+        `error during approve. totalPayment: ${totalPayment} walletClient: ${walletClient}`,
       );
       return;
     }
     try {
       setLoading(true);
-      const approvalAmount = BigNumber.from(totalPayment);
-      const abi = [
-        'function approve(address spender, uint256 amount) public virtual override returns (bool)',
-        'function allowance(address owner, address spender) external view returns (uint256)',
-      ];
-      const tokenContract = new Contract(token, abi, provider.getSigner());
-      const tx = await tokenContract.approve(invoice.address, approvalAmount);
-      setTransaction(tx);
-      await tx.wait();
-      setAllowance(await tokenContract.allowance(account, invoice.address));
+      const { chain, account } = walletClient;
+      const approvalAmount = BigInt(totalPayment);
+      const hash = await approve(
+        walletClient,
+        token,
+        invoice.address,
+        approvalAmount,
+      );
+      setTxHash(hash);
+      await waitForTransaction(chain, hash);
+      setAllowance(
+        await getAllowance(chain, token, account.address, invoice.address),
+      );
     } catch (approvalError) {
       logError('error during approve: ', approvalError);
     }
     setLoading(false);
   };
 
-  const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
-  const initialStatus = getCheckedStatus(deposited, amounts);
-  // eslint-disable-next-line no-unused-vars
-  const [checked, setChecked] = useState(initialStatus);
-
-  const [balance, setBalance] = useState<BigNumberish>();
-
   useEffect(() => {
-    if (tipAmount.gt(0)) {
-      const v = BigNumber.from(amount).add(tipAmount);
+    if (tipAmount > 0) {
+      const v = BigInt(amount) + tipAmount;
       setTotalPayment(v);
     } else {
       setTotalPayment(amount);
@@ -152,28 +164,27 @@ export function DepositFunds({
 
   useEffect(() => {
     try {
-      if (!provider || !account) return;
+      if (!walletClient) return;
+      const { account, chain } = walletClient;
       if (paymentType === 0) {
-        balanceOf(provider, token, account).then(setBalance);
-        const abi = [
-          'function allowance(address owner, address spender) external view returns (uint256)',
-        ];
-        const tokenContract = new Contract(token, abi, provider.getSigner());
-        tokenContract.allowance(account, invoice.address).then(setAllowance);
+        balanceOf(chain, token, account.address).then(setBalance);
+        getAllowance(chain, token, account.address, invoice.address).then(
+          setAllowance,
+        );
       } else {
-        provider.getBalance(account).then(setBalance);
+        // TODO: get balance from wallet
+        // walletClient..(account).then(setBalance);
       }
     } catch (balanceError) {
       logError({ balanceError });
     }
-  }, [invoice.address, paymentType, token, provider, account]);
+  }, [invoice.address, paymentType, token, walletClient]);
 
   useEffect(() => {
     if (
       depositError &&
       balance &&
-      utils.formatUnits(balance, decimals) >
-        utils.formatUnits(totalPayment, decimals)
+      formatUnits(balance, decimals) > formatUnits(totalPayment, decimals)
     ) {
       setDepositError(false);
     }
@@ -235,12 +246,13 @@ export function DepositFunds({
                   const newAmount = due;
                   if (newAmount) {
                     setAmount(newAmount);
-                    const newAmountInput = utils
-                      .formatUnits(newAmount, decimals)
-                      .toString();
+                    const newAmountInput = formatUnits(
+                      newAmount,
+                      decimals,
+                    ).toString();
                     setAmountInput(newAmountInput);
                   } else {
-                    setAmount(BigNumber.from(0));
+                    setAmount(BigInt(0));
                   }
                 }}
               >
@@ -261,11 +273,11 @@ export function DepositFunds({
               const newAmountInput = e.target.value;
               setAmountInput(newAmountInput);
               if (newAmountInput) {
-                const newAmount = utils.parseUnits(newAmountInput, decimals);
+                const newAmount = parseUnits(newAmountInput, decimals);
                 setAmount(newAmount);
-                setChecked(getCheckedStatus(deposited.add(newAmount), amounts));
+                setChecked(getCheckedStatus(deposited + newAmount, amounts));
               } else {
-                setAmount(BigNumber.from(0));
+                setAmount(BigInt(0));
                 setChecked(initialStatus);
               }
             }}
@@ -293,12 +305,12 @@ export function DepositFunds({
             )}
           </InputRightElement>
         </InputGroup>
-        {due && !fulfilled && (
+        {due && !fulfilled ? (
           <Text fontSize={12} mt={0}>
-            Total Due: {`${utils.formatUnits(due, decimals)} ${symbol}`}
+            Total Due: {`${formatUnits(due, decimals)} ${symbol}`}
           </Text>
-        )}
-        {amount.gt(due) && !fulfilled && (
+        ) : null}
+        {amount > due && !fulfilled && (
           <Alert bg="none">
             <AlertIcon color="red.500" />
 
@@ -307,7 +319,7 @@ export function DepositFunds({
             </AlertTitle>
           </Alert>
         )}
-        {!openTipPanel && amount.eq(due) && !fulfilled && (
+        {!openTipPanel && amount === due && !fulfilled && (
           <Text
             textAlign="center"
             color="blue.1"
@@ -335,7 +347,7 @@ export function DepositFunds({
                   minHeight={50}
                   onClick={() => {
                     setCustomTip('');
-                    setTipAmount(BigNumber.from(0));
+                    setTipAmount(BigInt(0));
                     setOpenTipPanel(false);
                   }}
                 >
@@ -363,21 +375,18 @@ export function DepositFunds({
                     minHeight={50}
                     onClick={() => {
                       setTipPerc(t);
-                      if (t && !isNaN(Number(t))) {
-                        const p = BigNumber.from(total).mul(t).div(100);
+                      if (t && !Number.isNaN(Number(t))) {
+                        const p = total * BigInt(t / 100);
                         setTipAmount(p);
                       } else {
-                        setTipAmount(BigNumber.from(0));
+                        setTipAmount(BigInt(0));
                       }
                     }}
                   >
                     <Heading fontSize={12}>{`${t}%`}</Heading>
 
                     <Text>
-                      {utils.formatUnits(
-                        BigNumber.from(total).mul(t).div(100),
-                        decimals,
-                      )}
+                      {formatUnits(total * BigInt(t / 100), decimals)}
                     </Text>
                     {/* <Text fontSize={10}>{symbol}</Text> */}
                   </Button>
@@ -402,11 +411,11 @@ export function DepositFunds({
                   onClick={(e: any) => {
                     const v = e.currentTarget.value;
                     setTipPerc(v);
-                    if (customTip && !isNaN(Number(customTip))) {
-                      const p = utils.parseUnits(customTip, decimals);
+                    if (customTip && !Number.isNaN(Number(customTip))) {
+                      const p = parseUnits(customTip, decimals);
                       setTipAmount(p);
                     } else {
-                      setTipAmount(BigNumber.from(0));
+                      setTipAmount(BigInt(0));
                     }
                   }}
                 >
@@ -421,11 +430,11 @@ export function DepositFunds({
                     onChange={(e: any) => {
                       const v = e.currentTarget.value;
                       setCustomTip(v);
-                      if (v && !isNaN(Number(v))) {
-                        const p = utils.parseUnits(v, decimals);
+                      if (v && !Number.isNaN(Number(v))) {
+                        const p = parseUnits(v, decimals);
                         setTipAmount(p);
                       } else {
-                        setTipAmount(BigNumber.from(0));
+                        setTipAmount(BigInt(0));
                       }
                     }}
                     placeholder="Enter tip amount"
@@ -453,44 +462,44 @@ export function DepositFunds({
       )}
 
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-        {deposited && (
+        {deposited ? (
           <VStack align="flex-start">
             <Text fontWeight="bold">Total Paid</Text>
 
-            <Text>{`${utils.formatUnits(deposited, decimals)} ${symbol}`}</Text>
+            <Text>{`${formatUnits(deposited, decimals)} ${symbol}`}</Text>
           </VStack>
-        )}
-        {totalPayment && (
+        ) : null}
+        {totalPayment ? (
           <VStack color="black">
             <Text fontWeight="bold">Total Payment</Text>
 
             <Heading size="lg">
-              {utils.formatUnits(totalPayment, decimals)}{' '}
+              {formatUnits(totalPayment, decimals)}{' '}
               {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
             </Heading>
           </VStack>
-        )}
-        {balance && (
+        ) : null}
+        {balance ? (
           <VStack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
 
             <Text>
-              {`${utils.formatUnits(balance, decimals)} ${
+              {`${formatUnits(balance, decimals)} ${
                 paymentType === 0 ? symbol : NATIVE_TOKEN_SYMBOL
               }`}
             </Text>
           </VStack>
-        )}
+        ) : null}
       </Flex>
-      {paymentType === 0 && allowance.lt(totalPayment) && (
+      {paymentType === 0 && allowance < totalPayment && (
         <Button
-          onClick={approve}
+          onClick={doApprove}
           isLoading={loading}
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           color="white"
           backgroundColor="blue.4"
-          isDisabled={amount.lte(0)}
+          isDisabled={amount <= 0}
           textTransform="uppercase"
           size={buttonSize}
           fontFamily="mono"
@@ -509,7 +518,7 @@ export function DepositFunds({
         color="white"
         backgroundColor="blue.1"
         isDisabled={
-          amount.lte(0) || (allowance.lt(totalPayment) && paymentType === 0)
+          amount <= 0 || (allowance < totalPayment && paymentType === 0)
         }
         textTransform="uppercase"
         size={buttonSize}
@@ -519,11 +528,11 @@ export function DepositFunds({
       >
         Pay
       </Button>
-      {chainId && transaction?.hash && (
+      {chainId && txHash ? (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, transaction.hash)}
+            href={getTxLink(chainId, txHash)}
             isExternal
             color="blue.1"
             textDecoration="underline"
@@ -531,7 +540,7 @@ export function DepositFunds({
             here
           </Link>
         </Text>
-      )}
+      ) : null}
     </VStack>
   );
 }
