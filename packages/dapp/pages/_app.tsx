@@ -37,6 +37,6 @@ const App = ({ Component, pageProps }: AppProps) => {
       </RainbowKitProvider>
     </WagmiConfig>
   );
-}
+};
 
 export default App;

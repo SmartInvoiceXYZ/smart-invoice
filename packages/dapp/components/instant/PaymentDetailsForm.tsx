@@ -102,7 +102,7 @@ export function InstantPaymentDetailsForm({
             if (v && !Number.isNaN(Number(v))) {
               const p = parseUnits(v, decimals);
               setPaymentDue(p);
-              setPaymentInvalid(p <=(0));
+              setPaymentInvalid(p <= 0);
             } else {
               setPaymentDue(BigInt(0));
               setPaymentInvalid(true);

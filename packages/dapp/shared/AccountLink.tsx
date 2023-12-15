@@ -18,7 +18,6 @@ import {
 
 // @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
 
-
 // @ts-expect-error TS(7031): Binding element 'inputAddress' implicitly has an '... Remove this comment to see the full error message
 export function AccountLink({ address: inputAddress, chain: inputChainId }) {
   const { chain: walletChainId } = useWalletClient();

@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useEffect, useMemo, useState } from 'react';
+import { useWalletClient } from 'wagmi';
 
 import { search } from '../graphql/search';
 import { Network } from '../types';
 import { logError } from '../utils';
-import { Web3Context } from './Web3Context';
 
 /* eslint-disable no-unused-vars */
 export type InvoiceRow = {
@@ -53,18 +53,21 @@ export const SearchContext = createContext<SearchContextType>({
   loading: false,
 });
 
-export function SearchContextProvider({ children }: any) {
+export const SearchContextProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const [fetching, setFetching] = useState(false);
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<InvoiceRow[]>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (chain && query) {
+    if (chainId && query) {
       setFetching(true);
       setLoading(true);
-      search(chain, query)
+      search(chainId, query)
         .then(res => {
           setResult(res);
           setFetching(false);
@@ -79,7 +82,7 @@ export function SearchContextProvider({ children }: any) {
     } else {
       setResult(undefined);
     }
-  }, [chain, query]);
+  }, [chainId, query]);
 
   const returnValue = useMemo(
     () => ({
@@ -97,4 +100,4 @@ export function SearchContextProvider({ children }: any) {
       {children}
     </SearchContext.Provider>
   );
-}
+};

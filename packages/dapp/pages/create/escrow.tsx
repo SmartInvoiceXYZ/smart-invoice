@@ -55,7 +55,10 @@ export function CreateInvoiceEscrowInner() {
 
   useEffect(() => {
     if (chainId === undefined) return;
-    if (prevChainIdRef.current !== undefined && prevChainIdRef.current !== chainId) {
+    if (
+      prevChainIdRef.current !== undefined &&
+      prevChainIdRef.current !== chainId
+    ) {
       setShowChainChangeAlert(true);
     }
     prevChainIdRef.current = chainId;

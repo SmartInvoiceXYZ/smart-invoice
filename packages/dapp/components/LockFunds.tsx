@@ -11,7 +11,7 @@ import {
   Text,
   VStack,
   useBreakpointValue,
-  useToast
+  useToast,
 } from '@chakra-ui/react';
 import { waitForTransaction } from '@wagmi/core';
 
@@ -31,7 +31,7 @@ import { uploadDisputeDetails } from '../utils/ipfs';
 import { Loader } from './Loader';
 
 export function LockFunds({ invoice, balance, tokenData }: any) {
-  const { data: walletClient } = useWalletClient(); 
+  const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const { network, address, resolver, token, resolutionRate } = invoice;
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
@@ -39,7 +39,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
   const toast = useToast();
 
   const fee = `${formatUnits(
-    BigInt(balance) / (resolutionRate),
+    BigInt(balance) / resolutionRate,
     decimals,
   )} ${symbol}`;
 
@@ -48,7 +48,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   const lockFunds = useCallback(async () => {
-    if (walletClient && !locking && balance > (0) && disputeReason) {
+    if (walletClient && !locking && balance > 0 && disputeReason) {
       try {
         setLocking(true);
         const detailsHash = await uploadDisputeDetails({
@@ -58,24 +58,46 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
         });
         const hash = await lock(walletClient, address, detailsHash);
         setTxHash(hash);
-        const txReceipt = await waitForTransaction({chainId, hash});
+        const txReceipt = await waitForTransaction({ chainId, hash });
         setLocking(false);
         if (txReceipt.status === 'success') {
-        setTimeout(() => {
-          window.location.href = `/invoice/${getHexChainId(
-            network,
-          )}/${address}`;
-        }, 2000);
-      }
-      else {          
-        toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
-      }
+          setTimeout(() => {
+            window.location.href = `/invoice/${getHexChainId(
+              network,
+            )}/${address}`;
+          }, 2000);
+        } else {
+          toast({
+            status: 'error',
+            title: 'Transaction failed',
+            description: (
+              <Flex direction="row">
+                <Heading>Transaction failed</Heading>
+                <Text>
+                  Transaction {txReceipt.transactionHash} status is '
+                  {txReceipt.status}'.
+                </Text>
+              </Flex>
+            ),
+            isClosable: true,
+            duration: 5000,
+          });
+        }
       } catch (lockError) {
         setLocking(false);
         logError({ lockError });
       }
     }
-  }, [walletClient, locking, balance, disputeReason, address, chainId, network, toast]);
+  }, [
+    walletClient,
+    locking,
+    balance,
+    disputeReason,
+    address,
+    chainId,
+    network,
+    toast,
+  ]);
 
   if (locking) {
     return (

@@ -16,7 +16,7 @@ import { Loader } from './Loader';
 const POLL_INTERVAL = 5000;
 
 export function RegisterSuccess() {
-  const { data: walletClient } = useWalletClient(); 
+  const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const { txHash } = useContext(CreateContext);
   const [invoiceId, setInvoiceID] = useState<Address>();

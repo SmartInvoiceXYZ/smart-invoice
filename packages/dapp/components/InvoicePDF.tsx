@@ -209,8 +209,12 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             <Text style={styles.address}>{invoice.address}</Text>
 
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-            <Link src={`https://smartinvoice.xyz/${getHexChainId(network)}/${address}`}>
-              <Text style={{ textAlign: 'center'}}>
+            <Link
+              src={`https://smartinvoice.xyz/${getHexChainId(
+                network,
+              )}/${address}`}
+            >
+              <Text style={{ textAlign: 'center' }}>
                 {getAccountString(address)} @ smartinvoice.xyz
               </Text>
             </Link>
@@ -275,9 +279,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           <Text style={styles.details}>Project Agreement(s):</Text>
           {projectAgreement.map((agreement: any, index: any) => (
             <View key={agreement.createdAt}>
-              <Text style={[styles.text]}>
-                Agreement #{index + 1}:
-              </Text>
+              <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
               <Text style={[styles.text, { textIndent: 20 }]}>
                 Created At: {unixToDateTime(createdAt)}
@@ -303,10 +305,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           let amountTotal = BigInt(0);
 
           if (index + 1 === amounts.length) {
-            const sum = amounts.reduce(
-              (a, b) => a + b,
-              BigInt(0),
-            );
+            const sum = amounts.reduce((a, b) => a + b, BigInt(0));
             amountTotal = sum;
           }
           return (

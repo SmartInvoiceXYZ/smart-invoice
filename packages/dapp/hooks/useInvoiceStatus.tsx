@@ -9,7 +9,6 @@ import { getDeadline, getTotalFulfilled } from '../utils/invoice';
 
 // @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
 
-
 export const useInvoiceStatus = (invoice: any) => {
   const { provider } = useWalletClient();
 

@@ -35,7 +35,8 @@
     "start": "next start",
     "build": "next build",
     "test": "next test",
-    "lint": "eslint \"./src/**/*.{js,jsx}\""
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,jsx,ts,tsx}\""
   },
   "browserslist": [
     "chrome >= 67",

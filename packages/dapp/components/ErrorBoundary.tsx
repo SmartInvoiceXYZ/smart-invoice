@@ -32,7 +32,6 @@ export class ErrorBoundary extends React.Component {
     const { children } = this.props;
     if (hasError) {
       return (
-        
         <Flex
           justify="center"
           align="center"
@@ -42,9 +41,8 @@ export class ErrorBoundary extends React.Component {
           background="#F5F6F8"
           color="blue.1"
         >
-          
           <Text fontSize="lg"> Something went wrong </Text>
-          
+
           <Text> Please check console for errors </Text>
         </Flex>
       );

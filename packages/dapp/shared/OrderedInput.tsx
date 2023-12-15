@@ -9,7 +9,7 @@ import {
   Text,
   Textarea,
   Tooltip,
-  VStack
+  VStack,
 } from '@chakra-ui/react';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
@@ -33,37 +33,28 @@ export const OrderedLinkInput = ({
   const [isInvalid, setInvalid] = useState(false);
 
   return (
-    
     <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-      
       <VStack align="left" w="100%" spacing={0}>
-        
         <Flex w="100%">
-          
           <Text fontWeight="700">{label}</Text>
-          
+
           <Flex>
-            
             {infoText && <Text fontSize="xs">{infoText}</Text>}
             {tooltip && (
-              
               <Tooltip label={tooltip} placement="auto-start">
-                
                 <QuestionIcon ml=".25rem" boxSize="0.75rem" />
               </Tooltip>
             )}
           </Flex>
         </Flex>
-        
+
         <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
           {required}
         </Text>
       </VStack>
-      
+
       <Flex direction="column" w="100%">
-        
         <InputGroup>
-          
           <InputLeftElement
             w="6.75rem"
             overflow="hidden"
@@ -71,9 +62,8 @@ export const OrderedLinkInput = ({
             borderRightColor="background"
             borderRightWidth="3px"
           >
-            
             <Select
-              onChange={(e) => {
+              onChange={e => {
                 const newProtocol = e.target.value;
                 const newValue = newProtocol + input;
                 const isValid = isValidLink(newValue);
@@ -96,14 +86,14 @@ export const OrderedLinkInput = ({
               <option value="ipfs://">ipfs://</option>
             </Select>
           </InputLeftElement>
-          
+
           <Input
             pl="7.25rem"
             bg="white"
             type={type}
             value={input}
             maxLength={240}
-            onChange={(e) => {
+            onChange={e => {
               let newInput = e.target.value;
               let newProtocol = protocol;
               if (newInput.startsWith('https://') && newInput.length > 8) {
@@ -134,7 +124,6 @@ export const OrderedLinkInput = ({
           />
         </InputGroup>
         {isInvalid && (
-          
           <Text
             w="100%"
             color="red"
@@ -165,69 +154,60 @@ export const OrderedInput = ({
   error = '',
   ...props
 }: any) => (
-    
-    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-      
-      <VStack align="left" w="100%" spacing={0}>
-        
-        <Flex w="100%">
-          
-          <Text fontWeight="700">{label}</Text>
-          
-          <Flex>
-            {infoText && (
-              
-              <Text ml=".25rem" fontSize="xs">
-                {infoText}
-              </Text>
-            )}
-            {tooltip && (
-              
-              <Tooltip label={tooltip} placement="auto-start">
-                
-                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-              </Tooltip>
-            )}
-          </Flex>
+  <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+    <VStack align="left" w="100%" spacing={0}>
+      <Flex w="100%">
+        <Text fontWeight="700">{label}</Text>
+
+        <Flex>
+          {infoText && (
+            <Text ml=".25rem" fontSize="xs">
+              {infoText}
+            </Text>
+          )}
+          {tooltip && (
+            <Tooltip label={tooltip} placement="auto-start">
+              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+            </Tooltip>
+          )}
         </Flex>
-        
-        <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-          {required}
-        </Text>
-      </VStack>
-      
-      <Flex direction="column" w="100%">
-        
-        <Input
-          bg="white"
-          type={type}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={placeholder}
-          color="black"
-          border="1px"
-          borderColor="lightgrey"
-          _hover={{ borderColor: 'lightgrey' }}
-          isDisabled={isDisabled}
-          isInvalid={isInvalid}
-          _invalid={{ border: '1px solid', borderColor: 'red' }}
-        />
-        {error && (
-          
-          <Text
-            w="100%"
-            color="red"
-            textAlign="right"
-            fontSize="xs"
-            fontWeight="700"
-            mt="0.5rem"
-          >
-            {error}
-          </Text>
-        )}
       </Flex>
+
+      <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
+        {required}
+      </Text>
     </VStack>
-  );
+
+    <Flex direction="column" w="100%">
+      <Input
+        bg="white"
+        type={type}
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder={placeholder}
+        color="black"
+        border="1px"
+        borderColor="lightgrey"
+        _hover={{ borderColor: 'lightgrey' }}
+        isDisabled={isDisabled}
+        isInvalid={isInvalid}
+        _invalid={{ border: '1px solid', borderColor: 'red' }}
+      />
+      {error && (
+        <Text
+          w="100%"
+          color="red"
+          textAlign="right"
+          fontSize="xs"
+          fontWeight="700"
+          mt="0.5rem"
+        >
+          {error}
+        </Text>
+      )}
+    </Flex>
+  </VStack>
+);
 
 export const OrderedSelect = ({
   label,
@@ -237,55 +217,48 @@ export const OrderedSelect = ({
   tooltip,
   required,
   isDisabled = false,
-  children
+  children,
 }: any) => (
-    
-    <VStack w="100%" spacing="0.5rem" justify="space-between">
-      
-      <VStack w="100%" align="left" spacing={0}>
-        
-        <Flex w="100%">
-          
-          <Text fontWeight="700">{label}</Text>
-          
-          <Flex>
-            {infoText && (
-              
-              <Text ml=".25rem" fontSize="xs">
-                {infoText}
-              </Text>
-            )}
-            {tooltip && (
-              
-              <Tooltip label={tooltip} placement="auto-start">
-                
-                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-              </Tooltip>
-            )}
-          </Flex>
+  <VStack w="100%" spacing="0.5rem" justify="space-between">
+    <VStack w="100%" align="left" spacing={0}>
+      <Flex w="100%">
+        <Text fontWeight="700">{label}</Text>
+
+        <Flex>
+          {infoText && (
+            <Text ml=".25rem" fontSize="xs">
+              {infoText}
+            </Text>
+          )}
+          {tooltip && (
+            <Tooltip label={tooltip} placement="auto-start">
+              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+            </Tooltip>
+          )}
         </Flex>
-        
-        <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-          {required}
-        </Text>
-      </VStack>
-      
-      <Select
-        value={value}
-        onChange={(e) => {
-          setValue(e.target.value);
-        }}
-        bg="white"
-        color="black"
-        border="1px"
-        borderColor="lightgrey"
-        _hover={{ borderColor: 'lightgrey' }}
-        isDisabled={isDisabled}
-      >
-        {children}
-      </Select>
+      </Flex>
+
+      <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
+        {required}
+      </Text>
     </VStack>
-  );
+
+    <Select
+      value={value}
+      onChange={e => {
+        setValue(e.target.value);
+      }}
+      bg="white"
+      color="black"
+      border="1px"
+      borderColor="lightgrey"
+      _hover={{ borderColor: 'lightgrey' }}
+      isDisabled={isDisabled}
+    >
+      {children}
+    </Select>
+  </VStack>
+);
 
 export const OrderedTextarea = ({
   label,
@@ -296,59 +269,48 @@ export const OrderedTextarea = ({
   placeholder,
   maxLength,
   required,
-  isDisabled = false
+  isDisabled = false,
 }: any) => (
-    
-    <VStack w="100%" spacing="0.5rem">
-      
-      <Flex direction="column" w="100%">
-        
-        <Flex w="100%">
-          
-          <Text fontWeight="700" color="black">
-            {label}
-          </Text>
-          {tooltip && (
-            
-            <Tooltip color="white" label={tooltip} placement="auto-start">
-              
-              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-            </Tooltip>
-          )}
-        </Flex>
-        
-        <Flex color="#707683">
-          {infoText && (
-            
-            <Text fontSize="xs">
-              {infoText}{' '}
-              {required && (
-                <Text as='i'>• {required}</Text>
-              )}
-            </Text>
-          )}
-          {required && !infoText && (
-            
-            <Text fontSize="xs" fontStyle="italic">
-              {required}
-            </Text>
-          )}
-        </Flex>
+  <VStack w="100%" spacing="0.5rem">
+    <Flex direction="column" w="100%">
+      <Flex w="100%">
+        <Text fontWeight="700" color="black">
+          {label}
+        </Text>
+        {tooltip && (
+          <Tooltip color="white" label={tooltip} placement="auto-start">
+            <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+          </Tooltip>
+        )}
       </Flex>
-      
-      <Textarea
-        bg="white"
-        value={value}
-        onChange={(e: any) => setValue(e.target.value)}
-        placeholder={placeholder}
-        color="black"
-        border="1px"
-        borderColor="lightgrey"
-        _hover={{ borderColor: 'lightgrey' }}
-        isDisabled={isDisabled}
-        h="4rem"
-        resize="none"
-        maxLength={maxLength}
-      />
-    </VStack>
-  );
+
+      <Flex color="#707683">
+        {infoText && (
+          <Text fontSize="xs">
+            {infoText} {required && <Text as="i">• {required}</Text>}
+          </Text>
+        )}
+        {required && !infoText && (
+          <Text fontSize="xs" fontStyle="italic">
+            {required}
+          </Text>
+        )}
+      </Flex>
+    </Flex>
+
+    <Textarea
+      bg="white"
+      value={value}
+      onChange={(e: any) => setValue(e.target.value)}
+      placeholder={placeholder}
+      color="black"
+      border="1px"
+      borderColor="lightgrey"
+      _hover={{ borderColor: 'lightgrey' }}
+      isDisabled={isDisabled}
+      h="4rem"
+      resize="none"
+      maxLength={maxLength}
+    />
+  </VStack>
+);

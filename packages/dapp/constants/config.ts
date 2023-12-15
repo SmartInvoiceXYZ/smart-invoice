@@ -1,4 +1,4 @@
-import { Address } from "viem";
+import { Address } from 'viem';
 
 const LexDAOLogo = '../assets/lex-dao.png';
 
@@ -33,7 +33,7 @@ export const CONFIG = {
           termsUrl:
             'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
         },
-      } ,
+      },
     } as NetworkConfig,
     100: {
       SUBGRAPH: 'psparacino/v1-xdai-smart-invoices',

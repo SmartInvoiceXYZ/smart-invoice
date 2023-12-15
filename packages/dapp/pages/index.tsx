@@ -6,7 +6,7 @@ import {
   Flex,
   Heading,
   Text,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { useWeb3 } from '../context/Web3Context';
@@ -58,9 +58,7 @@ function Home() {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   return (
-    
     <Flex direction="column" align="center" justify="center" gap={6}>
-      
       <Heading
         fontWeight={700}
         fontSize={50}
@@ -69,13 +67,13 @@ function Home() {
       >
         Welcome to Smart Invoice
       </Heading>
-      
+
       <Text fontStyle="italic" color="grey">
         How do you want to get started?
       </Text>
-      
+
       <Flex
-        direction={isMobile ? 'column': undefined}
+        direction={isMobile ? 'column' : undefined}
         columnGap={10}
         rowGap={4}
         width="100%"
@@ -83,7 +81,6 @@ function Home() {
         justify="center"
         paddingX={10}
       >
-        
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -96,7 +93,7 @@ function Home() {
         >
           Create Invoice
         </Button>
-        
+
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}

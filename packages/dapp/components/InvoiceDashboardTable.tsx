@@ -1,291 +1,127 @@
-import { formatUnits } from 'ethers/lib/utils';
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
-import { usePagination, useSortBy, useTable } from 'react-table';
 
-/* eslint-disable react/no-array-index-key */
 /* eslint-disable no-nested-ternary */
+import { Button, Flex, HStack, Heading, IconButton } from '@chakra-ui/react';
+import { useQuery } from '@tanstack/react-query';
 import {
-  Badge,
-  Button,
-  Image as ChakraImage,
-  Flex,
-  HStack,
-  Heading,
-  IconButton,
-  Link,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Text,
-  chakra
-} from '@chakra-ui/react';
+  PaginationState,
+  SortingState,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
-import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
+import { ChainId } from '../constants/config';
+import { InvoiceRow } from '../context/SearchContext';
 import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
-import { FilterIcon } from '../icons/FilterIcon';
-import { VerticalDotsIcon } from '../icons/VerticalDots';
-import { dateTimeToDate, getHexChainId, getTokenInfo } from '../utils/helpers';
-import { unixToDateTime } from '../utils/invoice';
-import { GenerateInvoicePDFMenuItem } from './GenerateInvoicePDF';
+import { TokenData } from '../types';
 import { Styles } from './InvoicesStyles';
-import { Loader } from './Loader';
-import { Invoice } from '../types';
 
-function InvoiceStatusLabel({
-  invoice,
-  ...props
-}: any) {
-  const { funded, label, loading } = useInvoiceStatus(invoice);
-  const { isLocked, terminationTime } = invoice;
-  const terminated = terminationTime > Date.now();
-  const disputeResolved = label === 'Dispute Resolved';
-  return (
-    
-    <Flex
-      backgroundColor={
-        loading
-          ? '#FFFFFF'
-          : terminated || disputeResolved || label === 'Expired'
-          ? '#C2CFE0'
-          : isLocked
-          ? '#F7685B'
-          : label === 'Overdue'
-          ? '#F7685B'
-          : funded
-          ? '#2ED47A'
-          : '#FFB946'
-      }
-      padding="6px"
-      borderRadius="10"
-      minWidth="165px"
-      justify="center"
-      {...props}
-    >
-      
-      <Text color="white" fontWeight="bold" textAlign="center" fontSize="15px">
-        
-        {loading ? <Loader size="20" /> : label}
-      </Text>
-    </Flex>
-  );
-}
-
-export type InvoiceBadgeProps = {
-  invoice: Invoice;
+export type InvoiceDashboardTableProps = {
+  result: InvoiceRow[];
+  tokenData: Record<ChainId, Record<string, TokenData>>;
+  chain?: ChainId;
 };
 
-const InvoiceBadge : React.FC<InvoiceBadgeProps> = ({
-  invoice
-}) => {
-  const { invoiceType } = invoice;
-  const schemes = {
-    escrow: {
-      bg: 'rgba(128, 63, 248, 0.3)',
-      color: 'rgba(128, 63, 248, 1)',
-    },
-    instant: {
-      bg: 'rgba(248, 174, 63, 0.3)',
-      color: 'rgba(248, 174, 63, 1)',
-    },
-    unknown: {
-      bg: 'rgba(150,150,150,0.3)',
-      color: 'rgba(150,150,150,1)',
-    },
-  };
-
-  return (
-    
-    <Badge
-      backgroundColor={schemes[invoiceType ?? 'unknown'].bg}
-      color={schemes[invoiceType ?? 'unknown'].color}
-      maxW="fit-content"
-      height="fit-content"
-    >
-      {invoiceType ? invoiceType.toUpperCase() : 'UNKNOWN'}
-    </Badge>
-  );
-}
-
-export function InvoiceDashboardTable({
+export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
   result,
   tokenData,
-  chainId
-}: any) {
+  chain,
+}) => {
   const router = useRouter();
-  const data = useMemo(() => {
-    const dataArray: any = [];
-    result.forEach((invoice: any) => {
-      const { decimals, symbol, image } = getTokenInfo(
-        chainId,
-        invoice.token,
-        tokenData,
-      );
-      const viewInvoice = () =>
-        router.push(
-          `/invoice/${getHexChainId(invoice.network)}/${invoice.address}/${
-            invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''
-          }`,
-        );
-      const details = {
-        createdAt: dateTimeToDate(unixToDateTime(invoice.createdAt)),
-        projectName: (
-          
-          <Flex
-            gap={2}
-            width="100%"
-            align="center"
-            justify="space-between"
-            onClick={viewInvoice}
-          >
-            
-            <Link
-              href={`/invoice/${getHexChainId(invoice.network)}/${
-                invoice.address
-              }/${invoice.invoiceType !== 'escrow' ? invoice.invoiceType : ''}`}
-            >
-              {invoice.projectName}
-            </Link>
-            
-            <InvoiceBadge invoice={invoice} />
-          </Flex>
-        ),
-        amount: formatUnits(invoice.total, decimals),
-        currency: (
-          
-          <Flex justify="left" gap={2}>
-            
-            <ChakraImage
-              src={image}
-              width="24px"
-              height="24px"
-              objectFit="contain"
-            />
-            
-            <Text>{symbol}</Text>
-          </Flex>
-        ),
-        status: (
-          
-          <InvoiceStatusLabel
-            invoice={invoice}
-            onClick={viewInvoice}
-            cursor="pointer"
-          />
-        ),
-        action: (
-          
-          <Menu>
-            
-            <MenuButton padding={0} width="fit-content">
-              
-              <VerticalDotsIcon />
-            </MenuButton>
-            
-            <MenuList backgroundColor="white" textColor="black">
-              
-              <MenuItem
-                _active={{
-                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
-                  color: 'white',
-                }}
-                _hover={{
-                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
-                  color: 'white',
-                }}
-                onClick={viewInvoice}
-              >
-                Manage
-              </MenuItem>
-              
-              <GenerateInvoicePDFMenuItem
-                invoice={invoice}
-                symbol={symbol}
-                text="Download"
-                _active={{
-                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
-                  color: 'white',
-                }}
-                _hover={{
-                  backgroundColor: 'rgba(61, 136, 248, 0.8)',
-                  color: 'white',
-                }}
-              />
-            </MenuList>
-          </Menu>
-        ),
-      };
-      dataArray.push(details);
+
+  const columns = useMemo(() => {
+    const columnHelper = createColumnHelper<InvoiceRow>();
+
+    return [
+      columnHelper.accessor('createdAt', {
+        header: 'Date Created',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+      columnHelper.accessor('projectName', {
+        header: 'Invoice Name/ID',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+      columnHelper.accessor('amount', {
+        header: 'Amount',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+      columnHelper.accessor('currency', {
+        header: 'Currency',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: info => info.getValue(),
+        footer: info => info.column.id,
+      }),
+    ];
+  }, []);
+
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [{ pageIndex, pageSize }, setPagination] =
+    React.useState<PaginationState>({
+      pageIndex: 0,
+      pageSize: 10,
     });
-    return dataArray;
-  }, [chainId, result, tokenData, router]);
 
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'Date Created',
-        accessor: 'createdAt',
-      },
-      {
-        Header: 'Invoice Name/ID',
-        accessor: 'projectName',
-      },
-      {
-        Header: 'Amount',
-        accessor: 'amount',
-        isnumeric: 'true',
-      },
-      {
-        Header: 'Currency',
-        accessor: 'currency',
-        isnumeric: 'true',
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-      },
-      {
-        Header: 'Action',
-        accessor: 'action',
-      },
-    ],
-    [],
+  const fetchDataOptions = {
+    pageIndex,
+    pageSize,
+  };
+
+  const dataQuery = useQuery(
+    ['data', fetchDataOptions],
+    () => fetchData(fetchDataOptions),
+    { keepPreviousData: true },
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    prepareRow,
-    page,
-    canPreviousPage,
-    canNextPage,
-    pageCount,
-    nextPage,
-    previousPage,
-    state: { pageIndex },
-  } = useTable(
-    {
-      columns,
-      data,
-      initialState: { pageIndex: 0 },
+  const defaultData = useMemo(() => [], []);
+
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize],
+  );
+
+  const table = useReactTable({
+    data: dataQuery.data?.rows ?? defaultData,
+    columns,
+    pageCount: dataQuery.data?.pageCount ?? -1,
+    state: {
+      pagination,
+      sorting,
     },
-    useSortBy,
-    usePagination,
-  );
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    debugTable: true,
+  });
 
   // cell props and getCellProps for individual cell control styling
   return (
-    
     <Styles>
-      
       <HStack justify="space-between" align="center" mb={8}>
-        
         <Heading textAlign="left" color="#192A3E">
           My Invoices
         </Heading>
-        
+
         <Button
           backgroundColor="blue.1"
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -297,94 +133,92 @@ export function InvoiceDashboardTable({
         </Button>
       </HStack>
       <div className="tableWrap">
-        <table {...getTableProps()}>
+        <table>
           <thead>
-            {headerGroups.map((headerGroup: any) => <tr
-              {...headerGroup.getHeaderGroupProps()}
-              key={headerGroup.headers[0]}
-            >
-              {headerGroup.headers.map((column: any, i: any) => (
-                <th
-                  {...column.getHeaderProps({
-                    className: column.collapse ? 'collapse' : '',
-                  })}
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  // isnumeric={column.isnumeric}
-                  className={
-                    column.Header === 'Amount'
-                      ? 'noAmount'
-                      : column.Header === 'Currency'
-                      ? 'noCurrency'
-                      : column.Header === 'Date Created'
-                      ? 'noDate'
-                      : null
-                  }
-                  key={column.Header}
-                >
-                  
-                  <Text textColor={column.isSorted ? 'black' : 'blue.dark'}>
-                    {column.render('Header')}
-                    {i !== headerGroup.headers.length - 1 && (
-                      
-                      <chakra.span pl="4">
-                        
-                        <FilterIcon width="8px" height="8px" />
-                      </chakra.span>
-                    )}
-                  </Text>
-                </th>
-              ))}
-            </tr>)}
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
           </thead>
-          <tbody {...getTableBodyProps()}>
-            {page.map((row: any, i: any) => {
-              prepareRow(row);
-              return (
-                <tr {...row.getRowProps()} key={i}>
-                  {row.cells.map((cell: any) => <td
-                    // Change cell formatting here most likely through targeting getCellProps with a function
-                    // docs for react-table
-                    {...cell.getCellProps({
-                      className: cell.column.collapse ? 'collapse' : '',
-                    })}
-                    className={
-                      cell.column.id === 'amount'
-                        ? 'noAmount'
-                        : cell.column.id === 'currency'
-                        ? 'noCurrency'
-                        : cell.column.id === 'createdAt'
-                        ? 'noDate'
-                        : null
-                    }
-                    key={cell.value}
-                  >
-                    {cell.render('Cell')}
-                  </td>)}
-                </tr>
-              );
-            })}
+          <tbody>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
+          <tfoot>
+            {table.getFooterGroups().map(footerGroup => (
+              <tr key={footerGroup.id}>
+                {footerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.footer,
+                          header.getContext(),
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </tfoot>
         </table>
       </div>
       <div className="pagination">
-        
         <IconButton
-          aria-label='Previous Page'
+          aria-label="First Page"
+          icon={
+            <Flex direction="column">
+              <LeftArrowIcon />
+              <LeftArrowIcon />
+            </Flex>
+          }
+          onClick={() => table.setPageIndex(0)}
+          disabled={!table.getCanPreviousPage()}
+        />
+        <IconButton
+          aria-label="Previous Page"
           icon={<LeftArrowIcon />}
-          onClick={() => previousPage()}
-          disabled={!canPreviousPage}
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
         />
         <span>
-          Page {pageIndex + 1} of {pageCount}
+          Page {table.getState().pagination.pageIndex + 1} of{' '}
+          {table.getPageCount()}
         </span>
-        
         <IconButton
-          aria-label='Next Page'
+          aria-label="Next Page"
           icon={<RightArrowIcon />}
-          onClick={() => nextPage()}
-          disabled={!canNextPage}
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        />
+        <IconButton
+          aria-label="Last Page"
+          icon={
+            <Flex direction="column">
+              <RightArrowIcon />
+              <RightArrowIcon />
+            </Flex>
+          }
+          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+          disabled={!table.getCanNextPage()}
         />
       </div>
     </Styles>
   );
-}
+};

@@ -8,18 +8,13 @@ import {
   IconButton,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 // @ts-expect-error TS(6142): Module '../icons/ArrowIcons' was resolved to '/Use... Remove this comment to see the full error message
 import { BackArrowIcon } from '../icons/ArrowIcons';
 
-export function StepInfo({
-  stepNum,
-  stepTitle,
-  stepDetails,
-  goBack
-}: any) {
+export function StepInfo({ stepNum, stepTitle, stepDetails, goBack }: any) {
   const maxW = useBreakpointValue({ base: '100%' });
 
   const stepSize = useBreakpointValue({
@@ -29,14 +24,10 @@ export function StepInfo({
     lg: 'xl',
   });
   return (
-    
     <VStack spacing="1rem" maxW={maxW} align="stretch">
-      
       <HStack width="100%" align="center" paddingY={4}>
         {stepNum !== 1 && (
-          
           <IconButton
-            
             icon={<BackArrowIcon width="33px" height="24px" />}
             position="absolute"
             onClick={() => goBack()}
@@ -44,7 +35,7 @@ export function StepInfo({
             zIndex={5}
           />
         )}
-        
+
         <Heading
           position="relative"
           color="#323C47"
@@ -56,18 +47,15 @@ export function StepInfo({
           Step {stepNum}: {stepTitle}
         </Heading>
       </HStack>
-
-      
       <Divider width="100%" background="lightgrey" />
-      // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
+      // @ts-expect-error TS(7026): JSX element implicitly has type 'any'
+      because no i... Remove this comment to see the full error message
       <br />
-
       {stepDetails.map((detail: any, index: any) => (
-          
-          <Text color="grey" fontSize="sm" key={index.toString()}>
-            {detail}
-          </Text>
-        ))}
+        <Text color="grey" fontSize="sm" key={index.toString()}>
+          {detail}
+        </Text>
+      ))}
     </VStack>
   );
 }

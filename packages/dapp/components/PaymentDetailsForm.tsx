@@ -24,10 +24,14 @@ export type PaymentDetailsFormProps = {
   allTokens: Record<ChainId, Address[]>;
 };
 
-export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDetailsFormProps) {
-  const { data: walletClient } = useWalletClient(); 
-  const {chain} = walletClient || {};
-  const {id:chainId} =chain || {};
+export function PaymentDetailsForm({
+  display,
+  tokenData,
+  allTokens,
+}: PaymentDetailsFormProps) {
+  const { data: walletClient } = useWalletClient();
+  const { chain } = walletClient || {};
+  const { id: chainId } = chain || {};
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
 
   const {
@@ -48,7 +52,10 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDet
     setTermsAccepted,
   } = useContext(CreateContext);
 
-  const TOKENS = useMemo(() => getTokens(allTokens, chainId), [chainId, allTokens]);
+  const TOKENS = useMemo(
+    () => getTokens(allTokens, chainId),
+    [chainId, allTokens],
+  );
 
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(chainId, paymentToken, tokenData),
@@ -76,7 +83,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDet
     if (paymentDueInput && !Number.isNaN(Number(paymentDueInput))) {
       const p = parseUnits(paymentDueInput, decimals);
       setPaymentDue(p);
-      setPaymentInvalid(p <= (0));
+      setPaymentInvalid(p <= 0);
     } else {
       setPaymentDue(BigInt(0));
       setPaymentInvalid(true);
@@ -127,7 +134,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDet
             if (v && !Number.isNaN(Number(v))) {
               const p = parseUnits(v, decimals);
               setPaymentDue(p);
-              setPaymentInvalid(p <= (0));
+              setPaymentInvalid(p <= 0);
             } else {
               setPaymentDue(BigInt(0));
               setPaymentInvalid(true);
@@ -147,7 +154,7 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDet
           {TOKENS.map((token: any) => (
             <option value={token} key={token}>
               {getTokenInfo(chainId, token, tokenData).symbol}
-           </option>
+            </option>
           ))}
         </OrderedSelect>
 
@@ -208,21 +215,24 @@ export function PaymentDetailsForm({ display, tokenData, allTokens }: PaymentDet
           <option value="custom">Custom</option>
         </OrderedSelect>
 
-        {paymentDue ? (<OrderedInput
-          label="Potential Dispute Fee"
-          type="text"
-          value={`${formatUnits(
-            paymentDue * BigInt(resolutionRate) / BigInt(100),
-            decimals,
-          )} ${symbol}`}
-          setValue={() => undefined}
-          tooltip={`If a disputed milestone payment goes to arbitration, ${
-            resolutionRate / 100
-          }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
-          isDisabled
-        />) : null}
+        {paymentDue ? (
+          <OrderedInput
+            label="Potential Dispute Fee"
+            type="text"
+            value={`${formatUnits(
+              (paymentDue * BigInt(resolutionRate)) / BigInt(100),
+              decimals,
+            )} ${symbol}`}
+            setValue={() => undefined}
+            tooltip={`If a disputed milestone payment goes to arbitration, ${
+              resolutionRate / 100
+            }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
+            isDisabled
+          />
+        ) : null}
       </SimpleGrid>
-      {!arbitrationProvider || !isKnownResolver(arbitrationProvider, chainId) ? (
+      {!arbitrationProvider ||
+      !isKnownResolver(arbitrationProvider, chainId) ? (
         <OrderedInput
           tooltip="This arbitrator will be used in case of dispute."
           label="Arbitration Provider Address"

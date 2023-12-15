@@ -6,11 +6,7 @@ import { Flex } from '@chakra-ui/react';
 
 import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
 
-export const Container = ({
-  children,
-  overlay,
-  ...props
-}: any) => {
+export const Container = ({ children, overlay, ...props }: any) => {
   const overlayStyles = isBackdropFilterSupported()
     ? {
         backgroundColor: 'black30',
@@ -20,7 +16,6 @@ export const Container = ({
         backgroundColor: 'black80',
       };
   return (
-    
     <Flex
       justify="center"
       align="center"

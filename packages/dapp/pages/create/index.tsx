@@ -8,7 +8,7 @@ import {
   Flex,
   Heading,
   Text,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
 import { INVOICE_TYPES } from '../../constants';
@@ -52,9 +52,7 @@ function SelectInvoiceType() {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   return (
-    
     <Flex direction="column" align="center" justify="center" gap={6}>
-      
       <Heading
         fontWeight={700}
         fontSize={50}
@@ -63,11 +61,11 @@ function SelectInvoiceType() {
       >
         Select an Invoice
       </Heading>
-      
+
       <Text fontStyle="italic" color="grey">
         Which type of invoice do you want to create?
       </Text>
-      
+
       <Flex
         direction={isMobile ? 'column' : undefined}
         columnGap={10}
@@ -77,7 +75,6 @@ function SelectInvoiceType() {
         justify="center"
         paddingX={10}
       >
-        
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
@@ -92,20 +89,17 @@ function SelectInvoiceType() {
           flexDir="column"
           paddingY={6}
         >
-          
           <Heading>Escrow</Heading>
-          
+
           <Box mt={2} textAlign="center" fontSize={12} fontWeight="normal">
-            
             <Text>Secure funds and release payments by milestones.</Text>
-            
+
             <Text>Includes arbitration.</Text>
-            
+
             <Text mt={4}>Recommended for medium to large projects</Text>
           </Box>
         </Button>
 
-        
         <Button
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
           _active={{ backgroundColor: 'rgba(61, 136, 248, 1)', color: 'white' }}
@@ -120,17 +114,14 @@ function SelectInvoiceType() {
           paddingY={6}
           flexDir="column"
         >
-          
           <Flex direction="column">
-            
             <Heading>Instant</Heading>
-            
+
             <Box mt={2} textAlign="center" fontSize={12} fontWeight="normal">
-              
               <Text wordBreak="break-word">Receive payment immediately.</Text>
-              
+
               <Text>Does NOT include arbitration.</Text>
-              
+
               <Text mt={4}>Recommended for small projects</Text>
             </Box>
           </Flex>

@@ -11,18 +11,14 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import {
-  getTokenInfo,
-  getTxLink,
-  logError,
-} from '../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
 import { withdraw } from '../utils/invoice';
 import { waitForTransaction } from '../utils/transactions';
 
 export function WithdrawFunds({ invoice, balance, close, tokenData }: any) {
   const [loading, setLoading] = useState(false);
-  const { data: walletClient } = useWalletClient(); 
-const chainId = walletClient?.chain?.id;
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const { network, address, token } = invoice;
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
@@ -36,7 +32,7 @@ const chainId = walletClient?.chain?.id;
         setLoading(true);
         const hash = await withdraw(walletClient, address);
         setTxHash(hash);
-        const {chain} = walletClient;
+        const { chain } = walletClient;
         await waitForTransaction(chain, hash);
         window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
         setLoading(false);

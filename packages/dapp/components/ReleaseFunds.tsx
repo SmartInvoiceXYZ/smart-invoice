@@ -18,11 +18,7 @@ import { waitForTransaction } from '@wagmi/core';
 import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { Invoice, TokenData } from '../types';
-import {
-  getTokenInfo,
-  getTxLink,
-  logError,
-} from '../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
 import { release } from '../utils/invoice';
 
 const getReleaseAmount = (
@@ -33,7 +29,7 @@ const getReleaseAmount = (
   if (
     currentMilestone >= amounts.length ||
     (currentMilestone === amounts.length - 1 &&
-      balance > (amounts[currentMilestone]))
+      balance > amounts[currentMilestone])
   ) {
     return balance;
   }
@@ -47,11 +43,16 @@ export type ReleaseFundsProps = {
   tokenData: Record<ChainId, Record<string, TokenData>>;
 };
 
-export function ReleaseFunds({ invoice, balance, close, tokenData }: ReleaseFundsProps) {
+export function ReleaseFunds({
+  invoice,
+  balance,
+  close,
+  tokenData,
+}: ReleaseFundsProps) {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const { data: walletClient } = useWalletClient(); 
-const chainId = walletClient?.chain?.id;
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const {
     network,
     currentMilestone,
@@ -74,12 +75,26 @@ const chainId = walletClient?.chain?.id;
         setLoading(true);
         const hash = await release(walletClient, address);
         setTxHash(hash);
-        const txReceipt = await waitForTransaction({chainId, hash});
+        const txReceipt = await waitForTransaction({ chainId, hash });
         setLoading(false);
         if (txReceipt.status === 'success') {
           window.location.href = `/invoice/${chainId.toString(16)}/${address}`;
         } else {
-          toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
+          toast({
+            status: 'error',
+            title: 'Transaction failed',
+            description: (
+              <Flex direction="row">
+                <Heading>Transaction failed</Heading>
+                <Text>
+                  Transaction {txReceipt.transactionHash} status is '
+                  {txReceipt.status}'.
+                </Text>
+              </Flex>
+            ),
+            isClosable: true,
+            duration: 5000,
+          });
         }
       } catch (releaseError) {
         logError({ releaseError });
@@ -89,7 +104,17 @@ const chainId = walletClient?.chain?.id;
     if (balance && balance > amount) {
       send();
     }
-  }, [network, amount, address, walletClient, balance, loading, close, chainId, toast]);
+  }, [
+    network,
+    amount,
+    address,
+    walletClient,
+    balance,
+    loading,
+    close,
+    chainId,
+    toast,
+  ]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -133,7 +158,7 @@ const chainId = walletClient?.chain?.id;
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId,txHash)}
+            href={getTxLink(chainId, txHash)}
             isExternal
             color="blue"
             textDecoration="underline"

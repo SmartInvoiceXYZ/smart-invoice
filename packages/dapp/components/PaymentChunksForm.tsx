@@ -24,7 +24,7 @@ export function PaymentChunksForm({ display, tokenData }: any) {
   const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display}>
-      {Array.from(Array(Number(milestones))).map((_val) => (
+      {Array.from(Array(Number(milestones))).map(_val => (
         <VStack w="100%" spacing="0.5rem" key={_val}>
           <Flex w="100%">
             <Text fontWeight="700">Payment #{_val}</Text>
@@ -48,8 +48,13 @@ export function PaymentChunksForm({ display, tokenData }: any) {
               border="1px"
               borderColor="lightgray"
               pr="3.5rem"
-              onChange={(e) => {
-                if (!payments || !e.target.value || Number.isNaN(Number(e.target.value))) return;
+              onChange={e => {
+                if (
+                  !payments ||
+                  !e.target.value ||
+                  Number.isNaN(Number(e.target.value))
+                )
+                  return;
                 const amount = parseUnits(e.target.value, decimals);
                 const newPayments = payments.slice();
                 newPayments[_val - 1] = amount;
@@ -64,10 +69,12 @@ export function PaymentChunksForm({ display, tokenData }: any) {
         </VStack>
       ))}
 
-      {paymentDue ? (<Text w="100%" textAlign="right" color="grey" fontWeight="bold">
-        Total Amount Must Add Up to {formatUnits(paymentDue, decimals)}{' '}
-        {symbol}
-      </Text>): null}
+      {paymentDue ? (
+        <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
+          Total Amount Must Add Up to {formatUnits(paymentDue, decimals)}{' '}
+          {symbol}
+        </Text>
+      ) : null}
     </VStack>
   );
 }

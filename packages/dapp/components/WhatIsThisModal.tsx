@@ -10,20 +10,14 @@ import {
   ModalOverlay,
   Text,
   VStack,
-  useBreakpointValue
+  useBreakpointValue,
 } from '@chakra-ui/react';
 
-export function WhatIsThisModal({
-  isOpen,
-  onClose
-}: any) {
+export function WhatIsThisModal({ isOpen, onClose }: any) {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
   return (
-    
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
-      
       <ModalOverlay>
-        
         <ModalContent
           p="2rem"
           maxW="40rem"
@@ -33,7 +27,6 @@ export function WhatIsThisModal({
           borderColor="red.500"
           color="white"
         >
-          
           <ModalCloseButton
             color="red.500"
             size="lg"
@@ -41,9 +34,8 @@ export function WhatIsThisModal({
             top="0"
             right="0"
           />
-          
+
           <VStack w="100%" spacing="1rem">
-            
             <Heading
               fontWeight="normal"
               mb="1rem"
@@ -52,7 +44,7 @@ export function WhatIsThisModal({
             >
               Safe, Efficient Payment
             </Heading>
-            
+
             <Text>
               Smart invoice builds trust between payer and payee by creating a
               secure neutral channel for transferring money. The payer proves
@@ -62,10 +54,8 @@ export function WhatIsThisModal({
               want to.
             </Text>
 
-            
             <Text w="100%">
               If you have more questions,{' '}
-              
               <Link
                 href="https://docs.smartinvoice.xyz"
                 textDecor="underline"
@@ -75,10 +65,8 @@ export function WhatIsThisModal({
               </Link>
             </Text>
 
-            
             <Text w="100%" mb="1rem">
               You can read more about the future of payment at{' '}
-              
               <Link
                 href="https://discord.gg/CanD2WcK7W"
                 textDecor="underline"
@@ -88,7 +76,7 @@ export function WhatIsThisModal({
               </Link>
               .
             </Text>
-            
+
             <Button
               colorScheme="red"
               onClick={onClose}

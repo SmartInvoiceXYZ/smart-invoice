@@ -22,11 +22,7 @@ import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { OrderedTextarea } from '../shared/OrderedInput';
 import { Invoice, TokenData } from '../types';
-import {
-  getTokenInfo,
-  getTxLink,
-  logError,
-} from '../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
 
@@ -35,19 +31,25 @@ export type ResolveFundsProps = {
   balance: bigint;
   close: any;
   tokenData: Record<ChainId, Record<string, TokenData>>;
-}
+};
 
-export function ResolveFunds({ invoice, balance, close, tokenData }: ResolveFundsProps) {
+export function ResolveFunds({
+  invoice,
+  balance,
+  close,
+  tokenData,
+}: ResolveFundsProps) {
   const { address, resolutionRate, token, isLocked } = invoice;
-  const { data: walletClient } = useWalletClient(); 
-const chainId = walletClient?.chain?.id;
+  const { data: walletClient } = useWalletClient();
+  const chainId = walletClient?.chain?.id;
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<Hash>();
   const toast = useToast();
 
-  const resolverAward = balance > (0) ? balance / BigInt(resolutionRate) : BigInt(0);
-  const availableFunds = balance - (resolverAward);
+  const resolverAward =
+    balance > 0 ? balance / BigInt(resolutionRate) : BigInt(0);
+  const availableFunds = balance - resolverAward;
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigInt(0));
   const [clientAwardInput, setClientAwardInput] = useState(
@@ -63,8 +65,8 @@ const chainId = walletClient?.chain?.id;
       chainId &&
       isLocked &&
       comments &&
-      balance === (clientAward + (providerAward) + (resolverAward)) &&
-      balance > (0)
+      balance === clientAward + providerAward + resolverAward &&
+      balance > 0
     ) {
       try {
         setLoading(true);
@@ -81,19 +83,44 @@ const chainId = walletClient?.chain?.id;
           detailsHash,
         );
         setTxHash(hash);
-        const txReceipt = await waitForTransaction({chainId, hash});
+        const txReceipt = await waitForTransaction({ chainId, hash });
         setLoading(false);
         if (txReceipt.status === 'success') {
           window.location.href = `/invoice/${chainId.toString(16)}/${address}`;
         } else {
-          toast({status: 'error', title: 'Transaction failed', description: <Flex direction="row"><Heading>Transaction failed</Heading><Text>Transaction {txReceipt.transactionHash} status is '{txReceipt.status}'.</Text></Flex>, isClosable: true, duration: 5000});
+          toast({
+            status: 'error',
+            title: 'Transaction failed',
+            description: (
+              <Flex direction="row">
+                <Heading>Transaction failed</Heading>
+                <Text>
+                  Transaction {txReceipt.transactionHash} status is '
+                  {txReceipt.status}'.
+                </Text>
+              </Flex>
+            ),
+            isClosable: true,
+            duration: 5000,
+          });
         }
       } catch (depositError) {
         setLoading(false);
         logError({ depositError });
       }
     }
-  }, [walletClient, chainId, isLocked, comments, balance, clientAward, providerAward, resolverAward, address, toast]);
+  }, [
+    walletClient,
+    chainId,
+    isLocked,
+    comments,
+    balance,
+    clientAward,
+    providerAward,
+    resolverAward,
+    address,
+    toast,
+  ]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -155,12 +182,12 @@ const chainId = walletClient?.chain?.id;
                   setClientAwardInput(e.target.value);
                   if (e.target.value) {
                     let award = parseUnits(e.target.value, decimals);
-                    if (award > (availableFunds)) {
+                    if (award > availableFunds) {
                       award = availableFunds;
                       setClientAwardInput(formatUnits(award, decimals));
                     }
                     setClientAward(award);
-                    award = availableFunds - (award);
+                    award = availableFunds - award;
                     setProviderAward(award);
                     setProviderAwardInput(formatUnits(award, decimals));
                   }
@@ -202,12 +229,12 @@ const chainId = walletClient?.chain?.id;
                   setProviderAwardInput(e.target.value);
                   if (e.target.value) {
                     let award = parseUnits(e.target.value, decimals);
-                    if (award > (availableFunds)) {
+                    if (award > availableFunds) {
                       award = availableFunds;
                       setProviderAwardInput(formatUnits(award, decimals));
                     }
                     setProviderAward(award);
-                    award = availableFunds - (award);
+                    award = availableFunds - award;
                     setClientAward(award);
                     setClientAwardInput(formatUnits(award, decimals));
                   }
@@ -254,7 +281,7 @@ const chainId = walletClient?.chain?.id;
             onClick={resolveFunds}
             isLoading={loading}
             colorScheme="red"
-            isDisabled={resolverAward <= (0) || !comments}
+            isDisabled={resolverAward <= 0 || !comments}
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"

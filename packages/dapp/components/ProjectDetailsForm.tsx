@@ -6,13 +6,11 @@ import { CreateContext } from '../context/CreateContext';
 import {
   OrderedInput,
   OrderedLinkInput,
-  OrderedTextarea
+  OrderedTextarea,
 } from '../shared/OrderedInput';
 import { formatDate } from '../utils/helpers';
 
-export function ProjectDetailsForm({
-  display
-}: any) {
+export function ProjectDetailsForm({ display }: any) {
   const {
     startDate,
     setStartDate,
@@ -40,9 +38,7 @@ export function ProjectDetailsForm({
   const [dateInvalid, setDateInvalid] = useState(false);
 
   return (
-    
     <VStack w="100%" spacing="1rem" display={display}>
-      
       <OrderedInput
         label="Project Name or ID"
         value={projectName}
@@ -55,7 +51,7 @@ export function ProjectDetailsForm({
         tooltip="Choose something easily identifiable by you & your client. This is how the invoice will appear on your sortable invoices list later."
         required="required"
       />
-      
+
       <OrderedLinkInput
         label="Link to Project Agreement"
         value={projectAgreementSource}
@@ -65,7 +61,7 @@ export function ProjectDetailsForm({
         tooltip="This agreement will be referenced if there is a payment dispute that goes to arbitration. Link a file that cannot be modified."
         required="required"
       />
-      
+
       <OrderedTextarea
         label="Project Description"
         value={projectDescription}
@@ -75,14 +71,13 @@ export function ProjectDetailsForm({
         required="optional"
         tooltip="This brief description will help you & your client remember key project details in the future."
       />
-      
+
       <SimpleGrid
         w="100%"
         spacing="1rem"
         columns={{ base: 1, sm: 2, md: 3 }}
         mb={dateInvalid ? '-0.5rem' : ''}
       >
-        
         <OrderedInput
           label="Project Start Date"
           type="date"
@@ -91,7 +86,7 @@ export function ProjectDetailsForm({
           required="optional"
           tooltip="This is the date you expect to begin work on this project."
         />
-        
+
         <OrderedInput
           label="Expected End Date"
           type="date"
@@ -100,7 +95,7 @@ export function ProjectDetailsForm({
           required="optional"
           tooltip="This is the date you expect to complete work on this project."
         />
-        
+
         <OrderedInput
           gridArea={{
             base: 'auto/auto/auto/auto',
@@ -121,7 +116,6 @@ export function ProjectDetailsForm({
         />
       </SimpleGrid>
       {dateInvalid && (
-        
         <Text
           w="100%"
           color="red"

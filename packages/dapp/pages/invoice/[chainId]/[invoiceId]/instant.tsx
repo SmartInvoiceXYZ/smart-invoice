@@ -57,11 +57,11 @@ function ViewInstantInvoice({
     params: { hexChainId, invoiceId },
   },
 }: any) {
-  const { data:walletClient } = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const account = walletClient?.account?.address;
   const chain = walletClient?.chain;
   const [{ tokenData }] = useFetchTokensViaIPFS();
-  const [invoice, setInvoice] = useState<Invoice|null>();
+  const [invoice, setInvoice] = useState<Invoice | null>();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigInt(0));
   const [modal, setModal] = useState(false);
@@ -186,7 +186,7 @@ function ViewInstantInvoice({
       : totalDue - totalFulfilled;
 
   const isTippable = fulfilled;
-  const isWithdrawable = balance > (0);
+  const isWithdrawable = balance > 0;
 
   const onDeposit = () => {
     setSelected(1);
@@ -397,10 +397,7 @@ function ViewInstantInvoice({
                 </Text>
               </Flex>
 
-              <Text>{`${formatUnits(
-                lateFeeTotal,
-                decimals,
-              )} ${symbol}`}</Text>
+              <Text>{`${formatUnits(lateFeeTotal, decimals)} ${symbol}`}</Text>
             </Flex>
 
             <Flex
@@ -431,7 +428,7 @@ function ViewInstantInvoice({
               fontWeight="bold"
               fontSize="lg"
             >
-              <Text>{totalFulfilled > (0) ? 'Remaining' : 'Total'} Due</Text>
+              <Text>{totalFulfilled > 0 ? 'Remaining' : 'Total'} Due</Text>
               <Text textAlign="right">{`${formatUnits(
                 due,
                 decimals,

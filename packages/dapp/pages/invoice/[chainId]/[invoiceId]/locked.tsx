@@ -11,10 +11,7 @@ import { getInvoice } from '../../../../graphql/getInvoice';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
 import { Invoice } from '../../../../types';
-import {
-  getIpfsLink,
-  getTxLink,
-} from '../../../../utils/helpers';
+import { getIpfsLink, getTxLink } from '../../../../utils/helpers';
 
 function LockedInvoice({
   match: {
@@ -94,7 +91,10 @@ function LockedInvoice({
           ruling.
           <br />
           Return to the{' '}
-          <Link as={NextLink} href={`/invoice/${invoiceChainId.toString(16)}/${id}`}>
+          <Link
+            as={NextLink}
+            href={`/invoice/${invoiceChainId.toString(16)}/${id}`}
+          >
             <u>invoice details page</u>
           </Link>{' '}
           to view the results.

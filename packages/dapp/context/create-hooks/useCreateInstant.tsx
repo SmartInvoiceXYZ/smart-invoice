@@ -10,14 +10,14 @@ export function useCreateInstant({
   paymentToken,
   paymentDue,
   milestones,
-  setAllValid
+  setAllValid,
 }: any) {
   const instantStep2Valid = useMemo(
     () =>
       isAddress(clientAddress) &&
       isAddress(paymentAddress) &&
       isAddress(paymentToken) &&
-      paymentDue > (0) &&
+      paymentDue > 0 &&
       !isNaN(Number(milestones)) &&
       milestones > 0 &&
       Array.from(

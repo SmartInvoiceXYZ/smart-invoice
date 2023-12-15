@@ -24,9 +24,7 @@ export function Footer() {
   });
 
   return (
-    
     <Box background="#334D6E" width="100%" alignSelf="end" zIndex={5}>
-      
       <Flex
         direction={isMobile ? 'column-reverse' : 'row'}
         justify="space-between"
@@ -36,9 +34,7 @@ export function Footer() {
         textColor="white"
         rowGap={4}
       >
-        
         <ChakraLink href="/invoices">
-          
           <Image
             src={logo.src}
             alt="Smart Invoice"
@@ -46,9 +42,8 @@ export function Footer() {
             height={25.34}
           />
         </ChakraLink>
-        
+
         <Flex gap={8} justify="center" align="center">
-          
           <ChakraLink
             isExternal
             href="https://smartinvoice.xyz"
@@ -56,7 +51,7 @@ export function Footer() {
           >
             Website
           </ChakraLink>
-          
+
           <ChakraLink
             isExternal
             href="https://docs.smartinvoice.xyz"
@@ -64,7 +59,7 @@ export function Footer() {
           >
             Documentation
           </ChakraLink>
-          
+
           <ChakraLink
             isExternal
             href="https://docs.smartinvoice.xyz/misc/get-support"
@@ -72,7 +67,7 @@ export function Footer() {
           >
             Support
           </ChakraLink>
-          
+
           <ChakraLink
             isExternal
             href="https://twitter.com/SmartInvoiceXYZ"
@@ -80,7 +75,7 @@ export function Footer() {
           >
             Twitter
           </ChakraLink>
-          
+
           <ChakraLink
             isExternal
             href="https://discord.gg/Rws3gEu8W7"

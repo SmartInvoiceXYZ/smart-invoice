@@ -21,7 +21,6 @@ import { Header } from './Header';
 
 // @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
 
-
 export function Layout({ children }: any) {
   const { chain, account } = useWalletClient();
 

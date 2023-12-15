@@ -15,9 +15,9 @@ export function VerifyInvoice({
   client,
   isClient,
   verifiedStatus,
-  setVerifiedStatus
+  setVerifiedStatus,
 }: any) {
-  const { data:walletClient } = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const { address } = invoice;
   const [txHash, setTxHash] = useState<Hash>();
 
@@ -30,15 +30,14 @@ export function VerifyInvoice({
 
   const verifyInvoice = async () => {
     try {
-      if (!walletClient)
-     {
-      logError("verifyInvoice: walletClient is null");
-      return;
-     } 
+      if (!walletClient) {
+        logError('verifyInvoice: walletClient is null');
+        return;
+      }
       const hash = await verify(walletClient, address);
       setTxHash(hash);
       const chainId = walletClient.chain.id;
-      const txReceipt = await waitForTransaction({chainId, hash});
+      const txReceipt = await waitForTransaction({ chainId, hash });
       if (txReceipt.status === 'success') setVerifiedStatus(true);
     } catch (verifyError) {
       logError({ verifyError });
@@ -46,11 +45,9 @@ export function VerifyInvoice({
   };
 
   return (
-    
     <VStack w="100%" spacing="rem" alignItems="start">
       {verifiedStatus ? null : isClient ? (
         txHash ? (
-          
           <Button
             size="xs"
             colorScheme="blue"
@@ -59,13 +56,11 @@ export function VerifyInvoice({
             fontFamily="mono"
             textTransform="uppercase"
           >
-            
             <Text>verifying...</Text>
-            
+
             <Spinner ml="1" size="sm" />
           </Button>
         ) : (
-          
           <Button
             size="xs"
             colorScheme="blue"
@@ -74,7 +69,6 @@ export function VerifyInvoice({
             textTransform="uppercase"
             onClick={() => verifyInvoice()}
           >
-            
             <Text>Enable Non-Client Account Deposits</Text>
           </Button>
         )

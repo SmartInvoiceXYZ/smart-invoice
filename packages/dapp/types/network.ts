@@ -1,2 +1,9 @@
-
-export type Network = 'gnosis' | 'mainnet' | 'rinkeby' | 'goerli' | 'kovan' | 'matic' | 'hardhat' | 'mumbai';
+export type Network =
+  | 'gnosis'
+  | 'mainnet'
+  | 'rinkeby'
+  | 'goerli'
+  | 'kovan'
+  | 'matic'
+  | 'hardhat'
+  | 'mumbai';

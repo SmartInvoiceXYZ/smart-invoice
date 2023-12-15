@@ -96,33 +96,41 @@ export function FormConfirmation({ display, tokenData }: any) {
         </Flex>
       )}
 
-      {safetyValveDate && (<Flex justify="space-between" width={flexWidth}>
-        <Text>{`Safety Valve Date: `}</Text>
+      {safetyValveDate && (
+        <Flex justify="space-between" width={flexWidth}>
+          <Text>{`Safety Valve Date: `}</Text>
 
-        <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
-      </Flex>)}
+          <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
+        </Flex>
+      )}
 
-      {arbitrationProvider && (<Flex justify="space-between" width={flexWidth}>
-        <Text>{`Arbitration Provider: `}</Text>
+      {arbitrationProvider && (
+        <Flex justify="space-between" width={flexWidth}>
+          <Text>{`Arbitration Provider: `}</Text>
 
-        <AccountLink address={arbitrationProvider} chain={chainId} />
-      </Flex>)}
+          <AccountLink address={arbitrationProvider} chain={chainId} />
+        </Flex>
+      )}
 
-      {milestones && paymentDue ? (<><Divider
-        color="black"
-        w="calc(100% + 2rem)"
-        transform="translateX(-1rem)"
-      />
+      {milestones && paymentDue ? (
+        <>
+          <Divider
+            color="black"
+            w="calc(100% + 2rem)"
+            transform="translateX(-1rem)"
+          />
 
-      <Flex justify="flex-end">
-        <Text>
-          {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
-        </Text>
+          <Flex justify="flex-end">
+            <Text>
+              {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
+            </Text>
 
-        <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-          {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
-        </Text>
-      </Flex></>): null}
+            <Text color="blue.1" ml="2.5rem" fontWeight="bold">
+              {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
+            </Text>
+          </Flex>
+        </>
+      ) : null}
     </VStack>
   );
 }

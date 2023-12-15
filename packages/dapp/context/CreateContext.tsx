@@ -6,7 +6,13 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Address, Hash, encodeAbiParameters, parseAbiParameters, stringToHex } from 'viem';
+import {
+  Address,
+  Hash,
+  encodeAbiParameters,
+  parseAbiParameters,
+  stringToHex,
+} from 'viem';
 import { useWalletClient } from 'wagmi';
 
 import { track } from '@vercel/analytics';
@@ -110,8 +116,10 @@ export const CreateContext = createContext<CreateContextType>({
   nextStepHandler: () => {},
 });
 
-export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const {data: walletClient} = useWalletClient();
+export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const RESOLVERS = getResolvers(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -138,7 +146,8 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ child
   const [clientAddress, setClientAddress] = useState<Address>();
   const [paymentAddress, setPaymentAddress] = useState<Address>();
   const [paymentDue, setPaymentDue] = useState(BigInt(0));
-  const [paymentToken, setPaymentToken] = useState<Address>(WRAPPED_NATIVE_TOKEN);
+  const [paymentToken, setPaymentToken] =
+    useState<Address>(WRAPPED_NATIVE_TOKEN);
   const [milestones, setMilestones] = useState(1);
 
   // escrow details
@@ -260,9 +269,11 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ child
       if (!detailsHash) throw new Error('Invalid details hash');
 
       const resolverType = 0; // 0 for individual, 1 for erc-792 arbitrator
-      const type = stringToHex(Escrow, {size: 32});
+      const type = stringToHex(Escrow, { size: 32 });
       const data = encodeAbiParameters(
-        parseAbiParameters('address, uint8, address, address, uint256, bytes32, address, bool, address'),
+        parseAbiParameters(
+          'address, uint8, address, address, uint256, bytes32, address, bool, address',
+        ),
         [
           clientAddress,
           resolverType,
@@ -293,10 +304,11 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ child
   const encodeInstantData = useCallback(() => {
     if (!clientAddress) throw new Error('Invalid client address');
     if (!detailsHash) throw new Error('Invalid details hash');
-    const type = stringToHex(Instant, {size: 32});
+    const type = stringToHex(Instant, { size: 32 });
     const data = encodeAbiParameters(
       parseAbiParameters(
-        'address, address, uint256, bytes32, address, uint256, uint256'),
+        'address, address, uint256, bytes32, address, uint256, uint256',
+      ),
       [
         clientAddress,
         paymentToken,
@@ -324,7 +336,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ child
     let type;
     let data;
 
-    if (chainId && allValid && paymentAddress && data &&  detailsHash && type) {
+    if (chainId && allValid && paymentAddress && data && detailsHash && type) {
       setLoading(true);
       setTxHash(undefined);
 
@@ -566,4 +578,4 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({ child
       {children}
     </CreateContext.Provider>
   );
-}
+};

@@ -13,11 +13,7 @@ import {
 
 import { ChainId } from '../../constants/config';
 import { Invoice, TokenData } from '../../types';
-import {
-  getTokenInfo,
-  getTxLink,
-  logError,
-} from '../../utils/helpers';
+import { getTokenInfo, getTxLink, logError } from '../../utils/helpers';
 import { withdraw } from '../../utils/invoice';
 import { waitForTransaction } from '../../utils/transactions';
 
@@ -35,7 +31,7 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   tokenData,
 }) => {
   const [loading, setLoading] = useState(false);
-  const {data:walletClient} = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const { network, address, token } = invoice;
 
@@ -45,7 +41,7 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
-    if (!loading && walletClient && balance >(0)) {
+    if (!loading && walletClient && balance > 0) {
       setInvalid(false);
     } else {
       setInvalid(true);
@@ -58,9 +54,11 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
       setLoading(true);
       const hash = await withdraw(walletClient, address);
       setTxHash(hash);
-      const {chain} =walletClient;
+      const { chain } = walletClient;
       await waitForTransaction(chain, hash);
-      window.location.href = `/invoice/${chain.id.toString(16)}/${address}/instant`;
+      window.location.href = `/invoice/${chain.id.toString(
+        16,
+      )}/${address}/instant`;
       setLoading(false);
     } catch (withdrawError) {
       close();

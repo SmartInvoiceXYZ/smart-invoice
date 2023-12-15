@@ -41,10 +41,15 @@ export const register = async (
   });
 };
 
-export const awaitInvoiceAddress = async (chainId:number, hash: Hash) => {
+export const awaitInvoiceAddress = async (chainId: number, hash: Hash) => {
   // const receipt = await waitForTransaction({ chainId: chain.id, hash });
   const abi = ISmartInvoiceFactoryAbi;
-  const [, address, , ,  ] = await readEvent({abi, chainId, hash, name: 'LogNewInvoice'});
+  const [, address, , ,] = await readEvent({
+    abi,
+    chainId,
+    hash,
+    name: 'LogNewInvoice',
+  });
   // const eventFragment = abi.events[Object.keys(abi.events)[0]];
   // const eventTopic = abi.getEventTopic(eventFragment);
   // const event = receipt.logs.find((e) => e.topics[0] === eventTopic);
@@ -217,7 +222,7 @@ export const getTotalDue = async (chain: Chain, address: Address) => {
     chain,
     functionName: 'getTotalDue',
     args: [],
-  })
+  });
 
   return totalDue;
 };
@@ -255,7 +260,7 @@ export const getDeadline = async (chain: Chain, address: Address) => {
     chain,
     functionName: 'deadline',
     args: [],
-  })
+  });
 
   return deadline;
 };

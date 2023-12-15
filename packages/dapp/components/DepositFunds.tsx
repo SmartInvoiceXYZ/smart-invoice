@@ -38,9 +38,9 @@ import { waitForTransaction } from '../utils/transactions';
 
 const getCheckedStatus = (deposited: bigint, amounts: bigint[]) => {
   let sum = BigInt(0);
-  return amounts.map((a) => {
+  return amounts.map(a => {
     sum += a;
-    return deposited > (sum);
+    return deposited > sum;
   });
 };
 
@@ -64,7 +64,7 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
   due,
   tokenData,
 }) => {
-  const {data:walletClient} = useWalletClient();
+  const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
@@ -85,25 +85,24 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
 
   const deposit = async () => {
     if (!amount || !balance || !walletClient) return;
-    if (
-      formatUnits(amount, decimals) > formatUnits(balance, decimals)
-    ) {
+    if (formatUnits(amount, decimals) > formatUnits(balance, decimals)) {
       setDepositError(true);
       return;
     }
-    
 
     try {
       setLoading(true);
       let hash;
       if (paymentType === 1) {
-        hash = await walletClient
-          .sendTransaction({ to: address, value: amount });
+        hash = await walletClient.sendTransaction({
+          to: address,
+          value: amount,
+        });
       } else {
         hash = await transfer(walletClient, token, address, amount);
       }
       setTxHash(hash);
-      const {chain} = walletClient;
+      const { chain } = walletClient;
       await waitForTransaction(chain, hash);
       window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
     } catch (e) {
@@ -115,7 +114,7 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
   useEffect(() => {
     try {
       if (!walletClient) return;
-      const {chain, account} = walletClient;
+      const { chain, account } = walletClient;
       if (paymentType === 0) {
         balanceOf(chain, token, account.address).then(setBalance);
       } else {
@@ -181,11 +180,11 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
                 : checkedAtIndex(i - 1, checked);
               const totAmount = amounts.reduce(
                 (tot: any, cur: any, ind: any) =>
-                  newChecked[ind] ? tot + (cur) : tot,
+                  newChecked[ind] ? tot + cur : tot,
                 BigInt(0),
               );
               const newAmount = totAmount.gte(deposited)
-                ? totAmount - (deposited)
+                ? totAmount - deposited
                 : BigInt(0);
 
               setChecked(newChecked);
@@ -234,7 +233,7 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
                 const newAmount = parseUnits(newAmountInput, decimals);
                 setAmount(newAmount);
                 setChecked(
-                  getCheckedStatus(BigInt(deposited) + (newAmount), amounts),
+                  getCheckedStatus(BigInt(deposited) + newAmount, amounts),
                 );
               } else {
                 setAmount(BigInt(0));
@@ -262,7 +261,7 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
             )}
           </InputRightElement>
         </InputGroup>
-        {amount > (due) ? (
+        {amount > due ? (
           <Alert bg="none">
             <AlertIcon color="red.500" />
 
@@ -284,9 +283,10 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
           <VStack align="flex-start">
             <Text fontWeight="bold">Potential Dispute Fee</Text>
             <Text>{`${formatUnits(
-              (amount
-                 - deposited)
-                 * BigInt(calculateResolutionFeePercentage(invoice.resolutionRate)),
+              (amount - deposited) *
+                BigInt(
+                  calculateResolutionFeePercentage(invoice.resolutionRate),
+                ),
               decimals,
             )} ${symbol}`}</Text>
           </VStack>
