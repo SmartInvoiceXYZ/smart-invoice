@@ -19,14 +19,16 @@
     "dapp:dev": "yarn workspace @smart-invoice/dapp dev",
     "dapp:start": "yarn workspace @smart-invoice/dapp start",
     "dapp:test": "yarn workspace @smart-invoice/dapp test",
+    "dapp:lint": "yarn workspace @smart-invoice/dapp lint",
+    "dapp:format": "yarn workspace @smart-invoice/dapp format",
     "docs:start": "yarn workspace @smart-invoice/docs start",
     "docs:build": "yarn workspace @smart-invoice/docs build",
     "contracts:build": "yarn workspace @smart-invoice/contracts build",
     "contracts:lint": "yarn workspace @smart-invoice/contracts lint",
     "contracts:test": "yarn workspace @smart-invoice/contracts test",
     "contracts:deploy-factory": "yarn workspace @smart-invoice/contracts deploy-factory",
-    "lint": "eslint --ignore-path .gitignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
-    "format": "prettier --ignore-path .gitignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
+    "lint": "eslint --ignore-path .prettierignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
+    "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
     "prepare": "husky install"
   },
   "workspaces": {
