@@ -62,7 +62,7 @@
     "husky": "^6.0.0",
     "it-all": "^1.0.2",
     "lint-staged": "^14.0.1",
-    "prettier": "^3.1.0",
+    "prettier": "^3.1.1",
     "prettier-plugin-solidity": "^1.2.0",
     "ts-migrate": "^0.1.35",
     "typescript": "^5.3.2"
