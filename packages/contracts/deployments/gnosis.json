@@ -6,6 +6,25 @@
   "implementations": {
     "escrow": ["0x695252527A3bCbB006aAb3D0b7490e6d6d47faDE"],
     "instant": ["0xaA4C3b427A441e436f624AcC9cc72E79f66B6066"],
-    "split-escrow": ["0x84c4EC5F1931b552405cB238E8FE30ef8Ac48134"]
+    "split-escrow": ["0x84c4EC5F1931b552405cB238E8FE30ef8Ac48134"],
+    "updatable": ["0xB3F3a1F1085aDF41a29b80839789CEd0b2089776"]
+  },
+  "spoilsManager": {
+    "factory": "0xc3a56196B7864fCe4b27480D62Dc9263A2168190",
+    "implementation": ["0xA817ba0646001EcF56Cc271B7fE7e10269AE54dD"]
+  },
+  "zap": {
+    "dao": "0xf02fd4286917270cb94fbc13a0f4e1ed76f7e986",
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
+    "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
+    "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "spoilsManager": "0x67aaAA970C445ef8A4F6FF1c0552Ef26cD190CD3",
+    "factory": "0xbdB550A76cBa692F1a0B328ae1B3c932FEb7301F",
+    "implementations": ["0xe33A71c7Cda9EDc22B40ff45c9F58F10d348B5aD"],
+    "instances": [
+      "0xDF8A3D4277423887591C5F69CAf6FF148F394f68",
+      "0x12d56CB3E841bb1aA407C9B0D3b043641BDd23dE"
+    ]
   }
 }

@@ -24,6 +24,7 @@ const ZAP_DATA = {
   saltNonce: Math.floor(new Date().getTime() / 1000), // salt nonce
   arbitration: 1,
   isDaoSplit: false, // isDaoSplit
+  isProjectSplit: true, // isProjectSplit
   token: getWrappedTokenAddress(5), // token
   escrowDeadline: Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60, // deadline
   details: ethers.utils.formatBytes32String("ipfs://"), // details
@@ -103,6 +104,10 @@ describe("SafeSplitsEscrowZap", function () {
       ["uint256", "uint256"],
       [ZAP_DATA.threshold, ZAP_DATA.saltNonce + i],
     );
+    const encodedSplitData = ethers.utils.defaultAbiCoder.encode(
+      ["bool"],
+      [ZAP_DATA.isProjectSplit],
+    );
     const encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
       [
         "address",
@@ -123,11 +128,14 @@ describe("SafeSplitsEscrowZap", function () {
         ZAP_DATA.details,
       ],
     );
+
     const SafeSplitsEscrowZapCreateReceipt = await zap.createSafeSplitEscrow(
       ZAP_DATA.owners,
       ZAP_DATA.percentAllocations,
       ZAP_DATA.milestoneAmounts,
       encodedSafeData,
+      ethers.constants.AddressZero, // safe address,
+      encodedSplitData, // split data,
       encodedEscrowData,
     );
     const zapCreateTx = await SafeSplitsEscrowZapCreateReceipt.wait();
@@ -148,14 +156,13 @@ describe("SafeSplitsEscrowZap", function () {
 
   it("Should deploy a Zap instance", async function () {
     expect(zap.address).to.not.equal(ethers.constants.AddressZero);
-    expect(await zap.getAddresses()).to.deep.equal([
-      zapData.safeSingleton,
-      ZAP_DATA.fallbackHandler,
-      zapData.safeFactory,
-      zapData.splitMain,
-      getFactory(chainId),
+    expect(await zap.safeSingleton()).to.equal(zapData.safeSingleton);
+    expect(await zap.safeFactory()).to.equal(zapData.safeFactory);
+    expect(await zap.splitMain()).to.equal(zapData.splitMain);
+    expect(await zap.escrowFactory()).to.equal(getFactory(chainId));
+    expect(await zap.wrappedNativeToken()).to.equal(
       getWrappedTokenAddress(chainId),
-    ]);
+    );
   });
 
   it("Should create a Safe", async function () {

@@ -21,7 +21,7 @@ export const CONFIG = {
       },
     },
     100: {
-      SUBGRAPH: 'psparacino/v1-xdai-smart-invoices',
+      SUBGRAPH: 'scottrepreneur/smart-invoice-gnosis',
       WRAPPED_NATIVE_TOKEN:
         '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'.toLowerCase(),
       INVOICE_FACTORY:
@@ -51,7 +51,7 @@ export const CONFIG = {
       },
     },
     5: {
-      SUBGRAPH: 'psparacino/goerli-smart-invoices',
+      SUBGRAPH: 'geovgy/v1-goerli-smart-invoice', // previously: psparacino/goerli-smart-invoices
       WRAPPED_NATIVE_TOKEN:
         '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'.toLowerCase(),
       INVOICE_FACTORY:

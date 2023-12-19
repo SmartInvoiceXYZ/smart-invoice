@@ -33,7 +33,7 @@
     "flatten-spoils": "hardhat flatten contracts/SpoilsManager.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SpoilsManager.sol",
     "flatten-zap": "hardhat flatten contracts/SafeSplitsEscrowZap.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SafeSplitsEscrowZap.sol",
     "flatten-dao-zap": "hardhat flatten contracts/SafeSplitsDaoEscrowZap.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > flat/SafeSplitsDaoEscrowZap.sol",
-    "flatten-all": "yarn flatten-factory && yarn flatten-instant && yarn flatten-escrow && yarn flatten-updatable && yarn flatten-spoils && yarn flatten-spoils-factory && yarn flatten-zap && yarn flatten-dao-zap && yarn flatten-zap-factory"
+    "flatten-all": "yarn flatten-factory && yarn flatten-instant && yarn flatten-escrow && yarn flatten-updatable && yarn flatten-spoils && yarn flatten-zap && yarn flatten-dao-zap"
   },
   "dependencies": {
     "@ethersproject/address": "^5.1.0",
