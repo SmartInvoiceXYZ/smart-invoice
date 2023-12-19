@@ -14,7 +14,7 @@ import {
   Hash,
   WalletClient,
   createPublicClient,
-  getAbiItem,
+  decodeEventLog,
   http,
   isAddress,
 } from 'viem';
@@ -35,35 +35,41 @@ export const readContract = async <
   AbiParametersToPrimitiveTypes<TAbiFunction['outputs'], 'outputs'>
 > => {
   const { abi, address, chain, functionName, args } = config;
-  const publicClient = createPublicClient({ chain, transport: http() });
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(),
+  });
+
   return publicClient.readContract({
-    abi,
-    address,
-    functionName,
-    args,
-  } as any) as AbiParametersToPrimitiveTypes<
-    TAbiFunction['outputs'],
-    'outputs'
-  >;
+    abi: abi as Abi,
+    address: address as Address,
+    functionName: functionName as ExtractAbiFunctionNames<Abi, 'pure' | 'view'>,
+    args: args as any,
+  }) as AbiParametersToPrimitiveTypes<TAbiFunction['outputs'], 'outputs'>;
 };
 
 export const readEvent = async <
   TAbi extends Abi,
-  TEventName extends ExtractAbiEventNames<TAbi>,
+  TEventName extends `0x${string}` | ExtractAbiEventNames<TAbi>,
   TAbiEvent extends AbiEvent = ExtractAbiEvent<TAbi, TEventName>,
 >(config: {
   abi: TAbi;
   chainId: number;
   hash: Hash;
-  name: TEventName ;
+  name: TEventName;
+  // ...
 }): Promise<AbiParametersToPrimitiveTypes<TAbiEvent['inputs'], 'inputs'>> => {
   const { abi, chainId, hash, name } = config;
-  const event = getAbiItem({ abi, name });
-  const receipt = await waitForTransaction({chainId, hash})
-  const eventLog = receipt.logs.find((log) => log.topics[0] === name);
-  if (!eventLog) throw new Error('Event not found');
-  return event.decodeEventLog(eventLog.data, eventLog.topics);
-  return eventLogs;
+  const receipt = await waitForTransaction({ chainId, hash });
+  const eventLog = receipt.logs.find(log => log.topics[0] === name);
+  if (!eventLog)
+    throw new Error(`Event ${name} not found in transaction ${hash}`);
+  const { data, topics } = eventLog;
+  return decodeEventLog({
+    abi,
+    data,
+    topics,
+  }) as AbiParametersToPrimitiveTypes<TAbiEvent['inputs'], 'inputs'>;
 };
 
 export const writeContract = async <
