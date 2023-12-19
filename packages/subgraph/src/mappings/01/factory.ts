@@ -46,7 +46,7 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
     SmartInvoiceSplitEscrow01.create(event.params.invoice);
   } else if (invoice.invoiceType == 'updatable') {
     SmartInvoiceUpdatable01.create(event.params.invoice);
-  } else {
+  } else if (invoice.invoiceType == 'instant') {
     SmartInvoiceInstant01.create(event.params.invoice);
   }
 

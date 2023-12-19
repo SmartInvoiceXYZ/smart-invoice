@@ -51,37 +51,37 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             }
         }
 
-        if (daoSplit) {
-            // prepare arrays
-            address[] memory daoSplitRecipients = new address[](2);
-            uint32[] memory daoSplitPercentAllocations = new uint32[](2);
+        if (!daoSplit) return _daoZapData;
 
-            // dao split recipients
-            address daoReceiver = spoilsManager.receiver();
+        // prepare arrays
+        address[] memory daoSplitRecipients = new address[](2);
+        uint32[] memory daoSplitPercentAllocations = new uint32[](2);
 
-            // dao split amounts
-            uint32 daoSplitAmount = spoilsManager.getSpoils();
-            uint32 projectSplitAmount = (100 * spoilsManager.SPLIT_PERCENTAGE_SCALE()) - (daoSplitAmount);
+        // dao split recipients
+        address daoReceiver = spoilsManager.receiver();
 
-            // sort the addresses into the correct order
-            if (uint160(daoReceiver) < uint160(_daoZapData.zapData.projectTeamSplit)) {
-                daoSplitRecipients[0] = daoReceiver;
-                daoSplitRecipients[1] = _daoZapData.zapData.projectTeamSplit;
-                daoSplitPercentAllocations[0] = daoSplitAmount;
-                daoSplitPercentAllocations[1] = projectSplitAmount;
-            } else {
-                daoSplitRecipients[0] = _daoZapData.zapData.projectTeamSplit;
-                daoSplitRecipients[1] = daoReceiver;
-                daoSplitPercentAllocations[0] = projectSplitAmount;
-                daoSplitPercentAllocations[1] = daoSplitAmount;
-            }
+        // dao split amounts
+        uint32 daoSplitAmount = spoilsManager.getSpoils();
+        uint32 projectSplitAmount = (100 * spoilsManager.SPLIT_PERCENTAGE_SCALE()) - (daoSplitAmount);
 
-            // (recipients array, percent allocations array, no distributor fee, safe address)
-            _daoZapData.daoSplit =
-                splitMain.createSplit(daoSplitRecipients, daoSplitPercentAllocations, distributorFee, dao);
-            if (_daoZapData.daoSplit == address(0)) {
-                revert DaoSplitCreationFailed();
-            }
+        // sort the addresses into the correct order
+        if (uint160(daoReceiver) < uint160(_daoZapData.zapData.projectTeamSplit)) {
+            daoSplitRecipients[0] = daoReceiver;
+            daoSplitRecipients[1] = _daoZapData.zapData.projectTeamSplit;
+            daoSplitPercentAllocations[0] = daoSplitAmount;
+            daoSplitPercentAllocations[1] = projectSplitAmount;
+        } else {
+            daoSplitRecipients[0] = _daoZapData.zapData.projectTeamSplit;
+            daoSplitRecipients[1] = daoReceiver;
+            daoSplitPercentAllocations[0] = projectSplitAmount;
+            daoSplitPercentAllocations[1] = daoSplitAmount;
+        }
+
+        // (recipients array, percent allocations array, no distributor fee, safe address)
+        _daoZapData.daoSplit =
+            splitMain.createSplit(daoSplitRecipients, daoSplitPercentAllocations, distributorFee, dao);
+        if (_daoZapData.daoSplit == address(0)) {
+            revert DaoSplitCreationFailed();
         }
 
         return _daoZapData;
@@ -115,10 +115,12 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             daoSplit: address(0)
         });
 
+        // optionally deploy safe
         if (daoZapData.zapData.safe == address(0)) {
             daoZapData.zapData = _deploySafe(_owners, _safeData, daoZapData.zapData);
         }
 
+        // create split(s)
         daoZapData = _createSplit(_owners, _percentAllocations, _splitsData, daoZapData);
 
         address[] memory escrowParams = _handleEscrowParams(daoZapData);

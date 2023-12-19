@@ -5,6 +5,7 @@ import {
   json,
   log,
   JSONValue,
+  JSONValueKind,
 } from '@graphprotocol/graph-ts';
 
 import { Agreement } from '../../../types/schema';
@@ -54,6 +55,7 @@ export function handleIpfsDetails(
   invoiceObject: InvoiceObject,
 ): InvoiceObject {
   invoiceObject.details = details;
+
   let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
   let base58Hash = hexHash.toBase58();
   invoiceObject.ipfsHash = base58Hash.toString();
@@ -87,11 +89,19 @@ export function handleIpfsDetails(
     }
   }
   let startDate = data.get('startDate');
-  if (startDate != null && !startDate.isNull()) {
+  if (
+    startDate != null &&
+    !startDate.isNull() &&
+    startDate.kind == JSONValueKind.NUMBER
+  ) {
     invoiceObject.startDate = startDate.toBigInt();
   }
   let endDate = data.get('endDate');
-  if (endDate != null && !endDate.isNull()) {
+  if (
+    endDate != null &&
+    !endDate.isNull() &&
+    endDate.kind == JSONValueKind.NUMBER
+  ) {
     invoiceObject.endDate = endDate.toBigInt();
   }
 
