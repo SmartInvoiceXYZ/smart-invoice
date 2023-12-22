@@ -9,11 +9,11 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { useWeb3 } from '../context/Web3Context';
 import { logError } from '../utils/helpers';
+import { useAccount } from 'wagmi';
 
 function Home() {
-  const { account } = useWeb3();
+  const account = useAccount();
 
   const router = useRouter();
   const [isMobile, onMobile] = useState(false);

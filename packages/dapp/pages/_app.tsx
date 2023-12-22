@@ -9,7 +9,6 @@ import { Global } from '@emotion/react';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { Web3ContextProvider } from '../context/Web3Context';
 import { Layout } from '../shared/Layout';
 import { globalStyles, theme } from '../theme';
 import { chains, wagmiConfig } from '../utils/web3';
@@ -27,11 +26,9 @@ const App = ({ Component, pageProps }: AppProps) => {
           <CSSReset />
           <Global styles={globalStyles} />
           <ErrorBoundary>
-            <Web3ContextProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </Web3ContextProvider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
           </ErrorBoundary>
         </ChakraProvider>
       </RainbowKitProvider>
