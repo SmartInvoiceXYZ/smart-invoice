@@ -42,14 +42,14 @@ function InvoiceStatusLabel({ invoice, ...props }) {
         loading
           ? '#FFFFFF'
           : terminated || disputeResolved || label === 'Expired'
-          ? '#C2CFE0'
-          : isLocked
-          ? '#F7685B'
-          : label === 'Overdue'
-          ? '#F7685B'
-          : funded
-          ? '#2ED47A'
-          : '#FFB946'
+            ? '#C2CFE0'
+            : isLocked
+              ? '#F7685B'
+              : label === 'Overdue'
+                ? '#F7685B'
+                : funded
+                  ? '#2ED47A'
+                  : '#FFB946'
       }
       padding="6px"
       borderRadius="10"
@@ -78,6 +78,10 @@ function InvoiceBadge({ invoice }) {
     unknown: {
       bg: 'rgba(150,150,150,0.3)',
       color: 'rgba(150,150,150,1)',
+    },
+    updatable: {
+      bg: 'rgba(128, 63, 248, 0.3)',
+      color: 'rgba(128, 63, 248, 1)',
     },
   };
 
@@ -279,10 +283,10 @@ export function InvoiceDashboardTable({ result, tokenData, chainId }) {
                       column.Header === 'Amount'
                         ? 'noAmount'
                         : column.Header === 'Currency'
-                        ? 'noCurrency'
-                        : column.Header === 'Date Created'
-                        ? 'noDate'
-                        : null
+                          ? 'noCurrency'
+                          : column.Header === 'Date Created'
+                            ? 'noDate'
+                            : null
                     }
                     key={column.Header}
                   >
@@ -315,10 +319,10 @@ export function InvoiceDashboardTable({ result, tokenData, chainId }) {
                         cell.column.id === 'amount'
                           ? 'noAmount'
                           : cell.column.id === 'currency'
-                          ? 'noCurrency'
-                          : cell.column.id === 'createdAt'
-                          ? 'noDate'
-                          : null
+                            ? 'noCurrency'
+                            : cell.column.id === 'createdAt'
+                              ? 'noDate'
+                              : null
                       }
                       key={cell.value}
                     >
