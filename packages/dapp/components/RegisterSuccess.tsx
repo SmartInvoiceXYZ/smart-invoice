@@ -6,9 +6,9 @@ import { useWalletClient } from 'wagmi';
 import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
 import { CreateContext } from '../context/CreateContext';
-import { getInvoice } from '../graphql/getInvoice';
+import { Invoice, fetchInvoice } from '../graphql/fetchInvoice';
 import { CopyIcon } from '../icons/CopyIcon';
-import { Invoice } from '../types';
+import { Network } from '../types';
 import { copyToClipboard, getHexChainId, getTxLink } from '../utils/helpers';
 import { awaitInvoiceAddress } from '../utils/invoice';
 import { Loader } from './Loader';
@@ -37,9 +37,9 @@ export function RegisterSuccess() {
     let isSubscribed = true;
 
     const interval = setInterval(() => {
-      getInvoice(chainId, invoiceId).then(inv => {
+      fetchInvoice(chainId, invoiceId).then(inv => {
         if (isSubscribed && !!inv) {
-          setInvoice(inv);
+          setInvoice(inv as unknown as Invoice);
         }
       });
     }, POLL_INTERVAL);
@@ -96,7 +96,7 @@ export function RegisterSuccess() {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${getHexChainId(invoice.network)}/${
+                href={`/invoice/${getHexChainId(String(invoice.network) as Network)}/${
                   invoice.id
                 }/${
                   invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
@@ -136,17 +136,17 @@ export function RegisterSuccess() {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${getHexChainId(invoice.network)}/${
+                href={`/invoice/${getHexChainId(String(invoice.network) as Network)}/${
                   invoice.id
                 }/${
-                  invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
+                  String(invoice.invoiceType) === 'escrow' ? '' : invoice.invoiceType
                 }`}
                 color="charcoal"
                 overflow="hidden"
               >{`${window.location.origin}/invoice/${getHexChainId(
-                invoice.network,
+                String(invoice.network) as Network,
               )}/${invoice.id}/${
-                invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
+                String(invoice.invoiceType) === 'escrow' ? '' : invoice.invoiceType
               }`}</Link>
               {document.queryCommandSupported('copy') && (
                 <Button
@@ -154,9 +154,9 @@ export function RegisterSuccess() {
                   onClick={() =>
                     copyToClipboard(
                       `${window.location.origin}/invoice/${getHexChainId(
-                        invoice.network,
+                        String(invoice.network) as Network,
                       )}/${invoice.id}/${
-                        invoice.invoiceType === 'escrow'
+                        String(invoice.invoiceType) === 'escrow'
                           ? ''
                           : invoice.invoiceType
                       }`,

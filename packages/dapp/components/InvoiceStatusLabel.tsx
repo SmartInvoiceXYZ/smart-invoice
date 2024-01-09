@@ -3,12 +3,12 @@ import React from 'react';
 
 import { Flex, Text } from '@chakra-ui/react';
 
-import { InvoiceRow } from '../context/SearchContext';
 import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
 import { Loader } from './Loader';
+import { Invoice } from '../graphql/fetchInvoice';
 
 export type InvoiceStatusLabelProps = {
-  invoice: InvoiceRow;
+  invoice: Invoice;
   onClick?: () => void;
 };
 
@@ -17,8 +17,8 @@ export const InvoiceStatusLabel: React.FC<InvoiceStatusLabelProps> = ({
   onClick,
 }) => {
   const { funded, label, loading } = useInvoiceStatus(invoice);
-  const { isLocked, terminationTime } = invoice;
-  const terminated = terminationTime > Date.now();
+  const { isLocked, terminationTime } = invoice ?? {};
+  const terminated = terminationTime && Number(terminationTime) > Date.now();
   const disputeResolved = label === 'Dispute Resolved';
   return (
     <Flex

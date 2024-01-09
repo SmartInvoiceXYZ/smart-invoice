@@ -1,6 +1,4 @@
-// @ts-expect-error TS(2792): Cannot find module 'fake-tag'. Did you mean to set... Remove this comment to see the full error message
-import gql from 'fake-tag';
-
+/*
 export const InvoiceDetails = gql`
   fragment InvoiceDetails on Invoice {
     id
@@ -74,3 +72,4 @@ export const InvoiceDetails = gql`
     }
   }
 `;
+*/

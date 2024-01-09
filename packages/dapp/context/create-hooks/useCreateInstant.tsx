@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
-
-import { isAddress } from '@ethersproject/address';
+import { isAddress } from '../../utils';
+import { Address } from 'viem';
 
 export function useCreateInstant({
   step1Valid,
@@ -11,20 +11,29 @@ export function useCreateInstant({
   paymentDue,
   milestones,
   setAllValid,
-}: any) {
+}: {
+  step1Valid: boolean,
+  allValid: boolean,
+  clientAddress?: Address,
+  paymentAddress?: Address,
+  paymentToken?: Address,
+  paymentDue: bigint,
+  milestones: number,
+  // eslint-disable-next-line no-unused-vars
+  setAllValid: (valid: boolean) => void,
+}) {
   const instantStep2Valid = useMemo(
     () =>
       isAddress(clientAddress) &&
       isAddress(paymentAddress) &&
       isAddress(paymentToken) &&
       paymentDue > 0 &&
-      !isNaN(Number(milestones)) &&
       milestones > 0 &&
       Array.from(
         new Set([
-          clientAddress.toLowerCase(),
-          paymentAddress.toLowerCase(),
-          paymentToken.toLowerCase(),
+          clientAddress?.toLowerCase(),
+          paymentAddress?.toLowerCase(),
+          paymentToken?.toLowerCase(),
         ]),
       ).length === 3,
     [clientAddress, paymentAddress, paymentToken, paymentDue, milestones],

@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable guard-for-in */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Hash, formatUnits, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
@@ -24,17 +26,19 @@ import {
 
 import { ChainId } from '../constants/config';
 import { OrderedInput, OrderedLinkInput } from '../shared/OrderedInput';
-import { Invoice, TokenData } from '../types';
+import { TokenData } from '../types';
 import {
   calculateResolutionFeePercentage,
   getTokenInfo,
   getTxLink,
+  isAddress,
   logDebug,
   logError,
 } from '../utils/helpers';
 import { addMilestones, addMilestonesWithDetails } from '../utils/invoice';
 import { uploadMetadata } from '../utils/ipfs';
 import { waitForTransaction } from '../utils/transactions';
+import { Invoice } from '../graphql/fetchInvoice';
 
 export type AddMilestonesProps = {
   invoice: Invoice;
@@ -55,7 +59,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
     resolutionRate,
     startDate,
     endDate,
-  } = invoice;
+  } = invoice ?? {};
   const { decimals, symbol } = useMemo(
     () => getTokenInfo(walletClient?.chain?.id, token, tokenData),
     [walletClient, token, tokenData],
@@ -72,17 +76,15 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState([
-    ...projectAgreement,
-  ]);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(projectAgreement);
   const defaultSrc =
-    projectAgreement.length > 0
+  projectAgreement && projectAgreement.length > 0
       ? projectAgreement[projectAgreement.length - 1].src
       : '';
   const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
     useState(defaultSrc);
   const defaultProjectType =
-    projectAgreement.length > 0
+  projectAgreement && projectAgreement.length > 0
       ? projectAgreement[projectAgreement.length - 1].type
       : '';
 
@@ -91,13 +93,15 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   const [remainingFunds, setRemainingFunds] = useState(0);
 
   useEffect(() => {
+    if (!amounts) return;
+    
     const totalAmounts = formatUnits(
-      amounts.reduce((a, b) => a + b),
+      amounts.reduce((a, b) => a + BigInt(b), BigInt(0)),
       decimals,
     );
 
-    if (deposits.length > 0) {
-      const depositAmounts = [];
+    if (deposits && deposits.length > 0) {
+      const depositAmounts = [] as bigint[];
 
       for (let i = 0; i < deposits.length; i++) {
         depositAmounts.push(deposits[i].amount);
@@ -117,14 +121,17 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
   useEffect(() => {
+    const createdAt = BigInt(Date.now());
+    const newProjectAgreement = {
+      id: createdAt.toString(),
+      type: revisedProjectAgreementType,
+      src: revisedProjectAgreementSrc,
+      createdAt,
+    };
     setRevisedProjectAgreement([
-      ...projectAgreement,
-      {
-        type: revisedProjectAgreementType,
-        src: revisedProjectAgreementSrc,
-        createdAt: Date.now().toString(),
-      },
-    ]);
+      ...projectAgreement ?? [],
+      newProjectAgreement,
+    ])
   }, [
     revisedProjectAgreementSrc,
     revisedProjectAgreementType,
@@ -141,22 +148,24 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           projectName,
           projectDescription,
           projectAgreement,
-          startDate: Math.floor(startDate / 1000),
-          endDate: Math.floor(endDate / 1000),
+          startDate: Math.floor(Number(startDate) / 1000),
+          endDate: Math.floor(Number(endDate) / 1000),
         });
       }
 
       if (walletClient) {
         let hash: Hash | undefined;
+        const validAddress = isAddress(address);
+        if (!validAddress) return;
         if (detailsHash) {
           hash = await addMilestonesWithDetails(
             walletClient,
-            address,
+            validAddress,
             milestoneAmounts,
             detailsHash,
           );
         } else {
-          hash = await addMilestones(walletClient, address, milestoneAmounts);
+          hash = await addMilestones(walletClient, validAddress, milestoneAmounts);
         }
 
         setTxHash(hash);
@@ -258,7 +267,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
             <Flex justify="space-between" w="100%">
               <Text fontWeight="700">
-                Payment #{amounts.length + index + 1}
+                Payment #{amounts?.length ?? 0 + index + 1}
               </Text>
 
               <Flex />

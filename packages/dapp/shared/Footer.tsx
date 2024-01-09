@@ -1,11 +1,6 @@
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import React, { useEffect, useState } from 'react';
 
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/react'. Did you mea... Remove this comment to see the full error message
 import { Box, Link as ChakraLink, Flex, Image } from '@chakra-ui/react';
-
-// @ts-expect-error TS(2792): Cannot find module '../assets/smart-invoice/white.... Remove this comment to see the full error message
-import logo from '../assets/smart-invoice/white.svg';
 
 export function Footer() {
   const [isMobile, onMobile] = useState(false);
@@ -36,7 +31,7 @@ export function Footer() {
       >
         <ChakraLink href="/invoices">
           <Image
-            src={logo.src}
+            src='/assets/smart-invoice/white.svg'
             alt="Smart Invoice"
             width={160}
             height={25.34}

@@ -1,7 +1,7 @@
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import React from 'react';
 
 import {
+  Center,
   Divider,
   HStack,
   Heading,
@@ -11,10 +11,10 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-// @ts-expect-error TS(6142): Module '../icons/ArrowIcons' was resolved to '/Use... Remove this comment to see the full error message
 import { BackArrowIcon } from '../icons/ArrowIcons';
+import { hashCode } from '../utils';
 
-export function StepInfo({ stepNum, stepTitle, stepDetails, goBack }: any) {
+export function StepInfo({ stepNum, stepTitle, stepDetails, goBack }: {stepNum: number, stepTitle: string, stepDetails: any[], goBack: () => void}) {
   const maxW = useBreakpointValue({ base: '100%' });
 
   const stepSize = useBreakpointValue({
@@ -32,27 +32,24 @@ export function StepInfo({ stepNum, stepTitle, stepDetails, goBack }: any) {
             position="absolute"
             onClick={() => goBack()}
             cursor="pointer"
-            zIndex={5}
-          />
+            zIndex={5} aria-label='back'          />
         )}
-
+<Center>
         <Heading
           position="relative"
           color="#323C47"
           size={stepSize}
-          align="center"
           textAlign="center"
           width="100%"
         >
           Step {stepNum}: {stepTitle}
         </Heading>
+        </Center>
       </HStack>
       <Divider width="100%" background="lightgrey" />
-      // @ts-expect-error TS(7026): JSX element implicitly has type 'any'
-      because no i... Remove this comment to see the full error message
       <br />
-      {stepDetails.map((detail: any, index: any) => (
-        <Text color="grey" fontSize="sm" key={index.toString()}>
+      {stepDetails.map((detail) => (
+        <Text color="grey" fontSize="sm" key={hashCode(detail)}>
           {detail}
         </Text>
       ))}

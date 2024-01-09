@@ -1,7 +1,4 @@
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import React from 'react';
-
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/react'. Did you mea... Remove this comment to see the full error message
 import { Flex } from '@chakra-ui/react';
 
 import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';

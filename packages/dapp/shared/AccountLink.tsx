@@ -1,30 +1,30 @@
-// @ts-expect-error TS(2792): Cannot find module 'ethers'. Did you mean to set t... Remove this comment to see the full error message
-import { utils } from 'ethers';
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/react'. Did you mea... Remove this comment to see the full error message
 import { Flex, Link, Text } from '@chakra-ui/react';
 
-// @ts-expect-error TS(2792): Cannot find module '../theme'. Did you mean to set... Remove this comment to see the full error message
 import { theme } from '../theme';
 import { getProfile } from '../utils/3box';
 import {
   getAddressLink,
   getResolverInfo,
   getResolverString,
+  isAddress,
   isKnownResolver,
 } from '../utils/helpers';
+import { useChainId } from 'wagmi';
+import { Address } from 'viem';
 
-// @ts-expect-error TS(6142): Module '../context/Web3Context' was resolved to '/... Remove this comment to see the full error message
+export type AccountLinkProps = {
+  address?: Address;
+  chainId?: number;
+}
 
-// @ts-expect-error TS(7031): Binding element 'inputAddress' implicitly has an '... Remove this comment to see the full error message
-export function AccountLink({ address: inputAddress, chain: inputChainId }) {
-  const { chain: walletChainId } = useWalletClient();
-  const address = inputAddress.toLowerCase();
-  const [profile, setProfile] = useState();
-  const chain = inputChainId || walletChainId;
-  const isResolver = isKnownResolver(chain, address);
+export function AccountLink({ address: inputAddress, chainId: inputChainId }: AccountLinkProps) {
+  const walletChainId = useChainId();
+  const address = inputAddress?.toLowerCase() as Address;
+  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getProfile>>>();
+  const chainId = inputChainId || walletChainId;
+  const isResolver = isKnownResolver(address, chainId);
 
   useEffect(() => {
     let isSubscribed = true;
@@ -36,10 +36,10 @@ export function AccountLink({ address: inputAddress, chain: inputChainId }) {
     };
   }, [address, isResolver]);
 
-  let displayString = getResolverString(chain, address);
+  let displayString = getResolverString(address, chainId);
 
   let imageUrl = isResolver
-    ? getResolverInfo(chain, address).logoUrl
+    ? getResolverInfo(address, chainId).logoUrl
     : undefined;
 
   if (!isResolver && profile) {
@@ -53,7 +53,7 @@ export function AccountLink({ address: inputAddress, chain: inputChainId }) {
 
   return (
     <Link
-      href={getAddressLink(chain, address)}
+      href={getAddressLink(chainId, address)}
       isExternal
       display="inline-flex"
       textAlign="right"

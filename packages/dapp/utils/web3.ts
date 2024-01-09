@@ -26,8 +26,7 @@ const customGnosis = {
 const { chains, publicClient } = configureChains(
   [mainnet, polygon, customGnosis, goerli, polygonMumbai],
   [
-    // @ts-expect-error TS(2580): Cannot find name 'process'. Do you need to install... Remove this comment to see the full error message
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID }),
+    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider(),
   ],
 );

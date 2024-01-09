@@ -7,10 +7,9 @@ import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
 import { Loader } from '../../../../components/Loader';
 import { ChainId } from '../../../../constants/config';
-import { getInvoice } from '../../../../graphql/getInvoice';
+import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { Invoice } from '../../../../types';
 import { getIpfsLink, getTxLink } from '../../../../utils/helpers';
 
 function LockedInvoice({
@@ -18,13 +17,13 @@ function LockedInvoice({
     params: { hexChainId, invoiceId },
   },
 }: any) {
-  const [invoice, setInvoice] = useState<Invoice | null>();
+  const [invoice, setInvoice] = useState<Invoice>();
   const router = useRouter();
   const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
 
   useEffect(() => {
     if (isAddress(invoiceId)) {
-      getInvoice(invoiceChainId, invoiceId).then(setInvoice);
+      fetchInvoice(invoiceChainId, invoiceId).then(setInvoice);
     }
   }, [invoiceId, invoiceChainId]);
 

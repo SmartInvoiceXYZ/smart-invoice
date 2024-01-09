@@ -3,6 +3,7 @@ export * from './compatibilityHelpers';
 export * from './erc20';
 export * from './firebase';
 export * from './getKeys';
+export * from './hashCode';
 export * from './helpers';
 export * from './invoice';
 export * from './ipfs';

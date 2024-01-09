@@ -1,4 +1,3 @@
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/icon'. Did you mean... Remove this comment to see the full error message
 import { createIcon } from '@chakra-ui/icon';
 
 export const VerticalDotsIcon = createIcon({

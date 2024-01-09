@@ -1,8 +1,8 @@
+/* eslint-disable no-nested-ternary */
 import { useRouter } from 'next/router';
-import React, { useContext, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useWalletClient } from 'wagmi';
 
-/* eslint-disable no-nested-ternary */
 import {
   Box,
   Button,
@@ -14,30 +14,21 @@ import {
 } from '@chakra-ui/react';
 
 import { InvoiceDashboardTable } from '../components/InvoiceDashboardTable';
-import { SearchContext, SearchContextProvider } from '../context/SearchContext';
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 
-function InvoicesInner() {
-  const { setSearch, result, loading } = useContext(SearchContext);
-  const [{ tokenData }] = useFetchTokensViaIPFS();
+const Invoices = () => {
   const { data: walletClient } = useWalletClient();
+  const [loading, setLoading] = useState(false);
+  const [resultCount, setResultCount] = useState<number>();
   const account = walletClient?.account?.address;
   const chain = walletClient?.chain;
   const router = useRouter();
-
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-
-  useEffect(() => {
-    if (account) {
-      setSearch(account);
-    }
-  }, [account, setSearch]);
 
   return (
     <Box
       paddingY={16}
       flex={
-        result && result.length > 0 && tokenData !== undefined
+        resultCount && resultCount > 0
           ? '1 0 100%'
           : undefined
       }
@@ -47,14 +38,16 @@ function InvoicesInner() {
           <Heading color="gray" as="h1">
             Invoices Loading
           </Heading>
-
           <Spinner />
         </Stack>
-      ) : result && result.length > 0 && tokenData !== undefined ? (
+      ) : resultCount && resultCount > 0 ? (
         <InvoiceDashboardTable
-          result={result}
-          tokenData={tokenData}
-          chain={chain}
+          chainId={chain?.id}
+          searchInput={account}
+          onLoading={(l, c) => {
+            setLoading(l); 
+            setResultCount(c);
+          }}          
         />
       ) : (
         <Flex
@@ -92,12 +85,4 @@ function InvoicesInner() {
   );
 }
 
-function InvoicesWithProvider(props: any) {
-  return (
-    <SearchContextProvider>
-      <InvoicesInner {...props} />
-    </SearchContextProvider>
-  );
-}
-
-export default InvoicesWithProvider;
+export default Invoices;

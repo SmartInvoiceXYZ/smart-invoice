@@ -12,10 +12,11 @@ import {
 } from '@chakra-ui/react';
 
 import { ChainId } from '../../constants/config';
-import { Invoice, TokenData } from '../../types';
-import { getTokenInfo, getTxLink, logError } from '../../utils/helpers';
+import { TokenData } from '../../types';
+import { getTokenInfo, getTxLink, isAddress, logError } from '../../utils/helpers';
 import { withdraw } from '../../utils/invoice';
 import { waitForTransaction } from '../../utils/transactions';
+import { Invoice } from '../../graphql/fetchInvoice';
 
 export type WithdrawFundsProps = {
   invoice: Invoice;
@@ -33,7 +34,8 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
   const [loading, setLoading] = useState(false);
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
-  const { network, address, token } = invoice;
+  const { network, address, token } = invoice ?? {};
+  const validAddress = isAddress(address);
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [txHash, setTxHash] = useState<Hash>();
@@ -50,9 +52,9 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
 
   const send = async () => {
     try {
-      if (!walletClient?.chain) return;
+      if (!walletClient?.chain || !validAddress) return;
       setLoading(true);
-      const hash = await withdraw(walletClient, address);
+      const hash = await withdraw(walletClient, validAddress);
       setTxHash(hash);
       const { chain } = walletClient;
       await waitForTransaction(chain, hash);

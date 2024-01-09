@@ -1,12 +1,5 @@
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/react'. Did you mea... Remove this comment to see the full error message
 import { extendTheme } from '@chakra-ui/react';
-// @ts-expect-error TS(2792): Cannot find module '@emotion/react'. Did you mean ... Remove this comment to see the full error message
 import { css } from '@emotion/react';
-
-// @ts-expect-error TS(2792): Cannot find module '../assets/calendar.svg'. Did y... Remove this comment to see the full error message
-import Calendar from '../assets/calendar.svg';
-// @ts-expect-error TS(2792): Cannot find module '../assets/calendar-hover.svg'.... Remove this comment to see the full error message
-import CalendarHover from '../assets/calendar-hover.svg';
 
 export const theme = extendTheme({
   initialColorMode: 'light',
@@ -64,7 +57,7 @@ export const globalStyles = css`
   input[type='date']::-webkit-calendar-picker-indicator {
     opacity: 1;
     display: block;
-    background: url(${Calendar}) no-repeat;
+    background: url(/assets/calendar.svg) no-repeat;
     background-size: contain !important;
     width: 14px;
     height: 14px;
@@ -72,7 +65,7 @@ export const globalStyles = css`
     cursor: pointer;
     transition: background 0.25s;
     &:hover {
-      background: url(${CalendarHover}) no-repeat;
+      background: url(/assets/calendar-hover.svg) no-repeat;
       background-size: contain;
     }
     &:hover,

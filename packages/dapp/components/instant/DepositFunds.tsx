@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Hash, formatUnits, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
@@ -25,17 +25,19 @@ import {
 
 import { ChainId } from '../../constants/config';
 import { QuestionIcon } from '../../icons/QuestionIcon';
-import { Invoice, TokenData } from '../../types';
+import { TokenData } from '../../types';
 import { approve, balanceOf, getAllowance } from '../../utils/erc20';
 import {
   getNativeTokenSymbol,
   getTokenInfo,
   getTxLink,
   getWrappedNativeToken,
+  isAddress,
   logError,
 } from '../../utils/helpers';
 import { depositTokens, tipTokens } from '../../utils/invoice';
 import { waitForTransaction } from '../../utils/transactions';
+import { Invoice } from '../../graphql/fetchInvoice';
 
 const getCheckedStatus = (deposited: bigint, amounts: bigint[]) => {
   let sum = BigInt(0);
@@ -69,7 +71,10 @@ export function DepositFunds({
   const chainId = walletClient?.chain?.id;
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, amounts } = invoice;
+  const { address, token, amounts: rawAmounts } = invoice ?? {};
+  const validAddress = isAddress(address);
+  const validToken = isAddress(token);
+  const amounts = useMemo(() => (rawAmounts ?? []).map((a) => BigInt(a)), [rawAmounts]);
   const [paymentType, setPaymentType] = useState(0);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [amount, setAmount] = useState(BigInt(0));
@@ -84,7 +89,7 @@ export function DepositFunds({
   const [tipAmount, setTipAmount] = useState(BigInt(0));
   const [totalPayment, setTotalPayment] = useState(BigInt(0));
   const [allowance, setAllowance] = useState(BigInt(0));
-  const isWRAPPED = token.toLowerCase() === WRAPPED_NATIVE_TOKEN;
+  const isWRAPPED = token?.toLowerCase() === WRAPPED_NATIVE_TOKEN;
   const initialStatus = getCheckedStatus(deposited, amounts);
   // eslint-disable-next-line no-unused-vars
   const [checked, setChecked] = useState(initialStatus);
@@ -93,8 +98,9 @@ export function DepositFunds({
   const defaultTipPercs = [10, 15, 18];
 
   const deposit = async () => {
+
     setTxHash(undefined);
-    if (!totalPayment || !walletClient || !balance) return;
+    if (!validAddress || !validToken || !totalPayment || !walletClient || !balance) return;
     if (formatUnits(totalPayment, decimals) > formatUnits(balance, decimals)) {
       setDepositError(true);
       return;
@@ -105,13 +111,13 @@ export function DepositFunds({
       let hash;
       if (paymentType === 1) {
         hash = await walletClient.sendTransaction({
-          to: address,
+          to: validAddress,
           value: totalPayment,
         });
       } else if (fulfilled) {
-        hash = await tipTokens(walletClient, address, token, totalPayment);
+        hash = await tipTokens(walletClient, validAddress, validToken, totalPayment);
       } else {
-        hash = await depositTokens(walletClient, address, token, totalPayment);
+        hash = await depositTokens(walletClient, validAddress, validToken, totalPayment);
       }
       setTxHash(hash);
       const { chain } = walletClient;
@@ -126,7 +132,7 @@ export function DepositFunds({
 
   const doApprove = async () => {
     setTxHash(undefined);
-    if (!totalPayment || !walletClient) {
+    if (!validToken || !validAddress || !totalPayment || !walletClient) {
       logError(
         `error during approve. totalPayment: ${totalPayment} walletClient: ${walletClient}`,
       );
@@ -138,14 +144,14 @@ export function DepositFunds({
       const approvalAmount = BigInt(totalPayment);
       const hash = await approve(
         walletClient,
-        token,
-        invoice.address,
+        validToken,
+        validAddress,
         approvalAmount,
       );
       setTxHash(hash);
       await waitForTransaction(chain, hash);
       setAllowance(
-        await getAllowance(chain, token, account.address, invoice.address),
+        await getAllowance(chain, validToken, account.address, validAddress),
       );
     } catch (approvalError) {
       logError('error during approve: ', approvalError);
@@ -164,11 +170,11 @@ export function DepositFunds({
 
   useEffect(() => {
     try {
-      if (!walletClient) return;
+      if (!walletClient || !validToken || !validAddress) return;
       const { account, chain } = walletClient;
       if (paymentType === 0) {
-        balanceOf(chain, token, account.address).then(setBalance);
-        getAllowance(chain, token, account.address, invoice.address).then(
+        balanceOf(chain, validToken, account.address).then(setBalance);
+        getAllowance(chain, validToken, account.address, validAddress).then(
           setAllowance,
         );
       } else {
@@ -178,7 +184,7 @@ export function DepositFunds({
     } catch (balanceError) {
       logError({ balanceError });
     }
-  }, [invoice.address, paymentType, token, walletClient]);
+  }, [validAddress, paymentType, validToken, walletClient]);
 
   useEffect(() => {
     if (
@@ -269,12 +275,12 @@ export function DepositFunds({
             type="number"
             textAlign="right"
             value={amountInput}
-            onChange={(e: any) => {
+            onChange={(e) => {
               const newAmountInput = e.target.value;
               setAmountInput(newAmountInput);
               if (newAmountInput) {
                 const newAmount = parseUnits(newAmountInput, decimals);
-                setAmount(newAmount);
+                setAmount(newAmount);                
                 setChecked(getCheckedStatus(deposited + newAmount, amounts));
               } else {
                 setAmount(BigInt(0));

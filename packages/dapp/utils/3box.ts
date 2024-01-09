@@ -1,4 +1,6 @@
-export const getProfile = async (account: any) => {
+import { Address } from "viem";
+
+export const getProfile = async (account: Address) => {
   const address = account.toLowerCase();
   const profile = {
     address,

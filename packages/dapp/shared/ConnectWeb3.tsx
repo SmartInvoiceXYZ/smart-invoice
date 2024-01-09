@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { Button, Flex, Text } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
@@ -8,12 +8,14 @@ import { SUPPORTED_NETWORKS } from '../constants';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
+import { useWalletClient } from 'wagmi';
 
 export function ConnectWeb3() {
-  const { loading, account } = useWalletClient();
+  const { data: walletClient, isLoading } = useWalletClient();
   const { openConnectModal } = useConnectModal();
+  const {account} = walletClient ?? {};
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container>
         <Loader size="80" />
@@ -45,7 +47,7 @@ export function ConnectWeb3() {
         >
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
-        {loading ? (
+        {isLoading ? (
           <Text fontSize="2xl" fontFamily="heading" mb={4}>
             Connecting Wallet
           </Text>
@@ -70,7 +72,7 @@ export function ConnectWeb3() {
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             color="white"
             px={12}
-            isLoading={loading}
+            isLoading={isLoading}
             fontFamily="mono"
             fontWeight="normal"
           >

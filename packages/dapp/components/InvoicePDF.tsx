@@ -10,9 +10,10 @@ import {
   View,
 } from '@react-pdf/renderer';
 
-import { Invoice } from '../types';
 import { getAccountString, getHexChainId } from '../utils/helpers';
 import { unixToDateTime } from '../utils/unixToDateTime';
+import { Invoice } from '../graphql/fetchInvoice';
+import { Network } from '../types';
 
 const borderColor = 'black';
 
@@ -195,7 +196,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     releases,
     disputes,
     resolutions,
-  } = invoice;
+  } = invoice ?? {};
 
   return (
     <Document>
@@ -206,12 +207,12 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           <Text style={styles.title}>Smart Invoice</Text>
 
           <View>
-            <Text style={styles.address}>{invoice.address}</Text>
+            <Text style={styles.address}>{address}</Text>
 
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <Link
               src={`https://smartinvoice.xyz/${getHexChainId(
-                network,
+                network as Network,
               )}/${address}`}
             >
               <Text style={{ textAlign: 'center' }}>
@@ -244,29 +245,31 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
           <Text style={styles.details}>
             Invoice Created:{' '}
-            <Text style={styles.text}>{unixToDateTime(createdAt)}</Text>
+            <Text style={styles.text}>{unixToDateTime(Number(createdAt))}</Text>
           </Text>
 
           <Text style={styles.details}>
             Termination Time:{' '}
-            <Text style={styles.text}>{unixToDateTime(terminationTime)}</Text>
+            <Text style={styles.text}>{unixToDateTime(Number(terminationTime))}</Text>
           </Text>
-          {startDate !== 0 ? (
+          {startDate && startDate > 0 ? (
             <Text style={styles.details}>
               Project Start Date:{' '}
-              <Text style={styles.text}>{unixToDateTime(startDate)}</Text>
+              <Text style={styles.text}>{unixToDateTime(Number(startDate))}</Text>
             </Text>
           ) : null}
-          {endDate !== 0 ? (
+          {endDate && endDate > 0 ? (
             <Text style={styles.details}>
               Expected Project End Date:{' '}
-              <Text style={styles.text}>{unixToDateTime(endDate)}</Text>
+              <Text style={styles.text}>{unixToDateTime(Number(endDate))}</Text>
             </Text>
           ) : null}
         </View>
 
         <View style={styles.separatorTwo} />
 
+
+        {projectAgreement && (
         <View style={styles.detailsContainer}>
           <Text style={styles.details}>
             Project Name: <Text style={styles.text}>{projectName}</Text>
@@ -275,14 +278,13 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           <Text style={styles.details}>
             Description: <Text style={styles.text}>{projectDescription}</Text>
           </Text>
-
           <Text style={styles.details}>Project Agreement(s):</Text>
-          {projectAgreement.map((agreement: any, index: any) => (
-            <View key={agreement.createdAt}>
+          {projectAgreement.map((agreement, index) => (
+            <View key={agreement.id}>
               <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
               <Text style={[styles.text, { textIndent: 20 }]}>
-                Created At: {unixToDateTime(createdAt)}
+                Created At: {unixToDateTime(Number(agreement.createdAt))}
               </Text>
 
               <Text style={[styles.text, { textIndent: 20 }]}>
@@ -290,10 +292,10 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </Text>
             </View>
           ))}
-        </View>
+        </View>)}
 
         {/* Payment Milestones */}
-
+{amounts &&(<>
         <View style={styles.tableContainer}>
           <View style={styles.container}>
             <Text style={styles.description}>Payment Milestones</Text>
@@ -303,9 +305,8 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
         </View>
         {amounts.map((amount, index) => {
           let amountTotal = BigInt(0);
-
           if (index + 1 === amounts.length) {
-            const sum = amounts.reduce((a, b) => a + b, BigInt(0));
+            const sum = amounts.reduce((a, b) => a + BigInt(b), BigInt(0));
             amountTotal = sum;
           }
           return (
@@ -314,15 +315,13 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 <Text style={styles.description}>
                   Payment Milestone # {index + 1}
                 </Text>
-
                 <Text style={styles.amount}>
-                  {formatEther(amount)} {symbol}
+                  {formatEther(BigInt(amount))} {symbol}
                 </Text>
               </View>
               {amountTotal > 0 ? (
                 <View style={styles.row}>
                   <Text style={styles.totalDescription}>TOTAL</Text>
-
                   <Text style={styles.amount}>
                     {formatEther(amountTotal)} {symbol}
                   </Text>
@@ -331,9 +330,11 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             </View>
           );
         })}
+        </>
+)}
 
         {/* Deposits */}
-
+{deposits && (<>
         <View style={styles.tableContainer}>
           <View style={styles.container}>
             <Text style={styles.listTitle}>Deposits</Text>
@@ -361,7 +362,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
               <View style={styles.invisibleRow}>
                 <Text>
-                  Timestamp: <Text>{unixToDateTime(deposit.timestamp)}</Text>
+                  Timestamp: <Text>{unixToDateTime(Number(deposit.timestamp))}</Text>
                 </Text>
               </View>
 
@@ -373,9 +374,11 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             </View>
           </Fragment>
         ))}
+        </>)}
 
         {/* Releases */}
 
+        {releases && (<>
         <View style={styles.tableContainer}>
           <View style={styles.container}>
             <Text style={styles.listTitle}>Releases</Text>
@@ -391,7 +394,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
               <View style={styles.invisibleRow}>
                 <Text>
-                  Milestone: <Text>{release.milestone + 1}</Text>
+                  Milestone: <Text>{Number(release.milestone) + 1}</Text>
                 </Text>
               </View>
 
@@ -406,7 +409,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
               <View style={styles.invisibleRow}>
                 <Text>
-                  Timestamp: <Text>{unixToDateTime(release.timestamp)}</Text>
+                  Timestamp: <Text>{unixToDateTime(Number(release.timestamp))}</Text>
                 </Text>
               </View>
 
@@ -418,17 +421,19 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             </View>
           </Fragment>
         ))}
+
+</>)}
       </Page>
 
       {/* Disputes */}
-      {disputes.length > 0 ? (
+        {disputes && disputes.length > 0 ? (
         <Page size="A4" style={styles.page}>
           <View>
             <Text style={styles.secondTitle}>Disputes</Text>
           </View>
 
           {disputes.map((dispute, index) => (
-            <View style={styles.multiDetailBlock} key={dispute.disputeTx}>
+            <View style={styles.multiDetailBlock} key={dispute.id}>
               <Text
                 style={[
                   styles.details,
@@ -466,7 +471,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 <Text style={styles.invisibleRow}>Timestamp:</Text>
 
                 <Text style={styles.detailRow}>
-                  {unixToDateTime(dispute.timestamp)}
+                  {unixToDateTime(Number(dispute.timestamp))}
                 </Text>
               </View>
             </View>
@@ -475,7 +480,7 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
       ) : null}
 
       {/* Resolutions */}
-      {resolutions.length > 0 ? (
+      {resolutions && resolutions.length > 0 ? (
         <Page size="A4" style={styles.page}>
           <View>
             <Text style={styles.secondTitle}>Resolutions</Text>
@@ -520,13 +525,13 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 </Text>
               </View>
 
-              <View style={styles.detailPair}>
+              {resolution.resolutionFee ? (<View style={styles.detailPair}>
                 <Text style={styles.invisibleRow}>Resolution Fee:</Text>
 
                 <Text style={styles.detailRow}>
                   {formatEther(resolution.resolutionFee)} {symbol}
                 </Text>
-              </View>
+              </View>) : null}
 
               <View style={styles.detailPair}>
                 <Text style={styles.invisibleRow}>Resolver Type:</Text>

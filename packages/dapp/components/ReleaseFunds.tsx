@@ -17,9 +17,10 @@ import { waitForTransaction } from '@wagmi/core';
 
 import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
-import { Invoice, TokenData } from '../types';
-import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
+import { TokenData } from '../types';
+import { getTokenInfo, getTxLink, isAddress, logError } from '../utils/helpers';
 import { release } from '../utils/invoice';
+import { Invoice } from '../graphql/fetchInvoice';
 
 const getReleaseAmount = (
   currentMilestone: number,
@@ -60,9 +61,11 @@ export function ReleaseFunds({
     address,
     token,
     provider: recipient,
-  } = invoice;
+  } = invoice ?? {};
+  const validAmounts = amounts?.map((a) => BigInt(a));
+  const validAddress = isAddress(address);
 
-  const amount = getReleaseAmount(currentMilestone, amounts, balance);
+  const amount = validAmounts ? getReleaseAmount(Number(currentMilestone), validAmounts, balance) : undefined;
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [txHash, setTxHash] = useState<Hash>();
@@ -70,10 +73,10 @@ export function ReleaseFunds({
 
   useEffect(() => {
     const send = async () => {
-      if (loading || !walletClient || !chainId) return;
+      if (loading || !walletClient || !chainId || !validAddress) return;
       try {
         setLoading(true);
-        const hash = await release(walletClient, address);
+        const hash = await release(walletClient, validAddress);
         setTxHash(hash);
         const txReceipt = await waitForTransaction({ chainId, hash });
         setLoading(false);
@@ -101,20 +104,10 @@ export function ReleaseFunds({
         close();
       }
     };
-    if (balance && balance > amount) {
+    if (amount && balance && balance > amount) {
       send();
     }
-  }, [
-    network,
-    amount,
-    address,
-    walletClient,
-    balance,
-    loading,
-    close,
-    chainId,
-    toast,
-  ]);
+  }, [network, amount, address, walletClient, balance, loading, close, chainId, toast, validAddress]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -152,7 +145,7 @@ export function ReleaseFunds({
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{`${formatUnits(amount, decimals)} ${symbol}`}</Text>
+        >{amount ? `${formatUnits(amount, decimals)} ${symbol}` : '-'}</Text>
       </VStack>
       {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">

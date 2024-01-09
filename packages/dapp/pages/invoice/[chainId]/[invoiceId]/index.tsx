@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
-import { formatUnits, isAddress } from 'viem';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 /* eslint-disable react/no-array-index-key */
@@ -34,14 +34,13 @@ import { ReleaseFunds } from '../../../../components/ReleaseFunds';
 import { ResolveFunds } from '../../../../components/ResolveFunds';
 import { VerifyInvoice } from '../../../../components/VerifyInvoice';
 import { WithdrawFunds } from '../../../../components/WithdrawFunds';
-import { getInvoice } from '../../../../graphql/getInvoice';
+import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
 import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
 import { CopyIcon } from '../../../../icons/CopyIcon';
 import { QuestionIcon } from '../../../../icons/QuestionIcon';
 import { AccountLink } from '../../../../shared/AccountLink';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { Invoice } from '../../../../types';
 import { balanceOf } from '../../../../utils/erc20';
 import {
   copyToClipboard,
@@ -52,6 +51,7 @@ import {
   getIpfsLink,
   getTokenInfo,
   getTxLink,
+  isAddress,
   logError,
 } from '../../../../utils/helpers';
 
@@ -68,17 +68,19 @@ function ViewInvoice() {
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(String(hexChainId), 16);
   const [verifiedStatus, setVerifiedStatus] = useState(false);
+  const validToken = useMemo(() => isAddress(invoice?.token), [invoice]);
+  const validAddress = useMemo(() => isAddress(invoice?.address), [invoice]);
 
   useEffect(() => {
     if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
-      getInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
+      fetchInvoice(invoiceChainId, invoiceId).then(i => setInvoice(i));
     }
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
-    if (invoice && walletClient?.chain?.id === invoiceChainId) {
+    if (invoice && validToken && validAddress && walletClient?.chain?.id === invoiceChainId) {
       setBalanceLoading(true);
-      balanceOf(walletClient.chain, invoice.token, invoice.address)
+      balanceOf(walletClient.chain, validToken, validAddress)
         .then(b => {
           setBalance(b);
           setBalanceLoading(false);
@@ -88,12 +90,12 @@ function ViewInvoice() {
           setBalanceLoading(false);
         });
     }
-  }, [invoice, walletClient?.chain, invoiceChainId]);
+  }, [invoice, walletClient?.chain, invoiceChainId, validToken, validAddress]);
 
   useEffect(() => {
-    if (invoice && walletClient?.chain?.id === invoiceChainId) {
+    if (invoice && validToken && validAddress && walletClient?.chain?.id === invoiceChainId) {
       setBalanceLoading(true);
-      balanceOf(walletClient.chain, invoice.token, invoice.address)
+      balanceOf(walletClient.chain, validToken, validAddress)
         .then(b => {
           setBalance(b);
           setBalanceLoading(false);
@@ -103,7 +105,7 @@ function ViewInvoice() {
           setBalanceLoading(false);
         });
     }
-  }, [invoice, walletClient?.chain, invoiceChainId]);
+  }, [invoice, walletClient?.chain, invoiceChainId, validToken, validAddress]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -117,7 +119,7 @@ function ViewInvoice() {
 
   if (invoice && walletClient?.chain?.id !== invoiceChainId) {
     return (
-      <InvoiceNotFound chain={invoiceChainId} heading="Incorrect Network" />
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
@@ -151,6 +153,9 @@ function ViewInvoice() {
     resolutions,
     verified,
   } = invoice;
+  const validClient = isAddress(client);
+  const validProvider = isAddress(provider);
+  const validResolver = isAddress(resolver);
 
   const account = walletClient?.account?.address?.toLowerCase();
   const isClient = account === client;
@@ -162,7 +167,7 @@ function ViewInvoice() {
   const isExpired = terminationTime <= new Date().getTime() / 1000;
 
   const amount = BigInt(
-    currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
+    currentMilestone < amounts.length ? amounts[Number(currentMilestone)] : 0,
   );
   const isReleasable = !isLocked && balance > amount && balance > 0;
   const isLockable = !isExpired && !isLocked && balance > 0;
@@ -284,7 +289,7 @@ function ViewInvoice() {
           </VStack>
 
           <VStack fontSize="sm" color="grey" align="stretch" justify="center">
-            {startDate && (
+            {startDate ? (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project Start Date: '}</Text>
@@ -294,8 +299,8 @@ function ViewInvoice() {
                   <Text fontWeight="bold">{getDateString(startDate)}</Text>
                 </WrapItem>
               </Wrap>
-            )}
-            {endDate && (
+            ) : null}
+            {endDate ? (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project End Date: '}</Text>
@@ -305,7 +310,7 @@ function ViewInvoice() {
                   <Text fontWeight="bold">{getDateString(endDate)}</Text>
                 </WrapItem>
               </Wrap>
-            )}
+            ) : null}
 
             <Wrap>
               <WrapItem>
@@ -317,7 +322,7 @@ function ViewInvoice() {
 
                 <Tooltip
                   label={`The Safety Valve gets activated on ${new Date(
-                    terminationTime * 1000,
+                    Number(terminationTime) * 1000,
                   ).toUTCString()}`}
                   placement="auto-start"
                 >
@@ -332,7 +337,7 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={client} chain={invoiceChainId} />
+                {validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
               </WrapItem>
             </Wrap>
 
@@ -342,7 +347,7 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={provider} chain={invoiceChainId} />
+                {validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
               </WrapItem>
             </Wrap>
 
@@ -352,7 +357,7 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={resolver} chain={invoiceChainId} />
+                {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
               </WrapItem>
             </Wrap>
 
@@ -431,7 +436,7 @@ function ViewInvoice() {
                 {smallScreen ? 'Total Amount' : 'Total Project Amount'}
               </Text>
 
-              <Text>{`${formatUnits(BigInt(total), decimals)} ${symbol}`}</Text>
+              <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
             </Flex>
 
             <VStack
@@ -439,7 +444,8 @@ function ViewInvoice() {
               align="stretch"
               spacing="0.25rem"
             >
-              {amounts.map((amt: any, index: any) => {
+              {amounts.map((amt, index) => {
+                const a = BigInt(amt);
                 let tot = BigInt(0);
                 let ind = -1;
                 let full = false;
@@ -448,14 +454,14 @@ function ViewInvoice() {
                     tot += deposits[i].amount;
                     if (tot > sum) {
                       ind = i;
-                      if (tot - sum >= amt) {
+                      if (tot - sum >= a) {
                         full = true;
                         break;
                       }
                     }
                   }
                 }
-                sum += amt;
+                sum += a;
 
                 return (
                   <Flex
@@ -485,7 +491,7 @@ function ViewInvoice() {
                         >
                           Released{' '}
                           {new Date(
-                            releases[index].timestamp * 1000,
+                            Number(releases[index].timestamp) * 1000,
                           ).toLocaleDateString()}
                         </Link>
                       )}
@@ -503,13 +509,13 @@ function ViewInvoice() {
                           >
                             {full ? '' : 'Partially '}Deposited{' '}
                             {new Date(
-                              deposits[ind].timestamp * 1000,
+                              Number(deposits[ind].timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
 
                       <Text textAlign="right" fontWeight="500">{`${formatUnits(
-                        amt,
+                        a,
                         decimals,
                       )} ${symbol}`}</Text>
                     </HStack>
@@ -624,7 +630,7 @@ function ViewInvoice() {
                 <Text>
                   {`A dispute is in progress with `}
 
-                  <AccountLink address={resolver} chain={invoiceChainId} />
+                  {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
                   <br />
 
                   <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
@@ -667,7 +673,7 @@ function ViewInvoice() {
                 >
                   <Flex flex={1}>
                     <Text textAlign={{ base: 'center', sm: 'left' }}>
-                      <AccountLink address={resolver} chain={invoiceChainId} />
+                      {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
                       {
                         ' has resolved the dispute and dispersed remaining funds'
                       }
@@ -699,10 +705,8 @@ function ViewInvoice() {
                           decimals,
                         )} ${symbol} to `}
 
-                        <AccountLink
-                          address={resolver}
-                          chain={invoiceChainId}
-                        />
+                        
+                {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
                       </Text>
                     ) : null}
 
@@ -712,7 +716,7 @@ function ViewInvoice() {
                         decimals,
                       )} ${symbol} to `}
 
-                      <AccountLink address={client} chain={invoiceChainId} />
+{validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
                     </Text>
 
                     <Text textAlign="right">
@@ -721,7 +725,7 @@ function ViewInvoice() {
                         decimals,
                       )} ${symbol} to `}
 
-                      <AccountLink address={provider} chain={invoiceChainId} />
+{validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
                     </Text>
                   </VStack>
                 </Flex>
@@ -928,7 +932,7 @@ function ViewInvoice() {
                   // deposited={deposited}
                   due={due}
                   tokenData={tokenData}
-                  close={() => setModal(false)}
+                  // close={() => setModal(false)}
                 />
               )}
             </ModalContent>

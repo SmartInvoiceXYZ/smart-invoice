@@ -73,13 +73,13 @@ export function FormConfirmation({ display, tokenData }: any) {
 
         <Spacer />
 
-        <AccountLink address={clientAddress} chain={chainId} />
+        <AccountLink address={clientAddress} chainId={chainId} />
       </Flex>
 
       <Flex justify="space-between" width={flexWidth}>
         <Text>{`Payment Address: `}</Text>
 
-        <AccountLink address={paymentAddress} chain={chainId} />
+        <AccountLink address={paymentAddress} chainId={chainId} />
       </Flex>
       {startDate && (
         <Flex justify="space-between" width={flexWidth}>
@@ -102,7 +102,7 @@ export function FormConfirmation({ display, tokenData }: any) {
           <Text textAlign="right">{getDateString(deadline / 1000)}</Text>
         </Flex>
       )}
-      {lateFee && lateFeeInterval && (
+      {lateFee && lateFeeInterval ? (
         <Flex justify="space-between" width={flexWidth}>
           <Text>{`Late Fee: `}</Text>
 
@@ -112,19 +112,16 @@ export function FormConfirmation({ display, tokenData }: any) {
               day${lateFeeInterval / (1000 * 60 * 60 * 24) > 1 && 's'}`}
           </Text>
         </Flex>
-      )}
+      ) : null}
 
-      <Divider
+      {paymentDue ? (<><Divider
         color="black"
         w="calc(100% + 2rem)"
-        transform="translateX(-1rem)"
-      />
-
-      <Flex justify="flex-end">
-        <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-          {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
-        </Text>
-      </Flex>
+        transform="translateX(-1rem)" /><Flex justify="flex-end">
+          <Text color="blue.1" ml="2.5rem" fontWeight="bold">
+            {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
+          </Text>
+        </Flex></>) : null}
     </VStack>
   );
 }

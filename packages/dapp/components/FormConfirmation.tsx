@@ -73,13 +73,13 @@ export function FormConfirmation({ display, tokenData }: any) {
 
         <Spacer />
 
-        <AccountLink address={clientAddress} chain={chainId} />
+        <AccountLink address={clientAddress} chainId={chainId} />
       </Flex>
 
       <Flex justify="space-between" width={flexWidth}>
         <Text>{`Payment Address: `}</Text>
 
-        <AccountLink address={paymentAddress} chain={chainId} />
+        <AccountLink address={paymentAddress} chainId={chainId} />
       </Flex>
       {startDate && (
         <Flex justify="space-between" width={flexWidth}>
@@ -108,7 +108,7 @@ export function FormConfirmation({ display, tokenData }: any) {
         <Flex justify="space-between" width={flexWidth}>
           <Text>{`Arbitration Provider: `}</Text>
 
-          <AccountLink address={arbitrationProvider} chain={chainId} />
+          <AccountLink address={arbitrationProvider} chainId={chainId} />
         </Flex>
       )}
 

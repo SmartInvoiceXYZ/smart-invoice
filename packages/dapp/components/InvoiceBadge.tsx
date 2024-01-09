@@ -2,14 +2,11 @@ import React from 'react';
 
 import { Badge } from '@chakra-ui/react';
 
-import { InvoiceRow } from '../context/SearchContext';
-
 export type InvoiceBadgeProps = {
-  invoice: InvoiceRow;
+  invoiceType?: 'escrow' | 'instant' | 'unknown';
 };
 
-export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({ invoice }) => {
-  const { invoiceType } = invoice;
+export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({ invoiceType = 'unknown' }) => {
   const schemes = {
     escrow: {
       bg: 'rgba(128, 63, 248, 0.3)',
@@ -27,12 +24,12 @@ export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({ invoice }) => {
 
   return (
     <Badge
-      backgroundColor={schemes[invoiceType ?? 'unknown'].bg}
-      color={schemes[invoiceType ?? 'unknown'].color}
+      backgroundColor={schemes[invoiceType].bg}
+      color={schemes[invoiceType].color}
       maxW="fit-content"
       height="fit-content"
     >
-      {invoiceType ? invoiceType.toUpperCase() : 'UNKNOWN'}
+      {invoiceType.toUpperCase()}
     </Badge>
   );
 };

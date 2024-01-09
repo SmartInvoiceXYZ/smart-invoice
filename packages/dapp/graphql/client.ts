@@ -1,16 +1,21 @@
-import { createClient, dedupExchange, fetchExchange } from 'urql';
+import {
+  ApolloClient,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from '@apollo/client';
 
 import { SUPPORTED_NETWORKS } from '../constants';
 import { getGraphUrl } from '../utils/helpers';
 
-export const clients = SUPPORTED_NETWORKS.reduce(
-  (o, chain) => ({
-    ...o,
+const cache = new InMemoryCache();
 
-    [chain]: createClient({
-      url: getGraphUrl(chain),
-      exchanges: [dedupExchange, fetchExchange],
+export const clients = SUPPORTED_NETWORKS.reduce(
+  (o, chainId) => ({
+    ...o,
+    [chainId]: new ApolloClient({
+      uri: getGraphUrl(chainId),
+      cache,
     }),
   }),
-  {} as Record<number, ReturnType<typeof createClient>>,
+  {} as Record<number, ApolloClient<NormalizedCacheObject>>,
 );

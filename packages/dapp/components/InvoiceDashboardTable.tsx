@@ -1,7 +1,8 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable camelcase */
 import { useRouter } from 'next/router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
-/* eslint-disable no-nested-ternary */
 import { Button, Flex, HStack, Heading, IconButton } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -13,28 +14,30 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { Address, formatUnits } from 'viem';
 
-import { ChainId } from '../constants/config';
-import { InvoiceRow } from '../context/SearchContext';
 import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
-import { TokenData } from '../types';
 import { Styles } from './InvoicesStyles';
+import { Invoice_orderBy } from '../graphql/zeus';
+import { fetchInvoices, Invoice } from '../graphql/fetchInvoices';
+
+export type SearchInputType = string | Address | undefined;
 
 export type InvoiceDashboardTableProps = {
-  result: InvoiceRow[];
-  tokenData: Record<ChainId, Record<string, TokenData>>;
-  chain?: ChainId;
+  chainId?: number;
+  searchInput?: SearchInputType;
+  onLoading?: (isLoading: boolean, resultCount?: number) => void;
 };
 
 export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
-  result,
-  tokenData,
-  chain,
+  chainId,
+  searchInput,
+  onLoading = () => {},
 }) => {
   const router = useRouter();
 
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<InvoiceRow>();
+    const columnHelper = createColumnHelper<Invoice>();
 
     return [
       columnHelper.accessor('createdAt', {
@@ -47,46 +50,68 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
         cell: info => info.getValue(),
         footer: info => info.column.id,
       }),
-      columnHelper.accessor('amount', {
-        header: 'Amount',
-        cell: info => info.getValue(),
-        footer: info => info.column.id,
-      }),
-      columnHelper.accessor('currency', {
+      columnHelper.accessor(
+        row => formatUnits(row.total, row.tokenMetadata?.decimals),
+        {
+          id: 'amount',
+          header: 'Amount',
+          cell: info => info.getValue(),
+          footer: info => info.column.id,
+        },
+      ),
+      columnHelper.accessor(row => row.tokenMetadata?.symbol, {
+        id: 'currency',
         header: 'Currency',
         cell: info => info.getValue(),
         footer: info => info.column.id,
       }),
-      columnHelper.accessor('status', {
-        header: 'Status',
+      columnHelper.accessor('released', {
+        header: 'Released',
         cell: info => info.getValue(),
         footer: info => info.column.id,
       }),
-      columnHelper.accessor('action', {
-        header: 'Action',
-        cell: info => info.getValue(),
-        footer: info => info.column.id,
-      }),
+      // columnHelper.accessor('action', { // TODO: clear up what this column is for? not on GQL schema...
+      //   header: 'Action',
+      //   cell: info => info.getValue(),
+      //   footer: info => info.column.id,
+      // }),
     ];
   }, []);
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [{ pageIndex, pageSize }, setPagination] =
-    React.useState<PaginationState>({
-      pageIndex: 0,
-      pageSize: 10,
-    });
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true },
+  ]);
 
-  const fetchDataOptions = {
-    pageIndex,
-    pageSize,
-  };
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
-  const dataQuery = useQuery(
-    ['data', fetchDataOptions],
-    () => fetchData(fetchDataOptions),
-    { keepPreviousData: true },
+  const fetchDataOptions: [
+    number,
+    SearchInputType,
+    number,
+    number,
+    Invoice_orderBy,
+    boolean,
+    (isLoading: boolean, resultCount?: number) => void,
+  ] = useMemo(
+    () => [
+      chainId || -1,
+      searchInput,
+      pageIndex,
+      pageSize,
+      sorting[0].id as Invoice_orderBy,
+      sorting[0].desc,
+      onLoading,
+    ],
+    [chainId, onLoading, pageIndex, pageSize, searchInput, sorting],
   );
+
+  const dataQuery = useQuery({
+    queryKey: ['invoices', ...fetchDataOptions],
+    queryFn: () => fetchInvoices(...fetchDataOptions),
+  });
 
   const defaultData = useMemo(() => [], []);
 
@@ -99,9 +124,9 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
   );
 
   const table = useReactTable({
-    data: dataQuery.data?.rows ?? defaultData,
+    data: dataQuery.data ?? defaultData,
     columns,
-    pageCount: dataQuery.data?.pageCount ?? -1,
+    pageCount: Math.ceil(dataQuery.status.length / pageSize) ?? -1,
     state: {
       pagination,
       sorting,

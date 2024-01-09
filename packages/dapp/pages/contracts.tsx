@@ -11,14 +11,12 @@ import {
 import { CONFIG } from '../constants';
 import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
 import { Container } from '../shared/Container';
-import { getKeys } from '../utils/getKeys';
-import {
+import { getKeys,
   getAccountString,
   getAddressLink,
   getInvoiceFactoryAddress,
   getTokenInfo,
-  getTokens,
-} from '../utils/helpers';
+  getTokens, } from '../utils';
 
 const { NETWORK_CONFIG } = CONFIG;
 const chainIds = getKeys(NETWORK_CONFIG);

@@ -48,10 +48,10 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/eslint-parser": "^7.23.3",
-    "@typescript-eslint/parser": "^6.7.0",
+    "@typescript-eslint/parser": "^6.17.0",
     "async-prompt": "^1.0.1",
     "dotenv": "^16.3.1",
-    "eslint": "^8.51.0",
+    "eslint": "^8.56.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.0",

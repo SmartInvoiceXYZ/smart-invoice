@@ -1,7 +1,6 @@
-import { bigint } from 'ethers';
 import { useEffect, useMemo } from 'react';
-
-import { isAddress } from '@ethersproject/address';
+import { isAddress } from '../../utils/helpers';
+import { Address } from 'viem';
 
 export function useCreateEscrow({
   step1Valid,
@@ -15,7 +14,20 @@ export function useCreateEscrow({
   termsAccepted,
   arbitrationProvider,
   setAllValid,
-}: any) {
+}: {
+  step1Valid: boolean,
+  allValid: boolean,
+  clientAddress?: Address,
+  paymentAddress?: Address,
+  paymentToken?: Address,
+  payments: bigint[],
+  paymentDue: bigint,
+  milestones: number,
+  termsAccepted: boolean,
+  arbitrationProvider?: Address,
+  // eslint-disable-next-line no-unused-vars
+  setAllValid: (valid: boolean) => void,
+}) {
   const escrowStep2Valid = useMemo(
     () =>
       isAddress(clientAddress) &&
@@ -23,15 +35,14 @@ export function useCreateEscrow({
       isAddress(paymentToken) &&
       isAddress(arbitrationProvider) &&
       paymentDue > 0 &&
-      !Number.isNaN(Number(milestones)) &&
       milestones > 0 &&
       termsAccepted &&
       Array.from(
         new Set([
-          clientAddress.toLowerCase(),
-          paymentAddress.toLowerCase(),
-          paymentToken.toLowerCase(),
-          arbitrationProvider.toLowerCase(),
+          clientAddress?.toLowerCase(),
+          paymentAddress?.toLowerCase(),
+          paymentToken?.toLowerCase(),
+          arbitrationProvider?.toLowerCase(),
         ]),
       ).length === 4,
     [

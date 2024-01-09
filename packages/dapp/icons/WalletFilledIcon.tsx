@@ -1,12 +1,9 @@
-// @ts-expect-error TS(2792): Cannot find module '@chakra-ui/icon'. Did you mean... Remove this comment to see the full error message
 import { createIcon } from '@chakra-ui/icon';
-// @ts-expect-error TS(2792): Cannot find module 'react'. Did you mean to set th... Remove this comment to see the full error message
 import * as React from 'react';
 
 export const WalletFilledIcon = createIcon({
   displayName: 'WalletFilledIcon',
   path: (
-    // @ts-expect-error TS(7026): JSX element implicitly has type 'any' because no i... Remove this comment to see the full error message
     <path
       fillRule="evenodd"
       clipRule="evenodd"

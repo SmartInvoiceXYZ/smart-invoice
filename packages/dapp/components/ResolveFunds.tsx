@@ -21,10 +21,11 @@ import { waitForTransaction } from '@wagmi/core';
 import { ChainId } from '../constants/config';
 import { QuestionIcon } from '../icons/QuestionIcon';
 import { OrderedTextarea } from '../shared/OrderedInput';
-import { Invoice, TokenData } from '../types';
-import { getTokenInfo, getTxLink, logError } from '../utils/helpers';
+import { TokenData } from '../types';
+import { getTokenInfo, getTxLink, isAddress, logError } from '../utils/helpers';
 import { resolve } from '../utils/invoice';
 import { uploadDisputeDetails } from '../utils/ipfs';
+import { Invoice } from '../graphql/fetchInvoice';
 
 export type ResolveFundsProps = {
   invoice: Invoice;
@@ -39,7 +40,8 @@ export function ResolveFunds({
   close,
   tokenData,
 }: ResolveFundsProps) {
-  const { address, resolutionRate, token, isLocked } = invoice;
+  const { address, resolutionRate, token, isLocked } = invoice ?? {};
+  const validAddress = isAddress(address);
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
@@ -48,7 +50,7 @@ export function ResolveFunds({
   const toast = useToast();
 
   const resolverAward =
-    balance > 0 ? balance / BigInt(resolutionRate) : BigInt(0);
+    balance > 0 && resolutionRate && resolutionRate > 0 ? balance / resolutionRate : BigInt(0);
   const availableFunds = balance - resolverAward;
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigInt(0));
@@ -65,6 +67,7 @@ export function ResolveFunds({
       chainId &&
       isLocked &&
       comments &&
+      validAddress &&
       balance === clientAward + providerAward + resolverAward &&
       balance > 0
     ) {
@@ -77,7 +80,7 @@ export function ResolveFunds({
         });
         const hash = await resolve(
           walletClient,
-          address,
+          validAddress,
           clientAward,
           providerAward,
           detailsHash,
@@ -109,18 +112,7 @@ export function ResolveFunds({
         logError({ depositError });
       }
     }
-  }, [
-    walletClient,
-    chainId,
-    isLocked,
-    comments,
-    balance,
-    clientAward,
-    providerAward,
-    resolverAward,
-    address,
-    toast,
-  ]);
+  }, [walletClient, chainId, isLocked, comments, validAddress, balance, clientAward, providerAward, resolverAward, address, toast]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -140,7 +132,7 @@ export function ResolveFunds({
               balance,
               decimals,
             )} ${symbol} between the client & provider, excluding the ${
-              100 / resolutionRate
+              100 / Number(resolutionRate)
             }% arbitration fee you’ll receive.`
           : `Invoice is not locked`}
       </Text>

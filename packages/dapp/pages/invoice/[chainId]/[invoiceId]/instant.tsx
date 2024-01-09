@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { formatUnits, isAddress } from 'viem';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 import {
@@ -27,14 +27,13 @@ import { Loader } from '../../../../components/Loader';
 import { DepositFunds } from '../../../../components/instant/DepositFunds';
 import { WithdrawFunds } from '../../../../components/instant/WithdrawFunds';
 import { ChainId } from '../../../../constants/config';
-import { getInvoice } from '../../../../graphql/getInvoice';
+import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
 import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
 import { CopyIcon } from '../../../../icons/CopyIcon';
 import { QuestionIcon } from '../../../../icons/QuestionIcon';
 import { AccountLink } from '../../../../shared/AccountLink';
 import { Container } from '../../../../shared/Container';
 import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { Invoice } from '../../../../types';
 import { balanceOf } from '../../../../utils/erc20';
 import {
   copyToClipboard,
@@ -43,6 +42,7 @@ import {
   getAgreementLink,
   getDateString,
   getTokenInfo,
+  isAddress,
   logError,
 } from '../../../../utils/helpers';
 import {
@@ -61,7 +61,7 @@ function ViewInstantInvoice({
   const account = walletClient?.account?.address;
   const chain = walletClient?.chain;
   const [{ tokenData }] = useFetchTokensViaIPFS();
-  const [invoice, setInvoice] = useState<Invoice | null>();
+  const [invoice, setInvoice] = useState<Invoice>();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigInt(0));
   const [modal, setModal] = useState(false);
@@ -74,20 +74,36 @@ function ViewInstantInvoice({
   const [lateFeeAmount, setLateFeeAmount] = useState(BigInt(0));
   const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
   const [lateFeeTotal, setLateFeeTotal] = useState(BigInt(0));
+  const validToken = useMemo(() => isAddress(invoice?.token), [invoice]);
+  const validAddress = useMemo(() => isAddress(invoice?.address), [invoice]);
+  const {
+    client,
+    provider,
+    total,
+    token,
+    projectName,
+    projectDescription,
+    projectAgreement,
+    startDate,
+    endDate,
+  } = invoice || {};
+  const validClient = isAddress(client);
+  const validProvider = isAddress(provider);
 
   useEffect(() => {
     if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
-      getInvoice(invoiceChainId, invoiceId).then(setInvoice);
+      fetchInvoice(invoiceChainId, invoiceId).then(setInvoice);
     }
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
     const getValues = async () => {
-      if (!invoice || !chain) return;
+      if (!validAddress || !validToken || !chain || !total) return;
+
       // Get Balance
       try {
         setBalanceLoading(true);
-        const b = await balanceOf(chain, invoice.token, invoice.address);
+        const b = await balanceOf(chain, validToken, validAddress);
         setBalance(b);
         setBalanceLoading(false);
       } catch (balanceError) {
@@ -96,20 +112,20 @@ function ViewInstantInvoice({
 
       // Get Total Due
       try {
-        const t = await getTotalDue(chain, invoice.address);
+        const t = await getTotalDue(chain, validAddress);
         setTotalDue(t);
       } catch (totalDueError) {
         logError({ totalDueError });
-        setTotalDue(invoice.total);
+        setTotalDue(total);
       }
 
       // Get Deadline, Late Fee and its time interval
       try {
-        const d = await getDeadline(chain, invoice.address);
+        const d = await getDeadline(chain, validAddress);
         setDeadline(Number(d));
         const { amount, timeInterval } = await getLateFee(
           chain,
-          invoice.address,
+          validAddress,
         );
         setLateFeeAmount(amount);
         setLateFeeTimeInterval(Number(timeInterval));
@@ -119,7 +135,7 @@ function ViewInstantInvoice({
 
       // Get Total Fulfilled
       try {
-        const tf = await getTotalFulfilled(chain, invoice.address);
+        const tf = await getTotalFulfilled(chain, validAddress);
         setTotalFulfilled(tf.amount);
         setFulfilled(tf.isFulfilled);
       } catch (totalFulfilledError) {
@@ -128,7 +144,7 @@ function ViewInstantInvoice({
     };
 
     getValues();
-  }, [chain, invoice]);
+  }, [chain, total, validAddress, validToken]);
 
   useEffect(() => {
     if (invoice && totalDue !== BigInt(0) && deadline) {
@@ -148,7 +164,7 @@ function ViewInstantInvoice({
 
   if (invoice && chain?.id !== invoiceChainId) {
     return (
-      <InvoiceNotFound chain={invoiceChainId} heading="Incorrect Network" />
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
@@ -159,22 +175,6 @@ function ViewInstantInvoice({
       </Container>
     );
   }
-
-  const {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
-    client,
-    total,
-    token,
-    // released,
-    // deadline,
-    // fulfilled,
-    // lateFee,
-    // lateFeeTimeInterval
-  } = invoice;
 
   const isClient = account?.toLowerCase() === client;
   const isProvider = account?.toLowerCase() === walletClient;
@@ -269,7 +269,7 @@ function ViewInstantInvoice({
           </VStack>
 
           <VStack fontSize="sm" color="grey" align="stretch" justify="center">
-            {startDate && (
+            {startDate ? (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project Start Date: '}</Text>
@@ -279,8 +279,8 @@ function ViewInstantInvoice({
                   <Text fontWeight="bold">{getDateString(startDate)}</Text>
                 </WrapItem>
               </Wrap>
-            )}
-            {endDate && (
+            ) : null}
+            {endDate ? (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project End Date: '}</Text>
@@ -290,7 +290,7 @@ function ViewInstantInvoice({
                   <Text fontWeight="bold">{getDateString(endDate)}</Text>
                 </WrapItem>
               </Wrap>
-            )}
+            ) : null}
 
             <Wrap>
               <WrapItem>
@@ -317,7 +317,7 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={client} chain={invoiceChainId} />
+                {validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
               </WrapItem>
             </Wrap>
 
@@ -327,7 +327,7 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                <AccountLink address={walletClient} chain={invoiceChainId} />
+                {validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
               </WrapItem>
             </Wrap>
 
@@ -358,7 +358,7 @@ function ViewInstantInvoice({
             w="100%"
             color="black"
           >
-            <Flex
+            {total ? (<Flex
               justify="space-between"
               align="center"
               fontWeight="bold"
@@ -368,7 +368,7 @@ function ViewInstantInvoice({
               <Text>Amount</Text>
 
               <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
-            </Flex>
+            </Flex>): null}
 
             <Flex
               justify="space-between"
@@ -524,7 +524,7 @@ function ViewInstantInvoice({
                       ? totalDue - totalFulfilled
                       : BigInt(0)
                   }
-                  total={total}
+                  total={total ?? BigInt(0)}
                   fulfilled={fulfilled}
                   tokenData={tokenData}
                   close={() => setModal(false)}

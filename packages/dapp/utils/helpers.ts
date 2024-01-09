@@ -144,7 +144,8 @@ export const getIpfsLink = (hash: string) =>
     ? ''
     : `${IPFS_ENDPOINT}/ipfs/${hash}`;
 
-export const getAccountString = (account: string) => {
+export const getAccountString = (account?: string) => {
+  if (!account) return undefined;
   const len = account.length;
   return `0x${account.substr(2, 3).toUpperCase()}...${account
     .substr(len - 3, len - 1)
@@ -205,8 +206,8 @@ export const isValidLink = (url: any) => {
 export const getChainId = (network: Network) =>
   chainIds[network] || chainIds.rinkeby;
 
-export const getHexChainId = (network: Network) =>
-  hexChainIds[network] || hexChainIds.rinkeby;
+export const getHexChainId = (network?: Network) =>
+  network ? hexChainIds[network] || hexChainIds.rinkeby : undefined;
 
 export const getNetworkLabel = (chainId: number) =>
   isOfTypeChainId(chainId) ? networkLabels[chainId] : 'unknown';

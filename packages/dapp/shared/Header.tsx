@@ -1,13 +1,12 @@
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import React, { useContext, useEffect, useState } from 'react';
-import { useAccount, useWalletClient } from 'wagmi';
+import React, { useEffect, useState } from 'react';
+// import { useAccount, useConnect, useWalletClient } from 'wagmi';
 
 import { Box, Button, Link as ChakraLink, Flex, Image } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-import logo from '../assets/smart-invoice/normal.svg';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 
@@ -33,9 +32,8 @@ export const StyledButton = styled(Button)`
 `;
 
 export function Header() {
-  const { address } = useAccount();
-  const { connectAccount } = useWalletClient();
-  const { data: walletClient } = useWalletClient();
+  // const { address } = useAccount();
+  // const { data: walletClient } = useWalletClient();
   const [isOpen, onOpen] = useState(false);
   const [isMobile, onMobile] = useState(false);
   const router = useRouter();
@@ -54,11 +52,12 @@ export function Header() {
     }
   });
 
-  useEffect(() => {
-    if (address && walletClient) {
-      connectAccount(walletClient);
-    }
-  }, [address, connectAccount, walletClient]);
+  // TODO: test we can remove this safely
+  // useEffect(() => {
+  //   if (address && walletClient) {
+  //     connect();
+  //   }
+  // }, [address, walletClient]);
 
   return (
     <Flex
@@ -78,7 +77,7 @@ export function Header() {
       <Box width="230px">
         <ChakraLink as={NextLink} href="/invoices">
           <Flex cursor="pointer">
-            <Image src={logo.src} alt="Smart Invoice" height={34.84} />
+            <Image src='/assets/smart-invoice/normal.svg' alt="Smart Invoice" height={34.84} />
           </Flex>
         </ChakraLink>
       </Box>

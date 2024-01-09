@@ -169,7 +169,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
       <Text w="100%" color="black">
         {'Once a dispute has been initiated, '}
 
-        <AccountLink address={resolver} chain={chainId} />
+        <AccountLink address={resolver} chainId={chainId} />
         {
           ' will review your case, the project agreement and dispute reasoning before making a decision on how to fairly distribute remaining funds.'
         }
@@ -186,7 +186,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
       <Text color="red.500" textAlign="center">
         {`Upon resolution, a fee of ${fee} will be deducted from the locked fund amount and sent to `}
 
-        <AccountLink address={resolver} chain={chainId} />
+        <AccountLink address={resolver} chainId={chainId} />
         {` for helping resolve this dispute.`}
       </Text>
 
