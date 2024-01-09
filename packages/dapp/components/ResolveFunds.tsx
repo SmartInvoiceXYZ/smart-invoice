@@ -50,7 +50,9 @@ export function ResolveFunds({
   const toast = useToast();
 
   const resolverAward =
-    balance > 0 && resolutionRate && resolutionRate > 0 ? balance / resolutionRate : BigInt(0);
+    balance > 0 && resolutionRate && resolutionRate > 0
+      ? balance / resolutionRate
+      : BigInt(0);
   const availableFunds = balance - resolverAward;
   const [clientAward, setClientAward] = useState(availableFunds);
   const [providerAward, setProviderAward] = useState(BigInt(0));
@@ -112,7 +114,19 @@ export function ResolveFunds({
         logError({ depositError });
       }
     }
-  }, [walletClient, chainId, isLocked, comments, validAddress, balance, clientAward, providerAward, resolverAward, address, toast]);
+  }, [
+    walletClient,
+    chainId,
+    isLocked,
+    comments,
+    validAddress,
+    balance,
+    clientAward,
+    providerAward,
+    resolverAward,
+    address,
+    toast,
+  ]);
 
   return (
     <VStack w="100%" spacing="1rem">

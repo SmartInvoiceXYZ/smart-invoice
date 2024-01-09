@@ -6,7 +6,9 @@ export type InvoiceBadgeProps = {
   invoiceType?: 'escrow' | 'instant' | 'unknown';
 };
 
-export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({ invoiceType = 'unknown' }) => {
+export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({
+  invoiceType = 'unknown',
+}) => {
   const schemes = {
     escrow: {
       bg: 'rgba(128, 63, 248, 0.3)',

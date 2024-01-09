@@ -31,7 +31,7 @@ export function Footer() {
       >
         <ChakraLink href="/invoices">
           <Image
-            src='/assets/smart-invoice/white.svg'
+            src="/assets/smart-invoice/white.svg"
             alt="Smart Invoice"
             width={160}
             height={25.34}

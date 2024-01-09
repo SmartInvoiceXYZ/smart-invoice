@@ -4,20 +4,29 @@ import { Address } from 'viem';
 import { isAddress, logDebug } from '../utils/helpers';
 import { clients } from './client';
 import { typedGql } from './zeus/typedDocumentNode';
-import { Agreement_orderBy, Deposit_orderBy, Dispute_orderBy, OrderDirection, Release_orderBy, Resolution_orderBy, Verified_orderBy, _SubgraphErrorPolicy_ } from './zeus';
+import {
+  Agreement_orderBy,
+  Deposit_orderBy,
+  Dispute_orderBy,
+  OrderDirection,
+  Release_orderBy,
+  Resolution_orderBy,
+  Verified_orderBy,
+  _SubgraphErrorPolicy_,
+} from './zeus';
 import { scalars } from './scalars';
 
 const invoiceQuery = (id: string) =>
-  typedGql('query', {scalars})({
+  typedGql('query', { scalars })({
     invoice: [
-      { 
+      {
         id,
-        subgraphError: _SubgraphErrorPolicy_.allow, 
-      }, 
+        subgraphError: _SubgraphErrorPolicy_.allow,
+      },
       {
         id: true,
         address: true,
-        token: true,    
+        token: true,
         amounts: true,
         client: true,
         createdAt: true,
@@ -27,20 +36,20 @@ const invoiceQuery = (id: string) =>
             // first: 10,
             orderBy: Deposit_orderBy.timestamp,
             orderDirection: OrderDirection.desc,
-          }, 
-          {  
+          },
+          {
             id: true,
             txHash: true,
             sender: true,
             amount: true,
             timestamp: true,
-          }
+          },
         ],
         disputes: [
           {
             orderBy: Dispute_orderBy.timestamp,
             orderDirection: OrderDirection.desc,
-          }, 
+          },
           {
             id: true,
             details: true,
@@ -51,7 +60,7 @@ const invoiceQuery = (id: string) =>
             sender: true,
             timestamp: true,
             txHash: true,
-          }
+          },
         ],
         endDate: true,
         invoiceType: true,
@@ -63,27 +72,27 @@ const invoiceQuery = (id: string) =>
           {
             orderBy: Agreement_orderBy.createdAt,
             orderDirection: OrderDirection.desc,
-          }, 
+          },
           {
             id: true,
             type: true,
             src: true,
             createdAt: true,
-          }
+          },
         ],
         provider: true,
         releases: [
           {
             orderBy: Release_orderBy.timestamp,
             orderDirection: OrderDirection.desc,
-          }, 
+          },
           {
             id: true,
             amount: true,
-            milestone: true,            
+            milestone: true,
             timestamp: true,
             txHash: true,
-          }
+          },
         ],
         released: true,
         resolutionRate: true,
@@ -91,7 +100,7 @@ const invoiceQuery = (id: string) =>
           {
             orderBy: Resolution_orderBy.timestamp,
             orderDirection: OrderDirection.desc,
-          }, 
+          },
           {
             id: true,
             clientAward: true,
@@ -103,23 +112,26 @@ const invoiceQuery = (id: string) =>
             resolverType: true,
             timestamp: true,
             txHash: true,
-          }
+          },
         ],
         resolver: true,
         resolverType: true,
         startDate: true,
         terminationTime: true,
         total: true,
-        verified: [          {
-          orderBy: Verified_orderBy.client,
-          orderDirection: OrderDirection.asc,
-        }, {
-          id: true,
-          client: true,          
-        }],
+        verified: [
+          {
+            orderBy: Verified_orderBy.client,
+            orderDirection: OrderDirection.asc,
+          },
+          {
+            id: true,
+            client: true,
+          },
+        ],
         version: true,
-      }
-    ]
+      },
+    ],
   });
 
 export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
@@ -127,8 +139,7 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
   if (!address) return null;
 
   const query = invoiceQuery(address);
-  const { data, error } = await clients[chainId]
-    .query({query});
+  const { data, error } = await clients[chainId].query({ query });
 
   logDebug({ data, error, address });
 

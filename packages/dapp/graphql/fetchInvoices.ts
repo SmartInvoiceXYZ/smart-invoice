@@ -33,24 +33,24 @@ const invoicesQuery = (
   orderDirection?: OrderDirection,
   where?: any,
 ) =>
-  typedGql('query', {scalars})({
+  typedGql('query', { scalars })({
     invoices: [
       {
         first,
         skip,
         orderBy,
         orderDirection,
-        where, 
+        where,
         subgraphError: _SubgraphErrorPolicy_.allow,
       },
       {
-        id: true,        
+        id: true,
         address: true,
         createdAt: true,
-        invoiceType: true,        
-        network: true,        
-        projectName: true,        
-        released: true,        
+        invoiceType: true,
+        network: true,
+        projectName: true,
+        released: true,
         token: true,
         total: true,
         tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
@@ -70,10 +70,8 @@ export const fetchInvoices = async (
   if (chainId < 0) return undefined;
 
   onLoading(true);
-  
-  const sortDirection = sortDesc
-    ? OrderDirection.desc
-    : OrderDirection.asc;
+
+  const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
   const where = buildInvoicesFilter(searchInput);
   const query = invoicesQuery(
     pageSize,
@@ -84,7 +82,16 @@ export const fetchInvoices = async (
   );
   const { data, error } = await clients[chainId].query({ query });
 
-  logDebug({ data, error, chainId, searchInput, pageIndex, pageSize, sortBy, sortDesc });
+  logDebug({
+    data,
+    error,
+    chainId,
+    searchInput,
+    pageIndex,
+    pageSize,
+    sortBy,
+    sortDesc,
+  });
 
   onLoading(false, data?.invoices.length);
 
@@ -98,6 +105,8 @@ export const fetchInvoices = async (
   return data.invoices;
 };
 
-type GetElementType<T extends any[] | undefined | null> = T extends (infer U)[] ? U : never;
+type GetElementType<T extends any[] | undefined | null> = T extends (infer U)[]
+  ? U
+  : never;
 type Invoices = Awaited<ReturnType<typeof fetchInvoices>>;
 export type Invoice = GetElementType<Invoices>;

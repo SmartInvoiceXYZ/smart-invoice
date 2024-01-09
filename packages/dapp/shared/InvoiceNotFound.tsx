@@ -7,7 +7,13 @@ import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
-export function InvoiceNotFound({ heading, chainId }: {heading?: string, chainId?: number}) {
+export function InvoiceNotFound({
+  heading,
+  chainId,
+}: {
+  heading?: string;
+  chainId?: number;
+}) {
   const router = useRouter();
   return (
     <Container>
@@ -40,7 +46,8 @@ export function InvoiceNotFound({ heading, chainId }: {heading?: string, chainId
         </Text>
         {chainId && (
           <Text color="greyText">
-            Please switch to <b>{getNetworkName(chainId)}</b> to view this invoice.
+            Please switch to <b>{getNetworkName(chainId)}</b> to view this
+            invoice.
           </Text>
         )}
 

@@ -1,4 +1,4 @@
-import {  useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { balanceOf } from '../utils/erc20';
 import { logError } from '../utils/helpers';
@@ -83,7 +83,10 @@ export const useInvoiceStatus = (invoice: any) => {
             } else if (deposits.length > 0) {
               setFunded(true);
               setLabel('Partially Funded');
-            } else if (info?.deadline && info?.deadline <= new Date().getTime() / 1000) {
+            } else if (
+              info?.deadline &&
+              info?.deadline <= new Date().getTime() / 1000
+            ) {
               setLabel('Overdue');
             } else {
               setLabel('Awaiting Deposit');

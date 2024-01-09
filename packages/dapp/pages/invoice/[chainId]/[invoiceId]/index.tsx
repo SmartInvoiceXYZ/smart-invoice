@@ -78,7 +78,12 @@ function ViewInvoice() {
   }, [invoiceChainId, invoiceId]);
 
   useEffect(() => {
-    if (invoice && validToken && validAddress && walletClient?.chain?.id === invoiceChainId) {
+    if (
+      invoice &&
+      validToken &&
+      validAddress &&
+      walletClient?.chain?.id === invoiceChainId
+    ) {
       setBalanceLoading(true);
       balanceOf(walletClient.chain, validToken, validAddress)
         .then(b => {
@@ -93,7 +98,12 @@ function ViewInvoice() {
   }, [invoice, walletClient?.chain, invoiceChainId, validToken, validAddress]);
 
   useEffect(() => {
-    if (invoice && validToken && validAddress && walletClient?.chain?.id === invoiceChainId) {
+    if (
+      invoice &&
+      validToken &&
+      validAddress &&
+      walletClient?.chain?.id === invoiceChainId
+    ) {
       setBalanceLoading(true);
       balanceOf(walletClient.chain, validToken, validAddress)
         .then(b => {
@@ -337,7 +347,11 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                {validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
+                {validClient ? (
+                  <AccountLink address={validClient} chainId={invoiceChainId} />
+                ) : (
+                  client
+                )}
               </WrapItem>
             </Wrap>
 
@@ -347,7 +361,14 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                {validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
+                {validProvider ? (
+                  <AccountLink
+                    address={validProvider}
+                    chainId={invoiceChainId}
+                  />
+                ) : (
+                  provider
+                )}
               </WrapItem>
             </Wrap>
 
@@ -357,7 +378,14 @@ function ViewInvoice() {
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
+                {validResolver ? (
+                  <AccountLink
+                    address={validResolver}
+                    chainId={invoiceChainId}
+                  />
+                ) : (
+                  resolver
+                )}
               </WrapItem>
             </Wrap>
 
@@ -630,7 +658,14 @@ function ViewInvoice() {
                 <Text>
                   {`A dispute is in progress with `}
 
-                  {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
+                  {validResolver ? (
+                    <AccountLink
+                      address={validResolver}
+                      chainId={invoiceChainId}
+                    />
+                  ) : (
+                    resolver
+                  )}
                   <br />
 
                   <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
@@ -673,7 +708,14 @@ function ViewInvoice() {
                 >
                   <Flex flex={1}>
                     <Text textAlign={{ base: 'center', sm: 'left' }}>
-                      {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
+                      {validResolver ? (
+                        <AccountLink
+                          address={validResolver}
+                          chainId={invoiceChainId}
+                        />
+                      ) : (
+                        resolver
+                      )}
                       {
                         ' has resolved the dispute and dispersed remaining funds'
                       }
@@ -705,8 +747,14 @@ function ViewInvoice() {
                           decimals,
                         )} ${symbol} to `}
 
-                        
-                {validResolver ? (<AccountLink address={validResolver} chainId={invoiceChainId} />) : resolver}
+                        {validResolver ? (
+                          <AccountLink
+                            address={validResolver}
+                            chainId={invoiceChainId}
+                          />
+                        ) : (
+                          resolver
+                        )}
                       </Text>
                     ) : null}
 
@@ -716,7 +764,14 @@ function ViewInvoice() {
                         decimals,
                       )} ${symbol} to `}
 
-{validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
+                      {validClient ? (
+                        <AccountLink
+                          address={validClient}
+                          chainId={invoiceChainId}
+                        />
+                      ) : (
+                        client
+                      )}
                     </Text>
 
                     <Text textAlign="right">
@@ -725,7 +780,14 @@ function ViewInvoice() {
                         decimals,
                       )} ${symbol} to `}
 
-{validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
+                      {validProvider ? (
+                        <AccountLink
+                          address={validProvider}
+                          chainId={invoiceChainId}
+                        />
+                      ) : (
+                        provider
+                      )}
                     </Text>
                   </VStack>
                 </Flex>

@@ -13,7 +13,12 @@ import {
 
 import { ChainId } from '../../constants/config';
 import { TokenData } from '../../types';
-import { getTokenInfo, getTxLink, isAddress, logError } from '../../utils/helpers';
+import {
+  getTokenInfo,
+  getTxLink,
+  isAddress,
+  logError,
+} from '../../utils/helpers';
 import { withdraw } from '../../utils/invoice';
 import { waitForTransaction } from '../../utils/transactions';
 import { Invoice } from '../../graphql/fetchInvoice';

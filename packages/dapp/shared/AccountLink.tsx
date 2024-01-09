@@ -17,12 +17,16 @@ import { Address } from 'viem';
 export type AccountLinkProps = {
   address?: Address;
   chainId?: number;
-}
+};
 
-export function AccountLink({ address: inputAddress, chainId: inputChainId }: AccountLinkProps) {
+export function AccountLink({
+  address: inputAddress,
+  chainId: inputChainId,
+}: AccountLinkProps) {
   const walletChainId = useChainId();
   const address = inputAddress?.toLowerCase() as Address;
-  const [profile, setProfile] = useState<Awaited<ReturnType<typeof getProfile>>>();
+  const [profile, setProfile] =
+    useState<Awaited<ReturnType<typeof getProfile>>>();
   const chainId = inputChainId || walletChainId;
   const isResolver = isKnownResolver(address, chainId);
 

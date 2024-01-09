@@ -13,7 +13,7 @@ import { useWalletClient } from 'wagmi';
 export function ConnectWeb3() {
   const { data: walletClient, isLoading } = useWalletClient();
   const { openConnectModal } = useConnectModal();
-  const {account} = walletClient ?? {};
+  const { account } = walletClient ?? {};
 
   if (isLoading) {
     return (
@@ -58,7 +58,9 @@ export function ConnectWeb3() {
 
             <Text color="greyText" mb={4} textAlign="center">
               {account
-                ? `Please switch to ${SUPPORTED_NETWORKS.map(getNetworkName).join(' or ')}`
+                ? `Please switch to ${SUPPORTED_NETWORKS.map(
+                    getNetworkName,
+                  ).join(' or ')}`
                 : 'To get started, connect your wallet'}
             </Text>
           </>

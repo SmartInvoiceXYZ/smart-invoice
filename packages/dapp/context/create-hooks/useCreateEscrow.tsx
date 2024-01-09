@@ -15,18 +15,18 @@ export function useCreateEscrow({
   arbitrationProvider,
   setAllValid,
 }: {
-  step1Valid: boolean,
-  allValid: boolean,
-  clientAddress?: Address,
-  paymentAddress?: Address,
-  paymentToken?: Address,
-  payments: bigint[],
-  paymentDue: bigint,
-  milestones: number,
-  termsAccepted: boolean,
-  arbitrationProvider?: Address,
+  step1Valid: boolean;
+  allValid: boolean;
+  clientAddress?: Address;
+  paymentAddress?: Address;
+  paymentToken?: Address;
+  payments: bigint[];
+  paymentDue: bigint;
+  milestones: number;
+  termsAccepted: boolean;
+  arbitrationProvider?: Address;
   // eslint-disable-next-line no-unused-vars
-  setAllValid: (valid: boolean) => void,
+  setAllValid: (valid: boolean) => void;
 }) {
   const escrowStep2Valid = useMemo(
     () =>

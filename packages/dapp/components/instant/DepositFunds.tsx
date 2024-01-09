@@ -74,7 +74,10 @@ export function DepositFunds({
   const { address, token, amounts: rawAmounts } = invoice ?? {};
   const validAddress = isAddress(address);
   const validToken = isAddress(token);
-  const amounts = useMemo(() => (rawAmounts ?? []).map((a) => BigInt(a)), [rawAmounts]);
+  const amounts = useMemo(
+    () => (rawAmounts ?? []).map(a => BigInt(a)),
+    [rawAmounts],
+  );
   const [paymentType, setPaymentType] = useState(0);
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [amount, setAmount] = useState(BigInt(0));
@@ -98,9 +101,15 @@ export function DepositFunds({
   const defaultTipPercs = [10, 15, 18];
 
   const deposit = async () => {
-
     setTxHash(undefined);
-    if (!validAddress || !validToken || !totalPayment || !walletClient || !balance) return;
+    if (
+      !validAddress ||
+      !validToken ||
+      !totalPayment ||
+      !walletClient ||
+      !balance
+    )
+      return;
     if (formatUnits(totalPayment, decimals) > formatUnits(balance, decimals)) {
       setDepositError(true);
       return;
@@ -115,9 +124,19 @@ export function DepositFunds({
           value: totalPayment,
         });
       } else if (fulfilled) {
-        hash = await tipTokens(walletClient, validAddress, validToken, totalPayment);
+        hash = await tipTokens(
+          walletClient,
+          validAddress,
+          validToken,
+          totalPayment,
+        );
       } else {
-        hash = await depositTokens(walletClient, validAddress, validToken, totalPayment);
+        hash = await depositTokens(
+          walletClient,
+          validAddress,
+          validToken,
+          totalPayment,
+        );
       }
       setTxHash(hash);
       const { chain } = walletClient;
@@ -275,12 +294,12 @@ export function DepositFunds({
             type="number"
             textAlign="right"
             value={amountInput}
-            onChange={(e) => {
+            onChange={e => {
               const newAmountInput = e.target.value;
               setAmountInput(newAmountInput);
               if (newAmountInput) {
                 const newAmount = parseUnits(newAmountInput, decimals);
-                setAmount(newAmount);                
+                setAmount(newAmount);
                 setChecked(getCheckedStatus(deposited + newAmount, amounts));
               } else {
                 setAmount(BigInt(0));

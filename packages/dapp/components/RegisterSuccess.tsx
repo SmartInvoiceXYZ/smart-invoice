@@ -96,9 +96,9 @@ export function RegisterSuccess() {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${getHexChainId(String(invoice.network) as Network)}/${
-                  invoice.id
-                }/${
+                href={`/invoice/${getHexChainId(
+                  String(invoice.network) as Network,
+                )}/${invoice.id}/${
                   invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
                 }`}
                 color="charcoal"
@@ -136,17 +136,21 @@ export function RegisterSuccess() {
             >
               <Link
                 ml="0.5rem"
-                href={`/invoice/${getHexChainId(String(invoice.network) as Network)}/${
-                  invoice.id
-                }/${
-                  String(invoice.invoiceType) === 'escrow' ? '' : invoice.invoiceType
+                href={`/invoice/${getHexChainId(
+                  String(invoice.network) as Network,
+                )}/${invoice.id}/${
+                  String(invoice.invoiceType) === 'escrow'
+                    ? ''
+                    : invoice.invoiceType
                 }`}
                 color="charcoal"
                 overflow="hidden"
               >{`${window.location.origin}/invoice/${getHexChainId(
                 String(invoice.network) as Network,
               )}/${invoice.id}/${
-                String(invoice.invoiceType) === 'escrow' ? '' : invoice.invoiceType
+                String(invoice.invoiceType) === 'escrow'
+                  ? ''
+                  : invoice.invoiceType
               }`}</Link>
               {document.queryCommandSupported('copy') && (
                 <Button

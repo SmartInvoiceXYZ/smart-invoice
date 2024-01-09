@@ -76,15 +76,16 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
   const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
   const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] = useState(projectAgreement);
+  const [revisedProjectAgreement, setRevisedProjectAgreement] =
+    useState(projectAgreement);
   const defaultSrc =
-  projectAgreement && projectAgreement.length > 0
+    projectAgreement && projectAgreement.length > 0
       ? projectAgreement[projectAgreement.length - 1].src
       : '';
   const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
     useState(defaultSrc);
   const defaultProjectType =
-  projectAgreement && projectAgreement.length > 0
+    projectAgreement && projectAgreement.length > 0
       ? projectAgreement[projectAgreement.length - 1].type
       : '';
 
@@ -94,7 +95,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
 
   useEffect(() => {
     if (!amounts) return;
-    
+
     const totalAmounts = formatUnits(
       amounts.reduce((a, b) => a + BigInt(b), BigInt(0)),
       decimals,
@@ -129,9 +130,9 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
       createdAt,
     };
     setRevisedProjectAgreement([
-      ...projectAgreement ?? [],
+      ...(projectAgreement ?? []),
       newProjectAgreement,
-    ])
+    ]);
   }, [
     revisedProjectAgreementSrc,
     revisedProjectAgreementType,
@@ -165,7 +166,11 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
             detailsHash,
           );
         } else {
-          hash = await addMilestones(walletClient, validAddress, milestoneAmounts);
+          hash = await addMilestones(
+            walletClient,
+            validAddress,
+            milestoneAmounts,
+          );
         }
 
         setTxHash(hash);

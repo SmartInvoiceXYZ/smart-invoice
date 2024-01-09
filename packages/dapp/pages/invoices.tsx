@@ -27,11 +27,7 @@ const Invoices = () => {
   return (
     <Box
       paddingY={16}
-      flex={
-        resultCount && resultCount > 0
-          ? '1 0 100%'
-          : undefined
-      }
+      flex={resultCount && resultCount > 0 ? '1 0 100%' : undefined}
     >
       {loading ? (
         <Stack align="center">
@@ -45,9 +41,9 @@ const Invoices = () => {
           chainId={chain?.id}
           searchInput={account}
           onLoading={(l, c) => {
-            setLoading(l); 
+            setLoading(l);
             setResultCount(c);
-          }}          
+          }}
         />
       ) : (
         <Flex
@@ -83,6 +79,6 @@ const Invoices = () => {
       )}
     </Box>
   );
-}
+};
 
 export default Invoices;

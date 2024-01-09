@@ -26,7 +26,7 @@ const uploadTokenData = async (ts: any) => {
   const bufferedString = Buffer.from(objectString);
   const result = await client.add(bufferedString);
 
-  await client.pin.add(result.cid).then((pinResult) => {
+  await client.pin.add(result.cid).then(pinResult => {
     logDebug(pinResult);
   });
 };

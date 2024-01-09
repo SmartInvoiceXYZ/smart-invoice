@@ -62,10 +62,12 @@ export function ReleaseFunds({
     token,
     provider: recipient,
   } = invoice ?? {};
-  const validAmounts = amounts?.map((a) => BigInt(a));
+  const validAmounts = amounts?.map(a => BigInt(a));
   const validAddress = isAddress(address);
 
-  const amount = validAmounts ? getReleaseAmount(Number(currentMilestone), validAmounts, balance) : undefined;
+  const amount = validAmounts
+    ? getReleaseAmount(Number(currentMilestone), validAmounts, balance)
+    : undefined;
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [txHash, setTxHash] = useState<Hash>();
@@ -107,7 +109,18 @@ export function ReleaseFunds({
     if (amount && balance && balance > amount) {
       send();
     }
-  }, [network, amount, address, walletClient, balance, loading, close, chainId, toast, validAddress]);
+  }, [
+    network,
+    amount,
+    address,
+    walletClient,
+    balance,
+    loading,
+    close,
+    chainId,
+    toast,
+    validAddress,
+  ]);
 
   return (
     <VStack w="100%" spacing="1rem">
@@ -145,7 +158,9 @@ export function ReleaseFunds({
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{amount ? `${formatUnits(amount, decimals)} ${symbol}` : '-'}</Text>
+        >
+          {amount ? `${formatUnits(amount, decimals)} ${symbol}` : '-'}
+        </Text>
       </VStack>
       {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">

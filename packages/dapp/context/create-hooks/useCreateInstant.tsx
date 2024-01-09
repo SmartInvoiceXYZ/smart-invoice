@@ -12,15 +12,15 @@ export function useCreateInstant({
   milestones,
   setAllValid,
 }: {
-  step1Valid: boolean,
-  allValid: boolean,
-  clientAddress?: Address,
-  paymentAddress?: Address,
-  paymentToken?: Address,
-  paymentDue: bigint,
-  milestones: number,
+  step1Valid: boolean;
+  allValid: boolean;
+  clientAddress?: Address;
+  paymentAddress?: Address;
+  paymentToken?: Address;
+  paymentDue: bigint;
+  milestones: number;
   // eslint-disable-next-line no-unused-vars
-  setAllValid: (valid: boolean) => void,
+  setAllValid: (valid: boolean) => void;
 }) {
   const instantStep2Valid = useMemo(
     () =>

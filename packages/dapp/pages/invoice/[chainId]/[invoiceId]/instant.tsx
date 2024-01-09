@@ -123,10 +123,7 @@ function ViewInstantInvoice({
       try {
         const d = await getDeadline(chain, validAddress);
         setDeadline(Number(d));
-        const { amount, timeInterval } = await getLateFee(
-          chain,
-          validAddress,
-        );
+        const { amount, timeInterval } = await getLateFee(chain, validAddress);
         setLateFeeAmount(amount);
         setLateFeeTimeInterval(Number(timeInterval));
       } catch (lateFeeError) {
@@ -317,7 +314,11 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                {validClient ? (<AccountLink address={validClient} chainId={invoiceChainId} />) : client}
+                {validClient ? (
+                  <AccountLink address={validClient} chainId={invoiceChainId} />
+                ) : (
+                  client
+                )}
               </WrapItem>
             </Wrap>
 
@@ -327,7 +328,14 @@ function ViewInstantInvoice({
               </WrapItem>
 
               <WrapItem fontWeight="bold">
-                {validProvider ? (<AccountLink address={validProvider} chainId={invoiceChainId} />) : provider}
+                {validProvider ? (
+                  <AccountLink
+                    address={validProvider}
+                    chainId={invoiceChainId}
+                  />
+                ) : (
+                  provider
+                )}
               </WrapItem>
             </Wrap>
 
@@ -358,17 +366,19 @@ function ViewInstantInvoice({
             w="100%"
             color="black"
           >
-            {total ? (<Flex
-              justify="space-between"
-              align="center"
-              fontWeight="bold"
-              fontSize="lg"
-              mb="1rem"
-            >
-              <Text>Amount</Text>
+            {total ? (
+              <Flex
+                justify="space-between"
+                align="center"
+                fontWeight="bold"
+                fontSize="lg"
+                mb="1rem"
+              >
+                <Text>Amount</Text>
 
-              <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
-            </Flex>): null}
+                <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
+              </Flex>
+            ) : null}
 
             <Flex
               justify="space-between"

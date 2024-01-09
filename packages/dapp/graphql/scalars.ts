@@ -1,5 +1,5 @@
-import BigNumber from "bignumber.js";
-import { ZeusScalars } from "./zeus";
+import BigNumber from 'bignumber.js';
+import { ZeusScalars } from './zeus';
 
 export const scalars = ZeusScalars({
   BigDecimal: {

@@ -250,12 +250,16 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
           <Text style={styles.details}>
             Termination Time:{' '}
-            <Text style={styles.text}>{unixToDateTime(Number(terminationTime))}</Text>
+            <Text style={styles.text}>
+              {unixToDateTime(Number(terminationTime))}
+            </Text>
           </Text>
           {startDate && startDate > 0 ? (
             <Text style={styles.details}>
               Project Start Date:{' '}
-              <Text style={styles.text}>{unixToDateTime(Number(startDate))}</Text>
+              <Text style={styles.text}>
+                {unixToDateTime(Number(startDate))}
+              </Text>
             </Text>
           ) : null}
           {endDate && endDate > 0 ? (
@@ -268,165 +272,171 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
         <View style={styles.separatorTwo} />
 
-
         {projectAgreement && (
-        <View style={styles.detailsContainer}>
-          <Text style={styles.details}>
-            Project Name: <Text style={styles.text}>{projectName}</Text>
-          </Text>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.details}>
+              Project Name: <Text style={styles.text}>{projectName}</Text>
+            </Text>
 
-          <Text style={styles.details}>
-            Description: <Text style={styles.text}>{projectDescription}</Text>
-          </Text>
-          <Text style={styles.details}>Project Agreement(s):</Text>
-          {projectAgreement.map((agreement, index) => (
-            <View key={agreement.id}>
-              <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
+            <Text style={styles.details}>
+              Description: <Text style={styles.text}>{projectDescription}</Text>
+            </Text>
+            <Text style={styles.details}>Project Agreement(s):</Text>
+            {projectAgreement.map((agreement, index) => (
+              <View key={agreement.id}>
+                <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
-              <Text style={[styles.text, { textIndent: 20 }]}>
-                Created At: {unixToDateTime(Number(agreement.createdAt))}
-              </Text>
+                <Text style={[styles.text, { textIndent: 20 }]}>
+                  Created At: {unixToDateTime(Number(agreement.createdAt))}
+                </Text>
 
-              <Text style={[styles.text, { textIndent: 20 }]}>
-                Agreement Source: {agreement.src}
-              </Text>
-            </View>
-          ))}
-        </View>)}
+                <Text style={[styles.text, { textIndent: 20 }]}>
+                  Agreement Source: {agreement.src}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Payment Milestones */}
-{amounts &&(<>
-        <View style={styles.tableContainer}>
-          <View style={styles.container}>
-            <Text style={styles.description}>Payment Milestones</Text>
+        {amounts && (
+          <>
+            <View style={styles.tableContainer}>
+              <View style={styles.container}>
+                <Text style={styles.description}>Payment Milestones</Text>
 
-            <Text style={styles.amount}>Amount</Text>
-          </View>
-        </View>
-        {amounts.map((amount, index) => {
-          let amountTotal = BigInt(0);
-          if (index + 1 === amounts.length) {
-            const sum = amounts.reduce((a, b) => a + BigInt(b), BigInt(0));
-            amountTotal = sum;
-          }
-          return (
-            <View key={amount + BigInt(index)}>
-              <View style={styles.row}>
-                <Text style={styles.description}>
-                  Payment Milestone # {index + 1}
-                </Text>
-                <Text style={styles.amount}>
-                  {formatEther(BigInt(amount))} {symbol}
-                </Text>
+                <Text style={styles.amount}>Amount</Text>
               </View>
-              {amountTotal > 0 ? (
-                <View style={styles.row}>
-                  <Text style={styles.totalDescription}>TOTAL</Text>
-                  <Text style={styles.amount}>
-                    {formatEther(amountTotal)} {symbol}
-                  </Text>
-                </View>
-              ) : null}
             </View>
-          );
-        })}
-        </>
-)}
+            {amounts.map((amount, index) => {
+              let amountTotal = BigInt(0);
+              if (index + 1 === amounts.length) {
+                const sum = amounts.reduce((a, b) => a + BigInt(b), BigInt(0));
+                amountTotal = sum;
+              }
+              return (
+                <View key={amount + BigInt(index)}>
+                  <View style={styles.row}>
+                    <Text style={styles.description}>
+                      Payment Milestone # {index + 1}
+                    </Text>
+                    <Text style={styles.amount}>
+                      {formatEther(BigInt(amount))} {symbol}
+                    </Text>
+                  </View>
+                  {amountTotal > 0 ? (
+                    <View style={styles.row}>
+                      <Text style={styles.totalDescription}>TOTAL</Text>
+                      <Text style={styles.amount}>
+                        {formatEther(amountTotal)} {symbol}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+          </>
+        )}
 
         {/* Deposits */}
-{deposits && (<>
-        <View style={styles.tableContainer}>
-          <View style={styles.container}>
-            <Text style={styles.listTitle}>Deposits</Text>
-          </View>
-        </View>
-
-        {deposits.map((deposit, index) => (
-          <Fragment key={deposit.txHash}>
-            <View style={styles.listContainer}>
-              <View style={styles.innerTitle}>
-                <Text style={styles.underline}>Deposit #{index + 1}</Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Sender: <Text>{deposit.sender}</Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Amount: <Text>{formatEther(deposit.amount)}</Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Timestamp: <Text>{unixToDateTime(Number(deposit.timestamp))}</Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  TxHash: <Text>{deposit.txHash}</Text>
-                </Text>
+        {deposits && (
+          <>
+            <View style={styles.tableContainer}>
+              <View style={styles.container}>
+                <Text style={styles.listTitle}>Deposits</Text>
               </View>
             </View>
-          </Fragment>
-        ))}
-        </>)}
+
+            {deposits.map((deposit, index) => (
+              <Fragment key={deposit.txHash}>
+                <View style={styles.listContainer}>
+                  <View style={styles.innerTitle}>
+                    <Text style={styles.underline}>Deposit #{index + 1}</Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Sender: <Text>{deposit.sender}</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Amount: <Text>{formatEther(deposit.amount)}</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Timestamp:{' '}
+                      <Text>{unixToDateTime(Number(deposit.timestamp))}</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      TxHash: <Text>{deposit.txHash}</Text>
+                    </Text>
+                  </View>
+                </View>
+              </Fragment>
+            ))}
+          </>
+        )}
 
         {/* Releases */}
 
-        {releases && (<>
-        <View style={styles.tableContainer}>
-          <View style={styles.container}>
-            <Text style={styles.listTitle}>Releases</Text>
-          </View>
-        </View>
-
-        {releases.map((release, index) => (
-          <Fragment key={release.txHash}>
-            <View style={styles.listContainer}>
-              <View style={styles.innerTitle}>
-                <Text style={styles.underline}>Release #{index + 1}</Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Milestone: <Text>{Number(release.milestone) + 1}</Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Amount:{' '}
-                  <Text>
-                    {formatEther(release.amount)} {symbol}
-                  </Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  Timestamp: <Text>{unixToDateTime(Number(release.timestamp))}</Text>
-                </Text>
-              </View>
-
-              <View style={styles.invisibleRow}>
-                <Text>
-                  TxHash: <Text>{release.txHash}</Text>
-                </Text>
+        {releases && (
+          <>
+            <View style={styles.tableContainer}>
+              <View style={styles.container}>
+                <Text style={styles.listTitle}>Releases</Text>
               </View>
             </View>
-          </Fragment>
-        ))}
 
-</>)}
+            {releases.map((release, index) => (
+              <Fragment key={release.txHash}>
+                <View style={styles.listContainer}>
+                  <View style={styles.innerTitle}>
+                    <Text style={styles.underline}>Release #{index + 1}</Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Milestone: <Text>{Number(release.milestone) + 1}</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Amount:{' '}
+                      <Text>
+                        {formatEther(release.amount)} {symbol}
+                      </Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      Timestamp:{' '}
+                      <Text>{unixToDateTime(Number(release.timestamp))}</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.invisibleRow}>
+                    <Text>
+                      TxHash: <Text>{release.txHash}</Text>
+                    </Text>
+                  </View>
+                </View>
+              </Fragment>
+            ))}
+          </>
+        )}
       </Page>
 
       {/* Disputes */}
-        {disputes && disputes.length > 0 ? (
+      {disputes && disputes.length > 0 ? (
         <Page size="A4" style={styles.page}>
           <View>
             <Text style={styles.secondTitle}>Disputes</Text>
@@ -525,13 +535,15 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 </Text>
               </View>
 
-              {resolution.resolutionFee ? (<View style={styles.detailPair}>
-                <Text style={styles.invisibleRow}>Resolution Fee:</Text>
+              {resolution.resolutionFee ? (
+                <View style={styles.detailPair}>
+                  <Text style={styles.invisibleRow}>Resolution Fee:</Text>
 
-                <Text style={styles.detailRow}>
-                  {formatEther(resolution.resolutionFee)} {symbol}
-                </Text>
-              </View>) : null}
+                  <Text style={styles.detailRow}>
+                    {formatEther(resolution.resolutionFee)} {symbol}
+                  </Text>
+                </View>
+              ) : null}
 
               <View style={styles.detailPair}>
                 <Text style={styles.invisibleRow}>Resolver Type:</Text>

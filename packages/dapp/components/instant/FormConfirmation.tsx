@@ -114,14 +114,20 @@ export function FormConfirmation({ display, tokenData }: any) {
         </Flex>
       ) : null}
 
-      {paymentDue ? (<><Divider
-        color="black"
-        w="calc(100% + 2rem)"
-        transform="translateX(-1rem)" /><Flex justify="flex-end">
-          <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-            {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
-          </Text>
-        </Flex></>) : null}
+      {paymentDue ? (
+        <>
+          <Divider
+            color="black"
+            w="calc(100% + 2rem)"
+            transform="translateX(-1rem)"
+          />
+          <Flex justify="flex-end">
+            <Text color="blue.1" ml="2.5rem" fontWeight="bold">
+              {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
+            </Text>
+          </Flex>
+        </>
+      ) : null}
     </VStack>
   );
 }

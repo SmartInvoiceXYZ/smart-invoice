@@ -77,7 +77,11 @@ export function Header() {
       <Box width="230px">
         <ChakraLink as={NextLink} href="/invoices">
           <Flex cursor="pointer">
-            <Image src='/assets/smart-invoice/normal.svg' alt="Smart Invoice" height={34.84} />
+            <Image
+              src="/assets/smart-invoice/normal.svg"
+              alt="Smart Invoice"
+              height={34.84}
+            />
           </Flex>
         </ChakraLink>
       </Box>
