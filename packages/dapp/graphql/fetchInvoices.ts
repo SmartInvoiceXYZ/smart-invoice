@@ -6,7 +6,7 @@ import { Address, isAddress } from 'viem';
 import { typedGql } from './zeus/typedDocumentNode';
 import { Invoice_orderBy, OrderDirection, _SubgraphErrorPolicy_ } from './zeus';
 import { clients } from './client';
-import { logDebug, logError } from '../utils';
+import { logDebug } from '../utils';
 import { scalars } from './scalars';
 
 export type SearchInputType = string | Address | undefined;
