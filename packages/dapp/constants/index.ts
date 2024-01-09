@@ -154,7 +154,7 @@ export const invoiceFactory = {
   80001: NETWORK_CONFIG[80001].INVOICE_FACTORY,
 };
 
-export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG);
+export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG).map(k => Number(k));
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
 

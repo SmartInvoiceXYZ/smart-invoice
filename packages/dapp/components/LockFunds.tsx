@@ -142,7 +142,7 @@ export function LockFunds({ invoice, balance, tokenData }: any) {
             top="50%"
             transform="translate(-50%,-50%)"
           >
-            <Image width="2rem" src="../assets/lock.svg" alt="lock" />
+            <Image width="2rem" src="/assets/lock.svg" alt="lock" />
           </Flex>
         </Flex>
       </VStack>

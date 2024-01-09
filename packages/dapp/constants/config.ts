@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-const LexDAOLogo = '../assets/lex-dao.png';
+const LexDAOLogo = '/assets/lex-dao.png';
 
 export type Resolver = {
   name: string;
