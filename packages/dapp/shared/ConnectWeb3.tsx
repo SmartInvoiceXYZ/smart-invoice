@@ -23,7 +23,6 @@ export function ConnectWeb3() {
     );
   }
 
-  const NETWORK_NAMES = SUPPORTED_NETWORKS.map(getNetworkName).join(' or ');
   return (
     <Container>
       <Flex
@@ -59,7 +58,7 @@ export function ConnectWeb3() {
 
             <Text color="greyText" mb={4} textAlign="center">
               {account
-                ? `Please switch to ${NETWORK_NAMES}`
+                ? `Please switch to ${SUPPORTED_NETWORKS.map(getNetworkName).join(' or ')}`
                 : 'To get started, connect your wallet'}
             </Text>
           </>
