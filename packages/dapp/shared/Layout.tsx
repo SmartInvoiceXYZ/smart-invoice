@@ -24,7 +24,7 @@ export const Layout : React.FC<React.PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const isOpenPath =
     router.pathname === '/' || router.pathname === '/contracts';
-  const isValid = (account && chainId && chainId in SUPPORTED_NETWORKS) || isOpenPath;
+  const isValid = isOpenPath || (account && chainId && SUPPORTED_NETWORKS.includes(chainId));
 
   return (
     <Flex
@@ -40,10 +40,7 @@ export const Layout : React.FC<React.PropsWithChildren> = ({ children }) => {
       bgSize="cover"
       color="#323C47"
     >
-      {/* <NavBar /> {isValid ? children : <ConnectWeb3 />} <Footer /> */}
-
       <Header />
-
       <Flex
         flexGrow={1}
         position="relative"
@@ -55,9 +52,7 @@ export const Layout : React.FC<React.PropsWithChildren> = ({ children }) => {
       >
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
-
       <Analytics />
-
       <Footer />
     </Flex>
   );
