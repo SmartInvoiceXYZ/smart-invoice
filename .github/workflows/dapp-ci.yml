@@ -1,0 +1,52 @@
+name: 'DApp CI'
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'develop'
+    paths:
+      - 'packages/dapp/**'
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+    paths:
+      - 'packages/dapp/**'
+
+jobs:
+  ci:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          # We need to fetch all branches and commits so that Nx affected has a base to compare against.
+          fetch-depth: 0
+
+      - name: Set up node using nvm
+        uses: dcodeIO/setup-node-nvm@v5
+
+      # - name: "Copy config"
+      #   run: |
+      #     mv ./evm/.env.github ./evm/.env
+      #     echo "::debug::$(less .env)"
+
+      - name: 'Install the dependencies'
+        run: 'yarn install --immutable'
+
+      - name: 'Lint the code'
+        run: 'yarn run dapp:lint'
+
+      - name: 'Add lint summary'
+        run: |
+          echo "## Lint results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+
+      - name: 'Test the code and generate the coverage report'
+        run: 'yarn run dapp:test'
+
+      - name: 'Add test summary'
+        run: |
+          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
