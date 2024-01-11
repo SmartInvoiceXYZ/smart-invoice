@@ -1,6 +1,7 @@
 const { ethers, waffle } = require("hardhat");
 const { expect } = require("chai");
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const EMPTY_BYTES32 =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -366,4 +367,5 @@ module.exports = {
   createInstantInvoice,
   createUpdatableEscrow,
   getLockedUpdatableEscrow,
+  ZERO_ADDRESS,
 };

@@ -1,12 +1,12 @@
 import { Address, log } from '@graphprotocol/graph-ts';
 
 import { Invoice } from '../../../types/schema';
-import { SmartInvoiceEscrow01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceEscrow01';
+import { SmartInvoiceSplitEscrow01 } from '../../../types/templates/SmartInvoiceSplitEscrow01/SmartInvoiceSplitEscrow01';
 import { InvoiceObject } from '../utils';
 import { handleIpfsDetails } from './ipfs';
 
-function fetchEscrowInfo(address: Address): InvoiceObject {
-  let invoiceInstance = SmartInvoiceEscrow01.bind(address);
+function fetchSplitEscrowInfo(address: Address): InvoiceObject {
+  let invoiceInstance = SmartInvoiceSplitEscrow01.bind(address);
 
   let invoiceObject = new InvoiceObject();
 
@@ -23,6 +23,8 @@ function fetchEscrowInfo(address: Address): InvoiceObject {
   let terminationTime = invoiceInstance.try_terminationTime();
   let details = invoiceInstance.try_details();
   let disputeId = invoiceInstance.try_disputeId();
+  let dao = invoiceInstance.try_dao();
+  let daoFee = invoiceInstance.try_daoFee();
 
   if (!client.reverted) {
     invoiceObject.client = client.value;
@@ -64,12 +66,21 @@ function fetchEscrowInfo(address: Address): InvoiceObject {
     //needs to be broken out based on invoice type
     invoiceObject = handleIpfsDetails(details.value, invoiceObject);
   }
+  if (!dao.reverted) {
+    invoiceObject.dao = dao.value;
+  }
+  if (!daoFee.reverted) {
+    invoiceObject.daoFee = daoFee.value;
+  }
 
   return invoiceObject;
 }
 
-export function updateEscrowInfo(address: Address, invoice: Invoice): Invoice {
-  let invoiceObject = fetchEscrowInfo(address);
+export function updateSplitEscrowInfo(
+  address: Address,
+  invoice: Invoice,
+): Invoice {
+  let invoiceObject = fetchSplitEscrowInfo(address);
 
   log.info('Got details for invoice', [address.toHexString()]);
 
@@ -95,6 +106,8 @@ export function updateEscrowInfo(address: Address, invoice: Invoice): Invoice {
   invoice.projectDescription = invoiceObject.projectDescription;
   invoice.startDate = invoiceObject.startDate;
   invoice.endDate = invoiceObject.endDate;
+  invoice.dao = invoiceObject.dao;
+  invoice.daoFee = invoiceObject.daoFee;
 
   invoice.projectAgreement.length = 0;
   let projectAgreement = new Array<string>();
