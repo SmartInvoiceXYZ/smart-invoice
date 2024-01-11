@@ -2,11 +2,13 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
-import { Container } from '../../shared/Container';
+import { Container } from '../../src/shared/Container';
 
 describe('Container', () => {
   it('should render', () => {
-    const view = render(<Container />);
+    const view = render(<Container>
+      <div>hello</div>
+    </Container>);
 
     expect(view.asFragment()).toMatchSnapshot();
   });
