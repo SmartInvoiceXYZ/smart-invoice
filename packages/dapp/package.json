@@ -40,7 +40,8 @@
     "dev": "next dev",
     "start": "next start",
     "build": "next build",
-    "test": "next test",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,jsx,ts,tsx}\""
   },
