@@ -153,7 +153,7 @@ export const getAccountString = (account?: string) => {
 };
 
 export const isKnownResolver = (resolver: Address, chainId?: number) =>
-  getResolvers(chainId).indexOf(resolver.toLowerCase() as Address) !== -1;
+  getResolvers(chainId).indexOf(resolver?.toLowerCase() as Address) !== -1;
 
 export const getResolverString = (resolver: Address, chainId?: number) => {
   const info = getResolverInfo(resolver, chainId);

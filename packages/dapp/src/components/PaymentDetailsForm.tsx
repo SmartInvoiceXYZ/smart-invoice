@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits, parseUnits, zeroAddress } from 'viem';
+import { Address, Hex, formatUnits, parseUnits, zeroAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
@@ -97,7 +97,7 @@ export function PaymentDetailsForm({
         value={clientAddress}
         isInvalid={clientInvalid}
         setValue={v => {
-          setClientAddress(v);
+          setClientAddress(v as Hex);
           setClientInvalid(!isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
@@ -110,7 +110,7 @@ export function PaymentDetailsForm({
         value={paymentAddress}
         isInvalid={providerInvalid}
         setValue={v => {
-          setPaymentAddress(v);
+          setPaymentAddress(v as Hex);
           setProviderInvalid(!isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
@@ -146,12 +146,12 @@ export function PaymentDetailsForm({
 
         <OrderedSelect
           value={paymentToken}
-          setValue={setPaymentToken}
+          setValue={v => setPaymentToken(v as Hex)}
           label="Payment Token"
           required="required"
           tooltip="This is the cryptocurrency you’ll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you’ll be forced to start the invoice over)."
         >
-          {TOKENS.map(token => (
+          {TOKENS?.map(token => (
             <option value={token} key={token}>
               {getTokenInfo(chainId, token, tokenData).symbol}
             </option>
@@ -198,7 +198,7 @@ export function PaymentDetailsForm({
             setArbitrationProviderType(v);
             const validAddress = isAddress(v);
             if (validAddress && isKnownResolver(validAddress, chainId)) {
-              setArbitrationProvider(v);
+              setArbitrationProvider(v as Hex);
               setTermsAccepted(false);
             } else {
               setArbitrationProvider(zeroAddress);
@@ -239,7 +239,7 @@ export function PaymentDetailsForm({
           label="Arbitration Provider Address"
           value={arbitrationProvider}
           setValue={v => {
-            setArbitrationProvider(v);
+            setArbitrationProvider(v as Hex);
             setResolverInvalid(!isAddress(v));
           }}
           isInvalid={resolverInvalid}
