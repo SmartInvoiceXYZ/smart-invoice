@@ -21,7 +21,7 @@ import { Styles } from './InvoicesStyles';
 import {
   // Invoice_orderBy,
   fetchInvoices,
-  Invoice,
+  InvoiceDetails,
 } from '@smart-invoice/graphql';
 
 export type SearchInputType = string | Address | undefined;
@@ -40,7 +40,7 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
   const router = useRouter();
 
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Invoice>();
+    const columnHelper = createColumnHelper<InvoiceDetails>();
 
     return [
       columnHelper.accessor('createdAt', {
@@ -54,7 +54,8 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
         footer: info => info.column.id,
       }),
       columnHelper.accessor(
-        row => formatUnits(row.total, row.tokenMetadata?.decimals),
+        row =>
+          row?.total && formatUnits(row.total, row.tokenMetadata?.decimals),
         {
           id: 'amount',
           header: 'Amount',
@@ -62,7 +63,7 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
           footer: info => info.column.id,
         },
       ),
-      columnHelper.accessor(row => row.tokenMetadata?.symbol, {
+      columnHelper.accessor(row => row?.tokenMetadata?.symbol, {
         id: 'currency',
         header: 'Currency',
         cell: info => info.getValue(),
@@ -127,7 +128,7 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
   );
 
   const table = useReactTable({
-    data: dataQuery.data ?? defaultData,
+    data: dataQuery.data ?? (defaultData as any),
     columns,
     pageCount: Math.ceil(dataQuery.status.length / pageSize) ?? -1,
     state: {

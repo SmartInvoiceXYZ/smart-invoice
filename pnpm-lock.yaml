@@ -238,9 +238,6 @@ importers:
       '@vercel/analytics':
         specifier: ^1.1.1
         version: 1.1.2
-      '@wagmi/core':
-        specifier: ^1.4.13
-        version: 1.4.13(@types/react@18.2.48)(react@18.2.0)(typescript@5.3.3)(viem@1.21.4)
       abitype:
         specifier: ^0.10.3
         version: 0.10.3(typescript@5.3.3)
@@ -274,6 +271,9 @@ importers:
       ipfs-http-client:
         specifier: 50.1.2
         version: 50.1.2(node-fetch@3.3.2)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       next:
         specifier: ^14.0.4
         version: 14.1.0(@babel/core@7.23.7)(react-dom@18.2.0)(react@18.2.0)
@@ -305,6 +305,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.11
         version: 29.5.11
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       '@types/react':
         specifier: ^18.2.47
         version: 18.2.48
@@ -584,6 +587,9 @@ importers:
         specifier: ^1.4.13
         version: 1.4.13(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(viem@1.21.4)
     devDependencies:
+      '@types/jest':
+        specifier: ^29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 20.11.5
         version: 20.11.5
@@ -621,6 +627,9 @@ importers:
         specifier: ^1.4.13
         version: 1.4.13(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)(viem@1.21.4)
     devDependencies:
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       '@types/node':
         specifier: 20.11.5
         version: 20.11.5

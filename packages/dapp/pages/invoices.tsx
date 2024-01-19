@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
-import { useRouter } from 'next/router';
-import React, { useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import React from 'react';
+import { useAccount, useChainId } from 'wagmi';
+import _ from 'lodash';
 
 import {
   Box,
@@ -13,38 +13,29 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { InvoiceDashboardTable } from '@smart-invoice/ui';
+import { ChakraNextLink, InvoiceDashboardTable } from '@smart-invoice/ui';
+import { useInvoiceList } from '@smart-invoice/hooks';
+import { chainsMap } from '@smart-invoice/utils/src';
 
 const Invoices = () => {
-  const { data: walletClient } = useWalletClient();
-  const [loading, setLoading] = useState(false);
-  const [resultCount, setResultCount] = useState<number>();
-  const account = walletClient?.account?.address;
-  const chain = walletClient?.chain;
-  const router = useRouter();
+  const { address } = useAccount();
+  const chainId = useChainId();
+
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
+  const { data: invoices, isLoading } = useInvoiceList({ chainId });
+
   return (
-    <Box
-      paddingY={16}
-      flex={resultCount && resultCount > 0 ? '1 0 100%' : undefined}
-    >
-      {loading ? (
+    <Box paddingY={16} flex={!_.isEmpty(invoices) ? '1 0 100%' : undefined}>
+      {isLoading ? (
         <Stack align="center">
           <Heading color="gray" as="h1">
             Invoices Loading
           </Heading>
           <Spinner />
         </Stack>
-      ) : resultCount && resultCount > 0 ? (
-        <InvoiceDashboardTable
-          chainId={chain?.id}
-          searchInput={account}
-          onLoading={(l, c) => {
-            setLoading(l);
-            setResultCount(c);
-          }}
-        />
+      ) : !_.isEmpty(invoices) ? (
+        <InvoiceDashboardTable chainId={chainId} searchInput={address} />
       ) : (
         <Flex
           direction="column"
@@ -53,9 +44,9 @@ const Invoices = () => {
           gap={4}
           width="100%"
         >
-          {chain ? (
+          {chainId ? (
             <Heading color="gray" size="lg">
-              No invoices found on {chain.name}.
+              No invoices found on {chainsMap(chainId).name}.
             </Heading>
           ) : (
             <Heading color="gray" size="lg">
@@ -63,18 +54,11 @@ const Invoices = () => {
             </Heading>
           )}
 
-          <Button
-            color="white"
-            backgroundColor="blue.1"
-            size={buttonSize}
-            minW="250px"
-            paddingY={6}
-            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-            onClick={() => router.push('/create')}
-          >
-            Create Invoice
-          </Button>
+          <ChakraNextLink href="/create">
+            <Button size={buttonSize} minW="250px" paddingY={6}>
+              Create Invoice
+            </Button>
+          </ChakraNextLink>
         </Flex>
       )}
     </Box>

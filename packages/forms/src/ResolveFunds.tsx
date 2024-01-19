@@ -10,7 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useResolve } from '@smart-invoice/hooks';
-import { Invoice } from '@smart-invoice/types';
+import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -28,7 +28,10 @@ const ResolveFunds = ({
   balance: bigint;
   close: () => void;
 }) => {
-  const { resolutionRate, token } = invoice;
+  const { resolutionRate, token } = _.pick(invoice, [
+    'resolutionRate',
+    'token',
+  ]);
   const chainId = useChainId();
 
   const isLocked = true;
@@ -37,10 +40,14 @@ const ResolveFunds = ({
   const { watch, handleSubmit, setValue } = localForm;
 
   const resolverAward = useMemo(() => {
-    if (resolutionRate === 0 || balance === BigInt(0)) {
+    if (
+      !resolutionRate ||
+      resolutionRate === BigInt(0) ||
+      balance === BigInt(0)
+    ) {
       return 0;
     }
-    return _.toNumber(formatUnits(balance / BigInt(resolutionRate), 18));
+    return _.toNumber(formatUnits(balance / resolutionRate, 18));
   }, [balance, resolutionRate]);
 
   const availableFunds = _.toNumber(formatUnits(balance, 18)) - resolverAward;

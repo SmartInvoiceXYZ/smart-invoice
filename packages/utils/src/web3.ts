@@ -1,7 +1,14 @@
-import { configureChains, createConfig } from 'wagmi';
-import { gnosis, goerli, mainnet, polygon, polygonMumbai } from 'wagmi/chains';
+import { Chain, configureChains, createConfig } from 'wagmi';
+import {
+  gnosis as defaultGnosis,
+  goerli,
+  mainnet,
+  polygon,
+  polygonMumbai,
+} from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
+import _ from 'lodash';
 
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
@@ -16,15 +23,35 @@ import {
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 
-const customGnosis = {
-  ...gnosis,
+const gnosis = {
+  ...defaultGnosis,
   hasIcon: true,
   iconUrl: '/chains/gnosis.png',
   iconBackground: 'none',
 };
 
+const mainnetChains = [1, 100, 137];
+const testnetChains = [5, 80001];
+const orderedChains = _.concat(mainnetChains, testnetChains);
+
+export const chainsList: { [key: number]: Chain } = {
+  1: mainnet,
+  5: goerli,
+  100: gnosis,
+  137: polygon,
+  80001: polygonMumbai,
+};
+
+export const chainsMap = (chainId: number) => {
+  const chain = chainsList[chainId];
+  if (!chain) {
+    throw new Error(`Chain ${chainId} not found`);
+  }
+  return chain;
+};
+
 const { chains, publicClient } = configureChains(
-  [mainnet, polygon, customGnosis, goerli, polygonMumbai],
+  _.map(orderedChains, chainId => chainsMap(chainId)),
   [
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider(),

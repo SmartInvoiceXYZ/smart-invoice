@@ -9,10 +9,11 @@ import {
 } from '@chakra-ui/react';
 import { fetchInvoice } from '@smart-invoice/graphql';
 import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
-import { Invoice } from '@smart-invoice/types';
+import { Invoice } from '@smart-invoice/graphql';
 // import { parseTokenAddress } from '@smart-invoice/utils';
-import { formatUnits } from 'viem';
+import { Hex, formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
+import _ from 'lodash';
 
 type ReleaseFundsProp = {
   invoice: Invoice;
@@ -38,12 +39,16 @@ const ReleaseFunds = ({ invoice, balance }: ReleaseFundsProp) => {
   const toast = useToast();
   const chainId = useChainId();
 
-  const { address, currentMilestone, amounts, token } = invoice;
+  const { address, currentMilestone, amounts, token, released } = _.pick(
+    invoice,
+    ['address', 'currentMilestone', 'amounts', 'token', 'released'],
+  );
 
   const waitForRelease = usePollSubgraph({
     label: 'waiting for funds to be released',
-    fetchHelper: () => fetchInvoice(chainId, address),
-    checkResult: updatedInvoice => updatedInvoice.released > invoice.released,
+    fetchHelper: () => address && fetchInvoice(chainId, address as Hex),
+    checkResult: updatedInvoice =>
+      released ? updatedInvoice.released > released : false,
   });
 
   const onSuccess = async () => {

@@ -154,3 +154,6 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
 };
 
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
+export type InvoiceDetails = {
+  tokenMetadata: any; // TokenMetadata;
+} & Invoice;

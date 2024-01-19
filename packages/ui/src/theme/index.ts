@@ -1,6 +1,8 @@
 import { extendTheme } from '@chakra-ui/react';
 import { css } from '@emotion/react';
 
+import Button from './components/Button';
+
 export const theme = extendTheme({
   initialColorMode: 'light',
   useSystemColorMode: false,
@@ -33,6 +35,9 @@ export const theme = extendTheme({
     greyText: '#ABABAB',
     purple: '#702b89',
     red50: 'rgba(255, 56, 100, 0.5)',
+  },
+  components: {
+    Button,
   },
   fonts: {
     mono: `'Poppins', sans-serif`,

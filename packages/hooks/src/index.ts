@@ -2,6 +2,7 @@ export { default as useDeposit } from './useDeposit';
 export { default as useEscrowZap } from './useEscrowZap';
 export { useFetchTokensViaIPFS } from './useFetchTokensViaIPFS';
 export { default as useInvoiceDetails } from './useInvoiceDetails';
+export { default as useInvoiceList } from './useInvoiceList';
 export { useInvoiceStatus } from './useInvoiceStatus';
 export { default as useLock } from './useLock';
 export { default as usePollSubgraph } from './usePollSubgraph';

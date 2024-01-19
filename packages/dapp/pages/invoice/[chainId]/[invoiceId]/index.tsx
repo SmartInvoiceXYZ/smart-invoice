@@ -25,14 +25,14 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import {
-  AddMilestones,
-  DepositFunds,
-  LockFunds,
-  ReleaseFunds,
-  ResolveFunds,
-  WithdrawFunds,
-} from '@smart-invoice/forms';
+// import {
+//   AddMilestones,
+//   DepositFunds,
+//   LockFunds,
+//   ReleaseFunds,
+//   ResolveFunds,
+//   WithdrawFunds,
+// } from '@smart-invoice/forms';
 import {
   GenerateInvoicePDF,
   Loader,

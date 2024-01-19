@@ -7,9 +7,10 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useWithdraw } from '@smart-invoice/hooks';
-import { Invoice } from '@smart-invoice/types';
+import { Invoice } from '@smart-invoice/graphql';
 import { formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
+import { getTxLink } from '@smart-invoice/utils';
 
 const WithdrawFunds = ({
   invoice,

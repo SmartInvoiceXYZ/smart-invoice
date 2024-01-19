@@ -1,6 +1,4 @@
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
-
+import React from 'react';
 import {
   Button,
   Flex,
@@ -8,53 +6,9 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
-import { logError } from '@smart-invoice/utils';
-import { useAccount } from 'wagmi';
+import { ChakraNextLink } from '@smart-invoice/ui';
 
 function Home() {
-  const account = useAccount();
-
-  const router = useRouter();
-  const [isMobile, onMobile] = useState(false);
-  const toggleMobileMode = () => {
-    if (window.innerWidth < 600) {
-      onMobile(true);
-    } else {
-      onMobile(false);
-    }
-  };
-  useEffect(() => {
-    if (window) {
-      toggleMobileMode();
-      window.addEventListener('resize', toggleMobileMode);
-    }
-  });
-
-  const createInvoice = async () => {
-    if (account) {
-      router.push('/create');
-    } else {
-      try {
-        router.push('/create');
-      } catch (error) {
-        logError("Couldn't connect web3 wallet");
-      }
-    }
-  };
-
-  const viewInvoices = async () => {
-    if (account) {
-      router.push('/invoices');
-    } else {
-      try {
-        router.push('/invoices');
-      } catch (error) {
-        logError("Couldn't connect web3 wallet");
-      }
-    }
-  };
-
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   return (
@@ -73,7 +27,7 @@ function Home() {
       </Text>
 
       <Flex
-        direction={isMobile ? 'column' : undefined}
+        direction={{ base: 'column', lg: 'row' }}
         columnGap={10}
         rowGap={4}
         width="100%"
@@ -81,31 +35,17 @@ function Home() {
         justify="center"
         paddingX={10}
       >
-        <Button
-          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          color="white"
-          backgroundColor="blue.1"
-          onClick={createInvoice}
-          size={buttonSize}
-          minW="250px"
-          paddingY={6}
-        >
-          Create Invoice
-        </Button>
+        <ChakraNextLink href="/create">
+          <Button size={buttonSize} minW="250px" paddingY={6}>
+            Create Invoice
+          </Button>
+        </ChakraNextLink>
 
-        <Button
-          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          color="white"
-          backgroundColor="blue.1"
-          onClick={viewInvoices}
-          size={buttonSize}
-          minW="250px"
-          paddingY={6}
-        >
-          View Existing Invoices
-        </Button>
+        <ChakraNextLink href="/invoices">
+          <Button size={buttonSize} minW="250px" paddingY={6}>
+            View Existing Invoices
+          </Button>
+        </ChakraNextLink>
       </Flex>
     </Flex>
   );

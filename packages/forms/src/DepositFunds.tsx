@@ -29,7 +29,7 @@ import {
   Invoice,
   // parseTokenAddress,
   // PAYMENT_TYPES,
-} from '@smart-invoice/types';
+} from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -47,7 +47,11 @@ const DepositFunds = ({
   deposited: bigint;
   due: bigint;
 }) => {
-  const { token, amounts, currentMilestone } = invoice;
+  const { token, amounts, currentMilestone } = _.pick(invoice, [
+    'token',
+    'amounts',
+    'currentMilestone',
+  ]);
   const chainId = useChainId();
   const { address } = useAccount();
 
@@ -132,7 +136,7 @@ const DepositFunds = ({
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem" color="whiteAlpha.700">
         At a minimum, you’ll need to deposit enough to cover the{' '}
-        {currentMilestone === 0 ? 'first' : 'next'} project payment.
+        {currentMilestone === BigInt(0) ? 'first' : 'next'} project payment.
       </Text>
       <Text textAlign="center" color="purple.400">
         How much will you be depositing today?

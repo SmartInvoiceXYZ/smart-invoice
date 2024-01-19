@@ -134,7 +134,7 @@ export const CONFIG = {
   },
 } as const;
 
-const { NETWORK_CONFIG } = CONFIG;
+export const { NETWORK_CONFIG } = CONFIG;
 
 export type ChainId = keyof typeof NETWORK_CONFIG;
 
