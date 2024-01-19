@@ -20,7 +20,7 @@ import {
   WrapItem,
 } from '@chakra-ui/react';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { useFetchTokens } from '@smart-invoice/hooks';
 // import {
 //   AddMilestones,
 //   DepositFunds,
@@ -52,6 +52,7 @@ import {
   isAddress,
   logError,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { formatUnits } from 'viem';
@@ -62,7 +63,8 @@ function ViewInvoice() {
   const router = useRouter();
   const { invoiceId: invId, chain: hexChainId } = router.query;
   const invoiceId = String(invId) as `0x${string}`;
-  const [{ tokenData }] = useFetchTokensViaIPFS();
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
   const [invoice, setInvoice] = useState<Invoice>();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigInt(0));

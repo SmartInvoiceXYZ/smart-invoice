@@ -1,4 +1,4 @@
-export const ISmartInvoiceInstantAbi = [
+export const SMART_INVOICE_INSTANT_ABI = [
   {
     inputs: [],
     name: 'deadline',

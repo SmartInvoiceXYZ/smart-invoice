@@ -7,7 +7,7 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
-import { getNetworkName } from '@smart-invoice/utils';
+import { chainsMap } from '@smart-invoice/utils/src';
 import React from 'react';
 
 type NetworkChangeAlertModalProps = {
@@ -44,7 +44,7 @@ export function NetworkChangeAlertModal({
         >
           <div>
             You are changing the network to{' '}
-            <b>{chainId ? getNetworkName(chainId) : '-'}</b>.
+            <b>{chainId ? chainsMap(chainId)?.name : '-'}</b>.
           </div>
           <Divider style={{ borderTop: '1px solid red', margin: '10px 0' }} />
           <div>

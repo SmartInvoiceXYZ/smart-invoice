@@ -1,4 +1,4 @@
-const Button = {
+export const Button = {
   baseStyle: {},
   defaultProps: {
     variant: 'solid',
@@ -12,5 +12,3 @@ const Button = {
     },
   },
 };
-
-export default Button;

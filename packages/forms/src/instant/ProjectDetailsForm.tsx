@@ -1,11 +1,5 @@
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
-import {
-  OrderedInput,
-  // OrderedLinkInput,
-  // OrderedTextarea,
-  OrderedLinkInput,
-  OrderedTextarea,
-} from '@smart-invoice/ui';
+import { Input, LinkInput, Textarea } from '@smart-invoice/ui';
 import { formatDate } from '@smart-invoice/utils';
 import React, { useContext, useState } from 'react';
 
@@ -22,7 +16,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
 
   return (
     <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      {/* <OrderedInput
+      {/* <Input
         label="Project Name or ID"
         value={projectName}
         setValue={v => {
@@ -35,7 +29,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
         required="required"
       />
 
-      <OrderedLinkInput
+      <LinkInput
         label="Link to Project Agreement"
         value={projectAgreementSource}
         setValue={setProjectAgreementSource}
@@ -45,7 +39,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
         required="required"
       />
 
-      <OrderedTextarea
+      <Textarea
         label="Project Description"
         value={projectDescription}
         setValue={setProjectDescription}
@@ -61,7 +55,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
         columns={{ base: 1, sm: 2, md: 2 }}
         // mb={dateInvalid ? '-0.5rem' : ''}
       >
-        {/* <OrderedInput
+        {/* <Input
           label="Project Start Date"
           type="date"
           value={startDateString}
@@ -70,7 +64,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
           tooltip="This is the date you expect to begin work on this project."
         />
 
-        <OrderedInput
+        <Input
           label="Expected End Date"
           type="date"
           value={endDateString}
@@ -78,7 +72,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
           required="optional"
           tooltip="This is the date you expect to complete work on this project."
         /> */}
-        {/* <OrderedInput
+        {/* <Input
           gridArea={{
             base: 'auto/auto/auto/auto',
             sm: '2/1/2/span 2',

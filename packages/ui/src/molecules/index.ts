@@ -6,5 +6,4 @@ export * from './InvoicePDF';
 export * from './InvoicesStyles';
 export * from './InvoiceStatusLabel';
 export * from './NetworkChangeAlertModal';
-export * from './OrderedInput';
 export * from './WhatIsThisModal';

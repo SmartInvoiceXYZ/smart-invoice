@@ -1,4 +1,4 @@
-import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { Hex } from 'viem';
 import { useBalance, useContractWrite, usePrepareContractWrite } from 'wagmi';
@@ -40,7 +40,7 @@ export const useResolve = ({
   } = usePrepareContractWrite({
     address: invoice?.address as Hex,
     functionName: 'resolve',
-    abi: ISmartInvoiceEscrowAbi,
+    abi: SMART_INVOICE_ESCROW_ABI,
     args: [clientAward, providerAward, detailsHash],
     enabled:
       !!invoice?.address &&

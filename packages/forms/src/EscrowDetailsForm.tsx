@@ -1,20 +1,29 @@
 import {
   Box,
   Button,
-  Card,
+  Checkbox,
   // Checkbox,
   // DatePicker,
   Flex,
-  HStack,
-  // Input,
+  Grid,
+  Link,
   Stack,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
+import { ESCROW_STEPS, SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
+import { Input, Select } from '@smart-invoice/ui';
+import {
+  getResolverInfo,
+  getResolvers,
+  getResolverString,
+  isKnownResolver,
+} from '@smart-invoice/utils/src';
 import _ from 'lodash';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
+import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
@@ -30,38 +39,27 @@ export const sevenDaysFromNow = () => {
 const schema = Yup.object().shape({
   client: Yup.string().required('Client address is required'),
   // TODO handle nested when for provider !== client
-  provider: Yup.string().when(
-    'raidPartySplit',
-    (raidPartySplit: any, localSchema: any) => {
-      if (_.first(raidPartySplit)) return localSchema;
-      return localSchema.required('Raid party address is required');
-    },
-  ),
-  safetyValveDate: Yup.date()
-    .required('Safety valve date is required')
-    .min(
-      sevenDaysFromNow(),
-      'Safety valve date must be at least a week in the future',
-    ),
-  daoSplit: Yup.boolean().required('DAO split is required'),
-  spoilsPercent: Yup.string(),
-  raidPartySplit: Yup.boolean().required('Raid party split is required'),
+  provider: Yup.string().required(),
+  resolver: Yup.string().required(),
+  customResolver: Yup.string(),
+  // customResolver: Yup.string().when('resolver', {
+  //   is: (resolver: string) => resolver === 'custom',
+  //   then: Yup.string().required('Custom resolver address is required'),
+  // }),
 });
 
 export function EscrowDetailsForm({
   escrowForm,
-  raid,
   updateStep,
   backStep,
 }: {
   escrowForm: UseFormReturn;
-  raid: any; // IRaid;
   updateStep: (i?: number) => void;
   backStep: () => void;
 }) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
-  const { provider, client, safetyValveDate, raidPartySplit } = watch();
+  const { provider, client, resolver, customResolver } = watch();
   const localForm = useForm({
     resolver: yupResolver(schema),
   });
@@ -70,68 +68,43 @@ export function EscrowDetailsForm({
     setValue: localSetValue,
     watch: localWatch,
   } = localForm;
-  const {
-    // safetyValveDate: localSafetyValveDate,
-    daoSplit: localDaoSplit,
-    spoilsPercent: localSpoilsPercent,
-    raidPartySplit: localRaidPartySplit,
-  } = localWatch();
-
-  const saveEscrowValues = (values: Partial<Invoice>) => {
-    // update values in escrow form
-    setValue('client', values?.client);
-    setValue('provider', values?.provider);
-    // setValue('safetyValveDate', values?.safetyValveDate);
-    // setValue('raidPartySplit', values?.raidPartySplit);
-    // setValue('daoSplit', values?.daoSplit);
-  };
 
   // values: Partial<Invoice>
   const onSubmit = (values: any) => {
-    saveEscrowValues(values);
-
-    // move form
-    if (localRaidPartySplit) updateStep(1);
-    else updateStep(2);
+    setValue('client', values?.client);
+    setValue('provider', values?.provider);
+    setValue('resolver', values?.resolver);
+    setValue('customResolver', values?.customResolver);
   };
 
-  const onBack = () => {
-    const values = watch();
-    saveEscrowValues(values);
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
-    backStep();
-  };
+  const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
+  const localResolver = localWatch('resolver');
 
   useEffect(() => {
     // set initial local values
     localSetValue('client', client || '');
     if (provider) localSetValue('provider', provider);
-    localSetValue('safetyValveDate', safetyValveDate || sevenDaysFromNow());
-    if (_.isUndefined(raidPartySplit)) localSetValue('raidPartySplit', true);
-    else localSetValue('raidPartySplit', raidPartySplit);
-    // set daoSplit for zap, not used in form explicitly
-    localSetValue('daoSplit', !_.isUndefined(raid));
+    if (resolver) localSetValue('resolver', resolver);
+    if (customResolver) localSetValue('customResolver', customResolver);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, raid]);
+  }, [chainId]);
 
-  useEffect(() => {
-    localSetValue('spoilsPercent', localDaoSplit ? '10' : '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localDaoSplit]);
+  console.log(resolver);
 
   return (
-    <Card as="form" onSubmit={handleSubmit(onSubmit)} variant="filled" p={6}>
+    <Box as="form" onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={4} w="100%">
         <Stack spacing={4}>
-          {/* <Input
+          <Input
             label="Client Address"
-            tooltip="This will be the address used to release funds from the invoice. This does not need to be the same address that funds the escrow."
+            tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address."
             placeholder="0x..."
             name="client"
-            isDisabled={!raid}
             localForm={localForm}
-          /> */}
+          />
         </Stack>
 
         <Flex>
@@ -143,69 +116,75 @@ export function EscrowDetailsForm({
               localForm={localForm}
             /> */}
           </Box>
-
-          <Stack w="50%">
-            {/* <Checkbox
-              label="Raid Party Split"
-              name="raidPartySplit"
-              tooltip="Automatically split the funds between the raid party members on release from escrow"
-              localForm={localForm}
-              options={['Add Raid Party split']}
-            /> */}
-          </Stack>
         </Flex>
-
-        {!localRaidPartySplit && (
-          <Flex>
-            {/* <Input
-              label="Raid Party Address"
-              tooltip="Recipient of the funds"
-              placeholder="0x..."
-              name="provider"
-              localForm={localForm}
-              registerOptions={{ required: true }}
-            /> */}
-          </Flex>
-        )}
 
         <Flex>
-          {/* <Input
+          <Input
+            label="Raid Party Address"
+            tooltip="Recipient of the funds"
+            placeholder="0x..."
+            name="provider"
+            localForm={localForm}
+            registerOptions={{ required: true }}
+          />
+        </Flex>
+
+        <Flex>
+          <Select
             name="resolver"
             label="Arbitration Provider"
-            value={localDaoSplit ? 'LexDAO' : 'RaidGuild DAO'}
             localForm={localForm}
-            isDisabled
-          />
-
-          <Input
-            name="spoilsPercent"
-            label="Spoils"
-            value={`${localSpoilsPercent}%`}
-            localForm={localForm}
-            isDisabled
-          /> */}
-        </Flex>
-
-        <Flex justify="center">
-          <HStack>
-            {!raid && (
-              <Button variant="outline" onClick={onBack}>
-                Back
-              </Button>
-            )}
-            <Button
-              type="submit"
-              variant="solid"
-              isDisabled={unsupportedNetwork(chainId)}
+          >
+            {RESOLVERS.map((res: any) => (
+              <option key={res} value={res}>
+                {getResolverInfo(res, chainId).name}
+              </option>
+            ))}
+            <option value="custom">Custom</option>
+          </Select>
+          {localResolver === 'custom' ||
+          !isKnownResolver(localResolver as Hex, chainId) ? (
+            <Input
+              name="customResolver"
+              tooltip="This arbitrator will be used in case of dispute."
+              label="Arbitration Provider Address"
+              localForm={localForm}
+            />
+          ) : (
+            <Checkbox
+              colorScheme="blue"
+              size="lg"
+              fontSize="1rem"
+              color="#323C47"
+              borderColor="lightgrey"
             >
-              Next:{' '}
-              {localRaidPartySplit
-                ? 'Set Raid Party Split'
-                : 'Set Payment Amounts'}
-            </Button>
-          </HStack>
+              {`I agree to ${getResolverString(resolver, chainId)} `}
+
+              <Link
+                href={getResolverInfo(resolver, chainId).termsUrl}
+                isExternal
+                textDecor="underline"
+              >
+                terms of service
+              </Link>
+            </Checkbox>
+          )}
         </Flex>
+
+        <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
+          <Button
+            type="submit"
+            // isLoading={loading}
+            // isDisabled={!nextStepEnabled}
+            textTransform="uppercase"
+            size={buttonSize}
+            fontFamily="mono"
+            fontWeight="bold"
+          >
+            Next: {ESCROW_STEPS[2].next}
+          </Button>
+        </Grid>
       </Stack>
-    </Card>
+    </Box>
   );
 }

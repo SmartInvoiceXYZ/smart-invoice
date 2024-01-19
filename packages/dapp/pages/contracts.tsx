@@ -6,7 +6,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { CONFIG } from '@smart-invoice/constants';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import { Container } from '@smart-invoice/ui';
 import {
   getAccountString,
@@ -16,6 +16,7 @@ import {
   getTokenInfo,
   getTokens,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React from 'react';
 
 const { NETWORK_CONFIG } = CONFIG;
@@ -23,7 +24,8 @@ const chainIds = getKeys(NETWORK_CONFIG);
 
 function Contracts() {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
-  const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const { data } = useFetchTokens();
+  const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
 
   if (tokenData && allTokens) {
     return (
@@ -40,7 +42,7 @@ function Contracts() {
         </Heading>
 
         {chainIds.map(chainId => {
-          const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId);
+          const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId) || '0x';
           const TOKENS = getTokens(allTokens, chainId);
 
           return (

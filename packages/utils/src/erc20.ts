@@ -1,4 +1,4 @@
-import { IERC20Abi } from '@smart-invoice/constants';
+import { IERC20_ABI } from '@smart-invoice/constants';
 import { Address, Chain, WalletClient } from 'viem';
 // import { readContract, writeContract } from './contracts';
 

@@ -1,7 +1,7 @@
 import {
-  ISmartInvoiceEscrowAbi,
-  ISmartInvoiceFactoryAbi,
-  ISmartInvoiceInstantAbi,
+  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_FACTORY_ABI,
+  SMART_INVOICE_INSTANT_ABI,
 } from '@smart-invoice/constants';
 import {
   Address,
@@ -44,7 +44,7 @@ export const register = async (
 
 export const awaitInvoiceAddress = async (chainId: number, hash: Hash) => {
   // const receipt = await waitForTransaction({ chainId: chain.id, hash });
-  const abi = ISmartInvoiceFactoryAbi;
+  const abi = SMART_INVOICE_FACTORY_ABI;
 
   // const [, address, , ,] = await readEvent({
   //   abi,

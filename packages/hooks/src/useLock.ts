@@ -1,4 +1,4 @@
-import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { useState } from 'react';
@@ -40,7 +40,7 @@ export const useLock = ({
   } = usePrepareContractWrite({
     address: invoice?.address as Hex,
     functionName: 'lock',
-    abi: ISmartInvoiceEscrowAbi,
+    abi: SMART_INVOICE_ESCROW_ABI,
     args: [detailsHash],
     enabled: !!invoice?.address && !!disputeReason,
   });

@@ -1,4 +1,4 @@
-export const ISmartInvoiceSplitEscrowAbi = [
+export const SMART_INVOICE_SPLIT_ESCROW_ABI = [
   {
     inputs: [
       {

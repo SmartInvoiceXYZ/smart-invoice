@@ -10,22 +10,17 @@ import {
 import { ChainId } from '@smart-invoice/constants';
 import { useInvoiceDetails } from '@smart-invoice/hooks';
 import { TokenData } from '@smart-invoice/types';
+import { AccountLink } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import React from 'react';
 import { Address, formatUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
-import { AccountLink } from '../atoms/AccountLink';
-
 type FormConfirmationProps = {
-  display: boolean;
   tokenData: Record<ChainId, Record<Address, TokenData>>;
 };
 
-export function FormConfirmation({
-  display,
-  tokenData,
-}: FormConfirmationProps) {
+export function FormConfirmation({ tokenData }: FormConfirmationProps) {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   // const {
@@ -53,12 +48,7 @@ export function FormConfirmation({
   });
 
   return (
-    <VStack
-      w="100%"
-      spacing="1rem"
-      color="#323C47"
-      display={display ? 'flex' : 'none'}
-    >
+    <VStack w="100%" spacing="1rem" color="#323C47">
       {/* <Text
         id="project-title"
         color="#323C47"

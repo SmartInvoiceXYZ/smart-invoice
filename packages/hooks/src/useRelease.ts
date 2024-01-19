@@ -1,4 +1,4 @@
-import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { Hex } from 'viem';
@@ -25,7 +25,7 @@ export const useRelease = ({
   } = usePrepareContractWrite({
     chainId,
     address: invoice?.address as Hex,
-    abi: ISmartInvoiceEscrowAbi,
+    abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: [BigInt(0)], //  specifyMilestones ? [milestone] : [], // optional args
     enabled: !!invoice?.address,

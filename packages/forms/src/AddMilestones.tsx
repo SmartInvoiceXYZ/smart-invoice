@@ -5,7 +5,7 @@ import {
   Flex,
   Heading,
   HStack,
-  Input,
+  Input as ChakraInput,
   InputGroup,
   InputRightElement,
   Link,
@@ -17,7 +17,7 @@ import {
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { TokenData } from '@smart-invoice/types';
-import { OrderedInput } from '@smart-invoice/ui';
+import { Input, LinkInput } from '@smart-invoice/ui';
 import {
   calculateResolutionFeePercentage,
   getTokenInfo,
@@ -195,7 +195,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
       {revisedProjectAgreementType === 'ipfs' ? (
         <div />
       ) : (
-        // <OrderedLinkInput
+        // <LinkInput
         //   label="Link to Project Agreement (if updated)"
         //   setValue={setRevisedProjectAgreementSrc}
         //   linkType={revisedProjectAgreementType}
@@ -212,7 +212,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         spacing="1rem"
         mb={addedTotalInvalid ? '-0.5rem' : ''}
       >
-        <OrderedInput
+        {/* <Input
           label="Total Payment Added"
           type="number"
           color="black"
@@ -232,7 +232,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           }}
         />
 
-        <OrderedInput
+        <Input
           gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
           label="Number of Payments"
           color="black"
@@ -257,7 +257,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
             );
           }}
           tooltip="Number of milestones in which the total payment will be processed"
-        />
+        /> */}
       </SimpleGrid>
 
       <VStack
@@ -277,7 +277,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
             </Flex>
 
             <InputGroup>
-              <Input
+              <ChakraInput
                 bg="white"
                 type="text"
                 color="black"

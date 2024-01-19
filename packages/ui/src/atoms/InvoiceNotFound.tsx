@@ -1,5 +1,5 @@
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
-import { getNetworkName } from '@smart-invoice/utils';
+import { chainsMap } from '@smart-invoice/utils/src';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -45,7 +45,7 @@ export function InvoiceNotFound({
         </Text>
         {chainId && (
           <Text color="greyText">
-            Please switch to <b>{getNetworkName(chainId)}</b> to view this
+            Please switch to <b>{chainsMap(chainId)?.name}</b> to view this
             invoice.
           </Text>
         )}

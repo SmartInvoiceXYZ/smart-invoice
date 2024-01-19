@@ -96,10 +96,16 @@ importers:
 
   packages/constants:
     dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       viem:
         specifier: ^1.21.4
         version: 1.21.4(typescript@5.3.3)
     devDependencies:
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       '@types/node':
         specifier: ^20.11.5
         version: 20.11.5
@@ -580,12 +586,18 @@ importers:
       ipfs-http-client:
         specifier: ^50.1.2
         version: 50.1.2(node-fetch@3.3.2)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       next:
         specifier: ^14.0.4
         version: 14.1.0(@babel/core@7.23.7)(react-dom@18.2.0)(react@18.2.0)
       react:
         specifier: ^18.2.0
         version: 18.2.0
+      react-hook-form:
+        specifier: ^7.49.3
+        version: 7.49.3(react@18.2.0)
       styled-components:
         specifier: ^6.1.8
         version: 6.1.8(react-dom@18.2.0)(react@18.2.0)
@@ -599,6 +611,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.11
         version: 29.5.11
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       '@types/node':
         specifier: 20.11.5
         version: 20.11.5

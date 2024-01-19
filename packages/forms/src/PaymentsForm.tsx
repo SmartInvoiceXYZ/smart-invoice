@@ -1,39 +1,29 @@
 import {
+  Box,
   Button,
-  Card,
   Flex,
   FormControl,
+  Grid,
   Heading,
   HStack,
-  Icon,
   IconButton,
-  NumberInput,
-  // RadioBox,
   Stack,
   Text,
   Tooltip,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { ESCROW_STEPS } from '@smart-invoice/constants/src';
 import { Invoice } from '@smart-invoice/graphql';
-import { commify } from '@smart-invoice/utils';
+import { useFetchTokens } from '@smart-invoice/hooks';
+import { NumberInput, Select } from '@smart-invoice/ui';
+import { commify, getTokenInfo, getTokens } from '@smart-invoice/utils';
 import _ from 'lodash';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
-// import { FaInfoCircle, FaPlusCircle, FaRegTrashAlt } from 'react-icons/fa';
+import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
-
-// TODO migrate to design system
-
-const tokens = (chainId: number) => {
-  if (chainId === 100) {
-    return ['WETH', 'WXDAI'];
-  }
-  if (chainId === 1) {
-    return ['WETH', 'DAI'];
-  }
-  return ['WETH', 'DAI', 'TEST'];
-};
 
 const validationSchema = Yup.object().shape({
   milestones: Yup.array().of(
@@ -59,7 +49,7 @@ export function PaymentsForm({
 }) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
-  const { milestones, token, raidPartySplit } = watch();
+  const { milestones, token } = watch();
   const localForm = useForm({
     defaultValues: {
       milestones: [{ value: '1000' }],
@@ -75,24 +65,26 @@ export function PaymentsForm({
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
 
+  const { data } = useFetchTokens();
+  const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
+
   const setEscrowValues = (values: Partial<Invoice>) => {
     // set values in escrow form
     // setValue('milestones', values?.milestones);
     setValue('token', values?.token);
   };
 
+  const TOKENS = useMemo(
+    () => allTokens && getTokens(allTokens, chainId),
+    [chainId, allTokens],
+  );
+
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+
   const onSubmit = (values: any) => {
     setEscrowValues(values);
     // navigate form
     updateStep();
-  };
-
-  const onBack = () => {
-    const values = getValues();
-    setEscrowValues(values as Partial<Invoice>);
-
-    if (raidPartySplit) backStep();
-    else backStep(2);
   };
 
   const {
@@ -106,7 +98,7 @@ export function PaymentsForm({
 
   useEffect(() => {
     if (milestones) localSetValue('milestones', milestones);
-    localSetValue('token', token || tokens(chainId)[0]);
+    localSetValue('token', token || _.first(TOKENS));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -117,16 +109,22 @@ export function PaymentsForm({
   );
 
   return (
-    <Card variant="filled" as="form" onSubmit={handleSubmit(onSubmit)} p={6}>
+    <Box as="form" onSubmit={handleSubmit(onSubmit)} p={6}>
       <Flex w="100%">
         <FormControl isRequired>
-          {/* <RadioBox
-            options={tokens(chainId)}
-            label="Payment Token"
-            tooltip="Token to be used for escrow payments"
+          <Select
             name="token"
+            label="Payment Token"
+            required="required"
+            tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
             localForm={localForm}
-          /> */}
+          >
+            {TOKENS?.map((t: string) => (
+              <option value={t} key={t}>
+                {getTokenInfo(chainId, t, tokenData).symbol}
+              </option>
+            ))}
+          </Select>
         </FormControl>
       </Flex>
       <Stack w="100%">
@@ -156,7 +154,7 @@ export function PaymentsForm({
           return (
             <HStack key={field.id} spacing={4}>
               <HStack spacing={1} flexGrow={1}>
-                {/* <NumberInput
+                <NumberInput
                   name={`milestones.${index}.value`}
                   step={50}
                   min={0}
@@ -164,7 +162,7 @@ export function PaymentsForm({
                   placeholder="500"
                   variant="outline"
                   localForm={localForm}
-                /> */}
+                />
               </HStack>
               <IconButton
                 // icon={<Icon as={FaRegTrashAlt} />}
@@ -193,20 +191,19 @@ export function PaymentsForm({
         </Flex>
       </Stack>
 
-      <Flex direction="row" width="100%" mt="1rem">
+      <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
-          variant="outline"
-          minW="25%"
-          p="5px"
-          mr=".5rem"
-          onClick={onBack}
+          type="submit"
+          // isLoading={loading}
+          // isDisabled={!nextStepEnabled}
+          textTransform="uppercase"
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="bold"
         >
-          Back
+          Next: {ESCROW_STEPS[2].next}
         </Button>
-        <Button type="submit" variant="solid" width="100%" isDisabled={false}>
-          Next: Confirmation
-        </Button>
-      </Flex>
-    </Card>
+      </Grid>
+    </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { Hex } from 'viem';
@@ -14,7 +14,7 @@ export const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
   } = usePrepareContractWrite({
     address: address as Hex,
     functionName: 'withdraw',
-    abi: ISmartInvoiceEscrowAbi,
+    abi: SMART_INVOICE_ESCROW_ABI,
     // args: [],
     enabled: !!invoice?.address,
   });

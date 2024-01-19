@@ -1,26 +1,26 @@
 import { Button, Flex, Text } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
-import { getNetworkName } from '@smart-invoice/utils';
+import { chainsMap } from '@smart-invoice/utils/src';
+import _ from 'lodash';
 import React from 'react';
-import { useWalletClient } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { Container } from './Container';
-import { Loader } from './Loader';
+// import { Loader } from './Loader';
 
 export function ConnectWeb3() {
-  const { data: walletClient, isLoading } = useWalletClient();
   const { openConnectModal } = useConnectModal();
-  const { account } = walletClient ?? {};
+  const { address } = useAccount();
 
-  if (isLoading) {
-    return (
-      <Container>
-        <Loader size="80" />
-      </Container>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <Container>
+  //       <Loader size="80" />
+  //     </Container>
+  //   );
+  // }
 
   return (
     <Container>
@@ -45,26 +45,21 @@ export function ConnectWeb3() {
         >
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
-        {isLoading ? (
-          <Text fontSize="2xl" fontFamily="heading" mb={4}>
-            Connecting Wallet
-          </Text>
-        ) : (
-          <>
-            <Text fontSize="2xl" fontFamily="heading" mb={4}>
-              {account ? `Network not supported` : 'Connect Wallet'}
-            </Text>
 
-            <Text color="greyText" mb={4} textAlign="center">
-              {account
-                ? `Please switch to ${SUPPORTED_NETWORKS.map(
-                    getNetworkName,
-                  ).join(' or ')}`
-                : 'To get started, connect your wallet'}
-            </Text>
-          </>
-        )}
-        {!account && (
+        <Text fontSize="2xl" fontFamily="heading" mb={4}>
+          {address ? `Network not supported` : 'Connect Wallet'}
+        </Text>
+
+        <Text color="greyText" mb={4} textAlign="center">
+          {address
+            ? `Please switch to ${_.map(
+                SUPPORTED_NETWORKS,
+                network => chainsMap(network)?.name,
+              ).join(' or ')}`
+            : 'To get started, connect your wallet'}
+        </Text>
+
+        {!address && (
           <Button
             onClick={openConnectModal}
             backgroundColor="blue.1"
@@ -72,7 +67,7 @@ export function ConnectWeb3() {
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             color="white"
             px={12}
-            isLoading={isLoading}
+            // isLoading={isLoading}
             fontFamily="mono"
             fontWeight="normal"
           >

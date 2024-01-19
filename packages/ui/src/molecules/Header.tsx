@@ -1,10 +1,15 @@
-// import { useAccount, useConnect, useWalletClient } from 'wagmi';
-import { Box, Button, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Flex,
+  Image,
+  useDisclosure,
+  useMediaQuery,
+} from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import { ChakraNextLink } from '@smart-invoice/ui';
+import _ from 'lodash';
 
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
@@ -30,33 +35,19 @@ export const StyledButton = styled(Button)`
   }
 `;
 
+const links = [
+  { label: 'Dashboard', href: '/invoices' },
+  { label: 'Documentation', href: 'https://docs.smartinvoice.xyz' },
+  {
+    label: 'Support',
+    href: 'https://docs.smartinvoice.xyz/misc/get-support',
+  },
+];
+
 export function Header() {
-  // const { address } = useAccount();
-  // const { data: walletClient } = useWalletClient();
-  const [isOpen, onOpen] = useState(false);
-  const [isMobile, onMobile] = useState(false);
-  const router = useRouter();
+  const { isOpen, onToggle } = useDisclosure();
 
-  useEffect(() => {
-    const toggleMobileMode = () => {
-      if (window.innerWidth < 850) {
-        onMobile(true);
-      } else {
-        onMobile(false);
-      }
-    };
-    if (window) {
-      toggleMobileMode();
-      window.addEventListener('resize', toggleMobileMode);
-    }
-  });
-
-  // TODO: test we can remove this safely
-  // useEffect(() => {
-  //   if (address && walletClient) {
-  //     connect();
-  //   }
-  // }, [address, walletClient]);
+  const [upTo780] = useMediaQuery('(max-width: 780px)');
 
   return (
     <Flex
@@ -74,7 +65,7 @@ export function Header() {
       zIndex={5}
     >
       <Box width="230px">
-        <ChakraLink as={NextLink} href="/invoices">
+        <ChakraNextLink href="/invoices">
           <Flex cursor="pointer">
             <Image
               src="/assets/smart-invoice/normal.svg"
@@ -82,29 +73,21 @@ export function Header() {
               height={34.84}
             />
           </Flex>
-        </ChakraLink>
+        </ChakraNextLink>
       </Box>
 
       {/* Navigation Links */}
-      {!isMobile && (
+      {!upTo780 && (
         <Flex gap={8} justify="center" align="center">
-          <ChakraLink href="/invoices">Dashboard</ChakraLink>
-
-          <ChakraLink
-            href="https://docs.smartinvoice.xyz"
-            target="_blank"
-            isExternal
-          >
-            Documentation
-          </ChakraLink>
-
-          <ChakraLink
-            href="https://docs.smartinvoice.xyz/misc/get-support"
-            target="_blank"
-            isExternal
-          >
-            Support
-          </ChakraLink>
+          {_.map(links, ({ label, href }) => (
+            <ChakraNextLink
+              key={href}
+              href={href}
+              isExternal={!href?.startsWith('/')}
+            >
+              {label}
+            </ChakraNextLink>
+          ))}
         </Flex>
       )}
 
@@ -114,7 +97,7 @@ export function Header() {
         transition="width 1s ease-out"
         justify="end"
       >
-        {!isMobile && (
+        {!upTo780 && (
           <Flex justifyContent="flex-end" width="230px">
             <ConnectButton
               accountStatus="address"
@@ -123,9 +106,9 @@ export function Header() {
             />
           </Flex>
         )}
-        {isMobile && (
+        {upTo780 && (
           <Button
-            onClick={() => onOpen(o => !o)}
+            onClick={onToggle}
             variant="link"
             ml={{ base: '0.5rem', sm: '1rem' }}
             zIndex={7}
@@ -170,52 +153,24 @@ export function Header() {
           />
         </Flex>
 
-        <StyledButton
-          onClick={() => {
-            router.push('/invoices');
-            onOpen(false);
-          }}
-          transition="all 0.5s ease 0.4s"
-          my="1rem"
-          variant="link"
-          color="gray"
-          fontWeight="normal"
-          fontSize="1.5rem"
-        >
-          Dashboard
-        </StyledButton>
-
-        <ChakraLink href="https://docs.smartinvoice.xyz" isExternal _hover={{}}>
-          <StyledButton
-            as="span"
-            transition="all 0.5s ease 0.4s"
-            my="1rem"
-            variant="link"
-            color="gray"
-            fontWeight="normal"
-            fontSize="1.5rem"
+        {_.map(links, ({ label, href }) => (
+          <ChakraNextLink
+            href={href}
+            key={href}
+            isExternal={!href?.startsWith('/')}
           >
-            Documentation
-          </StyledButton>
-        </ChakraLink>
-
-        <ChakraLink
-          href="https://docs.smartinvoice.xyz/misc/get-support"
-          isExternal
-          _hover={{}}
-        >
-          <StyledButton
-            as="span"
-            transition="all 0.5s ease 0.4s"
-            my="1rem"
-            variant="link"
-            color="gray"
-            fontWeight="normal"
-            fontSize="1.5rem"
-          >
-            Support
-          </StyledButton>
-        </ChakraLink>
+            <StyledButton
+              transition="all 0.5s ease 0.4s"
+              my="1rem"
+              variant="link"
+              color="gray"
+              fontWeight="normal"
+              fontSize="1.5rem"
+            >
+              {label}
+            </StyledButton>
+          </ChakraNextLink>
+        ))}
       </Flex>
     </Flex>
   );

@@ -1,7 +1,7 @@
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
-import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
+import { Input, Select } from '@smart-invoice/ui';
 import {
   getResolutionRateFromFactory,
   getResolverInfo,
@@ -89,7 +89,7 @@ export function PaymentDetailsForm({
 
   return (
     <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      {/* <OrderedInput
+      {/* <Input
         label="Client Address"
         value={clientAddress}
         isInvalid={clientInvalid}
@@ -102,7 +102,7 @@ export function PaymentDetailsForm({
         required="required"
       />
 
-      <OrderedInput
+      <Input
         label="Service Provider Address"
         value={paymentAddress}
         isInvalid={providerInvalid}
@@ -121,7 +121,7 @@ export function PaymentDetailsForm({
         spacing="1rem"
         mb={paymentInvalid ? '-0.5rem' : ''}
       >
-        {/* <OrderedInput
+        {/* <Input
           label="Total Payment Due"
           type="number"
           value={paymentDueInput}
@@ -141,7 +141,7 @@ export function PaymentDetailsForm({
           tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you’ll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
         />
 
-        <OrderedSelect
+        <Select
           value={paymentToken}
           setValue={v => setPaymentToken(v as Hex)}
           label="Payment Token"
@@ -153,9 +153,9 @@ export function PaymentDetailsForm({
               {getTokenInfo(chainId, token, tokenData).symbol}
             </option>
           ))}
-        </OrderedSelect>
+        </Select>
 
-        <OrderedInput
+        <Input
           gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
           label="Number of Payments"
           type="number"
@@ -188,7 +188,7 @@ export function PaymentDetailsForm({
       )}
 
       <SimpleGrid w="100%" columns={2} spacing="1rem">
-        {/* <OrderedSelect
+        {/* <Select
           tooltip="This arbitrator will be used in case of dispute. LexDAO is recommended, but you may include the wallet address of your preferred arbitrator."
           value={arbitrationProviderType}
           setValue={v => {
@@ -211,10 +211,10 @@ export function PaymentDetailsForm({
             </option>
           ))}
           <option value="custom">Custom</option>
-        </OrderedSelect>
+        </Select>
 
         {paymentDue ? (
-          <OrderedInput
+          <Input
             label="Potential Dispute Fee"
             type="text"
             value={`${formatUnits(
@@ -231,7 +231,7 @@ export function PaymentDetailsForm({
       </SimpleGrid>
       {/* {!arbitrationProvider ||
       !isKnownResolver(arbitrationProvider, chainId) ? (
-        <OrderedInput
+        <Input
           tooltip="This arbitrator will be used in case of dispute."
           label="Arbitration Provider Address"
           value={arbitrationProvider}

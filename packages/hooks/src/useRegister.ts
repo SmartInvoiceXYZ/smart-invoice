@@ -1,4 +1,4 @@
-import { ISmartInvoiceFactoryAbi } from '@smart-invoice/constants';
+import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -122,7 +122,7 @@ export const useRegister = ({
   } = usePrepareContractWrite({
     address: factoryAddress,
     functionName: 'create',
-    abi: ISmartInvoiceFactoryAbi,
+    abi: SMART_INVOICE_FACTORY_ABI,
     args: [
       provider, // address recipient,
       paymentsInWei, // uint256[] memory amounts,

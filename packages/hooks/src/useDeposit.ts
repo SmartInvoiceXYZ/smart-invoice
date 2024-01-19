@@ -1,4 +1,4 @@
-import { IERC20Abi } from '@smart-invoice/constants';
+import { IERC20_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { ContractFunctionResult, Hex, parseUnits } from 'viem';
 import {
@@ -33,7 +33,7 @@ export const useDeposit = ({
   } = usePrepareContractWrite({
     chainId,
     address: token as Hex,
-    abi: IERC20Abi,
+    abi: IERC20_ABI,
     functionName: 'transfer',
     args: [invoice?.address as Hex, depositAmount],
     enabled: hasAmount, // && paymentType === PAYMENT_TYPES.TOKEN,

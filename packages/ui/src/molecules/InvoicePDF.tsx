@@ -9,8 +9,9 @@ import {
 import { Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
 import {
+  chainByName,
+  chainsMap,
   getAccountString,
-  getHexChainId,
   unixToDateTime,
 } from '@smart-invoice/utils';
 import React, { Fragment } from 'react';
@@ -212,9 +213,9 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <Link
-              src={`https://smartinvoice.xyz/${getHexChainId(
+              src={`https://smartinvoice.xyz/${chainByName(
                 network as Network,
-              )}/${address}`}
+              )?.id?.toString(16)}/${address}`}
             >
               <Text style={{ textAlign: 'center' }}>
                 {getAccountString(address)} @ smartinvoice.xyz

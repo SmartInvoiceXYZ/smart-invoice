@@ -20,7 +20,7 @@ import {
 import { ChainId } from '@smart-invoice/constants';
 import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import {
   AccountLink,
   Container,
@@ -45,6 +45,7 @@ import {
   isAddress,
   logError,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits } from 'viem';
@@ -59,7 +60,8 @@ function ViewInstantInvoice() {
   const { data: walletClient } = useWalletClient();
   const account = walletClient?.account?.address;
   const chain = walletClient?.chain;
-  const [{ tokenData }] = useFetchTokensViaIPFS();
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
   const [invoice, setInvoice] = useState<Invoice>();
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [balance, setBalance] = useState(BigInt(0));

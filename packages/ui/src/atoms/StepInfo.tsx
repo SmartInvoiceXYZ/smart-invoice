@@ -1,13 +1,15 @@
 import {
-  Center,
   Divider,
+  Flex,
   Heading,
-  HStack,
+  Icon,
   IconButton,
+  Spacer,
   Text,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { hashCode } from '@smart-invoice/utils';
 import React from 'react';
 
@@ -19,12 +21,12 @@ export function StepInfo({
   goBack,
 }: {
   stepNum: number;
-  stepsDetails: any;
+  stepsDetails: typeof ESCROW_STEPS;
   goBack: () => void;
 }) {
   const maxW = useBreakpointValue({ base: '100%' });
 
-  const stepSize = useBreakpointValue({
+  const headingSize = useBreakpointValue({
     base: 'md',
     sm: 'lg',
     md: 'xl',
@@ -35,32 +37,36 @@ export function StepInfo({
 
   return (
     <VStack spacing="1rem" maxW={maxW} align="stretch">
-      <HStack width="100%" align="center" paddingY={4}>
-        {stepNum !== 1 && (
+      <Flex justify="space-between" my={4}>
+        {stepNum !== 1 ? (
           <IconButton
-            icon={<BackArrowIcon width="33px" height="24px" />}
-            position="absolute"
+            icon={
+              <Icon
+                as={BackArrowIcon}
+                color="white"
+                width="33px"
+                height="24px"
+              />
+            }
+            variant="ghost"
+            bg="gray.200"
             onClick={() => goBack()}
             cursor="pointer"
-            zIndex={5}
             aria-label="back"
           />
+        ) : (
+          <Spacer maxW="50px" />
         )}
-        <Center>
-          <Heading
-            position="relative"
-            color="#323C47"
-            size={stepSize}
-            textAlign="center"
-            width="100%"
-          >
-            Step {stepNum}: {stepTitle}
-          </Heading>
-        </Center>
-      </HStack>
+
+        <Heading color="#323C47" size={headingSize}>
+          Step {stepNum}: {stepTitle}
+        </Heading>
+
+        <Spacer maxW="50px" />
+      </Flex>
       <Divider width="100%" background="lightgrey" />
       <br />
-      {stepDetails.map((detail: any) => (
+      {stepDetails.map((detail: string) => (
         <Text color="grey" fontSize="sm" key={hashCode(detail)}>
           {detail}
         </Text>

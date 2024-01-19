@@ -49,6 +49,14 @@ export const chainsMap = (chainId: number) => {
   return chain;
 };
 
+export const chainByName = (name: string) => {
+  const chain = _.find(chainsList, { name });
+  if (!chain) {
+    throw new Error(`Chain ${name} not found`);
+  }
+  return chain;
+};
+
 const { chains, publicClient } = configureChains(
   _.map(orderedChains, chainId => chainsMap(chainId)),
   [

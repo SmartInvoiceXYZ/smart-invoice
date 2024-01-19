@@ -1,5 +1,6 @@
 import {
   Button,
+  // Container,
   Flex,
   Grid,
   Heading,
@@ -10,18 +11,20 @@ import {
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import {
+  EscrowDetailsForm,
+  FormConfirmation,
   PaymentChunksForm,
-  PaymentDetailsForm,
+  PaymentsForm,
   ProjectDetailsForm,
+  RegisterSuccess,
 } from '@smart-invoice/forms';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import {
   Container,
-  FormConfirmation,
   NetworkChangeAlertModal,
-  RegisterSuccess,
   StepInfo,
 } from '@smart-invoice/ui';
+import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useChainId } from 'wagmi';
@@ -32,7 +35,8 @@ export function CreateInvoiceEscrow() {
   const chainId = useChainId();
   const escrowForm = useForm();
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const { data } = useFetchTokens();
+  const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
   const prevChainIdRef = useRef<number>();
 
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
@@ -47,8 +51,6 @@ export function CreateInvoiceEscrow() {
     }
     prevChainIdRef.current = chainId;
   }, [chainId]);
-
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   const stackWidth = useBreakpointValue({
     base: '95%',
@@ -141,40 +143,25 @@ export function CreateInvoiceEscrow() {
                 />
               )}
 
-              {/* 
-              <PaymentDetailsForm
-                display={currentStep === 2}
-                tokenData={tokenData}
-                allTokens={allTokens}
-              />
+              {currentStep === 2 && (
+                <EscrowDetailsForm
+                  escrowForm={escrowForm}
+                  updateStep={nextStepHandler}
+                  backStep={goBackHandler}
+                />
+              )}
 
-              <PaymentChunksForm
-                display={currentStep === 3}
-                tokenData={tokenData}
-              />
+              {currentStep === 3 && (
+                <PaymentsForm
+                  escrowForm={escrowForm}
+                  // tokenData={tokenData}
+                  // allTokens={allTokens}
+                  updateStep={nextStepHandler}
+                  backStep={goBackHandler}
+                />
+              )}
 
-              <FormConfirmation
-                display={currentStep === 4}
-                tokenData={tokenData}
-              />
-
-              <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
-                <Button
-                  onClick={nextStepHandler}
-                  isLoading={loading}
-                  isDisabled={!nextStepEnabled}
-                  textTransform="uppercase"
-                  size={buttonSize}
-                  fontFamily="mono"
-                  fontWeight="bold"
-                >
-                  {currentStep === 4
-                    ? ESCROW_STEPS[currentStep].next
-                    : `next: ${
-                        ESCROW_STEPS[currentStep as EscrowStepNumber].next
-                      }`}
-                </Button>
-              </Grid> */}
+              {currentStep === 3 && <FormConfirmation tokenData={tokenData} />}
             </Flex>
           </VStack>
         </Stack>

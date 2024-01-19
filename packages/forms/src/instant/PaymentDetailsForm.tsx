@@ -1,7 +1,7 @@
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
-import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
+import { Input, Select } from '@smart-invoice/ui';
 import { formatDate, getTokenInfo, getTokens } from '@smart-invoice/utils';
 import React, { useContext, useMemo, useState } from 'react';
 import { Address, isAddress, parseUnits } from 'viem';
@@ -43,7 +43,7 @@ export function InstantPaymentDetailsForm({
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
-      {/* <OrderedInput
+      {/* <Input
         label="Client Address"
         value={clientAddress}
         isInvalid={clientInvalid}
@@ -56,7 +56,7 @@ export function InstantPaymentDetailsForm({
         required="required"
       />
 
-      <OrderedInput
+      <Input
         label="Service Provider Address"
         value={paymentAddress}
         isInvalid={providerInvalid}
@@ -75,7 +75,7 @@ export function InstantPaymentDetailsForm({
         spacing="1rem"
         mb={paymentInvalid ? '-0.5rem' : ''}
       >
-        {/* <OrderedInput
+        {/* <Input
           label="Total Payment Due"
           type="number"
           value={paymentDueInput}
@@ -95,7 +95,7 @@ export function InstantPaymentDetailsForm({
           tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you’ll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
         />
 
-        <OrderedSelect
+        <Select
           value={paymentToken}
           setValue={setPaymentToken}
           label="Payment Token"
@@ -107,7 +107,7 @@ export function InstantPaymentDetailsForm({
               {getTokenInfo(chain, token, tokenData).symbol}
             </option>
           ))}
-        </OrderedSelect> */}
+        </Select> */}
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (
         <Text
@@ -122,7 +122,7 @@ export function InstantPaymentDetailsForm({
       )}
 
       <SimpleGrid w="100%" columns={3} spacing="1rem">
-        {/* <OrderedInput
+        {/* <Input
           label="Deadline"
           type="date"
           value={deadlineDateString}
@@ -131,7 +131,7 @@ export function InstantPaymentDetailsForm({
           tooltip="A specific date when the total payment is due."
         />
 
-        <OrderedInput
+        <Input
           label="Late Fee"
           type="text"
           value={lateFeeInput}
@@ -148,7 +148,7 @@ export function InstantPaymentDetailsForm({
           tooltip="A fee imposed if the client does not pay by the deadline."
         />
 
-        <OrderedSelect
+        <Select
           label="Late Fee Interval"
           value={lateFeeIntervalInput}
           setValue={v => {
@@ -164,7 +164,7 @@ export function InstantPaymentDetailsForm({
               {interval > 1 ? `Every ${interval} days` : 'Every day'}
             </option>
           ))}
-        </OrderedSelect> */}
+        </Select> */}
       </SimpleGrid>
     </VStack>
   );

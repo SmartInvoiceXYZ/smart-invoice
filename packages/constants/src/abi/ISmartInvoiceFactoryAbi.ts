@@ -1,4 +1,4 @@
-export const ISmartInvoiceFactoryAbi = [
+export const SMART_INVOICE_FACTORY_ABI = [
   {
     anonymous: false,
     inputs: [

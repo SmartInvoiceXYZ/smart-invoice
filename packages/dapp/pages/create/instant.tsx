@@ -8,19 +8,20 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-// import {
-//   InstantPaymentDetailsForm,
-//   ProjectDetailsForm,
-// } from '@smart-invoice/forms';
 import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import {
+  FormConfirmation,
+  // InstantPaymentDetailsForm,
+  ProjectDetailsForm,
+  RegisterSuccess,
+} from '@smart-invoice/forms';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import {
   Container,
-  FormConfirmation,
   NetworkChangeAlertModal,
-  RegisterSuccess,
   StepInfo,
 } from '@smart-invoice/ui';
+import _ from 'lodash';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useChainId, useWalletClient } from 'wagmi';
 
@@ -28,7 +29,8 @@ type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
 export function CreateInvoiceInstant() {
   const chainId = useChainId();
-  const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
   const prevChainIdRef = useRef<number>();
   const showChainChangeAlert = false;
 

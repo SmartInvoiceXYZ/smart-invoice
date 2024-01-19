@@ -2,26 +2,21 @@
 /* eslint-disable radix */
 
 import {
-  ADDRESS_ZERO,
   ChainId,
-  chainIds,
   DEFAULT_CHAIN_ID,
-  explorerUrls,
   graphUrls,
-  hexChainIds,
   invoiceFactory,
   IPFS_ENDPOINT,
   isOfTypeChainId,
-  nativeSymbols,
-  networkLabels,
-  networkNames,
   resolverInfo,
   resolvers,
-  rpcUrls,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
 import { Network, TokenData } from '@smart-invoice/types';
-import { Address, getAddress } from 'viem';
+import _ from 'lodash';
+import { Address, getAddress, zeroAddress } from 'viem';
+
+import { chainsMap } from '.';
 
 export const getDateString = (timeInSec: any) => {
   if (parseInt(timeInSec) !== 0) {
@@ -48,33 +43,20 @@ export const isAddress = (value: any) => {
   }
 };
 
-export const getNetworkName = (chainId: number) =>
-  isOfTypeChainId(chainId) ? networkNames[chainId] : 'Unknown Chain';
-
 export const getGraphUrl = (chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
-    ? graphUrls[chainId]
-    : graphUrls[DEFAULT_CHAIN_ID];
-
-export const getExplorerUrl = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? explorerUrls[chainId]
-    : explorerUrls[DEFAULT_CHAIN_ID];
-
-export const getRpcUrl = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? rpcUrls[chainId]
-    : rpcUrls[DEFAULT_CHAIN_ID];
+    ? graphUrls(chainId)
+    : graphUrls(DEFAULT_CHAIN_ID);
 
 export const getResolvers = (chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
-    ? resolvers[chainId]
-    : resolvers[DEFAULT_CHAIN_ID];
+    ? resolvers(chainId)
+    : resolvers(DEFAULT_CHAIN_ID);
 
 export const getResolverInfo = (resolver: Address, chainId?: number) =>
   (chainId && isOfTypeChainId(chainId)
-    ? resolverInfo[chainId]
-    : resolverInfo[DEFAULT_CHAIN_ID])[resolver];
+    ? resolverInfo(chainId)
+    : resolverInfo(DEFAULT_CHAIN_ID))[resolver];
 
 export const getTokens = (
   allTokens: Record<ChainId, string[]>,
@@ -97,7 +79,7 @@ export const getTokenInfo = (
     Object.keys(tokenData || {}).length === 0
   ) {
     return {
-      address: ADDRESS_ZERO,
+      address: zeroAddress,
       decimals: 18,
       symbol: 'UNKNOWN',
     };
@@ -106,7 +88,7 @@ export const getTokenInfo = (
     tokenData[chainId as ChainId] || tokenData[DEFAULT_CHAIN_ID];
   if (!tokenDataByChain[token]) {
     return {
-      address: ADDRESS_ZERO,
+      address: zeroAddress,
       decimals: 18,
       symbol: 'UNKNOWN',
     };
@@ -114,20 +96,29 @@ export const getTokenInfo = (
   return tokenDataByChain[token];
 };
 
-export const getWrappedNativeToken = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? wrappedNativeToken[chainId]
-    : wrappedNativeToken[DEFAULT_CHAIN_ID];
+export const getWrappedNativeToken = (chainId?: number) => undefined;
+// chainId && isOfTypeChainId(chainId)
+//   ? wrappedNativeToken[chainId]
+//   : wrappedNativeToken[DEFAULT_CHAIN_ID];
 
-export const getNativeTokenSymbol = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? nativeSymbols[chainId]
-    : nativeSymbols[DEFAULT_CHAIN_ID];
+export const getNativeTokenSymbol = (chainId?: number) => undefined;
+// chainId && isOfTypeChainId(chainId)
+//   ? nativeSymbols[chainId]
+//   : nativeSymbols[DEFAULT_CHAIN_ID];
 
-export const getInvoiceFactoryAddress = (chainId: number) =>
-  isOfTypeChainId(chainId)
-    ? invoiceFactory[chainId]
-    : invoiceFactory[DEFAULT_CHAIN_ID];
+export const getInvoiceFactoryAddress = (chainId: number) => undefined;
+// isOfTypeChainId(chainId)
+//   ? invoiceFactory[chainId]
+//   : invoiceFactory[DEFAULT_CHAIN_ID];
+
+const getExplorerUrl = (chainId: number) => {
+  const chain = chainsMap(chainId);
+  return _.get(
+    chain,
+    'blockExplorers.etherscan.url',
+    _.get(chain, 'blockExplorers.default.url'),
+  );
+};
 
 export const getTxLink = (chainId: number, hash: string) =>
   `${getExplorerUrl(chainId)}/tx/${hash}`;
@@ -153,7 +144,7 @@ export const getAccountString = (account?: string) => {
 };
 
 export const isKnownResolver = (resolver: Address, chainId?: number) =>
-  getResolvers(chainId).indexOf(resolver?.toLowerCase() as Address) !== -1;
+  _.includes(getResolvers(chainId), _.toLower(resolver));
 
 export const getResolverString = (resolver: Address, chainId?: number) => {
   const info = getResolverInfo(resolver, chainId);
@@ -206,15 +197,6 @@ export const isValidLink = (url: any) => {
 export function commify(x: number | bigint | string) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
-
-export const getChainId = (network: Network) =>
-  chainIds[network] || chainIds.rinkeby;
-
-export const getHexChainId = (network?: Network) =>
-  network ? hexChainIds[network] || hexChainIds.rinkeby : undefined;
-
-export const getNetworkLabel = (chainId: number) =>
-  isOfTypeChainId(chainId) ? networkLabels[chainId] : 'unknown';
 
 export const formatTokenData = (object: any) => {
   const tokenObject = {} as Record<ChainId, Record<string, TokenData>>;

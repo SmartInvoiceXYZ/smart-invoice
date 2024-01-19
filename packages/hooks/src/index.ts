@@ -1,6 +1,6 @@
 export { useDeposit } from './useDeposit';
 export { useEscrowZap } from './useEscrowZap';
-export { useFetchTokensViaIPFS } from './useFetchTokensViaIPFS';
+export { useFetchTokens } from './useFetchTokens';
 export { useInvoiceDetails } from './useInvoiceDetails';
 export { useInvoiceList } from './useInvoiceList';
 export { useInvoiceStatus } from './useInvoiceStatus';
