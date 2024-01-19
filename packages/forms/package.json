@@ -1,0 +1,29 @@
+{
+  "name": "@smart-invoice/forms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "publish": "npm publish --access public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@smart-invoice/constants": "*",
+    "@smart-invoice/graphql": "*",
+    "@smart-invoice/types": "*",
+    "@smart-invoice/ui": "*",
+    "@smart-invoice/utils": "*",
+    "@chakra-ui/icon": "^3.2.0",
+    "@chakra-ui/react": "^2.8.2",
+    "react": "^18.2.0",
+    "viem": "^2.3.1",
+    "wagmi": "^1.4.13"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.47"
+  }
+}

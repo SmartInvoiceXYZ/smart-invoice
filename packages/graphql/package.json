@@ -1,0 +1,19 @@
+{
+  "name": "@smart-invoice/graphql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@smart-invoice/constants": "*",
+    "@smart-invoice/utils": "*",
+    "@apollo/client": "^3.8.10",
+    "graphql-request": "^6.1.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-zeus": "^5.3.3",
+    "viem": "^2.3.1"
+  }
+}

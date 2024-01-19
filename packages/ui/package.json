@@ -1,0 +1,25 @@
+{
+  "name": "@smart-invoice/ui",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@chakra-ui/icon": "^3.2.0",
+    "@chakra-ui/react": "^2.8.2",
+    "@smart-invoice/constants": "*",
+    "@wagmi/core": "2.2.1",
+    "abitype": "^0.1.0",
+    "base-58": "^0.0.1",
+    "firebase": "^10.7.0",
+    "ipfs-http-client": "^50.1.2",
+    "react": "^18.2.0",
+    "viem": "2.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.5",
+    "@types/react": "^18.2.47"
+  }
+}
