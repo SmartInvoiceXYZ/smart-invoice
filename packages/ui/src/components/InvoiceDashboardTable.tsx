@@ -18,8 +18,11 @@ import { Address, formatUnits } from 'viem';
 
 import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
 import { Styles } from './InvoicesStyles';
-import { Invoice_orderBy } from '../graphql/zeus';
-import { fetchInvoices, Invoice } from '../graphql/fetchInvoices';
+import {
+  // Invoice_orderBy,
+  fetchInvoices,
+  Invoice,
+} from '@smart-invoice/graphql';
 
 export type SearchInputType = string | Address | undefined;
 
@@ -92,7 +95,7 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
     SearchInputType,
     number,
     number,
-    Invoice_orderBy,
+    any, // Invoice_orderBy,
     boolean,
     (isLoading: boolean, resultCount?: number) => void,
   ] = useMemo(
@@ -101,7 +104,7 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
       searchInput,
       pageIndex,
       pageSize,
-      sorting[0].id as Invoice_orderBy,
+      sorting[0].id as any, // Invoice_orderBy,
       sorting[0].desc,
       onLoading,
     ],

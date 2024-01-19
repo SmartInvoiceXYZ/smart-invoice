@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Address, formatUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
@@ -12,36 +12,39 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { CreateContext } from '../context/CreateContext';
 import { AccountLink } from '../shared/AccountLink';
-import { getDateString, getTokenInfo } from '../utils/helpers';
-import { TokenData } from '../types';
-import { ChainId } from '../constants/config';
+import { getDateString, getTokenInfo } from '@smart-invoice/utils';
+import { TokenData } from '@smart-invoice/types';
+import { ChainId } from '@smart-invoice/constants';
+import { useInvoiceDetails } from '@smart-invoice/hooks';
 
 type FormConfirmationProps = {
-  display: boolean,
-  tokenData: Record<ChainId, Record<Address, TokenData>>,
-}
+  display: boolean;
+  tokenData: Record<ChainId, Record<Address, TokenData>>;
+};
 
-export function FormConfirmation({ display, tokenData }: FormConfirmationProps) {
+export function FormConfirmation({
+  display,
+  tokenData,
+}: FormConfirmationProps) {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
-  const {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    clientAddress,
-    paymentAddress,
-    startDate,
-    endDate,
-    safetyValveDate,
-    arbitrationProvider,
-    milestones,
-    paymentDue,
-    paymentToken,
-  } = useContext(CreateContext);
+  // const {
+  //   projectName,
+  //   projectDescription,
+  //   projectAgreement,
+  //   clientAddress,
+  //   paymentAddress,
+  //   startDate,
+  //   endDate,
+  //   safetyValveDate,
+  //   arbitrationProvider,
+  //   milestones,
+  //   paymentDue,
+  //   paymentToken,
+  // } = useInvoiceDetails();
 
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+  // const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
 
   const flexWidth = useBreakpointValue({
     base: '95%',
@@ -51,8 +54,13 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
   });
 
   return (
-    <VStack w="100%" spacing="1rem" color="#323C47" display={display ? 'flex' : 'none'}>
-      <Text
+    <VStack
+      w="100%"
+      spacing="1rem"
+      color="#323C47"
+      display={display ? 'flex' : 'none'}
+    >
+      {/* <Text
         id="project-title"
         color="#323C47"
         fontWeight="bold"
@@ -137,7 +145,7 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
             </Text>
           </Flex>
         </>
-      ) : null}
+      ) : null} */}
     </VStack>
   );
 }

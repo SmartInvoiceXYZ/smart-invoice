@@ -11,17 +11,17 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { ChainId } from '../../constants/config';
-import { TokenData } from '../../types';
+import { ChainId } from '@smart-invoice/constants';
+import { TokenData } from '@smart-invoice/types';
 import {
   getTokenInfo,
   getTxLink,
   isAddress,
   logError,
-} from '../../utils/helpers';
-import { withdraw } from '../../utils/invoice';
-import { waitForTransaction } from '../../utils/transactions';
-import { Invoice } from '../../graphql/fetchInvoice';
+  // withdraw,
+  // waitForTransaction,
+} from '@smart-invoice/utils';
+import { Invoice } from '@smart-invoice/graphql';
 
 export type WithdrawFundsProps = {
   invoice: Invoice;
@@ -59,10 +59,10 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
     try {
       if (!walletClient?.chain || !validAddress) return;
       setLoading(true);
-      const hash = await withdraw(walletClient, validAddress);
+      const hash = '0x'; // await withdraw(walletClient, validAddress);
       setTxHash(hash);
       const { chain } = walletClient;
-      await waitForTransaction(chain, hash);
+      // await waitForTransaction(chain, hash);
       window.location.href = `/invoice/${chain.id.toString(
         16,
       )}/${address}/instant`;

@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useWalletClient } from 'wagmi';
-
 /* eslint-disable no-nested-ternary */
+import React, { useEffect, useRef, useState } from 'react';
+import { useWalletClient } from 'wagmi';
 import {
   Button,
   Flex,
@@ -13,34 +12,34 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { FormConfirmation } from '../../components/FormConfirmation';
-import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
-import { PaymentChunksForm } from '../../components/PaymentChunksForm';
-import { PaymentDetailsForm } from '../../components/PaymentDetailsForm';
-import { ProjectDetailsForm } from '../../components/ProjectDetailsForm';
-import { RegisterSuccess } from '../../components/RegisterSuccess';
-import { ESCROW_STEPS, INVOICE_TYPES } from '../../constants';
 import {
-  CreateContext,
-  CreateContextProvider,
-} from '../../context/CreateContext';
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
-import { Container } from '../../shared/Container';
-import { StepInfo } from '../../shared/StepInfo';
+  FormConfirmation,
+  NetworkChangeAlertModal,
+  RegisterSuccess,
+  Container,
+  StepInfo,
+} from '@smart-invoice/ui';
+// import {
+//   PaymentChunksForm,
+//   PaymentDetailsForm,
+//   ProjectDetailsForm,
+// } from '@smart-invoice/forms';
+import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 
 type EscrowStepNumber = keyof typeof ESCROW_STEPS;
 
-export function CreateInvoiceEscrowInner() {
-  const {
-    txHash,
-    loading,
-    currentStep,
-    nextStepEnabled,
-    goBackHandler,
-    nextStepHandler,
-    invoiceType,
-    setInvoiceType,
-  } = useContext(CreateContext);
+export function CreateInvoiceEscrow() {
+  // const {
+  //   txHash,
+  //   loading,
+  //   currentStep,
+  //   nextStepEnabled,
+  //   goBackHandler,
+  //   nextStepHandler,
+  //   invoiceType,
+  //   setInvoiceType,
+  // } = useContext(CreateContext);
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
@@ -49,9 +48,9 @@ export function CreateInvoiceEscrowInner() {
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
 
   const { Escrow } = INVOICE_TYPES;
-  useEffect(() => {
-    setInvoiceType(Escrow);
-  }, [invoiceType, setInvoiceType, Escrow]);
+  // useEffect(() => {
+  //   setInvoiceType(Escrow);
+  // }, [invoiceType, setInvoiceType, Escrow]);
 
   useEffect(() => {
     if (chainId === undefined) return;
@@ -82,7 +81,7 @@ export function CreateInvoiceEscrowInner() {
 
   return (
     <Container overlay>
-      {txHash ? (
+      {true ? ( // txHash ? (
         <RegisterSuccess />
       ) : tokenData ? (
         <Stack
@@ -129,7 +128,7 @@ export function CreateInvoiceEscrowInner() {
               borderRadius="0.5rem"
               w="100%"
             >
-              <StepInfo
+              {/* <StepInfo
                 stepNum={currentStep}
                 stepTitle={
                   ESCROW_STEPS[currentStep as EscrowStepNumber].step_title
@@ -140,9 +139,7 @@ export function CreateInvoiceEscrowInner() {
                 goBack={goBackHandler}
               />
 
-              <ProjectDetailsForm
-                display={currentStep === 1}
-              />
+              <ProjectDetailsForm display={currentStep === 1} />
 
               <PaymentDetailsForm
                 display={currentStep === 2}
@@ -180,7 +177,7 @@ export function CreateInvoiceEscrowInner() {
                         ESCROW_STEPS[currentStep as EscrowStepNumber].next
                       }`}
                 </Button>
-              </Grid>
+              </Grid> */}
             </Flex>
           </VStack>
         </Stack>
@@ -188,14 +185,6 @@ export function CreateInvoiceEscrowInner() {
         <Text>Loading</Text>
       )}
     </Container>
-  );
-}
-
-function CreateInvoiceEscrow() {
-  return (
-    <CreateContextProvider>
-      <CreateInvoiceEscrowInner />
-    </CreateContextProvider>
   );
 }
 

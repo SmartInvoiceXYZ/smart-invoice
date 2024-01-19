@@ -214,6 +214,7 @@ export const getResolutionRateFromFactory = async (
 // };
 
 // // Functions for Instant type
+export const getTotalDue = () => undefined;
 // export const getTotalDue = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');
@@ -229,6 +230,7 @@ export const getResolutionRateFromFactory = async (
 //   return totalDue;
 // };
 
+export const getTotalFulfilled = () => undefined;
 // export const getTotalFulfilled = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');
@@ -252,6 +254,7 @@ export const getResolutionRateFromFactory = async (
 //   return { amount, isFulfilled };
 // };
 
+export const getDeadline = () => undefined;
 // export const getDeadline = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');
@@ -267,6 +270,7 @@ export const getResolutionRateFromFactory = async (
 //   return deadline;
 // };
 
+export const getLateFee = () => undefined;
 // export const getLateFee = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');

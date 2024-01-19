@@ -2,43 +2,31 @@ import React, { useContext, useState } from 'react';
 
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 
-import { CreateContext } from '../../context/CreateContext';
 import {
   OrderedInput,
+  // OrderedLinkInput,
+  // OrderedTextarea,
+} from '@smart-invoice/ui';
+import { formatDate } from '@smart-invoice/utils';
+import {
   OrderedLinkInput,
   OrderedTextarea,
-} from '../../shared/OrderedInput';
-import { formatDate } from '../../utils/helpers';
+} from '@smart-invoice/ui/src/shared/OrderedInput';
 
 type ProjectDetailsFormProps = {
   display?: boolean;
 };
 
 export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
-  const {
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    projectName,
-    setProjectName,
-    projectDescription,
-    setProjectDescription,
-    projectAgreementSource,
-    setProjectAgreementSource,
-    projectAgreementLinkType,
-    setProjectAgreementLinkType,
-  } = useContext(CreateContext);
-
-  const startDateString = startDate ? formatDate(startDate) : '';
-  const endDateString = endDate ? formatDate(endDate) : '';
-  const [nameInvalid, setNameInvalid] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [dateInvalid, setDateInvalid] = useState(false);
+  // const startDateString = startDate ? formatDate(startDate) : '';
+  // const endDateString = endDate ? formatDate(endDate) : '';
+  // const [nameInvalid, setNameInvalid] = useState(false);
+  // // eslint-disable-next-line no-unused-vars
+  // const [dateInvalid, setDateInvalid] = useState(false);
 
   return (
     <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      <OrderedInput
+      {/* <OrderedInput
         label="Project Name or ID"
         value={projectName}
         setValue={v => {
@@ -69,15 +57,15 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
         maxLength={140}
         required="optional"
         tooltip="This brief description will help you & your client remember key project details in the future."
-      />
+      /> */}
 
       <SimpleGrid
         w="100%"
         spacing="1rem"
         columns={{ base: 1, sm: 2, md: 2 }}
-        mb={dateInvalid ? '-0.5rem' : ''}
+        // mb={dateInvalid ? '-0.5rem' : ''}
       >
-        <OrderedInput
+        {/* <OrderedInput
           label="Project Start Date"
           type="date"
           value={startDateString}
@@ -93,7 +81,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
           setValue={v => setEndDate(Date.parse(v))}
           required="optional"
           tooltip="This is the date you expect to complete work on this project."
-        />
+        /> */}
         {/* <OrderedInput
           gridArea={{
             base: 'auto/auto/auto/auto',
@@ -113,17 +101,18 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
           required="required"
         /> */}
       </SimpleGrid>
-      {dateInvalid && (
-        <Text
-          w="100%"
-          color="red"
-          textAlign="right"
-          fontSize="xs"
-          fontWeight="700"
-        >
-          {dateInvalid ? 'Invalid Safety Valve Date: Already Passed' : ''}
-        </Text>
-      )}
+      {/* {dateInvalid && ( */}
+      <Text
+        w="100%"
+        color="red"
+        textAlign="right"
+        fontSize="xs"
+        fontWeight="700"
+      >
+        {/* {dateInvalid ? 'Invalid Safety Valve Date: Already Passed' : ''} */}{' '}
+        Test
+      </Text>
+      {/* )} */}
     </VStack>
   );
 }

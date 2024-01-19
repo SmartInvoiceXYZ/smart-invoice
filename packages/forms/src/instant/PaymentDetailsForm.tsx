@@ -4,11 +4,10 @@ import { useWalletClient } from 'wagmi';
 
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
 
-import { ChainId } from '../../constants/config';
-import { CreateContext } from '../../context/CreateContext';
-import { OrderedInput, OrderedSelect } from '../../shared/OrderedInput';
-import { TokenData } from '../../types';
-import { formatDate, getTokenInfo, getTokens } from '../../utils/helpers';
+import { ChainId } from '@smart-invoice/constants';
+import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
+import { TokenData } from '@smart-invoice/types';
+import { formatDate, getTokenInfo, getTokens } from '@smart-invoice/utils';
 
 export type InstantPaymentDetailsFormProps = {
   display: string;
@@ -24,28 +23,14 @@ export function InstantPaymentDetailsForm({
   const { data: walletClient } = useWalletClient();
   const chain = walletClient?.chain?.id;
 
-  const {
-    clientAddress,
-    setClientAddress,
-    paymentAddress,
-    setPaymentAddress,
-    paymentToken,
-    setPaymentToken,
-    setPaymentDue,
-    setLateFee,
-    setLateFeeInterval,
-    deadline,
-    setDeadline,
-  } = useContext(CreateContext);
-
-  const deadlineDateString = deadline ? formatDate(deadline) : '';
+  // const deadlineDateString = deadline ? formatDate(deadline) : '';
 
   const TOKENS = useMemo(() => getTokens(allTokens, chain), [chain, allTokens]);
 
-  const { decimals } = useMemo(
-    () => getTokenInfo(chain, paymentToken, tokenData),
-    [chain, paymentToken, tokenData],
-  );
+  // const { decimals } = useMemo(
+  //   () => getTokenInfo(chain, paymentToken, tokenData),
+  //   [chain, paymentToken, tokenData],
+  // );
   const [paymentDueInput, setPaymentDueInput] = useState('');
 
   const [clientInvalid, setClientInvalid] = useState(false);
@@ -60,7 +45,7 @@ export function InstantPaymentDetailsForm({
 
   return (
     <VStack w="100%" spacing="1rem" display={display}>
-      <OrderedInput
+      {/* <OrderedInput
         label="Client Address"
         value={clientAddress}
         isInvalid={clientInvalid}
@@ -84,7 +69,7 @@ export function InstantPaymentDetailsForm({
         error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address. (Do NOT use a multi-sig address)."
         required="required"
-      />
+      /> */}
 
       <SimpleGrid
         w="100%"
@@ -92,7 +77,7 @@ export function InstantPaymentDetailsForm({
         spacing="1rem"
         mb={paymentInvalid ? '-0.5rem' : ''}
       >
-        <OrderedInput
+        {/* <OrderedInput
           label="Total Payment Due"
           type="number"
           value={paymentDueInput}
@@ -124,7 +109,7 @@ export function InstantPaymentDetailsForm({
               {getTokenInfo(chain, token, tokenData).symbol}
             </option>
           ))}
-        </OrderedSelect>
+        </OrderedSelect> */}
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (
         <Text
@@ -139,7 +124,7 @@ export function InstantPaymentDetailsForm({
       )}
 
       <SimpleGrid w="100%" columns={3} spacing="1rem">
-        <OrderedInput
+        {/* <OrderedInput
           label="Deadline"
           type="date"
           value={deadlineDateString}
@@ -181,7 +166,7 @@ export function InstantPaymentDetailsForm({
               {interval > 1 ? `Every ${interval} days` : 'Every day'}
             </option>
           ))}
-        </OrderedSelect>
+        </OrderedSelect> */}
       </SimpleGrid>
     </VStack>
   );

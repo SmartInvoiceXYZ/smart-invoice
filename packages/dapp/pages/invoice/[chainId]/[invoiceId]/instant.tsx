@@ -22,20 +22,21 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { GenerateInvoicePDF } from '../../../../components/GenerateInvoicePDF';
-import { Loader } from '../../../../components/Loader';
-import { DepositFunds } from '../../../../components/instant/DepositFunds';
-import { WithdrawFunds } from '../../../../components/instant/WithdrawFunds';
-import { ChainId } from '../../../../constants/config';
-import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
-import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
-import { CopyIcon } from '../../../../icons/CopyIcon';
-import { QuestionIcon } from '../../../../icons/QuestionIcon';
-import { AccountLink } from '../../../../shared/AccountLink';
-import { Container } from '../../../../shared/Container';
-import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { balanceOf } from '../../../../utils/erc20';
 import {
+  GenerateInvoicePDF,
+  Loader,
+  CopyIcon,
+  QuestionIcon,
+  AccountLink,
+  Container,
+  InvoiceNotFound,
+} from '@smart-invoice/ui';
+import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
+import { ChainId } from '@smart-invoice/constants';
+import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import {
+  balanceOf,
   copyToClipboard,
   getAccountString,
   getAddressLink,
@@ -44,17 +45,18 @@ import {
   getTokenInfo,
   isAddress,
   logError,
-} from '../../../../utils/helpers';
-import {
   getDeadline,
   getLateFee,
   getTotalDue,
   getTotalFulfilled,
-} from '../../../../utils/invoice';
+} from '@smart-invoice/utils';
 import { useParams } from 'next/navigation';
 
 function ViewInstantInvoice() {
-  const {hexChainId, invoiceId} = useParams<{ hexChainId: string; invoiceId: Address; }>();
+  const { hexChainId, invoiceId } = useParams<{
+    hexChainId: string;
+    invoiceId: Address;
+  }>();
   const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
   const { data: walletClient } = useWalletClient();
   const account = walletClient?.account?.address;
@@ -101,8 +103,8 @@ function ViewInstantInvoice() {
       // Get Balance
       try {
         setBalanceLoading(true);
-        const b = await balanceOf(chain, validToken, validAddress);
-        setBalance(b);
+        // const b = await balanceOf(chain, validToken, validAddress);
+        // setBalance(b);
         setBalanceLoading(false);
       } catch (balanceError) {
         logError({ balanceError });
@@ -110,8 +112,8 @@ function ViewInstantInvoice() {
 
       // Get Total Due
       try {
-        const t = await getTotalDue(chain, validAddress);
-        setTotalDue(t);
+        // const t = await getTotalDue(chain, validAddress);
+        // setTotalDue(t);
       } catch (totalDueError) {
         logError({ totalDueError });
         setTotalDue(total);
@@ -119,20 +121,20 @@ function ViewInstantInvoice() {
 
       // Get Deadline, Late Fee and its time interval
       try {
-        const d = await getDeadline(chain, validAddress);
-        setDeadline(Number(d));
-        const { amount, timeInterval } = await getLateFee(chain, validAddress);
-        setLateFeeAmount(amount);
-        setLateFeeTimeInterval(Number(timeInterval));
+        // const d = await getDeadline(chain, validAddress);
+        setDeadline(0); // Number(d));
+        // const { amount, timeInterval } = await getLateFee(chain, validAddress);
+        // setLateFeeAmount(amount);
+        // setLateFeeTimeInterval(Number(timeInterval));
       } catch (lateFeeError) {
         logError({ lateFeeError });
       }
 
       // Get Total Fulfilled
       try {
-        const tf = await getTotalFulfilled(chain, validAddress);
-        setTotalFulfilled(tf.amount);
-        setFulfilled(tf.isFulfilled);
+        // const tf = await getTotalFulfilled(chain, validAddress);
+        // setTotalFulfilled(tf.amount);
+        // setFulfilled(tf.isFulfilled);
       } catch (totalFulfilledError) {
         logError({ totalFulfilledError });
       }
@@ -342,7 +344,7 @@ function ViewInstantInvoice() {
                 invoice={invoice}
                 symbol={symbol}
                 buttonText="Preview & Download Invoice PDF"
-                buttonProps={{textColor:"blue.dark"}}
+                buttonProps={{ textColor: 'blue.dark' }}
               />
             </Wrap>
           </VStack>
@@ -523,7 +525,7 @@ function ViewInstantInvoice() {
                 right="0.5rem"
                 color="gray"
               />
-              {modal && selected === 1 && (
+              {/* {modal && selected === 1 && (
                 <DepositFunds
                   invoice={invoice}
                   deposited={totalFulfilled}
@@ -545,7 +547,7 @@ function ViewInstantInvoice() {
                   tokenData={tokenData}
                   close={() => setModal(false)}
                 />
-              )}
+              )} */}
             </ModalContent>
           </ModalOverlay>
         </Modal>

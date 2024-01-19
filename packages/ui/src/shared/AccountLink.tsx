@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from 'react';
-
 import { Flex, Link, Text } from '@chakra-ui/react';
-
-import { theme } from '../theme';
-import { getProfile } from '../utils/3box';
 import {
+  getProfile,
   getAddressLink,
   getResolverInfo,
   getResolverString,
   isAddress,
   isKnownResolver,
-} from '../utils/helpers';
+} from '@smart-invoice/utils';
 import { useChainId } from 'wagmi';
 import { Address } from 'viem';
+
+import { theme } from '../theme';
 
 export type AccountLinkProps = {
   address?: Address;

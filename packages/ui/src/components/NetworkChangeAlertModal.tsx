@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Divider,
   Modal,
@@ -9,8 +7,8 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
-
-import { getNetworkName } from '../utils/helpers';
+import { getNetworkName } from '@smart-invoice/utils';
+import React from 'react';
 
 type NetworkChangeAlertModalProps = {
   showChainChangeAlert: boolean;

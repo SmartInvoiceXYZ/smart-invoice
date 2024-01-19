@@ -15,9 +15,9 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
+import { Invoice } from '@smart-invoice/graphql';
 
 import InvoicePDF from './InvoicePDF';
-import { Invoice } from '../graphql/fetchInvoice';
 
 interface GenerateInvoicePDFProps {
   invoice: Invoice;

@@ -1,9 +1,9 @@
 export * from './AddMilestones';
-export * from './DepositFunds';
-export * from './LockFunds';
+export { default as DepositFunds } from './DepositFunds';
+export { default as LockFunds } from './LockFunds';
 export * from './PaymentChunksForm';
 export * from './PaymentDetailsForm';
-export * from './ProjectDetailsForm';
-export * from './ReleaseFunds';
-export * from './ResolveFunds';
-export * from './WithdrawFunds';
+export { default as ProjectDetailsForm } from './ProjectDetailsForm';
+export { default as ReleaseFunds } from './ReleaseFunds';
+export { default as ResolveFunds } from './ResolveFunds';
+export { default as WithdrawFunds } from './WithdrawFunds';

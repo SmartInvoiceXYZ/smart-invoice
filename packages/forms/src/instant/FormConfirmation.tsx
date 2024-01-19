@@ -12,36 +12,38 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { CreateContext } from '../../context/CreateContext';
-import { AccountLink } from '../../shared/AccountLink';
-import { getDateString, getTokenInfo } from '../../utils/helpers';
-import { ChainId } from '../../constants/config';
-import { TokenData } from '../../types';
+import { AccountLink } from '@smart-invoice/ui';
+import { getDateString, getTokenInfo } from '@smart-invoice/utils';
+import { ChainId } from '@smart-invoice/constants';
+import { TokenData } from '@smart-invoice/types';
 
 type FormConfirmationProps = {
   display?: boolean;
   tokenData: Record<ChainId, Record<Address, TokenData>>;
 };
 
-export function FormConfirmation({ display, tokenData }: FormConfirmationProps) {
+export function FormConfirmation({
+  display,
+  tokenData,
+}: FormConfirmationProps) {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
-  const {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    clientAddress,
-    paymentAddress,
-    startDate,
-    endDate,
-    deadline,
-    lateFee,
-    lateFeeInterval,
-    paymentDue,
-    paymentToken,
-  } = useContext(CreateContext);
+  // const {
+  //   projectName,
+  //   projectDescription,
+  //   projectAgreement,
+  //   clientAddress,
+  //   paymentAddress,
+  //   startDate,
+  //   endDate,
+  //   deadline,
+  //   lateFee,
+  //   lateFeeInterval,
+  //   paymentDue,
+  //   paymentToken,
+  // } = useContext(CreateContext);
 
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+  // const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
 
   const flexWidth = useBreakpointValue({
     base: '95%',
@@ -51,8 +53,13 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
   });
 
   return (
-    <VStack w="100%" spacing="1rem" color="#323C47" display={display ? 'flex' : 'none'}>
-      <Text
+    <VStack
+      w="100%"
+      spacing="1rem"
+      color="#323C47"
+      display={display ? 'flex' : 'none'}
+    >
+      {/* <Text
         id="project-title"
         color="#323C47"
         fontWeight="bold"
@@ -71,7 +78,7 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
         textDecor="underline"
       >
         {projectAgreement.src}
-      </Link>
+      </Link> */}
 
       <Divider />
 
@@ -80,15 +87,15 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
 
         <Spacer />
 
-        <AccountLink address={clientAddress} chainId={chainId} />
+        {/* <AccountLink address={clientAddress} chainId={chainId} /> */}
       </Flex>
 
       <Flex justify="space-between" width={flexWidth}>
         <Text>{`Payment Address: `}</Text>
 
-        <AccountLink address={paymentAddress} chainId={chainId} />
+        {/* <AccountLink address={paymentAddress} chainId={chainId} /> */}
       </Flex>
-      {startDate && (
+      {/* {startDate && (
         <Flex justify="space-between" width={flexWidth}>
           <Text>{`Project Start Date: `}</Text>
 
@@ -134,7 +141,7 @@ export function FormConfirmation({ display, tokenData }: FormConfirmationProps) 
             </Text>
           </Flex>
         </>
-      ) : null}
+      ) : null} */}
     </VStack>
   );
 }

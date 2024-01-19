@@ -19,7 +19,8 @@ import {
   resolvers,
   rpcUrls,
   wrappedNativeToken,
-  ChainId, isOfTypeChainId
+  ChainId,
+  isOfTypeChainId,
 } from '@smart-invoice/constants';
 import { Network, TokenData } from '@smart-invoice/types';
 
@@ -202,6 +203,10 @@ export const isValidLink = (url: any) => {
   }
   return isValidURL(url);
 };
+
+export function commify(x: number | bigint | string) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 
 export const getChainId = (network: Network) =>
   chainIds[network] || chainIds.rinkeby;

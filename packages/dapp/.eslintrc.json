@@ -13,6 +13,7 @@
     "sourceType": "module"
   },
   "rules": {
+    "no-unused-vars": "off",
     "react/function-component-definition": "off",
     "react/no-unescaped-entities": "off",
     "react/prop-types": "off",
@@ -20,7 +21,10 @@
     "import/no-default-export": "off",
     "import/prefer-default-export": "off",
     "@next/next/no-page-custom-font": "off",
-    "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],
+    "react/jsx-filename-extension": [
+      2,
+      { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
+    ],
     "import/extensions": [
       "error",
       "ignorePackages",
@@ -29,7 +33,7 @@
         "jsx": "never",
         "ts": "never",
         "tsx": "never"
-       }
+      }
     ],
     // exclude test files
     "import/no-extraneous-dependencies": [
@@ -45,10 +49,7 @@
         "optionalDependencies": false
       }
     ],
-    "mocha/no-mocha-arrows": "off",
+    "mocha/no-mocha-arrows": "off"
   },
-  "extends": [
-    "next", 
-    "prettier"
-  ]
+  "extends": ["next", "prettier"]
 }

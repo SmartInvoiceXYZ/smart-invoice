@@ -1,7 +1,7 @@
 import IpfsClient from 'ipfs-http-client';
 
 import tokenSchema from './tokenSchema.json';
-import { logDebug } from '../utils';
+import { logDebug } from '../helpers';
 
 const { NEXT_PUBLIC_INFURA_PROJECT_ID, NEXT_PUBLIC_INFURA_PROJECT_SECRET } =
   process.env;

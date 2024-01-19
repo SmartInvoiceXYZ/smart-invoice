@@ -1,194 +1,146 @@
-import React, { useEffect, useState } from 'react';
-import { Hash, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Button,
-  Flex,
-  Heading,
-  Link,
   Text,
-  Tooltip,
-  VStack,
-  useBreakpointValue,
+  Heading,
+  Spinner,
+  // Link,
   useToast,
+  VStack,
 } from '@chakra-ui/react';
-import { waitForTransaction } from 'wagmi/actions';
+import { fetchInvoice } from '@smart-invoice/graphql';
+import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
+import { Invoice } from '@smart-invoice/types';
+// import { parseTokenAddress } from '@smart-invoice/utils';
+import { formatUnits } from 'viem';
+import { useChainId } from 'wagmi';
 
-import { ChainId } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
-import { TokenData } from '@smart-invoice/types';
-import { QuestionIcon } from '@smart-invoice/ui';
-import { getTokenInfo, getTxLink, isAddress, logError } from '@smart-invoice/utils';
+type ReleaseFundsProp = {
+  invoice: Invoice;
+  balance: bigint;
+};
 
 const getReleaseAmount = (
-  currentMilestone: number,
-  amounts: bigint[],
-  balance: bigint,
+  currentMilestone: any,
+  amounts: any,
+  balance: any,
 ) => {
   if (
     currentMilestone >= amounts.length ||
     (currentMilestone === amounts.length - 1 &&
-      balance > amounts[currentMilestone])
+      balance.gte(amounts[currentMilestone]))
   ) {
     return balance;
   }
   return BigInt(amounts[currentMilestone]);
 };
 
-export type ReleaseFundsProps = {
-  invoice: Invoice;
-  balance: bigint;
-  close: () => void;
-  tokenData: Record<ChainId, Record<string, TokenData>>;
-};
-
-export function ReleaseFunds({
-  invoice,
-  balance,
-  close,
-  tokenData,
-}: ReleaseFundsProps) {
-  const [loading, setLoading] = useState(false);
+const ReleaseFunds = ({ invoice, balance }: ReleaseFundsProp) => {
   const toast = useToast();
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
-  const {
-    network,
-    currentMilestone,
-    amounts,
-    address,
-    token,
-    provider: recipient,
-  } = invoice ?? {};
-  const validAmounts = amounts?.map((a: any) => BigInt(a));
-  const validAddress = isAddress(address);
+  const chainId = useChainId();
 
-  const amount = validAmounts
-    ? getReleaseAmount(Number(currentMilestone), validAmounts, balance)
-    : undefined;
+  const { address, currentMilestone, amounts, token } = invoice;
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
-  const [txHash, setTxHash] = useState<Hash>();
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  const waitForRelease = usePollSubgraph({
+    label: 'waiting for funds to be released',
+    fetchHelper: () => fetchInvoice(chainId, address),
+    checkResult: updatedInvoice => updatedInvoice.released > invoice.released,
+  });
 
-  useEffect(() => {
-    const send = async () => {
-      if (loading || !walletClient || !chainId || !validAddress) return;
-      try {
-        setLoading(true);
-        const hash = '0x'; // await release(walletClient, validAddress); // TODO fix
-        setTxHash(hash);
-        const txReceipt = await waitForTransaction({ chainId, hash });
-        setLoading(false);
-        if (txReceipt.status === 'success') {
-          window.location.href = `/invoice/${chainId.toString(16)}/${address}`;
-        } else {
-          toast({
-            status: 'error',
-            title: 'Transaction failed',
-            description: (
-              <Flex direction="row">
-                <Heading>Transaction failed</Heading>
-                <Text>
-                  Transaction {txReceipt.transactionHash} status is '
-                  {txReceipt.status}'.
-                </Text>
-              </Flex>
-            ),
-            isClosable: true,
-            duration: 5000,
-          });
-        }
-      } catch (releaseError) {
-        logError({ releaseError });
-        close();
-      }
-    };
-    if (amount && balance && balance > amount) {
-      send();
-    }
-  }, [
-    network,
-    amount,
-    address,
-    walletClient,
-    balance,
-    loading,
-    close,
-    chainId,
-    toast,
-    validAddress,
-  ]);
+  const onSuccess = async () => {
+    await waitForRelease();
+    // toast.success({ title: 'Funds released successfully' });
+  };
+
+  const { writeAsync: releaseFunds, isLoading } = useRelease({
+    invoice,
+    onSuccess,
+  });
+
+  // const pollSubgraph = async () => {
+  //   let isSubscribed = true;
+
+  //   const interval = setInterval(async () => {
+  //     let inv = await getInvoice(parseInt(chainId), invoice_id);
+
+  //     if (isSubscribed && !!inv) {
+  //       if (
+  //         utils.formatUnits(inv.released, 18) >
+  //         utils.formatUnits(invoice.released, 18)
+  //       ) {
+  //         isSubscribed = false;
+  //         clearInterval(interval);
+
+  //         window.location.reload();
+  //       }
+  //     }
+  //   }, 5000);
+  // };
 
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="bold"
         mb="1rem"
-        textTransform="uppercase"
-        textAlign="center"
-        color="black"
+        color="white"
+        as="h3"
+        fontSize="2xl"
+        transition="all ease-in-out .25s"
+        _hover={{ cursor: 'pointer', color: 'raid' }}
       >
         Release Funds
       </Heading>
-
-      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
+      <Text
+        textAlign="center"
+        fontSize="sm"
+        mb="1rem"
+        w="60%"
+        color="whiteAlpha.800"
+      >
         Follow the instructions in your wallet to release funds from escrow to
-        the project team.
+        the raid party.
       </Text>
-
-      <VStack my="2rem" px="5rem" py="1rem" bg="white" borderRadius="0.5rem">
-        <Flex>
-          <Text color="black" fontSize="0.875rem" textAlign="center">
-            Amount To Be Released
-          </Text>
-
-          <Tooltip
-            label={`On release, the amount will be sent to ${recipient}`}
-            placement="auto-start"
-          >
-            <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-          </Tooltip>
-        </Flex>
-
-        <Text
-          color="black"
-          fontSize="1rem"
-          fontWeight="bold"
-          textAlign="center"
-        >
-          {amount ? `${formatUnits(amount, decimals)} ${symbol}` : '-'}
+      <VStack my="2rem" px="5rem" py="1rem" bg="black" borderRadius="0.5rem">
+        <Text color="primary.200" fontSize="0.875rem" textAlign="center">
+          Amount To Be Released
         </Text>
+        {/* <Text
+          color="yellow.500"
+          fontSize="xl"
+          fontWeight="bold"
+          fontFamily="texturina"
+          textAlign="center"
+        >{`${formatUnits(
+          getReleaseAmount(currentMilestone, amounts, balance),
+          18,
+        )} ${parseTokenAddress(chainId, token)}`}</Text> */}
       </VStack>
-      {chainId && txHash && (
-        <Text color="black" textAlign="center" fontSize="sm">
+      {/* {transaction && (
+        <Text color='white' textAlign='center' fontSize='sm'>
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, txHash)}
+            href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="blue"
-            textDecoration="underline"
+            color='primary.300'
+            textDecoration='underline'
           >
             here
           </Link>
         </Text>
+      )} */}
+      {isLoading ? (
+        <Spinner size="xl" />
+      ) : (
+        <Button
+          onClick={releaseFunds}
+          isDisabled={!releaseFunds || isLoading}
+          isLoading={isLoading}
+          textTransform="uppercase"
+          variant="solid"
+        >
+          Release
+        </Button>
       )}
-
-      <Button
-        onClick={close}
-        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        color="white"
-        backgroundColor="blue.1"
-        textTransform="uppercase"
-        size={buttonSize}
-        fontFamily="mono"
-        fontWeight="bold"
-        w="100%"
-      >
-        Close
-      </Button>
     </VStack>
   );
-}
+};
+
+export default ReleaseFunds;

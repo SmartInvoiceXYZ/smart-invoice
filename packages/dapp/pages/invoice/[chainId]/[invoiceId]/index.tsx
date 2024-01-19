@@ -25,24 +25,28 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { AddMilestones } from '../../../../components/AddMilestones';
-import { DepositFunds } from '../../../../components/DepositFunds';
-import { GenerateInvoicePDF } from '../../../../components/GenerateInvoicePDF';
-import { Loader } from '../../../../components/Loader';
-import { LockFunds } from '../../../../components/LockFunds';
-import { ReleaseFunds } from '../../../../components/ReleaseFunds';
-import { ResolveFunds } from '../../../../components/ResolveFunds';
-import { VerifyInvoice } from '../../../../components/VerifyInvoice';
-import { WithdrawFunds } from '../../../../components/WithdrawFunds';
-import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
-import { useFetchTokensViaIPFS } from '../../../../hooks/useFetchTokensViaIPFS';
-import { CopyIcon } from '../../../../icons/CopyIcon';
-import { QuestionIcon } from '../../../../icons/QuestionIcon';
-import { AccountLink } from '../../../../shared/AccountLink';
-import { Container } from '../../../../shared/Container';
-import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { balanceOf } from '../../../../utils/erc20';
 import {
+  AddMilestones,
+  DepositFunds,
+  LockFunds,
+  ReleaseFunds,
+  ResolveFunds,
+  WithdrawFunds,
+} from '@smart-invoice/forms';
+import {
+  GenerateInvoicePDF,
+  Loader,
+  VerifyInvoice,
+  CopyIcon,
+  QuestionIcon,
+  AccountLink,
+  Container,
+  InvoiceNotFound,
+} from '@smart-invoice/ui';
+import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import {
+  balanceOf,
   copyToClipboard,
   getAccountString,
   getAddressLink,
@@ -53,7 +57,7 @@ import {
   getTxLink,
   isAddress,
   logError,
-} from '../../../../utils/helpers';
+} from '@smart-invoice/utils';
 
 function ViewInvoice() {
   const { data: walletClient } = useWalletClient();
@@ -85,15 +89,15 @@ function ViewInvoice() {
       walletClient?.chain?.id === invoiceChainId
     ) {
       setBalanceLoading(true);
-      balanceOf(walletClient.chain, validToken, validAddress)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => {
-          logError({ balanceError });
-          setBalanceLoading(false);
-        });
+      // balanceOf(walletClient.chain, validToken, validAddress)
+      //   .then(b => {
+      //     setBalance(b);
+      //     setBalanceLoading(false);
+      //   })
+      //   .catch(balanceError => {
+      //     logError({ balanceError });
+      //     setBalanceLoading(false);
+      //   });
     }
   }, [invoice, walletClient?.chain, invoiceChainId, validToken, validAddress]);
 
@@ -105,15 +109,15 @@ function ViewInvoice() {
       walletClient?.chain?.id === invoiceChainId
     ) {
       setBalanceLoading(true);
-      balanceOf(walletClient.chain, validToken, validAddress)
-        .then(b => {
-          setBalance(b);
-          setBalanceLoading(false);
-        })
-        .catch(balanceError => {
-          logError({ balanceError });
-          setBalanceLoading(false);
-        });
+      // balanceOf(walletClient.chain, validToken, validAddress)
+      //   .then(b => {
+      //     setBalance(b);
+      //     setBalanceLoading(false);
+      //   })
+      //   .catch(balanceError => {
+      //     logError({ balanceError });
+      //     setBalanceLoading(false);
+      //   });
     }
   }, [invoice, walletClient?.chain, invoiceChainId, validToken, validAddress]);
 
@@ -947,7 +951,7 @@ function ViewInvoice() {
                 right="0.5rem"
                 color="gray"
               />
-              {modal && selected === 0 && (
+              {/* {modal && selected === 0 && (
                 <LockFunds
                   invoice={invoice}
                   balance={balance}
@@ -994,7 +998,7 @@ function ViewInvoice() {
                   tokenData={tokenData}
                   // close={() => setModal(false)}
                 />
-              )}
+              )} */}
             </ModalContent>
           </ModalOverlay>
         </Modal>

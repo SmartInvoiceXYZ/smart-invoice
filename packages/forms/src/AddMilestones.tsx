@@ -1,14 +1,13 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable guard-for-in */
-import React, { useEffect, useMemo, useState } from 'react';
-import { Hash, formatUnits, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable no-restricted-globals */
 /* eslint-disable no-shadow */
 /* eslint-disable no-plusplus */
 /* eslint-disable radix */
+import React, { useEffect, useMemo, useState } from 'react';
+import { Hash, formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 import {
   Button,
   Flex,
@@ -23,7 +22,6 @@ import {
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
 import { ChainId } from '@smart-invoice/constants';
 import { OrderedInput } from '@smart-invoice/ui';
 import { TokenData } from '@smart-invoice/types';
@@ -200,6 +198,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
 
       {revisedProjectAgreementType === 'ipfs' ? (
         <div></div>
+      ) : (
         // <OrderedLinkInput
         //   label="Link to Project Agreement (if updated)"
         //   setValue={setRevisedProjectAgreementSrc}
@@ -208,7 +207,6 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         //   backgroundColor="white"
         //   tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         // />
-      ) : (
         ''
       )}
 
@@ -224,7 +222,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           color="black"
           value={addedTotalInput}
           isInvalid={addedTotalInvalid}
-          setValue={(v) => {
+          setValue={v => {
             if (v && !isNaN(Number(v))) {
               setAddedTotalInput(Number(v));
               const p = parseUnits(v, decimals);
@@ -245,7 +243,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           type="number"
           value={addedMilestones}
           isInvalid={addedMilestonesInvalid}
-          setValue={(v) => {
+          setValue={v => {
             const numMilestones = v ? Number(v) : 1;
             setAddedMilestones(numMilestones);
             setMilestoneAmounts(
@@ -288,7 +286,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                 borderColor="lightgrey"
                 _hover={{ borderColor: 'lightgrey' }}
                 pr="3.5rem"
-                onChange={(e) => {
+                onChange={e => {
                   if (!e.target.value || isNaN(Number(e.target.value))) return;
                   const amount = parseUnits(e.target.value, decimals);
                   const newAmounts = milestoneAmounts.slice();
@@ -366,8 +364,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         color="white"
         backgroundColor="blue.1"
         isDisabled={
-          milestoneAmountsInput.reduce((t, v) => t + v, 0) !==
-          addedTotalInput
+          milestoneAmountsInput.reduce((t, v) => t + v, 0) !== addedTotalInput
         }
         textTransform="uppercase"
         size={buttonSize}

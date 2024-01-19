@@ -5,16 +5,17 @@ import { Address, isAddress } from 'viem';
 
 import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
-import { Loader } from '../../../../components/Loader';
-import { ChainId } from '../../../../constants/config';
-import { Invoice, fetchInvoice } from '../../../../graphql/fetchInvoice';
-import { Container } from '../../../../shared/Container';
-import { InvoiceNotFound } from '../../../../shared/InvoiceNotFound';
-import { getIpfsLink, getTxLink } from '../../../../utils/helpers';
+import { Loader, Container, InvoiceNotFound } from '@smart-invoice/ui';
+import { ChainId } from '@smart-invoice/constants';
+import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
+import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
 import { useParams } from 'next/navigation';
 
 function LockedInvoice() {
-  const {hexChainId, invoiceId} = useParams<{ hexChainId: string; invoiceId: Address; }>();
+  const { hexChainId, invoiceId } = useParams<{
+    hexChainId: string;
+    invoiceId: Address;
+  }>();
   const [invoice, setInvoice] = useState<Invoice>();
   const router = useRouter();
   const invoiceChainId = parseInt(hexChainId, 16) as ChainId;

@@ -1,5 +1,5 @@
 export * from './3box';
-export * from './compatibilityHelpers';
+export * from './compatibility';
 export * from './erc20';
 export * from './firebase';
 export * from './getKeys';
@@ -8,4 +8,5 @@ export * from './helpers';
 export * from './invoice';
 export * from './ipfs';
 export * from './metadataSchema';
+export * from './unixToDateTime';
 export * from './web3';

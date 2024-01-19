@@ -8,12 +8,17 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@apollo/client": "^3.8.10",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@smart-invoice/constants": "*",
     "@smart-invoice/utils": "*",
-    "@apollo/client": "^3.8.10",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.3.3",
-    "viem": "^2.3.1"
+    "lodash": "^4.17.21",
+    "viem": "^1.21.4"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202"
   }
 }

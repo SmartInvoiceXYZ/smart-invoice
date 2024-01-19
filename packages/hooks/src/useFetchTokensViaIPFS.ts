@@ -3,8 +3,7 @@ import { Address } from 'viem';
 
 import { IPFS_ENDPOINT, ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
-import { getCID } from '@smart-invoice/utils/firebase';
-import { formatTokenData, formatTokens } from '@smart-invoice/utils/helpers';
+import { getCID, formatTokenData, formatTokens } from '@smart-invoice/utils';
 
 export const useFetchTokensViaIPFS = () => {
   const [tokenData, setTokenData] = useState(

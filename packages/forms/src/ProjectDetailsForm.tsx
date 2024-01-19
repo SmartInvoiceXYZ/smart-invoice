@@ -1,135 +1,133 @@
-import React, { useContext, useState } from 'react';
-
-import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
-
-import { CreateContext } from '../context/CreateContext';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  OrderedInput,
-  OrderedLinkInput,
-  OrderedTextarea,
-} from '../shared/OrderedInput';
-import { formatDate } from '../utils/helpers';
+  Box,
+  Button,
+  Card,
+  // DatePicker,
+  Flex,
+  HStack,
+  Input,
+  Stack,
+  Textarea,
+} from '@chakra-ui/react';
+// import { ProjectDetails } from '@smart-invoice/types';
+import { useEffect } from 'react';
+import { useForm, UseFormReturn } from 'react-hook-form';
+import * as Yup from 'yup';
 
-type ProjectDetailsFormProps = {
-  display: boolean;
-};
+import { sevenDaysFromNow } from './EscrowDetailsForm';
 
-export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
+const validationSchema = Yup.object().shape({
+  projectName: Yup.string().required('Project Name is required'),
+  projectDescription: Yup.string().required('Project Description is required'),
+  agreement: Yup.string().url('Agreement must be a valid URL'),
+  startDate: Yup.date().required('Start Date is required'),
+  endDate: Yup.date().required('End Date is required'),
+});
+
+// interface ProjectDetailsForm extends ProjectDetails {
+//   agreement?: string;
+// }
+
+// : {
+//   escrowForm: UseFormReturn;
+//   updateStep: () => void;
+// }
+
+const ProjectDetailsForm = ({ escrowForm, updateStep }: any) => {
+  const { setValue, watch } = escrowForm;
+  const { projectName, projectDescription, startDate, endDate } = watch();
+  const localForm = useForm({
+    resolver: yupResolver(validationSchema),
+  });
   const {
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    safetyValveDate,
-    setSafetyValveDate,
-    projectName,
-    setProjectName,
-    projectDescription,
-    setProjectDescription,
-    projectAgreementSource,
-    setProjectAgreementSource,
-    projectAgreementLinkType,
-    setProjectAgreementLinkType,
-  } = useContext(CreateContext);
+    handleSubmit,
+    setValue: localSetValue,
+    watch: localWatch,
+  } = localForm;
+  const { startDate: localStartDate, endDate: localEndDate } = localWatch();
 
-  const startDateString = startDate ? formatDate(startDate) : '';
-  const endDateString = endDate ? formatDate(endDate) : '';
-  const safetyValveDateString = safetyValveDate
-    ? formatDate(safetyValveDate)
-    : '';
+  const onSubmit = async (values: any) => {
+    const projectAgreement = [];
+    if (values.agreement) {
+      // TODO handle ipfs agreement link
+      projectAgreement.push({
+        type: 'https',
+        src: values.agreement,
+        createdAt: Math.floor(Date.now() / 1000),
+      });
+    }
 
-  const [nameInvalid, setNameInvalid] = useState(false);
-  const [dateInvalid, setDateInvalid] = useState(false);
+    setValue('projectName', values.projectName);
+    setValue('projectDescription', values.projectDescription);
+    setValue('projectAgreement', projectAgreement);
+    setValue('startDate', values.startDate);
+    setValue('endDate', values.endDate);
+
+    // move form
+    updateStep();
+  };
+
+  useEffect(() => {
+    localSetValue('projectName', projectName || '');
+    localSetValue('projectDescription', projectDescription || '');
+    localSetValue('startDate', startDate || new Date());
+    localSetValue('endDate', endDate || sevenDaysFromNow());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      <OrderedInput
-        label="Project Name or ID"
-        value={projectName}
-        setValue={v => {
-          setProjectName(v);
-          setNameInvalid(v === '');
-        }}
-        isInvalid={nameInvalid}
-        error={nameInvalid ? 'Cannot be empty' : ''}
-        tooltip="Choose something easily identifiable by you & your client. This is how the invoice will appear on your sortable invoices list later."
-        required="required"
-      />
-
-      <OrderedLinkInput
-        label="Link to Project Agreement"
-        value={projectAgreementSource}
-        setValue={setProjectAgreementSource}
-        linkType={projectAgreementLinkType}
-        setLinkType={setProjectAgreementLinkType}
-        tooltip="This agreement will be referenced if there is a payment dispute that goes to arbitration. Link a file that cannot be modified."
-        required="required"
-      />
-
-      <OrderedTextarea
-        label="Project Description"
-        value={projectDescription}
-        setValue={setProjectDescription}
-        infoText="140 character limit"
-        maxLength={140}
-        required="optional"
-        tooltip="This brief description will help you & your client remember key project details in the future."
-      />
-
-      <SimpleGrid
-        w="100%"
-        spacing="1rem"
-        columns={{ base: 1, sm: 2, md: 3 }}
-        mb={dateInvalid ? '-0.5rem' : ''}
-      >
-        <OrderedInput
-          label="Project Start Date"
-          type="date"
-          value={startDateString}
-          setValue={v => setStartDate(Date.parse(v))}
-          required="optional"
-          tooltip="This is the date you expect to begin work on this project."
+    <Card as="form" variant="filled" onSubmit={handleSubmit(onSubmit)} p={6}>
+      <Stack spacing={6} w="100%">
+        {/* <Input
+          label='Project Name'
+          name='projectName'
+          tooltip='The name of the project'
+          placeholder='An adventure slaying Moloch'
+          localForm={localForm}
         />
-
-        <OrderedInput
-          label="Expected End Date"
-          type="date"
-          value={endDateString}
-          setValue={v => setEndDate(Date.parse(v))}
-          required="optional"
-          tooltip="This is the date you expect to complete work on this project."
+        <Textarea
+          label='Description'
+          name='projectDescription'
+          tooltip='A detailed description of the project'
+          placeholder='Describe the project in detail. What is the scope? What are the deliverables? What are the milestones? What are the expectations?'
+          variant='outline'
+          localForm={localForm}
         />
+        <Input
+          label='Project Proposal, Agreement or Specification'
+          name='agreement'
+          tooltip='A URL to a project proposal, agreement or specification. This could be a RIP or other proposal. This is optional.'
+          placeholder='https://github.com/AcmeAcademy/buidler'
+          localForm={localForm}
+        /> */}
+        <HStack>
+          <Box w="45%">
+            {/* <DatePicker
+              label='Start Date'
+              name='startDate'
+              tooltip='The date the project is expected to start'
+              localForm={localForm}
+              selected={localStartDate}
+            /> */}
+          </Box>
+          <Box w="50%">
+            {/* <DatePicker
+              label='Estimated End Date'
+              name='endDate'
+              tooltip='The date the project is expected to end. This value is not formally used in the escrow.'
+              localForm={localForm}
+              selected={localEndDate}
+            /> */}
+          </Box>
+        </HStack>
 
-        <OrderedInput
-          gridArea={{
-            base: 'auto/auto/auto/auto',
-            sm: '2/1/2/span 2',
-            md: 'auto/auto/auto/auto',
-          }}
-          label="Safety Valve Date"
-          type="date"
-          value={safetyValveDateString}
-          setValue={v => {
-            const date = Date.parse(v);
-            setSafetyValveDate(date);
-            setDateInvalid(date < new Date().getTime());
-          }}
-          tooltip="If you do not complete this project by this date, the client can withdraw deposited funds in escrow after 00:00:00 GMT on this date. (Add extra time after the expected end date, in case things take longer to complete)."
-          isInvalid={dateInvalid}
-          required="required"
-        />
-      </SimpleGrid>
-      {dateInvalid && (
-        <Text
-          w="100%"
-          color="red"
-          textAlign="right"
-          fontSize="xs"
-          fontWeight="700"
-        >
-          {dateInvalid ? 'Invalid Safety Valve Date: Already Passed' : ''}
-        </Text>
-      )}
-    </VStack>
+        <Flex justify="center">
+          <Button type="submit">Next: Escrow Details</Button>
+        </Flex>
+      </Stack>
+    </Card>
   );
-}
+};
+
+export default ProjectDetailsForm;

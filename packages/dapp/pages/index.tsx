@@ -9,7 +9,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { logError } from '../utils/helpers';
+import { logError } from '@smart-invoice/utils';
 import { useAccount } from 'wagmi';
 
 function Home() {

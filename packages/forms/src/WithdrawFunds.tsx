@@ -1,124 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { Address, Hash, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Button,
   Heading,
-  Link,
+  // Link,
+  Spinner,
   Text,
   VStack,
-  useBreakpointValue,
 } from '@chakra-ui/react';
+import { useWithdraw } from '@smart-invoice/hooks';
+import { Invoice } from '@smart-invoice/types';
+import { formatUnits } from 'viem';
+import { useChainId } from 'wagmi';
 
-import { getTokenInfo, getTxLink, isAddress, logError } from '../utils/helpers';
-import { withdraw } from '../utils/invoice';
-import { waitForTransaction } from '../utils/transactions';
-import { Invoice } from '../graphql/fetchInvoice';
-import { ChainId } from '../constants/config';
-import { TokenData } from '../types';
-
-type WithdrawFundsProps = {
-  invoice: Invoice;
-  balance: bigint;
-  close: () => void;
-  tokenData: Record<ChainId, Record<Address, TokenData>>;
-};
-
-export function WithdrawFunds({
+const WithdrawFunds = ({
   invoice,
   balance,
-  close,
-  tokenData,
-}: WithdrawFundsProps) {
-  const [loading, setLoading] = useState(false);
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
-  const { network, address, token } = invoice ?? {};
-  const validAddress = isAddress(address);
+}: {
+  invoice: Invoice;
+  balance: bigint;
+}) => {
+  const chainId = useChainId();
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
-  const [txHash, setTxHash] = useState<Hash>();
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
+  // const onSuccess = () => {
+  //   // toast
+  //   // close modal
+  // };
 
-  useEffect(() => {
-    const send = async () => {
-      try {
-        if (balance <= 0 || !walletClient || !validAddress) return;
-        setLoading(true);
-        const hash = await withdraw(walletClient, validAddress);
-        setTxHash(hash);
-        const { chain } = walletClient;
-        await waitForTransaction(chain, hash);
-        window.location.href = `/invoice/${chain.id.toString(
-          16,
-        )}/${validAddress}`;
-        setLoading(false);
-      } catch (withdrawError) {
-        close();
-        logError({ withdrawError });
-      }
-    };
-
-    if (!loading) {
-      send();
-    }
-  }, [network, balance, address, walletClient, loading, close, validAddress]);
+  const { writeAsync: withdrawFunds, isLoading } = useWithdraw({ invoice });
 
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="normal"
         mb="1rem"
-        textTransform="uppercase"
-        textAlign="center"
+        color="white"
+        as="h3"
+        fontSize="2xl"
+        transition="all ease-in-out .25s"
+        _hover={{ cursor: 'pointer', color: 'raid' }}
       >
         Withdraw Funds
       </Heading>
-
-      <Text textAlign="center" fontSize="sm" mb="1rem">
+      <Text textAlign="center" fontSize="sm" mb="1rem" w="70%">
         Follow the instructions in your wallet to withdraw remaining funds from
         the escrow.
       </Text>
-
       <VStack my="2rem" px="5rem" py="1rem" bg="black" borderRadius="0.5rem">
-        <Text color="red.500" fontSize="0.875rem" textAlign="center">
+        <Text color="primary.300" fontSize="0.875rem" textAlign="center">
           Amount To Be Withdrawn
         </Text>
-
-        <Text
-          color="white"
-          fontSize="1rem"
-          fontWeight="bold"
-          textAlign="center"
-        >{`${formatUnits(balance, decimals)} ${symbol}`}</Text>
+        {/* <Text
+          color='yellow'
+          fontSize='1rem'
+          fontWeight='bold'
+          textAlign='center'
+        >{`${formatUnits(balance, 18)} ${parseTokenAddress(
+          chainId,
+          invoice?.token
+        )}`}</Text> */}
       </VStack>
-      {chainId && txHash && (
-        <Text color="white" textAlign="center" fontSize="sm">
+      {/* {transaction && (
+        <Text color='white' textAlign='center' fontSize='sm'>
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, txHash)}
+            href={getTxLink(chainId, transaction.hash)}
             isExternal
-            color="red.500"
-            textDecoration="underline"
+            color='primary.300'
+            textDecoration='underline'
           >
             here
           </Link>
         </Text>
-      )}
-
+      )} */}
+      {isLoading && <Spinner size="xl" />}
       <Button
-        onClick={close}
-        variant="outline"
-        colorScheme="red"
+        onClick={withdrawFunds}
+        isDisabled={!withdrawFunds}
+        variant="solid"
         textTransform="uppercase"
-        size={buttonSize}
-        fontFamily="mono"
-        fontWeight="normal"
-        w="100%"
       >
-        Close
+        Withdraw
       </Button>
     </VStack>
   );
-}
+};
+
+export default WithdrawFunds;

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import { useChainId, useWalletClient } from 'wagmi';
 
 /* eslint-disable no-nested-ternary */
 import {
@@ -13,40 +13,39 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { NetworkChangeAlertModal } from '../../components/NetworkChangeAlertModal';
-import { RegisterSuccess } from '../../components/RegisterSuccess';
-import { FormConfirmation } from '../../components/instant/FormConfirmation';
-import { InstantPaymentDetailsForm } from '../../components/instant/PaymentDetailsForm';
-import { ProjectDetailsForm } from '../../components/instant/ProjectDetailsForm';
-import { INSTANT_STEPS, INVOICE_TYPES } from '../../constants';
 import {
-  CreateContext,
-  CreateContextProvider,
-} from '../../context/CreateContext';
-import { useFetchTokensViaIPFS } from '../../hooks/useFetchTokensViaIPFS';
-import { Container } from '../../shared/Container';
-import { StepInfo } from '../../shared/StepInfo';
+  NetworkChangeAlertModal,
+  RegisterSuccess,
+  FormConfirmation,
+  Container,
+  StepInfo,
+} from '@smart-invoice/ui';
+// import {
+//   InstantPaymentDetailsForm,
+//   ProjectDetailsForm,
+// } from '@smart-invoice/forms';
+import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 
 type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
-export function CreateInvoiceInstantInner() {
-  const {
-    txHash,
-    loading,
-    currentStep,
-    nextStepEnabled,
-    goBackHandler,
-    nextStepHandler,
-    invoiceType,
-    setInvoiceType,
-  } = useContext(CreateContext);
+export function CreateInvoiceInstant() {
+  // const {
+  //   txHash,
+  //   loading,
+  //   currentStep,
+  //   nextStepEnabled,
+  //   goBackHandler,
+  //   nextStepHandler,
+  //   invoiceType,
+  //   setInvoiceType,
+  // } = useContext(CreateContext);
   const { Instant } = INVOICE_TYPES;
 
-  useEffect(() => {
-    setInvoiceType(Instant);
-  }, [invoiceType, setInvoiceType, Instant]);
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
+  // useEffect(() => {
+  //   setInvoiceType(Instant);
+  // }, [invoiceType, setInvoiceType, Instant]);
+  const chainId = useChainId();
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef<number>();
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
@@ -76,7 +75,7 @@ export function CreateInvoiceInstantInner() {
 
   return (
     <Container overlay>
-      {txHash ? (
+      {true ? ( // txHash ? (
         <RegisterSuccess />
       ) : tokenData ? (
         <Stack
@@ -92,7 +91,7 @@ export function CreateInvoiceInstantInner() {
           <NetworkChangeAlertModal
             showChainChangeAlert={showChainChangeAlert}
             setShowChainChangeAlert={setShowChainChangeAlert}
-            chain={chainId}
+            chainId={chainId}
           />
 
           <VStack
@@ -123,7 +122,7 @@ export function CreateInvoiceInstantInner() {
               borderRadius="0.5rem"
               w="100%"
             >
-              <StepInfo
+              {/* <StepInfo
                 stepNum={currentStep}
                 stepTitle={
                   INSTANT_STEPS[currentStep as InstantStepNumber].step_title
@@ -172,7 +171,7 @@ export function CreateInvoiceInstantInner() {
                         INSTANT_STEPS[currentStep as InstantStepNumber].next
                       }`}
                 </Button>
-              </Grid>
+              </Grid> */}
             </Flex>
           </VStack>
         </Stack>
@@ -180,14 +179,6 @@ export function CreateInvoiceInstantInner() {
         <Text>Loading</Text>
       )}
     </Container>
-  );
-}
-
-function CreateInvoiceInstant() {
-  return (
-    <CreateContextProvider>
-      <CreateInvoiceInstantInner />
-    </CreateContextProvider>
   );
 }
 

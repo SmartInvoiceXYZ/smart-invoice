@@ -1,7 +1,3 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Hash, formatUnits, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 /* eslint-disable react/no-array-index-key */
 import {
   Alert,
@@ -9,333 +5,297 @@ import {
   AlertTitle,
   Button,
   Checkbox,
+  // ControlledSelect,
   Flex,
   Heading,
-  Input,
-  InputGroup,
-  InputRightElement,
+  HStack,
   Link,
-  Select,
+  NumberInput,
+  Stack,
   Text,
   Tooltip,
   VStack,
-  useBreakpointValue,
 } from '@chakra-ui/react';
-
-import { ChainId } from '@smart-invoice/constants';
-import { QuestionIcon } from '@smart-invoice/ui';
-import { TokenData } from '@smart-invoice/types';
-import { balanceOf, transfer } from '@smart-invoice/utils';
 import {
-  calculateResolutionFeePercentage,
-  getNativeTokenSymbol,
-  getTokenInfo,
+  commify,
   getTxLink,
+  getNativeTokenSymbol,
   getWrappedNativeToken,
-  isAddress,
-  logError,
-  // waitForTransaction
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/graphql';
+import { useDeposit } from '@smart-invoice/hooks';
+import {
+  // checkedAtIndex,
+  // depositedMilestones,
+  Invoice,
+  // parseTokenAddress,
+  // PAYMENT_TYPES,
+} from '@smart-invoice/types';
+import _ from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { formatUnits, Hex, parseUnits } from 'viem';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 
-const getCheckedStatus = (deposited: bigint, validAmounts: bigint[]) => {
-  let sum = BigInt(0);
-  return validAmounts.map(a => {
-    sum += a;
-    return deposited > sum;
-  });
-};
+import { QuestionIcon } from '@smart-invoice/ui';
 
-const checkedAtIndex = (index: number, checked: boolean[]) =>
-  checked.map((_c, i) => i <= index);
-
-export type DepositFundsProps = {
-  invoice: Invoice;
-  deposited: bigint;
-  due: bigint;
-  // total: bigint;
-  tokenData: Record<ChainId, Record<string, TokenData>>;
-  // fulfilled: boolean;
-  // close?: React.EventHandler<React.MouseEvent>; // () => void;
-};
-
-export const DepositFunds: React.FC<DepositFundsProps> = ({
+const DepositFunds = ({
   invoice,
   deposited,
   due,
-  tokenData,
+}: {
+  invoice: Invoice;
+  deposited: bigint;
+  due: bigint;
 }) => {
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
-  const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
-  const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
-  const { address, token, amounts, currentMilestone, resolutionRate } =
-    invoice ?? {};
-  const validAmounts = useMemo(() => amounts?.map(BigInt) ?? [], [amounts]);
-  const validAddress = useMemo(() => isAddress(address), [address]);
-  const validToken = useMemo(() => isAddress(token), [token]);
-  const [paymentType, setPaymentType] = useState(0);
-  const [amount, setAmount] = useState(BigInt(0));
-  const [amountInput, setAmountInput] = useState('');
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
-  const [loading, setLoading] = useState(false);
-  const [txHash, setTxHash] = useState<Hash>();
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
-  const [depositError, setDepositError] = useState(false);
-  const isWRAPPED = token?.toLowerCase() === WRAPPED_NATIVE_TOKEN;
-  const initialStatus = getCheckedStatus(deposited, validAmounts);
-  const [checked, setChecked] = useState(initialStatus);
+  const { token, amounts, currentMilestone } = invoice;
+  const chainId = useChainId();
+  const { address } = useAccount();
 
-  const [balance, setBalance] = useState<bigint>();
+  const TOKEN_DATA = useMemo(
+    () => ({
+      nativeSymbol: getNativeTokenSymbol(chainId),
+      wrappedToken: getWrappedNativeToken(chainId),
+      isWrapped: _.eq(_.toLower(token), getWrappedNativeToken(chainId)),
+    }),
+    [chainId, token],
+  );
 
-  const deposit = async () => {
-    if (!amount || !balance || !validAddress ||  !validToken || !walletClient) return;
-    if (formatUnits(amount, decimals) > formatUnits(balance, decimals)) {
-      setDepositError(true);
-      return;
-    }
+  const [transaction, setTransaction] = useState<Hex | undefined>();
 
-    try {
-      setLoading(true);
-      let hash;
-      if (paymentType === 1) {
-        hash = await walletClient.sendTransaction({
-          to: validAddress,
-          value: amount,
-        });
-      } else {
-        hash = await transfer(walletClient, validToken, validAddress, amount);
-      }
-      setTxHash(hash);
-      const { chain } = walletClient;
-      // await waitForTransaction(chain, hash);
-      window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
-    } catch (e) {
-      setLoading(false);
-      logError({ depositError: e });
-    }
+  const localForm = useForm();
+  const { watch, setValue } = localForm;
+
+  const paymentType = watch('paymentType');
+  const amount = watch('amount', '0');
+  const checked = watch('checked');
+
+  const amountsSum = _.sumBy(amounts); // number, not parsed
+  // const paidMilestones = depositedMilestones(BigInt(deposited), amounts);
+
+  // const { data: nativeBalance } = useBalance({ address });
+  // const { data: tokenBalance } = useBalance({ address, token });
+  // const balance =
+  //   paymentType?.value === PAYMENT_TYPES.NATIVE
+  //     ? nativeBalance?.value
+  //     : tokenBalance?.value;
+  // const displayBalance =
+  //   paymentType?.value === PAYMENT_TYPES.NATIVE
+  //     ? nativeBalance?.formatted
+  //     : tokenBalance?.formatted;
+  // const decimals =
+  //   paymentType?.value === PAYMENT_TYPES.NATIVE ? 18 : tokenBalance?.decimals;
+  const hasAmount = true;
+  // balance > BigInt(amount) * BigInt(10) ** BigInt(decimals || 0);
+
+  const { handleDeposit, isLoading, isReady } = useDeposit({
+    invoice,
+    amount,
+    hasAmount, // (+ gas)
+    paymentType: paymentType?.value,
+  });
+
+  const depositHandler = async () => {
+    const result = await handleDeposit();
+    if (!result) return;
+    setTransaction(result.hash);
   };
+  // const paymentTypeOptions = [
+  //   { value: PAYMENT_TYPES.TOKEN, label: parseTokenAddress(chainId, token) },
+  //   { value: PAYMENT_TYPES.NATIVE, label: TOKEN_DATA.nativeSymbol },
+  // ];
 
   useEffect(() => {
-    try {
-      if (!walletClient || !validToken) return;
-      const { chain, account } = walletClient;
-      if (paymentType === 0) {
-        balanceOf(chain, validToken, account.address).then(setBalance);
-      } else {
-        // TODO: get balance of native token
-        // provider.getBalance(account).then(setBalance);
-      }
-    } catch (balanceError) {
-      logError({ balanceError });
-    }
-  }, [paymentType, validToken, walletClient]);
+    // setValue('paymentType', paymentTypeOptions[0]);
+    setValue('amount', '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (
-      depositError &&
-      balance &&
-      formatUnits(balance, decimals) > formatUnits(amount, decimals)
-    ) {
-      setDepositError(false);
-    }
-  }, [decimals, depositError, amount, balance]);
+    if (!amount) return;
+
+    // setValue(
+    //   'checked',
+    //   depositedMilestones(BigInt(deposited) + parseUnits(amount, 18), amounts),
+    // );
+  }, [amount, deposited, amounts, setValue]);
 
   return (
     <VStack w="100%" spacing="1rem">
       <Heading
-        fontWeight="bold"
-        mb="1rem"
-        textTransform="uppercase"
-        textAlign="center"
-        color="black"
+        color="white"
+        as="h3"
+        fontSize="2xl"
+        transition="all ease-in-out .25s"
+        _hover={{ cursor: 'pointer', color: 'raid' }}
       >
         Pay Invoice
       </Heading>
-
-      <Text textAlign="center" fontSize="sm" mb="1rem" color="black">
+      <Text textAlign="center" fontSize="sm" mb="1rem" color="whiteAlpha.700">
         At a minimum, you’ll need to deposit enough to cover the{' '}
-        {currentMilestone && Number(currentMilestone) === 0 ? 'first' : 'next'}{' '}
-        project payment.
+        {currentMilestone === 0 ? 'first' : 'next'} project payment.
       </Text>
-      {depositError ? (
-        <Flex>
-          <Alert bg="none" margin="0 auto" textAlign="center" padding="0">
-            <AlertIcon color="red.500" />
-
-            <AlertTitle fontSize="sm" color="red.500">
-              Not enough available {symbol} for this deposit
-            </AlertTitle>
-          </Alert>
-        </Flex>
-      ) : null}
-
-      <Text textAlign="center" color="black">
+      <Text textAlign="center" color="purple.400">
         How much will you be depositing today?
       </Text>
+      <VStack spacing="0.5rem" align="center">
+        {_.map(amounts, (a: number, i: number) => (
+          <HStack>
+            {/* <Checkbox
+              mx="auto"
+              key={i.toString()}
+              isChecked={checked?.[i]}
+              isDisabled={paidMilestones[i]}
+              onChange={e => {
+                const newChecked = e.target.checked
+                  ? checkedAtIndex(i, checked)
+                  : checkedAtIndex(i - 1, checked);
+                const totAmount = amounts.reduce(
+                  (tot: any, cur: any, ind: any) =>
+                    newChecked[ind] ? tot + BigInt(cur) : tot,
+                  BigInt(0),
+                );
+                const newAmount =
+                  totAmount > BigInt(deposited)
+                    ? totAmount - BigInt(deposited)
+                    : BigInt(0);
 
-      <VStack spacing="0.5rem">
-        {validAmounts.map((a: any, i: any) => (
-          <Checkbox
-            key={i.toString()}
-            isChecked={checked[i]}
-            isDisabled={initialStatus[i]}
-            onChange={e => {
-              const newChecked = e.target.checked
-                ? checkedAtIndex(i, checked)
-                : checkedAtIndex(i - 1, checked);
-              const totAmount = validAmounts.reduce(
-                (tot: any, cur: any, ind: any) => (newChecked[ind] ? tot + cur : tot),
-                BigInt(0),
-              );
-              const newAmount =
-                totAmount && totAmount >= deposited
-                  ? totAmount - deposited
-                  : BigInt(0);
-
-              setChecked(newChecked);
-              setAmount(newAmount);
-              setAmountInput(formatUnits(newAmount, decimals));
-            }}
-            colorScheme="blue"
-            borderColor="lightgrey"
-            size="lg"
-            fontSize="1rem"
-            color="#323C47"
-          >
-            Payment #{i + 1} &nbsp; &nbsp;
-            {formatUnits(a, decimals)} {symbol}
-          </Checkbox>
+                setValue('amount', formatUnits(newAmount, 18));
+              }}
+              color="yellow.300"
+              border="none"
+              size="lg"
+              fontSize="1rem"
+              fontFamily="texturina"
+            >
+              <Text>
+                Payment #{i + 1} -{'  '}
+                {commify(formatUnits(BigInt(a), 18))}{' '}
+                {parseTokenAddress(chainId, token)}
+              </Text>
+            </Checkbox> */}
+          </HStack>
         ))}
       </VStack>
 
-      <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
-        <Flex justify="space-between" w="100%">
-          <Text fontWeight="700">Amount</Text>
+      <Text variant="textOne">OR</Text>
 
-          <Flex>
-            {paymentType === 1 && (
-              <Tooltip
-                label={`Your ${NATIVE_TOKEN_SYMBOL} will be automagically wrapped to ${symbol} tokens`}
-                placement="auto-start"
-              >
-                <QuestionIcon ml="1rem" boxSize="0.75rem" />
-              </Tooltip>
+      <Stack spacing="0.5rem" align="center" fontFamily="texturina">
+        <Flex justify="space-between" w="100%">
+          <Text fontWeight="500" color="whiteAlpha.700">
+            Enter a Manual Deposit Amount
+          </Text>
+          {/* {paymentType === PAYMENT_TYPES.NATIVE && (
+            <Tooltip
+              label={`Your ${
+                TOKEN_DATA.nativeSymbol
+              } will be automagically wrapped to ${parseTokenAddress(
+                chainId,
+                token,
+              )} tokens`}
+              placement="auto-start"
+            >
+              <QuestionIcon ml="1rem" boxSize="0.75rem" />
+            </Tooltip>
+          )} */}
+        </Flex>
+
+        <Flex>
+          {/* <NumberInput
+            localForm={localForm}
+            name="amount"
+            type="number"
+            variant="outline"
+            placeholder="0"
+            color="yellow.500"
+            defaultValue="0"
+            min={0}
+            max={amountsSum}
+          /> */}
+
+          <Flex width={250}>
+            {TOKEN_DATA.isWrapped ? (
+              // <ControlledSelect
+              <div>test</div>
+            ) : (
+              //   options={paymentTypeOptions}
+              //   value={paymentType}
+              //   onChange={e => {
+              //     setValue('paymentType', e);
+              //   }}
+              //   // width='100%'
+              // />
+              <div>test</div>
+              // parseTokenAddress(chainId, token)
             )}
           </Flex>
         </Flex>
-
-        <InputGroup>
-          <Input
-            bg="white"
-            color="black"
-            border="1px"
-            type="number"
-            value={amountInput}
-            onChange={e => {
-              const newAmountInput = e.target.value;
-              setAmountInput(newAmountInput);
-              if (newAmountInput) {
-                const newAmount = parseUnits(newAmountInput, decimals);
-                setAmount(newAmount);
-                setChecked(
-                  getCheckedStatus(BigInt(deposited) + newAmount, validAmounts),
-                );
-              } else {
-                setAmount(BigInt(0));
-                setChecked(initialStatus);
-              }
-            }}
-            placeholder="Amount to Deposit"
-            pr={isWRAPPED ? '6rem' : '3.5rem'}
-          />
-
-          <InputRightElement w={isWRAPPED ? '6rem' : '3.5rem'}>
-            {isWRAPPED ? (
-              <Select
-                onChange={e => setPaymentType(Number(e.target.value))}
-                value={paymentType}
-                bg="white"
-                color="black"
-                border="1px"
-              >
-                <option value="0">{symbol}</option>
-                <option value="1">{NATIVE_TOKEN_SYMBOL}</option>
-              </Select>
-            ) : (
-              symbol
-            )}
-          </InputRightElement>
-        </InputGroup>
-        {amount > due ? (
-          <Alert bg="none">
-            <AlertIcon color="red.500" />
-
+        {/* {BigInt(amount) * BigInt(10) ** BigInt(decimals || 0) > due && (
+          <Alert bg="purple.900" borderRadius="md" mt={4}>
+            <AlertIcon color="primary.300" />
             <AlertTitle fontSize="sm">
-              Your deposit is greater than the due amount!
+              Your deposit is greater than the total amount due!
             </AlertTitle>
           </Alert>
-        ) : null}
-      </VStack>
-
-      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-        {deposited !== undefined ? (
+        )} */}
+      </Stack>
+      <Flex
+        color="white"
+        justify="space-between"
+        w={due ? '70%' : '50%'}
+        fontSize="sm"
+        fontFamily="texturina"
+      >
+        {/* {deposited && (
           <VStack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
-            <Text>{`${formatUnits(deposited, decimals)} ${symbol}`}</Text>
+            <Text>
+              {`${commify(
+                formatUnits(BigInt(deposited), 18),
+              )} ${parseTokenAddress(chainId, token)}`}
+            </Text>
           </VStack>
-        ) : null}
-        {deposited !== undefined ? (
-          <VStack align="flex-start">
-            <Text fontWeight="bold">Potential Dispute Fee</Text>
-            <Text>{`${formatUnits(
-              (amount - deposited) *
-                BigInt(calculateResolutionFeePercentage(resolutionRate)),
-              decimals,
-            )} ${symbol}`}</Text>
-          </VStack>
-        ) : null}
-        {due !== undefined ? (
+        )}
+        {due && (
           <VStack>
             <Text fontWeight="bold">Total Due</Text>
-            <Text>{`${formatUnits(due, decimals)} ${symbol}`}</Text>
+            <Text>
+              {`${formatUnits(BigInt(due), 18)} ${parseTokenAddress(
+                chainId,
+                token,
+              )}`}
+            </Text>
           </VStack>
-        ) : null}
-        {balance !== undefined ? (
+        )} */}
+        {/* {displayBalance && (
           <VStack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
             <Text>
-              {`${formatUnits(balance, decimals)} ${
-                paymentType === 0 ? symbol : NATIVE_TOKEN_SYMBOL
+              {`${_.toNumber(displayBalance).toFixed(2)} ${
+                paymentType === 0
+                  ? parseTokenAddress(chainId, token)
+                  : TOKEN_DATA.nativeSymbol
               }`}
             </Text>
           </VStack>
-        ) : null}
+        )} */}
       </Flex>
 
       <Button
-        onClick={deposit}
-        isLoading={loading}
-        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        color="white"
-        backgroundColor="blue.1"
-        isDisabled={amount <= 0}
+        onClick={depositHandler}
+        isDisabled={amount <= 0 || !isReady || !hasAmount}
+        isLoading={isLoading}
         textTransform="uppercase"
-        size={buttonSize}
-        fontFamily="mono"
-        fontWeight="normal"
-        w="100%"
+        variant="solid"
       >
         Deposit
       </Button>
-      {chainId && txHash && (
-        <Text color="black" textAlign="center" fontSize="sm">
+      {transaction && (
+        <Text color="white" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
-            href={getTxLink(chainId, txHash)}
+            href={getTxLink(chainId, transaction)}
             isExternal
-            color="blue.1"
+            color="primary.300"
             textDecoration="underline"
           >
             here
@@ -345,3 +305,5 @@ export const DepositFunds: React.FC<DepositFundsProps> = ({
     </VStack>
   );
 };
+
+export default DepositFunds;

@@ -4,8 +4,8 @@ import React, { useEffect } from 'react';
 import { Flex } from '@chakra-ui/react';
 import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
+import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 
-import { SUPPORTED_NETWORKS } from '../constants';
 import { ConnectWeb3 } from './ConnectWeb3';
 import { Footer } from './Footer';
 import { Header } from './Header';

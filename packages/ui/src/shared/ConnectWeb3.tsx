@@ -1,14 +1,13 @@
 import React from 'react';
-
 import { Button, Flex, Text } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
+import { getNetworkName } from '@smart-invoice/utils';
+import { useWalletClient } from 'wagmi';
 
 import { Loader } from '../components/Loader';
-import { SUPPORTED_NETWORKS } from '../constants';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
-import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
-import { useWalletClient } from 'wagmi';
 
 export function ConnectWeb3() {
   const { data: walletClient, isLoading } = useWalletClient();

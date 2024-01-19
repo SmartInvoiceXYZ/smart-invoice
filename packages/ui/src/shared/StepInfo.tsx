@@ -10,9 +10,9 @@ import {
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
+import { hashCode } from '@smart-invoice/utils';
 
 import { BackArrowIcon } from '../icons/ArrowIcons';
-import { hashCode } from '../utils';
 
 export function StepInfo({
   stepNum,

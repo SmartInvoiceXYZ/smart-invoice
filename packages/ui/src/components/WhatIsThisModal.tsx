@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Button,
   Heading,
@@ -12,6 +10,7 @@ import {
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
+import React from 'react';
 
 type WhatIsThisModalProps = {
   isOpen: boolean;
@@ -53,9 +52,9 @@ export function WhatIsThisModal({ isOpen, onClose }: WhatIsThisModalProps) {
             <Text>
               Smart invoice builds trust between payer and payee by creating a
               secure neutral channel for transferring money. The payer proves
-              their committment by locking money in the contract, and controls
+              their commitment by locking money in the contract, and controls
               when it is released to the payee. No middle party, no leap of
-              faith, and you don’t even have to use the word escrow if you don’t
+              faith, and you don't even have to use the word escrow if you don't
               want to.
             </Text>
 

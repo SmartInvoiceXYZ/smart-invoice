@@ -4,10 +4,9 @@ import { useWalletClient } from 'wagmi';
 
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 
-import { ChainId } from '../constants/config';
-import { CreateContext } from '../context/CreateContext';
-import { OrderedInput, OrderedSelect } from '../shared/OrderedInput';
-import { TokenData } from '../types';
+import { ChainId } from '@smart-invoice/constants';
+import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
+import { TokenData } from '@smart-invoice/types';
 import {
   getResolverInfo,
   getResolverString,
@@ -16,8 +15,8 @@ import {
   getTokens,
   isAddress,
   isKnownResolver,
-} from '../utils/helpers';
-import { getResolutionRateFromFactory } from '../utils/invoice';
+  getResolutionRateFromFactory,
+} from '@smart-invoice/utils';
 
 export type PaymentDetailsFormProps = {
   display: boolean;
@@ -35,33 +34,33 @@ export function PaymentDetailsForm({
   const { id: chainId } = chain || {};
   const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
 
-  const {
-    clientAddress,
-    setClientAddress,
-    paymentAddress,
-    setPaymentAddress,
-    paymentToken,
-    setPaymentToken,
-    paymentDue,
-    setPaymentDue,
-    milestones,
-    setMilestones,
-    arbitrationProvider,
-    setArbitrationProvider,
-    setPayments,
-    termsAccepted,
-    setTermsAccepted,
-  } = useContext(CreateContext);
+  // const {
+  //   clientAddress,
+  //   setClientAddress,
+  //   paymentAddress,
+  //   setPaymentAddress,
+  //   paymentToken,
+  //   setPaymentToken,
+  //   paymentDue,
+  //   setPaymentDue,
+  //   milestones,
+  //   setMilestones,
+  //   arbitrationProvider,
+  //   setArbitrationProvider,
+  //   setPayments,
+  //   termsAccepted,
+  //   setTermsAccepted,
+  // } = useContext(CreateContext);
 
   const TOKENS = useMemo(
     () => getTokens(allTokens, chainId),
     [chainId, allTokens],
   );
 
-  const { decimals, symbol } = useMemo(
-    () => getTokenInfo(chainId, paymentToken, tokenData),
-    [chainId, paymentToken, tokenData],
-  );
+  // const { decimals, symbol } = useMemo(
+  //   () => getTokenInfo(chainId, paymentToken, tokenData),
+  //   [chainId, paymentToken, tokenData],
+  // );
 
   const [arbitrationProviderType, setArbitrationProviderType] = useState('0');
   const [paymentDueInput, setPaymentDueInput] = useState('');
@@ -72,27 +71,27 @@ export function PaymentDetailsForm({
   const [milestonesInvalid, setMilestonesInvalid] = useState(false);
   const [resolutionRate, setResolutionRate] = useState(20);
 
-  useEffect(() => {
-    if (!chain || !arbitrationProvider) return;
-    getResolutionRateFromFactory(chain, arbitrationProvider).then(
-      setResolutionRate,
-    );
-  }, [arbitrationProvider, chain]);
+  // useEffect(() => {
+  //   if (!chain || !arbitrationProvider) return;
+  //   getResolutionRateFromFactory(chain, arbitrationProvider).then(
+  //     setResolutionRate,
+  //   );
+  // }, [arbitrationProvider, chain]);
 
-  useEffect(() => {
-    if (paymentDueInput && !Number.isNaN(Number(paymentDueInput))) {
-      const p = parseUnits(paymentDueInput, decimals);
-      setPaymentDue(p);
-      setPaymentInvalid(p <= 0);
-    } else {
-      setPaymentDue(BigInt(0));
-      setPaymentInvalid(true);
-    }
-  }, [paymentToken, paymentDueInput, setPaymentDue, decimals]);
+  // useEffect(() => {
+  //   if (paymentDueInput && !Number.isNaN(Number(paymentDueInput))) {
+  //     const p = parseUnits(paymentDueInput, decimals);
+  //     setPaymentDue(p);
+  //     setPaymentInvalid(p <= 0);
+  //   } else {
+  //     setPaymentDue(BigInt(0));
+  //     setPaymentInvalid(true);
+  //   }
+  // }, [paymentToken, paymentDueInput, setPaymentDue, decimals]);
 
   return (
     <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      <OrderedInput
+      {/* <OrderedInput
         label="Client Address"
         value={clientAddress}
         isInvalid={clientInvalid}
@@ -116,7 +115,7 @@ export function PaymentDetailsForm({
         error={providerInvalid ? 'Invalid Address' : ''}
         tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address."
         required="required"
-      />
+      /> */}
 
       <SimpleGrid
         w="100%"
@@ -124,7 +123,7 @@ export function PaymentDetailsForm({
         spacing="1rem"
         mb={paymentInvalid ? '-0.5rem' : ''}
       >
-        <OrderedInput
+        {/* <OrderedInput
           label="Total Payment Due"
           type="number"
           value={paymentDueInput}
@@ -176,7 +175,7 @@ export function PaymentDetailsForm({
           }}
           tooltip="How many milestone payments will there be for this invoice? (You'll be able to customize the payment amount for each milestone in the next step)."
           required="required"
-        />
+        /> */}
       </SimpleGrid>
       {(paymentInvalid || milestonesInvalid) && (
         <Text
@@ -191,7 +190,7 @@ export function PaymentDetailsForm({
       )}
 
       <SimpleGrid w="100%" columns={2} spacing="1rem">
-        <OrderedSelect
+        {/* <OrderedSelect
           tooltip="This arbitrator will be used in case of dispute. LexDAO is recommended, but you may include the wallet address of your preferred arbitrator."
           value={arbitrationProviderType}
           setValue={v => {
@@ -230,9 +229,9 @@ export function PaymentDetailsForm({
             }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
             isDisabled
           />
-        ) : null}
+        ) : null} */}
       </SimpleGrid>
-      {!arbitrationProvider ||
+      {/* {!arbitrationProvider ||
       !isKnownResolver(arbitrationProvider, chainId) ? (
         <OrderedInput
           tooltip="This arbitrator will be used in case of dispute."
@@ -265,7 +264,7 @@ export function PaymentDetailsForm({
             terms of service
           </Link>
         </Checkbox>
-      )}
+      )} */}
     </VStack>
   );
 }

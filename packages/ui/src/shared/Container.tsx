@@ -1,13 +1,12 @@
 import React from 'react';
 import { Flex, FlexProps } from '@chakra-ui/react';
-
-import { isBackdropFilterSupported } from '../utils/compatibilityHelpers';
+import { isBackdropFilterSupported } from '@smart-invoice/utils';
 
 interface ContainerProps extends FlexProps {
   overlay?: boolean;
 }
 
-export const Container = ({ children, overlay, ...props } : ContainerProps) => {
+export const Container = ({ children, overlay, ...props }: ContainerProps) => {
   const overlayStyles = isBackdropFilterSupported()
     ? {
         backgroundColor: 'black30',

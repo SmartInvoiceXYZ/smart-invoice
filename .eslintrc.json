@@ -24,9 +24,10 @@
 
     // Allow props spreading
     "react/jsx-props-no-spreading": "off",
-
     // disable prop-types
     "react/prop-types": "off",
+    // typescript
+    "@typescript-eslint/no-explicit-any": "off",
 
     // disable form label
     "jsx-a11y/label-has-associated-control": "off"

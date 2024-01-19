@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Hash } from 'viem';
 import { useWalletClient } from 'wagmi';
-
-/* eslint-disable no-nested-ternary */
 import { Button, Spinner, Text, VStack } from '@chakra-ui/react';
-import { waitForTransaction } from '@wagmi/core';
+import { waitForTransaction } from 'wagmi/actions';
 
-import { isAddress, logError } from '../utils/helpers';
-import { verify } from '../utils/invoice';
-import { Invoice } from '../graphql/fetchInvoice';
+import { isAddress, logError } from '@smart-invoice/utils';
+import { Invoice } from '@smart-invoice/graphql';
 
 type VerifyInvoiceProps = {
   invoice: Invoice;
@@ -50,7 +47,7 @@ export function VerifyInvoice({
         logError('verifyInvoice: walletClient is null');
         return;
       }
-      const hash = await verify(walletClient, validAddress);
+      const hash = '0x'; // await verify(walletClient, validAddress);
       setTxHash(hash);
       const chainId = walletClient.chain.id;
       const txReceipt = await waitForTransaction({ chainId, hash });

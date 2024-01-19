@@ -2,9 +2,9 @@ import { useRouter } from 'next/router';
 import React from 'react';
 
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
+import { getNetworkName } from '@smart-invoice/utils';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
-import { getNetworkName } from '../utils/helpers';
 import { Container } from './Container';
 
 export function InvoiceNotFound({

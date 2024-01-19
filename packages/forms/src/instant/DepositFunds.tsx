@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Hash, formatUnits, parseUnits } from 'viem';
+import { Hash, Hex, formatUnits, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 import {
@@ -23,21 +23,25 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { ChainId } from '../../constants/config';
-import { QuestionIcon } from '../../icons/QuestionIcon';
-import { TokenData } from '../../types';
-import { approve, balanceOf, getAllowance } from '../../utils/erc20';
+import { ChainId } from '@smart-invoice/constants';
+import { QuestionIcon } from '@smart-invoice/ui';
+import { TokenData } from '@smart-invoice/types';
 import {
+  approve,
+  balanceOf,
+  getAllowance,
   getNativeTokenSymbol,
   getTokenInfo,
   getTxLink,
   getWrappedNativeToken,
   isAddress,
   logError,
-} from '../../utils/helpers';
-import { depositTokens, tipTokens } from '../../utils/invoice';
-import { waitForTransaction } from '../../utils/transactions';
-import { Invoice } from '../../graphql/fetchInvoice';
+  // waitForTransaction,
+  // depositTokens,
+  // tipTokens,
+} from '@smart-invoice/utils';
+import { Invoice } from '@smart-invoice/graphql';
+import { waitForTransaction } from 'wagmi/actions';
 
 const getCheckedStatus = (deposited: bigint, amounts: bigint[]) => {
   let sum = BigInt(0);
@@ -75,7 +79,7 @@ export function DepositFunds({
   const validAddress = isAddress(address);
   const validToken = isAddress(token);
   const amounts = useMemo(
-    () => (rawAmounts ?? []).map(a => BigInt(a)),
+    () => (rawAmounts ?? []).map((a: any) => BigInt(a)),
     [rawAmounts],
   );
   const [paymentType, setPaymentType] = useState(0);
@@ -124,21 +128,21 @@ export function DepositFunds({
           value: totalPayment,
         });
       } else if (fulfilled) {
-        hash = await tipTokens(
-          walletClient,
-          validAddress,
-          validToken,
-          totalPayment,
-        );
+        hash = '0x'; // await tipTokens(
+        //   walletClient,
+        //   validAddress,
+        //   validToken,
+        //   totalPayment,
+        // );
       } else {
-        hash = await depositTokens(
-          walletClient,
-          validAddress,
-          validToken,
-          totalPayment,
-        );
+        hash = '0x'; // await depositTokens(
+        //   walletClient,
+        //   validAddress,
+        //   validToken,
+        //   totalPayment,
+        // );
       }
-      setTxHash(hash);
+      setTxHash(hash as Hex);
       const { chain } = walletClient;
       window.location.href = `/invoice/${chain.id.toString(
         16,
@@ -168,10 +172,10 @@ export function DepositFunds({
         approvalAmount,
       );
       setTxHash(hash);
-      await waitForTransaction(chain, hash);
-      setAllowance(
-        await getAllowance(chain, validToken, account.address, validAddress),
-      );
+      // await waitForTransaction(chain, hash);
+      setAllowance(BigInt(0));
+      // await getAllowance(chain, validToken, account.address, validAddress),
+      // );
     } catch (approvalError) {
       logError('error during approve: ', approvalError);
     }
@@ -193,9 +197,9 @@ export function DepositFunds({
       const { account, chain } = walletClient;
       if (paymentType === 0) {
         balanceOf(chain, validToken, account.address).then(setBalance);
-        getAllowance(chain, validToken, account.address, validAddress).then(
-          setAllowance,
-        );
+        // getAllowance(chain, validToken, account.address, validAddress).then(
+        //   setAllowance,
+        // );
       } else {
         // TODO: get balance from wallet
         // walletClient..(account).then(setBalance);
@@ -313,7 +317,7 @@ export function DepositFunds({
           <InputRightElement w={isWRAPPED ? '6.5rem' : '4rem'}>
             {isWRAPPED ? (
               <Select
-                onChange={(e) => setPaymentType(Number(e.target.value))}
+                onChange={e => setPaymentType(Number(e.target.value))}
                 value={paymentType}
                 bg="white"
                 color="black"
@@ -433,9 +437,9 @@ export function DepositFunds({
                   borderWidth={1}
                   width={100}
                   minHeight={50}
-                  onClick={(e) => {
+                  onClick={e => {
                     const v = e.currentTarget.value;
-                    setTipPerc(v);
+                    // setTipPerc(v);
                     if (customTip && !Number.isNaN(Number(customTip))) {
                       const p = parseUnits(customTip, decimals);
                       setTipAmount(p);
@@ -452,7 +456,7 @@ export function DepositFunds({
                   <Input
                     type="number"
                     value={customTip}
-                    onChange={(e) => {
+                    onChange={e => {
                       const v = e.currentTarget.value;
                       setCustomTip(v);
                       if (v && !Number.isNaN(Number(v))) {

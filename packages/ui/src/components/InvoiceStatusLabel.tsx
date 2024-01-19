@@ -3,9 +3,10 @@ import React from 'react';
 
 import { Flex, Text } from '@chakra-ui/react';
 
-import { useInvoiceStatus } from '../hooks/useInvoiceStatus';
+import { useInvoiceStatus } from '@smart-invoice/hooks';
+import { Invoice } from '@smart-invoice/graphql';
+
 import { Loader } from './Loader';
-import { Invoice } from '../graphql/fetchInvoice';
 
 export type InvoiceStatusLabelProps = {
   invoice: Invoice;

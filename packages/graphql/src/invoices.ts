@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 
+import { logDebug } from '@smart-invoice/utils';
 import { Address, isAddress } from 'viem';
 
 import { typedGql } from './zeus/typedDocumentNode';
 import { Invoice_orderBy, OrderDirection, _SubgraphErrorPolicy_ } from './zeus';
 import { clients } from './client';
-import { logDebug } from '../../utils';
 import { scalars } from './scalars';
 
 export type SearchInputType = string | Address | undefined;

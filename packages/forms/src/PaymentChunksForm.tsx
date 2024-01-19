@@ -12,11 +12,10 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { CreateContext } from '../context/CreateContext';
-import { QuestionIcon } from '../icons/QuestionIcon';
-import { getTokenInfo } from '../utils/helpers';
-import { ChainId } from '../constants/config';
-import { TokenData } from '../types';
+import { QuestionIcon } from '@smart-invoice/ui';
+import { getTokenInfo } from '@smart-invoice/utils';
+import { ChainId } from '@smart-invoice/constants';
+import { TokenData } from '@smart-invoice/types';
 
 type PaymentChunksFormProps = {
   display: boolean;
@@ -29,12 +28,10 @@ export function PaymentChunksForm({
 }: PaymentChunksFormProps) {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
-  const { paymentToken, milestones, payments, setPayments, paymentDue } =
-    useContext(CreateContext);
-  const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+  // const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
   return (
     <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
-      {Array.from(Array(Number(milestones))).map(_val => (
+      {/* {Array.from(Array(Number(milestones))).map(_val => (
         <VStack w="100%" spacing="0.5rem" key={_val}>
           <Flex w="100%">
             <Text fontWeight="700">Payment #{_val}</Text>
@@ -84,7 +81,7 @@ export function PaymentChunksForm({
           Total Amount Must Add Up to {formatUnits(paymentDue, decimals)}{' '}
           {symbol}
         </Text>
-      ) : null}
+      ) : null} */}
     </VStack>
   );
 }

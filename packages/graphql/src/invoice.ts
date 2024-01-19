@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Address } from 'viem';
 
-import { isAddress, logDebug } from '../../utils/helpers';
+import { isAddress, logDebug } from '@smart-invoice/utils';
 import { clients } from './client';
 import { typedGql } from './zeus/typedDocumentNode';
 import {

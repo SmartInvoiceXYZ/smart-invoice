@@ -11,8 +11,8 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { INVOICE_TYPES } from '../../constants';
-import { logError } from '../../utils/helpers';
+import { INVOICE_TYPES } from '@smart-invoice/constants';
+import { logError } from '@smart-invoice/utils';
 
 function SelectInvoiceType() {
   const { Instant, Escrow } = INVOICE_TYPES;
@@ -33,7 +33,7 @@ function SelectInvoiceType() {
     }
   };
 
-  const createType = async invoiceType => {
+  const createType = async (invoiceType: any) => {
     try {
       router.push(`/create/${invoiceType}`);
     } catch (error) {

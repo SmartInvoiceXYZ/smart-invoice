@@ -12,9 +12,9 @@ import {
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
+import { isValidLink, logDebug } from '@smart-invoice/utils';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
-import { isValidLink, logDebug } from '../utils/helpers';
 
 type Required = 'required' | 'optional';
 

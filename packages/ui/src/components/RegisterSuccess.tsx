@@ -1,16 +1,19 @@
 import NextLink from 'next/link';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
 
-import { CreateContext } from '../context/CreateContext';
-import { Invoice, fetchInvoice } from '../graphql/fetchInvoice';
-import { CopyIcon } from '../icons/CopyIcon';
-import { Network } from '../types';
-import { copyToClipboard, getHexChainId, getTxLink } from '../utils/helpers';
-import { awaitInvoiceAddress } from '../utils/invoice';
+import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
+import { CopyIcon } from '@smart-invoice/ui';
+import { Network } from '@smart-invoice/types';
+import {
+  copyToClipboard,
+  getHexChainId,
+  getTxLink,
+  awaitInvoiceAddress,
+} from '@smart-invoice/utils';
 import { Loader } from './Loader';
 
 const POLL_INTERVAL = 5000;
@@ -18,7 +21,7 @@ const POLL_INTERVAL = 5000;
 export function RegisterSuccess() {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
-  const { txHash } = useContext(CreateContext);
+  const txHash = '0x';
   const [invoiceId, setInvoiceID] = useState<Address>();
   const [invoice, setInvoice] = useState<Invoice>();
 

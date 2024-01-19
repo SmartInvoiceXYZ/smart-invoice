@@ -8,9 +8,9 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { CONFIG } from '../constants';
-import { useFetchTokensViaIPFS } from '../hooks/useFetchTokensViaIPFS';
-import { Container } from '../shared/Container';
+import { CONFIG } from '@smart-invoice/constants';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { Container } from '@smart-invoice/ui';
 import {
   getKeys,
   getAccountString,
@@ -18,7 +18,7 @@ import {
   getInvoiceFactoryAddress,
   getTokenInfo,
   getTokens,
-} from '../utils';
+} from '@smart-invoice/utils';
 
 const { NETWORK_CONFIG } = CONFIG;
 const chainIds = getKeys(NETWORK_CONFIG);
