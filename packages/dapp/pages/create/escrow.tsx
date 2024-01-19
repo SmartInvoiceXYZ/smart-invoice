@@ -1,5 +1,3 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useChainId } from 'wagmi';
 import {
   Button,
   Flex,
@@ -7,24 +5,26 @@ import {
   Heading,
   Stack,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-import {
-  FormConfirmation,
-  NetworkChangeAlertModal,
-  RegisterSuccess,
-  Container,
-  StepInfo,
-} from '@smart-invoice/ui';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import {
   PaymentChunksForm,
   PaymentDetailsForm,
   ProjectDetailsForm,
 } from '@smart-invoice/forms';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import {
+  Container,
+  FormConfirmation,
+  NetworkChangeAlertModal,
+  RegisterSuccess,
+  StepInfo,
+} from '@smart-invoice/ui';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useChainId } from 'wagmi';
 
 type EscrowStepNumber = keyof typeof ESCROW_STEPS;
 

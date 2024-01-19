@@ -1,4 +1,3 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
   Card,
@@ -14,8 +13,9 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Invoice } from '@smart-invoice/graphql';
 import { commify } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/types';
 import _ from 'lodash';
 import { useEffect } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
@@ -48,7 +48,7 @@ const validationSchema = Yup.object().shape({
   // }),
 });
 
-const PaymentsForm = ({
+export function PaymentsForm({
   escrowForm,
   updateStep,
   backStep,
@@ -56,7 +56,7 @@ const PaymentsForm = ({
   escrowForm: UseFormReturn;
   updateStep: () => void;
   backStep: (i?: number) => void;
-}) => {
+}) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
   const { milestones, token, raidPartySplit } = watch();
@@ -77,8 +77,8 @@ const PaymentsForm = ({
 
   const setEscrowValues = (values: Partial<Invoice>) => {
     // set values in escrow form
-    setValue('milestones', values.milestones);
-    setValue('token', values.token);
+    // setValue('milestones', values?.milestones);
+    setValue('token', values?.token);
   };
 
   const onSubmit = (values: any) => {
@@ -209,6 +209,4 @@ const PaymentsForm = ({
       </Flex>
     </Card>
   );
-};
-
-export default PaymentsForm;
+}

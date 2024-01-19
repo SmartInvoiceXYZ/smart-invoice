@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { getApp, initializeApp } from 'firebase/app';
 import { child, get, getDatabase, ref } from 'firebase/database';
+
 import { logDebug, logError } from './helpers';
 
 const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;

@@ -1,21 +1,19 @@
-import React, { useContext } from 'react';
-import { Address, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Divider,
   Flex,
   Link,
   Spacer,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-
-import { AccountLink } from '@smart-invoice/ui';
-import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
+import { AccountLink } from '@smart-invoice/ui';
+import { getDateString, getTokenInfo } from '@smart-invoice/utils';
+import React, { useContext } from 'react';
+import { Address, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 type FormConfirmationProps = {
   display?: boolean;

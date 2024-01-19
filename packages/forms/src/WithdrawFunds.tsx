@@ -6,19 +6,19 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useWithdraw } from '@smart-invoice/hooks';
 import { Invoice } from '@smart-invoice/graphql';
+import { useWithdraw } from '@smart-invoice/hooks';
+import { getTxLink } from '@smart-invoice/utils';
 import { formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
-import { getTxLink } from '@smart-invoice/utils';
 
-const WithdrawFunds = ({
+export function WithdrawFunds({
   invoice,
   balance,
 }: {
   invoice: Invoice;
   balance: bigint;
-}) => {
+}) {
   const chainId = useChainId();
 
   // const onSuccess = () => {
@@ -82,6 +82,4 @@ const WithdrawFunds = ({
       </Button>
     </VStack>
   );
-};
-
-export default WithdrawFunds;
+}

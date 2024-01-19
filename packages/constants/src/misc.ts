@@ -1,5 +1,6 @@
 import { Address } from 'viem';
 
+// TODO look at overlap with utils/web3.ts
 // import { getKeys } from '../utils/getKeys';
 import { CONFIG } from './config';
 

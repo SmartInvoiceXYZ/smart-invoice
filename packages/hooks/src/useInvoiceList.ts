@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-const useInvoiceList = ({ chainId }: UseInvoiceList) => {
+export const useInvoiceList = ({ chainId }: UseInvoiceList) => {
   const { data, error, isLoading } = useQuery({
     queryKey: ['invoiceList', chainId],
     queryFn: () => [],
@@ -17,5 +17,3 @@ const useInvoiceList = ({ chainId }: UseInvoiceList) => {
 interface UseInvoiceList {
   chainId: number;
 }
-
-export default useInvoiceList;

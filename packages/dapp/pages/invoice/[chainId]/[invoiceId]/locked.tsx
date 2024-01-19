@@ -1,15 +1,13 @@
+import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import { ChainId } from '@smart-invoice/constants';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
+import { Container, InvoiceNotFound, Loader } from '@smart-invoice/ui';
+import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
 import NextLink from 'next/link';
+import { useParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
-
-import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
-
-import { Loader, Container, InvoiceNotFound } from '@smart-invoice/ui';
-import { ChainId } from '@smart-invoice/constants';
-import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
-import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
-import { useParams } from 'next/navigation';
 
 function LockedInvoice() {
   const { hexChainId, invoiceId } = useParams<{

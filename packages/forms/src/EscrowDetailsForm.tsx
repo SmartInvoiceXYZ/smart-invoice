@@ -1,4 +1,3 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Box,
   Button,
@@ -10,13 +9,14 @@ import {
   // Input,
   Stack,
 } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/types';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
-import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 
 const unsupportedNetwork = (chainId: number) =>
   !_.includes(SUPPORTED_NETWORKS, chainId);
@@ -48,7 +48,7 @@ const schema = Yup.object().shape({
   raidPartySplit: Yup.boolean().required('Raid party split is required'),
 });
 
-const EscrowDetailsForm = ({
+export function EscrowDetailsForm({
   escrowForm,
   raid,
   updateStep,
@@ -58,7 +58,7 @@ const EscrowDetailsForm = ({
   raid: any; // IRaid;
   updateStep: (i?: number) => void;
   backStep: () => void;
-}) => {
+}) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
   const { provider, client, safetyValveDate, raidPartySplit } = watch();
@@ -79,11 +79,11 @@ const EscrowDetailsForm = ({
 
   const saveEscrowValues = (values: Partial<Invoice>) => {
     // update values in escrow form
-    setValue('client', values.client);
-    setValue('provider', values.provider);
-    setValue('safetyValveDate', values.safetyValveDate);
-    setValue('raidPartySplit', values.raidPartySplit);
-    setValue('daoSplit', values.daoSplit);
+    setValue('client', values?.client);
+    setValue('provider', values?.provider);
+    // setValue('safetyValveDate', values?.safetyValveDate);
+    // setValue('raidPartySplit', values?.raidPartySplit);
+    // setValue('daoSplit', values?.daoSplit);
   };
 
   // values: Partial<Invoice>
@@ -208,6 +208,4 @@ const EscrowDetailsForm = ({
       </Stack>
     </Card>
   );
-};
-
-export default EscrowDetailsForm;
+}

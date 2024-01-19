@@ -1,18 +1,18 @@
 import {
-  Address,
-  Chain,
-  Hash,
-  Hex,
-  WalletClient,
-  isAddress,
-  isHex,
-} from 'viem';
-
-import {
   ISmartInvoiceEscrowAbi,
   ISmartInvoiceFactoryAbi,
   ISmartInvoiceInstantAbi,
 } from '@smart-invoice/constants';
+import {
+  Address,
+  Chain,
+  Hash,
+  Hex,
+  isAddress,
+  isHex,
+  WalletClient,
+} from 'viem';
+
 import { readContract, readEvent, writeContract } from './contracts';
 import { getInvoiceFactoryAddress, logError } from './helpers';
 
@@ -82,6 +82,7 @@ export const getResolutionRateFromFactory = async (
     //   args: [resolver],
     // });
     // return resolutionRate > 0 ? Number(resolutionRate) : defaultValue;
+    return defaultValue;
   } catch (resolutionRateError) {
     logError({ resolutionRateError });
     return defaultValue;

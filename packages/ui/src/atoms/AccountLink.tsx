@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
 import { Flex, Link, Text } from '@chakra-ui/react';
 import {
-  getProfile,
   getAddressLink,
+  getProfile,
   getResolverInfo,
   getResolverString,
   isAddress,
   isKnownResolver,
 } from '@smart-invoice/utils';
-import { useChainId } from 'wagmi';
+import React, { useEffect, useState } from 'react';
 import { Address } from 'viem';
+import { useChainId } from 'wagmi';
 
 import { theme } from '../theme';
 

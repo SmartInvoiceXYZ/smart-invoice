@@ -1,6 +1,5 @@
+import { Box, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
-
-import { Box, Link as ChakraLink, Flex, Image } from '@chakra-ui/react';
 
 export function Footer() {
   const [isMobile, onMobile] = useState(false);

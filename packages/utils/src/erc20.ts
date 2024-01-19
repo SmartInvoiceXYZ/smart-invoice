@@ -1,6 +1,5 @@
-import { Address, Chain, WalletClient } from 'viem';
-
 import { IERC20Abi } from '@smart-invoice/constants';
+import { Address, Chain, WalletClient } from 'viem';
 // import { readContract, writeContract } from './contracts';
 
 export const approve = async (
@@ -9,13 +8,13 @@ export const approve = async (
   spender: Address,
   amount: bigint,
 ) => undefined;
-  // writeContract({
-  //   abi: IERC20Abi,
-  //   address: token,
-  //   walletClient,
-  //   functionName: 'approve',
-  //   args: [spender, amount],
-  // });
+// writeContract({
+//   abi: IERC20Abi,
+//   address: token,
+//   walletClient,
+//   functionName: 'approve',
+//   args: [spender, amount],
+// });
 
 export const transfer = async (
   walletClient: WalletClient,
@@ -23,13 +22,13 @@ export const transfer = async (
   recipient: Address,
   amount: bigint,
 ) => undefined;
-  // writeContract({
-  //   abi: IERC20Abi,
-  //   address: token,
-  //   walletClient,
-  //   functionName: 'transfer',
-  //   args: [recipient, amount],
-  // });
+// writeContract({
+//   abi: IERC20Abi,
+//   address: token,
+//   walletClient,
+//   functionName: 'transfer',
+//   args: [recipient, amount],
+// });
 
 export const balanceOf = async (
   chain: Chain,

@@ -1,7 +1,3 @@
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
-
-/* eslint-disable no-use-before-define */
 import {
   Box,
   Button,
@@ -10,9 +6,10 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
 import { INVOICE_TYPES } from '@smart-invoice/constants';
 import { logError } from '@smart-invoice/utils';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
 
 function SelectInvoiceType() {
   const { Instant, Escrow } = INVOICE_TYPES;

@@ -1,17 +1,13 @@
-import React, { useContext, useState } from 'react';
-
 import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
-
 import {
   OrderedInput,
   // OrderedLinkInput,
   // OrderedTextarea,
-} from '@smart-invoice/ui';
-import { formatDate } from '@smart-invoice/utils';
-import {
   OrderedLinkInput,
   OrderedTextarea,
-} from '@smart-invoice/ui/src/shared/OrderedInput';
+} from '@smart-invoice/ui';
+import { formatDate } from '@smart-invoice/utils';
+import React, { useContext, useState } from 'react';
 
 type ProjectDetailsFormProps = {
   display?: boolean;

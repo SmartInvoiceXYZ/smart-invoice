@@ -1,14 +1,14 @@
-import { Invoice } from '@smart-invoice/types';
-import { ContractFunctionResult, parseUnits } from 'viem';
+import { IERC20Abi } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
+import { ContractFunctionResult, Hex, parseUnits } from 'viem';
 import {
   useChainId,
   useContractWrite,
   usePrepareContractWrite,
   useSendTransaction,
 } from 'wagmi';
-import { IERC20Abi } from '@smart-invoice/constants';
 
-const useDeposit = ({
+export const useDeposit = ({
   invoice,
   amount,
   hasAmount,
@@ -32,10 +32,10 @@ const useDeposit = ({
     error: prepareError,
   } = usePrepareContractWrite({
     chainId,
-    address: token,
+    address: token as Hex,
     abi: IERC20Abi,
     functionName: 'transfer',
-    args: [invoice?.address, depositAmount],
+    args: [invoice?.address as Hex, depositAmount],
     enabled: hasAmount, // && paymentType === PAYMENT_TYPES.TOKEN,
   });
 
@@ -85,5 +85,3 @@ const useDeposit = ({
     prepareError,
   };
 };
-
-export default useDeposit;

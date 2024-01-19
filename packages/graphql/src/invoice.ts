@@ -1,10 +1,11 @@
 /* eslint-disable camelcase */
+import { isAddress, logDebug } from '@smart-invoice/utils';
 import { Address } from 'viem';
 
-import { isAddress, logDebug } from '@smart-invoice/utils';
 import { clients } from './client';
-import { typedGql } from './zeus/typedDocumentNode';
+import { scalars } from './scalars';
 import {
+  _SubgraphErrorPolicy_,
   Agreement_orderBy,
   Deposit_orderBy,
   Dispute_orderBy,
@@ -12,9 +13,8 @@ import {
   Release_orderBy,
   Resolution_orderBy,
   Verified_orderBy,
-  _SubgraphErrorPolicy_,
 } from './zeus';
-import { scalars } from './scalars';
+import { typedGql } from './zeus/typedDocumentNode';
 
 const invoiceQuery = (id: string) =>
   typedGql('query', { scalars })({

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Button,
   ButtonProps,
@@ -11,13 +9,14 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  VStack,
   useDisclosure,
+  VStack,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
 import { Invoice } from '@smart-invoice/graphql';
+import React from 'react';
 
-import InvoicePDF from '../molecules/InvoicePDF';
+import { InvoicePDF } from '../molecules';
 
 interface GenerateInvoicePDFProps {
   invoice: Invoice;

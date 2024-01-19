@@ -1,16 +1,16 @@
+import { ISmartInvoiceFactoryAbi } from '@smart-invoice/constants';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { encodeAbiParameters, Hex, parseUnits, stringToHex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { ISmartInvoiceFactoryAbi } from '@smart-invoice/constants';
 
 // import INVOICE_FACTORY_ABI from './contracts/InvoiceFactory.json';
 // import useDetailsPin from './useDetailsPin';
 
 const REQUIRES_VERIFICATION = true;
 
-const useRegister = ({
+export const useRegister = ({
   raidId,
   escrowForm,
   detailsData,
@@ -159,5 +159,3 @@ const useRegister = ({
     writeError,
   };
 };
-
-export default useRegister;

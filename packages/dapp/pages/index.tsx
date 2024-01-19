@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Button,
   Flex,
@@ -7,6 +6,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChakraNextLink } from '@smart-invoice/ui';
+import React from 'react';
 
 function Home() {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });

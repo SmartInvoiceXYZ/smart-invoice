@@ -1,11 +1,10 @@
+// import { useAccount, useConnect, useWalletClient } from 'wagmi';
+import { Box, Button, Flex, Image, Link as ChakraLink } from '@chakra-ui/react';
+import styled from '@emotion/styled';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-// import { useAccount, useConnect, useWalletClient } from 'wagmi';
-
-import { Box, Button, Link as ChakraLink, Flex, Image } from '@chakra-ui/react';
-import styled from '@emotion/styled';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
@@ -126,7 +125,7 @@ export function Header() {
         )}
         {isMobile && (
           <Button
-            onClick={() => onOpen((o) => !o)}
+            onClick={() => onOpen(o => !o)}
             variant="link"
             ml={{ base: '0.5rem', sm: '1rem' }}
             zIndex={7}

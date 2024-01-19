@@ -9,10 +9,10 @@ import { CONFIG } from '@smart-invoice/constants';
 import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 import { Container } from '@smart-invoice/ui';
 import {
-  getKeys,
   getAccountString,
   getAddressLink,
   getInvoiceFactoryAddress,
+  getKeys,
   getTokenInfo,
   getTokens,
 } from '@smart-invoice/utils';
@@ -21,7 +21,7 @@ import React from 'react';
 const { NETWORK_CONFIG } = CONFIG;
 const chainIds = getKeys(NETWORK_CONFIG);
 
-const Contracts: React.FC = () => {
+function Contracts() {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
 
@@ -60,7 +60,7 @@ const Contracts: React.FC = () => {
                 </Link>
               </Text>
 
-              {TOKENS.map(token => (
+              {TOKENS?.map(token => (
                 <Text textAlign="center" key={token}>
                   {`ERC20 TOKEN ${
                     getTokenInfo(chainId, token, tokenData).symbol
@@ -84,12 +84,12 @@ const Contracts: React.FC = () => {
   }
   return (
     <Container>
-      <Text>'Contract Information Loading'</Text>
+      <Text>Contract Information Loading</Text>
       <br />
 
       <Spinner />
     </Container>
   );
-};
+}
 
 export default Contracts;

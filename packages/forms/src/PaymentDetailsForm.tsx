@@ -1,22 +1,20 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { Address, Hex, formatUnits, parseUnits, zeroAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import { Checkbox, Link, SimpleGrid, Text, VStack } from '@chakra-ui/react';
-
 import { ChainId } from '@smart-invoice/constants';
-import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
 import { TokenData } from '@smart-invoice/types';
+import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
 import {
+  getResolutionRateFromFactory,
   getResolverInfo,
-  getResolverString,
   getResolvers,
+  getResolverString,
   getTokenInfo,
   getTokens,
   isAddress,
   isKnownResolver,
-  getResolutionRateFromFactory,
 } from '@smart-invoice/utils';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Address, formatUnits, Hex, parseUnits, zeroAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 export type PaymentDetailsFormProps = {
   display: boolean;

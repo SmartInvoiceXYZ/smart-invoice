@@ -1,30 +1,23 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable guard-for-in */
-/* eslint-disable react/no-array-index-key */
-/* eslint-disable no-restricted-globals */
-/* eslint-disable no-shadow */
 /* eslint-disable no-plusplus */
 /* eslint-disable radix */
-import React, { useEffect, useMemo, useState } from 'react';
-import { Hash, formatUnits, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
 import {
   Button,
   Flex,
-  HStack,
   Heading,
+  HStack,
   Input,
   InputGroup,
   InputRightElement,
   Link,
   SimpleGrid,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
-import { OrderedInput } from '@smart-invoice/ui';
+import { Invoice } from '@smart-invoice/graphql';
 import { TokenData } from '@smart-invoice/types';
+import { OrderedInput } from '@smart-invoice/ui';
 import {
   calculateResolutionFeePercentage,
   getTokenInfo,
@@ -37,7 +30,9 @@ import {
   uploadMetadata,
   // waitForTransaction,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/graphql';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatUnits, Hash, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 export type AddMilestonesProps = {
   invoice: Invoice;
@@ -143,14 +138,15 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
       setLoading(true);
       let detailsHash: Hash | undefined;
       if (revisedProjectAgreementType === 'ipfs') {
-        const projectAgreement = revisedProjectAgreement;
-        detailsHash = await uploadMetadata({
-          projectName,
-          projectDescription,
-          projectAgreement,
-          startDate: Math.floor(Number(startDate) / 1000),
-          endDate: Math.floor(Number(endDate) / 1000),
-        });
+        const localProjectAgreement = revisedProjectAgreement;
+        detailsHash = '0x';
+        // detailsHash = await uploadMetadata({
+        //   projectName,
+        //   projectDescription,
+        //   projectAgreement: localProjectAgreement,
+        //   startDate: Math.floor(Number(startDate) / 1000),
+        //   endDate: Math.floor(Number(endDate) / 1000),
+        // });
       }
 
       if (walletClient) {
@@ -197,7 +193,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
       </Heading>
 
       {revisedProjectAgreementType === 'ipfs' ? (
-        <div></div>
+        <div />
       ) : (
         // <OrderedLinkInput
         //   label="Link to Project Agreement (if updated)"
@@ -223,7 +219,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           value={addedTotalInput}
           isInvalid={addedTotalInvalid}
           setValue={v => {
-            if (v && !isNaN(Number(v))) {
+            if (v && !Number.isNaN(Number(v))) {
               setAddedTotalInput(Number(v));
               const p = parseUnits(v, decimals);
               setAddedTotal(p);
@@ -256,7 +252,9 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                 .fill(1)
                 .map(() => 0),
             );
-            setAddedMilestonesInvalid(isNaN(Number(v)) || Number(v) === 0);
+            setAddedMilestonesInvalid(
+              Number.isNaN(Number(v)) || Number(v) === 0,
+            );
           }}
           tooltip="Number of milestones in which the total payment will be processed"
         />
@@ -268,6 +266,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         display={addedMilestones ? 'flex' : 'none'}
       >
         {Array.from(Array(Number(addedMilestones))).map((_val, index) => (
+          // eslint-disable-next-line react/no-array-index-key
           <VStack w="100%" spacing="0.5rem" key={index.toString()}>
             <Flex justify="space-between" w="100%">
               <Text fontWeight="700">
@@ -287,7 +286,8 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                 _hover={{ borderColor: 'lightgrey' }}
                 pr="3.5rem"
                 onChange={e => {
-                  if (!e.target.value || isNaN(Number(e.target.value))) return;
+                  if (!e.target.value || Number.isNaN(Number(e.target.value)))
+                    return;
                   const amount = parseUnits(e.target.value, decimals);
                   const newAmounts = milestoneAmounts.slice();
                   newAmounts[index] = amount;

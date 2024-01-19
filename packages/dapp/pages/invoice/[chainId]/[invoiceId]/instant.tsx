@@ -1,7 +1,3 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Button,
   Divider,
@@ -16,25 +12,24 @@ import {
   Stack,
   Text,
   Tooltip,
+  useBreakpointValue,
   VStack,
   Wrap,
   WrapItem,
-  useBreakpointValue,
 } from '@chakra-ui/react';
-
+import { ChainId } from '@smart-invoice/constants';
+import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 import {
-  GenerateInvoicePDF,
-  Loader,
-  CopyIcon,
-  QuestionIcon,
   AccountLink,
   Container,
+  CopyIcon,
+  GenerateInvoicePDF,
   InvoiceNotFound,
+  Loader,
+  QuestionIcon,
 } from '@smart-invoice/ui';
-import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
-import { ChainId } from '@smart-invoice/constants';
-import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 import {
   balanceOf,
   copyToClipboard,
@@ -42,15 +37,18 @@ import {
   getAddressLink,
   getAgreementLink,
   getDateString,
-  getTokenInfo,
-  isAddress,
-  logError,
   getDeadline,
   getLateFee,
+  getTokenInfo,
   getTotalDue,
   getTotalFulfilled,
+  isAddress,
+  logError,
 } from '@smart-invoice/utils';
 import { useParams } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Address, formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 function ViewInstantInvoice() {
   const { hexChainId, invoiceId } = useParams<{

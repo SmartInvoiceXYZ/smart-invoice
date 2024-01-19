@@ -2,7 +2,7 @@ import { fetchInvoice } from '@smart-invoice/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Hex } from 'viem';
 
-const useInvoiceDetails = ({
+export const useInvoiceDetails = ({
   address,
   chainId,
 }: {
@@ -18,5 +18,3 @@ const useInvoiceDetails = ({
 
   return { data, isLoading, error };
 };
-
-export default useInvoiceDetails;

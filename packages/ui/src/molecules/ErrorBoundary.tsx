@@ -1,8 +1,6 @@
-import React from 'react';
-
 import { Flex, Text } from '@chakra-ui/react';
-
 import { logError } from '@smart-invoice/utils';
+import React from 'react';
 
 export class ErrorBoundary extends React.Component {
   // eslint-disable-next-line react/static-property-placement

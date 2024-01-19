@@ -1,4 +1,3 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Box,
   Button,
@@ -10,6 +9,7 @@ import {
   Stack,
   Textarea,
 } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 // import { ProjectDetails } from '@smart-invoice/types';
 import { useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -29,13 +29,13 @@ const validationSchema = Yup.object().shape({
 //   agreement?: string;
 // }
 
-const ProjectDetailsForm = ({
+export function ProjectDetailsForm({
   escrowForm,
   updateStep,
 }: {
   escrowForm: UseFormReturn;
   updateStep: () => void;
-}) => {
+}) {
   const { setValue, watch } = escrowForm;
   const { projectName, projectDescription, startDate, endDate } = watch();
   const localForm = useForm({
@@ -129,6 +129,4 @@ const ProjectDetailsForm = ({
       </Stack>
     </Card>
   );
-};
-
-export default ProjectDetailsForm;
+}

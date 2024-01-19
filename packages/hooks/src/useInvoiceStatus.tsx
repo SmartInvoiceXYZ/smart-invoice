@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
-
+import { Invoice } from '@smart-invoice/graphql';
 import {
+  balanceOf,
   getDeadline,
   getTotalFulfilled,
   isAddress,
   logError,
-  balanceOf,
 } from '@smart-invoice/utils';
+import { useEffect, useState } from 'react';
 import { Address, Chain, useNetwork } from 'wagmi';
-import { Invoice } from '@smart-invoice/graphql';
 
 export const useInvoiceStatus = (invoice: Invoice) => {
   const { chain } = useNetwork();

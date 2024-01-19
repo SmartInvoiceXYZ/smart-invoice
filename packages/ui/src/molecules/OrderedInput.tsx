@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 import {
   ChakraProps,
   Flex,
@@ -13,6 +11,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { isValidLink, logDebug } from '@smart-invoice/utils';
+import React, { useState } from 'react';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
 
@@ -33,7 +32,7 @@ interface OrderedLinkInputProps extends ChakraProps {
   required?: Required;
 }
 
-export const OrderedLinkInput: React.FC<OrderedLinkInputProps> = ({
+export function OrderedLinkInput({
   label,
   linkType,
   setLinkType,
@@ -45,7 +44,7 @@ export const OrderedLinkInput: React.FC<OrderedLinkInputProps> = ({
   type = 'text',
   required,
   ...props
-}) => {
+}: OrderedLinkInputProps) {
   const protocolInitValue = linkType ?? /[a-z]+(?=:\/\/)/.exec(value ?? '');
   const [protocol, setProtocol] = useState(`${protocolInitValue}://`);
   const [input, setInput] = useState('');
@@ -157,7 +156,7 @@ export const OrderedLinkInput: React.FC<OrderedLinkInputProps> = ({
       </Flex>
     </VStack>
   );
-};
+}
 
 interface OrderedInputProps extends ChakraProps {
   label: string;
@@ -174,7 +173,7 @@ interface OrderedInputProps extends ChakraProps {
   error?: string;
 }
 
-export const OrderedInput: React.FC<OrderedInputProps> = ({
+export function OrderedInput({
   label,
   value,
   setValue,
@@ -187,61 +186,63 @@ export const OrderedInput: React.FC<OrderedInputProps> = ({
   type = 'text',
   error = '',
   ...props
-}) => (
-  <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-    <VStack align="left" w="100%" spacing={0}>
-      <Flex w="100%">
-        <Text fontWeight="700">{label}</Text>
+}: OrderedInputProps) {
+  return (
+    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+      <VStack align="left" w="100%" spacing={0}>
+        <Flex w="100%">
+          <Text fontWeight="700">{label}</Text>
 
-        <Flex>
-          {infoText && (
-            <Text ml=".25rem" fontSize="xs">
-              {infoText}
-            </Text>
-          )}
-          {tooltip && (
-            <Tooltip label={tooltip} placement="auto-start">
-              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-            </Tooltip>
-          )}
+          <Flex>
+            {infoText && (
+              <Text ml=".25rem" fontSize="xs">
+                {infoText}
+              </Text>
+            )}
+            {tooltip && (
+              <Tooltip label={tooltip} placement="auto-start">
+                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+              </Tooltip>
+            )}
+          </Flex>
         </Flex>
-      </Flex>
 
-      <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-        {required}
-      </Text>
-    </VStack>
-
-    <Flex direction="column" w="100%">
-      <Input
-        bg="white"
-        type={type}
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        placeholder={placeholder}
-        color="black"
-        border="1px"
-        borderColor="lightgrey"
-        _hover={{ borderColor: 'lightgrey' }}
-        isDisabled={isDisabled}
-        isInvalid={isInvalid}
-        _invalid={{ border: '1px solid', borderColor: 'red' }}
-      />
-      {error && (
-        <Text
-          w="100%"
-          color="red"
-          textAlign="right"
-          fontSize="xs"
-          fontWeight="700"
-          mt="0.5rem"
-        >
-          {error}
+        <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
+          {required}
         </Text>
-      )}
-    </Flex>
-  </VStack>
-);
+      </VStack>
+
+      <Flex direction="column" w="100%">
+        <Input
+          bg="white"
+          type={type}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          placeholder={placeholder}
+          color="black"
+          border="1px"
+          borderColor="lightgrey"
+          _hover={{ borderColor: 'lightgrey' }}
+          isDisabled={isDisabled}
+          isInvalid={isInvalid}
+          _invalid={{ border: '1px solid', borderColor: 'red' }}
+        />
+        {error && (
+          <Text
+            w="100%"
+            color="red"
+            textAlign="right"
+            fontSize="xs"
+            fontWeight="700"
+            mt="0.5rem"
+          >
+            {error}
+          </Text>
+        )}
+      </Flex>
+    </VStack>
+  );
+}
 
 interface OrderedSelectProps extends ChakraProps {
   label: string;
@@ -254,9 +255,7 @@ interface OrderedSelectProps extends ChakraProps {
   isDisabled?: boolean;
 }
 
-export const OrderedSelect: React.FC<
-  React.PropsWithChildren<OrderedSelectProps>
-> = ({
+export function OrderedSelect({
   label,
   value,
   setValue,
@@ -266,48 +265,49 @@ export const OrderedSelect: React.FC<
   isDisabled = false,
   children,
   ...props
-}) => (
-  <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-    <VStack w="100%" align="left" spacing={0}>
-      <Flex w="100%">
-        <Text fontWeight="700">{label}</Text>
+}: React.PropsWithChildren<OrderedSelectProps>) {
+  return (
+    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+      <VStack w="100%" align="left" spacing={0}>
+        <Flex w="100%">
+          <Text fontWeight="700">{label}</Text>
 
-        <Flex>
-          {infoText && (
-            <Text ml=".25rem" fontSize="xs">
-              {infoText}
-            </Text>
-          )}
-          {tooltip && (
-            <Tooltip label={tooltip} placement="auto-start">
-              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-            </Tooltip>
-          )}
+          <Flex>
+            {infoText && (
+              <Text ml=".25rem" fontSize="xs">
+                {infoText}
+              </Text>
+            )}
+            {tooltip && (
+              <Tooltip label={tooltip} placement="auto-start">
+                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+              </Tooltip>
+            )}
+          </Flex>
         </Flex>
-      </Flex>
 
-      <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-        {required}
-      </Text>
+        <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
+          {required}
+        </Text>
+      </VStack>
+
+      <Select
+        value={value}
+        onChange={e => {
+          setValue(e.target.value);
+        }}
+        bg="white"
+        color="black"
+        border="1px"
+        borderColor="lightgrey"
+        _hover={{ borderColor: 'lightgrey' }}
+        isDisabled={isDisabled}
+      >
+        {children}
+      </Select>
     </VStack>
-
-    <Select
-      value={value}
-      onChange={e => {
-        setValue(e.target.value);
-      }}
-      bg="white"
-      color="black"
-      border="1px"
-      borderColor="lightgrey"
-      _hover={{ borderColor: 'lightgrey' }}
-      isDisabled={isDisabled}
-    >
-      {children}
-    </Select>
-  </VStack>
-);
-
+  );
+}
 interface OrderedTextareaProps extends ChakraProps {
   label: string;
   value?: string | number | readonly string[];
@@ -321,7 +321,7 @@ interface OrderedTextareaProps extends ChakraProps {
   isDisabled?: boolean;
 }
 
-export const OrderedTextarea: React.FC<OrderedTextareaProps> = ({
+export function OrderedTextarea({
   label,
   value,
   setValue,
@@ -332,47 +332,49 @@ export const OrderedTextarea: React.FC<OrderedTextareaProps> = ({
   required,
   isDisabled = false,
   ...props
-}) => (
-  <VStack w="100%" spacing="0.5rem" {...props}>
-    <Flex direction="column" w="100%">
-      <Flex w="100%">
-        <Text fontWeight="700" color="black">
-          {label}
-        </Text>
-        {tooltip && (
-          <Tooltip color="white" label={tooltip} placement="auto-start">
-            <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-          </Tooltip>
-        )}
+}: OrderedTextareaProps) {
+  return (
+    <VStack w="100%" spacing="0.5rem" {...props}>
+      <Flex direction="column" w="100%">
+        <Flex w="100%">
+          <Text fontWeight="700" color="black">
+            {label}
+          </Text>
+          {tooltip && (
+            <Tooltip color="white" label={tooltip} placement="auto-start">
+              <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+            </Tooltip>
+          )}
+        </Flex>
+
+        <Flex color="#707683">
+          {infoText && (
+            <Text fontSize="xs">
+              {infoText} {required && <Text as="i">• {required}</Text>}
+            </Text>
+          )}
+          {required && !infoText && (
+            <Text fontSize="xs" fontStyle="italic">
+              {required}
+            </Text>
+          )}
+        </Flex>
       </Flex>
 
-      <Flex color="#707683">
-        {infoText && (
-          <Text fontSize="xs">
-            {infoText} {required && <Text as="i">• {required}</Text>}
-          </Text>
-        )}
-        {required && !infoText && (
-          <Text fontSize="xs" fontStyle="italic">
-            {required}
-          </Text>
-        )}
-      </Flex>
-    </Flex>
-
-    <Textarea
-      bg="white"
-      value={value}
-      onChange={e => setValue(e.target.value)}
-      placeholder={placeholder}
-      color="black"
-      border="1px"
-      borderColor="lightgrey"
-      _hover={{ borderColor: 'lightgrey' }}
-      isDisabled={isDisabled}
-      h="4rem"
-      resize="none"
-      maxLength={maxLength}
-    />
-  </VStack>
-);
+      <Textarea
+        bg="white"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder={placeholder}
+        color="black"
+        border="1px"
+        borderColor="lightgrey"
+        _hover={{ borderColor: 'lightgrey' }}
+        isDisabled={isDisabled}
+        h="4rem"
+        resize="none"
+        maxLength={maxLength}
+      />
+    </VStack>
+  );
+}

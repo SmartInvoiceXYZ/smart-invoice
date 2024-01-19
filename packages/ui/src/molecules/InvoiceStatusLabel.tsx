@@ -1,10 +1,8 @@
 /* eslint-disable no-nested-ternary */
-import React from 'react';
-
 import { Flex, Text } from '@chakra-ui/react';
-
-import { useInvoiceStatus } from '@smart-invoice/hooks';
 import { Invoice } from '@smart-invoice/graphql';
+import { useInvoiceStatus } from '@smart-invoice/hooks';
+import React from 'react';
 
 import { Loader } from '../atoms/Loader';
 
@@ -13,10 +11,10 @@ export type InvoiceStatusLabelProps = {
   onClick?: () => void;
 };
 
-export const InvoiceStatusLabel: React.FC<InvoiceStatusLabelProps> = ({
+export function InvoiceStatusLabel({
   invoice,
   onClick,
-}) => {
+}: InvoiceStatusLabelProps) {
   const { funded, label, loading } = useInvoiceStatus(invoice);
   const { isLocked, terminationTime } = invoice ?? {};
   const terminated = terminationTime && Number(terminationTime) > Date.now();
@@ -48,4 +46,4 @@ export const InvoiceStatusLabel: React.FC<InvoiceStatusLabelProps> = ({
       </Text>
     </Flex>
   );
-};
+}

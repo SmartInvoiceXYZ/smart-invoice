@@ -1,26 +1,25 @@
 import {
   Button,
-  Text,
   Heading,
   Spinner,
+  Text,
   // Link,
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import { fetchInvoice } from '@smart-invoice/graphql';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
-import { Invoice } from '@smart-invoice/graphql';
-// import { parseTokenAddress } from '@smart-invoice/utils';
-import { Hex, formatUnits } from 'viem';
-import { useChainId } from 'wagmi';
 import _ from 'lodash';
+// import { parseTokenAddress } from '@smart-invoice/utils';
+import { formatUnits, Hex } from 'viem';
+import { useChainId } from 'wagmi';
 
 type ReleaseFundsProp = {
   invoice: Invoice;
   balance: bigint;
 };
 
-const getReleaseAmount = (
+export const getReleaseAmount = (
   currentMilestone: any,
   amounts: any,
   balance: any,
@@ -35,7 +34,7 @@ const getReleaseAmount = (
   return BigInt(amounts[currentMilestone]);
 };
 
-const ReleaseFunds = ({ invoice, balance }: ReleaseFundsProp) => {
+function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
   const toast = useToast();
   const chainId = useChainId();
 
@@ -146,6 +145,4 @@ const ReleaseFunds = ({ invoice, balance }: ReleaseFundsProp) => {
       )}
     </VStack>
   );
-};
-
-export default ReleaseFunds;
+}

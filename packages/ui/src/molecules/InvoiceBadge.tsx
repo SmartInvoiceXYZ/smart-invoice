@@ -1,14 +1,11 @@
-import React from 'react';
-
 import { Badge } from '@chakra-ui/react';
+import React from 'react';
 
 export type InvoiceBadgeProps = {
   invoiceType?: 'escrow' | 'instant' | 'unknown';
 };
 
-export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({
-  invoiceType = 'unknown',
-}) => {
+export function InvoiceBadge({ invoiceType = 'unknown' }: InvoiceBadgeProps) {
   const schemes = {
     escrow: {
       bg: 'rgba(128, 63, 248, 0.3)',
@@ -34,4 +31,4 @@ export const InvoiceBadge: React.FC<InvoiceBadgeProps> = ({
       {invoiceType.toUpperCase()}
     </Badge>
   );
-};
+}

@@ -17,28 +17,27 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import {
-  commify,
-  getTxLink,
-  getNativeTokenSymbol,
-  getWrappedNativeToken,
-} from '@smart-invoice/utils';
-import { useDeposit } from '@smart-invoice/hooks';
-import {
   // checkedAtIndex,
   // depositedMilestones,
   Invoice,
   // parseTokenAddress,
   // PAYMENT_TYPES,
 } from '@smart-invoice/graphql';
+import { useDeposit } from '@smart-invoice/hooks';
+import { QuestionIcon } from '@smart-invoice/ui';
+import {
+  commify,
+  getNativeTokenSymbol,
+  getTxLink,
+  getWrappedNativeToken,
+} from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
-import { QuestionIcon } from '@smart-invoice/ui';
-
-const DepositFunds = ({
+export function DepositFunds({
   invoice,
   deposited,
   due,
@@ -46,7 +45,7 @@ const DepositFunds = ({
   invoice: Invoice;
   deposited: bigint;
   due: bigint;
-}) => {
+}) {
   const { token, amounts, currentMilestone } = _.pick(invoice, [
     'token',
     'amounts',
@@ -111,11 +110,11 @@ const DepositFunds = ({
   useEffect(() => {
     // setValue('paymentType', paymentTypeOptions[0]);
     setValue('amount', '0');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!amount) return;
+    if (!amount) return undefined;
+    return undefined;
 
     // setValue(
     //   'checked',
@@ -308,6 +307,4 @@ const DepositFunds = ({
       )}
     </VStack>
   );
-};
-
-export default DepositFunds;
+}

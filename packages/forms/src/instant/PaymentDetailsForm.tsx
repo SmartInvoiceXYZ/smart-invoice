@@ -1,13 +1,11 @@
+import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { ChainId } from '@smart-invoice/constants';
+import { TokenData } from '@smart-invoice/types';
+import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
+import { formatDate, getTokenInfo, getTokens } from '@smart-invoice/utils';
 import React, { useContext, useMemo, useState } from 'react';
 import { Address, isAddress, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
-
-import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
-
-import { ChainId } from '@smart-invoice/constants';
-import { OrderedInput, OrderedSelect } from '@smart-invoice/ui';
-import { TokenData } from '@smart-invoice/types';
-import { formatDate, getTokenInfo, getTokens } from '@smart-invoice/utils';
 
 export type InstantPaymentDetailsFormProps = {
   display: string;

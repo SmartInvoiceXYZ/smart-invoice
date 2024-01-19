@@ -1,4 +1,4 @@
-const usePollSubgraph = ({
+export const usePollSubgraph = ({
   label,
   fetchHelper,
   checkResult,
@@ -12,7 +12,7 @@ const usePollSubgraph = ({
   interval?: number;
 }) => {
   const waitForResult = async () =>
-    new Promise((resolve) => {
+    new Promise(resolve => {
       const checkResultHandler = async () => {
         try {
           const result = await fetchHelper();
@@ -41,5 +41,3 @@ const usePollSubgraph = ({
 
   return waitForResult;
 };
-
-export default usePollSubgraph;

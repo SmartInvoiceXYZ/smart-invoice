@@ -11,14 +11,13 @@ import {
   Abi,
   Address,
   Chain,
-  Hash,
-  WalletClient,
   createPublicClient,
   decodeEventLog,
+  Hash,
   http,
   isAddress,
+  WalletClient,
 } from 'viem';
-
 import { waitForTransaction } from 'wagmi/actions';
 
 export const testContracts = () => undefined;

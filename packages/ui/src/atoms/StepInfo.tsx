@@ -1,16 +1,15 @@
-import React from 'react';
-
 import {
   Center,
   Divider,
-  HStack,
   Heading,
+  HStack,
   IconButton,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
 import { hashCode } from '@smart-invoice/utils';
+import React from 'react';
 
 import { BackArrowIcon } from '../icons/ArrowIcons';
 

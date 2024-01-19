@@ -7,8 +7,8 @@ import {
   ModalContent,
   ModalOverlay,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
 import React from 'react';
 
@@ -54,8 +54,8 @@ export function WhatIsThisModal({ isOpen, onClose }: WhatIsThisModalProps) {
               secure neutral channel for transferring money. The payer proves
               their commitment by locking money in the contract, and controls
               when it is released to the payee. No middle party, no leap of
-              faith, and you don't even have to use the word escrow if you don't
-              want to.
+              faith, and you don&apos;t even have to use the word escrow if you
+              don&apos;t want to.
             </Text>
 
             <Text w="100%">

@@ -1,10 +1,11 @@
-import { Invoice } from '@smart-invoice/types';
-import _ from 'lodash';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
+import _ from 'lodash';
+import { Hex } from 'viem';
+import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { SendTransactionResult } from 'wagmi/actions';
 
-const useRelease = ({
+export const useRelease = ({
   invoice,
   milestone,
   onSuccess,
@@ -23,7 +24,7 @@ const useRelease = ({
     error: prepareError,
   } = usePrepareContractWrite({
     chainId,
-    address: invoice?.address,
+    address: invoice?.address as Hex,
     abi: ISmartInvoiceEscrowAbi,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: [BigInt(0)], //  specifyMilestones ? [milestone] : [], // optional args
@@ -56,5 +57,3 @@ const useRelease = ({
     writeError,
   };
 };
-
-export default useRelease;

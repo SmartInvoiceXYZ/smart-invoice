@@ -1,6 +1,3 @@
-import React, { Fragment } from 'react';
-import { formatEther } from 'viem';
-
 import {
   Document,
   Link,
@@ -9,14 +6,15 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-
+import { Invoice } from '@smart-invoice/graphql';
+import { Network } from '@smart-invoice/types';
 import {
   getAccountString,
   getHexChainId,
   unixToDateTime,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/graphql';
-import { Network } from '@smart-invoice/types';
+import React, { Fragment } from 'react';
+import { formatEther } from 'viem';
 
 const borderColor = 'black';
 
@@ -181,7 +179,7 @@ export type InvoicePDFProps = {
 };
 
 // font register for Rubik One
-function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
+export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
   const {
     address,
     projectName,
@@ -569,5 +567,3 @@ function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     </Document>
   );
 }
-
-export default InvoicePDF;

@@ -9,8 +9,8 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useResolve } from '@smart-invoice/hooks';
 import { Invoice } from '@smart-invoice/graphql';
+import { useResolve } from '@smart-invoice/hooks';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,7 +19,7 @@ import { useChainId } from 'wagmi';
 
 // TODO handle onChange for award amounts
 
-const ResolveFunds = ({
+export function ResolveFunds({
   invoice,
   balance,
   close,
@@ -27,7 +27,7 @@ const ResolveFunds = ({
   invoice: Invoice;
   balance: bigint;
   close: () => void;
-}) => {
+}) {
   const { resolutionRate, token } = _.pick(invoice, [
     'resolutionRate',
     'token',
@@ -244,6 +244,4 @@ const ResolveFunds = ({
           )} */}
     </VStack>
   );
-};
-
-export default ResolveFunds;
+}

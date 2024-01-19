@@ -8,14 +8,14 @@ import {
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ChakraNextLink, InvoiceDashboardTable } from '@smart-invoice/ui';
 import { useInvoiceList } from '@smart-invoice/hooks';
+import { ChakraNextLink, InvoiceDashboardTable } from '@smart-invoice/ui';
 import { chainsMap } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React from 'react';
 import { useAccount, useChainId } from 'wagmi';
 
-const Invoices = () => {
+function Invoices() {
   const { address } = useAccount();
   const chainId = useChainId();
 
@@ -61,6 +61,6 @@ const Invoices = () => {
       )}
     </Box>
   );
-};
+}
 
 export default Invoices;

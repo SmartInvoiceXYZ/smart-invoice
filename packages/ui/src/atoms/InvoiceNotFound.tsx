@@ -1,8 +1,7 @@
-import { useRouter } from 'next/router';
-import React from 'react';
-
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
 import { getNetworkName } from '@smart-invoice/utils';
+import { useRouter } from 'next/router';
+import React from 'react';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { Container } from './Container';

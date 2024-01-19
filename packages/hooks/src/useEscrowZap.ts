@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
+import { ESCROW_ZAP_ABI } from '@smart-invoice/constants';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { WriteContractResult } from 'wagmi/actions';
-
-// import ESCROW_ZAP_ABI from './contracts/EscrowZap.json';
 // import useDetailsPin from './useDetailsPin';
 
 type OwnerAndAllocation = { address: string; percent: number };
@@ -24,7 +23,7 @@ const separateOwnersAndAllocations = (
   };
 };
 
-const useEscrowZap = ({
+export const useEscrowZap = ({
   ownersAndAllocations,
   provider,
   milestones,
@@ -182,7 +181,7 @@ const useEscrowZap = ({
   } = usePrepareContractWrite({
     chainId,
     address: '0x', // NETWORK_CONFIG[chainId].ZAP_ADDRESS,
-    abi: [], // ESCROW_ZAP_ABI,
+    abi: ESCROW_ZAP_ABI,
     functionName: 'createSafeSplitEscrow',
     args: [
       owners,
@@ -239,5 +238,3 @@ interface UseEscrowZapProps {
   enabled?: boolean;
   onSuccess?: (tx: WriteContractResult) => void;
 }
-
-export default useEscrowZap;

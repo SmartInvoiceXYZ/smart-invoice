@@ -4,10 +4,10 @@
 import { logDebug } from '@smart-invoice/utils';
 import { Address, isAddress } from 'viem';
 
-import { typedGql } from './zeus/typedDocumentNode';
-import { Invoice_orderBy, OrderDirection, _SubgraphErrorPolicy_ } from './zeus';
 import { clients } from './client';
 import { scalars } from './scalars';
+import { _SubgraphErrorPolicy_, Invoice_orderBy, OrderDirection } from './zeus';
+import { typedGql } from './zeus/typedDocumentNode';
 
 export type SearchInputType = string | Address | undefined;
 

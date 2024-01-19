@@ -1,6 +1,3 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useChainId, useWalletClient } from 'wagmi';
-
 import {
   Button,
   Flex,
@@ -8,23 +5,24 @@ import {
   Heading,
   Stack,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-
-import {
-  NetworkChangeAlertModal,
-  RegisterSuccess,
-  FormConfirmation,
-  Container,
-  StepInfo,
-} from '@smart-invoice/ui';
 // import {
 //   InstantPaymentDetailsForm,
 //   ProjectDetailsForm,
 // } from '@smart-invoice/forms';
 import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import {
+  Container,
+  FormConfirmation,
+  NetworkChangeAlertModal,
+  RegisterSuccess,
+  StepInfo,
+} from '@smart-invoice/ui';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useChainId, useWalletClient } from 'wagmi';
 
 type InstantStepNumber = keyof typeof INSTANT_STEPS;
 

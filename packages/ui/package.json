@@ -27,6 +27,7 @@
     "firebase": "^10.7.0",
     "framer-motion": "^10.17.12",
     "ipfs-http-client": "^50.1.2",
+    "next": "^14.0.4",
     "react": "^18.2.0",
     "styled-components": "^6.1.8",
     "viem": "1.21.4",

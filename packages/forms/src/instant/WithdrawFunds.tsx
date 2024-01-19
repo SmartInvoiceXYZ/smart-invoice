@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Hash, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Button,
   Heading,
   Link,
   Text,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-
 import { ChainId } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
 import { TokenData } from '@smart-invoice/types';
 import {
   getTokenInfo,
@@ -21,7 +17,9 @@ import {
   // withdraw,
   // waitForTransaction,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/graphql';
+import React, { useEffect, useState } from 'react';
+import { formatUnits, Hash } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 export type WithdrawFundsProps = {
   invoice: Invoice;
@@ -30,12 +28,12 @@ export type WithdrawFundsProps = {
   tokenData: Record<ChainId, Record<string, TokenData>>;
 };
 
-export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
+export function WithdrawFunds({
   invoice,
   balance,
   close,
   tokenData,
-}) => {
+}: WithdrawFundsProps) {
   const [loading, setLoading] = useState(false);
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
@@ -151,4 +149,4 @@ export const WithdrawFunds: React.FC<WithdrawFundsProps> = ({
       </Button>
     </VStack>
   );
-};
+}

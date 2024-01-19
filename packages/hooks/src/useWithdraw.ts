@@ -1,10 +1,10 @@
-import { Invoice } from '@smart-invoice/graphql';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { Hex } from 'viem';
+import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 
-const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
+export const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
   const { address } = _.pick(invoice, ['address']);
 
   const {
@@ -45,5 +45,3 @@ const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
     writeError,
   };
 };
-
-export default useWithdraw;

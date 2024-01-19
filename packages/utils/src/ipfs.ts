@@ -1,10 +1,11 @@
-// @ts-expect-error TS(2792): Cannot find module 'base-58'. Did you mean to set ... Remove this comment to see the full error message
-import Base58 from 'base-58';
+import { INFURA_AUTH, INVOICE_VERSION } from '@smart-invoice/constants';
+// import Base58 from 'base-58';
 import { create } from 'ipfs-http-client';
 import { Hash } from 'viem';
 
-import { INFURA_AUTH, INVOICE_VERSION } from '@smart-invoice/constants';
 import { logDebug } from './helpers';
+
+// TODO migrate to pinata/web3storage
 
 // const ipfsTheGraph = create({
 //   protocol: 'https',
@@ -43,8 +44,8 @@ export const uploadMetadata = async (meta: any) => {
   const hash = result.path;
   // the graph was failing with CORS error, need to handle failover
   await ipfsInfura.pin.add(hash);
-  const bytes = Buffer.from(Base58.decode(hash));
-  return `0x${bytes.slice(2).toString('hex')}` as Hash;
+  // const bytes = Buffer.from(Base58.decode(hash));
+  // return `0x${bytes.slice(2).toString('hex')}` as Hash;
 };
 
 export const uploadDisputeDetails = async (meta: any) => {
@@ -57,6 +58,6 @@ export const uploadDisputeDetails = async (meta: any) => {
   const hash = result.path;
   // the graph was failing with CORS error, need to handle failover
   await ipfsInfura.pin.add(hash);
-  const bytes = Buffer.from(Base58.decode(hash));
-  return `0x${bytes.slice(2).toString('hex')}` as Hash;
+  // const bytes = Buffer.from(Base58.decode(hash));
+  // return `0x${bytes.slice(2).toString('hex')}` as Hash;
 };

@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { Address, isAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
+  Box,
   Button,
   Flex,
-  Box,
   Heading,
   Link,
   Text,
   VStack,
 } from '@chakra-ui/react';
-
-import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
-import { ChakraNextLink, CopyIcon } from '@smart-invoice/ui';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
+import { ChakraNextLink, CopyIcon } from '@smart-invoice/ui';
 import {
+  awaitInvoiceAddress,
   copyToClipboard,
   getHexChainId,
   getTxLink,
-  awaitInvoiceAddress,
 } from '@smart-invoice/utils';
+import React, { useEffect, useState } from 'react';
+import { Address, isAddress } from 'viem';
+import { useWalletClient } from 'wagmi';
+
 import { Loader } from '../atoms/Loader';
 
 const POLL_INTERVAL = 5000;

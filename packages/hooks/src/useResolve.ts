@@ -1,10 +1,11 @@
-import { Invoice } from '@smart-invoice/types';
-import { useBalance, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
+import { Hex } from 'viem';
+import { useBalance, useContractWrite, usePrepareContractWrite } from 'wagmi';
 
 // TODO fix pin
 
-const useResolve = ({
+export const useResolve = ({
   invoice,
   awards: {
     client: clientAward,
@@ -25,8 +26,8 @@ const useResolve = ({
     '0x0000000000000000000000000000000000000000000000000000000000000000';
 
   const { data: balance } = useBalance({
-    address: invoice.address,
-    token: invoice.token,
+    address: invoice?.address as Hex,
+    token: invoice?.token as Hex,
   });
 
   const fullBalance = true;
@@ -37,12 +38,12 @@ const useResolve = ({
     isLoading: prepareLoading,
     error: prepareError,
   } = usePrepareContractWrite({
-    address: invoice.address,
+    address: invoice?.address as Hex,
     functionName: 'resolve',
     abi: ISmartInvoiceEscrowAbi,
     args: [clientAward, providerAward, detailsHash],
     enabled:
-      !!invoice.address &&
+      !!invoice?.address &&
       fullBalance &&
       // invoice?.isLocked &&
       // balance.value > BigInt(0) &&
@@ -71,5 +72,3 @@ const useResolve = ({
     writeError,
   };
 };
-
-export default useResolve;

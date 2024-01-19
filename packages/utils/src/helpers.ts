@@ -1,17 +1,17 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable radix */
 
-import { Address, getAddress } from 'viem';
-
 import {
   ADDRESS_ZERO,
-  DEFAULT_CHAIN_ID,
-  IPFS_ENDPOINT,
+  ChainId,
   chainIds,
+  DEFAULT_CHAIN_ID,
   explorerUrls,
   graphUrls,
   hexChainIds,
   invoiceFactory,
+  IPFS_ENDPOINT,
+  isOfTypeChainId,
   nativeSymbols,
   networkLabels,
   networkNames,
@@ -19,10 +19,9 @@ import {
   resolvers,
   rpcUrls,
   wrappedNativeToken,
-  ChainId,
-  isOfTypeChainId,
 } from '@smart-invoice/constants';
 import { Network, TokenData } from '@smart-invoice/types';
+import { Address, getAddress } from 'viem';
 
 export const getDateString = (timeInSec: any) => {
   if (parseInt(timeInSec) !== 0) {

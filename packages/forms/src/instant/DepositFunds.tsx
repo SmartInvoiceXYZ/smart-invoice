@@ -1,7 +1,3 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Hash, Hex, formatUnits, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Alert,
   AlertIcon,
@@ -19,13 +15,13 @@ import {
   Select,
   Text,
   Tooltip,
-  VStack,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-
 import { ChainId } from '@smart-invoice/constants';
-import { QuestionIcon } from '@smart-invoice/ui';
+import { Invoice } from '@smart-invoice/graphql';
 import { TokenData } from '@smart-invoice/types';
+import { QuestionIcon } from '@smart-invoice/ui';
 import {
   approve,
   balanceOf,
@@ -40,7 +36,9 @@ import {
   // depositTokens,
   // tipTokens,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/graphql';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatUnits, Hash, Hex, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
 const getCheckedStatus = (deposited: bigint, amounts: bigint[]) => {

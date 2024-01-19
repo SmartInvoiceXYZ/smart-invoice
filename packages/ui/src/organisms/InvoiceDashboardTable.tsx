@@ -1,28 +1,27 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
-import { useRouter } from 'next/router';
-import React, { useMemo, useState } from 'react';
-
-import { Button, Flex, HStack, Heading, IconButton } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  PaginationState,
-  SortingState,
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { Address, formatUnits } from 'viem';
-
-import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
-import { Styles } from '../molecules/InvoicesStyles';
+import { Button, Flex, Heading, HStack, IconButton } from '@chakra-ui/react';
 import {
   // Invoice_orderBy,
   fetchInvoices,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
+import { useQuery } from '@tanstack/react-query';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useRouter } from 'next/router';
+import React, { useMemo, useState } from 'react';
+import { Address, formatUnits } from 'viem';
+
+import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
+import { Styles } from '../molecules/InvoicesStyles';
 
 export type SearchInputType = string | Address | undefined;
 
@@ -32,11 +31,11 @@ export type InvoiceDashboardTableProps = {
   onLoading?: (isLoading: boolean, resultCount?: number) => void;
 };
 
-export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
+export function InvoiceDashboardTable({
   chainId,
   searchInput,
   onLoading = () => {},
-}) => {
+}: InvoiceDashboardTableProps) {
   const router = useRouter();
 
   const columns = useMemo(() => {
@@ -250,4 +249,4 @@ export const InvoiceDashboardTable: React.FC<InvoiceDashboardTableProps> = ({
       </div>
     </Styles>
   );
-};
+}

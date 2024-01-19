@@ -1,7 +1,3 @@
-import React, { useContext } from 'react';
-import { Address, formatUnits, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 import {
   Flex,
   Input,
@@ -11,11 +7,13 @@ import {
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
-
-import { QuestionIcon } from '@smart-invoice/ui';
-import { getTokenInfo } from '@smart-invoice/utils';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
+import { QuestionIcon } from '@smart-invoice/ui';
+import { getTokenInfo } from '@smart-invoice/utils';
+import React, { useContext } from 'react';
+import { Address, formatUnits, parseUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 type PaymentChunksFormProps = {
   display: boolean;

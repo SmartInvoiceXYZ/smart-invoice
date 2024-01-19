@@ -1,15 +1,10 @@
-import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
-
 /* eslint-disable react/no-array-index-key */
 import {
   Button,
   Divider,
   Flex,
-  HStack,
   Heading,
+  HStack,
   Link,
   Modal,
   ModalCloseButton,
@@ -19,12 +14,13 @@ import {
   Stack,
   Text,
   Tooltip,
+  useBreakpointValue,
   VStack,
   Wrap,
   WrapItem,
-  useBreakpointValue,
 } from '@chakra-ui/react';
-
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
+import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 // import {
 //   AddMilestones,
 //   DepositFunds,
@@ -34,17 +30,15 @@ import {
 //   WithdrawFunds,
 // } from '@smart-invoice/forms';
 import {
-  GenerateInvoicePDF,
-  Loader,
-  VerifyInvoice,
-  CopyIcon,
-  QuestionIcon,
   AccountLink,
   Container,
+  CopyIcon,
+  GenerateInvoicePDF,
   InvoiceNotFound,
+  Loader,
+  QuestionIcon,
+  VerifyInvoice,
 } from '@smart-invoice/ui';
-import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
-import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 import {
   balanceOf,
   copyToClipboard,
@@ -58,6 +52,10 @@ import {
   isAddress,
   logError,
 } from '@smart-invoice/utils';
+import { useRouter } from 'next/router';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatUnits } from 'viem';
+import { useWalletClient } from 'wagmi';
 
 function ViewInvoice() {
   const { data: walletClient } = useWalletClient();

@@ -1,4 +1,5 @@
-import { Invoice } from '@smart-invoice/types';
+import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
+import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { useState } from 'react';
 import { Hex } from 'viem';
@@ -8,9 +9,8 @@ import {
   useWaitForTransaction,
 } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
-import { ISmartInvoiceEscrowAbi } from '@smart-invoice/constants';
 
-const useLock = ({
+export const useLock = ({
   invoice,
   disputeReason,
   amount,
@@ -38,7 +38,7 @@ const useLock = ({
     isLoading: prepareLoading,
     error: prepareError,
   } = usePrepareContractWrite({
-    address: invoice.address as Hex,
+    address: invoice?.address as Hex,
     functionName: 'lock',
     abi: ISmartInvoiceEscrowAbi,
     args: [detailsHash],
@@ -76,5 +76,3 @@ const useLock = ({
     writeError,
   };
 };
-
-export default useLock;

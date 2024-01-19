@@ -1,17 +1,16 @@
-import { useRouter } from 'next/router';
-import React, { useEffect } from 'react';
-
 import { Flex } from '@chakra-ui/react';
+import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
-import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
-
-import { ConnectWeb3 } from './ConnectWeb3';
-import { Footer } from '../molecules/Footer';
-import { Header } from '../molecules/Header';
+import { useRouter } from 'next/router';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { useWalletClient } from 'wagmi';
 
-export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
+import { Footer } from '../molecules/Footer';
+import { Header } from '../molecules/Header';
+import { ConnectWeb3 } from './ConnectWeb3';
+
+export function Layout({ children }: PropsWithChildren) {
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const account = walletClient?.account;
@@ -56,4 +55,4 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
       <Footer />
     </Flex>
   );
-};
+}

@@ -8,20 +8,19 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
+import { Invoice } from '@smart-invoice/graphql';
+import { AccountLink } from '@smart-invoice/ui';
 import {
   commify,
   getTxLink,
   // ipfsUrl,
   // parseTokenAddress,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/types';
-// import _ from 'lodash';
-import { formatUnits } from 'viem';
+import _ from 'lodash';
+import { formatUnits, Hex } from 'viem';
 import { useBalance, useChainId } from 'wagmi';
 
-import { AccountLink } from '@smart-invoice/ui';
-
-const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
+export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
   const chainId = useChainId();
 
   const {
@@ -39,33 +38,51 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
     // deposits,
     releases,
     resolver,
-  } = invoice;
+  } = _.pick(invoice, [
+    'client',
+    'resolver',
+    'token',
+    'total',
+    'address',
+    'isLocked',
+    'disputes',
+    'resolutions',
+    'terminationTime',
+    'releases',
+    'released',
+    // 'deposits',
+    'amounts',
+    'currentMilestone',
+  ]);
 
   // console.log(invoiceAddress, token, chainId);
   const { data } = useBalance({
-    address: invoiceAddress,
-    token,
+    address: invoiceAddress as Hex,
+    token: token as Hex,
   });
   const balance = data?.value || BigInt(0);
   // console.log('balance', balance, isLoading, error, status);
 
-  const deposited = BigInt(released) + balance;
-  const due = deposited > total ? BigInt(0) : BigInt(total) - deposited;
+  const deposited = released && released + balance;
+  const due = BigInt(0);
+  // const due = deposited > total ? BigInt(0) : BigInt(total) - deposited;
   const dispute =
-    isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
-  const resolution =
-    !isLocked && resolutions.length > 0
-      ? resolutions[resolutions.length - 1]
+    isLocked && !_.isEmpty(disputes)
+      ? disputes?.[_.size(disputes) - 1]
       : undefined;
-  const isExpired = terminationTime <= new Date().getTime() / 1000;
-  const amount = BigInt(
-    currentMilestone < amounts.length ? amounts[currentMilestone] : 0,
-  );
-  const isReleasable = !isLocked && balance >= amount && balance > 0;
-
-  // const sum = BigInt(0);
-
-  // console.log(amounts);
+  const resolution =
+    !isLocked && _.isEmpty(resolutions)
+      ? undefined
+      : resolutions?.[_.size(resolutions) - 1];
+  const isExpired = terminationTime
+    ? terminationTime <= new Date().getTime() / 1000
+    : false;
+  const amount =
+    Number(currentMilestone) < _.size(amounts)
+      ? amounts?.[Number(currentMilestone)]
+      : BigInt(0);
+  const isReleasable = false;
+  // ~ !isLocked && amount ? balance >= amount && balance > 0 : false;
 
   return (
     <Card variant="filled" p={1} direction="column" width="100%">
@@ -77,13 +94,15 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
           justifyContent="space-between"
         >
           <Text variant="textOne">Total Project Amount</Text>
-          <Text variant="textOne">
-            {commify(formatUnits(BigInt(total), 18))}{' '}
-            {/* {parseTokenAddress(chainId, token)} */}
-          </Text>
+          {!!total && (
+            <Text variant="textOne">
+              {commify(formatUnits(total, 18))}{' '}
+              {/* {parseTokenAddress(chainId, token)} */}
+            </Text>
+          )}
         </HStack>
         <VStack align="stretch" spacing="0.25rem">
-          {amounts.map((amt, index) => (
+          {amounts?.map((amt, index) => (
             // let tot = BigInt(0);
             // let ind = -1;
             // let full = false;
@@ -120,7 +139,7 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
             >
               <Stack spacing="2px">
                 <Text variant="textOne">Milestone #{index + 1}</Text>
-                {index < currentMilestone && releases.length > index && (
+                {/* {index < currentMilestone && releases.length > index && (
                   <Link
                     fontSize="xs"
                     isExternal
@@ -133,7 +152,7 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
                       releases[index].timestamp * 1000,
                     ).toLocaleDateString()}
                   </Link>
-                )}
+                )} */}
               </Stack>
 
               <HStack align="center" justify="flex-end">
@@ -166,27 +185,27 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
         </VStack>
         <Divider mt="1rem" />
         {/* TODO use array */}
-        <HStack mt="1rem" mb=".2rem" justifyContent="space-between">
+        {/* <HStack mt="1rem" mb=".2rem" justifyContent="space-between">
           <Text variant="textOne">Total Deposited</Text>
           <Text variant="textOne">
             {commify(formatUnits(deposited, 18))}{' '}
-            {/* {parseTokenAddress(chainId, invoice.token)} */}
+            {parseTokenAddress(chainId, invoice.token)}
           </Text>
         </HStack>
         <HStack justifyContent="space-between" mb=".2rem">
           <Text variant="textOne">Total Released</Text>
           <Text variant="textOne">
             {commify(formatUnits(BigInt(released), 18))}{' '}
-            {/* {parseTokenAddress(chainId, invoice.token)} */}
+            {parseTokenAddress(chainId, invoice.token)}
           </Text>
         </HStack>
         <HStack justifyContent="space-between">
           <Text variant="textOne">Remaining Amount Due</Text>
           <Text variant="textOne">
             {commify(formatUnits(due, 18))}{' '}
-            {/* {parseTokenAddress(chainId, invoice.token)} */}
+            {parseTokenAddress(chainId, invoice.token)}
           </Text>
-        </HStack>
+        </HStack> */}
         <Divider mt="1rem" mb="1rem" />
 
         {!dispute && !resolution && (
@@ -212,12 +231,12 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
                   {isReleasable && 'Next Amount to Release'}
                   {!isReleasable && 'Total Due Today'}
                 </Text>
-                <Text textAlign="right">
+                {/* <Text textAlign="right">
                   {`${commify(
                     formatUnits(isReleasable ? amount : amount - balance, 18),
                   )}`}
-                  {/* ${parseTokenAddress(chainId, invoice.token)}`} */}
-                </Text>
+                  ${parseTokenAddress(chainId, invoice.token)}`}
+                </Text> */}
               </>
             )}
           </Flex>
@@ -238,7 +257,7 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
             </Flex>
             <Text fontFamily="texturina" color="purpleLight">
               {`A dispute is in progress with `}
-              <AccountLink address={resolver} chainId={chainId} />
+              {/* <AccountLink address={resolver} chainId={chainId} /> */}
               <br />
               {/* <Link href={ipfsUrl(dispute.ipfsHash)} isExternal>
                 <u>View details on IPFS</u>
@@ -261,14 +280,14 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
               fontFamily="texturina"
             >
               <Text>Amount Dispersed</Text>
-              <Text textAlign="right">{`${formatUnits(
+              {/* <Text textAlign="right">{`${formatUnits(
                 BigInt(resolution.clientAward) +
                   resolution.providerAward +
                   resolution.resolutionFee
                   ? resolution.resolutionFee
                   : 0,
                 18,
-              )}`}</Text>
+              )}`}</Text> */}
               {/* ${parseTokenAddress(chainId, invoice.token)}`}</Text> */}
             </Flex>
             <Flex
@@ -277,7 +296,7 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
             >
               <Flex flex={1}>
                 <Text fontFamily="texturina" maxW="300px" color="purpleLight">
-                  <AccountLink address={resolver} chainId={chainId} />
+                  {/* <AccountLink address={resolver} chainId={chainId} /> */}
                   {' has resolved the dispute and dispersed remaining funds'}
                   <br />
                   <br />
@@ -325,6 +344,4 @@ const InvoicePaymentDetails = ({ invoice }: { invoice: Invoice }) => {
       </Stack>
     </Card>
   );
-};
-
-export default InvoicePaymentDetails;
+}
