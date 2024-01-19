@@ -29,12 +29,13 @@ const validationSchema = Yup.object().shape({
 //   agreement?: string;
 // }
 
-// : {
-//   escrowForm: UseFormReturn;
-//   updateStep: () => void;
-// }
-
-const ProjectDetailsForm = ({ escrowForm, updateStep }: any) => {
+const ProjectDetailsForm = ({
+  escrowForm,
+  updateStep,
+}: {
+  escrowForm: UseFormReturn;
+  updateStep: () => void;
+}) => {
   const { setValue, watch } = escrowForm;
   const { projectName, projectDescription, startDate, endDate } = watch();
   const localForm = useForm({

@@ -1,8 +1,4 @@
 /* eslint-disable no-nested-ternary */
-import React from 'react';
-import { useAccount, useChainId } from 'wagmi';
-import _ from 'lodash';
-
 import {
   Box,
   Button,
@@ -12,10 +8,12 @@ import {
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
 import { ChakraNextLink, InvoiceDashboardTable } from '@smart-invoice/ui';
 import { useInvoiceList } from '@smart-invoice/hooks';
-import { chainsMap } from '@smart-invoice/utils/src';
+import { chainsMap } from '@smart-invoice/utils';
+import _ from 'lodash';
+import React from 'react';
+import { useAccount, useChainId } from 'wagmi';
 
 const Invoices = () => {
   const { address } = useAccount();

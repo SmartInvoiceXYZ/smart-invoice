@@ -9,7 +9,10 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
+import { Invoice } from '@smart-invoice/graphql';
 import { useLock } from '@smart-invoice/hooks';
+// import LockImage from '../../assets/lock.svg';
+import { AccountLink } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolverString,
@@ -18,44 +21,45 @@ import {
   // NETWORK_CONFIG,
   // uploadDisputeDetails,
 } from '@smart-invoice/utils';
-import { Invoice } from '@smart-invoice/types';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
-// import LockImage from '../../assets/lock.svg';
-import { AccountLink } from '@smart-invoice/ui';
+const parseTokenAddress = (chainId: number, address: Hex) => address;
+// eslint-disable-next-line no-restricted-syntax
+// for (const [key, value] of Object.entries(NETWORK_CONFIG[chainId].TOKENS)) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   if ((value as any).address === _.toLower(address)) {
+//     return key;
+//   }
+// }
 
-const parseTokenAddress = (chainId: number, address: Hex) => {
-  // eslint-disable-next-line no-restricted-syntax
-  // for (const [key, value] of Object.entries(NETWORK_CONFIG[chainId].TOKENS)) {
-  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //   if ((value as any).address === _.toLower(address)) {
-  //     return key;
-  //   }
-  // }
-  return address;
-};
-
-const LockFunds = ({
+export function LockFunds({
   invoice,
   balance,
 }: {
   invoice: Invoice;
   balance: bigint;
-}) => {
+}) {
   const chainId = useChainId();
-  const { resolver, token, resolutionRate } = invoice;
+  const { resolver, token, resolutionRate } = _.pick(invoice, [
+    'resolver',
+    'token',
+    'resolutionRate',
+  ]);
 
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
   const fee = formatUnits(
-    resolutionRate === 0 ? BigInt(0) : BigInt(balance) / BigInt(resolutionRate),
+    !resolutionRate || resolutionRate === BigInt(0)
+      ? BigInt(0)
+      : BigInt(balance) / BigInt(resolutionRate),
     18,
   );
-  const feeDisplay = `${fee} ${parseTokenAddress(chainId, token)}`;
+  const feeDisplay =
+    token && `${fee} ${parseTokenAddress(chainId, token as Hex)}`;
 
   const disputeReason = watch('disputeReason');
   const amount = formatUnits(BigInt(balance), 18);
@@ -75,8 +79,8 @@ const LockFunds = ({
     amount,
   });
 
-  const resolverInfo = getResolverInfo(resolver, chainId);
-  const resolverDisplayName = isKnownResolver(resolver, chainId)
+  const resolverInfo = getResolverInfo(resolver as Hex, chainId);
+  const resolverDisplayName = isKnownResolver(resolver as Hex, chainId)
     ? resolverInfo.name
     : resolver;
 
@@ -166,7 +170,7 @@ const LockFunds = ({
           address={resolver}
           chainId={chainId}
         /> */}
-        {` for helping resolve this dispute.`}
+        {' for helping resolve this dispute.'}
       </Text>
       <Button
         type="submit"
@@ -174,10 +178,9 @@ const LockFunds = ({
         textTransform="uppercase"
         variant="solid"
       >
-        {`Lock ${formatUnits(BigInt(balance), 18)} ${parseTokenAddress(
-          chainId,
-          token,
-        )}`}
+        {`Lock ${formatUnits(BigInt(balance), 18)} ${
+          token ? parseTokenAddress(chainId, token as Hex) : ''
+        }`}
       </Button>
       {/* {isKnownResolver(chainId, resolver) && (
         <Link
@@ -192,6 +195,4 @@ const LockFunds = ({
       )} */}
     </VStack>
   );
-};
-
-export default LockFunds;
+}

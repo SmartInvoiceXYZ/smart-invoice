@@ -16,13 +16,11 @@ import { BackArrowIcon } from '../icons/ArrowIcons';
 
 export function StepInfo({
   stepNum,
-  stepTitle,
-  stepDetails,
+  stepsDetails,
   goBack,
 }: {
   stepNum: number;
-  stepTitle: string;
-  stepDetails: any[];
+  stepsDetails: any;
   goBack: () => void;
 }) {
   const maxW = useBreakpointValue({ base: '100%' });
@@ -33,6 +31,9 @@ export function StepInfo({
     md: 'xl',
     lg: 'xl',
   });
+  const stepTitle = stepsDetails[stepNum].step_title;
+  const stepDetails = stepsDetails[stepNum].step_details;
+
   return (
     <VStack spacing="1rem" maxW={maxW} align="stretch">
       <HStack width="100%" align="center" paddingY={4}>
@@ -60,7 +61,7 @@ export function StepInfo({
       </HStack>
       <Divider width="100%" background="lightgrey" />
       <br />
-      {stepDetails.map(detail => (
+      {stepDetails.map((detail: any) => (
         <Text color="grey" fontSize="sm" key={hashCode(detail)}>
           {detail}
         </Text>

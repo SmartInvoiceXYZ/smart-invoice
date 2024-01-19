@@ -5,7 +5,7 @@ import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 import { getNetworkName } from '@smart-invoice/utils';
 import { useWalletClient } from 'wagmi';
 
-import { Loader } from '../components/Loader';
+import { Loader } from './Loader';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { Container } from './Container';
 

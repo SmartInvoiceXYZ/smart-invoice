@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   Heading,
   Link,
@@ -7,7 +5,6 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
 import { CONFIG } from '@smart-invoice/constants';
 import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 import { Container } from '@smart-invoice/ui';
@@ -19,6 +16,7 @@ import {
   getTokenInfo,
   getTokens,
 } from '@smart-invoice/utils';
+import React from 'react';
 
 const { NETWORK_CONFIG } = CONFIG;
 const chainIds = getKeys(NETWORK_CONFIG);

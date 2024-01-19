@@ -7,8 +7,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 
 import { ConnectWeb3 } from './ConnectWeb3';
-import { Footer } from './Footer';
-import { Header } from './Header';
+import { Footer } from '../molecules/Footer';
+import { Header } from '../molecules/Header';
 import { useWalletClient } from 'wagmi';
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {

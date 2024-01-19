@@ -17,7 +17,7 @@ import {
 import { PDFViewer } from '@react-pdf/renderer';
 import { Invoice } from '@smart-invoice/graphql';
 
-import InvoicePDF from './InvoicePDF';
+import InvoicePDF from '../molecules/InvoicePDF';
 
 interface GenerateInvoicePDFProps {
   invoice: Invoice;

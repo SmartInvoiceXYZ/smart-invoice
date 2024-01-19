@@ -1,6 +1,5 @@
-/* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef, useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import { useChainId } from 'wagmi';
 import {
   Button,
   Flex,
@@ -11,7 +10,6 @@ import {
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-
 import {
   FormConfirmation,
   NetworkChangeAlertModal,
@@ -19,38 +17,25 @@ import {
   Container,
   StepInfo,
 } from '@smart-invoice/ui';
-// import {
-//   PaymentChunksForm,
-//   PaymentDetailsForm,
-//   ProjectDetailsForm,
-// } from '@smart-invoice/forms';
-import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import {
+  PaymentChunksForm,
+  PaymentDetailsForm,
+  ProjectDetailsForm,
+} from '@smart-invoice/forms';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
+import { useForm } from 'react-hook-form';
 
 type EscrowStepNumber = keyof typeof ESCROW_STEPS;
 
 export function CreateInvoiceEscrow() {
-  // const {
-  //   txHash,
-  //   loading,
-  //   currentStep,
-  //   nextStepEnabled,
-  //   goBackHandler,
-  //   nextStepHandler,
-  //   invoiceType,
-  //   setInvoiceType,
-  // } = useContext(CreateContext);
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
+  const chainId = useChainId();
+  const escrowForm = useForm();
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef<number>();
 
   const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
-
-  const { Escrow } = INVOICE_TYPES;
-  // useEffect(() => {
-  //   setInvoiceType(Escrow);
-  // }, [invoiceType, setInvoiceType, Escrow]);
 
   useEffect(() => {
     if (chainId === undefined) return;
@@ -79,11 +64,27 @@ export function CreateInvoiceEscrow() {
     lg: '225%',
   });
 
+  const nextStepHandler = () => {
+    setCurrentStep(currentStep + 1);
+  };
+
+  const goBackHandler = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  // if (txHash) {
+  // eslint-disable-next-line no-constant-condition
+  if (false) {
+    return (
+      <Container overlay>
+        <RegisterSuccess />
+      </Container>
+    );
+  }
+
   return (
     <Container overlay>
-      {true ? ( // txHash ? (
-        <RegisterSuccess />
-      ) : tokenData ? (
+      {tokenData ? (
         <Stack
           direction={{ base: 'column', lg: 'column' }}
           spacing="2rem"
@@ -128,19 +129,19 @@ export function CreateInvoiceEscrow() {
               borderRadius="0.5rem"
               w="100%"
             >
-              {/* <StepInfo
+              <StepInfo
                 stepNum={currentStep}
-                stepTitle={
-                  ESCROW_STEPS[currentStep as EscrowStepNumber].step_title
-                }
-                stepDetails={
-                  ESCROW_STEPS[currentStep as EscrowStepNumber].step_details
-                }
+                stepsDetails={ESCROW_STEPS}
                 goBack={goBackHandler}
               />
+              {currentStep === 1 && (
+                <ProjectDetailsForm
+                  escrowForm={escrowForm}
+                  updateStep={nextStepHandler}
+                />
+              )}
 
-              <ProjectDetailsForm display={currentStep === 1} />
-
+              {/* 
               <PaymentDetailsForm
                 display={currentStep === 2}
                 tokenData={tokenData}
@@ -159,10 +160,6 @@ export function CreateInvoiceEscrow() {
 
               <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
                 <Button
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
                   onClick={nextStepHandler}
                   isLoading={loading}
                   isDisabled={!nextStepEnabled}

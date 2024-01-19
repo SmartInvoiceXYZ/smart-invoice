@@ -45,7 +45,6 @@
     "@openzeppelin/test-helpers": "^0.5.10",
     "@rari-capital/solmate": "^6.4.0",
     "@safe-global/safe-contracts": "^1.4.1-build.0",
-    "@typescript-eslint/parser": "^6.17.0",
     "axios": "^0.21.1",
     "chai": "^4.3.4",
     "delay": "^5.0.0",

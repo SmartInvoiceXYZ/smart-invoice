@@ -1,4 +1,5 @@
-export * from './components';
+export * from './atoms';
 export * from './icons';
-export * from './shared';
+export * from './molecules';
+export * from './organisms';
 export * from './theme';

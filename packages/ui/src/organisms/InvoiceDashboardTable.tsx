@@ -17,7 +17,7 @@ import {
 import { Address, formatUnits } from 'viem';
 
 import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
-import { Styles } from './InvoicesStyles';
+import { Styles } from '../molecules/InvoicesStyles';
 import {
   // Invoice_orderBy,
   fetchInvoices,

@@ -1,12 +1,19 @@
-import NextLink from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
-import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Box,
+  Heading,
+  Link,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 
 import { Invoice, fetchInvoice } from '@smart-invoice/graphql';
-import { CopyIcon } from '@smart-invoice/ui';
+import { ChakraNextLink, CopyIcon } from '@smart-invoice/ui';
 import { Network } from '@smart-invoice/types';
 import {
   copyToClipboard,
@@ -14,7 +21,7 @@ import {
   getTxLink,
   awaitInvoiceAddress,
 } from '@smart-invoice/utils';
-import { Loader } from './Loader';
+import { Loader } from '../atoms/Loader';
 
 const POLL_INTERVAL = 5000;
 
@@ -188,7 +195,7 @@ export function RegisterSuccess() {
         </Flex>
       )}
 
-      <Link as={NextLink} href="/invoices">
+      <ChakraNextLink href="/invoices">
         <Button
           w="100%"
           _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
@@ -202,7 +209,7 @@ export function RegisterSuccess() {
         >
           Return Home
         </Button>
-      </Link>
+      </ChakraNextLink>
     </VStack>
   );
 }

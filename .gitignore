@@ -64,5 +64,5 @@ packages/subgraph/src/types
 # firebase tmp
 .firebase/
 
-/packages/contracts/flat/
-/packages/dapp/.next/
+**/flat/
+**/.next/

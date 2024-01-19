@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useChainId, useWalletClient } from 'wagmi';
 
-/* eslint-disable no-nested-ternary */
 import {
   Button,
   Flex,
@@ -30,32 +29,10 @@ import { useFetchTokensViaIPFS } from '@smart-invoice/hooks';
 type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
 export function CreateInvoiceInstant() {
-  // const {
-  //   txHash,
-  //   loading,
-  //   currentStep,
-  //   nextStepEnabled,
-  //   goBackHandler,
-  //   nextStepHandler,
-  //   invoiceType,
-  //   setInvoiceType,
-  // } = useContext(CreateContext);
-  const { Instant } = INVOICE_TYPES;
-
-  // useEffect(() => {
-  //   setInvoiceType(Instant);
-  // }, [invoiceType, setInvoiceType, Instant]);
   const chainId = useChainId();
   const [{ tokenData, allTokens }] = useFetchTokensViaIPFS();
   const prevChainIdRef = useRef<number>();
-  const [showChainChangeAlert, setShowChainChangeAlert] = useState(false);
-
-  useEffect(() => {
-    if (prevChainIdRef.current !== null && prevChainIdRef.current !== chainId) {
-      setShowChainChangeAlert(true);
-    }
-    prevChainIdRef.current = chainId;
-  }, [chainId]);
+  const showChainChangeAlert = false;
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -73,11 +50,19 @@ export function CreateInvoiceInstant() {
     lg: '250%',
   });
 
+  // if (txHash) {
+  // eslint-disable-next-line no-constant-condition
+  if (false) {
+    return (
+      <Container overlay>
+        <RegisterSuccess />
+      </Container>
+    );
+  }
+
   return (
     <Container overlay>
-      {true ? ( // txHash ? (
-        <RegisterSuccess />
-      ) : tokenData ? (
+      {tokenData ? (
         <Stack
           direction={{ base: 'column', lg: 'column' }}
           spacing="2rem"
@@ -90,7 +75,7 @@ export function CreateInvoiceInstant() {
         >
           <NetworkChangeAlertModal
             showChainChangeAlert={showChainChangeAlert}
-            setShowChainChangeAlert={setShowChainChangeAlert}
+            setShowChainChangeAlert={() => undefined}
             chainId={chainId}
           />
 
@@ -131,8 +116,9 @@ export function CreateInvoiceInstant() {
                   INSTANT_STEPS[currentStep as InstantStepNumber].step_details
                 }
                 goBack={goBackHandler}
-              />
+              /> */}
 
+              {/*
               <ProjectDetailsForm
                 display={currentStep === 1 ? 'flex' : 'none'}
                 tokenData={tokenData}

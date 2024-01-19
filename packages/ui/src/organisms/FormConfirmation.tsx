@@ -12,7 +12,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 
-import { AccountLink } from '../shared/AccountLink';
+import { AccountLink } from '../atoms/AccountLink';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import { TokenData } from '@smart-invoice/types';
 import { ChainId } from '@smart-invoice/constants';

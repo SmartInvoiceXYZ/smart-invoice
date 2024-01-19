@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@smart-invoice/constants": "*",
     "@smart-invoice/graphql": "*",
+    "@smart-invoice/hooks": "*",
     "@smart-invoice/types": "*",
     "@smart-invoice/ui": "*",
     "@smart-invoice/utils": "*",
