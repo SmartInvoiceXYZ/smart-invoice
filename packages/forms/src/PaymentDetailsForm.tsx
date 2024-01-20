@@ -9,7 +9,6 @@ import {
   getResolverString,
   getTokenInfo,
   getTokens,
-  isAddress,
   isKnownResolver,
 } from '@smart-invoice/utils';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
@@ -98,7 +97,7 @@ export function PaymentDetailsForm({
           setClientInvalid(!isAddress(v));
         }}
         error={clientInvalid ? 'Invalid Address' : ''}
-        tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address."
+        tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It's essential your client has control of this address."
         required="required"
       />
 
@@ -111,7 +110,7 @@ export function PaymentDetailsForm({
           setProviderInvalid(!isAddress(v));
         }}
         error={providerInvalid ? 'Invalid Address' : ''}
-        tooltip="This is the address of the recipient/provider. It’s how you access this invoice & where you’ll receive funds released from escrow. It’s essential you have control of this address."
+        tooltip="This is the address of the recipient/provider. It's how you access this invoice & where you'll receive funds released from escrow. It's essential you have control of this address."
         required="required"
       /> */}
 
@@ -138,7 +137,7 @@ export function PaymentDetailsForm({
             }
           }}
           required="required"
-          tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you’ll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
+          tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you'll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
         />
 
         <Select
@@ -146,7 +145,7 @@ export function PaymentDetailsForm({
           setValue={v => setPaymentToken(v as Hex)}
           label="Payment Token"
           required="required"
-          tooltip="This is the cryptocurrency you’ll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you’ll be forced to start the invoice over)."
+          tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
         >
           {TOKENS?.map(token => (
             <option value={token} key={token}>
@@ -224,7 +223,7 @@ export function PaymentDetailsForm({
             setValue={() => undefined}
             tooltip={`If a disputed milestone payment goes to arbitration, ${
               resolutionRate / 100
-            }% of that milestone’s escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
+            }% of that milestone's escrowed funds are automatically deducted as an arbitration fee to resolve the dispute.`}
             isDisabled
           />
         ) : null} */}

@@ -4,11 +4,10 @@ import {
   getProfile,
   getResolverInfo,
   getResolverString,
-  isAddress,
   isKnownResolver,
 } from '@smart-invoice/utils';
 import React, { useEffect, useState } from 'react';
-import { Address } from 'viem';
+import { Address, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { theme } from '../theme';

@@ -30,14 +30,13 @@ import {
   getTokenInfo,
   getTxLink,
   getWrappedNativeToken,
-  isAddress,
   logError,
   // waitForTransaction,
   // depositTokens,
   // tipTokens,
 } from '@smart-invoice/utils';
 import React, { useEffect, useMemo, useState } from 'react';
-import { formatUnits, Hash, Hex, parseUnits } from 'viem';
+import { formatUnits, Hash, Hex, isAddress, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
@@ -74,8 +73,8 @@ export function DepositFunds({
   const NATIVE_TOKEN_SYMBOL = getNativeTokenSymbol(chainId);
   const WRAPPED_NATIVE_TOKEN = getWrappedNativeToken(chainId);
   const { address, token, amounts: rawAmounts } = invoice ?? {};
-  const validAddress = isAddress(address);
-  const validToken = isAddress(token);
+  const validAddress = address && isAddress(address) && address;
+  const validToken = token && isAddress(token) && token;
   const amounts = useMemo(
     () => (rawAmounts ?? []).map((a: any) => BigInt(a)),
     [rawAmounts],

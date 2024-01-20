@@ -1,44 +1,51 @@
 import {
   Divider,
   Flex,
+  Heading,
   Link,
   Spacer,
+  Stack,
   Text,
   useBreakpointValue,
-  VStack,
 } from '@chakra-ui/react';
-import { ChainId } from '@smart-invoice/constants';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
-import { TokenData } from '@smart-invoice/types';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import { AccountLink } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React from 'react';
-import { Address, formatUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { UseFormReturn } from 'react-hook-form';
+import { formatUnits } from 'viem';
+import { useChainId } from 'wagmi';
 
-type FormConfirmationProps = {
-  tokenData: Record<ChainId, Record<Address, TokenData>>;
-};
+// type FormConfirmationProps = {
+//   tokenData: Record<ChainId, Record<Address, TokenData>>;
+// };
 
-export function FormConfirmation({ tokenData }: FormConfirmationProps) {
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
-  // const {
-  //   projectName,
-  //   projectDescription,
-  //   projectAgreement,
-  //   clientAddress,
-  //   paymentAddress,
-  //   startDate,
-  //   endDate,
-  //   safetyValveDate,
-  //   arbitrationProvider,
-  //   milestones,
-  //   paymentDue,
-  //   paymentToken,
-  // } = useInvoiceDetails();
+export function FormConfirmation({
+  escrowForm,
+}: {
+  escrowForm: UseFormReturn;
+}) {
+  const chainId = useChainId();
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
+  const { watch } = escrowForm;
+  const {
+    projectName,
+    projectDescription,
+    projectAgreement,
+    clientAddress,
+    paymentAddress,
+    startDate,
+    endDate,
+    safetyValveDate,
+    arbitrationProvider,
+    milestones,
+    paymentDue,
+    token,
+  } = watch();
 
-  // const { decimals, symbol } = getTokenInfo(chainId, paymentToken, tokenData);
+  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
 
   const flexWidth = useBreakpointValue({
     base: '95%',
@@ -48,27 +55,21 @@ export function FormConfirmation({ tokenData }: FormConfirmationProps) {
   });
 
   return (
-    <VStack w="100%" spacing="1rem" color="#323C47">
-      {/* <Text
-        id="project-title"
-        color="#323C47"
-        fontWeight="bold"
-        fontSize="xl"
-        align="center"
-      >
-        {projectName}
-      </Text>
+    <Stack w="100%" spacing="1rem" color="#323C47">
+      <Heading id="project-title">{projectName}</Heading>
 
       {projectDescription && <Text align="center">{projectDescription}</Text>}
 
-      <Link
-        href={projectAgreement.src || '#'}
-        isExternal
-        mb="1rem"
-        textDecor="underline"
-      >
-        {projectAgreement.src}
-      </Link>
+      {projectAgreement && (
+        <Link
+          href={projectAgreement.src || '#'}
+          isExternal
+          mb="1rem"
+          textDecor="underline"
+        >
+          {projectAgreement.src}
+        </Link>
+      )}
 
       <Divider />
 
@@ -116,7 +117,7 @@ export function FormConfirmation({ tokenData }: FormConfirmationProps) {
         </Flex>
       )}
 
-      {milestones && paymentDue ? (
+      {milestones && !!paymentDue && (
         <>
           <Divider
             color="black"
@@ -134,7 +135,7 @@ export function FormConfirmation({ tokenData }: FormConfirmationProps) {
             </Text>
           </Flex>
         </>
-      ) : null} */}
-    </VStack>
+      )}
+    </Stack>
   );
 }

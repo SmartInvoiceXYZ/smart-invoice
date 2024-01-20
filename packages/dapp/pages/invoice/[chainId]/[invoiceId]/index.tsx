@@ -15,6 +15,7 @@ import {
   Text,
   Tooltip,
   useBreakpointValue,
+  useClipboard,
   VStack,
   Wrap,
   WrapItem,
@@ -41,7 +42,6 @@ import {
 } from '@smart-invoice/ui';
 import {
   balanceOf,
-  copyToClipboard,
   getAccountString,
   getAddressLink,
   getAgreementLink,
@@ -49,13 +49,12 @@ import {
   getIpfsLink,
   getTokenInfo,
   getTxLink,
-  isAddress,
   logError,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { formatUnits } from 'viem';
+import { formatUnits, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 function ViewInvoice() {
@@ -72,8 +71,14 @@ function ViewInvoice() {
   const [selected, setSelected] = useState(0);
   const invoiceChainId = parseInt(String(hexChainId), 16);
   const [verifiedStatus, setVerifiedStatus] = useState(false);
-  const validToken = useMemo(() => isAddress(invoice?.token), [invoice]);
-  const validAddress = useMemo(() => isAddress(invoice?.address), [invoice]);
+  const validToken = useMemo(
+    () => invoice?.token && isAddress(invoice?.token) && invoice.token,
+    [invoice],
+  );
+  const validAddress = useMemo(
+    () => invoice?.address && isAddress(invoice?.address) && invoice.address,
+    [invoice],
+  );
 
   useEffect(() => {
     if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -167,14 +172,16 @@ function ViewInvoice() {
     resolutions,
     verified,
   } = invoice;
-  const validClient = isAddress(client);
-  const validProvider = isAddress(provider);
-  const validResolver = isAddress(resolver);
+  const validClient = client && isAddress(client) && client;
+  const validProvider = provider && isAddress(provider) && provider;
+  const validResolver = resolver && isAddress(resolver) && resolver;
 
   const account = walletClient?.account?.address?.toLowerCase();
   const isClient = account === client;
   const isResolver = account === resolver.toLowerCase();
   const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+
+  const { onCopy } = useClipboard(_.toLower(invoiceId));
 
   const deposited = BigInt(released) + balance;
   const due = deposited >= total ? BigInt(0) : BigInt(total) - deposited;
@@ -266,28 +273,25 @@ function ViewInvoice() {
               {projectName}
             </Heading>
 
-            <Flex align="center" color="black">
+            <HStack align="center" color="black" spacing={4}>
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
               >
                 {getAccountString(invoiceId)}
               </Link>
-              {document.queryCommandSupported('copy') && (
-                <Button
-                  ml={4}
-                  onClick={() => copyToClipboard(invoiceId.toLowerCase())}
-                  variant="ghost"
-                  colorScheme="blue"
-                  h="auto"
-                  w="auto"
-                  minW="2"
-                  p={2}
-                >
-                  <CopyIcon boxSize={4} />
-                </Button>
-              )}
-            </Flex>
+              <Button
+                onClick={onCopy}
+                variant="ghost"
+                colorScheme="blue"
+                h="auto"
+                w="auto"
+                minW="2"
+                p={2}
+              >
+                <CopyIcon boxSize={4} />
+              </Button>
+            </HStack>
             {projectDescription && (
               <Text color="black">{projectDescription}</Text>
             )}

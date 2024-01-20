@@ -14,4 +14,4 @@ Following submission, you will see a copyable link to your Invoice ID as well as
 
 As a provider, send your `Invoice ID` or inform the client that they can input their wallet address into the “View Existing Invoice” tab on smartinvoice.xyz. This will enable the client to view the smart invoice and make payments to the provider.
 
-###### Note: The Invoice ID can be used to look up your invoice if you do not have access to the Client’s Wallet Address provided intitailly.
+###### Note: The Invoice ID can be used to look up your invoice if you do not have access to the Client's Wallet Address provided intitailly.

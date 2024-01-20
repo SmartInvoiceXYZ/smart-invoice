@@ -12,13 +12,12 @@ import { TokenData } from '@smart-invoice/types';
 import {
   getTokenInfo,
   getTxLink,
-  isAddress,
   logError,
   // withdraw,
   // waitForTransaction,
 } from '@smart-invoice/utils';
 import React, { useEffect, useState } from 'react';
-import { formatUnits, Hash } from 'viem';
+import { formatUnits, Hash, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 export type WithdrawFundsProps = {
@@ -38,7 +37,7 @@ export function WithdrawFunds({
   const { data: walletClient } = useWalletClient();
   const chainId = walletClient?.chain?.id;
   const { network, address, token } = invoice ?? {};
-  const validAddress = isAddress(address);
+  const validAddress = address && isAddress(address) && address;
 
   const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
   const [txHash, setTxHash] = useState<Hash>();

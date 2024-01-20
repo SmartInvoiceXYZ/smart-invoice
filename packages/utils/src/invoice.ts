@@ -231,7 +231,8 @@ export const getTotalDue = () => undefined;
 //   return totalDue;
 // };
 
-export const getTotalFulfilled = () => undefined;
+export const getTotalFulfilled = async (chainId: number, address: Hex) =>
+  undefined;
 // export const getTotalFulfilled = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');
@@ -255,7 +256,7 @@ export const getTotalFulfilled = () => undefined;
 //   return { amount, isFulfilled };
 // };
 
-export const getDeadline = () => undefined;
+export const getDeadline = async (chainId: number, address: Hex) => undefined;
 // export const getDeadline = async (chain: Chain, address: Address) => {
 //   if (!chain) throw new Error('Invalid chain');
 //   if (!isAddress(address)) throw new Error('Invalid address');

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-import { isAddress, logDebug } from '@smart-invoice/utils';
-import { Address } from 'viem';
+import { logDebug } from '@smart-invoice/utils';
+import { Address, isAddress } from 'viem';
 
 import { clients } from './client';
 import { scalars } from './scalars';
@@ -135,7 +135,7 @@ const invoiceQuery = (id: string) =>
   });
 
 export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
-  const address = isAddress(queryAddress);
+  const address = isAddress(queryAddress) && queryAddress;
   if (!address) return null;
 
   const query = invoiceQuery(address);

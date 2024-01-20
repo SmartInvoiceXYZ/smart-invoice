@@ -22,7 +22,6 @@ import {
   calculateResolutionFeePercentage,
   getTokenInfo,
   getTxLink,
-  isAddress,
   logDebug,
   logError,
   // addMilestones,
@@ -31,7 +30,7 @@ import {
   // waitForTransaction,
 } from '@smart-invoice/utils';
 import React, { useEffect, useMemo, useState } from 'react';
-import { formatUnits, Hash, parseUnits } from 'viem';
+import { formatUnits, Hash, isAddress, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 export type AddMilestonesProps = {
@@ -151,7 +150,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
 
       if (walletClient) {
         let hash: Hash | undefined;
-        const validAddress = isAddress(address);
+        const validAddress = address && isAddress(address);
         if (!validAddress) return;
         if (detailsHash) {
           hash = '0x'; // await addMilestonesWithDetails(

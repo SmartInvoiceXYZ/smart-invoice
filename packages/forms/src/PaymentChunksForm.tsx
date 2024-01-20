@@ -36,7 +36,7 @@ export function PaymentChunksForm({
 
             <Flex>
               <Tooltip
-                label="This is the amount of tokens you’ll receive for completion of this milestone."
+                label="This is the amount of tokens you'll receive for completion of this milestone."
                 placement="auto-start"
               >
                 <QuestionIcon ml=".25rem" boxSize="0.75rem" />

@@ -1,8 +1,8 @@
 import { Button, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
-import { isAddress, logError } from '@smart-invoice/utils';
+import { logError } from '@smart-invoice/utils';
 import React, { useEffect, useState } from 'react';
-import { Hash } from 'viem';
+import { Hash, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
@@ -31,7 +31,7 @@ export function VerifyInvoice({
   const { address } = invoice || {};
   const [txHash, setTxHash] = useState<Hash>();
 
-  const validAddress = isAddress(address);
+  const validAddress = address && isAddress(address) && address;
 
   useEffect(() => {
     const status = invoice?.verified[0];

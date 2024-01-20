@@ -19,16 +19,13 @@ import {
   getResolvers,
   getResolverString,
   isKnownResolver,
-} from '@smart-invoice/utils/src';
+} from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
-
-const unsupportedNetwork = (chainId: number) =>
-  !_.includes(SUPPORTED_NETWORKS, chainId);
 
 export const sevenDaysFromNow = () => {
   const localDate = new Date();
@@ -100,7 +97,7 @@ export function EscrowDetailsForm({
         <Stack spacing={4}>
           <Input
             label="Client Address"
-            tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It’s essential your client has control of this address."
+            tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It's essential your client has control of this address."
             placeholder="0x..."
             name="client"
             localForm={localForm}
@@ -120,8 +117,8 @@ export function EscrowDetailsForm({
 
         <Flex>
           <Input
-            label="Raid Party Address"
-            tooltip="Recipient of the funds"
+            label="Service Provider Address"
+            tooltip="This is the address of the recipient/provider. It's how you access this invoice & where you'll receive funds released from escrow. It's essential you have control of this address."
             placeholder="0x..."
             name="provider"
             localForm={localForm}

@@ -8,7 +8,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS } from '@smart-invoice/constants/src';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { Input, Textarea } from '@smart-invoice/ui';
 import _ from 'lodash';
 import { useEffect } from 'react';

@@ -7,26 +7,22 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
+import { IModals } from '@smart-invoice/types';
 import { chainsMap } from '@smart-invoice/utils/src';
-import React from 'react';
 
 type NetworkChangeAlertModalProps = {
-  showChainChangeAlert: boolean;
-  // eslint-disable-next-line no-unused-vars
-  setShowChainChangeAlert: (value: boolean) => void;
+  modals: { networkChange: boolean };
+  setModals: (modals: Partial<IModals>) => void;
   chainId?: number;
 };
 
 export function NetworkChangeAlertModal({
-  showChainChangeAlert,
-  setShowChainChangeAlert,
+  modals,
+  setModals,
   chainId,
 }: NetworkChangeAlertModalProps) {
   return (
-    <Modal
-      isOpen={showChainChangeAlert}
-      onClose={() => setShowChainChangeAlert(false)}
-    >
+    <Modal isOpen={modals.networkChange} onClose={() => setModals({})}>
       <ModalOverlay />
 
       <ModalContent>

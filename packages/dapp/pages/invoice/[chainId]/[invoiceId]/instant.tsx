@@ -3,6 +3,7 @@ import {
   Divider,
   Flex,
   Heading,
+  HStack,
   Link,
   Modal,
   ModalCloseButton,
@@ -13,6 +14,7 @@ import {
   Text,
   Tooltip,
   useBreakpointValue,
+  useClipboard,
   VStack,
   Wrap,
   WrapItem,
@@ -32,7 +34,6 @@ import {
 } from '@smart-invoice/ui';
 import {
   balanceOf,
-  copyToClipboard,
   getAccountString,
   getAddressLink,
   getAgreementLink,
@@ -42,13 +43,12 @@ import {
   getTokenInfo,
   getTotalDue,
   getTotalFulfilled,
-  isAddress,
   logError,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits } from 'viem';
+import { Address, formatUnits, isAddress } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 function ViewInstantInvoice() {
@@ -74,8 +74,14 @@ function ViewInstantInvoice() {
   const [lateFeeAmount, setLateFeeAmount] = useState(BigInt(0));
   const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
   const [lateFeeTotal, setLateFeeTotal] = useState(BigInt(0));
-  const validToken = useMemo(() => isAddress(invoice?.token), [invoice]);
-  const validAddress = useMemo(() => isAddress(invoice?.address), [invoice]);
+  const validToken = useMemo(
+    () => invoice?.token && isAddress(invoice?.token) && invoice.token,
+    [invoice],
+  );
+  const validAddress = useMemo(
+    () => invoice?.address && isAddress(invoice?.address) && invoice.address,
+    [invoice],
+  );
   const {
     client,
     provider,
@@ -87,8 +93,10 @@ function ViewInstantInvoice() {
     startDate,
     endDate,
   } = invoice || {};
-  const validClient = isAddress(client);
-  const validProvider = isAddress(provider);
+  const validClient = client && isAddress(client) && client;
+  const validProvider = provider && isAddress(provider) && provider;
+
+  const { onCopy } = useClipboard(_.toLower(invoiceId));
 
   useEffect(() => {
     if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
@@ -229,28 +237,25 @@ function ViewInstantInvoice() {
               {projectName}
             </Heading>
 
-            <Flex align="center" color="black">
+            <HStack align="center" color="black" spacing={4}>
               <Link
                 href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
                 isExternal
               >
                 {getAccountString(invoiceId)}
               </Link>
-              {document.queryCommandSupported('copy') && (
-                <Button
-                  ml={4}
-                  onClick={() => copyToClipboard(invoiceId.toLowerCase())}
-                  variant="ghost"
-                  colorScheme="blue"
-                  h="auto"
-                  w="auto"
-                  minW="2"
-                  p={2}
-                >
-                  <CopyIcon boxSize={4} />
-                </Button>
-              )}
-            </Flex>
+              <Button
+                onClick={onCopy}
+                variant="ghost"
+                colorScheme="blue"
+                h="auto"
+                w="auto"
+                minW="2"
+                p={2}
+              >
+                <CopyIcon boxSize={4} />
+              </Button>
+            </HStack>
             {projectDescription && (
               <Text color="black">{projectDescription}</Text>
             )}

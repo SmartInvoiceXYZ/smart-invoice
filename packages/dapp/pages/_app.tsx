@@ -12,6 +12,8 @@ import { AppProps } from 'next/app';
 import React from 'react';
 import { WagmiConfig } from 'wagmi';
 
+import { OverlayContextProvider } from '../contexts/OverlayContext';
+
 function App({ Component, pageProps }: AppProps) {
   const queryClient = new QueryClient();
 
@@ -24,9 +26,11 @@ function App({ Component, pageProps }: AppProps) {
             <CSSReset />
             <Global styles={globalStyles} />
             <ErrorBoundary>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
+              <OverlayContextProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </OverlayContextProvider>
             </ErrorBoundary>
           </ChakraProvider>
         </QueryClientProvider>

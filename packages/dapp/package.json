@@ -17,6 +17,7 @@
     "@smart-invoice/forms": "*",
     "@smart-invoice/graphql": "*",
     "@smart-invoice/hooks": "*",
+    "@smart-invoice/types": "*",
     "@smart-invoice/ui": "*",
     "@smart-invoice/utils": "*",
     "@tanstack/react-query": "^5.17.9",

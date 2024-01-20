@@ -1,5 +1,5 @@
 import { Button, Flex, Text, VStack } from '@chakra-ui/react';
-import { chainsMap } from '@smart-invoice/utils/src';
+import { chainsMap } from '@smart-invoice/utils';
 import { useRouter } from 'next/router';
 import React from 'react';
 

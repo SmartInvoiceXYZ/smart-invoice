@@ -1,13 +1,22 @@
-import { Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  Link,
+  Text,
+  useClipboard,
+  VStack,
+} from '@chakra-ui/react';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
 import { ChakraNextLink, CopyIcon, Loader } from '@smart-invoice/ui';
 import {
   awaitInvoiceAddress,
   chainByName,
-  copyToClipboard,
   getTxLink,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
@@ -51,6 +60,13 @@ export function RegisterSuccess() {
   const chainHex = chainByName(
     String(invoice?.network) as Network,
   )?.id?.toString(16);
+
+  const { onCopy: copyId } = useClipboard(_.toLower(invoice?.id));
+  const { onCopy: copyLink } = useClipboard(
+    `${window.location.origin}/invoice/${chainHex}/${invoice?.id}/${
+      String(invoice?.invoiceType) === 'escrow' ? '' : invoice?.invoiceType
+    }`,
+  );
 
   return (
     <VStack
@@ -96,20 +112,19 @@ export function RegisterSuccess() {
               borderRadius="0.25rem"
               w="100%"
             >
-              <Link
-                ml="0.5rem"
-                href={`/invoice/${chainHex}/${invoice.id}/${
-                  invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
-                }`}
-                color="charcoal"
-                overflow="hidden"
-              >
-                {invoice.id}
-              </Link>
-              {document.queryCommandSupported('copy') && (
+              <HStack>
+                <Link
+                  ml="0.5rem"
+                  href={`/invoice/${chainHex}/${invoice.id}/${
+                    invoice.invoiceType === 'escrow' ? '' : invoice.invoiceType
+                  }`}
+                  color="charcoal"
+                  overflow="hidden"
+                >
+                  {invoice.id}
+                </Link>
                 <Button
-                  ml={4}
-                  onClick={() => copyToClipboard(invoice.id)}
+                  onClick={copyId}
                   variant="ghost"
                   colorScheme="blue"
                   h="auto"
@@ -119,7 +134,7 @@ export function RegisterSuccess() {
                 >
                   <CopyIcon boxSize={4} />
                 </Button>
-              )}
+              </HStack>
             </Flex>
           </VStack>
 
@@ -134,32 +149,24 @@ export function RegisterSuccess() {
               borderRadius="0.25rem"
               w="100%"
             >
-              <Link
-                ml="0.5rem"
-                href={`/invoice/${chainHex}/${invoice.id}/${
+              <HStack>
+                <Link
+                  ml="0.5rem"
+                  href={`/invoice/${chainHex}/${invoice.id}/${
+                    String(invoice.invoiceType) === 'escrow'
+                      ? ''
+                      : invoice.invoiceType
+                  }`}
+                  color="charcoal"
+                  overflow="hidden"
+                >{`${window.location.origin}/invoice/${chainHex}/${invoice.id}/${
                   String(invoice.invoiceType) === 'escrow'
                     ? ''
                     : invoice.invoiceType
-                }`}
-                color="charcoal"
-                overflow="hidden"
-              >{`${window.location.origin}/invoice/${chainHex}/${invoice.id}/${
-                String(invoice.invoiceType) === 'escrow'
-                  ? ''
-                  : invoice.invoiceType
-              }`}</Link>
-              {document.queryCommandSupported('copy') && (
+                }`}</Link>
                 <Button
                   ml={4}
-                  onClick={() =>
-                    copyToClipboard(
-                      `${window.location.origin}/invoice/${chainHex}/${invoice.id}/${
-                        String(invoice.invoiceType) === 'escrow'
-                          ? ''
-                          : invoice.invoiceType
-                      }`,
-                    )
-                  }
+                  onClick={copyLink}
                   variant="ghost"
                   colorScheme="blue"
                   h="auto"
@@ -169,7 +176,7 @@ export function RegisterSuccess() {
                 >
                   <CopyIcon boxSize={4} />
                 </Button>
-              )}
+              </HStack>
             </Flex>
           </VStack>
         </>

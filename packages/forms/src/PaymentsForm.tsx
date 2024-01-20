@@ -13,7 +13,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS } from '@smart-invoice/constants/src';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { NumberInput, Select } from '@smart-invoice/ui';

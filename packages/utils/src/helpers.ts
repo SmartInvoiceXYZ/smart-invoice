@@ -1,6 +1,4 @@
-/* eslint-disable no-restricted-syntax */
 /* eslint-disable radix */
-
 import {
   ChainId,
   DEFAULT_CHAIN_ID,
@@ -10,37 +8,33 @@ import {
   isOfTypeChainId,
   resolverInfo,
   resolvers,
+  SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { Network, TokenData } from '@smart-invoice/types';
+import { TokenData } from '@smart-invoice/types';
 import _ from 'lodash';
-import { Address, getAddress, zeroAddress } from 'viem';
+import { Address, zeroAddress } from 'viem';
 
 import { chainsMap } from '.';
 
-export const getDateString = (timeInSec: any) => {
-  if (parseInt(timeInSec) !== 0) {
-    const date = new Date(timeInSec ? timeInSec * 1000 : 0);
-    const ye = new Intl.DateTimeFormat('en', {
-      year: 'numeric',
-    }).format(date);
-    const mo = new Intl.DateTimeFormat('en', {
-      month: 'long',
-    }).format(date);
-    const da = new Intl.DateTimeFormat('en', {
-      day: '2-digit',
-    }).format(date);
-    return `${mo} ${da}, ${ye}`;
+export const unsupportedNetwork = (chainId: number) =>
+  !_.includes(SUPPORTED_NETWORKS, chainId);
+
+export const getDateString = (timeInSec: number) => {
+  if (timeInSec !== 0) {
+    return 'Not provided';
   }
-  return 'Not provided';
-};
-// returns the checksummed address if the address is valid, otherwise returns false
-export const isAddress = (value: any) => {
-  try {
-    return getAddress(value).toLowerCase() as Address;
-  } catch (err) {
-    return false;
-  }
+  const date = new Date(timeInSec ? timeInSec * 1000 : 0);
+  const ye = new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+  }).format(date);
+  const mo = new Intl.DateTimeFormat('en', {
+    month: 'long',
+  }).format(date);
+  const da = new Intl.DateTimeFormat('en', {
+    day: '2-digit',
+  }).format(date);
+  return `${mo} ${da}, ${ye}`;
 };
 
 export const getGraphUrl = (chainId?: number) =>
@@ -96,20 +90,16 @@ export const getTokenInfo = (
   return tokenDataByChain[token];
 };
 
-export const getWrappedNativeToken = (chainId?: number) => undefined;
-// chainId && isOfTypeChainId(chainId)
-//   ? wrappedNativeToken[chainId]
-//   : wrappedNativeToken[DEFAULT_CHAIN_ID];
+export const getWrappedNativeToken = (chainId?: number) =>
+  chainId && wrappedNativeToken(chainId);
 
-export const getNativeTokenSymbol = (chainId?: number) => undefined;
-// chainId && isOfTypeChainId(chainId)
-//   ? nativeSymbols[chainId]
-//   : nativeSymbols[DEFAULT_CHAIN_ID];
+export const getNativeTokenSymbol = (chainId?: number) =>
+  chainId && chainsMap(chainId).nativeCurrency;
 
-export const getInvoiceFactoryAddress = (chainId: number) => undefined;
-// isOfTypeChainId(chainId)
-//   ? invoiceFactory[chainId]
-//   : invoiceFactory[DEFAULT_CHAIN_ID];
+export const getInvoiceFactoryAddress = (chainId: number) =>
+  isOfTypeChainId(chainId)
+    ? invoiceFactory(chainId)
+    : invoiceFactory(DEFAULT_CHAIN_ID);
 
 const getExplorerUrl = (chainId: number) => {
   const chain = chainsMap(chainId);
@@ -151,11 +141,13 @@ export const getResolverString = (resolver: Address, chainId?: number) => {
   return info ? info.name : getAccountString(resolver);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const logError = (message?: any, ...optionalParams: any[]) => {
   // eslint-disable-next-line no-console
   console.error(message, optionalParams);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const logDebug = (message?: any, ...optionalParams: any[]) => {
   if (process.env.NEXT_PUBLIC_DEBUG_LOGS === 'true') {
     // eslint-disable-next-line no-console
@@ -163,30 +155,21 @@ export const logDebug = (message?: any, ...optionalParams: any[]) => {
   }
 };
 
-export const copyToClipboard = (value: any) => {
-  const tempInput = document.createElement('input');
-  tempInput.value = value;
-  document.body.appendChild(tempInput);
-  tempInput.select();
-  document.execCommand('copy');
-  document.body.removeChild(tempInput);
-};
-
 const URL_REGEX =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
 
-export const isValidURL = (str: any) => !!URL_REGEX.test(str);
+export const isValidURL = (str: string) => !!URL_REGEX.test(str);
 
 const BASE32_REGEX = /^[a-zA-Z2-7]+=*$/;
 const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+=*$/;
 
-export const isValidCID = (hash: any) =>
+export const isValidCID = (hash: string) =>
   (hash.length === 59 &&
     hash.startsWith('bafy') &&
     !!BASE32_REGEX.test(hash)) ||
   (hash.length === 46 && hash.startsWith('Qm') && !!BASE58_REGEX.test(hash));
 
-export const isValidLink = (url: any) => {
+export const isValidLink = (url: string) => {
   if (!url) return false;
   if (url.startsWith('ipfs://')) {
     return isValidCID(url.slice(7));
@@ -198,72 +181,39 @@ export function commify(x: number | bigint | string) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export const formatTokenData = (object: any) => {
-  const tokenObject = {} as Record<ChainId, Record<string, TokenData>>;
-
-  for (const [key, value] of Object.entries(object)) {
-    const tokenDetails = {} as Record<string, TokenData>;
-
-    // @ts-expect-error TS(2339): Property 'tokenContract' does not exist on type 'u... Remove this comment to see the full error message
-    for (const { tokenContract, decimals, symbol, image } of Object.values(
-      // @ts-expect-error TS(2769): No overload matches this call.
-      value,
-    )) {
-      const address = tokenContract.toLowerCase();
-      tokenDetails[address] = {
-        address,
-        decimals,
-        symbol,
-        image,
-      };
-    }
-    tokenObject[Number(key) as ChainId] = tokenDetails;
-  }
-
-  return tokenObject;
-};
-
-export const formatTokens = (
-  object: Record<ChainId, Record<Address, TokenData>>,
-) => {
-  const tokenObject = {} as Record<ChainId, Address[]>;
-  for (const [key, value] of Object.entries(object)) {
-    const tokenArray = [] as Address[];
-    for (const tokenAddress of Object.keys(value)) {
-      tokenArray.push(getAddress(tokenAddress));
-    }
-    tokenObject[Number(key) as ChainId] = tokenArray;
-  }
-
-  return tokenObject;
-};
-
-export const calculateResolutionFeePercentage = (resolutionRate: any) => {
+export const calculateResolutionFeePercentage = (resolutionRate: string) => {
   const feePercentage = 1 / parseInt(resolutionRate);
 
   return feePercentage;
 };
 
-export const getTokenSymbol = (token: any, chainId: number, tokenData: any) =>
-  tokenData[chainId][token].symbol;
+export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
 
-export const dateTimeToDate = (dateTime: any) => dateTime.split(',')[0];
+interface ProjectAgreement {
+  src: string;
+  type: string;
+}
 
-export const getAgreementLink = (projectAgreement: any) => {
-  if ((projectAgreement || []).length === 0) {
-    return '';
-  }
-  const address = projectAgreement[projectAgreement.length - 1].src;
-  if (projectAgreement[projectAgreement.length - 1].type === 'ipfs') {
+export const getAgreementLink = (projectAgreement: ProjectAgreement[]) => {
+  if (_.isEmpty(projectAgreement)) return '';
+
+  const address = _.get(
+    _.nth(projectAgreement, _.size(projectAgreement) - 1),
+    'src',
+  );
+  if (
+    _.get(_.nth(projectAgreement, _.size(projectAgreement) - 1), 'type') ===
+    'ipfs'
+  ) {
     // address.substring(7) removes ipfs:// from the beginning of the src string
-    const hash = address.substring(7);
+    const hash = address?.substring(7);
     const link = `${IPFS_ENDPOINT}/ipfs/${hash}`;
     return link;
   }
   return address;
 };
 
-export const formatDate = (date: any) => {
+export const formatDate = (date: number | string) => {
   const d = new Date(date);
 
   let month = `${d.getUTCMonth() + 1}`;
@@ -277,5 +227,5 @@ export const formatDate = (date: any) => {
   return [year, month, day].join('-');
 };
 
-export const sum = (array: any) =>
-  array.reduce((total: any, current: any) => total + current, 0);
+export const sum = (array: number[]) =>
+  array.reduce((total: number, current: number) => total + current, 0);

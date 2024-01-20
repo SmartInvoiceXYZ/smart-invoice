@@ -134,7 +134,7 @@ export function DepositFunds({
         Pay Invoice
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem" color="whiteAlpha.700">
-        At a minimum, you’ll need to deposit enough to cover the{' '}
+        At a minimum, you&apos;ll need to deposit enough to cover the{' '}
         {currentMilestone === BigInt(0) ? 'first' : 'next'} project payment.
       </Text>
       <Text textAlign="center" color="purple.400">

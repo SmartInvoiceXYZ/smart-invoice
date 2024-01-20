@@ -25,10 +25,13 @@ import _ from 'lodash';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useChainId, useWalletClient } from 'wagmi';
 
+import { useOverlay } from '../../contexts/OverlayContext';
+
 type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
 export function CreateInvoiceInstant() {
   const chainId = useChainId();
+  const { modals, setModals } = useOverlay();
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
   const prevChainIdRef = useRef<number>();
@@ -74,8 +77,8 @@ export function CreateInvoiceInstant() {
           maxW="650px"
         >
           <NetworkChangeAlertModal
-            showChainChangeAlert={showChainChangeAlert}
-            setShowChainChangeAlert={() => undefined}
+            modals={modals}
+            setModals={setModals}
             chainId={chainId}
           />
 

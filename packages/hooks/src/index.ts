@@ -4,6 +4,7 @@ export { useFetchTokens } from './useFetchTokens';
 export { useInvoiceDetails } from './useInvoiceDetails';
 export { useInvoiceList } from './useInvoiceList';
 export { useInvoiceStatus } from './useInvoiceStatus';
+export { useIsClient } from './useIsClient';
 export { useLock } from './useLock';
 export { usePollSubgraph } from './usePollSubgraph';
 export { useRegister } from './useRegister';
