@@ -52,12 +52,19 @@ export function ProjectDetailsForm({
   } = watch();
   const localForm = useForm({
     resolver: yupResolver(validationSchema),
+    defaultValues: {
+      projectName,
+      projectDescription,
+      projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+    },
   });
   const {
     handleSubmit,
     setValue: localSetValue,
     watch: localWatch,
+    formState: { isValid, errors },
   } = localForm;
+  console.log(errors);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -81,16 +88,6 @@ export function ProjectDetailsForm({
     // move form
     updateStep();
   };
-
-  useEffect(() => {
-    localSetValue('projectName', projectName || '');
-    localSetValue('projectDescription', projectDescription || '');
-    localSetValue(
-      'projectAgreement',
-      _.get(_.first(projectAgreement), 'src', ''),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -141,8 +138,7 @@ export function ProjectDetailsForm({
         <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
           <Button
             type="submit"
-            // isLoading={loading}
-            // isDisabled={!nextStepEnabled}
+            isDisabled={!isValid}
             textTransform="uppercase"
             size={buttonSize}
             fontFamily="mono"

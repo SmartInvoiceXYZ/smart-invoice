@@ -128,8 +128,8 @@ export const getIpfsLink = (hash: string) =>
 export const getAccountString = (account?: string) => {
   if (!account) return undefined;
   const len = account.length;
-  return `0x${_.toUpper(account.slice(2, 3))}...${_.toUpper(
-    account.slice(len - 3, len - 1),
+  return `0x${_.toUpper(account.slice(2, 4))}...${_.toUpper(
+    account.slice(len - 5, len),
   )}`;
 };
 

@@ -60,7 +60,7 @@ export function Input({
   return (
     <FormControl
       isRequired={_.includes(_.keys(registerOptions), 'required')}
-      isInvalid={!!errors[name]}
+      isInvalid={!!error}
     >
       <Stack spacing={spacing}>
         {label && (

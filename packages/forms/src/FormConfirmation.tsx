@@ -1,20 +1,21 @@
 import {
+  Button,
   Divider,
   Flex,
+  Grid,
   Heading,
   Link,
-  Spacer,
   Stack,
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { useFetchTokens } from '@smart-invoice/hooks';
+import { ESCROW_STEPS } from '@smart-invoice/constants/src';
+import { useFetchTokens, useInvoiceCreate } from '@smart-invoice/hooks';
 import { AccountLink } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
 
 // type FormConfirmationProps = {
@@ -34,19 +35,20 @@ export function FormConfirmation({
     projectName,
     projectDescription,
     projectAgreement,
-    clientAddress,
-    paymentAddress,
+    client,
+    provider,
     startDate,
     endDate,
     safetyValveDate,
-    arbitrationProvider,
+    resolver,
     milestones,
-    paymentDue,
     token,
   } = watch();
 
-  const { decimals, symbol } = getTokenInfo(chainId, token, tokenData);
+  const paymentDue = _.get(_.first(milestones), 'value');
+  const { symbol } = getTokenInfo(chainId, token, tokenData);
 
+  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
   const flexWidth = useBreakpointValue({
     base: '95%',
     sm: '95%',
@@ -54,9 +56,68 @@ export function FormConfirmation({
     lg: '70%',
   });
 
+  const { writeAsync } = useInvoiceCreate({
+    projectName,
+    projectDescription,
+    projectAgreement,
+    client,
+    provider,
+    startDate,
+    endDate,
+    safetyValveDate,
+    resolver,
+    milestones,
+    token,
+  });
+
+  const handleSubmit = async () => {
+    await writeAsync?.();
+  };
+
+  const details = useMemo(() => {
+    return _.compact([
+      {
+        label: 'Client Address',
+        value: <AccountLink address={client} chainId={chainId} />,
+      },
+      {
+        label: 'Payment Address',
+        value: <AccountLink address={provider} chainId={chainId} />,
+      },
+      startDate && {
+        label: 'Project Start Date:',
+        value: <Text textAlign="right">{getDateString(startDate / 1000)}</Text>,
+      },
+      endDate && {
+        label: 'Expected End Date:',
+        value: <Text textAlign="right">{getDateString(endDate / 1000)}</Text>,
+      },
+      safetyValveDate && {
+        label: 'Safety Valve Date:',
+        value: (
+          <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
+        ),
+      },
+      resolver && {
+        label: 'Arbitration Provider:',
+        value: <AccountLink address={resolver} chainId={chainId} />,
+      },
+    ]);
+  }, [
+    client,
+    provider,
+    startDate,
+    endDate,
+    safetyValveDate,
+    resolver,
+    chainId,
+  ]);
+
   return (
-    <Stack w="100%" spacing="1rem" color="#323C47">
-      <Heading id="project-title">{projectName}</Heading>
+    <Stack w="100%" spacing="1rem" color="#323C47" align="center">
+      <Heading id="project-title" size="md">
+        {projectName}
+      </Heading>
 
       {projectDescription && <Text align="center">{projectDescription}</Text>}
 
@@ -73,51 +134,14 @@ export function FormConfirmation({
 
       <Divider />
 
-      <Flex justify="space-between" width={flexWidth}>
-        <Text>{`Client Address: `}</Text>
-
-        <Spacer />
-
-        <AccountLink address={clientAddress} chainId={chainId} />
-      </Flex>
-
-      <Flex justify="space-between" width={flexWidth}>
-        <Text>{`Payment Address: `}</Text>
-
-        <AccountLink address={paymentAddress} chainId={chainId} />
-      </Flex>
-      {startDate && (
+      {_.map(details, ({ label, value }) => (
         <Flex justify="space-between" width={flexWidth}>
-          <Text>{`Project Start Date: `}</Text>
-
-          <Text textAlign="right">{getDateString(startDate / 1000)}</Text>
+          <Text>{label}</Text>
+          {value}
         </Flex>
-      )}
-      {endDate && (
-        <Flex justify="space-between" width={flexWidth}>
-          <Text>{`Expected End Date: `}</Text>
+      ))}
 
-          <Text textAlign="right">{getDateString(endDate / 1000)}</Text>
-        </Flex>
-      )}
-
-      {safetyValveDate && (
-        <Flex justify="space-between" width={flexWidth}>
-          <Text>{`Safety Valve Date: `}</Text>
-
-          <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
-        </Flex>
-      )}
-
-      {arbitrationProvider && (
-        <Flex justify="space-between" width={flexWidth}>
-          <Text>{`Arbitration Provider: `}</Text>
-
-          <AccountLink address={arbitrationProvider} chainId={chainId} />
-        </Flex>
-      )}
-
-      {milestones && !!paymentDue && (
+      {milestones && (
         <>
           <Divider
             color="black"
@@ -127,15 +151,29 @@ export function FormConfirmation({
 
           <Flex justify="flex-end">
             <Text>
-              {`${milestones} ${milestones > 1 ? 'Payments' : 'Payment'}`}
+              {`${_.size(milestones)} ${_.size(milestones) > 1 ? 'Payments' : 'Payment'} Total`}
             </Text>
 
-            <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-              {`${formatUnits(paymentDue, decimals)} ${symbol} Total`}
-            </Text>
+            {paymentDue && (
+              <Text color="blue.1" ml="2.5rem" fontWeight="bold">
+                {`${paymentDue} ${symbol} Due Today`}
+              </Text>
+            )}
           </Flex>
         </>
       )}
+      <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
+        <Button
+          onClick={handleSubmit}
+          isDisabled={!writeAsync}
+          textTransform="uppercase"
+          size={buttonSize}
+          fontFamily="mono"
+          fontWeight="bold"
+        >
+          Next: {ESCROW_STEPS[2].next}
+        </Button>
+      </Grid>
     </Stack>
   );
 }

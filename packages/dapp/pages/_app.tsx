@@ -15,7 +15,13 @@ import { WagmiConfig } from 'wagmi';
 import { OverlayContextProvider } from '../contexts/OverlayContext';
 
 function App({ Component, pageProps }: AppProps) {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 15 * 60 * 1000, // 15 minutes
+      },
+    },
+  });
 
   return (
     <WagmiConfig config={wagmiConfig}>

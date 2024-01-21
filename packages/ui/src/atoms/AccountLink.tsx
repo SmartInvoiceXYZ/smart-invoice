@@ -6,11 +6,10 @@ import {
   getResolverString,
   isKnownResolver,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
-
-import { theme } from '../theme';
 
 export type AccountLinkProps = {
   address?: Address;
@@ -22,7 +21,7 @@ export function AccountLink({
   chainId: inputChainId,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
-  const address = inputAddress?.toLowerCase() as Address;
+  const address = _.toLower(inputAddress) as Address;
   const [profile, setProfile] =
     useState<Awaited<ReturnType<typeof getProfile>>>();
   const chainId = inputChainId || walletChainId;
@@ -79,7 +78,8 @@ export function AccountLink({
         align="center"
         bgColor="black"
         bgImage={imageUrl && `url(${imageUrl})`}
-        border={`1px solid ${theme.colors.white20}`}
+        border="1px solid"
+        borderColor="white20"
         bgSize="cover"
         bgRepeat="no-repeat"
         bgPosition="center center"

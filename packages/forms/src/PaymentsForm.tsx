@@ -1,9 +1,9 @@
-import { DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
-  Box,
   Button,
   Flex,
   FormControl,
+  FormErrorMessage,
   Grid,
   Heading,
   HStack,
@@ -27,11 +27,13 @@ import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object().shape({
-  milestones: Yup.array().of(
-    Yup.object().shape({
-      value: Yup.string().required('Milestone Amount is required'),
-    }),
-  ),
+  milestones: Yup.array()
+    .min(1, 'At least one milestone is required!')
+    .of(
+      Yup.object().shape({
+        value: Yup.string().required('Milestone Amount is required'),
+      }),
+    ),
   token: Yup.string().required('Token is required'),
   // token: Yup.object().shape({
   //   label: Yup.string(),
@@ -51,7 +53,7 @@ export function PaymentsForm({
   const { milestones, token } = watch();
   const localForm = useForm({
     defaultValues: {
-      milestones: [{ value: '1000' }],
+      milestones: milestones || [{ value: '1' }],
     },
     resolver: yupResolver(validationSchema),
   });
@@ -60,31 +62,27 @@ export function PaymentsForm({
     handleSubmit,
     watch: localWatch,
     control,
-    getValues,
+    formState: { errors, isValid },
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
+  console.log(errors, isValid);
 
   const { data } = useFetchTokens();
   const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
-  console.log('tokenData', tokenData, 'allTokens', allTokens);
-
-  const setEscrowValues = (values: Partial<Invoice>) => {
-    // set values in escrow form
-    // setValue('milestones', values?.milestones);
-    setValue('token', values?.token);
-  };
 
   const TOKENS = useMemo(
     () => allTokens && getTokens(allTokens, chainId),
     [chainId, allTokens],
   );
-  const invoiceTokenData = getTokenInfo(chainId, localToken, tokenData);
-  console.log(invoiceTokenData);
+  const invoiceTokenData = localToken
+    ? getTokenInfo(chainId, localToken, tokenData)
+    : undefined;
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   const onSubmit = (values: any) => {
-    setEscrowValues(values);
+    setValue('milestones', values?.milestones);
+    setValue('token', values?.token);
     // navigate form
     updateStep();
   };
@@ -99,19 +97,18 @@ export function PaymentsForm({
   });
 
   useEffect(() => {
-    if (milestones) localSetValue('milestones', milestones);
     localSetValue('token', token || _.first(TOKENS));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [TOKENS]);
 
   const total = _.sumBy(
     localMilestones,
-    (milestone: any) => _.toNumber(milestone.value) || 0,
+    (milestone: { value: string }) => _.toNumber(milestone.value) || 0,
   );
 
   return (
-    <Box as="form" onSubmit={handleSubmit(onSubmit)} p={6}>
+    <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
       <Flex w="100%">
         <FormControl isRequired>
           <Select
@@ -129,68 +126,73 @@ export function PaymentsForm({
           </Select>
         </FormControl>
       </Flex>
-      <Stack w="100%">
-        <HStack>
-          <Heading size="sm">Milestone Amounts</Heading>
-          <Tooltip
-            label="Amounts of each milestone for the escrow. Additional milestones can be added later."
-            placement="right"
-            hasArrow
-            shouldWrapChildren
-          >
-            <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
-          </Tooltip>
-        </HStack>
-        {_.map(milestonesFields, (field, index) => {
-          const handleRemoveMilestone = () => {
-            removeMilestone(index);
-          };
+      <FormControl isInvalid={!!errors?.milestones}>
+        <Stack w="100%">
+          <HStack>
+            <Heading size="sm">Milestone Amounts</Heading>
+            <Tooltip
+              label="Amounts of each milestone for the escrow. Additional milestones can be added later."
+              placement="right"
+              hasArrow
+              shouldWrapChildren
+            >
+              <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
+            </Tooltip>
+          </HStack>
+          {_.map(milestonesFields, (field, index) => {
+            const handleRemoveMilestone = () => {
+              removeMilestone(index);
+            };
 
-          return (
-            <HStack key={field.id} spacing={4}>
-              <HStack spacing={1} flexGrow={1}>
-                <NumberInput
-                  name={`milestones.${index}.value`}
-                  step={50}
-                  min={0}
-                  max={1_000_000}
-                  placeholder="500"
+            return (
+              <HStack key={field.id} spacing={4}>
+                <HStack spacing={1} flexGrow={1}>
+                  <NumberInput
+                    name={`milestones.${index}.value`}
+                    step={50}
+                    min={0}
+                    max={1_000_000}
+                    placeholder="500"
+                    variant="outline"
+                    localForm={localForm}
+                  />
+                </HStack>
+                <IconButton
+                  icon={<Icon as={DeleteIcon} />}
+                  aria-label="remove milestone"
                   variant="outline"
-                  localForm={localForm}
+                  onClick={handleRemoveMilestone}
                 />
               </HStack>
-              <IconButton
-                icon={<Icon as={DeleteIcon} />}
-                aria-label="remove milestone"
-                variant="outline"
-                onClick={handleRemoveMilestone}
-              />
-            </HStack>
-          );
-        })}
-        <Flex justify="space-between" align="flex-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              appendMilestone({ value: '1000' });
-            }}
-            // rightIcon={<Icon as={FaPlusCircle} />}
-          >
-            Add
-          </Button>
-          {total && (
+            );
+          })}
+          <Flex>
+            <FormErrorMessage mb={4}>
+              {errors?.milestones?.message}
+            </FormErrorMessage>
+          </Flex>
+
+          <Flex justify="space-between" align="flex-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                appendMilestone({ value: '1' });
+              }}
+              rightIcon={<Icon as={AddIcon} boxSize={3} />}
+            >
+              Add
+            </Button>
             <Text>
-              Total: {commify(total)} {invoiceTokenData?.symbol}
+              Total: {commify(total || 0)} {invoiceTokenData?.symbol}
             </Text>
-          )}
-        </Flex>
-      </Stack>
+          </Flex>
+        </Stack>
+      </FormControl>
 
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
           type="submit"
-          // isLoading={loading}
-          // isDisabled={!nextStepEnabled}
+          isDisabled={!isValid}
           textTransform="uppercase"
           size={buttonSize}
           fontFamily="mono"
@@ -199,6 +201,6 @@ export function PaymentsForm({
           Next: {ESCROW_STEPS[2].next}
         </Button>
       </Grid>
-    </Box>
+    </Stack>
   );
 }

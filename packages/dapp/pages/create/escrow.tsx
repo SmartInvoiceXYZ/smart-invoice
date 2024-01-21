@@ -115,21 +115,21 @@ export function CreateInvoiceEscrow() {
               stepsDetails={ESCROW_STEPS}
               goBack={goBackHandler}
             />
-            {false && currentStep === 1 && (
+            {currentStep === 1 && (
               <ProjectDetailsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}
               />
             )}
 
-            {false && currentStep === 2 && (
+            {currentStep === 2 && (
               <EscrowDetailsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}
               />
             )}
 
-            {true && ( // currentStep === 3 && (
+            {currentStep === 3 && (
               <PaymentsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}

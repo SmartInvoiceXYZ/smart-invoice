@@ -1,19 +1,17 @@
 import {
   Box,
   Button,
-  Checkbox,
-  // Checkbox,
   // DatePicker,
   Flex,
   Grid,
   Link,
   Stack,
+  Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS, SUPPORTED_NETWORKS } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
-import { Input, Select } from '@smart-invoice/ui';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
+import { Checkbox, Input, Select } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolvers,
@@ -23,7 +21,7 @@ import {
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import { Hex } from 'viem';
+import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
@@ -32,18 +30,6 @@ export const sevenDaysFromNow = () => {
   localDate.setDate(localDate.getDate() + 7);
   return localDate;
 };
-
-const schema = Yup.object().shape({
-  client: Yup.string().required('Client address is required'),
-  // TODO handle nested when for provider !== client
-  provider: Yup.string().required(),
-  resolver: Yup.string().required(),
-  customResolver: Yup.string(),
-  // customResolver: Yup.string().when('resolver', {
-  //   is: (resolver: string) => resolver === 'custom',
-  //   then: Yup.string().required('Custom resolver address is required'),
-  // }),
-});
 
 export function EscrowDetailsForm({
   escrowForm,
@@ -54,14 +40,44 @@ export function EscrowDetailsForm({
 }) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
-  const { provider, client, resolver, customResolver } = watch();
+  const { provider, client, resolver, customResolver, resolverTerms } = watch();
+
+  const schema = useMemo(
+    () =>
+      Yup.object().shape({
+        client: Yup.string().required('Client address is required'),
+        // TODO handle nested when for provider !== client
+        provider: Yup.string().required(),
+        resolver: Yup.string().required(),
+        customResolver: Yup.string().when('resolver', (r, localSchema) => {
+          console.log(r, localSchema);
+          if (_.first(r) !== 'custom') return localSchema;
+          return localSchema
+            .required('Custom resolver address is required')
+            .test((value: string) => isAddress(value));
+        }),
+        resolverTerms: Yup.boolean().when('resolver', (r, localSchema) => {
+          if (!isKnownResolver(_.first(r), chainId)) return localSchema;
+          return localSchema.oneOf([true], 'Field must be checked');
+        }),
+      }),
+    [chainId],
+  );
+
   const localForm = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      client,
+      provider,
+      customResolver,
+      resolverTerms,
+    },
   });
   const {
     handleSubmit,
     setValue: localSetValue,
     watch: localWatch,
+    formState: { isValid },
   } = localForm;
 
   // values: Partial<Invoice>
@@ -70,6 +86,7 @@ export function EscrowDetailsForm({
     setValue('provider', values?.provider);
     setValue('resolver', values?.resolver);
     setValue('customResolver', values?.customResolver);
+    setValue('resolverTerms', values?.resolverTerms);
 
     updateStep();
   };
@@ -80,11 +97,8 @@ export function EscrowDetailsForm({
   const localResolver = localWatch('resolver');
 
   useEffect(() => {
-    // set initial local values
-    localSetValue('client', client || '');
-    if (provider) localSetValue('provider', provider);
+    // set initial local values for select
     localSetValue('resolver', resolver || _.first(RESOLVERS));
-    if (customResolver) localSetValue('customResolver', customResolver);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId]);
@@ -105,17 +119,6 @@ export function EscrowDetailsForm({
         </Stack>
 
         <Flex>
-          <Box w="50%">
-            {/* <DatePicker
-              label="Safety Valve Date"
-              name="safetyValveDate"
-              tooltip="The funds can be withdrawn by the client after 00:00:00 GMT on this date"
-              localForm={localForm}
-            /> */}
-          </Box>
-        </Flex>
-
-        <Flex>
           <Input
             label="Service Provider Address"
             tooltip="This is the address of the recipient/provider. It's how you access this invoice & where you'll receive funds released from escrow. It's essential you have control of this address."
@@ -126,7 +129,7 @@ export function EscrowDetailsForm({
           />
         </Flex>
 
-        <Flex>
+        <Stack>
           <Select
             name="resolver"
             label="Arbitration Provider"
@@ -145,33 +148,36 @@ export function EscrowDetailsForm({
               name="customResolver"
               tooltip="This arbitrator will be used in case of dispute."
               label="Arbitration Provider Address"
+              placeholder="0x..."
               localForm={localForm}
             />
           ) : (
             <Checkbox
-              colorScheme="blue"
-              size="lg"
-              fontSize="1rem"
-              color="#323C47"
-              borderColor="lightgrey"
-            >
-              {`I agree to ${getResolverString(localResolver as Hex, chainId)} `}
-
-              <Link
-                href={getResolverInfo(localResolver as Hex, chainId)?.termsUrl}
-                isExternal
-                textDecor="underline"
-              >
-                terms of service
-              </Link>
-            </Checkbox>
+              name="resolverTerms"
+              localForm={localForm}
+              options={[
+                <Text>
+                  {`I agree to ${getResolverString(localResolver as Hex, chainId)}`}
+                  &apos;s{' '}
+                  <Link
+                    href={
+                      getResolverInfo(localResolver as Hex, chainId)?.termsUrl
+                    }
+                    isExternal
+                    textDecor="underline"
+                  >
+                    terms of service
+                  </Link>
+                </Text>,
+              ]}
+            />
           )}
-        </Flex>
+        </Stack>
 
         <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
           <Button
             type="submit"
-            // isDisabled={!nextStepEnabled}
+            isDisabled={!isValid}
             textTransform="uppercase"
             size={buttonSize}
             fontWeight="bold"
