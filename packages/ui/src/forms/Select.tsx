@@ -1,7 +1,8 @@
 import {
   ChakraProps,
-  Flex,
   FormLabel,
+  HStack,
+  Icon,
   Select as ChakraSelect,
   Text,
   Tooltip,
@@ -46,22 +47,20 @@ export function Select({
         render={({ field: { onChange, value } }) => (
           <>
             <VStack w="100%" align="left" spacing={0}>
-              <Flex w="100%">
-                <FormLabel fontWeight="700">{label}</FormLabel>
+              <HStack align="center" spacing={4}>
+                <FormLabel fontWeight="700" m={0}>
+                  {label}
+                </FormLabel>
 
-                <Flex>
-                  {infoText && (
-                    <Text ml=".25rem" fontSize="xs">
-                      {infoText}
-                    </Text>
-                  )}
+                <HStack>
+                  {infoText && <Text fontSize="xs">{infoText}</Text>}
                   {tooltip && (
-                    <Tooltip label={tooltip} placement="auto-start">
-                      <QuestionIcon ml=".25rem" boxSize="0.75rem" />
+                    <Tooltip label={tooltip} placement="right" hasArrow>
+                      <Icon as={QuestionIcon} boxSize="0.75rem" />
                     </Tooltip>
                   )}
-                </Flex>
-              </Flex>
+                </HStack>
+              </HStack>
               <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
                 {required}
               </Text>

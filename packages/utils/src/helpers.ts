@@ -13,7 +13,7 @@ import {
 } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
 import _ from 'lodash';
-import { Address, zeroAddress } from 'viem';
+import { Address, Hex, zeroAddress } from 'viem';
 
 import { chainsMap } from '.';
 
@@ -48,9 +48,9 @@ export const getResolvers = (chainId?: number) =>
     : resolvers(DEFAULT_CHAIN_ID);
 
 export const getResolverInfo = (resolver: Address, chainId?: number) =>
-  (chainId && isOfTypeChainId(chainId)
-    ? resolverInfo(chainId)
-    : resolverInfo(DEFAULT_CHAIN_ID))[resolver];
+  chainId && isOfTypeChainId(chainId)
+    ? resolverInfo(chainId)[_.toLower(resolver) as Hex]
+    : resolverInfo(DEFAULT_CHAIN_ID)[_.toLower(resolver) as Hex];
 
 export const getTokens = (
   allTokens: Record<ChainId, string[]>,
@@ -80,7 +80,7 @@ export const getTokenInfo = (
   }
   const tokenDataByChain =
     tokenData[chainId as ChainId] || tokenData[DEFAULT_CHAIN_ID];
-  if (!tokenDataByChain[token]) {
+  if (!tokenDataByChain?.[token]) {
     return {
       address: zeroAddress,
       decimals: 18,
@@ -128,9 +128,9 @@ export const getIpfsLink = (hash: string) =>
 export const getAccountString = (account?: string) => {
   if (!account) return undefined;
   const len = account.length;
-  return `0x${account.substr(2, 3).toUpperCase()}...${account
-    .substr(len - 3, len - 1)
-    .toUpperCase()}`;
+  return `0x${_.toUpper(account.slice(2, 3))}...${_.toUpper(
+    account.slice(len - 3, len - 1),
+  )}`;
 };
 
 export const isKnownResolver = (resolver: Address, chainId?: number) =>

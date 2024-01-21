@@ -48,11 +48,9 @@ const schema = Yup.object().shape({
 export function EscrowDetailsForm({
   escrowForm,
   updateStep,
-  backStep,
 }: {
   escrowForm: UseFormReturn;
   updateStep: (i?: number) => void;
-  backStep: () => void;
 }) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
@@ -72,6 +70,8 @@ export function EscrowDetailsForm({
     setValue('provider', values?.provider);
     setValue('resolver', values?.resolver);
     setValue('customResolver', values?.customResolver);
+
+    updateStep();
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
@@ -83,13 +83,13 @@ export function EscrowDetailsForm({
     // set initial local values
     localSetValue('client', client || '');
     if (provider) localSetValue('provider', provider);
-    if (resolver) localSetValue('resolver', resolver);
+    localSetValue('resolver', resolver || _.first(RESOLVERS));
     if (customResolver) localSetValue('customResolver', customResolver);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId]);
 
-  console.log(resolver);
+  console.log(localResolver, !isKnownResolver(localResolver as Hex, chainId));
 
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -132,9 +132,9 @@ export function EscrowDetailsForm({
             label="Arbitration Provider"
             localForm={localForm}
           >
-            {RESOLVERS.map((res: any) => (
+            {RESOLVERS.map((res: string) => (
               <option key={res} value={res}>
-                {getResolverInfo(res, chainId).name}
+                {getResolverInfo(res as Hex, chainId).name}
               </option>
             ))}
             <option value="custom">Custom</option>
@@ -155,10 +155,10 @@ export function EscrowDetailsForm({
               color="#323C47"
               borderColor="lightgrey"
             >
-              {`I agree to ${getResolverString(resolver, chainId)} `}
+              {`I agree to ${getResolverString(localResolver as Hex, chainId)} `}
 
               <Link
-                href={getResolverInfo(resolver, chainId).termsUrl}
+                href={getResolverInfo(localResolver as Hex, chainId)?.termsUrl}
                 isExternal
                 textDecor="underline"
               >
@@ -171,11 +171,9 @@ export function EscrowDetailsForm({
         <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
           <Button
             type="submit"
-            // isLoading={loading}
             // isDisabled={!nextStepEnabled}
             textTransform="uppercase"
             size={buttonSize}
-            fontFamily="mono"
             fontWeight="bold"
           >
             Next: {ESCROW_STEPS[2].next}

@@ -19,7 +19,7 @@ import {
   NetworkChangeAlertModal,
   StepInfo,
 } from '@smart-invoice/ui';
-import _ from 'lodash';
+// import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useChainId } from 'wagmi';
@@ -115,30 +115,28 @@ export function CreateInvoiceEscrow() {
               stepsDetails={ESCROW_STEPS}
               goBack={goBackHandler}
             />
-            {currentStep === 1 && (
+            {false && currentStep === 1 && (
               <ProjectDetailsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}
               />
             )}
 
-            {currentStep === 2 && (
+            {false && currentStep === 2 && (
               <EscrowDetailsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}
-                backStep={goBackHandler}
               />
             )}
 
-            {currentStep === 3 && (
+            {true && ( // currentStep === 3 && (
               <PaymentsForm
                 escrowForm={escrowForm}
                 updateStep={nextStepHandler}
-                backStep={goBackHandler}
               />
             )}
 
-            {currentStep === 3 && <FormConfirmation escrowForm={escrowForm} />}
+            {currentStep === 4 && <FormConfirmation escrowForm={escrowForm} />}
           </Flex>
         </VStack>
       </Stack>

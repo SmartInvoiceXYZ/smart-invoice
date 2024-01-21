@@ -15,15 +15,15 @@ export function ConnectWeb3() {
   const { openConnectModal } = useConnectModal();
   const { address, isConnecting } = useAccount();
 
-  if (isConnecting) {
+  const isClient = useIsClient();
+
+  if (!isClient || isConnecting) {
     return (
       <Container>
         <Loader size="80" />
       </Container>
     );
   }
-
-  const isClient = useIsClient();
 
   return (
     <Container>

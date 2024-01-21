@@ -1,18 +1,11 @@
 /* eslint-disable no-restricted-syntax */
-
 import { ChainId } from '@smart-invoice/constants';
-import { TokenData } from '@smart-invoice/types';
+import { TokenData, TokenDataInput } from '@smart-invoice/types';
 import _ from 'lodash';
 import { Address, getAddress, Hex } from 'viem';
 
 interface TokenList {
-  [chainId: number]: {
-    [tokenContract: string]: {
-      decimals: number;
-      symbol: string;
-      image: string;
-    };
-  };
+  [chainId: number]: TokenDataInput[];
 }
 
 export const formatTokenData = (rawList: TokenList) => {
@@ -21,12 +14,13 @@ export const formatTokenData = (rawList: TokenList) => {
   _.forEach(_.keys(rawList), (chainId: string) => {
     const chainTokenList = rawList[_.toNumber(chainId)];
 
-    _.forEach(_.keys(chainTokenList), tokenContract => {
-      const address = _.toLower(tokenContract);
-      const { decimals, symbol, image } = chainTokenList[tokenContract];
+    tokenObject[Number(chainId)] = {} as Record<string, TokenData>;
+
+    _.forEach(chainTokenList, (token: TokenDataInput) => {
+      const { tokenContract, decimals, symbol, image } = token;
       // update new object
-      tokenObject[Number(chainId)][address] = {
-        address,
+      tokenObject[Number(chainId)][tokenContract] = {
+        address: tokenContract,
         decimals,
         symbol,
         image,
@@ -44,11 +38,11 @@ export const formatTokens = (
 
   _.each(_.keys(object), chainId => {
     const chainTokenList = object[_.toNumber(chainId)];
-    const tokenArray = [] as Address[];
-    _.each(_.keys(chainTokenList), tokenAddress => {
-      tokenArray.push(getAddress(tokenAddress));
-    });
-    tokenObject[Number(chainId)] = tokenArray;
+
+    const tokenArray: Hex[] = _.map(_.keys(chainTokenList), tokenAddress =>
+      getAddress(tokenAddress),
+    );
+    tokenObject[Number(chainId)] = _.compact(tokenArray);
   });
 
   return tokenObject;

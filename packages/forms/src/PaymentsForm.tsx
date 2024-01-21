@@ -1,3 +1,4 @@
+import { DeleteIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
@@ -6,6 +7,7 @@ import {
   Grid,
   Heading,
   HStack,
+  Icon,
   IconButton,
   Stack,
   Text,
@@ -16,12 +18,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { useFetchTokens } from '@smart-invoice/hooks';
-import { NumberInput, Select } from '@smart-invoice/ui';
+import { NumberInput, QuestionIcon, Select } from '@smart-invoice/ui';
 import { commify, getTokenInfo, getTokens } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
-import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
@@ -41,11 +42,9 @@ const validationSchema = Yup.object().shape({
 export function PaymentsForm({
   escrowForm,
   updateStep,
-  backStep,
 }: {
   escrowForm: UseFormReturn;
   updateStep: () => void;
-  backStep: (i?: number) => void;
 }) {
   const chainId = useChainId();
   const { watch, setValue } = escrowForm;
@@ -67,6 +66,7 @@ export function PaymentsForm({
 
   const { data } = useFetchTokens();
   const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
+  console.log('tokenData', tokenData, 'allTokens', allTokens);
 
   const setEscrowValues = (values: Partial<Invoice>) => {
     // set values in escrow form
@@ -78,6 +78,8 @@ export function PaymentsForm({
     () => allTokens && getTokens(allTokens, chainId),
     [chainId, allTokens],
   );
+  const invoiceTokenData = getTokenInfo(chainId, localToken, tokenData);
+  console.log(invoiceTokenData);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -136,14 +138,7 @@ export function PaymentsForm({
             hasArrow
             shouldWrapChildren
           >
-            <p>Test</p>
-            {/* <Icon
-              as={FaInfoCircle}
-              boxSize={3}
-              color="purple.500"
-              bg="white"
-              borderRadius="full"
-            /> */}
+            <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
           </Tooltip>
         </HStack>
         {_.map(milestonesFields, (field, index) => {
@@ -165,7 +160,7 @@ export function PaymentsForm({
                 />
               </HStack>
               <IconButton
-                // icon={<Icon as={FaRegTrashAlt} />}
+                icon={<Icon as={DeleteIcon} />}
                 aria-label="remove milestone"
                 variant="outline"
                 onClick={handleRemoveMilestone}
@@ -185,7 +180,7 @@ export function PaymentsForm({
           </Button>
           {total && (
             <Text>
-              Total: {commify(total)} {localToken}
+              Total: {commify(total)} {invoiceTokenData?.symbol}
             </Text>
           )}
         </Flex>

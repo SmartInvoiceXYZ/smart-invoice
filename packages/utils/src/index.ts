@@ -8,5 +8,6 @@ export * from './helpers';
 export * from './invoice';
 export * from './ipfs';
 export * from './metadataSchema';
+export * from './tokens';
 export * from './unixToDateTime';
 export * from './web3';
