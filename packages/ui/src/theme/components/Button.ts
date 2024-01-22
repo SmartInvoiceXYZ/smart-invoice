@@ -13,6 +13,12 @@ export const Button = {
       backgroundColor: 'blue.1',
       fontFamily: 'mono',
     },
+    ghost: {
+      bg: 'blackAlpha.100',
+      _hover: {
+        bg: 'blackAlpha.300',
+      },
+    },
     max: {
       color: 'blue.1',
       borderColor: 'blue.1',

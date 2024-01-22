@@ -1,60 +1,53 @@
 import { Button, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
+import { useInvoiceVerify } from '@smart-invoice/hooks';
 import { logError } from '@smart-invoice/utils';
 import React, { useEffect, useState } from 'react';
 import { Hash, isAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { useChainId, useWalletClient } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
+
+import { useToast } from '../hooks';
 
 type VerifyInvoiceProps = {
   invoice: Invoice;
-  verified: {
-    id: string;
-    client: string;
-  }[];
-  client: string;
-  isClient: boolean;
   verifiedStatus: boolean;
-  // eslint-disable-next-line no-unused-vars
-  setVerifiedStatus: (value: boolean) => void;
+  isClient: boolean;
 };
 
 export function VerifyInvoice({
   invoice,
-  verified,
-  client,
-  isClient,
   verifiedStatus,
-  setVerifiedStatus,
+  isClient,
 }: VerifyInvoiceProps) {
-  const { data: walletClient } = useWalletClient();
+  const chainId = useChainId();
+  const toast = useToast();
   const { address } = invoice || {};
   const [txHash, setTxHash] = useState<Hash>();
 
-  const validAddress = address && isAddress(address) && address;
+  const validAddress = address && isAddress(address) ? address : undefined;
 
-  useEffect(() => {
-    const status = invoice?.verified[0];
-    if (status && status.client === client) {
-      setVerifiedStatus(true);
-    }
-  }, [verified, client, setVerifiedStatus, invoice?.verified]);
+  const { writeAsync } = useInvoiceVerify({
+    address: validAddress,
+    chainId,
+    toast,
+  });
 
-  const verifyInvoice = async () => {
-    try {
-      if (!walletClient || !validAddress) {
-        logError('verifyInvoice: walletClient is null');
-        return;
-      }
-      const hash = '0x'; // await verify(walletClient, validAddress);
-      setTxHash(hash);
-      const chainId = walletClient.chain.id;
-      const txReceipt = await waitForTransaction({ chainId, hash });
-      if (txReceipt.status === 'success') setVerifiedStatus(true);
-    } catch (verifyError) {
-      logError({ verifyError });
-    }
-  };
+  // const verifyInvoice = async () => {
+  //   try {
+  //     if (!walletClient || !validAddress) {
+  //       logError('verifyInvoice: walletClient is null');
+  //       return;
+  //     }
+  //     const hash = '0x'; // await verify(walletClient, validAddress);
+  //     setTxHash(hash);
+  //     const chainId = walletClient.chain.id;
+  //     const txReceipt = await waitForTransaction({ chainId, hash });
+  //     if (txReceipt.status === 'success') setVerifiedStatus(true);
+  //   } catch (verifyError) {
+  //     logError({ verifyError });
+  //   }
+  // };
 
   if (verifiedStatus || !isClient) return null;
 
@@ -80,7 +73,7 @@ export function VerifyInvoice({
           fontWeight="normal"
           fontFamily="mono"
           textTransform="uppercase"
-          onClick={() => verifyInvoice()}
+          onClick={() => writeAsync?.()}
         >
           <Text>Enable Non-Client Account Deposits</Text>
         </Button>

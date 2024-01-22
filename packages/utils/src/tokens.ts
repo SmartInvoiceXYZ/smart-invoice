@@ -51,7 +51,7 @@ export const formatTokens = (
 type ChainTokenList = { [address: Hex]: TokenData };
 
 export const getTokenSymbol = (
-  token: string,
   chainId: number,
-  tokenData: { [key: number]: ChainTokenList },
-) => tokenData[_.toNumber(chainId)][token as Hex]?.symbol;
+  token: string | undefined,
+  tokenData: { [key: number]: ChainTokenList } | undefined,
+) => tokenData?.[_.toNumber(chainId)][token as Hex]?.symbol;

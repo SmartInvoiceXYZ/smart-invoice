@@ -40,7 +40,7 @@ export function LockFunds({
   balance,
 }: {
   invoice: Invoice;
-  balance: bigint;
+  balance: bigint | undefined;
 }) {
   const chainId = useChainId();
   const { resolver, token, resolutionRate } = _.pick(invoice, [
@@ -52,17 +52,19 @@ export function LockFunds({
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
-  const fee = formatUnits(
-    !resolutionRate || resolutionRate === BigInt(0)
-      ? BigInt(0)
-      : BigInt(balance) / BigInt(resolutionRate),
-    18,
-  );
+  const fee =
+    balance &&
+    formatUnits(
+      !resolutionRate || resolutionRate === BigInt(0)
+        ? BigInt(0)
+        : balance / BigInt(resolutionRate),
+      18,
+    );
   const feeDisplay =
     token && `${fee} ${parseTokenAddress(chainId, token as Hex)}`;
 
   const disputeReason = watch('disputeReason');
-  const amount = formatUnits(BigInt(balance), 18);
+  const amount = balance ? formatUnits(balance, 18) : undefined;
 
   // const onSuccess = () => {
   //   // handle tx success
@@ -140,11 +142,11 @@ export function LockFunds({
       >
         Lock Funds
       </Heading>
-      <Text textAlign="center" fontSize="sm" mb="1rem" fontFamily="texturina">
+      <Text textAlign="center" fontSize="sm" mb="1rem">
         Locking freezes all remaining funds in the contract and initiates a
         dispute.
       </Text>
-      <Text textAlign="center" fontSize="sm" mb="1rem" fontFamily="texturina">
+      <Text textAlign="center" fontSize="sm" mb="1rem">
         {'Once a dispute has been initiated, '}
         {/* <AccountLink
           name={resolverDisplayName}
@@ -163,7 +165,7 @@ export function LockFunds({
         placeholder="Dispute Reason"
         localForm={localForm}
       /> */}
-      <Text color="white" textAlign="center" fontFamily="texturina">
+      <Text color="white" textAlign="center">
         {`Upon resolution, a fee of ${feeDisplay} will be deducted from the locked fund amount and sent to `}
         {/* <AccountLink
           name={resolverDisplayName}
@@ -172,16 +174,19 @@ export function LockFunds({
         /> */}
         {' for helping resolve this dispute.'}
       </Text>
-      <Button
-        type="submit"
-        isDisabled={!disputeReason || !lockFunds}
-        textTransform="uppercase"
-        variant="solid"
-      >
-        {`Lock ${formatUnits(BigInt(balance), 18)} ${
-          token ? parseTokenAddress(chainId, token as Hex) : ''
-        }`}
-      </Button>
+      {!!balance && (
+        <Button
+          type="submit"
+          isDisabled={!disputeReason || !lockFunds}
+          textTransform="uppercase"
+          variant="solid"
+        >
+          {`Lock ${formatUnits(BigInt(balance), 18)} ${
+            token ? parseTokenAddress(chainId, token as Hex) : ''
+          }`}
+        </Button>
+      )}
+
       {/* {isKnownResolver(chainId, resolver) && (
         <Link
           href={getResolverInfo(chainId, resolver).termsUrl}

@@ -16,8 +16,8 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
 import { useFetchTokens } from '@smart-invoice/hooks';
+import { FormInvoice } from '@smart-invoice/types';
 import { NumberInput, QuestionIcon, Select } from '@smart-invoice/ui';
 import { commify, getTokenInfo, getTokens } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -65,7 +65,6 @@ export function PaymentsForm({
     formState: { errors, isValid },
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
-  console.log(errors, isValid);
 
   const { data } = useFetchTokens();
   const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
@@ -80,7 +79,7 @@ export function PaymentsForm({
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
-  const onSubmit = (values: any) => {
+  const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('milestones', values?.milestones);
     setValue('token', values?.token);
     // navigate form
@@ -198,7 +197,7 @@ export function PaymentsForm({
           fontFamily="mono"
           fontWeight="bold"
         >
-          Next: {ESCROW_STEPS[2].next}
+          Next: {ESCROW_STEPS[3].next}
         </Button>
       </Grid>
     </Stack>

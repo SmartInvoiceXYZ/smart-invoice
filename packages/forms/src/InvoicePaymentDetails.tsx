@@ -9,7 +9,6 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
-import { AccountLink } from '@smart-invoice/ui';
 import {
   commify,
   getTxLink,
@@ -85,61 +84,62 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
   // ~ !isLocked && amount ? balance >= amount && balance > 0 : false;
 
   return (
-    <Card variant="filled" p={1} direction="column" width="100%">
+    <Card p={1} direction="column" width="100%">
       <Stack width="100%">
-        <HStack
-          width="100%"
-          mt=".5rem"
-          mb="1rem"
-          justifyContent="space-between"
-        >
-          <Text variant="textOne">Total Project Amount</Text>
-          {!!total && (
-            <Text variant="textOne">
-              {commify(formatUnits(total, 18))}{' '}
-              {/* {parseTokenAddress(chainId, token)} */}
-            </Text>
-          )}
-        </HStack>
-        <VStack align="stretch" spacing="0.25rem">
-          {amounts?.map((amt, index) => (
-            // let tot = BigInt(0);
-            // let ind = -1;
-            // let full = false;
-            // if (deposits.length > 0) {
-            //   for (let i = 0; i < deposits.length; i += 1) {
-            //     tot += deposits[i].amount;
-            //     console.log(tot);
-            //     if (tot > sum) {
-            //       ind = i;
-            //       console.log(tot, sum, amt, full);
-            //       if (tot - sum >= BigInt(amt)) {
-            //         full = true;
-            //         break;
-            //       }
-            //     }
-            //   }
-            // }
-            // sum += BigInt(amt);
+        <Stack w="100%" p={6}>
+          <HStack
+            width="100%"
+            mt=".5rem"
+            mb="1rem"
+            justifyContent="space-between"
+          >
+            <Text variant="textOne">Total Project Amount</Text>
+            {!!total && (
+              <Text variant="textOne">
+                {commify(formatUnits(total, 18))}{' '}
+                {/* {parseTokenAddress(chainId, token)} */}
+              </Text>
+            )}
+          </HStack>
+          <VStack align="stretch" spacing="0.25rem">
+            {amounts?.map((amt, index) => (
+              // let tot = BigInt(0);
+              // let ind = -1;
+              // let full = false;
+              // if (deposits.length > 0) {
+              //   for (let i = 0; i < deposits.length; i += 1) {
+              //     tot += deposits[i].amount;
+              //     console.log(tot);
+              //     if (tot > sum) {
+              //       ind = i;
+              //       console.log(tot, sum, amt, full);
+              //       if (tot - sum >= BigInt(amt)) {
+              //         full = true;
+              //         break;
+              //       }
+              //     }
+              //   }
+              // }
+              // sum += BigInt(amt);
 
-            // const totalPayments = _.sum(amounts);
-            // const paidPayments = _.difference(
-            //   amounts,
-            //   _.map(deposits, 'amount')
-            // );
-            // const totalDeposits = _.sumBy(deposits, 'amount');
-            // console.log(totalPayments, paidPayments, totalDeposits);
+              // const totalPayments = _.sum(amounts);
+              // const paidPayments = _.difference(
+              //   amounts,
+              //   _.map(deposits, 'amount')
+              // );
+              // const totalDeposits = _.sumBy(deposits, 'amount');
+              // console.log(totalPayments, paidPayments, totalDeposits);
 
-            <Flex
-              // eslint-disable-next-line react/no-array-index-key
-              key={index.toString()}
-              justify="space-between"
-              align="stretch"
-              direction="row"
-            >
-              <Stack spacing="2px">
-                <Text variant="textOne">Milestone #{index + 1}</Text>
-                {/* {index < currentMilestone && releases.length > index && (
+              <Flex
+                // eslint-disable-next-line react/no-array-index-key
+                key={index.toString()}
+                justify="space-between"
+                align="stretch"
+                direction="row"
+              >
+                <Stack spacing="2px">
+                  <Text variant="textOne">Milestone #{index + 1}</Text>
+                  {/* {index < currentMilestone && releases.length > index && (
                   <Link
                     fontSize="xs"
                     isExternal
@@ -153,10 +153,10 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                     ).toLocaleDateString()}
                   </Link>
                 )} */}
-              </Stack>
+                </Stack>
 
-              <HStack align="center" justify="flex-end">
-                {/* {!(index < currentMilestone && releases.length > index) &&
+                <HStack align="center" justify="flex-end">
+                  {/* {!(index < currentMilestone && releases.length > index) &&
                     ind !== -1 && (
                       <Link
                         fontSize='xs'
@@ -171,7 +171,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                         ).toLocaleDateString()}
                       </Link>
                     )} */}
-                {/* <Text
+                  {/* <Text
                   variant="textOne"
                   textAlign="right"
                   fontWeight="500"
@@ -179,10 +179,11 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                   chainId,
                   invoice.token,
                 )}`}</Text> */}
-              </HStack>
-            </Flex>
-          ))}
-        </VStack>
+                </HStack>
+              </Flex>
+            ))}
+          </VStack>
+        </Stack>
         <Divider mt="1rem" />
         {/* TODO use array */}
         {/* <HStack mt="1rem" mb=".2rem" justifyContent="space-between">
@@ -215,7 +216,6 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
             color="white"
             fontWeight="bold"
             fontSize="lg"
-            fontFamily="texturina"
           >
             {isExpired || (due === BigInt(0) && !isReleasable) ? (
               <>
@@ -249,13 +249,12 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               align="center"
               fontWeight="bold"
               fontSize="lg"
-              fontFamily="texturina"
             >
               <Text>Amount Locked</Text>
               <Text textAlign="right">{`${formatUnits(balance, 18)}`}</Text>
               {/* ${parseTokenAddress(chainId, invoice.token)}`}</Text> */}
             </Flex>
-            <Text fontFamily="texturina" color="purpleLight">
+            <Text color="purple">
               {`A dispute is in progress with `}
               {/* <AccountLink address={resolver} chainId={chainId} /> */}
               <br />
@@ -277,7 +276,6 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               align="center"
               fontWeight="bold"
               fontSize="lg"
-              fontFamily="texturina"
             >
               <Text>Amount Dispersed</Text>
               {/* <Text textAlign="right">{`${formatUnits(
@@ -295,7 +293,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               direction={{ base: 'column', sm: 'row' }}
             >
               <Flex flex={1}>
-                <Text fontFamily="texturina" maxW="300px" color="purpleLight">
+                <Text maxW="300px" color="purple">
                   {/* <AccountLink address={resolver} chainId={chainId} /> */}
                   {' has resolved the dispute and dispersed remaining funds'}
                   <br />
@@ -309,11 +307,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                   </Link>
                 </Text>
               </Flex>
-              <VStack
-                spacing="0.5rem"
-                mt={{ base: '1rem', sm: '0' }}
-                fontFamily="texturina"
-              >
+              <VStack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
                 {/* {resolution.resolutionFee && (
                   <Text textAlign="right" color="purpleLight">
                     {`${formatUnits(

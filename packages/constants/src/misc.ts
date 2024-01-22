@@ -18,6 +18,11 @@ export const INVOICE_TYPES = {
   Instant: 'instant',
 };
 
+export const PAYMENT_TYPES = {
+  NATIVE: 'native',
+  TOKEN: 'token',
+};
+
 export const DEFAULT_CHAIN_ID = 5;
 
 // TODO use wagmi Chain objects

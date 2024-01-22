@@ -1,3 +1,4 @@
+import { INVOICE_VERSION } from '@smart-invoice/constants';
 import {
   convertIpfsCidV0ToByte32,
   fetchToken,
@@ -26,6 +27,7 @@ export const useDetailsPin = ({
       projectAgreement, // TODO handle agreement
       startDate,
       endDate,
+      version: INVOICE_VERSION,
     }),
     [projectName, projectDescription, projectAgreement, startDate, endDate],
   );

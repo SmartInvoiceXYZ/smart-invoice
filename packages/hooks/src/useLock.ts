@@ -17,7 +17,7 @@ export const useLock = ({
 }: {
   invoice: Invoice;
   disputeReason: string;
-  amount: string;
+  amount: string | undefined;
 }) => {
   console.log('useLock', invoice);
 

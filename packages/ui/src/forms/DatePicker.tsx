@@ -11,6 +11,7 @@ import {
   Stack,
   Tooltip,
 } from '@chakra-ui/react';
+import { getDateString } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import ReactDatePicker, { ReactDatePickerProps } from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
@@ -24,7 +25,8 @@ export type DatePickerProps = {
   name: string;
   label?: string;
   tip?: string;
-  localForm: Pick<UseFormReturn, 'control' | 'formState' | 'watch'>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  localForm: Pick<UseFormReturn<any>, 'control' | 'formState' | 'watch'>;
   registerOptions?: RegisterOptions;
   tooltip?: string;
   placeholder?: string;
@@ -53,18 +55,24 @@ export function DatePicker({
   // these are the values that seemed relevant. we can adjust and even theme this
   const customDatePickerStyles = {
     '.react-datepicker__header': {
-      backgroundColor: 'gray.800',
-      color: 'gray.100',
+      backgroundColor: 'blackAlpha.200',
+      color: 'black',
     },
     '.react-datepicker__month-container': {
-      backgroundColor: 'gray.800',
-      color: 'gray.100',
+      backgroundColor: 'blackAlpha.200',
+      color: 'black',
     },
     '.react-datepicker__current-month, .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__month, .react-datepicker__month-text':
       {
-        color: 'gray.100',
+        color: 'black',
       },
+    '.react-datepicker__day--selected': {
+      color: 'white',
+    },
   };
+  const dateInput = new Date(watch(name)).getTime();
+  const dateSeconds =
+    _.size(_.toString(dateInput)) > 9 ? dateInput / 1000 : dateInput;
 
   return (
     <Controller
@@ -72,9 +80,9 @@ export function DatePicker({
       control={control}
       rules={registerOptions}
       shouldUnregister={false}
-      render={({ field }) => (
+      render={({ field: { value, ...field } }) => (
         <FormControl isInvalid={!!errors[name]}>
-          <Stack sx={customDatePickerStyles} spacing={spacing}>
+          <Stack sx={customDatePickerStyles} spacing={spacing} h="75px">
             <HStack>
               {label && <FormLabel m={0}>{label}</FormLabel>}
               {tooltip && (
@@ -92,10 +100,10 @@ export function DatePicker({
             <ReactDatePicker
               {...props}
               {...field}
-              selected={watch?.(name)}
+              selected={value}
               customInput={
                 <Button variant={variant}>
-                  {placeholder || placeholderText}
+                  {getDateString(dateSeconds) || placeholder || placeholderText}
                 </Button>
               }
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

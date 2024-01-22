@@ -34,7 +34,7 @@ export const getReleaseAmount = (
   return BigInt(amounts[currentMilestone]);
 };
 
-function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
+export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
   const toast = useToast();
   const chainId = useChainId();
 
@@ -110,7 +110,6 @@ function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
           color="yellow.500"
           fontSize="xl"
           fontWeight="bold"
-          fontFamily="texturina"
           textAlign="center"
         >{`${formatUnits(
           getReleaseAmount(currentMilestone, amounts, balance),

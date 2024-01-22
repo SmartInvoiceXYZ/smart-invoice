@@ -1,4 +1,4 @@
-import { fetchInvoice } from '@smart-invoice/graphql';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Hex } from 'viem';
 
@@ -9,7 +9,7 @@ export const useInvoiceDetails = ({
   address: Hex;
   chainId: number;
 }) => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<Invoice>({
     queryKey: ['invoiceDetails', address, chainId],
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,

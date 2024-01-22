@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  // DatePicker,
   Grid,
   HStack,
   Stack,
@@ -9,26 +8,24 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { Input, Textarea } from '@smart-invoice/ui';
+import { DatePicker, Input, Textarea } from '@smart-invoice/ui';
+import { oneMonthFromNow, sevenDaysFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
-import { useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
-
-// import { sevenDaysFromNow } from './EscrowDetailsForm';
 
 const validationSchema = Yup.object().shape({
   projectName: Yup.string().required('Project Name is required'),
   projectDescription: Yup.string().required('Project Description is required'),
   projectAgreement: Yup.string().url('Agreement must be a valid URL'),
-  // startDate: Yup.date().required('Start Date is required'),
-  // endDate: Yup.date().required('End Date is required'),
-  // safetyValveDate: Yup.date()
-  //   .required('Safety valve date is required')
-  //   .min(
-  //     sevenDaysFromNow(),
-  //     'Safety valve date must be at least a week in the future',
-  //   ),
+  startDate: Yup.date().required('Start Date is required'),
+  endDate: Yup.date().required('End Date is required'),
+  safetyValveDate: Yup.date()
+    .required('Safety valve date is required')
+    .min(
+      sevenDaysFromNow(),
+      'Safety valve date must be at least a week in the future',
+    ),
 });
 
 // interface ProjectDetailsForm extends ProjectDetails {
@@ -49,6 +46,7 @@ export function ProjectDetailsForm({
     projectAgreement,
     startDate,
     endDate,
+    safetyValveDate,
   } = watch();
   const localForm = useForm({
     resolver: yupResolver(validationSchema),
@@ -56,15 +54,15 @@ export function ProjectDetailsForm({
       projectName,
       projectDescription,
       projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+      startDate: startDate || new Date(),
+      endDate: endDate || sevenDaysFromNow(),
+      safetyValveDate: safetyValveDate || oneMonthFromNow(),
     },
   });
   const {
     handleSubmit,
-    setValue: localSetValue,
-    watch: localWatch,
-    formState: { isValid, errors },
+    formState: { isValid },
   } = localForm;
-  console.log(errors);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -84,6 +82,7 @@ export function ProjectDetailsForm({
     setValue('projectAgreement', localProjectAgreement);
     setValue('startDate', values.startDate);
     setValue('endDate', values.endDate);
+    setValue('safetyValveDate', values.safetyValveDate);
 
     // move form
     updateStep();
@@ -115,23 +114,29 @@ export function ProjectDetailsForm({
           localForm={localForm}
         />
         <HStack>
-          <Box w="45%">
-            {/* <DatePicker
-              label='Start Date'
-              name='startDate'
-              tooltip='The date the project is expected to start'
+          <Box w="30%">
+            <DatePicker
+              label="Start Date"
+              name="startDate"
+              tooltip="The date the project is expected to start"
               localForm={localForm}
-              selected={localStartDate}
-            /> */}
+            />
           </Box>
-          <Box w="50%">
-            {/* <DatePicker
-              label='Estimated End Date'
-              name='endDate'
-              tooltip='The date the project is expected to end. This value is not formally used in the escrow.'
+          <Box w="30%">
+            <DatePicker
+              label="Estimated End Date"
+              name="endDate"
+              tooltip="The date the project is expected to end. This value is not formally used in the escrow."
               localForm={localForm}
-              selected={localEndDate}
-            /> */}
+            />
+          </Box>
+          <Box>
+            <DatePicker
+              label="Safety Valve Date"
+              name="safetyValveDate"
+              tooltip="The date the project is expected to end. This value is not formally used in the escrow."
+              localForm={localForm}
+            />
           </Box>
         </HStack>
 

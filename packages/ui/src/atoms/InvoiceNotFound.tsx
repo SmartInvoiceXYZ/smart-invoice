@@ -1,9 +1,11 @@
-import { Button, Flex, Text, VStack } from '@chakra-ui/react';
+import { Button, Flex, Icon, Text, VStack } from '@chakra-ui/react';
 import { chainsMap } from '@smart-invoice/utils';
 import { useRouter } from 'next/router';
 import React from 'react';
+import { useChainId } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
+import { ChakraNextLink } from '.';
 import { Container } from './Container';
 
 export function InvoiceNotFound({
@@ -13,7 +15,9 @@ export function InvoiceNotFound({
   heading?: string;
   chainId?: number;
 }) {
+  const currentChainId = useChainId();
   const router = useRouter();
+
   return (
     <Container>
       <VStack
@@ -36,7 +40,7 @@ export function InvoiceNotFound({
             align="center"
             color="white"
           >
-            <WalletFilledIcon boxSize="1.75rem" />
+            <Icon as={WalletFilledIcon} boxSize="1.75rem" />
           </Flex>
         )}
 
@@ -50,15 +54,16 @@ export function InvoiceNotFound({
           </Text>
         )}
 
-        <Button
-          colorScheme="red"
-          px={12}
-          onClick={() => router.push('/')}
-          fontFamily="mono"
-          fontWeight="normal"
-        >
-          Return Home
-        </Button>
+        <ChakraNextLink href="/">
+          <Button
+            colorScheme="red"
+            px={12}
+            fontFamily="mono"
+            fontWeight="normal"
+          >
+            Return Home
+          </Button>
+        </ChakraNextLink>
       </VStack>
     </Container>
   );

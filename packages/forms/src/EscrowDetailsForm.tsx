@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
+import { FormInvoice } from '@smart-invoice/types';
 import { Checkbox, Input, Select } from '@smart-invoice/ui';
 import {
   getResolverInfo,
@@ -24,12 +25,6 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
-
-export const sevenDaysFromNow = () => {
-  const localDate = new Date();
-  localDate.setDate(localDate.getDate() + 7);
-  return localDate;
-};
 
 export function EscrowDetailsForm({
   escrowForm,
@@ -50,7 +45,6 @@ export function EscrowDetailsForm({
         provider: Yup.string().required(),
         resolver: Yup.string().required(),
         customResolver: Yup.string().when('resolver', (r, localSchema) => {
-          console.log(r, localSchema);
           if (_.first(r) !== 'custom') return localSchema;
           return localSchema
             .required('Custom resolver address is required')
@@ -80,8 +74,7 @@ export function EscrowDetailsForm({
     formState: { isValid },
   } = localForm;
 
-  // values: Partial<Invoice>
-  const onSubmit = (values: any) => {
+  const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);
     setValue('provider', values?.provider);
     setValue('resolver', values?.resolver);
@@ -103,8 +96,6 @@ export function EscrowDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId]);
 
-  console.log(localResolver, !isKnownResolver(localResolver as Hex, chainId));
-
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={4} w="100%">
@@ -115,6 +106,7 @@ export function EscrowDetailsForm({
             placeholder="0x..."
             name="client"
             localForm={localForm}
+            registerOptions={{ required: true }}
           />
         </Stack>
 

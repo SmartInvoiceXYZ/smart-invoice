@@ -11,7 +11,7 @@ import {
   SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { TokenData } from '@smart-invoice/types';
+import { ProjectAgreement, TokenData } from '@smart-invoice/types';
 import _ from 'lodash';
 import { Address, Hex, zeroAddress } from 'viem';
 
@@ -21,7 +21,7 @@ export const unsupportedNetwork = (chainId: number) =>
   !_.includes(SUPPORTED_NETWORKS, chainId);
 
 export const getDateString = (timeInSec: number) => {
-  if (timeInSec !== 0) {
+  if (timeInSec === 0) {
     return 'Not provided';
   }
   const date = new Date(timeInSec ? timeInSec * 1000 : 0);
@@ -94,7 +94,7 @@ export const getWrappedNativeToken = (chainId?: number) =>
   chainId && wrappedNativeToken(chainId);
 
 export const getNativeTokenSymbol = (chainId?: number) =>
-  chainId && chainsMap(chainId).nativeCurrency;
+  chainId ? chainsMap(chainId).nativeCurrency : undefined;
 
 export const getInvoiceFactoryAddress = (chainId: number) =>
   isOfTypeChainId(chainId)
@@ -113,8 +113,10 @@ const getExplorerUrl = (chainId: number) => {
 export const getTxLink = (chainId: number, hash: string) =>
   `${getExplorerUrl(chainId)}/tx/${hash}`;
 
-export const getAddressLink = (chainId: number, hash: string) =>
-  `${getExplorerUrl(chainId)}/address/${hash}`;
+export const getAddressLink = (chainId: number | undefined, hash: string) => {
+  if (!chainId) return '#';
+  return `${getExplorerUrl(chainId)}/address/${hash}`;
+};
 
 // bytes58 QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51
 // is the same as
@@ -188,11 +190,6 @@ export const calculateResolutionFeePercentage = (resolutionRate: string) => {
 };
 
 export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
-
-interface ProjectAgreement {
-  src: string;
-  type: string;
-}
 
 export const getAgreementLink = (projectAgreement: ProjectAgreement[]) => {
   if (_.isEmpty(projectAgreement)) return '';

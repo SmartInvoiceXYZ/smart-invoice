@@ -14,6 +14,12 @@
     "isolatedModules": true,
     "jsx": "preserve",
   },
-  "include": ["**/*.d.ts", "**/*.ts", "**/*.tsx", "../../jest.config.ts"],
+  "include": [
+    "**/*.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../jest.config.ts",
+    "../forms/src/InvoiceButtonManager.tsx",
+  ],
   "exclude": ["node_modules", "dist"],
 }

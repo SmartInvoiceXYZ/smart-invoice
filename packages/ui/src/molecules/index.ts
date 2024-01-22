@@ -5,5 +5,6 @@ export * from './InvoiceBadge';
 export * from './InvoicePDF';
 export * from './InvoicesStyles';
 export * from './InvoiceStatusLabel';
+export * from './Modal';
 export * from './NetworkChangeAlertModal';
 export * from './WhatIsThisModal';

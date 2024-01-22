@@ -24,7 +24,7 @@
   ],
   "rules": {
     // defaults
-    "no-console": "off",
+    "no-console": "warn",
     "no-unused-vars": "off",
     // Prefer non-default exports
     "import/no-default-export": "error",

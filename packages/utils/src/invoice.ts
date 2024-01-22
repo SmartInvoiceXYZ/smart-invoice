@@ -16,6 +16,26 @@ import {
 import { readContract, readEvent, writeContract } from './contracts';
 import { getInvoiceFactoryAddress, logError } from './helpers';
 
+export const sevenDaysFromNow = () => {
+  const localDate = new Date();
+  localDate.setDate(localDate.getDate() + 7);
+  return localDate;
+};
+
+export const oneMonthFromNow = () => {
+  const localDate = new Date();
+  localDate.setDate(localDate.getDate() + 31);
+  return localDate;
+};
+
+export const depositedMilestones = (deposited: bigint, amounts: number[]) => {
+  let sum = BigInt(0);
+  return amounts.map(a => {
+    sum += BigInt(a);
+    return deposited >= sum;
+  });
+};
+
 export const register = async (
   address: Address,
   walletClient: WalletClient,

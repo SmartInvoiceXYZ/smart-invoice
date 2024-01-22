@@ -9,6 +9,12 @@ import React, {
 
 const defaults: IModals = {
   networkChange: false,
+  deposit: false,
+  lock: false,
+  release: false,
+  resolve: false,
+  withdraw: false,
+  addMilestone: false,
 };
 
 export type OverlayContextType = {

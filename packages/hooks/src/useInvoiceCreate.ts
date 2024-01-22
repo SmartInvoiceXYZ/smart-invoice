@@ -6,7 +6,7 @@ import {
 import { getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
-import { encodeAbiParameters, Hex, parseUnits } from 'viem';
+import { encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 
 import { useFetchTokens } from '.';
@@ -18,12 +18,13 @@ interface UseInvoiceCreate {
   projectAgreement: any[];
   client: Hex;
   provider: Hex;
-  startDate: any;
-  endDate: any;
-  safetyValveDate: any;
+  startDate: number;
+  endDate: number;
+  safetyValveDate: bigint;
   resolver: Hex;
   milestones: { value: number }[];
   token: Hex;
+  toast: any;
 }
 
 const REQUIRES_VERIFICATION = true;
@@ -40,8 +41,10 @@ export const useInvoiceCreate = ({
   resolver,
   milestones,
   token,
+  toast,
 }: UseInvoiceCreate) => {
   const chainId = useChainId();
+
   const localInvoiceFactory = invoiceFactory(chainId);
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
@@ -64,12 +67,12 @@ export const useInvoiceCreate = ({
       !resolver ||
       !token ||
       !safetyValveDate ||
-      !wrappedNativeToken ||
+      !wrappedNativeToken(chainId) ||
       !details ||
       !localInvoiceFactory ||
       !provider
     ) {
-      return undefined;
+      return '0x';
     }
 
     return encodeAbiParameters(
@@ -89,7 +92,7 @@ export const useInvoiceCreate = ({
         1,
         resolver, // address _resolver (LEX DAO resolver address)
         token, // address _token (payment token address)
-        safetyValveDate, // safety valve date
+        BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
         REQUIRES_VERIFICATION,
@@ -100,6 +103,7 @@ export const useInvoiceCreate = ({
     client,
     resolver,
     token,
+    details,
     safetyValveDate,
     wrappedNativeToken,
     localInvoiceFactory,
@@ -114,9 +118,10 @@ export const useInvoiceCreate = ({
       _.map(milestones, milestone =>
         parseUnits(_.toString(milestone?.value), invoiceToken?.decimals),
       ),
-      resolver,
-      token,
+      escrowData,
+      toHex('escrow', { size: 32 }),
     ],
+    enabled: escrowData !== '0x' && !!client && !_.isEmpty(milestones),
   });
 
   const {
@@ -126,10 +131,24 @@ export const useInvoiceCreate = ({
   } = useContractWrite({
     ...config,
     onSuccess: result => {
+      // TODO handle tx catch, subgraph result, and invalidate cache
       console.log(result);
     },
     onError: error => {
-      console.log(error);
+      if (
+        error.name === 'TransactionExecutionError' &&
+        error.message.includes('User rejected the request')
+      ) {
+        toast.error({
+          title: 'Signature rejected!',
+          description: 'Please accept the transaction in your wallet',
+        });
+      } else {
+        toast.error({
+          title: 'Error occurred!',
+          description: 'An error occurred while processing the transaction.',
+        });
+      }
     },
   });
 

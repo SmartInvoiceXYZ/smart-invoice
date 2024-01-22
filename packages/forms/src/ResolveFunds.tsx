@@ -106,7 +106,7 @@ export function ResolveFunds({
         >
           Resolve Dispute
         </Heading>
-        {/* <Text textAlign='center' fontSize='sm' mb='1rem' fontFamily='texturina'>
+        {/* <Text textAlign='center' fontSize='sm' mb='1rem'>
           {isLocked
             ? `You'll need to distribute the total balance of ${formatUnits(
                 balance,
@@ -143,7 +143,7 @@ export function ResolveFunds({
       >
         Resolve Dispute
       </Heading>
-      {/* <Text textAlign='center' fontSize='sm' mb='1rem' fontFamily='texturina'>
+      {/* <Text textAlign='center' fontSize='sm' mb='1rem'>
         {`You'll need to distribute the total balance of ${formatUnits(
           balance,
           18

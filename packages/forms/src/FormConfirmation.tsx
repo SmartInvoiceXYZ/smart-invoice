@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants/src';
 import { useFetchTokens, useInvoiceCreate } from '@smart-invoice/hooks';
-import { AccountLink } from '@smart-invoice/ui';
+import { AccountLink, useToast } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
@@ -28,6 +28,7 @@ export function FormConfirmation({
   escrowForm: UseFormReturn;
 }) {
   const chainId = useChainId();
+  const toast = useToast();
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
   const { watch } = escrowForm;
@@ -68,6 +69,7 @@ export function FormConfirmation({
     resolver,
     milestones,
     token,
+    toast,
   });
 
   const handleSubmit = async () => {
@@ -162,6 +164,7 @@ export function FormConfirmation({
           </Flex>
         </>
       )}
+
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
           onClick={handleSubmit}
@@ -171,7 +174,7 @@ export function FormConfirmation({
           fontFamily="mono"
           fontWeight="bold"
         >
-          Next: {ESCROW_STEPS[2].next}
+          Next: {ESCROW_STEPS[4].next}
         </Button>
       </Grid>
     </Stack>
