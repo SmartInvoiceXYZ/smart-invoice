@@ -1,4 +1,4 @@
-import { Button, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import { Button, Heading, Link, Text, Stack } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Container, InvoiceNotFound, Loader } from '@smart-invoice/ui';
@@ -47,7 +47,7 @@ function LockedInvoice() {
 
   return (
     <Container overlay>
-      <VStack
+      <Stack
         w="100%"
         spacing="1rem"
         align="center"
@@ -109,7 +109,7 @@ function LockedInvoice() {
         >
           Return Home
         </Button>
-      </VStack>
+      </Stack>
     </Container>
   );
 }

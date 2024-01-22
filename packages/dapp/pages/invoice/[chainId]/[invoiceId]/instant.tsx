@@ -15,7 +15,7 @@ import {
   Tooltip,
   useBreakpointValue,
   useClipboard,
-  VStack,
+  Stack,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
@@ -232,7 +232,7 @@ function ViewInstantInvoice() {
           align="stretch"
           direction="column"
         >
-          <VStack align="stretch" justify="center">
+          <Stack align="stretch" justify="center">
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
@@ -268,9 +268,9 @@ function ViewInstantInvoice() {
             >
               Details of Agreement
             </Link>
-          </VStack>
+          </Stack>
 
-          <VStack fontSize="sm" color="grey" align="stretch" justify="center">
+          <Stack fontSize="sm" color="grey" align="stretch" justify="center">
             {startDate ? (
               <Wrap>
                 <WrapItem>
@@ -352,10 +352,10 @@ function ViewInstantInvoice() {
                 buttonProps={{ textColor: 'blue.dark' }}
               />
             </Wrap>
-          </VStack>
+          </Stack>
         </Stack>
 
-        <VStack
+        <Stack
           spacing={{ base: '2rem', lg: '1.5rem' }}
           w="100%"
           align="stretch"
@@ -451,7 +451,7 @@ function ViewInstantInvoice() {
             </Flex>
           </Flex>
           {isClient && (
-            <VStack>
+            <Stack>
               <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
@@ -491,10 +491,10 @@ function ViewInstantInvoice() {
                   </Button>
                 )}
               </SimpleGrid>
-            </VStack>
+            </Stack>
           )}
           {isProvider && (
-            <VStack>
+            <Stack>
               <SimpleGrid columns={1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
@@ -511,9 +511,9 @@ function ViewInstantInvoice() {
                   {balance === BigInt(0) && fulfilled ? 'Received' : 'Receive'}
                 </Button>
               </SimpleGrid>
-            </VStack>
+            </Stack>
           )}
-        </VStack>
+        </Stack>
 
         <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
           <ModalOverlay>

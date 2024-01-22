@@ -8,7 +8,7 @@ import {
   ModalOverlay,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import React from 'react';
 
@@ -39,7 +39,7 @@ export function WhatIsThisModal({ isOpen, onClose }: WhatIsThisModalProps) {
             right="0"
           />
 
-          <VStack w="100%" spacing="1rem">
+          <Stack w="100%" spacing="1rem">
             <Heading
               fontWeight="normal"
               mb="1rem"
@@ -90,7 +90,7 @@ export function WhatIsThisModal({ isOpen, onClose }: WhatIsThisModalProps) {
             >
               Got it. Thanks
             </Button>
-          </VStack>
+          </Stack>
         </ModalContent>
       </ModalOverlay>
     </Modal>

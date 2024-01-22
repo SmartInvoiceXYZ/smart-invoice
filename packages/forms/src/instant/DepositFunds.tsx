@@ -16,7 +16,7 @@ import {
   Text,
   Tooltip,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
@@ -217,7 +217,7 @@ export function DepositFunds({
   }, [depositError, amount, balance, decimals, totalPayment]);
 
   return (
-    <VStack w="100%" spacing="1rem">
+    <Stack w="100%" spacing="1rem">
       <Heading
         fontWeight="bold"
         mb="1rem"
@@ -243,7 +243,7 @@ export function DepositFunds({
         How much will you be {fulfilled ? 'tipping' : 'depositing'} today?
       </Text>
 
-      <VStack spacing="0.5rem" align="stretch" color="black" mb="1rem">
+      <Stack spacing="0.5rem" align="stretch" color="black" mb="1rem">
         <Flex justify="space-between" w="100%">
           <Text fontWeight="700">Amount</Text>
 
@@ -355,9 +355,9 @@ export function DepositFunds({
             Add a tip
           </Text>
         )}
-      </VStack>
+      </Stack>
       {amount === due && (
-        <VStack>
+        <Stack>
           {openTipPanel && (
             <>
               <Text color="grey">Select a tip amount</Text>
@@ -484,29 +484,29 @@ export function DepositFunds({
               )}
             </>
           )}
-        </VStack>
+        </Stack>
       )}
 
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {deposited ? (
-          <VStack align="flex-start">
+          <Stack align="flex-start">
             <Text fontWeight="bold">Total Paid</Text>
 
             <Text>{`${formatUnits(deposited, decimals)} ${symbol}`}</Text>
-          </VStack>
+          </Stack>
         ) : null}
         {totalPayment ? (
-          <VStack color="black">
+          <Stack color="black">
             <Text fontWeight="bold">Total Payment</Text>
 
             <Heading size="lg">
               {formatUnits(totalPayment, decimals)}{' '}
               {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
             </Heading>
-          </VStack>
+          </Stack>
         ) : null}
         {balance ? (
-          <VStack align="flex-end">
+          <Stack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
 
             <Text>
@@ -514,7 +514,7 @@ export function DepositFunds({
                 paymentType === 0 ? symbol : NATIVE_TOKEN_SYMBOL
               }`}
             </Text>
-          </VStack>
+          </Stack>
         ) : null}
       </Flex>
       {paymentType === 0 && allowance < totalPayment && (
@@ -567,6 +567,6 @@ export function DepositFunds({
           </Link>
         </Text>
       ) : null}
-    </VStack>
+    </Stack>
   );
 }

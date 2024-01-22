@@ -42,6 +42,9 @@ export const chainsList: { [key: number]: Chain } = {
 };
 
 export const chainsMap = (chainId: number) => {
+  if (!chainId) {
+    return null;
+  }
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -49,16 +52,15 @@ export const chainsMap = (chainId: number) => {
   return chain;
 };
 
-export const chainByName = (name: string) => {
-  const chain = _.find(chainsList, { name });
-  if (!chain) {
-    throw new Error(`Chain ${name} not found`);
-  }
+export const chainByName = (name: string | undefined) => {
+  if (!name) return null;
+  const chain = _.find(_.values(chainsList), { network: name });
+  if (!chain) throw new Error(`Chain ${name} not found`);
   return chain;
 };
 
 const { chains, publicClient } = configureChains(
-  _.map(orderedChains, chainId => chainsMap(chainId)),
+  _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
   [
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider(),

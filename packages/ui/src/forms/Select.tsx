@@ -6,7 +6,7 @@ import {
   Select as ChakraSelect,
   Text,
   Tooltip,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 // import { isValidLink, logDebug } from '@smart-invoice/utils';
 import { Controller, UseFormReturn } from 'react-hook-form';
@@ -40,13 +40,13 @@ export function Select({
   const { control } = localForm;
 
   return (
-    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+    <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
       <Controller
         name={name}
         control={control}
         render={({ field: { onChange, value } }) => (
           <>
-            <VStack w="100%" align="left" spacing={0}>
+            <Stack w="100%" align="left" spacing={0}>
               <HStack align="center" spacing={4}>
                 <FormLabel fontWeight="700" m={0}>
                   {label}
@@ -64,7 +64,7 @@ export function Select({
               <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
                 {required}
               </Text>
-            </VStack>
+            </Stack>
 
             <ChakraSelect
               value={value}
@@ -81,6 +81,6 @@ export function Select({
           </>
         )}
       />
-    </VStack>
+    </Stack>
   );
 }

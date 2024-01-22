@@ -5,12 +5,12 @@ import {
   Text,
   // Link,
   useToast,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
 import _ from 'lodash';
-// import { parseTokenAddress } from '@smart-invoice/utils';
+// import { getTokenSymbol } from '@smart-invoice/utils';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
@@ -81,7 +81,7 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
   // };
 
   return (
-    <VStack w="100%" spacing="1rem">
+    <Stack w="100%" spacing="1rem">
       <Heading
         mb="1rem"
         color="white"
@@ -102,7 +102,7 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
         Follow the instructions in your wallet to release funds from escrow to
         the raid party.
       </Text>
-      <VStack my="2rem" px="5rem" py="1rem" bg="black" borderRadius="0.5rem">
+      <Stack my="2rem" px="5rem" py="1rem" bg="black" borderRadius="0.5rem">
         <Text color="primary.200" fontSize="0.875rem" textAlign="center">
           Amount To Be Released
         </Text>
@@ -114,8 +114,8 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
         >{`${formatUnits(
           getReleaseAmount(currentMilestone, amounts, balance),
           18,
-        )} ${parseTokenAddress(chainId, token)}`}</Text> */}
-      </VStack>
+        )} ${getTokenSymbol(chainId, token, tokenData)}`}</Text> */}
+      </Stack>
       {/* {transaction && (
         <Text color='white' textAlign='center' fontSize='sm'>
           Follow your transaction{' '}
@@ -142,6 +142,6 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
           Release
         </Button>
       )}
-    </VStack>
+    </Stack>
   );
 }

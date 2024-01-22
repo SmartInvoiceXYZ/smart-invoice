@@ -595,6 +595,9 @@ importers:
       base-58:
         specifier: ^0.0.1
         version: 0.0.1
+      blockies-ts:
+        specifier: ^1.0.0
+        version: 1.0.0
       firebase:
         specifier: ^10.7.0
         version: 10.7.2
@@ -10941,6 +10944,10 @@ packages:
     resolution: {integrity: sha512-iCmk0W4NdbrWgRRuxOriU8aM5ijeVLI61Zulsmg/lUHNr7pYjoj+U77opLefNagevtrrbMt3JQ5Qip7ar178kA==}
     dependencies:
       browser-readablestream-to-it: 1.0.3
+    dev: false
+
+  /blockies-ts@1.0.0:
+    resolution: {integrity: sha512-mL9NO/FjYbFjaSDA5tw/qkUwEXrBG1bHSoPhAFG9CAzDaHTwQHzvYByAYUBmnqYciFsJvdxWKGtyOLgaSKoUkA==}
     dev: false
 
   /bluebird@3.7.2:

@@ -3,6 +3,7 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  Box,
   Button,
   Checkbox,
   Flex,
@@ -13,7 +14,6 @@ import {
   Stack,
   Text,
   Tooltip,
-  VStack,
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES } from '@smart-invoice/constants/src';
 import {
@@ -36,7 +36,7 @@ import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex, parseUnits } from 'viem';
-import { useAccount, useBalance, useChainId, useToken } from 'wagmi';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 
 const checkedAtIndex = (index: number, checked: boolean[]) =>
   _.map(checked, (_c, i) => i <= index);
@@ -78,12 +78,11 @@ export function DepositFunds({
   const amount = watch('amount', '0');
   const checked = watch('checked');
 
-  console.log(amounts);
   const amountsSum = _.sumBy(amounts, _.toNumber); // number, not parsed
   const parsedAmounts = _.map(amounts, a =>
     _.toNumber(formatUnits(BigInt(a), 18)),
   );
-  console.log(amountsSum);
+
   const paidMilestones =
     deposited && parsedAmounts
       ? depositedMilestones(BigInt(deposited), parsedAmounts)
@@ -116,7 +115,6 @@ export function DepositFunds({
     if (!result) return;
     setTransaction(result.hash);
   };
-  console.log(getTokenSymbol(chainId, token, tokenData));
   const paymentTypeOptions = [
     {
       value: PAYMENT_TYPES.TOKEN,
@@ -156,7 +154,7 @@ export function DepositFunds({
       <Text textAlign="center" color="blue.400">
         How much will you be depositing today?
       </Text>
-      <VStack spacing="0.5rem" align="center">
+      <Stack spacing="0.5rem" align="center">
         {_.map(amounts, (a: number, i: number) => (
           <HStack>
             <Checkbox
@@ -169,6 +167,7 @@ export function DepositFunds({
                   ? checkedAtIndex(i, checked)
                   : checkedAtIndex(i - 1, checked);
                 const totAmount = amounts?.reduce(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (tot: any, cur: any, ind: any) =>
                     newChecked[ind] ? tot + BigInt(cur) : tot,
                   BigInt(0),
@@ -193,16 +192,16 @@ export function DepositFunds({
             </Checkbox>
           </HStack>
         ))}
-      </VStack>
+      </Stack>
 
       <Text>OR</Text>
 
       <Stack spacing="0.5rem" align="center">
-        <Flex justify="space-between" w="100%">
+        <HStack>
           <Text fontWeight="500" color="blackAlpha.700">
             Enter a Manual Deposit Amount
           </Text>
-          {paymentType === PAYMENT_TYPES.NATIVE && (
+          {paymentType === PAYMENT_TYPES.NATIVE ? (
             <Tooltip
               label={`Your ${
                 TOKEN_DATA.nativeSymbol
@@ -211,12 +210,15 @@ export function DepositFunds({
                 token,
                 tokenData,
               )} tokens`}
-              placement="auto-start"
+              placement="top"
+              hasArrow
             >
-              <QuestionIcon ml="1rem" boxSize="0.75rem" />
+              <QuestionIcon boxSize="0.75rem" />
             </Tooltip>
+          ) : (
+            <Box boxSize="0.75rem" />
           )}
-        </Flex>
+        </HStack>
 
         <Flex>
           <NumberInput
@@ -233,10 +235,12 @@ export function DepositFunds({
           <Flex width={250}>
             {TOKEN_DATA.isWrapped ? (
               <Select
-                value={paymentType}
+                value={paymentType?.value}
                 onChange={e => {
-                  console.log(e);
-                  setValue('paymentType', e.target.value);
+                  setValue(
+                    'paymentType',
+                    _.find(paymentTypeOptions, o => o.value === e.target.value),
+                  );
                 }}
                 // width='100%'
               >
@@ -268,17 +272,17 @@ export function DepositFunds({
         fontSize="sm"
       >
         {!!deposited && (
-          <VStack align="flex-start">
+          <Stack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
             <Text>
               {`${commify(
                 formatUnits(BigInt(deposited), 18),
               )} ${getTokenSymbol(chainId, token, tokenData)}`}
             </Text>
-          </VStack>
+          </Stack>
         )}
         {!!due && (
-          <VStack>
+          <Stack>
             <Text fontWeight="bold">Total Due</Text>
             <Text>
               {`${formatUnits(BigInt(due), 18)} ${getTokenSymbol(
@@ -287,19 +291,19 @@ export function DepositFunds({
                 tokenData,
               )}`}
             </Text>
-          </VStack>
+          </Stack>
         )}
         {displayBalance && (
-          <VStack align="flex-end">
+          <Stack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
             <Text>
               {`${_.toNumber(displayBalance).toFixed(2)} ${
-                paymentType === 0
+                paymentType?.value === PAYMENT_TYPES.TOKEN
                   ? getTokenSymbol(chainId, token, tokenData)
                   : TOKEN_DATA.nativeSymbol
               }`}
             </Text>
-          </VStack>
+          </Stack>
         )}
       </Flex>
 

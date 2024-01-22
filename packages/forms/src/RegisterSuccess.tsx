@@ -6,7 +6,7 @@ import {
   Link,
   Text,
   useClipboard,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
@@ -69,7 +69,7 @@ export function RegisterSuccess() {
   );
 
   return (
-    <VStack
+    <Stack
       w="100%"
       spacing="1rem"
       align="center"
@@ -101,7 +101,7 @@ export function RegisterSuccess() {
 
       {invoice ? (
         <>
-          <VStack w="100%" align="stretch">
+          <Stack w="100%" align="stretch">
             <Text fontWeight="bold">Your Invoice ID</Text>
 
             <Flex
@@ -136,9 +136,9 @@ export function RegisterSuccess() {
                 </Button>
               </HStack>
             </Flex>
-          </VStack>
+          </Stack>
 
-          <VStack w="100%" align="stretch" mb="1.5rem">
+          <Stack w="100%" align="stretch" mb="1.5rem">
             <Text fontWeight="bold">Link to Invoice</Text>
 
             <Flex
@@ -178,7 +178,7 @@ export function RegisterSuccess() {
                 </Button>
               </HStack>
             </Flex>
-          </VStack>
+          </Stack>
         </>
       ) : (
         <Flex py="3rem">
@@ -201,6 +201,6 @@ export function RegisterSuccess() {
           Return Home
         </Button>
       </ChakraNextLink>
-    </VStack>
+    </Stack>
   );
 }

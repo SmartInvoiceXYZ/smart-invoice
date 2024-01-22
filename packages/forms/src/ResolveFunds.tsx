@@ -5,9 +5,9 @@ import {
   InputRightElement,
   NumberInput,
   Spinner,
+  Stack,
   Text,
   Textarea,
-  VStack,
 } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { useResolve } from '@smart-invoice/hooks';
@@ -90,7 +90,7 @@ export function ResolveFunds({
 
   if (!isLocked) {
     return (
-      <VStack
+      <Stack
         w="100%"
         spacing="1rem"
         as="form"
@@ -127,12 +127,12 @@ export function ResolveFunds({
         >
           Close
         </Button>
-      </VStack>
+      </Stack>
     );
   }
 
   return (
-    <VStack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
+    <Stack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
       <Heading
         mb="1rem"
         color="white"
@@ -242,6 +242,6 @@ export function ResolveFunds({
               </Link>
             </Text>
           )} */}
-    </VStack>
+    </Stack>
   );
 }

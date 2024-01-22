@@ -8,7 +8,6 @@ import {
   Tooltip,
   useBreakpointValue,
   useClipboard,
-  VStack,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
@@ -16,7 +15,7 @@ import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
 } from '@smart-invoice/forms';
-import { useFetchTokens, useInvoiceDetails } from '@smart-invoice/hooks';
+import { useInvoiceDetails } from '@smart-invoice/hooks';
 import {
   AccountLink,
   Container,
@@ -32,13 +31,12 @@ import {
   getAddressLink,
   getAgreementLink,
   getDateString,
-  getTokenInfo,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import { isAddress } from 'viem';
-import { useAccount, useBalance, useChainId } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
 
@@ -53,24 +51,9 @@ function ViewInvoice() {
     ? parseInt(String(hexChainId), 16)
     : undefined;
 
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
-
   const { onCopy } = useClipboard(_.toLower(invoiceId));
   const { data: invoice } = useInvoiceDetails({ chainId, address: invoiceId });
 
-  const validToken = useMemo(
-    () =>
-      invoice?.token && isAddress(invoice?.token) ? invoice.token : undefined,
-    [invoice],
-  );
-  const validAddress = useMemo(
-    () =>
-      invoice?.address && isAddress(invoice?.address)
-        ? invoice.address
-        : undefined,
-    [invoice],
-  );
   const verifiedStatus = useMemo(
     () =>
       !_.isEmpty(invoice?.verified) &&
@@ -78,25 +61,11 @@ function ViewInvoice() {
     [invoice],
   );
 
-  const { data: balance, isLoading: balanceLoading } = useBalance({
-    address: validAddress,
-    token: validToken,
-    enabled: !!validToken,
-  });
-
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   // const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
   // const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   // const smallScreen = useBreakpointValue({ base: true, sm: false });
-
-  console.log(invoice, balance);
-  console.log(
-    !isAddress(invoiceId) || invoice === null,
-    chainId,
-    invoiceChainId,
-    !invoice || balanceLoading,
-  );
 
   if (!isAddress(invoiceId) || invoice === null) {
     return <InvoiceNotFound />;
@@ -108,7 +77,7 @@ function ViewInvoice() {
     );
   }
 
-  if (!invoice || balanceLoading) {
+  if (!invoice) {
     return (
       <Container overlay>
         <Loader size="80" />
@@ -126,15 +95,31 @@ function ViewInvoice() {
     client,
     provider,
     resolver,
-    token,
-  } = invoice;
+  } = _.pick(invoice, [
+    'client',
+    'provider',
+    'resolver',
+    'terminationTime',
+    'projectName',
+    'projectDescription',
+    'projectAgreement',
+    'startDate',
+    'endDate',
+  ]);
   const validClient = client && isAddress(client) && client;
   const validProvider = provider && isAddress(provider) && provider;
   const validResolver = resolver && isAddress(resolver) && resolver;
 
   const isClient = address === client;
-  const isResolver = address === resolver.toLowerCase();
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+
+  console.log(
+    startDate,
+    endDate,
+    endDate && _.toNumber(endDate.toString()),
+    endDate && getDateString(new Date(endDate?.toString()).getTime()),
+    terminationTime,
+    invoiceChainId,
+  );
 
   return (
     <Container overlay>
@@ -156,7 +141,7 @@ function ViewInvoice() {
           align="stretch"
           direction="column"
         >
-          <VStack align="stretch" justify="center">
+          <Stack align="stretch" justify="center">
             <Heading fontWeight="normal" fontSize="2xl">
               {projectName}
             </Heading>
@@ -192,10 +177,10 @@ function ViewInvoice() {
             >
               Details of Agreement
             </Link>
-          </VStack>
+          </Stack>
 
-          <VStack fontSize="sm" color="grey" align="stretch" justify="center">
-            {startDate ? (
+          <Stack fontSize="sm" color="grey" align="stretch" justify="center">
+            {!!startDate && startDate !== BigInt(0) && (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project Start Date: '}</Text>
@@ -203,12 +188,12 @@ function ViewInvoice() {
 
                 <WrapItem>
                   <Text fontWeight="bold">
-                    {getDateString(new Date(startDate.toString()).getTime())}
+                    {getDateString(_.toNumber(startDate.toString()))}
                   </Text>
                 </WrapItem>
               </Wrap>
-            ) : null}
-            {endDate ? (
+            )}
+            {!!endDate && endDate !== BigInt(0) && (
               <Wrap>
                 <WrapItem>
                   <Text>{'Project End Date: '}</Text>
@@ -216,11 +201,11 @@ function ViewInvoice() {
 
                 <WrapItem>
                   <Text fontWeight="bold">
-                    {getDateString(new Date(endDate.toString()).getTime())}
+                    {getDateString(_.toNumber(endDate.toString()))}
                   </Text>
                 </WrapItem>
               </Wrap>
-            ) : null}
+            )}
 
             <Wrap>
               <WrapItem>
@@ -229,9 +214,7 @@ function ViewInvoice() {
 
               <WrapItem>
                 <Text fontWeight="bold">
-                  {getDateString(
-                    new Date(terminationTime.toString()).getTime(),
-                  )}
+                  {getDateString(_.toNumber(terminationTime.toString()))}
                 </Text>
 
                 <Tooltip
@@ -318,11 +301,10 @@ function ViewInvoice() {
             <Wrap>
               <GenerateInvoicePDF
                 invoice={invoice}
-                symbol={symbol}
                 buttonText="Preview & Download Invoice PDF"
               />
             </Wrap>
-          </VStack>
+          </Stack>
         </Stack>
 
         <Stack minW={{ base: '90%', md: '50%' }}>

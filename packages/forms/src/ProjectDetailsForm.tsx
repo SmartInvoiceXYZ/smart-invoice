@@ -8,6 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
+import { FormInvoice } from '@smart-invoice/types';
 import { DatePicker, Input, Textarea } from '@smart-invoice/ui';
 import { oneMonthFromNow, sevenDaysFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -66,7 +67,7 @@ export function ProjectDetailsForm({
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: Partial<FormInvoice>) => {
     const localProjectAgreement = [];
     if (values.projectAgreement) {
       // TODO handle ipfs agreement link

@@ -12,7 +12,7 @@ import {
   SimpleGrid,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
@@ -179,7 +179,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   };
 
   return (
-    <VStack w="100%" spacing="1rem">
+    <Stack w="100%" spacing="1rem">
       <Heading
         fontWeight="bold"
         mb="1rem"
@@ -259,14 +259,14 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         /> */}
       </SimpleGrid>
 
-      <VStack
+      <Stack
         w="100%"
         spacing="1rem"
         display={addedMilestones ? 'flex' : 'none'}
       >
         {Array.from(Array(Number(addedMilestones))).map((_val, index) => (
           // eslint-disable-next-line react/no-array-index-key
-          <VStack w="100%" spacing="0.5rem" key={index.toString()}>
+          <Stack w="100%" spacing="0.5rem" key={index.toString()}>
             <Flex justify="space-between" w="100%">
               <Text fontWeight="700">
                 Payment #{amounts?.length ?? 0 + index + 1}
@@ -303,13 +303,13 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                 {symbol}
               </InputRightElement>
             </InputGroup>
-          </VStack>
+          </Stack>
         ))}
 
         <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
           Amounts Must Add Up to {formatUnits(addedTotal, decimals)} {symbol}
         </Text>
-      </VStack>
+      </Stack>
 
       <Flex color="black" justify="space-between" w="100%" fontSize="sm">
         {due ? (
@@ -386,6 +386,6 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
           </Link>
         </Text>
       )}
-    </VStack>
+    </Stack>
   );
 }

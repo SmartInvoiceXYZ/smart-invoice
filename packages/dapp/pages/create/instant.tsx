@@ -6,7 +6,7 @@ import {
   Stack,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {
@@ -82,7 +82,7 @@ export function CreateInvoiceInstant() {
             chainId={chainId}
           />
 
-          <VStack
+          <Stack
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
           >
@@ -162,7 +162,7 @@ export function CreateInvoiceInstant() {
                 </Button>
               </Grid> */}
             </Flex>
-          </VStack>
+          </Stack>
         </Stack>
       ) : (
         <Text>Loading</Text>

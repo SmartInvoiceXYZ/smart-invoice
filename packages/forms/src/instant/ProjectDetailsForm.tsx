@@ -1,4 +1,4 @@
-import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { SimpleGrid, Text, Stack } from '@chakra-ui/react';
 import { Input, LinkInput, Textarea } from '@smart-invoice/ui';
 import { formatDate } from '@smart-invoice/utils';
 import React, { useContext, useState } from 'react';
@@ -15,7 +15,7 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
   // const [dateInvalid, setDateInvalid] = useState(false);
 
   return (
-    <VStack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
+    <Stack w="100%" spacing="1rem" display={display ? 'flex' : 'none'}>
       {/* <Input
         label="Project Name or ID"
         value={projectName}
@@ -103,6 +103,6 @@ export function ProjectDetailsForm({ display }: ProjectDetailsFormProps) {
         Test
       </Text>
       {/* )} */}
-    </VStack>
+    </Stack>
   );
 }

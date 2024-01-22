@@ -1,4 +1,4 @@
-import { SimpleGrid, Text, VStack } from '@chakra-ui/react';
+import { SimpleGrid, Text, Stack } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
 import { Input, Select } from '@smart-invoice/ui';
@@ -42,7 +42,7 @@ export function InstantPaymentDetailsForm({
   const lateFeeIntervalOptions = [1, 2, 7, 14, 28];
 
   return (
-    <VStack w="100%" spacing="1rem" display={display}>
+    <Stack w="100%" spacing="1rem" display={display}>
       {/* <Input
         label="Client Address"
         value={clientAddress}
@@ -166,6 +166,6 @@ export function InstantPaymentDetailsForm({
           ))}
         </Select> */}
       </SimpleGrid>
-    </VStack>
+    </Stack>
   );
 }

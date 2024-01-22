@@ -10,10 +10,10 @@ import { Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
 import {
   chainByName,
-  chainsMap,
   getAccountString,
   unixToDateTime,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React, { Fragment } from 'react';
 import { formatEther } from 'viem';
 
@@ -198,7 +198,24 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     releases,
     disputes,
     resolutions,
-  } = invoice ?? {};
+  } = _.pick(invoice, [
+    'address',
+    'projectName',
+    'projectDescription',
+    'projectAgreement',
+    'startDate',
+    'endDate',
+    'terminationTime',
+    'client',
+    'provider',
+    'amounts',
+    'network',
+    'createdAt',
+    'deposits',
+    'releases',
+    'disputes',
+    'resolutions',
+  ]);
 
   return (
     <Document>
@@ -344,7 +361,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
         )}
 
         {/* Deposits */}
-        {deposits && (
+        {!_.isEmpty(deposits) && (
           <>
             <View style={styles.tableContainer}>
               <View style={styles.container}>
@@ -352,7 +369,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {deposits.map((deposit: any, index: any) => (
+            {_.map(deposits, (deposit: any, index: number) => (
               <Fragment key={deposit.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -390,7 +407,6 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
         )}
 
         {/* Releases */}
-
         {releases && (
           <>
             <View style={styles.tableContainer}>
@@ -399,7 +415,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {releases.map((release: any, index: any) => (
+            {_.map(releases, (release: any, index: number) => (
               <Fragment key={release.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -441,13 +457,13 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
       </Page>
 
       {/* Disputes */}
-      {disputes && disputes.length > 0 ? (
+      {!_.isEmpty(disputes) ? (
         <Page size="A4" style={styles.page}>
           <View>
             <Text style={styles.secondTitle}>Disputes</Text>
           </View>
 
-          {disputes.map((dispute: any, index: any) => (
+          {_.map(disputes, (dispute: any, index: number) => (
             <View style={styles.multiDetailBlock} key={dispute.id}>
               <Text
                 style={[
@@ -495,13 +511,13 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
       ) : null}
 
       {/* Resolutions */}
-      {resolutions && resolutions.length > 0 ? (
+      {!_.isEmpty(resolutions) ? (
         <Page size="A4" style={styles.page}>
           <View>
             <Text style={styles.secondTitle}>Resolutions</Text>
           </View>
 
-          {resolutions.map((resolution: any, index: any) => (
+          {_.map(resolutions, (resolution: any, index: number) => (
             <View style={styles.multiDetailBlock} key={resolution.txHash}>
               <Text
                 style={[

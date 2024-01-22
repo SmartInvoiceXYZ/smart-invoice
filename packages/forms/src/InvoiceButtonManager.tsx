@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Button, SimpleGrid } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { Modals } from '@smart-invoice/types';
@@ -28,8 +29,8 @@ export function InvoiceButtonManager({
   const {
     client,
     isLocked,
-    disputes,
-    resolutions,
+    // disputes,
+    // resolutions,
     terminationTime,
     currentMilestone: invoiceCurrentMilestone,
     amounts,
@@ -39,8 +40,8 @@ export function InvoiceButtonManager({
   } = _.pick(invoice, [
     'client',
     'isLocked',
-    'disputes',
-    'resolutions',
+    // 'disputes',
+    // 'resolutions',
     'resolver',
     'terminationTime',
     'currentMilestone',
@@ -54,6 +55,7 @@ export function InvoiceButtonManager({
     token: invoice?.token as Hex,
     enabled: !!invoice?.address && !!invoice?.token,
   });
+  console.log(invoiceTokenBalance?.value?.toString());
 
   const isRaidParty = _.toLower(address) === _.toLower(invoice?.provider);
   const isClient = _.toLower(address) === _.toLower(client);
@@ -61,15 +63,15 @@ export function InvoiceButtonManager({
 
   const currentMilestone = _.toNumber(invoiceCurrentMilestone?.toString());
   const balance = _.get(invoiceTokenBalance, 'value', BigInt(0));
-  const dispute =
-    isLocked && !_.isEmpty(disputes) ? _.last(disputes) : undefined;
-  const deposited = released && released + balance;
+  // const dispute =
+  //   isLocked && !_.isEmpty(disputes) ? _.last(disputes) : undefined;
+  const deposited = released && BigInt(released) + BigInt(balance);
   const due =
     deposited &&
     total &&
     (deposited > total ? BigInt(0) : BigInt(total) - deposited);
-  const resolution =
-    !isLocked && !_.isEmpty(resolutions) ? _.last(resolutions) : undefined;
+  // const resolution =
+  //  b !isLocked && !_.isEmpty(resolutions) ? _.last(resolutions) : undefined;
   const amount =
     currentMilestone &&
     amounts &&
@@ -138,7 +140,6 @@ export function InvoiceButtonManager({
             Resolve
           </Button>
         )}
-
         {isReleasable ? (
           <Button
             variant="solid"

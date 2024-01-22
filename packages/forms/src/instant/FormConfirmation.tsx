@@ -5,7 +5,7 @@ import {
   Spacer,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
@@ -51,7 +51,7 @@ export function FormConfirmation({
   });
 
   return (
-    <VStack
+    <Stack
       w="100%"
       spacing="1rem"
       color="#323C47"
@@ -140,6 +140,6 @@ export function FormConfirmation({
           </Flex>
         </>
       ) : null} */}
-    </VStack>
+    </Stack>
   );
 }

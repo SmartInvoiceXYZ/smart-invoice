@@ -19,7 +19,7 @@ export const formatTokenData = (rawList: TokenList) => {
     _.forEach(chainTokenList, (token: TokenDataInput) => {
       const { tokenContract, decimals, symbol, image } = token;
       // update new object
-      tokenObject[Number(chainId)][tokenContract] = {
+      tokenObject[Number(chainId)][_.toLower(tokenContract)] = {
         address: tokenContract,
         decimals,
         symbol,

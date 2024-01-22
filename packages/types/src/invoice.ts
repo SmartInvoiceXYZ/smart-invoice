@@ -5,8 +5,22 @@ export interface ProjectAgreement {
   type: string;
 }
 
+interface InvoiceDetails {
+  projectName: string;
+  projectDescription: string;
+  projectAgreement: string;
+  startDate: Date;
+  endDate: Date;
+}
+
 export type FormInvoice = {
   milestones: { value: string }[];
   customResolver?: string;
   resolverTerms?: boolean;
-} & Invoice;
+  safetyValveDate?: Date;
+  token: string;
+  client: string;
+  provider: string;
+  resolver: string;
+} & Omit<Invoice, 'projectAgreement'> &
+  InvoiceDetails;

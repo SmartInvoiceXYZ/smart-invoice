@@ -7,7 +7,7 @@ import {
   Spacer,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { hashCode } from '@smart-invoice/utils';
@@ -36,7 +36,7 @@ export function StepInfo({
   const stepDetails = stepsDetails[stepNum].step_details;
 
   return (
-    <VStack spacing="1rem" maxW={maxW} align="stretch">
+    <Stack spacing="1rem" maxW={maxW} align="stretch">
       <Flex justify="space-between" my={4}>
         {stepNum !== 1 ? (
           <IconButton
@@ -71,6 +71,6 @@ export function StepInfo({
           {detail}
         </Text>
       ))}
-    </VStack>
+    </Stack>
   );
 }

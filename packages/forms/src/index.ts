@@ -5,8 +5,6 @@ export * from './FormConfirmation';
 export * from './InvoiceButtonManager';
 export * from './InvoicePaymentDetails';
 export * from './LockFunds';
-export * from './PaymentChunksForm';
-export * from './PaymentDetailsForm';
 export * from './PaymentsForm';
 export * from './ProjectDetailsForm';
 export * from './RegisterSuccess';

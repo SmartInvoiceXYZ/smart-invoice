@@ -7,7 +7,7 @@ import {
   Spinner,
   Text,
   Textarea,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { useLock } from '@smart-invoice/hooks';
@@ -88,7 +88,7 @@ export function LockFunds({
 
   if (writeLoading) {
     return (
-      <VStack w="100%" spacing="1rem">
+      <Stack w="100%" spacing="1rem">
         <Heading
           color="white"
           as="h3"
@@ -122,12 +122,12 @@ export function LockFunds({
         >
           <Spinner size="xl" />
         </Flex>
-      </VStack>
+      </Stack>
     );
   }
 
   return (
-    <VStack
+    <Stack
       w="100%"
       spacing="1rem"
       as="form"
@@ -198,6 +198,6 @@ export function LockFunds({
           terms
         </Link>
       )} */}
-    </VStack>
+    </Stack>
   );
 }

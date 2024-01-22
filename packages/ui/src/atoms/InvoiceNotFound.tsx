@@ -1,4 +1,4 @@
-import { Button, Flex, Icon, Text, VStack } from '@chakra-ui/react';
+import { Button, Flex, Icon, Text, Stack } from '@chakra-ui/react';
 import { chainsMap } from '@smart-invoice/utils';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -20,7 +20,7 @@ export function InvoiceNotFound({
 
   return (
     <Container>
-      <VStack
+      <Stack
         spacing="1rem"
         background="background"
         borderRadius="1rem"
@@ -64,7 +64,7 @@ export function InvoiceNotFound({
             Return Home
           </Button>
         </ChakraNextLink>
-      </VStack>
+      </Stack>
     </Container>
   );
 }

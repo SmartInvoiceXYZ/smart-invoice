@@ -10,32 +10,42 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
 import { Invoice } from '@smart-invoice/graphql';
+import { useFetchTokens } from '@smart-invoice/hooks';
+import { chainByName, getTokenInfo } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React from 'react';
 
 import { InvoicePDF } from '../molecules';
 
 interface GenerateInvoicePDFProps {
   invoice: Invoice;
-  symbol: string;
   buttonText: string;
   buttonProps?: ButtonProps;
 }
 
 export function GenerateInvoicePDF({
   invoice,
-  symbol,
   buttonText,
   buttonProps,
 }: GenerateInvoicePDFProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { address } = invoice || {};
+  const { address, network, token } = _.pick(invoice, [
+    'address',
+    'network',
+    'token',
+  ]);
+  const invoiceChainId = chainByName(network)?.id;
+
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
+  const { symbol } = getTokenInfo(invoiceChainId, token, tokenData);
 
   return (
-    <VStack align="stretch">
+    <Stack align="stretch">
       <Button onClick={onOpen} variant="link" {...buttonProps}>
         {buttonText}
       </Button>
@@ -69,7 +79,7 @@ export function GenerateInvoicePDF({
           </ModalBody>
         </ModalContent>
       </Modal>
-    </VStack>
+    </Stack>
   );
 }
 
@@ -89,7 +99,7 @@ export function GenerateInvoicePDFMenuItem({
   const { address } = invoice || {};
 
   return (
-    <VStack align="stretch">
+    <Stack align="stretch">
       <MenuItem onClick={onOpen} {...props}>
         {text}
       </MenuItem>
@@ -123,6 +133,6 @@ export function GenerateInvoicePDFMenuItem({
           </ModalBody>
         </ModalContent>
       </Modal>
-    </VStack>
+    </Stack>
   );
 }

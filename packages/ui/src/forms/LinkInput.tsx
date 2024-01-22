@@ -8,7 +8,7 @@ import {
   Text,
   Textarea,
   Tooltip,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { isValidLink, logDebug } from '@smart-invoice/utils';
 import React, { useState } from 'react';
@@ -51,8 +51,8 @@ export function LinkInput({
   const [isInvalid, setInvalid] = useState(false);
 
   return (
-    <VStack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-      <VStack align="left" w="100%" spacing={0}>
+    <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+      <Stack align="left" w="100%" spacing={0}>
         <Flex w="100%">
           <Text fontWeight="700">{label}</Text>
 
@@ -69,7 +69,7 @@ export function LinkInput({
         <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
           {required}
         </Text>
-      </VStack>
+      </Stack>
 
       <Flex direction="column" w="100%">
         <InputGroup>
@@ -154,6 +154,6 @@ export function LinkInput({
           </Text>
         )}
       </Flex>
-    </VStack>
+    </Stack>
   );
 }

@@ -1,14 +1,13 @@
 import { Flex, Link, Text } from '@chakra-ui/react';
 import {
   getAddressLink,
-  getProfile,
   getResolverInfo,
   getResolverString,
   isKnownResolver,
 } from '@smart-invoice/utils';
+import blockies from 'blockies-ts';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
-import { Address, isAddress } from 'viem';
+import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type AccountLinkProps = {
@@ -22,35 +21,17 @@ export function AccountLink({
 }: AccountLinkProps) {
   const walletChainId = useChainId();
   const address = _.toLower(inputAddress) as Address;
-  const [profile, setProfile] =
-    useState<Awaited<ReturnType<typeof getProfile>>>();
   const chainId = inputChainId || walletChainId;
   const isResolver = isKnownResolver(address, chainId);
+  const blockie = blockies
+    .create({ seed: address, size: 8, scale: 16 })
+    .toDataURL();
 
-  useEffect(() => {
-    let isSubscribed = true;
-    if (!isResolver && isAddress(address)) {
-      getProfile(address).then(p => (isSubscribed ? setProfile(p) : undefined));
-    }
-    return () => {
-      isSubscribed = false;
-    };
-  }, [address, isResolver]);
+  const displayString = getResolverString(address, chainId);
 
-  let displayString = getResolverString(address, chainId);
-
-  let imageUrl = isResolver
+  const imageUrl = isResolver
     ? getResolverInfo(address, chainId).logoUrl
     : undefined;
-
-  if (!isResolver && profile) {
-    if (profile.name) {
-      displayString = profile.name;
-    }
-    if (profile.imageUrl) {
-      imageUrl = profile.imageUrl;
-    }
-  }
 
   return (
     <Link
@@ -77,7 +58,7 @@ export function AccountLink({
         justify="center"
         align="center"
         bgColor="black"
-        bgImage={imageUrl && `url(${imageUrl})`}
+        bgImage={imageUrl ? `url(${imageUrl})` : blockie}
         border="1px solid"
         borderColor="white20"
         bgSize="cover"

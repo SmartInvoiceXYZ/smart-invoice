@@ -94,7 +94,7 @@ export const getWrappedNativeToken = (chainId?: number) =>
   chainId && wrappedNativeToken(chainId);
 
 export const getNativeTokenSymbol = (chainId?: number) =>
-  chainId ? chainsMap(chainId).nativeCurrency : undefined;
+  chainId ? chainsMap(chainId)?.nativeCurrency : undefined;
 
 export const getInvoiceFactoryAddress = (chainId: number) =>
   isOfTypeChainId(chainId)
@@ -110,11 +110,19 @@ const getExplorerUrl = (chainId: number) => {
   );
 };
 
-export const getTxLink = (chainId: number, hash: string) =>
-  `${getExplorerUrl(chainId)}/tx/${hash}`;
+export const getTxLink = (
+  chainId: number | undefined,
+  hash: string | undefined,
+) => {
+  if (!chainId || !hash) return '#';
+  return `${getExplorerUrl(chainId)}/tx/${hash}`;
+};
 
-export const getAddressLink = (chainId: number | undefined, hash: string) => {
-  if (!chainId) return '#';
+export const getAddressLink = (
+  chainId: number | undefined,
+  hash: string | undefined,
+) => {
+  if (!chainId || !hash) return '#';
   return `${getExplorerUrl(chainId)}/address/${hash}`;
 };
 

@@ -4,7 +4,7 @@ import {
   Link,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
@@ -71,7 +71,7 @@ export function WithdrawFunds({
   };
 
   return (
-    <VStack w="100%" spacing="1rem" color="black">
+    <Stack w="100%" spacing="1rem" color="black">
       <Heading
         fontWeight="normal"
         mb="1rem"
@@ -86,7 +86,7 @@ export function WithdrawFunds({
         the invoice.
       </Text>
 
-      <VStack
+      <Stack
         my="2rem"
         px="5rem"
         py="1rem"
@@ -105,7 +105,7 @@ export function WithdrawFunds({
           fontWeight="bold"
           textAlign="center"
         >{`${formatUnits(balance, decimals)} ${symbol}`}</Text>
-      </VStack>
+      </Stack>
       {chainId && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
@@ -146,6 +146,6 @@ export function WithdrawFunds({
       >
         Cancel
       </Button>
-    </VStack>
+    </Stack>
   );
 }

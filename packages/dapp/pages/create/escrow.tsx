@@ -4,7 +4,7 @@ import {
   Stack,
   Text,
   useBreakpointValue,
-  VStack,
+  Stack,
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import {
@@ -82,7 +82,7 @@ export function CreateInvoiceEscrow() {
           chainId={chainId}
         />
 
-        <VStack
+        <Stack
           spacing={{ base: '1.5rem', lg: '1rem' }}
           w={{ base: '100%', md: 'auto' }}
         >
@@ -138,7 +138,7 @@ export function CreateInvoiceEscrow() {
 
             {currentStep === 4 && <FormConfirmation escrowForm={escrowForm} />}
           </Flex>
-        </VStack>
+        </Stack>
       </Stack>
     </Container>
   );

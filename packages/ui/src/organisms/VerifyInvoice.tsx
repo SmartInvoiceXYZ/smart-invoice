@@ -1,4 +1,4 @@
-import { Button, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Button, Spinner, Text, Stack } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { useInvoiceVerify } from '@smart-invoice/hooks';
 import { logError } from '@smart-invoice/utils';
@@ -52,7 +52,7 @@ export function VerifyInvoice({
   if (verifiedStatus || !isClient) return null;
 
   return (
-    <VStack w="100%" spacing="rem" alignItems="start">
+    <Stack w="100%" spacing="rem" alignItems="start">
       {txHash ? (
         <Button
           size="xs"
@@ -78,6 +78,6 @@ export function VerifyInvoice({
           <Text>Enable Non-Client Account Deposits</Text>
         </Button>
       )}
-    </VStack>
+    </Stack>
   );
 }
