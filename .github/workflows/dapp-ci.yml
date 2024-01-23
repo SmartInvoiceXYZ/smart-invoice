@@ -1,22 +1,22 @@
-name: 'DApp CI'
+name: DApp CI
 
 on:
   pull_request:
     branches:
-      - 'main'
-      - 'develop'
+      - main
+      - develop
     paths:
-      - 'packages/dapp/**'
+      - packages/dapp/**
   push:
     branches:
-      - 'main'
-      - 'develop'
+      - main
+      - develop
     paths:
-      - 'packages/dapp/**'
+      - packages/dapp/**
 
 jobs:
   ci:
-    runs-on: 'ubuntu-latest'
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -32,21 +32,21 @@ jobs:
       #     mv ./evm/.env.github ./evm/.env
       #     echo "::debug::$(less .env)"
 
-      - name: 'Install the dependencies'
-        run: 'yarn install --immutable'
+      - name: Install the dependencies
+        run: yarn install --immutable
 
-      - name: 'Lint the code'
-        run: 'yarn run dapp:lint'
+      - name: Lint the code
+        run: yarn run dapp:lint
 
-      - name: 'Add lint summary'
+      - name: Add lint summary
         run: |
           echo "## Lint results" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
-      - name: 'Test the code and generate the coverage report'
-        run: 'yarn run dapp:test'
+      - name: Test the code and generate the coverage report
+        run: yarn run dapp:test
 
-      - name: 'Add test summary'
+      - name: Add test summary
         run: |
           echo "## Test results" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
