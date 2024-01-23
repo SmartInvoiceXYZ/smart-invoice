@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
-import { ErrorBoundary } from '../../src/components/ErrorBoundary';
+import { ErrorBoundary } from '../../src/molecules/ErrorBoundary';
 
 describe('ErrorBoundary', () => {
   const mockResetErrorBoundary = jest.fn();
