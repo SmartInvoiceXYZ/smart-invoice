@@ -15,7 +15,6 @@ import {
   Tooltip,
   useBreakpointValue,
   useClipboard,
-  Stack,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
@@ -260,14 +259,14 @@ function ViewInstantInvoice() {
               <Text color="black">{projectDescription}</Text>
             )}
 
-            <Link
+            {/* <Link
               href={getAgreementLink(projectAgreement)}
               isExternal
               textDecor="underline"
               color="black"
             >
               Details of Agreement
-            </Link>
+            </Link> */}
           </Stack>
 
           <Stack fontSize="sm" color="grey" align="stretch" justify="center">
@@ -278,7 +277,7 @@ function ViewInstantInvoice() {
                 </WrapItem>
 
                 <WrapItem>
-                  <Text fontWeight="bold">{getDateString(startDate)}</Text>
+                  {/* <Text fontWeight="bold">{getDateString(startDate)}</Text> */}
                 </WrapItem>
               </Wrap>
             ) : null}
@@ -289,7 +288,7 @@ function ViewInstantInvoice() {
                 </WrapItem>
 
                 <WrapItem>
-                  <Text fontWeight="bold">{getDateString(endDate)}</Text>
+                  {/* <Text fontWeight="bold">{getDateString(endDate)}</Text> */}
                 </WrapItem>
               </Wrap>
             ) : null}
@@ -345,12 +344,12 @@ function ViewInstantInvoice() {
             </Wrap>
 
             <Wrap>
-              <GenerateInvoicePDF
+              {/* <GenerateInvoicePDF
                 invoice={invoice}
                 symbol={symbol}
                 buttonText="Preview & Download Invoice PDF"
                 buttonProps={{ textColor: 'blue.dark' }}
-              />
+              /> */}
             </Wrap>
           </Stack>
         </Stack>

@@ -84,7 +84,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
       : BigInt(0);
   const isReleasable =
     !isLocked && amount ? balance >= BigInt(amount) && balance > 0 : false;
-  const sum = _.sumBy(amounts, _.toNumber);
+  // const sum = _.sumBy(amounts, _.toNumber);
 
   const tokenInfo = getTokenInfo(chainId, token, tokenData);
 
@@ -152,7 +152,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                   <HStack align="center" justify="flex-end">
                     {index < _.toNumber(currentMilestone?.toString()) &&
                       _.size(releases) > index &&
-                      !!releases?.[index].timestamp && (
+                      !!releases?.[index]?.timestamp && (
                         <Link
                           fontSize="xs"
                           isExternal
@@ -170,7 +170,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                       _.lt(index, currentMilestone) && _.size(releases) > index
                     ) &&
                       index !== -1 &&
-                      !!deposits?.[index].timestamp && (
+                      !!deposits?.[index]?.timestamp && (
                         <Link
                           fontSize="xs"
                           isExternal

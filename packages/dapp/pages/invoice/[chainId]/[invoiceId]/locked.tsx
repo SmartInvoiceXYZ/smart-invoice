@@ -1,4 +1,4 @@
-import { Button, Heading, Link, Text, Stack } from '@chakra-ui/react';
+import { Button, Heading, Link, Stack, Text } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Container, InvoiceNotFound, Loader } from '@smart-invoice/ui';

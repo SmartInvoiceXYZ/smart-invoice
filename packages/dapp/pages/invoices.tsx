@@ -44,7 +44,7 @@ function Invoices() {
         >
           {chainId ? (
             <Heading color="gray" size="lg">
-              No invoices found on {chainsMap(chainId).name}.
+              No invoices found on {chainsMap(chainId)?.name}.
             </Heading>
           ) : (
             <Heading color="gray" size="lg">

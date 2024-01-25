@@ -42,6 +42,7 @@ export function FormConfirmation({
     endDate,
     safetyValveDate,
     resolver,
+    customResolver,
     milestones,
     token,
   } = watch();
@@ -67,6 +68,7 @@ export function FormConfirmation({
     endDate,
     safetyValveDate,
     resolver,
+    customResolver,
     milestones,
     token,
     toast,

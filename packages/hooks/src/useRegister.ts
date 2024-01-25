@@ -8,6 +8,8 @@ import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 // import INVOICE_FACTORY_ABI from './contracts/InvoiceFactory.json';
 // import useDetailsPin from './useDetailsPin';
 
+// ! not used
+
 const REQUIRES_VERIFICATION = true;
 
 export const useRegister = ({

@@ -19,7 +19,7 @@ import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { FormInvoice } from '@smart-invoice/types';
 import { NumberInput, QuestionIcon, Select } from '@smart-invoice/ui';
-import { commify, getTokenInfo, getTokens } from '@smart-invoice/utils';
+import { commify } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
@@ -70,12 +70,11 @@ export function PaymentsForm({
   const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
 
   const TOKENS = useMemo(
-    () => allTokens && getTokens(allTokens, chainId),
+    () => tokenData && _.values(tokenData[chainId]),
     [chainId, allTokens],
   );
-  const invoiceTokenData = localToken
-    ? getTokenInfo(chainId, localToken, tokenData)
-    : undefined;
+  const invoiceTokenData = _.find(TOKENS, { address: localToken });
+  console.log(localToken, invoiceTokenData);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -96,7 +95,7 @@ export function PaymentsForm({
   });
 
   useEffect(() => {
-    localSetValue('token', token || _.first(TOKENS));
+    localSetValue('token', token || _.first(TOKENS)?.address);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS]);
@@ -105,6 +104,7 @@ export function PaymentsForm({
     localMilestones,
     (milestone: { value: string }) => _.toNumber(milestone.value) || 0,
   );
+  console.log(TOKENS);
 
   return (
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
@@ -117,11 +117,13 @@ export function PaymentsForm({
             tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
             localForm={localForm}
           >
-            {TOKENS?.map((t: string) => (
-              <option value={t} key={t}>
-                {getTokenInfo(chainId, t, tokenData).symbol}
-              </option>
-            ))}
+            {TOKENS?.map(t => {
+              return (
+                <option value={t.address} key={t.address}>
+                  {t.symbol}
+                </option>
+              );
+            })}
           </Select>
         </FormControl>
       </Flex>

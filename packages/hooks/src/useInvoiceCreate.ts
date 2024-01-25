@@ -22,6 +22,7 @@ interface UseInvoiceCreate {
   endDate: number;
   safetyValveDate: bigint;
   resolver: Hex;
+  customResolver: Hex;
   milestones: { value: number }[];
   token: Hex;
   toast: any;
@@ -39,6 +40,7 @@ export const useInvoiceCreate = ({
   endDate,
   safetyValveDate,
   resolver,
+  customResolver,
   milestones,
   token,
   toast,

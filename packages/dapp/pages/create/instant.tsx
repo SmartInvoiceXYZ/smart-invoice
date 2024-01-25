@@ -6,7 +6,6 @@ import {
   Stack,
   Text,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {

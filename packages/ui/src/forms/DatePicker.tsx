@@ -90,7 +90,7 @@ export function DatePicker({
                   <Icon
                     as={InfoOutlineIcon}
                     boxSize={3}
-                    color="red.500"
+                    color="blue.500"
                     bg="white"
                     borderRadius="full"
                   />
