@@ -55,6 +55,12 @@ export function handleIpfsDetails(
   invoiceObject: InvoiceObject,
 ): InvoiceObject {
   invoiceObject.details = details;
+  if (
+    details.toString() ==
+    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  ) {
+    return invoiceObject;
+  }
 
   let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
   let base58Hash = hexHash.toBase58();

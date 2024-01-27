@@ -31,5 +31,9 @@
     // disable form label
     "jsx-a11y/label-has-associated-control": "off"
   },
-  "ignorePatterns": ["packages/subgraph/**", "packages/contracts/test/*"]
+  "ignorePatterns": [
+    "packages/subgraph/**",
+    "packages/contracts/test/*",
+    "packages/subgraph/subgraph.template.yaml"
+  ]
 }
