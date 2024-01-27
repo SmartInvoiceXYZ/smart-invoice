@@ -3,11 +3,19 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
+import { ProjectAgreement, UseToastReturn } from '@smart-invoice/types';
 import { getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
-import { encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
+import {
+  encodeAbiParameters,
+  Hex,
+  parseUnits,
+  toHex,
+  TransactionReceipt,
+} from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { waitForTransaction } from 'wagmi/actions';
 
 import { useFetchTokens } from '.';
 import { useDetailsPin } from './useDetailsPin';
@@ -17,7 +25,7 @@ const ESCROW_TYPE = toHex('escrow', { size: 32 });
 interface UseInvoiceCreate {
   projectName: string;
   projectDescription: string;
-  projectAgreement: any[];
+  projectAgreement: ProjectAgreement[];
   client: Hex;
   provider: Hex;
   startDate: number;
@@ -27,7 +35,8 @@ interface UseInvoiceCreate {
   customResolver: Hex;
   milestones: { value: number }[];
   token: Hex;
-  toast: any;
+  toast: UseToastReturn;
+  onTxSuccess?: (result: TransactionReceipt) => void;
 }
 
 const REQUIRES_VERIFICATION = true;
@@ -46,19 +55,20 @@ export const useInvoiceCreate = ({
   milestones,
   token,
   toast,
+  onTxSuccess,
 }: UseInvoiceCreate) => {
   const chainId = useChainId();
 
   const localInvoiceFactory = invoiceFactory(chainId);
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
+  const { data: fullTokenData } = useFetchTokens();
+  const { tokenData } = _.pick(fullTokenData, ['tokenData']);
 
   const invoiceToken = getTokenInfo(chainId, token, tokenData);
 
   const detailsData = {
     projectName,
     projectDescription,
-    projectAgreement: _.get(_.first(projectAgreement), 'src'),
+    projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
     startDate,
     endDate,
   };
@@ -68,7 +78,7 @@ export const useInvoiceCreate = ({
   const escrowData = useMemo(() => {
     if (
       !client ||
-      !resolver ||
+      !(resolver || customResolver) ||
       !token ||
       !safetyValveDate ||
       !wrappedNativeToken(chainId) ||
@@ -94,7 +104,7 @@ export const useInvoiceCreate = ({
       [
         client,
         1,
-        resolver, // address _resolver (LEX DAO resolver address)
+        customResolver || resolver, // address _resolver (LEX DAO resolver address)
         token, // address _token (payment token address)
         BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date
         details, // bytes32 _details detailHash
@@ -134,9 +144,11 @@ export const useInvoiceCreate = ({
     isLoading,
   } = useContractWrite({
     ...config,
-    onSuccess: result => {
-      // TODO handle tx catch, subgraph result, and invalidate cache
-      console.log(result);
+    onSuccess: async result => {
+      const { hash } = result;
+      const data = await waitForTransaction({ chainId, hash });
+
+      onTxSuccess?.(data);
     },
     onError: error => {
       if (

@@ -1,19 +1,21 @@
-import { render, screen } from '@testing-library/react';
-import Home from '../../pages';
 import '@testing-library/jest-dom';
+
 import { useBreakpointValue } from '@chakra-ui/react';
+import { render, screen } from '@testing-library/react';
+
+import Home from '../../pages';
 
 jest.mock('@chakra-ui/react', () => ({
   ...jest.requireActual('@chakra-ui/react'),
   useBreakpointValue: jest.fn(),
 }));
 
-describe('Home component', () => {
-  beforeEach(() => {
+describe('Home component', function () {
+  beforeEach(function () {
     (useBreakpointValue as jest.Mock).mockReturnValue('md');
   });
 
-  it('renders correctly', () => {
+  it('renders correctly', function () {
     render(<Home />);
     expect(screen.getByText('Welcome to Smart Invoice')).toBeInTheDocument();
     expect(

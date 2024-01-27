@@ -59,6 +59,11 @@ export function FormConfirmation({
     lg: '70%',
   });
 
+  const onTxSuccess = () => {
+    // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
+    toast.success({ title: 'Invoice Created' });
+  };
+
   const { writeAsync } = useInvoiceCreate({
     projectName,
     projectDescription,
@@ -73,6 +78,7 @@ export function FormConfirmation({
     milestones,
     token,
     toast,
+    onTxSuccess,
   });
 
   const handleSubmit = async () => {

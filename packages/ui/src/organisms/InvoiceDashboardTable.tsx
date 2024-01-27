@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 import { Button, Flex, Heading, HStack, IconButton } from '@chakra-ui/react';
 import {
