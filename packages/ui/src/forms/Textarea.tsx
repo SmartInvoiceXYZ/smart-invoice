@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FormControl,
   FormErrorMessage,
@@ -8,11 +9,11 @@ import {
   Stack,
   Textarea as ChakraTextarea,
   TextareaProps as ChakraTextareaProps,
+  Tooltip,
 } from '@chakra-ui/react';
+import _ from 'lodash';
 import React from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
-
-// import { Tooltip } from '../../atoms';
 
 export type CustomTextareaProps = {
   label: string | React.ReactNode;
@@ -46,11 +47,14 @@ export function Textarea({
   const error = errors[name] && errors[name]?.message;
 
   return (
-    <FormControl>
+    <FormControl
+      isRequired={_.includes(_.keys(registerOptions), 'required')}
+      isInvalid={!!error}
+    >
       <Stack spacing={4}>
         <HStack align="center">
           {label && <FormLabel m="0">{label}</FormLabel>}
-          {/* {tooltip && (
+          {tooltip && (
             <Tooltip
               label={tooltip}
               shouldWrapChildren
@@ -58,14 +62,14 @@ export function Textarea({
               placement="end"
             >
               <Icon
-                as={FaInfoCircle}
+                as={InfoOutlineIcon}
                 boxSize={3}
-                color="red.500"
+                color="blue.500"
                 bg="white"
                 borderRadius="full"
               />
             </Tooltip>
-          )} */}
+          )}
         </HStack>
 
         <ChakraTextarea {...props} {...register(name, registerOptions)} />

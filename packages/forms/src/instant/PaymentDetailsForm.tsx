@@ -1,4 +1,4 @@
-import { SimpleGrid, Text, Stack } from '@chakra-ui/react';
+import { SimpleGrid, Stack, Text } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';
 import { Input, Select } from '@smart-invoice/ui';

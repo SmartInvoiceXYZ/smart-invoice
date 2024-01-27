@@ -1,20 +1,12 @@
-import {
-  SMART_INVOICE_ESCROW_ABI,
-  SMART_INVOICE_FACTORY_ABI,
-  SMART_INVOICE_INSTANT_ABI,
-} from '@smart-invoice/constants';
-import {
-  Address,
-  Chain,
-  Hash,
-  Hex,
-  isAddress,
-  isHex,
-  WalletClient,
-} from 'viem';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
+// import { TokenBalance } from '@smart-invoice/graphql';
+import _ from 'lodash';
+import { Address, Chain, formatUnits, Hash, isAddress } from 'viem';
 
-import { readContract, readEvent, writeContract } from './contracts';
 import { getInvoiceFactoryAddress, logError } from './helpers';
+
+// TODO sort out Invoice/TokenBalance import
 
 export const sevenDaysFromNow = () => {
   const localDate = new Date();
@@ -28,38 +20,110 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
-export const depositedMilestones = (deposited: bigint, amounts: number[]) => {
+export const depositedMilestones = (invoice: any) => {
+  const { amounts, deposited } = _.pick(invoice, ['amounts', 'deposited']);
   let sum = BigInt(0);
-  return amounts.map(a => {
+  return _.map(amounts, a => {
     sum += BigInt(a);
     return deposited >= sum;
   });
 };
 
-export const register = async (
-  address: Address,
-  walletClient: WalletClient,
-  recipient: Address,
-  amounts: bigint[],
-  data: Hex,
-  type: Hex,
-) => {
-  if (!walletClient) throw new Error('Invalid wallet client');
-  if (!walletClient.chain) throw new Error('Invalid chain');
-  if (!isAddress(address)) throw new Error('Invalid address');
-  if (!isAddress(recipient)) throw new Error('Invalid recipient');
-  if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
-  if (!isHex(data)) throw new Error('Invalid data');
-  if (!isHex(type)) throw new Error('Invalid type');
+export const totalDeposited = (invoice: any) => {
+  const { released, balance } = _.pick(invoice, ['released', 'balance']);
 
-  return undefined;
-  // return writeContract({
-  //   abi: ISmartInvoiceFactoryAbi,
-  //   address,
-  //   walletClient,
-  //   functionName: 'create',
-  //   args: [recipient, amounts, data, type],
-  // });
+  if (!released || !balance) return undefined;
+  return BigInt(released) + BigInt(balance);
+};
+
+export const totalAmount = (invoice: any) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
+
+  return _.reduce(
+    amounts,
+    (sum, a) => {
+      return sum + BigInt(a);
+    },
+    BigInt(0),
+  );
+};
+
+export const totalDue = (invoice: any) => {
+  const { deposited, total } = _.pick(invoice, ['deposited', 'total']);
+
+  if (!deposited || !total) return undefined;
+  return deposited > total ? BigInt(0) : BigInt(total) - deposited;
+};
+
+export const lastDispute = (invoice: any) => {
+  const { isLocked, disputes } = _.pick(invoice, ['isLocked', 'disputes']);
+
+  if (!isLocked || _.isEmpty(disputes)) return undefined;
+  return disputes[_.size(disputes) - 1];
+};
+
+export const lastResolution = (invoice: any) => {
+  const { isLocked, resolutions } = _.pick(invoice, [
+    'isLocked',
+    'resolutions',
+  ]);
+
+  if (!isLocked || _.isEmpty(resolutions)) return undefined;
+  return resolutions[_.size(resolutions) - 1];
+};
+
+export const isInvoiceExpired = (invoice: any) => {
+  const { terminationTime } = _.pick(invoice, ['terminationTime']);
+
+  if (!terminationTime) return false;
+  return terminationTime <= new Date().getTime() / 1000;
+};
+
+export const currentMilestoneAmount = (
+  invoice: any,
+  currentMilestone: number,
+) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
+
+  if (Number(currentMilestone) < _.size(amounts)) {
+    return amounts[Number(currentMilestone)];
+  }
+  return BigInt(0);
+};
+
+export const isMilestoneReleasable = (
+  invoice: any,
+  tokenBalance: any,
+  currentMilestone: number,
+) => {
+  const { isLocked } = _.pick(invoice, ['isLocked']);
+  const amount = currentMilestoneAmount(invoice, currentMilestone);
+
+  if (!isLocked && amount && tokenBalance?.value) {
+    return tokenBalance.value >= BigInt(amount) && BigInt(amount) > BigInt(0);
+  }
+  return false;
+};
+
+export const isLockable = (invoice: any, tokenBalance: any) => {
+  const { isLocked, isExpired } = _.pick(invoice, ['isLocked', 'isExpired']);
+  if (isLocked || isExpired) return false;
+
+  return !isLocked && !isExpired && tokenBalance?.value > BigInt(0);
+};
+
+export const convertAmountsType = (invoice: any) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
+
+  return _.map(amounts, a => BigInt(a));
+};
+
+// Invoice, TokenMetadata
+export const parseMilestoneAmounts = (invoice: any, tokenMetadata: any) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
+  const { decimals } = tokenMetadata;
+
+  return _.map(amounts, a => _.toNumber(formatUnits(BigInt(a), decimals)));
 };
 
 export const awaitInvoiceAddress = async (chainId: number, hash: Hash) => {
@@ -93,9 +157,9 @@ export const getResolutionRateFromFactory = async (
 ) => {
   if (!isAddress(resolver)) return defaultValue;
   try {
-    // const address = getInvoiceFactoryAddress(chain.id);
-    // const [resolutionRate] = await readContract({
-    //   abi: ISmartInvoiceFactoryAbi,
+    const address = getInvoiceFactoryAddress(chain.id);
+    // const [resolutionRate] = await readContract(client, {
+    //   abi: SMART_INVOICE_FACTORY_ABI,
     //   address,
     //   chain,
     //   functionName: 'resolutionRateOf',
@@ -108,128 +172,3 @@ export const getResolutionRateFromFactory = async (
     return defaultValue;
   }
 };
-
-// export const release = async (walletClient: WalletClient, address: Address) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'release',
-//     args: [],
-//   });
-// };
-
-// export const withdraw = async (
-//   walletClient: WalletClient,
-//   address: Address,
-// ) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'withdraw',
-//     args: [],
-//   });
-// };
-
-// export const lock = async (
-//   walletClient: WalletClient,
-//   address: Address,
-//   detailsHash: Hash, // 32 bits hex
-// ) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-//   if (!isHex(detailsHash)) throw new Error('Invalid details hash');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'lock',
-//     args: [detailsHash],
-//   });
-// };
-
-// export const resolve = async (
-//   walletClient: WalletClient,
-//   address: Address,
-//   clientAward: any,
-//   providerAward: any,
-//   detailsHash: Hash, // 32 bits hex
-// ) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-//   if (!isHex(detailsHash)) throw new Error('Invalid details hash');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'resolve',
-//     args: [clientAward, providerAward, detailsHash],
-//   });
-// };
-
-// export const addMilestones = async (
-//   walletClient: WalletClient,
-//   address: Address,
-//   amounts: bigint[],
-// ) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-//   if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'addMilestones',
-//     args: [amounts],
-//   });
-// };
-
-// export const addMilestonesWithDetails = async (
-//   walletClient: WalletClient,
-//   address: Address,
-//   amounts: bigint[],
-//   details: Hex,
-// ) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-//   if (!Array.isArray(amounts)) throw new Error('Invalid amounts');
-//   if (!isHex(details)) throw new Error('Invalid details');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'addMilestones',
-//     args: [amounts, details],
-//   });
-// };
-
-// export const verify = async (walletClient: WalletClient, address: Address) => {
-//   if (!walletClient) throw new Error('Invalid wallet client');
-//   if (!walletClient.chain) throw new Error('Invalid chain');
-//   if (!isAddress(address)) throw new Error('Invalid address');
-
-//   return writeContract({
-//     abi: ISmartInvoiceEscrowAbi,
-//     address,
-//     walletClient,
-//     functionName: 'verify',
-//     args: [],
-//   });
-// };

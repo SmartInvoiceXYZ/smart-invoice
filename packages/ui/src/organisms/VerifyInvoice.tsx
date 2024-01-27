@@ -1,11 +1,8 @@
-import { Button, Spinner, Text, Stack } from '@chakra-ui/react';
+import { Button, Stack, Text } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { useInvoiceVerify } from '@smart-invoice/hooks';
-import { logError } from '@smart-invoice/utils';
-import React, { useEffect, useState } from 'react';
-import { Hash, isAddress } from 'viem';
-import { useChainId, useWalletClient } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { isAddress, TransactionReceipt } from 'viem';
+import { useChainId } from 'wagmi';
 
 import { useToast } from '../hooks';
 
@@ -23,61 +20,40 @@ export function VerifyInvoice({
   const chainId = useChainId();
   const toast = useToast();
   const { address } = invoice || {};
-  const [txHash, setTxHash] = useState<Hash>();
 
   const validAddress = address && isAddress(address) ? address : undefined;
 
-  const { writeAsync } = useInvoiceVerify({
+  const onTxSuccess = (tx: TransactionReceipt) => {
+    console.log('tx', tx);
+    // TODO handle tx success
+    // parse logs
+    // wait for subgraph
+    // invalidate query
+  };
+
+  const { writeAsync, isLoading } = useInvoiceVerify({
     address: validAddress,
     chainId,
     toast,
+    onTxSuccess,
   });
-
-  // const verifyInvoice = async () => {
-  //   try {
-  //     if (!walletClient || !validAddress) {
-  //       logError('verifyInvoice: walletClient is null');
-  //       return;
-  //     }
-  //     const hash = '0x'; // await verify(walletClient, validAddress);
-  //     setTxHash(hash);
-  //     const chainId = walletClient.chain.id;
-  //     const txReceipt = await waitForTransaction({ chainId, hash });
-  //     if (txReceipt.status === 'success') setVerifiedStatus(true);
-  //   } catch (verifyError) {
-  //     logError({ verifyError });
-  //   }
-  // };
 
   if (verifiedStatus || !isClient) return null;
 
   return (
     <Stack w="100%" spacing="rem" alignItems="start">
-      {txHash ? (
-        <Button
-          size="xs"
-          colorScheme="blue"
-          variant="outline"
-          fontWeight="bold"
-          fontFamily="mono"
-          textTransform="uppercase"
-        >
-          <Text>verifying...</Text>
-
-          <Spinner ml="1" size="sm" />
-        </Button>
-      ) : (
-        <Button
-          size="xs"
-          colorScheme="blue"
-          fontWeight="normal"
-          fontFamily="mono"
-          textTransform="uppercase"
-          onClick={() => writeAsync?.()}
-        >
-          <Text>Enable Non-Client Account Deposits</Text>
-        </Button>
-      )}
+      <Button
+        size="xs"
+        colorScheme="blue"
+        fontWeight="normal"
+        fontFamily="mono"
+        textTransform="uppercase"
+        isLoading={isLoading}
+        isDisabled={!writeAsync}
+        onClick={() => writeAsync?.()}
+      >
+        <Text>Enable Non-Client Account Deposits</Text>
+      </Button>
     </Stack>
   );
 }

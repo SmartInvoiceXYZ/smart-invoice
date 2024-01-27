@@ -27,19 +27,23 @@ function ViewInvoice() {
     ? parseInt(String(hexChainId), 16)
     : undefined;
 
-  const { data: invoice } = useInvoiceDetails({ chainId, address: invoiceId });
+  const { invoiceDetails } = useInvoiceDetails({
+    chainId,
+    address: invoiceId,
+  });
+  console.log(invoiceDetails);
 
-  if (!isAddress(invoiceId) || invoice === null) {
+  if (!isAddress(invoiceId) || invoiceDetails === null) {
     return <InvoiceNotFound />;
   }
 
-  if (invoice && chainId !== invoiceChainId) {
+  if (invoiceDetails && chainId !== invoiceChainId) {
     return (
       <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
-  if (!invoice) {
+  if (!invoiceDetails) {
     return (
       <Container overlay>
         <Loader size="80" />
@@ -58,12 +62,12 @@ function ViewInvoice() {
         px="1rem"
         py="8rem"
       >
-        <InvoiceMetaDetails invoice={invoice} />
+        <InvoiceMetaDetails invoice={invoiceDetails} />
 
         <Stack minW={{ base: '90%', md: '50%' }}>
-          <InvoicePaymentDetails invoice={invoice} />
+          <InvoicePaymentDetails invoice={invoiceDetails} />
           <InvoiceButtonManager
-            invoice={invoice}
+            invoice={invoiceDetails}
             modals={modals}
             setModals={setModals}
           />

@@ -1,4 +1,4 @@
-import { IModals } from '@smart-invoice/types';
+import { Modals } from '@smart-invoice/types';
 import React, {
   createContext,
   ReactNode,
@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 
-const defaults: IModals = {
+const defaults: Modals = {
   networkChange: false,
   deposit: false,
   lock: false,
@@ -18,8 +18,8 @@ const defaults: IModals = {
 };
 
 export type OverlayContextType = {
-  modals: IModals;
-  setModals: (modals: Partial<IModals>) => void;
+  modals: Modals;
+  setModals: (modals: Partial<Modals>) => void;
   closeModals: () => void;
 };
 
@@ -32,7 +32,7 @@ interface OverlayProviderProps {
 export function OverlayContextProvider({ children }: OverlayProviderProps) {
   const [modals, setModals] = useState(defaults);
 
-  const showModal = (m: Partial<IModals>) => {
+  const showModal = (m: Partial<Modals>) => {
     // This allows to show only one modal at a time.
     // In addition, this reset any true value for other modals.
     setModals({ ...defaults, ...m });

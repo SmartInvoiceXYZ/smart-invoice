@@ -26,6 +26,8 @@ import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
+// TODO move FieldArray to its own component?
+
 const validationSchema = Yup.object().shape({
   milestones: Yup.array()
     .min(1, 'At least one milestone is required!')

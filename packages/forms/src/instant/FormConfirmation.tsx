@@ -3,9 +3,9 @@ import {
   Flex,
   Link,
   Spacer,
+  Stack,
   Text,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { TokenData } from '@smart-invoice/types';

@@ -26,7 +26,7 @@ import {
   logError,
   // addMilestones,
   // addMilestonesWithDetails,
-  uploadMetadata,
+  // uploadMetadata,
   // waitForTransaction,
 } from '@smart-invoice/utils';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -318,7 +318,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
               Potential Dispute Fee:
             </Text>
 
-            <Text>
+            {/* <Text>
               {`${
                 addedTotalInput
                   ? (
@@ -330,7 +330,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                       calculateResolutionFeePercentage(resolutionRate)
                     ).toFixed(5)
               } ${symbol}`}
-            </Text>
+            </Text> */}
           </HStack>
         ) : null}
       </Flex>

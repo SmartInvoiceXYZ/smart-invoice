@@ -1,54 +1,50 @@
-import {
-  Button,
-  Heading,
-  Spinner,
-  Stack,
-  Text,
-  // Link,
-  useToast,
-} from '@chakra-ui/react';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import {
-  useFetchTokens,
-  usePollSubgraph,
-  useRelease,
-} from '@smart-invoice/hooks';
-import { getTokenSymbol } from '@smart-invoice/utils/src';
+import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
+import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
+import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
+import { useToast } from '@smart-invoice/ui';
 import _ from 'lodash';
-// import { getTokenSymbol } from '@smart-invoice/utils';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 type ReleaseFundsProp = {
-  invoice: Invoice;
-  balance: bigint;
+  invoice: InvoiceDetails;
 };
 
 export const getReleaseAmount = (
-  currentMilestone: any,
-  amounts: any,
-  balance: any,
+  currentMilestone: number | undefined,
+  amounts: bigint[] | undefined,
+  balance: bigint | undefined,
 ) => {
   if (
-    currentMilestone >= amounts.length ||
-    (currentMilestone === amounts.length - 1 &&
-      balance.gte(amounts[currentMilestone]))
+    !currentMilestone ||
+    currentMilestone >= _.size(amounts) ||
+    (currentMilestone === _.size(amounts) - 1 &&
+      balance &&
+      amounts &&
+      balance > amounts[currentMilestone])
   ) {
-    return balance;
+    return balance || BigInt(0);
   }
-  return BigInt(amounts[currentMilestone]);
+  return amounts ? BigInt(amounts?.[currentMilestone]) : BigInt(0);
 };
 
-export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
+export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
   const toast = useToast();
   const chainId = useChainId();
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
 
-  const { address, currentMilestone, amounts, token, released } = _.pick(
-    invoice,
-    ['address', 'currentMilestone', 'amounts', 'token', 'released'],
-  );
+  const {
+    address,
+    currentMilestoneNumber,
+    bigintAmounts,
+    released,
+    tokenBalance,
+  } = _.pick(invoice, [
+    'address',
+    'currentMilestoneNumber',
+    'bigintAmounts',
+    'released',
+    'tokenBalance',
+  ]);
 
   const waitForRelease = usePollSubgraph({
     label: 'waiting for funds to be released',
@@ -58,34 +54,16 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
   });
 
   const onSuccess = async () => {
+    // TODO handle tx success
     await waitForRelease();
-    // toast.success({ title: 'Funds released successfully' });
+    toast.success({ title: 'Funds released successfully' });
+    // invalidate cache
   };
 
   const { writeAsync: releaseFunds, isLoading } = useRelease({
     invoice,
     onSuccess,
   });
-
-  // const pollSubgraph = async () => {
-  //   let isSubscribed = true;
-
-  //   const interval = setInterval(async () => {
-  //     let inv = await getInvoice(parseInt(chainId), invoice_id);
-
-  //     if (isSubscribed && !!inv) {
-  //       if (
-  //         utils.formatUnits(inv.released, 18) >
-  //         utils.formatUnits(invoice.released, 18)
-  //       ) {
-  //         isSubscribed = false;
-  //         clearInterval(interval);
-
-  //         window.location.reload();
-  //       }
-  //     }
-  //   }, 5000);
-  // };
 
   return (
     <Stack w="100%" spacing="1rem" align="center">
@@ -124,9 +102,13 @@ export function ReleaseFunds({ invoice, balance }: ReleaseFundsProp) {
           fontWeight="bold"
           textAlign="center"
         >{`${formatUnits(
-          getReleaseAmount(currentMilestone, amounts, balance),
-          18,
-        )} ${getTokenSymbol(chainId, token, tokenData)}`}</Text>
+          getReleaseAmount(
+            currentMilestoneNumber,
+            bigintAmounts,
+            tokenBalance?.value,
+          ),
+          tokenBalance?.decimals || 18,
+        )} ${tokenBalance?.symbol}`}</Text>
       </Stack>
       {/* {transaction && (
         <Text textAlign='center' fontSize='sm'>

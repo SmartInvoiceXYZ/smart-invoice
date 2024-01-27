@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { logDebug } from '@smart-invoice/utils';
-import { Address, isAddress } from 'viem';
+import { Address, Hex, isAddress } from 'viem';
 
 import { clients } from './client';
 import { scalars } from './scalars';
@@ -154,7 +154,50 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
   return data.invoice;
 };
 
+export type TokenMetadata = {
+  address: Hex;
+  name: string;
+  symbol: string;
+  decimals: number;
+  totalSupply: {
+    formatted: string;
+    value: bigint;
+  };
+};
+
+export type TokenBalance = {
+  formatted: string;
+  decimals: number;
+  symbol: string;
+  value: bigint;
+};
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
-export type InvoiceDetails = {
-  tokenMetadata: any; // TokenMetadata;
-} & Invoice;
+export type InvoiceDetails = Invoice & {
+  // conversions
+  currentMilestoneNumber: number;
+  chainId: number | undefined;
+  // computed values
+  deposited: bigint | undefined;
+  due: bigint | undefined;
+  total: bigint | undefined;
+  currentMilestoneAmount: bigint | undefined;
+  bigintAmounts: bigint[];
+  parsedAmounts: number[];
+  depositedMilestones: boolean[];
+  detailsHash: string | undefined;
+  // entities
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dispute?: any; // Dispute;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolution?: any; // Resolution;
+  // flags
+  isExpired: boolean;
+  isReleasable: boolean;
+  isLockable: boolean;
+  isWithdrawable: boolean;
+  // token data
+  tokenMetadata: TokenMetadata | undefined;
+  tokenBalance: TokenBalance | undefined;
+  nativeBalance: TokenBalance | undefined;
+};

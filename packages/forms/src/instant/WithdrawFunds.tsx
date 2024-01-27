@@ -2,9 +2,9 @@ import {
   Button,
   Heading,
   Link,
+  Stack,
   Text,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';

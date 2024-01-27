@@ -7,86 +7,53 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
-import { useFetchTokens } from '@smart-invoice/hooks/src';
-import {
-  commify,
-  getTokenInfo,
-  getTokenSymbol,
-  getTxLink,
-  // ipfsUrl,
-} from '@smart-invoice/utils';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { AccountLink } from '@smart-invoice/ui/src';
+import { commify, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
-import { useBalance, useChainId } from 'wagmi';
+import { useChainId } from 'wagmi';
 
-export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
+export function InvoicePaymentDetails({
+  invoice,
+}: {
+  invoice: InvoiceDetails;
+}) {
   const chainId = useChainId();
 
   const {
     released,
+    deposited,
+    due,
     total,
-    token,
-    address: invoiceAddress,
-    isLocked,
-    disputes,
-    resolutions,
-    terminationTime,
+    resolver,
     currentMilestone,
+    tokenBalance,
     amounts,
+    currentMilestoneAmount,
     deposits,
     releases,
+    dispute,
+    resolution,
+    isReleasable,
+    isExpired,
   } = _.pick(invoice, [
-    'resolver',
-    'token',
+    'deposited',
+    'due',
     'total',
-    'address',
-    'isLocked',
-    'disputes',
-    'resolutions',
-    'terminationTime',
+    'resolver',
     'releases',
     'released',
     'deposits',
     'amounts',
+    'currentMilestoneAmount',
     'currentMilestone',
+    'tokenBalance',
+    'dispute',
+    'resolution',
+    'isReleasable',
+    'isExpired',
   ]);
-
-  // console.log(invoiceAddress, token, chainId);
-  const { data: rawTokenData } = useFetchTokens();
-  const { tokenData } = _.pick(rawTokenData, ['tokenData']);
-  const { data } = useBalance({
-    address: invoiceAddress as Hex,
-    token: token as Hex,
-  });
-  const balance = data?.value || BigInt(0);
-  // console.log('balance', balance, isLoading, error, status);
-
-  const deposited = released && BigInt(released) + BigInt(balance);
-  const due =
-    deposited &&
-    total &&
-    (deposited > total ? BigInt(0) : BigInt(total) - deposited);
-  const dispute =
-    isLocked && !_.isEmpty(disputes)
-      ? disputes?.[_.size(disputes) - 1]
-      : undefined;
-  const resolution =
-    !isLocked && _.isEmpty(resolutions)
-      ? undefined
-      : resolutions?.[_.size(resolutions) - 1];
-  const isExpired = terminationTime
-    ? terminationTime <= new Date().getTime() / 1000
-    : false;
-  const amount =
-    Number(currentMilestone) < _.size(amounts)
-      ? amounts?.[Number(currentMilestone)]
-      : BigInt(0);
-  const isReleasable =
-    !isLocked && amount ? balance >= BigInt(amount) && balance > 0 : false;
-  // const sum = _.sumBy(amounts, _.toNumber);
-
-  const tokenInfo = getTokenInfo(chainId, token, tokenData);
 
   const details = [
     deposited && { label: 'Total Deposited', value: deposited },
@@ -102,8 +69,8 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
             <Text variant="textOne">Total Project Amount</Text>
             {!!total && (
               <Text variant="textOne">
-                {commify(formatUnits(total, 18))}{' '}
-                {getTokenSymbol(chainId, token, tokenData)}
+                {commify(formatUnits(total, tokenBalance?.decimals || 18))}{' '}
+                {tokenBalance?.symbol}
               </Text>
             )}
           </HStack>
@@ -187,11 +154,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                     <Text
                       textAlign="right"
                       fontWeight="500"
-                    >{`${commify(formatUnits(BigInt(amt), 18))} ${getTokenSymbol(
-                      chainId,
-                      token,
-                      tokenData,
-                    )}`}</Text>
+                    >{`${commify(formatUnits(BigInt(amt), tokenBalance?.decimals || 18))} ${tokenBalance?.symbol}`}</Text>
                   </HStack>
                 </Flex>
               );
@@ -204,8 +167,10 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
             <HStack justifyContent="space-between" key={detail.label}>
               <Text>{detail.label}</Text>
               <Text>
-                {commify(formatUnits(detail.value, tokenInfo?.decimals))}{' '}
-                {tokenInfo?.symbol}
+                {commify(
+                  formatUnits(detail.value, tokenBalance?.decimals || 18),
+                )}{' '}
+                {tokenBalance?.symbol}
               </Text>
             </HStack>
           ))}
@@ -225,10 +190,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               <>
                 <Text>Remaining Balance</Text>
                 <Text textAlign="right">
-                  {`${formatUnits(
-                    balance,
-                    18,
-                  )} ${getTokenSymbol(chainId, token, tokenData)}`}{' '}
+                  {`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}{' '}
                 </Text>
               </>
             ) : (
@@ -237,17 +199,21 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
                   {isReleasable && 'Next Amount to Release'}
                   {!isReleasable && 'Total Due Today'}
                 </Text>
-                {!!amount && (
+                {!!currentMilestoneAmount && (
                   <Text textAlign="right">
-                    {`${commify(
-                      formatUnits(
-                        isReleasable
-                          ? BigInt(amount)
-                          : BigInt(amount) - balance,
-                        18,
-                      ),
-                    )} 
-                  ${getTokenSymbol(chainId, token, tokenData)}`}
+                    {`${
+                      tokenBalance?.value &&
+                      commify(
+                        formatUnits(
+                          isReleasable
+                            ? BigInt(currentMilestoneAmount)
+                            : BigInt(currentMilestoneAmount) -
+                                tokenBalance.value,
+                          18,
+                        ),
+                      )
+                    } 
+                  ${tokenBalance?.symbol}`}
                   </Text>
                 )}
               </>
@@ -264,12 +230,11 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               fontSize="lg"
             >
               <Text>Amount Locked</Text>
-              <Text textAlign="right">{`${formatUnits(balance, 18)}`}</Text>
-              {/* ${parseTokenAddress(chainId, invoice.token)}`}</Text> */}
+              <Text textAlign="right">{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
             </Flex>
             <Text color="purple">
               {`A dispute is in progress with `}
-              {/* <AccountLink address={resolver} chainId={chainId} /> */}
+              <AccountLink address={resolver as Hex} chainId={chainId} />
               <br />
               {/* <Link href={ipfsUrl(dispute.ipfsHash)} isExternal>
                 <u>View details on IPFS</u>
@@ -291,15 +256,14 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
               fontSize="lg"
             >
               <Text>Amount Dispersed</Text>
-              {/* <Text textAlign="right">{`${formatUnits(
+              <Text textAlign="right">{`${formatUnits(
                 BigInt(resolution.clientAward) +
                   resolution.providerAward +
                   resolution.resolutionFee
                   ? resolution.resolutionFee
                   : 0,
                 18,
-              )}`}</Text> */}
-              {/* ${parseTokenAddress(chainId, invoice.token)}`}</Text> */}
+              )} ${tokenBalance?.symbol}`}</Text>
             </Flex>
             <Flex
               justify="space-between"

@@ -1,25 +1,14 @@
-import {
-  Button,
-  Heading,
-  // Link,
-  Spinner,
-  Stack,
-  Text,
-} from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
+import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useWithdraw } from '@smart-invoice/hooks';
 import { getTxLink } from '@smart-invoice/utils';
-import { formatUnits } from 'viem';
+import _ from 'lodash';
 import { useChainId } from 'wagmi';
 
-export function WithdrawFunds({
-  invoice,
-  balance,
-}: {
-  invoice: Invoice;
-  balance: bigint;
-}) {
+export function WithdrawFunds({ invoice }: { invoice: InvoiceDetails }) {
   const chainId = useChainId();
+
+  const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
   // const onSuccess = () => {
   //   // toast
@@ -47,15 +36,12 @@ export function WithdrawFunds({
         <Text color="primary.300" fontSize="0.875rem" textAlign="center">
           Amount To Be Withdrawn
         </Text>
-        {/* <Text
-          color='yellow'
-          fontSize='1rem'
-          fontWeight='bold'
-          textAlign='center'
-        >{`${formatUnits(balance, 18)} ${parseTokenAddress(
-          chainId,
-          invoice?.token
-        )}`}</Text> */}
+        <Text
+          color="yellow"
+          fontSize="1rem"
+          fontWeight="bold"
+          textAlign="center"
+        >{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
       </Stack>
       {/* {transaction && (
         <Text textAlign='center' fontSize='sm'>

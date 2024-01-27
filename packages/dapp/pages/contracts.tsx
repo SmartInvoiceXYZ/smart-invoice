@@ -83,7 +83,8 @@ function Contracts() {
                     {TOKENS?.map(token => {
                       return (
                         <Text textAlign="center" key={token}>
-                          {`ERC20 TOKEN ${getTokenSymbol(chainId, token, tokenData)}: `}
+                          {getTokenSymbol(chainId, token, tokenData)}
+                          {': '}
 
                           <Link
                             href={getAddressLink(chainId, token)}

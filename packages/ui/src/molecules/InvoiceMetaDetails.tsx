@@ -175,7 +175,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
 
       <Stack fontSize="sm" color="grey" align="stretch" justify="center">
         {_.map(_.compact(details), ({ label, value, tip }) => (
-          <Wrap>
+          <Wrap key={label}>
             <WrapItem>
               <Text>{label}</Text>
             </WrapItem>

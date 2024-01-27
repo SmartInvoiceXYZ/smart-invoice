@@ -1,38 +1,26 @@
-import {
-  Button,
-  Heading,
-  InputGroup,
-  InputRightElement,
-  NumberInput,
-  Spinner,
-  Stack,
-  Text,
-  Textarea,
-} from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
+import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useResolve } from '@smart-invoice/hooks';
+import { NumberInput, Textarea, TokenDescriptor } from '@smart-invoice/ui';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatUnits, parseUnits } from 'viem';
-import { useChainId } from 'wagmi';
 
 // TODO handle onChange for award amounts
 
 export function ResolveFunds({
   invoice,
-  balance,
   close,
 }: {
-  invoice: Invoice;
-  balance: bigint;
+  invoice: InvoiceDetails;
   close: () => void;
 }) {
-  const { resolutionRate, token } = _.pick(invoice, [
+  const { resolutionRate, tokenBalance, tokenMetadata } = _.pick(invoice, [
     'resolutionRate',
-    'token',
+    'tokenBalance',
+    'tokenMetadata',
   ]);
-  const chainId = useChainId();
 
   const isLocked = true;
 
@@ -43,14 +31,15 @@ export function ResolveFunds({
     if (
       !resolutionRate ||
       resolutionRate === BigInt(0) ||
-      balance === BigInt(0)
+      tokenBalance?.value === BigInt(0)
     ) {
       return 0;
     }
-    return _.toNumber(formatUnits(balance / resolutionRate, 18));
-  }, [balance, resolutionRate]);
+    const bal = tokenBalance?.value;
+    return bal ? _.toNumber(formatUnits(bal / resolutionRate, 18)) : 0;
+  }, [tokenBalance?.value, resolutionRate]);
 
-  const availableFunds = _.toNumber(formatUnits(balance, 18)) - resolverAward;
+  const availableFunds = _.toNumber(tokenBalance?.formatted) - resolverAward;
 
   const clientAward = watch('clientAward');
   const providerAward = watch('providerAward');
@@ -105,19 +94,9 @@ export function ResolveFunds({
         >
           Resolve Dispute
         </Heading>
-        {/* <Text textAlign='center' fontSize='sm' mb='1rem'>
-          {isLocked
-            ? `You'll need to distribute the total balance of ${formatUnits(
-                balance,
-                18
-              )} ${parseTokenAddress(
-                chainId,
-                token
-              )} between the client and provider, excluding the ${
-                resolutionRate === 0 ? '0' : 100 / resolutionRate
-              }% arbitration fee which you shall receive.`
-            : `Invoice is not locked`}
-        </Text> */}
+        <Text textAlign="center" fontSize="sm" mb="1rem">
+          Invoice is not locked
+        </Text>
         <Button
           onClick={close}
           variant="solid"
@@ -141,85 +120,74 @@ export function ResolveFunds({
       >
         Resolve Dispute
       </Heading>
-      {/* <Text textAlign='center' fontSize='sm' mb='1rem'>
-        {`You'll need to distribute the total balance of ${formatUnits(
-          balance,
-          18
-        )} ${parseTokenAddress(
-          chainId,
-          token
-        )} between the client and provider, excluding the ${
-          resolutionRate === 0 ? '0' : 100 / resolutionRate
+      <Text textAlign="center" fontSize="sm" mb="1rem">
+        {`You'll need to distribute the total balance of ${
+          tokenBalance?.formatted
+        } ${tokenMetadata?.symbol} between the client and provider, excluding the ${
+          resolutionRate === BigInt(0) ? '0' : BigInt(100) / resolutionRate
         }% arbitration fee which you shall receive.`}
-      </Text> */}
+      </Text>
 
-      {/* <Textarea
-        name='comments'
-        tooltip='Here you may explain your reasoning behind the resolution'
-        label='Resolution Comments'
-        placeholder='Resolution Comments'
+      <Textarea
+        name="comments"
+        tooltip="Here you may explain your reasoning behind the resolution"
+        label="Resolution Comments"
+        placeholder="Resolution Comments"
         localForm={localForm}
         maxLength={10000}
-      /> */}
+      />
 
-      <InputGroup>
-        {/* <NumberInput
-          name='clientAward'
-          label='Client Award'
-          localForm={localForm}
-          placeholder='Client Award'
-          registerOptions={{
-            onChange: (value) => {
-              if (value > availableFunds) {
-                setValue('clientAward', availableFunds);
-                setValue('providerAward', 0);
-              }
-              setValue('providerAward', availableFunds - value);
-            },
-          }}
-        />
-        <InputRightElement w='3.5rem' color='yellow'>
-          {parseTokenAddress(chainId, token)}
-        </InputRightElement> */}
-      </InputGroup>
-      <InputGroup>
-        {/* <NumberInput
-          name='providerAward'
-          label='Provider Award'
-          localForm={localForm}
-          placeholder='Provider Award'
-          registerOptions={{
-            onChange: (value) => {
-              if (value > availableFunds) {
-                setValue('providerAward', availableFunds);
-                setValue('clientAward', 0);
-              }
-              setValue('clientAward', availableFunds - value);
-            },
-          }}
-        />
-        <InputRightElement w='3.5rem' color='yellow'>
-          {parseTokenAddress(chainId, token)}
-        </InputRightElement> */}
-      </InputGroup>
-      <InputGroup>
-        {/* <NumberInput
-          name='resolverAward'
-          label='Arbitration Fee'
-          localForm={localForm}
-          isDisabled
-        />
-        <InputRightElement w='3.5rem' color='yellow'>
-          {parseTokenAddress(chainId, token)}
-        </InputRightElement> */}
-      </InputGroup>
+      <NumberInput
+        name="clientAward"
+        label="Client Award"
+        localForm={localForm}
+        placeholder="Client Award"
+        registerOptions={{
+          onChange: value => {
+            if (value > availableFunds) {
+              setValue('clientAward', availableFunds);
+              setValue('providerAward', 0);
+            }
+            setValue('providerAward', availableFunds - value);
+          },
+        }}
+        rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
+      />
+      <NumberInput
+        name="providerAward"
+        label="Provider Award"
+        localForm={localForm}
+        placeholder="Provider Award"
+        registerOptions={{
+          onChange: value => {
+            if (value > availableFunds) {
+              setValue('providerAward', availableFunds);
+              setValue('clientAward', 0);
+            }
+            setValue('clientAward', availableFunds - value);
+          },
+        }}
+        rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
+      />
+      <NumberInput
+        name="resolverAward"
+        label="Arbitration Fee"
+        localForm={localForm}
+        isDisabled
+        rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
+      />
 
       {isLoading && <Spinner size="xl" />}
 
       {true && (
         <Button
           type="submit"
-          isDisabled={resolverAward <= BigInt(0) || !comments || !resolve}
+          isDisabled={
+            !resolverAward ||
+            resolverAward <= BigInt(0) ||
+            !comments ||
+            !resolve
+          }
           textTransform="uppercase"
           variant="solid"
         >

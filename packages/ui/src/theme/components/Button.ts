@@ -1,3 +1,5 @@
+import { StyleFunctionProps } from '@chakra-ui/react';
+
 export const Button = {
   baseStyle: {
     fontWeight: 'normal',
@@ -6,13 +8,14 @@ export const Button = {
     variant: 'solid',
   },
   variants: {
-    solid: {
+    solid: (props: StyleFunctionProps) => ({
       _hover: { backgroundColor: 'rgba(61, 136, 248, 0.7)' },
       _active: { backgroundColor: 'rgba(61, 136, 248, 0.7)' },
       color: 'white',
       backgroundColor: 'blue.1',
       fontFamily: 'mono',
-    },
+      fontWeight: props.fontWeight || 'normal',
+    }),
     ghost: {
       bg: 'blackAlpha.100',
       _hover: {

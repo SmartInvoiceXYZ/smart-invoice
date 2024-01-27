@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FormControl,
   FormErrorMessage,
@@ -5,6 +6,7 @@ import {
   FormLabel,
   HStack,
   Icon,
+  InputGroup,
   InputProps as ChakraInputProps,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -15,7 +17,7 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import _ from 'lodash';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
 
 export interface CustomNumberInputProps {
@@ -31,6 +33,7 @@ export interface CustomNumberInputProps {
   min?: number;
   max?: number;
   spacing?: number | string;
+  rightElement?: ReactNode;
 }
 
 type NumberInputProps = ChakraInputProps & CustomNumberInputProps;
@@ -52,6 +55,7 @@ export function NumberInput({
   min = 0,
   max = 100,
   spacing,
+  rightElement,
   ...props
 }: NumberInputProps) {
   if (!localForm) return null;
@@ -82,33 +86,35 @@ export function NumberInput({
                 {label && <FormLabel m={0}>{label}</FormLabel>}
                 {tooltip && (
                   <Tooltip>
-                    <div>Test</div>
-                    {/* <Icon
-                      as={FaInfoCircle}
+                    <Icon
+                      as={InfoOutlineIcon}
                       boxSize={3}
-                      color="red.500"
+                      color="blue.500"
                       bg="white"
                       borderRadius="full"
-                    /> */}
+                    />
                   </Tooltip>
                 )}
               </HStack>
             )}
 
-            <ChakraNumberInput
-              variant={variant}
-              step={step}
-              min={min}
-              max={max}
-              {...localProps}
-              {...restField}
-            >
-              <NumberInputField ref={ref} name={restField.name} />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </ChakraNumberInput>
+            <InputGroup>
+              <ChakraNumberInput
+                variant={variant}
+                step={step}
+                min={min}
+                max={max}
+                {...localProps}
+                {...restField}
+              >
+                <NumberInputField ref={ref} name={restField.name} />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </ChakraNumberInput>
+              {rightElement || null}
+            </InputGroup>
             {helperText && <FormHelperText>{helperText}</FormHelperText>}
 
             <FormErrorMessage>{error as string}</FormErrorMessage>

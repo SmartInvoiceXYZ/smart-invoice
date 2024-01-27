@@ -29,10 +29,6 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
-// interface ProjectDetailsForm extends ProjectDetails {
-//   agreement?: string;
-// }
-
 export function ProjectDetailsForm({
   escrowForm,
   updateStep,

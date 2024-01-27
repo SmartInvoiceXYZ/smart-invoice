@@ -13,10 +13,10 @@ import {
   InputRightElement,
   Link,
   Select,
+  Stack,
   Text,
   Tooltip,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
@@ -311,7 +311,7 @@ export function DepositFunds({
             pr={isWRAPPED ? '6.5rem' : '4rem'}
           />
 
-          <InputRightElement w={isWRAPPED ? '6.5rem' : '4rem'}>
+          {/* <InputRightElement w={isWRAPPED ? '6.5rem' : '4rem'}>
             {isWRAPPED ? (
               <Select
                 onChange={e => setPaymentType(Number(e.target.value))}
@@ -329,7 +329,7 @@ export function DepositFunds({
             ) : (
               symbol
             )}
-          </InputRightElement>
+          </InputRightElement> */}
         </InputGroup>
         {due && !fulfilled ? (
           <Text fontSize={12} mt={0}>
@@ -469,7 +469,7 @@ export function DepositFunds({
                     textAlign="right"
                   />
 
-                  <InputRightAddon
+                  {/* <InputRightAddon
                     bg="white"
                     color="black"
                     border="1px"
@@ -479,7 +479,7 @@ export function DepositFunds({
                     <Text>
                       {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
                     </Text>
-                  </InputRightAddon>
+                  </InputRightAddon> */}
                 </InputGroup>
               )}
             </>
@@ -499,10 +499,10 @@ export function DepositFunds({
           <Stack color="black">
             <Text fontWeight="bold">Total Payment</Text>
 
-            <Heading size="lg">
+            {/* <Heading size="lg">
               {formatUnits(totalPayment, decimals)}{' '}
               {paymentType === 1 ? NATIVE_TOKEN_SYMBOL : symbol}
-            </Heading>
+            </Heading> */}
           </Stack>
         ) : null}
         {balance ? (

@@ -1,11 +1,9 @@
-/* eslint-disable no-console */
 import { Button, SimpleGrid } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { Modals } from '@smart-invoice/types';
 import { Modal } from '@smart-invoice/ui';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useAccount, useBalance } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { DepositFunds } from './DepositFunds';
 import { LockFunds } from './LockFunds';
@@ -13,14 +11,14 @@ import { ReleaseFunds } from './ReleaseFunds';
 import { ResolveFunds } from './ResolveFunds';
 import { WithdrawFunds } from './WithdrawFunds';
 
-// here to prevent circular dependency with smart-invoice/ui
+// this component is here to prevent circular dependency with smart-invoice/ui
 
 export function InvoiceButtonManager({
   invoice,
   modals,
   setModals,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails | undefined;
   modals: Modals;
   setModals: (m: Partial<Modals>) => void;
 }) {
@@ -28,78 +26,29 @@ export function InvoiceButtonManager({
 
   const {
     client,
-    isLocked,
-    // disputes,
-    // resolutions,
-    terminationTime,
-    currentMilestone: invoiceCurrentMilestone,
-    amounts,
-    released,
-    total,
     resolver,
+    isReleasable,
+    isExpired,
+    isLockable,
+    isWithdrawable,
+    deposited,
+    due,
+    tokenBalance,
   } = _.pick(invoice, [
     'client',
-    'isLocked',
-    // 'disputes',
-    // 'resolutions',
     'resolver',
-    'terminationTime',
-    'currentMilestone',
-    'amounts',
-    'released',
-    'total',
+    'isReleasable',
+    'isExpired',
+    'isLockable',
+    'isWithdrawable',
+    'deposited',
+    'due',
+    'tokenBalance',
   ]);
-
-  const { data: invoiceTokenBalance } = useBalance({
-    address: invoice?.address as Hex,
-    token: invoice?.token as Hex,
-    enabled: !!invoice?.address && !!invoice?.token,
-  });
-  console.log(invoiceTokenBalance?.value?.toString());
 
   const isRaidParty = _.toLower(address) === _.toLower(invoice?.provider);
   const isClient = _.toLower(address) === _.toLower(client);
   const isResolver = _.toLower(address) === _.toLower(resolver);
-
-  const currentMilestone = _.toNumber(invoiceCurrentMilestone?.toString());
-  const balance = _.get(invoiceTokenBalance, 'value', BigInt(0));
-  // const dispute =
-  //   isLocked && !_.isEmpty(disputes) ? _.last(disputes) : undefined;
-  const deposited = released && BigInt(released) + BigInt(balance);
-  // console.log(deposited, total);
-  const due =
-    deposited &&
-    total &&
-    (deposited > BigInt(total) ? BigInt(0) : BigInt(total) - deposited);
-  // const resolution =
-  //  b !isLocked && !_.isEmpty(resolutions) ? _.last(resolutions) : undefined;
-  // console.log(
-  //   currentMilestone,
-  //   amounts,
-  //   currentMilestone < _.size(amounts),
-  //   amounts?.[currentMilestone],
-  // );
-  const amount =
-    currentMilestone !== undefined &&
-    amounts &&
-    currentMilestone < _.size(amounts)
-      ? BigInt(amounts?.[currentMilestone])
-      : BigInt(0);
-  // console.log('amount', amount);
-  const isExpired = terminationTime
-    ? terminationTime <= new Date().getTime() / 1000
-    : undefined;
-  const isLockable = !isExpired && !isLocked && balance > 0;
-  const isReleasable =
-    !!amount && !isLocked && balance >= amount && balance > BigInt(0);
-  // console.log(
-  //   isReleasable,
-  //   !!amount,
-  //   !isLocked,
-  //   amount && balance >= amount,
-  //   balance > BigInt(0),
-  // );
-  // console.log(balance, amount, due, deposited);
 
   const onLock = () => {
     setModals({ lock: true });
@@ -111,6 +60,7 @@ export function InvoiceButtonManager({
 
   const onRelease = async () => {
     if (!isReleasable || !isClient) {
+      // eslint-disable-next-line no-console
       console.log('not releasable or client');
       return;
     }
@@ -120,6 +70,7 @@ export function InvoiceButtonManager({
 
   const onResolve = async () => {
     if (!isResolver) {
+      // eslint-disable-next-line no-console
       console.log('not resolver');
       return;
     }
@@ -129,6 +80,7 @@ export function InvoiceButtonManager({
 
   const onWithdraw = async () => {
     if (!isExpired || !isClient) {
+      // eslint-disable-next-line no-console
       console.log('not expired or client');
       return;
     }
@@ -137,12 +89,18 @@ export function InvoiceButtonManager({
   };
 
   const columnsCheck = [
-    isResolver && invoice?.isLocked,
-    true, // hide in some cases?
-    isLockable && (isClient || isRaidParty),
-    isExpired && balance > 0 && isClient,
+    isResolver && invoice?.isLocked, // resolve
+    isLockable && (isClient || isRaidParty), // lock
+    isReleasable && isClient, // release
+    true, // deposit
+    isExpired &&
+      !!tokenBalance?.value &&
+      tokenBalance?.value > BigInt(0) &&
+      isClient, // withdraw
   ];
   const columns = _.size(_.filter(columnsCheck, v => v === true));
+
+  if (!invoice) return null;
 
   return (
     <>
@@ -157,7 +115,22 @@ export function InvoiceButtonManager({
             Resolve
           </Button>
         )}
-        {isReleasable ? (
+        {isLockable && (isClient || isRaidParty) && (
+          <Button
+            variant="solid"
+            backgroundColor="red.500"
+            _hover={{ backgroundColor: 'red.400' }}
+            textTransform="uppercase"
+            onClick={onLock}
+            isDisabled={!isClient && !isRaidParty}
+          >
+            Lock
+          </Button>
+        )}
+        <Button variant="solid" textTransform="uppercase" onClick={onDeposit}>
+          Deposit
+        </Button>
+        {isReleasable && (
           <Button
             variant="solid"
             textTransform="uppercase"
@@ -166,22 +139,9 @@ export function InvoiceButtonManager({
           >
             Release
           </Button>
-        ) : (
-          <Button variant="solid" textTransform="uppercase" onClick={onDeposit}>
-            Deposit Due
-          </Button>
         )}
-        {isLockable && (isClient || isRaidParty) && (
-          <Button
-            variant="solid"
-            textTransform="uppercase"
-            onClick={onLock}
-            isDisabled={!isClient && !isRaidParty}
-          >
-            Lock
-          </Button>
-        )}
-        {isExpired && balance > 0 && isClient && (
+
+        {isWithdrawable && isClient && (
           <Button
             variant="solid"
             textTransform="uppercase"
@@ -194,23 +154,19 @@ export function InvoiceButtonManager({
       </SimpleGrid>
 
       <Modal isOpen={modals?.lock} onClose={() => setModals({})}>
-        <LockFunds invoice={invoice} balance={balance} />
+        <LockFunds invoice={invoice} balance={tokenBalance?.value} />
       </Modal>
       <Modal isOpen={modals?.deposit} onClose={() => setModals({})}>
         <DepositFunds invoice={invoice} deposited={deposited} due={due} />
       </Modal>
       <Modal isOpen={modals?.release} onClose={() => setModals({})}>
-        <ReleaseFunds invoice={invoice} balance={balance} />
+        <ReleaseFunds invoice={invoice} />
       </Modal>
       <Modal isOpen={modals?.resolve} onClose={() => setModals({})}>
-        <ResolveFunds
-          invoice={invoice}
-          balance={balance}
-          close={() => setModals({})}
-        />
+        <ResolveFunds invoice={invoice} close={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.withdraw} onClose={() => setModals({})}>
-        <WithdrawFunds invoice={invoice} balance={balance} />
+        <WithdrawFunds invoice={invoice} />
       </Modal>
     </>
   );

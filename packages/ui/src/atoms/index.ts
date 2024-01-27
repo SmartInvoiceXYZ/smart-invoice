@@ -7,3 +7,4 @@ export * from './Layout';
 export * from './Loader';
 export * from './StepInfo';
 export * from './Toast';
+export * from './TokenDescriptor';

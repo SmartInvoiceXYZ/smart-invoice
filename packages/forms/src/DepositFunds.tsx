@@ -15,18 +15,12 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { PAYMENT_TYPES } from '@smart-invoice/constants/src';
-import {
-  // checkedAtIndex,
-  // depositedMilestones,
-  Invoice,
-  // PAYMENT_TYPES,
-} from '@smart-invoice/graphql';
+import { PAYMENT_TYPES } from '@smart-invoice/constants';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useDeposit, useFetchTokens } from '@smart-invoice/hooks';
 import { NumberInput, QuestionIcon } from '@smart-invoice/ui';
 import {
   commify,
-  depositedMilestones,
   getNativeTokenSymbol,
   getTokenInfo,
   getTokenSymbol,
@@ -47,15 +41,17 @@ export function DepositFunds({
   deposited,
   due,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   deposited: bigint | undefined;
   due: bigint | undefined;
 }) {
-  const { token, amounts, currentMilestone } = _.pick(invoice, [
-    'token',
-    'amounts',
-    'currentMilestone',
-  ]);
+  const { token, amounts, currentMilestoneNumber, depositedMilestones } =
+    _.pick(invoice, [
+      'token',
+      'amounts',
+      'currentMilestoneNumber',
+      'depositedMilestones',
+    ]);
   const chainId = useChainId();
   const { address } = useAccount();
   const { data } = useFetchTokens();
@@ -81,14 +77,6 @@ export function DepositFunds({
   const checked = watch('checked');
 
   const amountsSum = _.sumBy(amounts, _.toNumber); // number, not parsed
-  const parsedAmounts = _.map(amounts, a =>
-    _.toNumber(formatUnits(BigInt(a), 18)),
-  );
-
-  const paidMilestones =
-    deposited && parsedAmounts
-      ? depositedMilestones(BigInt(deposited), parsedAmounts)
-      : undefined;
 
   const { data: nativeBalance } = useBalance({ address });
   const { data: tokenBalance } = useBalance({ address, token: token as Hex });
@@ -132,7 +120,7 @@ export function DepositFunds({
   useEffect(() => {
     if (!amount || !deposited) return;
 
-    setValue('checked', depositedMilestones(deposited + amount, parsedAmounts));
+    setValue('checked', depositedMilestones);
   }, [amount, deposited, amounts, setValue]);
   console.log(amount <= BigInt(0), !isReady, !hasAmount);
 
@@ -148,7 +136,7 @@ export function DepositFunds({
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem" color="blackAlpha.700">
         At a minimum, you&apos;ll need to deposit enough to cover the{' '}
-        {currentMilestone === BigInt(0) ? 'first' : 'next'} project payment.
+        {currentMilestoneNumber === 0 ? 'first' : 'next'} project payment.
       </Text>
       <Text textAlign="center" color="blue.400">
         How much will you be depositing today?
@@ -160,7 +148,7 @@ export function DepositFunds({
               mx="auto"
               key={i.toString()}
               isChecked={checked?.[i]}
-              isDisabled={paidMilestones?.[i]}
+              isDisabled={depositedMilestones?.[i]}
               onChange={e => {
                 const newChecked = e.target.checked
                   ? checkedAtIndex(i, checked)
@@ -175,6 +163,7 @@ export function DepositFunds({
                   deposited && totAmount > BigInt(deposited)
                     ? totAmount - BigInt(deposited)
                     : BigInt(0);
+                console.log(newAmount, totAmount, deposited, amounts);
 
                 setValue('amount', formatUnits(newAmount, 18));
               }}
