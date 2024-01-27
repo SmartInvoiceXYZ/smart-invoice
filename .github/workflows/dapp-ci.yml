@@ -26,6 +26,8 @@ jobs:
 
       - name: Set up node using nvm
         uses: dcodeIO/setup-node-nvm@v5
+        with:
+          node-version: 18
 
       # - name: "Copy config"
       #   run: |
@@ -33,10 +35,10 @@ jobs:
       #     echo "::debug::$(less .env)"
 
       - name: Install the dependencies
-        run: yarn install --immutable
+        run: pnpm install
 
       - name: Lint the code
-        run: yarn run dapp:lint
+        run: pnpm dapp:lint
 
       - name: Add lint summary
         run: |
@@ -44,7 +46,7 @@ jobs:
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
       - name: Test the code and generate the coverage report
-        run: yarn run dapp:test
+        run: pnpm dapp:test
 
       - name: Add test summary
         run: |
