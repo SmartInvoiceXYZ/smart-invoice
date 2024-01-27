@@ -1,8 +1,7 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import _ from 'lodash';
-import { useState } from 'react';
-import { Hex } from 'viem';
+import { Hex, TransactionReceipt } from 'viem';
 import {
   useContractWrite,
   usePrepareContractWrite,
@@ -14,24 +13,23 @@ export const useLock = ({
   invoice,
   disputeReason,
   amount,
+  onTxSuccess,
 }: {
   invoice: Invoice;
   disputeReason: string;
   amount: string | undefined;
+  onTxSuccess?: (result: TransactionReceipt) => void;
 }) => {
   console.log('useLock', invoice);
 
   const detailsHash =
     '0x0000000000000000000000000000000000000000000000000000000000000000';
-  const [txHash, setTxHash] = useState<Hex | undefined>(undefined);
 
   // const detailsHash = await uploadDisputeDetails({
   //   reason: disputeReason,
   //   invoice: address,
   //   amount: balance.toString(),
   // });
-
-  const { data: txResult } = useWaitForTransaction({ hash: txHash });
 
   const {
     config,
@@ -54,10 +52,10 @@ export const useLock = ({
     onSuccess: async data => {
       console.log('success', data);
       const { hash } = _.pick(data, 'hash');
-      setTxHash(hash);
 
       const result = await waitForTransaction({ hash });
 
+      onTxSuccess?.(result);
       // handle success
       // close modal
       // update invoice with status
@@ -70,7 +68,6 @@ export const useLock = ({
   return {
     writeAsync,
     isLoading: prepareLoading || writeLoading,
-    txHash,
     writeLoading,
     prepareError,
     writeError,

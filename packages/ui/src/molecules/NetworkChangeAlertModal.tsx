@@ -8,7 +8,7 @@ import {
   ModalOverlay,
 } from '@chakra-ui/react';
 import { Modals } from '@smart-invoice/types';
-import { chainsMap } from '@smart-invoice/utils/src';
+import { chainsMap } from '@smart-invoice/utils';
 
 type NetworkChangeAlertModalProps = {
   modals: { networkChange: boolean };

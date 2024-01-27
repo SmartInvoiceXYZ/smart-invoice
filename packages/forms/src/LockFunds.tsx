@@ -8,71 +8,70 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
-import { useFetchTokens, useLock } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { useLock } from '@smart-invoice/hooks';
 // import LockImage from '../../assets/lock.svg';
 import { AccountLink, Textarea } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolverString,
-  getTokenSymbol,
   getTxLink,
   isKnownResolver,
-  // NETWORK_CONFIG,
   // uploadDisputeDetails,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { formatUnits, Hex } from 'viem';
+import { formatUnits, Hex, TransactionReceipt } from 'viem';
 import { useChainId } from 'wagmi';
 
-export function LockFunds({
-  invoice,
-  balance,
-}: {
-  invoice: Invoice;
-  balance: bigint | undefined;
-}) {
+export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const chainId = useChainId();
-  const { resolver, token, resolutionRate } = _.pick(invoice, [
+  const { resolver, resolutionRate, tokenBalance } = _.pick(invoice, [
     'resolver',
-    'token',
+    'tokenBalance',
     'resolutionRate',
   ]);
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
   const fee =
-    balance &&
+    tokenBalance?.value &&
     formatUnits(
       !resolutionRate || resolutionRate === BigInt(0)
         ? BigInt(0)
-        : balance / BigInt(resolutionRate),
+        : tokenBalance.value / BigInt(resolutionRate),
       18,
     );
-  const feeDisplay =
-    token && `${fee} ${getTokenSymbol(chainId, token as Hex, tokenData)}`;
+  const feeDisplay = tokenBalance?.symbol && `${fee} ${tokenBalance.symbol}`;
 
   const disputeReason = watch('disputeReason');
-  const amount = balance ? formatUnits(balance, 18) : undefined;
+  const amount = tokenBalance?.formatted;
 
-  const onSuccess = (values: any) => {
-    console.log(values);
-    // handle tx success
-    // mark locked
+  const onTxSuccess = (tx: TransactionReceipt) => {
+    // TODO handle tx success
+    console.log(tx);
+    // toast
+    // invalidate cache
+    // close modal
   };
 
   const {
     writeAsync: lockFunds,
     writeLoading,
-    txHash,
+    prepareError,
   } = useLock({
     invoice,
     disputeReason,
     amount,
+    onTxSuccess,
   });
+  console.log(lockFunds, prepareError);
+
+  const onSubmit = async (values: any) => {
+    console.log(values);
+
+    lockFunds?.();
+  };
 
   const resolverInfo = getResolverInfo(resolver as Hex, chainId);
   const resolverDisplayName = isKnownResolver(resolver as Hex, chainId)
@@ -90,7 +89,7 @@ export function LockFunds({
         >
           Locking Funds
         </Heading>
-        {txHash && (
+        {/* {txHash && (
           <Text textAlign="center" fontSize="sm">
             Follow your transaction{' '}
             <Link
@@ -102,7 +101,7 @@ export function LockFunds({
               here
             </Link>
           </Text>
-        )}
+        )} */}
         <Flex
           w="100%"
           justify="center"
@@ -119,7 +118,7 @@ export function LockFunds({
   }
 
   return (
-    <Stack w="100%" spacing="1rem" as="form" onSubmit={handleSubmit(onSuccess)}>
+    <Stack w="100%" spacing="1rem" as="form" onSubmit={handleSubmit(onSubmit)}>
       <Heading
         as="h3"
         fontSize="2xl"
@@ -159,16 +158,14 @@ export function LockFunds({
         />{' '}
         for helping resolve this dispute.
       </Text>
-      {!!balance && (
+      {!!tokenBalance && (
         <Button
           type="submit"
           isDisabled={!disputeReason || !lockFunds}
           textTransform="uppercase"
           variant="solid"
         >
-          {`Lock ${formatUnits(BigInt(balance), 18)} ${
-            token ? getTokenSymbol(chainId, token as Hex, tokenData) : ''
-          }`}
+          {`Lock ${tokenBalance?.formatted} ${tokenBalance?.symbol}`}
         </Button>
       )}
 

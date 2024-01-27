@@ -31,8 +31,6 @@ export function InvoiceButtonManager({
     isExpired,
     isLockable,
     isWithdrawable,
-    deposited,
-    due,
     tokenBalance,
   } = _.pick(invoice, [
     'client',
@@ -41,8 +39,6 @@ export function InvoiceButtonManager({
     'isExpired',
     'isLockable',
     'isWithdrawable',
-    'deposited',
-    'due',
     'tokenBalance',
   ]);
 
@@ -154,10 +150,10 @@ export function InvoiceButtonManager({
       </SimpleGrid>
 
       <Modal isOpen={modals?.lock} onClose={() => setModals({})}>
-        <LockFunds invoice={invoice} balance={tokenBalance?.value} />
+        <LockFunds invoice={invoice} />
       </Modal>
       <Modal isOpen={modals?.deposit} onClose={() => setModals({})}>
-        <DepositFunds invoice={invoice} deposited={deposited} due={due} />
+        <DepositFunds invoice={invoice} />
       </Modal>
       <Modal isOpen={modals?.release} onClose={() => setModals({})}>
         <ReleaseFunds invoice={invoice} />

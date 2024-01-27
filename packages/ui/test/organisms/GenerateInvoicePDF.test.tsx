@@ -1,17 +1,18 @@
-import React from 'react';
+import { Invoice } from '@smart-invoice/graphql';
 import { render } from '@testing-library/react';
-import { GenerateInvoicePDF } from '../../src/organisms/GenerateInvoicePDF';
-import { Invoice } from '@smart-invoice/graphql/src';
+import React from 'react';
 
-describe('GenerateInvoicePDF', () => {
-  it('should render without errors', () => {
+import { GenerateInvoicePDF } from '../../src/organisms/GenerateInvoicePDF';
+
+describe('GenerateInvoicePDF', function () {
+  it('should render without errors', function () {
     const mockInvoice = jest.mocked<Invoice>({} as Invoice);
 
     const { getByText } = render(
       <GenerateInvoicePDF
         invoice={mockInvoice}
-        symbol="ETH"
         buttonText="Generate PDF"
+        buttonProps={{}}
       />,
     );
 
@@ -19,7 +20,7 @@ describe('GenerateInvoicePDF', () => {
     expect(generateButton).toBeInTheDocument();
   });
 
-  it('should generate PDF when button is clicked', () => {
+  it('should generate PDF when button is clicked', function () {
     // TODO: Write test case to simulate button click and verify PDF generation
   });
 });

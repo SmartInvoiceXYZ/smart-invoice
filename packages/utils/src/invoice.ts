@@ -20,20 +20,21 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
-export const depositedMilestones = (invoice: any) => {
-  const { amounts, deposited } = _.pick(invoice, ['amounts', 'deposited']);
-  let sum = BigInt(0);
-  return _.map(amounts, a => {
-    sum += BigInt(a);
-    return deposited >= sum;
-  });
+export const totalDeposited = (invoice: any, tokenBalance: any) => {
+  const { released } = _.pick(invoice, ['released']);
+
+  if (!released || !tokenBalance?.value) return undefined;
+  return BigInt(released) + tokenBalance.value;
 };
 
-export const totalDeposited = (invoice: any) => {
-  const { released, balance } = _.pick(invoice, ['released', 'balance']);
+export const depositedMilestones = (invoice: any, tokenBalance: any) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
 
-  if (!released || !balance) return undefined;
-  return BigInt(released) + BigInt(balance);
+  let sum = BigInt(0);
+  return amounts.map((a: string) => {
+    sum += BigInt(a);
+    return totalDeposited(invoice, tokenBalance) >= sum;
+  });
 };
 
 export const totalAmount = (invoice: any) => {
@@ -48,11 +49,15 @@ export const totalAmount = (invoice: any) => {
   );
 };
 
-export const totalDue = (invoice: any) => {
-  const { deposited, total } = _.pick(invoice, ['deposited', 'total']);
+export const totalDue = (invoice: any, tokenBalance: any) => {
+  const { deposits, amounts } = _.pick(invoice, ['deposits', 'amounts']);
 
-  if (!deposited || !total) return undefined;
-  return deposited > total ? BigInt(0) : BigInt(total) - deposited;
+  if (!deposits || !amounts) return undefined;
+  const localTotalDeposited = totalDeposited(invoice, tokenBalance);
+  const total = totalAmount(invoice);
+  return localTotalDeposited > total
+    ? BigInt(0)
+    : BigInt(total) - localTotalDeposited;
 };
 
 export const lastDispute = (invoice: any) => {

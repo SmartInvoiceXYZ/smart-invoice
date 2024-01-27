@@ -1,5 +1,6 @@
 import { IERC20_ABI, PAYMENT_TYPES } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
+import { UseToastReturn } from '@smart-invoice/types';
 import { ContractFunctionResult, Hex } from 'viem';
 import {
   useChainId,
@@ -8,18 +9,38 @@ import {
   useSendTransaction,
 } from 'wagmi';
 
+const errorToastHandler = (error: Error, toast: UseToastReturn) => {
+  const localError = error as Error;
+  if (
+    localError.name === 'TransactionExecutionError' &&
+    localError.message.includes('User rejected the request')
+  ) {
+    toast.error({
+      title: 'Signature rejected!',
+      description: 'Please accept the transaction in your wallet',
+    });
+  } else {
+    toast.error({
+      title: 'Error occurred!',
+      description: 'An error occurred while processing the transaction.',
+    });
+  }
+};
+
 export const useDeposit = ({
   invoice,
   amount,
   hasAmount,
   paymentType,
   onSuccess,
+  toast,
 }: {
   invoice: Invoice;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
   onSuccess?: (tx: ContractFunctionResult) => void;
+  toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
@@ -66,13 +87,18 @@ export const useDeposit = ({
   });
 
   const handleDeposit = async () => {
-    if (paymentType === PAYMENT_TYPES.NATIVE) {
-      const result = await sendTransactionAsync();
-      return result;
-    }
+    try {
+      if (paymentType === PAYMENT_TYPES.NATIVE) {
+        const result = await sendTransactionAsync();
+        return result;
+      }
 
-    const result = await writeAsync?.();
-    return result;
+      const result = await writeAsync?.();
+      return result;
+    } catch (error: unknown) {
+      errorToastHandler(error as Error, toast);
+      return undefined;
+    }
   };
 
   return {

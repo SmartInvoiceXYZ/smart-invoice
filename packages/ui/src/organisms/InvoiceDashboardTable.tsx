@@ -54,7 +54,8 @@ export function InvoiceDashboardTable({
       }),
       columnHelper.accessor(
         row =>
-          row?.total && formatUnits(row.total, row.tokenMetadata?.decimals),
+          row?.total &&
+          formatUnits(row.total, row.tokenMetadata?.decimals || 18),
         {
           id: 'amount',
           header: 'Amount',

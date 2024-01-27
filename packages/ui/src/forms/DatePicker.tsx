@@ -11,7 +11,7 @@ import {
   Stack,
   Tooltip,
 } from '@chakra-ui/react';
-import { getDateString } from '@smart-invoice/utils/src';
+import { getDateString } from '@smart-invoice/utils';
 import _ from 'lodash';
 import ReactDatePicker, { ReactDatePickerProps } from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';

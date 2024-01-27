@@ -8,7 +8,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
-import { AccountLink } from '@smart-invoice/ui/src';
+import { AccountLink } from '@smart-invoice/ui';
 import { commify, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
@@ -22,6 +22,8 @@ export function InvoicePaymentDetails({
   const chainId = useChainId();
 
   const {
+    client,
+    provider,
     released,
     deposited,
     due,
@@ -37,7 +39,10 @@ export function InvoicePaymentDetails({
     resolution,
     isReleasable,
     isExpired,
+    tokenMetadata,
   } = _.pick(invoice, [
+    'client',
+    'provider',
     'deposited',
     'due',
     'total',
@@ -53,6 +58,7 @@ export function InvoicePaymentDetails({
     'resolution',
     'isReleasable',
     'isExpired',
+    'tokenMetadata',
   ]);
 
   const details = [
@@ -271,7 +277,7 @@ export function InvoicePaymentDetails({
             >
               <Flex flex={1}>
                 <Text maxW="300px" color="purple">
-                  {/* <AccountLink address={resolver} chainId={chainId} /> */}
+                  <AccountLink address={resolver as Hex} chainId={chainId} />
                   {' has resolved the dispute and dispersed remaining funds'}
                   <br />
                   <br />
@@ -285,29 +291,29 @@ export function InvoicePaymentDetails({
                 </Text>
               </Flex>
               <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
-                {/* {resolution.resolutionFee && (
+                {resolution.resolutionFee && (
                   <Text textAlign="right" color="purpleLight">
                     {`${formatUnits(
                       BigInt(resolution.resolutionFee),
-                      18,
-                    )} ${parseTokenAddress(chainId, invoice.token)} to `}
-                    <AccountLink address={resolver} chainId={chainId} />
+                      tokenMetadata?.decimals || 18,
+                    )} ${tokenMetadata?.symbol} to `}
+                    <AccountLink address={resolver as Hex} chainId={chainId} />
                   </Text>
                 )}
                 <Text textAlign="right" color="purpleLight">
                   {`${formatUnits(
                     BigInt(resolution.clientAward),
-                    18,
-                  )} ${parseTokenAddress(chainId, invoice.token)} to `}
-                  <AccountLink address={client} chainId={chainId} />
+                    tokenMetadata?.decimals || 18,
+                  )} ${tokenMetadata?.symbol} to `}
+                  <AccountLink address={client as Hex} chainId={chainId} />
                 </Text>
                 <Text textAlign="right" color="purpleLight">
                   {`${formatUnits(
                     BigInt(resolution.providerAward),
-                    18,
-                  )} ${parseTokenAddress(chainId, invoice.token)} to `}
-                  <AccountLink address={invoice.provider} chainId={chainId} />
-                </Text> */}
+                    tokenMetadata?.decimals || 18,
+                  )} ${tokenMetadata?.symbol} to `}
+                  <AccountLink address={provider as Hex} chainId={chainId} />
+                </Text>
               </Stack>
             </Flex>
           </Stack>

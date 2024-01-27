@@ -9,7 +9,7 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ESCROW_STEPS } from '@smart-invoice/constants/src';
+import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokens, useInvoiceCreate } from '@smart-invoice/hooks';
 import { AccountLink, useToast } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';

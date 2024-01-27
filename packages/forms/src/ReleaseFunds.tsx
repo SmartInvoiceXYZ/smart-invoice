@@ -10,6 +10,8 @@ type ReleaseFundsProp = {
   invoice: InvoiceDetails;
 };
 
+// TODO handle release multiple milestones
+
 export const getReleaseAmount = (
   currentMilestone: number | undefined,
   amounts: bigint[] | undefined,
@@ -63,6 +65,7 @@ export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
   const { writeAsync: releaseFunds, isLoading } = useRelease({
     invoice,
     onSuccess,
+    toast,
   });
 
   return (

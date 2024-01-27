@@ -1,7 +1,7 @@
 import { extendTheme } from '@chakra-ui/react';
 import { css } from '@emotion/react';
 
-import { Button, Input, Textarea } from './components';
+import { Button, Checkbox, Input, Textarea } from './components';
 
 export const theme = extendTheme({
   initialColorMode: 'light',
@@ -38,6 +38,7 @@ export const theme = extendTheme({
   },
   components: {
     Button,
+    Checkbox,
     Input,
     Textarea,
   },

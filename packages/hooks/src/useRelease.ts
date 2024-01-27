@@ -1,5 +1,6 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
+import { UseToastReturn } from '@smart-invoice/types';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
@@ -9,10 +10,12 @@ export const useRelease = ({
   invoice,
   milestone,
   onSuccess,
+  toast,
 }: {
   invoice: Invoice;
   milestone?: number;
   onSuccess: (tx: SendTransactionResult) => void;
+  toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 

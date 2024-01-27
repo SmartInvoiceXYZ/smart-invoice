@@ -22,6 +22,7 @@
     "@smart-invoice/utils": "*",
     "@tanstack/react-query": "^5.17.9",
     "@tanstack/react-table": "^8.11.3",
+    "@testing-library/react": "^14.1.2",
     "@vercel/analytics": "^1.1.1",
     "abitype": "^0.1.0",
     "base-58": "^0.0.1",

@@ -31,11 +31,11 @@ const getInvoiceDetailsDetails = async (
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
   nativeBalance: TokenBalance | undefined,
-): Promise<InvoiceDetails | undefined> => {
+): Promise<InvoiceDetails | null> => {
   const currentMilestoneNumber = _.toNumber(
     _.get(invoice, 'currentMilestone')?.toString(),
   );
-  if (!invoice || !tokenMetadata || !tokenBalance) return undefined;
+  if (!invoice || !tokenMetadata || !tokenBalance) return null;
 
   const invoiceDetails = {
     ...invoice,
@@ -44,15 +44,15 @@ const getInvoiceDetailsDetails = async (
     chainId: chainByName(invoice?.network)?.id,
     // computed values
     total: totalAmount(invoice),
-    deposited: totalDeposited(invoice),
-    due: totalDue(invoice),
+    deposited: totalDeposited(invoice, tokenBalance),
+    due: totalDue(invoice, tokenBalance),
     currentMilestoneAmount: currentMilestoneAmount(
       invoice,
       currentMilestoneNumber,
     ),
     bigintAmounts: convertAmountsType(invoice),
     parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
-    depositedMilestones: depositedMilestones(invoice),
+    depositedMilestones: depositedMilestones(invoice, tokenBalance),
     detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
     // entities
     dispute: lastDispute(invoice),
@@ -110,28 +110,27 @@ export const useInvoiceDetails = ({
     enabled: !!invoice?.token && !!chainId,
   });
 
-  const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } = useQuery<
-    InvoiceDetails | undefined
-  >({
-    queryKey: [
-      'extendedInvoiceDetails',
-      {
-        invoiceId: _.get(invoice, 'id'),
-        token: tokenMetadata?.name,
-        tokenBalance: tokenBalance?.formatted,
-        nativeBalance: nativeBalance?.formatted,
-      },
-    ],
-    queryFn: () =>
-      getInvoiceDetailsDetails(
-        invoice,
-        tokenMetadata,
-        tokenBalance,
-        nativeBalance,
-      ),
-    enabled: !!address && !!chainId,
-    staleTime: 1000 * 60 * 15,
-  });
+  const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
+    useQuery<InvoiceDetails | null>({
+      queryKey: [
+        'extendedInvoiceDetails',
+        {
+          invoiceId: _.get(invoice, 'id'),
+          token: tokenMetadata?.name,
+          tokenBalance: tokenBalance?.formatted,
+          nativeBalance: nativeBalance?.formatted,
+        },
+      ],
+      queryFn: () =>
+        getInvoiceDetailsDetails(
+          invoice,
+          tokenMetadata,
+          tokenBalance,
+          nativeBalance,
+        ),
+      enabled: !!address && !!chainId,
+      staleTime: 1000 * 60 * 15,
+    });
 
   return {
     data: invoice,
