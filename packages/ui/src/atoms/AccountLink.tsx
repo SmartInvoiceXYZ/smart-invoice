@@ -11,11 +11,13 @@ import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type AccountLinkProps = {
+  name?: string;
   address?: Address;
   chainId?: number;
 };
 
 export function AccountLink({
+  name,
   address: inputAddress,
   chainId: inputChainId,
 }: AccountLinkProps) {
@@ -27,7 +29,7 @@ export function AccountLink({
     .create({ seed: address, size: 8, scale: 16 })
     .toDataURL();
 
-  const displayString = getResolverString(address, chainId);
+  const displayString = name || getResolverString(address, chainId);
 
   const imageUrl = isResolver
     ? getResolverInfo(address, chainId).logoUrl

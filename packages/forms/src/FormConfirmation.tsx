@@ -49,6 +49,7 @@ export function FormConfirmation({
 
   const paymentDue = _.get(_.first(milestones), 'value');
   const { symbol } = getTokenInfo(chainId, token, tokenData);
+  console.log(symbol, token, tokenData?.[chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
   const flexWidth = useBreakpointValue({

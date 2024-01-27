@@ -1,8 +1,12 @@
 /* eslint-disable no-restricted-syntax */
-import { ChainId } from '@smart-invoice/constants';
+import {
+  ChainId,
+  DEFAULT_CHAIN_ID,
+  isOfTypeChainId,
+} from '@smart-invoice/constants';
 import { TokenData, TokenDataInput } from '@smart-invoice/types';
 import _ from 'lodash';
-import { Address, getAddress, Hex } from 'viem';
+import { Address, getAddress, Hex, zeroAddress } from 'viem';
 
 interface TokenList {
   [chainId: number]: TokenDataInput[];
@@ -54,4 +58,42 @@ export const getTokenSymbol = (
   chainId: number,
   token: string | undefined,
   tokenData: { [key: number]: ChainTokenList } | undefined,
-) => tokenData?.[_.toNumber(chainId)][token as Hex]?.symbol;
+) => tokenData?.[_.toNumber(chainId)][_.toLower(token) as Hex]?.symbol;
+
+export const getTokens = (
+  allTokens: Record<ChainId, string[]>,
+  chainId?: number,
+) =>
+  chainId && isOfTypeChainId(chainId)
+    ? allTokens[chainId]
+    : allTokens[DEFAULT_CHAIN_ID];
+
+export const getTokenInfo = (
+  chainId?: number,
+  token?: string,
+  tokenData?: Record<ChainId, Record<string, TokenData>>,
+) => {
+  if (
+    !chainId ||
+    !isOfTypeChainId(chainId) ||
+    !token ||
+    !tokenData ||
+    _.isEmpty(_.keys(tokenData))
+  ) {
+    return {
+      address: zeroAddress,
+      decimals: 18,
+      symbol: 'UNKNOWN',
+    };
+  }
+  const tokenDataByChain =
+    tokenData[chainId as ChainId] || tokenData[DEFAULT_CHAIN_ID];
+  if (!tokenDataByChain?.[_.toLower(token)]) {
+    return {
+      address: zeroAddress,
+      decimals: 18,
+      symbol: 'UNKNOWN',
+    };
+  }
+  return tokenDataByChain[_.toLower(token)];
+};

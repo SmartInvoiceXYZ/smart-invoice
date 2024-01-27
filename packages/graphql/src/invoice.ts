@@ -45,6 +45,7 @@ const invoiceQuery = (id: string) =>
             timestamp: true,
           },
         ],
+        details: true,
         disputes: [
           {
             orderBy: Dispute_orderBy.timestamp,

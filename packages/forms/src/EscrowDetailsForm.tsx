@@ -37,12 +37,55 @@ export function EscrowDetailsForm({
   const { watch, setValue } = escrowForm;
   const { provider, client, resolver, customResolver, resolverTerms } = watch();
 
+  // TODO having trouble surfacing the error here
   const schema = useMemo(
     () =>
       Yup.object().shape({
-        client: Yup.string().required('Client address is required'),
-        // TODO handle nested when for provider !== client
-        provider: Yup.string().required(),
+        client: Yup.string()
+          .required('Client address is required')
+          .test({
+            name: 'clientIsAddress',
+            test: (v, { createError }) => {
+              if (!!v && isAddress(v)) return true;
+              console.log('client not address');
+
+              return createError({
+                path: 'client',
+                message: 'Client must be a valid address',
+              });
+            },
+          })
+          .when('provider', (p, localSchema) => {
+            console.log('client resolver', p);
+            if (!p) return localSchema;
+
+            return localSchema.test({
+              name: 'clientNotProvider',
+              test: (v, { createError }) => {
+                if (_.toLower(v) !== _.toLower(_.first(p))) return true;
+
+                console.log(_.toLower(v), _.toLower(_.first(p)));
+                return createError({
+                  path: 'client',
+                  message: 'Client cannot be same as provider',
+                });
+              },
+            });
+          }),
+        provider: Yup.string()
+          .required()
+          .test({
+            name: 'providerIsAddress',
+            test: (v, { createError }) => {
+              if (!!v && isAddress(v)) return true;
+              console.log('provider not address');
+
+              return createError({
+                path: 'provider',
+                message: 'Provider must be a valid address',
+              });
+            },
+          }),
         resolver: Yup.string().required(),
         customResolver: Yup.string().when('resolver', (r, localSchema) => {
           if (_.first(r) !== 'custom') return localSchema;
@@ -71,8 +114,9 @@ export function EscrowDetailsForm({
     handleSubmit,
     setValue: localSetValue,
     watch: localWatch,
-    formState: { isValid },
+    formState: { isValid, errors },
   } = localForm;
+  console.log(errors, isValid);
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);

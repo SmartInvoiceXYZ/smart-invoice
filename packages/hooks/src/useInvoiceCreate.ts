@@ -12,6 +12,8 @@ import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { useFetchTokens } from '.';
 import { useDetailsPin } from './useDetailsPin';
 
+const ESCROW_TYPE = toHex('escrow', { size: 32 });
+
 interface UseInvoiceCreate {
   projectName: string;
   projectDescription: string;
@@ -116,14 +118,14 @@ export const useInvoiceCreate = ({
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
     args: [
-      client,
+      provider,
       _.map(milestones, milestone =>
         parseUnits(_.toString(milestone?.value), invoiceToken?.decimals),
       ),
       escrowData,
-      toHex('escrow', { size: 32 }),
+      ESCROW_TYPE,
     ],
-    enabled: escrowData !== '0x' && !!client && !_.isEmpty(milestones),
+    enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
   });
 
   const {

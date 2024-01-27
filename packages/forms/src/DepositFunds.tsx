@@ -28,6 +28,7 @@ import {
   commify,
   depositedMilestones,
   getNativeTokenSymbol,
+  getTokenInfo,
   getTokenSymbol,
   getTxLink,
   getWrappedNativeToken,
@@ -68,6 +69,7 @@ export function DepositFunds({
     }),
     [chainId, token],
   );
+  const tokenInfo = getTokenInfo(chainId, token, tokenData);
 
   const [transaction, setTransaction] = useState<Hex | undefined>();
 
@@ -75,7 +77,7 @@ export function DepositFunds({
   const { watch, setValue } = localForm;
 
   const paymentType = watch('paymentType');
-  const amount = watch('amount', '0');
+  const amount = parseUnits(watch('amount', '0'), tokenInfo?.decimals);
   const checked = watch('checked');
 
   const amountsSum = _.sumBy(amounts, _.toNumber); // number, not parsed
@@ -100,8 +102,7 @@ export function DepositFunds({
       : tokenBalance?.formatted;
   const decimals =
     paymentType?.value === PAYMENT_TYPES.NATIVE ? 18 : tokenBalance?.decimals;
-  const hasAmount =
-    !!balance && balance > BigInt(amount) * BigInt(10) ** BigInt(decimals || 0);
+  const hasAmount = !!balance && balance > amount;
 
   const { handleDeposit, isLoading, isReady } = useDeposit({
     invoice,
@@ -131,11 +132,9 @@ export function DepositFunds({
   useEffect(() => {
     if (!amount || !deposited) return;
 
-    setValue(
-      'checked',
-      depositedMilestones(deposited + parseUnits(amount, 18), parsedAmounts),
-    );
+    setValue('checked', depositedMilestones(deposited + amount, parsedAmounts));
   }, [amount, deposited, amounts, setValue]);
+  console.log(amount <= BigInt(0), !isReady, !hasAmount);
 
   return (
     <Stack w="100%" spacing="1rem" color="black" align="center">
@@ -317,7 +316,7 @@ export function DepositFunds({
         Deposit
       </Button>
       {transaction && (
-        <Text color="white" textAlign="center" fontSize="sm">
+        <Text textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction)}

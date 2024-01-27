@@ -54,7 +54,7 @@ export const writeContract = () => undefined;
 
 // export const readEvent = async <
 //   TAbi extends Abi,
-//   TEventName extends `0x${string}` | ExtractAbiEventNames<TAbi>,
+//   TEventName extends Hex | ExtractAbiEventNames<TAbi>,
 //   TAbiEvent extends AbiEvent = ExtractAbiEvent<TAbi, TEventName>,
 // >(config: {
 //   abi: TAbi;

@@ -22,6 +22,7 @@ function Invoices() {
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
   const { data: invoices, isLoading } = useInvoiceList({ chainId });
+  console.log(invoices);
 
   return (
     <Box paddingY={16} flex={!_.isEmpty(invoices) ? '1 0 100%' : undefined}>

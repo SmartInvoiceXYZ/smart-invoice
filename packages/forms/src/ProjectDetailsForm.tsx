@@ -97,6 +97,7 @@ export function ProjectDetailsForm({
           name="projectName"
           tooltip="The name of the project"
           placeholder="An adventure slaying Moloch"
+          registerOptions={{ required: true }}
           localForm={localForm}
         />
         <Textarea
@@ -105,6 +106,7 @@ export function ProjectDetailsForm({
           tooltip="A detailed description of the project"
           placeholder="Describe the project in detail. What is the scope? What are the deliverables? What are the milestones? What are the expectations?"
           variant="outline"
+          registerOptions={{ required: true }}
           localForm={localForm}
         />
         <Input

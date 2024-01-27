@@ -35,10 +35,6 @@ const validationSchema = Yup.object().shape({
       }),
     ),
   token: Yup.string().required('Token is required'),
-  // token: Yup.object().shape({
-  //   label: Yup.string(),
-  //   value: Yup.string().required(),
-  // }),
 });
 
 export function PaymentsForm({
@@ -74,7 +70,6 @@ export function PaymentsForm({
     [chainId, allTokens],
   );
   const invoiceTokenData = _.find(TOKENS, { address: localToken });
-  console.log(localToken, invoiceTokenData);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -104,7 +99,6 @@ export function PaymentsForm({
     localMilestones,
     (milestone: { value: string }) => _.toNumber(milestone.value) || 0,
   );
-  console.log(TOKENS);
 
   return (
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>

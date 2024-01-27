@@ -98,7 +98,6 @@ export function ResolveFunds({
       >
         <Heading
           mb="1rem"
-          color="white"
           as="h3"
           fontSize="2xl"
           transition="all ease-in-out .25s"
@@ -135,7 +134,6 @@ export function ResolveFunds({
     <Stack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
       <Heading
         mb="1rem"
-        color="white"
         as="h3"
         fontSize="2xl"
         transition="all ease-in-out .25s"
@@ -230,7 +228,7 @@ export function ResolveFunds({
       )}
 
       {/* {transaction && (
-            <Text color='white' textAlign='center' fontSize='sm'>
+            <Text textAlign='center' fontSize='sm'>
               Follow your transaction{' '}
               <Link
                 href={getTxLink(chainId, transaction.hash)}

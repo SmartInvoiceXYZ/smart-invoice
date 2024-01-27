@@ -66,23 +66,40 @@ export function InvoiceButtonManager({
   // const dispute =
   //   isLocked && !_.isEmpty(disputes) ? _.last(disputes) : undefined;
   const deposited = released && BigInt(released) + BigInt(balance);
+  // console.log(deposited, total);
   const due =
     deposited &&
     total &&
-    (deposited > total ? BigInt(0) : BigInt(total) - deposited);
+    (deposited > BigInt(total) ? BigInt(0) : BigInt(total) - deposited);
   // const resolution =
   //  b !isLocked && !_.isEmpty(resolutions) ? _.last(resolutions) : undefined;
+  // console.log(
+  //   currentMilestone,
+  //   amounts,
+  //   currentMilestone < _.size(amounts),
+  //   amounts?.[currentMilestone],
+  // );
   const amount =
-    currentMilestone &&
+    currentMilestone !== undefined &&
     amounts &&
-    BigInt(
-      currentMilestone < _.size(amounts) ? amounts?.[currentMilestone] : 0,
-    );
+    currentMilestone < _.size(amounts)
+      ? BigInt(amounts?.[currentMilestone])
+      : BigInt(0);
+  // console.log('amount', amount);
   const isExpired = terminationTime
     ? terminationTime <= new Date().getTime() / 1000
     : undefined;
   const isLockable = !isExpired && !isLocked && balance > 0;
-  const isReleasable = amount && !isLocked && balance >= amount && balance > 0;
+  const isReleasable =
+    !!amount && !isLocked && balance >= amount && balance > BigInt(0);
+  // console.log(
+  //   isReleasable,
+  //   !!amount,
+  //   !isLocked,
+  //   amount && balance >= amount,
+  //   balance > BigInt(0),
+  // );
+  // console.log(balance, amount, due, deposited);
 
   const onLock = () => {
     setModals({ lock: true });

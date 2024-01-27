@@ -1,6 +1,6 @@
-import { IERC20_ABI } from '@smart-invoice/constants';
+import { IERC20_ABI, PAYMENT_TYPES } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
-import { ContractFunctionResult, Hex, parseUnits } from 'viem';
+import { ContractFunctionResult, Hex } from 'viem';
 import {
   useChainId,
   useContractWrite,
@@ -16,7 +16,7 @@ export const useDeposit = ({
   onSuccess,
 }: {
   invoice: Invoice;
-  amount: string;
+  amount: bigint;
   hasAmount: boolean;
   paymentType: string;
   onSuccess?: (tx: ContractFunctionResult) => void;
@@ -24,7 +24,6 @@ export const useDeposit = ({
   const chainId = useChainId();
 
   const token = invoice?.token;
-  const depositAmount = BigInt(amount) && parseUnits(amount, 18);
 
   const {
     config,
@@ -35,8 +34,8 @@ export const useDeposit = ({
     address: token as Hex,
     abi: IERC20_ABI,
     functionName: 'transfer',
-    args: [invoice?.address as Hex, depositAmount],
-    enabled: hasAmount, // && paymentType === PAYMENT_TYPES.TOKEN,
+    args: [invoice?.address as Hex, amount],
+    enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
   });
 
   const {
@@ -63,14 +62,14 @@ export const useDeposit = ({
 
   const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
     to: invoice?.address,
-    value: depositAmount,
+    value: amount,
   });
 
   const handleDeposit = async () => {
-    // if (paymentType === PAYMENT_TYPES.NATIVE) {
-    //   const result = await sendTransactionAsync();
-    //   return result;
-    // }
+    if (paymentType === PAYMENT_TYPES.NATIVE) {
+      const result = await sendTransactionAsync();
+      return result;
+    }
 
     const result = await writeAsync?.();
     return result;

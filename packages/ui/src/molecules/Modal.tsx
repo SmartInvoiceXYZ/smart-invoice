@@ -21,7 +21,6 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
           maxW="40rem"
           background="background"
           borderRadius="0.5rem"
-          color="white"
         >
           <ModalCloseButton
             _hover={{ bgColor: 'white20' }}

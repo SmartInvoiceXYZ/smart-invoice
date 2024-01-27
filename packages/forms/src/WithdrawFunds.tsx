@@ -3,8 +3,8 @@ import {
   Heading,
   // Link,
   Spinner,
-  Text,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
 import { useWithdraw } from '@smart-invoice/hooks';
@@ -32,7 +32,6 @@ export function WithdrawFunds({
     <Stack w="100%" spacing="1rem">
       <Heading
         mb="1rem"
-        color="white"
         as="h3"
         fontSize="2xl"
         transition="all ease-in-out .25s"
@@ -59,7 +58,7 @@ export function WithdrawFunds({
         )}`}</Text> */}
       </Stack>
       {/* {transaction && (
-        <Text color='white' textAlign='center' fontSize='sm'>
+        <Text textAlign='center' fontSize='sm'>
           Follow your transaction{' '}
           <Link
             href={getTxLink(chainId, transaction.hash)}

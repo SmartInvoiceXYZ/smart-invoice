@@ -2,6 +2,7 @@ export * from './ErrorBoundary';
 export * from './Footer';
 export * from './Header';
 export * from './InvoiceBadge';
+export * from './InvoiceMetaDetails';
 export * from './InvoicePDF';
 export * from './InvoicesStyles';
 export * from './InvoiceStatusLabel';

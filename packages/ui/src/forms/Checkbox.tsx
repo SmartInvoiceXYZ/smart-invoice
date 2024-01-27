@@ -68,7 +68,7 @@ export function Checkbox({
                     <Icon
                       as={QuestionIcon}
                       boxSize={3}
-                      color="red.500"
+                      color="blue.500"
                       bg="white"
                       borderRadius="full"
                     />

@@ -96,18 +96,18 @@ export const CONFIG: Config = {
         [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
       },
     },
-    31337: {
-      SUBGRAPH: 'psparacino/goerli-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0x1206b51217271FC3ffCa57d0678121983ce0390E')]: LEXDAO_DATA,
-      },
-    },
+    // 31337: {
+    //   SUBGRAPH: 'psparacino/goerli-smart-invoices',
+    //   WRAPPED_NATIVE_TOKEN: toLower(
+    //     '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+    //   ) as Address,
+    //   INVOICE_FACTORY: toLower(
+    //     '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    //   ) as Address,
+    //   RESOLVERS: {
+    //     [toLower('0x1206b51217271FC3ffCa57d0678121983ce0390E')]: LEXDAO_DATA,
+    //   },
+    // },
   },
 };
 

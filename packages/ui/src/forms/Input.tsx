@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FormControl,
   FormErrorMessage,
@@ -8,11 +9,11 @@ import {
   Input as ChakraInput,
   InputProps as ChakraInputProps,
   Stack,
+  Tooltip,
 } from '@chakra-ui/react';
 import _ from 'lodash';
 import React, { ReactNode } from 'react';
 import { FieldValues, RegisterOptions, UseFormReturn } from 'react-hook-form';
-
 // import { Tooltip } from '../../atoms';
 
 type CustomInputProps = {
@@ -66,7 +67,7 @@ export function Input({
         {label && (
           <HStack align="center">
             <FormLabel m="0">{label}</FormLabel>
-            {/* {tooltip && (
+            {tooltip && (
               <Tooltip
                 label={tooltip}
                 shouldWrapChildren
@@ -74,14 +75,14 @@ export function Input({
                 placement="end"
               >
                 <Icon
-                  as={FaInfoCircle}
+                  as={InfoOutlineIcon}
                   boxSize={3}
-                  color="red.500"
+                  color="blue.500"
                   bg="white"
                   borderRadius="full"
                 />
               </Tooltip>
-            )} */}
+            )}
           </HStack>
         )}
 

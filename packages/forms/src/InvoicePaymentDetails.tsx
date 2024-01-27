@@ -201,7 +201,7 @@ export function InvoicePaymentDetails({ invoice }: { invoice: Invoice }) {
         <Divider my="1rem" />
         <Stack px={6}>
           {_.map(_.compact(details), detail => (
-            <HStack justifyContent="space-between">
+            <HStack justifyContent="space-between" key={detail.label}>
               <Text>{detail.label}</Text>
               <Text>
                 {commify(formatUnits(detail.value, tokenInfo?.decimals))}{' '}

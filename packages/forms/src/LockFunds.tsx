@@ -2,20 +2,20 @@ import {
   Button,
   Flex,
   Heading,
-  Image,
+  // Image,
   Link,
   Spinner,
-  Text,
-  Textarea,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { Invoice } from '@smart-invoice/graphql';
-import { useLock } from '@smart-invoice/hooks';
+import { useFetchTokens, useLock } from '@smart-invoice/hooks';
 // import LockImage from '../../assets/lock.svg';
-import { AccountLink } from '@smart-invoice/ui';
+import { AccountLink, Textarea } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolverString,
+  getTokenSymbol,
   getTxLink,
   isKnownResolver,
   // NETWORK_CONFIG,
@@ -25,15 +25,6 @@ import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
-
-const parseTokenAddress = (chainId: number, address: Hex) => address;
-// eslint-disable-next-line no-restricted-syntax
-// for (const [key, value] of Object.entries(NETWORK_CONFIG[chainId].TOKENS)) {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   if ((value as any).address === _.toLower(address)) {
-//     return key;
-//   }
-// }
 
 export function LockFunds({
   invoice,
@@ -48,7 +39,8 @@ export function LockFunds({
     'token',
     'resolutionRate',
   ]);
-
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
@@ -61,15 +53,16 @@ export function LockFunds({
       18,
     );
   const feeDisplay =
-    token && `${fee} ${parseTokenAddress(chainId, token as Hex)}`;
+    token && `${fee} ${getTokenSymbol(chainId, token as Hex, tokenData)}`;
 
   const disputeReason = watch('disputeReason');
   const amount = balance ? formatUnits(balance, 18) : undefined;
 
-  // const onSuccess = () => {
-  //   // handle tx success
-  //   // mark locked
-  // };
+  const onSuccess = (values: any) => {
+    console.log(values);
+    // handle tx success
+    // mark locked
+  };
 
   const {
     writeAsync: lockFunds,
@@ -90,7 +83,6 @@ export function LockFunds({
     return (
       <Stack w="100%" spacing="1rem">
         <Heading
-          color="white"
           as="h3"
           fontSize="2xl"
           transition="all ease-in-out .25s"
@@ -99,7 +91,7 @@ export function LockFunds({
           Locking Funds
         </Heading>
         {txHash && (
-          <Text color="white" textAlign="center" fontSize="sm">
+          <Text textAlign="center" fontSize="sm">
             Follow your transaction{' '}
             <Link
               href={getTxLink(chainId, txHash)}
@@ -127,14 +119,8 @@ export function LockFunds({
   }
 
   return (
-    <Stack
-      w="100%"
-      spacing="1rem"
-      as="form"
-      // onSubmit={handleSubmit(lockFunds)}
-    >
+    <Stack w="100%" spacing="1rem" as="form" onSubmit={handleSubmit(onSuccess)}>
       <Heading
-        color="white"
         as="h3"
         fontSize="2xl"
         transition="all ease-in-out .25s"
@@ -148,31 +134,30 @@ export function LockFunds({
       </Text>
       <Text textAlign="center" fontSize="sm" mb="1rem">
         {'Once a dispute has been initiated, '}
-        {/* <AccountLink
+        <AccountLink
           name={resolverDisplayName}
-          address={resolver}
+          address={resolver as Hex}
           chainId={chainId}
-        /> */}
-        {
-          ' will review your case, the project agreement and dispute reasoning before making a decision on how to fairly distribute remaining funds.'
-        }
+        />{' '}
+        will review your case, the project agreement and dispute reasoning
+        before making a decision on how to fairly distribute remaining funds.
       </Text>
 
-      {/* <Textarea
+      <Textarea
         name="disputeReason"
         tooltip="Why do you want to lock these funds?"
         label="Dispute Reason"
         placeholder="Dispute Reason"
         localForm={localForm}
-      /> */}
-      <Text color="white" textAlign="center">
+      />
+      <Text textAlign="center">
         {`Upon resolution, a fee of ${feeDisplay} will be deducted from the locked fund amount and sent to `}
-        {/* <AccountLink
+        <AccountLink
           name={resolverDisplayName}
-          address={resolver}
+          address={resolver as Hex}
           chainId={chainId}
-        /> */}
-        {' for helping resolve this dispute.'}
+        />{' '}
+        for helping resolve this dispute.
       </Text>
       {!!balance && (
         <Button
@@ -182,22 +167,24 @@ export function LockFunds({
           variant="solid"
         >
           {`Lock ${formatUnits(BigInt(balance), 18)} ${
-            token ? parseTokenAddress(chainId, token as Hex) : ''
+            token ? getTokenSymbol(chainId, token as Hex, tokenData) : ''
           }`}
         </Button>
       )}
 
-      {/* {isKnownResolver(chainId, resolver) && (
-        <Link
-          href={getResolverInfo(chainId, resolver).termsUrl}
-          isExternal
-          color="primary.300"
-          textDecor="underline"
-        >
-          Learn about {getResolverString(chainId, resolver)} dispute process &
-          terms
-        </Link>
-      )} */}
+      <Flex justify="center">
+        {isKnownResolver(resolver as Hex, chainId) && (
+          <Link
+            href={getResolverInfo(resolver as Hex, chainId).termsUrl}
+            isExternal
+            color="primary.300"
+            textDecor="underline"
+          >
+            Learn about {getResolverString(resolver as Hex, chainId)} dispute
+            process & terms
+          </Link>
+        )}
+      </Flex>
     </Stack>
   );
 }

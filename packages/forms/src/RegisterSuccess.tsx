@@ -4,9 +4,9 @@ import {
   Heading,
   HStack,
   Link,
+  Stack,
   Text,
   useClipboard,
-  Stack,
 } from '@chakra-ui/react';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';

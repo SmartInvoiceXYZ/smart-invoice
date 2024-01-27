@@ -1,6 +1,5 @@
 /* eslint-disable radix */
 import {
-  ChainId,
   DEFAULT_CHAIN_ID,
   graphUrls,
   invoiceFactory,
@@ -11,9 +10,9 @@ import {
   SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { ProjectAgreement, TokenData } from '@smart-invoice/types';
+import { ProjectAgreement } from '@smart-invoice/types';
 import _ from 'lodash';
-import { Address, Hex, zeroAddress } from 'viem';
+import { Address, Hex } from 'viem';
 
 import { chainsMap } from '.';
 
@@ -51,44 +50,6 @@ export const getResolverInfo = (resolver: Address, chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
     ? resolverInfo(chainId)[_.toLower(resolver) as Hex]
     : resolverInfo(DEFAULT_CHAIN_ID)[_.toLower(resolver) as Hex];
-
-export const getTokens = (
-  allTokens: Record<ChainId, string[]>,
-  chainId?: number,
-) =>
-  chainId && isOfTypeChainId(chainId)
-    ? allTokens[chainId]
-    : allTokens[DEFAULT_CHAIN_ID];
-
-export const getTokenInfo = (
-  chainId?: number,
-  token?: string,
-  tokenData?: Record<ChainId, Record<string, TokenData>>,
-) => {
-  if (
-    !chainId ||
-    !isOfTypeChainId(chainId) ||
-    !token ||
-    !tokenData ||
-    Object.keys(tokenData || {}).length === 0
-  ) {
-    return {
-      address: zeroAddress,
-      decimals: 18,
-      symbol: 'UNKNOWN',
-    };
-  }
-  const tokenDataByChain =
-    tokenData[chainId as ChainId] || tokenData[DEFAULT_CHAIN_ID];
-  if (!tokenDataByChain?.[token]) {
-    return {
-      address: zeroAddress,
-      decimals: 18,
-      symbol: 'UNKNOWN',
-    };
-  }
-  return tokenDataByChain[token];
-};
 
 export const getWrappedNativeToken = (chainId?: number) =>
   chainId && wrappedNativeToken(chainId);
@@ -187,8 +148,12 @@ export const isValidLink = (url: string) => {
   return isValidURL(url);
 };
 
-export function commify(x: number | bigint | string) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+export function commify(x: number | bigint | string): string {
+  if (_.toString(x).includes('.')) {
+    const [whole, decimal] = x.toString().split('.');
+    return `${commify(whole)}.${decimal}`;
+  }
+  return _.toString(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 export const calculateResolutionFeePercentage = (resolutionRate: string) => {
@@ -199,7 +164,9 @@ export const calculateResolutionFeePercentage = (resolutionRate: string) => {
 
 export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
 
-export const getAgreementLink = (projectAgreement: ProjectAgreement[]) => {
+export const getAgreementLink = (
+  projectAgreement: ProjectAgreement[] | undefined,
+) => {
   if (_.isEmpty(projectAgreement)) return '';
 
   const address = _.get(

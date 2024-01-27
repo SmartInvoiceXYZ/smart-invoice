@@ -73,6 +73,7 @@ export const fetchInvoices = async (
 
   const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
   const where = buildInvoicesFilter(searchInput);
+  console.log(where);
   const query = invoicesQuery(
     pageSize,
     pageIndex * pageSize,

@@ -89,7 +89,6 @@ export const globalStyles = css`
   body {
     font-family: ${theme.fonts.body};
     background: ${theme.colors.white};
-    color: ${theme.colors.white};
   }
   .web3modal-modal-lightbox {
     zindex: 20;
