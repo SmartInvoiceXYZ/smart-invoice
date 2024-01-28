@@ -1,7 +1,7 @@
-import { getKeys } from '@/utils/getKeys';
+import { getKeys } from '../misc';
 
-describe('getKeys', () => {
-  it('should return an array of keys', () => {
+describe('getKeys', function () {
+  it('should return an array of keys', function () {
     const record = {
       key1: 'value1',
       key2: 'value2',

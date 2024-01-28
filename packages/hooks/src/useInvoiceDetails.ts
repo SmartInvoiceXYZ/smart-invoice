@@ -1,3 +1,4 @@
+import { INVOICE_TYPES } from '@smart-invoice/constants/src';
 import {
   fetchInvoice,
   InstantDetails,
@@ -127,7 +128,7 @@ export const useInvoiceDetails = ({
   const { data: instantDetails } = useInstantDetails({
     address,
     chainId,
-    enabled: !!address && !!chainId && type === 'instant',
+    enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
 
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =

@@ -7,10 +7,10 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { INSTANT_STEPS } from '@smart-invoice/constants';
+import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {
   FormConfirmation,
-  InstantPaymentDetailsForm,
+  InstantPaymentForm,
   ProjectDetailsForm,
   RegisterSuccess,
 } from '@smart-invoice/forms';
@@ -95,7 +95,7 @@ export function CreateInvoiceInstant() {
             spacing={{ base: '1.5rem', lg: '1rem' }}
             w={{ base: '100%', md: 'auto' }}
           >
-            <Heading fontWeight="700" fontSize={headingSize}>
+            <Heading fontWeight="700" fontSize={headingSize} textAlign="center">
               Create an Instant Invoice
             </Heading>
 
@@ -129,11 +129,15 @@ export function CreateInvoiceInstant() {
                 <ProjectDetailsForm
                   invoiceForm={invoiceForm}
                   updateStep={nextStepHandler}
+                  type={INVOICE_TYPES.Instant}
                 />
               )}
 
               {currentStep === 2 && (
-                <InstantPaymentDetailsForm invoiceForm={invoiceForm} />
+                <InstantPaymentForm
+                  invoiceForm={invoiceForm}
+                  updateStep={nextStepHandler}
+                />
               )}
 
               {currentStep === 3 && (
@@ -141,6 +145,7 @@ export function CreateInvoiceInstant() {
                   invoiceForm={invoiceForm}
                   handleSubmit={handleSubmit}
                   canSubmit={canSubmit}
+                  type={INVOICE_TYPES.Instant}
                 />
               )}
 

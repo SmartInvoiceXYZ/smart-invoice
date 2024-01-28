@@ -5,7 +5,7 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
+import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {
   EscrowDetailsForm,
   FormConfirmation,
@@ -163,6 +163,7 @@ export function CreateInvoiceEscrow() {
               <ProjectDetailsForm
                 invoiceForm={invoiceForm}
                 updateStep={nextStepHandler}
+                type={INVOICE_TYPES.Escrow}
               />
             )}
 
@@ -185,6 +186,7 @@ export function CreateInvoiceEscrow() {
                 invoiceForm={invoiceForm}
                 handleSubmit={handleSubmit}
                 canSubmit={!!writeAsync}
+                type={INVOICE_TYPES.Escrow}
               />
             )}
           </Flex>

@@ -34,6 +34,7 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
+  // handle in invoice hook, knownResolverInfo, resolverFee, resolverFeeDisplay
   const fee =
     tokenBalance?.value &&
     formatUnits(
@@ -46,6 +47,11 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
 
   const disputeReason = watch('disputeReason');
   const amount = tokenBalance?.formatted;
+
+  const resolverInfo = getResolverInfo(resolver as Hex, chainId);
+  const resolverDisplayName = isKnownResolver(resolver as Hex, chainId)
+    ? resolverInfo.name
+    : resolver;
 
   const onTxSuccess = (tx: TransactionReceipt) => {
     // TODO handle tx success
@@ -72,11 +78,6 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
 
     lockFunds?.();
   };
-
-  const resolverInfo = getResolverInfo(resolver as Hex, chainId);
-  const resolverDisplayName = isKnownResolver(resolver as Hex, chainId)
-    ? resolverInfo.name
-    : resolver;
 
   if (writeLoading) {
     return (

@@ -95,7 +95,10 @@ export function EscrowDetailsForm({
         }),
         resolverTerms: Yup.boolean().when('resolver', (r, localSchema) => {
           if (!isKnownResolver(_.first(r), chainId)) return localSchema;
-          return localSchema.oneOf([true], 'Field must be checked');
+          return localSchema.oneOf(
+            [true],
+            "Must accept resolver's terms of service",
+          );
         }),
       }),
     [chainId],

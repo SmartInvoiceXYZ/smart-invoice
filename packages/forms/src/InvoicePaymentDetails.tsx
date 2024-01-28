@@ -9,10 +9,12 @@ import {
 } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { AccountLink } from '@smart-invoice/ui';
-import { commify, getTxLink } from '@smart-invoice/utils';
+import { commify, getIpfsLink, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
+
+// ! technically not a form
 
 export function InvoicePaymentDetails({
   invoice,
@@ -242,9 +244,9 @@ export function InvoicePaymentDetails({
               {`A dispute is in progress with `}
               <AccountLink address={resolver as Hex} chainId={chainId} />
               <br />
-              {/* <Link href={ipfsUrl(dispute.ipfsHash)} isExternal>
+              <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
                 <u>View details on IPFS</u>
-              </Link> */}
+              </Link>
               <br />
               <Link href={getTxLink(chainId, dispute.txHash)} isExternal>
                 <u>View transaction</u>
@@ -281,9 +283,9 @@ export function InvoicePaymentDetails({
                   {' has resolved the dispute and dispersed remaining funds'}
                   <br />
                   <br />
-                  {/* <Link href={ipfsUrl(resolution.ipfsHash)} isExternal>
+                  <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
                     <u>View details on IPFS</u>
-                  </Link> */}
+                  </Link>
                   <br />
                   <Link href={getTxLink(chainId, resolution.txHash)} isExternal>
                     <u>View transaction</u>

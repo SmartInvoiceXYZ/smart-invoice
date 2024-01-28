@@ -2,32 +2,19 @@ import {
   Button,
   Divider,
   Flex,
-  Heading,
-  HStack,
-  Link,
   SimpleGrid,
   Stack,
   Text,
-  Tooltip,
   useBreakpointValue,
-  useClipboard,
-  Wrap,
-  WrapItem,
 } from '@chakra-ui/react';
-import { ChainId } from '@smart-invoice/constants';
 import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { useFetchTokens, useInvoiceDetails } from '@smart-invoice/hooks';
+import { useInvoiceDetails } from '@smart-invoice/hooks';
 import {
-  AccountLink,
   Container,
-  CopyIcon,
-  GenerateInvoicePDF,
   InvoiceMetaDetails,
   InvoiceNotFound,
   Loader,
   Modal,
-  QuestionIcon,
 } from '@smart-invoice/ui';
 import { getDateString } from '@smart-invoice/utils/src';
 import _ from 'lodash';
@@ -58,7 +45,7 @@ function ViewInstantInvoice() {
     provider,
     total,
     tokenBalance,
-    totalDue,
+    // totalDue,
     fulfilled,
     amountFulfilled,
     deadline,
@@ -68,7 +55,7 @@ function ViewInstantInvoice() {
     'client',
     'provider',
     'total',
-    'totalDue',
+    // 'totalDue',
     'tokenBalance',
     'fulfilled',
     'amountFulfilled',
@@ -76,19 +63,6 @@ function ViewInstantInvoice() {
     'lateFee',
     'lateFeeTimeInterval',
   ]);
-  console.log(
-    tokenBalance,
-    totalDue,
-    total,
-    amountFulfilled,
-    deadline,
-    lateFee,
-    lateFeeTimeInterval,
-  );
-  const validClient = client && isAddress(client) && client;
-  const validProvider = provider && isAddress(provider) && provider;
-
-  const { onCopy } = useClipboard(_.toLower(invoiceId));
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -117,6 +91,7 @@ function ViewInstantInvoice() {
   const isClient = _.toLower(address) === client;
   const isProvider = _.toLower(address) === provider;
 
+  // TODO fix due
   const due = BigInt(0);
   //   amountFulfilled && amountFulfilled >= (totalDue || fulfilled)
   //     ? BigInt(0)
@@ -133,6 +108,7 @@ function ViewInstantInvoice() {
 
   const onTip = async () => {
     if (!isTippable) {
+      // eslint-disable-next-line no-console
       console.log('not tippable');
       return;
     }
@@ -141,6 +117,7 @@ function ViewInstantInvoice() {
 
   const onWithdraw = async () => {
     if (!isWithdrawable || !isProvider) {
+      // eslint-disable-next-line no-console
       console.log('not withdrawable or provider');
       return;
     }
@@ -226,7 +203,7 @@ function ViewInstantInvoice() {
                       ? `${formatUnits(
                           lateFee,
                           tokenBalance?.decimals || 18,
-                        )} ${tokenBalance?.symbol} every ${daysPerInterval} days after ${getDateString(_.toNumber(deadline?.toString()))}`
+                        )} ${tokenBalance?.symbol} every ${daysPerInterval} day${daysPerInterval && daysPerInterval > 1 ? 's' : ''} after ${getDateString(_.toNumber(deadline?.toString()))}`
                       : `Not applicable`}
                   </Text>
                 </Flex>
@@ -276,65 +253,61 @@ function ViewInstantInvoice() {
             </Flex>
           </Flex>
           {isClient && (
-            <Stack>
-              <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
+            <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
+              <Button
+                size={buttonSize}
+                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+                color="white"
+                backgroundColor="blue.1"
+                fontWeight="bold"
+                fontFamily="mono"
+                textTransform="uppercase"
+                onClick={() => onDeposit()}
+                isDisabled={fulfilled}
+              >
+                {fulfilled ? 'Paid' : 'Make Payment'}
+              </Button>
+              {isTippable && (
                 <Button
                   size={buttonSize}
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
+                  _hover={{
+                    backgroundColor: 'rgba(61, 136, 248, 1)',
+                    color: 'white',
+                  }}
+                  _active={{
+                    backgroundColor: 'rgba(61, 136, 248, 1)',
+                    color: 'white',
+                  }}
+                  color="blue.1"
+                  backgroundColor="white"
+                  borderWidth={1}
+                  borderColor="blue.1"
                   fontWeight="bold"
                   fontFamily="mono"
                   textTransform="uppercase"
-                  onClick={() => onDeposit()}
-                  isDisabled={fulfilled}
+                  onClick={() => onTip()}
                 >
-                  {fulfilled ? 'Paid' : 'Make Payment'}
+                  Add Tip
                 </Button>
-                {isTippable && (
-                  <Button
-                    size={buttonSize}
-                    _hover={{
-                      backgroundColor: 'rgba(61, 136, 248, 1)',
-                      color: 'white',
-                    }}
-                    _active={{
-                      backgroundColor: 'rgba(61, 136, 248, 1)',
-                      color: 'white',
-                    }}
-                    color="blue.1"
-                    backgroundColor="white"
-                    borderWidth={1}
-                    borderColor="blue.1"
-                    fontWeight="bold"
-                    fontFamily="mono"
-                    textTransform="uppercase"
-                    onClick={() => onTip()}
-                  >
-                    Add Tip
-                  </Button>
-                )}
-              </SimpleGrid>
-            </Stack>
+              )}
+            </SimpleGrid>
           )}
           {isProvider && (
-            <Stack>
-              <SimpleGrid columns={1} spacing="1rem" w="100%">
-                <Button
-                  size={buttonSize}
-                  textTransform="uppercase"
-                  onClick={() => onWithdraw()}
-                  isDisabled={
-                    !!tokenBalance?.value && tokenBalance.value <= BigInt(0)
-                  }
-                >
-                  {tokenBalance?.value === BigInt(0) && fulfilled
-                    ? 'Received'
-                    : 'Receive'}
-                </Button>
-              </SimpleGrid>
-            </Stack>
+            <SimpleGrid columns={1} spacing="1rem" w="100%">
+              <Button
+                size={buttonSize}
+                textTransform="uppercase"
+                onClick={() => onWithdraw()}
+                isDisabled={
+                  !!tokenBalance?.value && tokenBalance.value <= BigInt(0)
+                }
+              >
+                {tokenBalance?.value === BigInt(0) && fulfilled
+                  ? 'Received'
+                  : 'Receive'}
+              </Button>
+            </SimpleGrid>
           )}
         </Stack>
 

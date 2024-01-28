@@ -7,34 +7,35 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { FormInvoice } from '@smart-invoice/types';
+import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { FormInvoice, ValueOf } from '@smart-invoice/types';
 import { DatePicker, Input, Textarea } from '@smart-invoice/ui';
 import { oneMonthFromNow, sevenDaysFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
 
-const validationSchema = Yup.object().shape({
+const projectDetailsSchema = Yup.object().shape({
   projectName: Yup.string().required('Project Name is required'),
   projectDescription: Yup.string().required('Project Description is required'),
   projectAgreement: Yup.string().url('Agreement must be a valid URL'),
   startDate: Yup.date().required('Start Date is required'),
   endDate: Yup.date().required('End Date is required'),
-  safetyValveDate: Yup.date()
-    .required('Safety valve date is required')
-    .min(
-      sevenDaysFromNow(),
-      'Safety valve date must be at least a week in the future',
-    ),
+  deadline: Yup.date(),
+  safetyValveDate: Yup.date().min(
+    oneMonthFromNow(),
+    'Safety valve date must be at least a month in the future',
+  ),
 });
 
 export function ProjectDetailsForm({
   invoiceForm,
   updateStep,
+  type,
 }: {
   invoiceForm: UseFormReturn;
   updateStep: () => void;
+  type: ValueOf<typeof INVOICE_TYPES>;
 }) {
   const { setValue, watch } = invoiceForm;
   const {
@@ -44,9 +45,10 @@ export function ProjectDetailsForm({
     startDate,
     endDate,
     safetyValveDate,
+    deadline,
   } = watch();
   const localForm = useForm({
-    resolver: yupResolver(validationSchema),
+    resolver: yupResolver(projectDetailsSchema),
     defaultValues: {
       projectName,
       projectDescription,
@@ -54,6 +56,7 @@ export function ProjectDetailsForm({
       startDate: startDate || new Date(),
       endDate: endDate || sevenDaysFromNow(),
       safetyValveDate: safetyValveDate || oneMonthFromNow(),
+      deadline: deadline || oneMonthFromNow(),
     },
   });
   const {
@@ -130,12 +133,22 @@ export function ProjectDetailsForm({
             />
           </Box>
           <Box>
-            <DatePicker
-              label="Safety Valve Date"
-              name="safetyValveDate"
-              tooltip="The date the project is expected to end. This value is not formally used in the escrow."
-              localForm={localForm}
-            />
+            {type === INVOICE_TYPES.Instant ? (
+              <DatePicker
+                name="deadline"
+                label="Deadline"
+                placeholder="Select a date"
+                tooltip="A specific date when the total payment is due."
+                localForm={localForm}
+              />
+            ) : (
+              <DatePicker
+                label="Safety Valve Date"
+                name="safetyValveDate"
+                tooltip="The date the project is expected to end. This value is not formally used in the escrow."
+                localForm={localForm}
+              />
+            )}
           </Box>
         </HStack>
 

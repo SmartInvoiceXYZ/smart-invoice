@@ -4,9 +4,9 @@ import {
   HStack,
   Icon,
   Select as ChakraSelect,
+  Stack,
   Text,
   Tooltip,
-  Stack,
 } from '@chakra-ui/react';
 // import { isValidLink, logDebug } from '@smart-invoice/utils';
 import { Controller, UseFormReturn } from 'react-hook-form';
@@ -17,7 +17,7 @@ type Required = 'required' | 'optional';
 
 interface SelectProps extends ChakraProps {
   name: string;
-  label: string;
+  label?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   infoText?: string;
@@ -40,31 +40,33 @@ export function Select({
   const { control } = localForm;
 
   return (
-    <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+    <Stack w="100%" spacing="0.5rem" justify="space-between">
       <Controller
         name={name}
         control={control}
         render={({ field: { onChange, value } }) => (
           <>
-            <Stack w="100%" align="left" spacing={0}>
-              <HStack align="center" spacing={4}>
-                <FormLabel fontWeight="700" m={0}>
-                  {label}
-                </FormLabel>
+            {label && (
+              <Stack w="100%" align="left" spacing={0}>
+                <HStack align="center" spacing={4}>
+                  <FormLabel fontWeight="700" m={0}>
+                    {label}
+                  </FormLabel>
 
-                <HStack>
-                  {infoText && <Text fontSize="xs">{infoText}</Text>}
-                  {tooltip && (
-                    <Tooltip label={tooltip} placement="right" hasArrow>
-                      <Icon as={QuestionIcon} boxSize="0.75rem" />
-                    </Tooltip>
-                  )}
+                  <HStack>
+                    {infoText && <Text fontSize="xs">{infoText}</Text>}
+                    {tooltip && (
+                      <Tooltip label={tooltip} placement="right" hasArrow>
+                        <Icon as={QuestionIcon} boxSize="0.75rem" />
+                      </Tooltip>
+                    )}
+                  </HStack>
                 </HStack>
-              </HStack>
-              <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-                {required}
-              </Text>
-            </Stack>
+                <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
+                  {required}
+                </Text>
+              </Stack>
+            )}
 
             <ChakraSelect
               value={value}
@@ -75,6 +77,7 @@ export function Select({
               borderColor="lightgrey"
               _hover={{ borderColor: 'lightgrey' }}
               isDisabled={isDisabled}
+              {...props}
             >
               {children}
             </ChakraSelect>

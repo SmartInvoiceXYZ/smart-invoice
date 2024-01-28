@@ -42,7 +42,7 @@ export function DatePicker({
   tooltip,
   placeholderText, // default prop from react-datepicker
   placeholder, // match rest of inputs for consistency, takes priority
-  variant = 'ghost',
+  variant = 'outline',
   spacing,
   ...props
 }: DatePickerProps) {
@@ -55,11 +55,11 @@ export function DatePicker({
   // these are the values that seemed relevant. we can adjust and even theme this
   const customDatePickerStyles = {
     '.react-datepicker__header': {
-      backgroundColor: 'blackAlpha.200',
+      backgroundColor: 'blackAlpha.100',
       color: 'black',
     },
     '.react-datepicker__month-container': {
-      backgroundColor: 'blackAlpha.200',
+      backgroundColor: 'blackAlpha.100',
       color: 'black',
     },
     '.react-datepicker__current-month, .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__month, .react-datepicker__month-text':
@@ -86,7 +86,12 @@ export function DatePicker({
             <HStack>
               {label && <FormLabel m={0}>{label}</FormLabel>}
               {tooltip && (
-                <Tooltip label={tooltip} shouldWrapChildren>
+                <Tooltip
+                  label={tooltip}
+                  placement="right"
+                  shouldWrapChildren
+                  hasArrow
+                >
                   <Icon
                     as={InfoOutlineIcon}
                     boxSize={3}
