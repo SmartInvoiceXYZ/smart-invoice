@@ -18,6 +18,7 @@ export type FormInvoice = {
   customResolver?: string;
   resolverTerms?: boolean;
   safetyValveDate?: Date;
+  deadline?: Date;
   token: string;
   client: string;
   provider: string;

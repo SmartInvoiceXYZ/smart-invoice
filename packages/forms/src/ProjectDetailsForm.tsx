@@ -10,23 +10,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import { FormInvoice, ValueOf } from '@smart-invoice/types';
 import { DatePicker, Input, Textarea } from '@smart-invoice/ui';
-import { oneMonthFromNow, sevenDaysFromNow } from '@smart-invoice/utils';
+import {
+  oneMonthFromNow,
+  projectDetailsSchema,
+  sevenDaysFromNow,
+} from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const projectDetailsSchema = Yup.object().shape({
-  projectName: Yup.string().required('Project Name is required'),
-  projectDescription: Yup.string().required('Project Description is required'),
-  projectAgreement: Yup.string().url('Agreement must be a valid URL'),
-  startDate: Yup.date().required('Start Date is required'),
-  endDate: Yup.date().required('End Date is required'),
-  deadline: Yup.date(),
-  safetyValveDate: Yup.date().min(
-    oneMonthFromNow(),
-    'Safety valve date must be at least a month in the future',
-  ),
-});
 
 export function ProjectDetailsForm({
   invoiceForm,
@@ -83,6 +73,7 @@ export function ProjectDetailsForm({
     setValue('startDate', values.startDate);
     setValue('endDate', values.endDate);
     setValue('safetyValveDate', values.safetyValveDate);
+    setValue('deadline', values.deadline);
 
     // move form
     updateStep();

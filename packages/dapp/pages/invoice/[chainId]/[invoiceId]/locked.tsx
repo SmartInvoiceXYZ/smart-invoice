@@ -23,7 +23,7 @@ function LockedInvoice() {
   });
   const invoiceChainId = hexToNumber(hexChainId);
 
-  if (!isLoading && invoiceDetails === null) {
+  if (!isLoading && !invoiceDetails) {
     return <InvoiceNotFound />;
   }
 

@@ -9,7 +9,11 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import {
+  ESCROW_STEPS,
+  INVOICE_TYPES,
+  LATE_FEE_INTERVAL_OPTIONS,
+} from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { ValueOf } from '@smart-invoice/types';
 import { AccountLink } from '@smart-invoice/ui';
@@ -54,6 +58,10 @@ export function FormConfirmation({
     lateFeeTimeInterval,
     paymentDue,
   } = watch();
+
+  const lateFeeIntervalString = _.toLower(
+    LATE_FEE_INTERVAL_OPTIONS[_.toNumber(lateFeeTimeInterval)]?.label,
+  );
 
   const initialPaymentDue = _.get(_.first(milestones), 'value');
   const { symbol } = getTokenInfo(chainId, token, tokenData);
@@ -106,8 +114,9 @@ export function FormConfirmation({
       lateFee &&
         lateFeeTimeInterval && {
           label: 'Late Fee:',
-          // add time interval
-          value: <Text textAlign="right">{`${lateFee}%`}</Text>,
+          value: (
+            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalString}`}</Text>
+          ),
         },
       // calculate payment due
       (customResolver || (resolver && resolver !== 'custom')) && {

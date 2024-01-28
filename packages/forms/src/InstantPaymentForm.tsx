@@ -1,55 +1,20 @@
 import { Box, Button, Grid, Stack, useBreakpointValue } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { INSTANT_STEPS } from '@smart-invoice/constants/src';
+import {
+  INSTANT_STEPS,
+  LATE_FEE_INTERVAL_OPTIONS,
+} from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks/src';
 import { Input, NumberInput, Select } from '@smart-invoice/ui';
-import { getTokenSymbol, oneMonthFromNow } from '@smart-invoice/utils';
+import {
+  getTokenSymbol,
+  instantPaymentSchema,
+  oneMonthFromNow,
+} from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import { isAddress } from 'viem';
 import { useChainId } from 'wagmi';
-import * as Yup from 'yup';
-
-const instantPaymentSchema = Yup.object().shape({
-  client: Yup.string()
-    .required('Client address is required')
-    .test({
-      name: 'clientIsAddress',
-      test: (v, { createError }) => {
-        if (!!v && isAddress(v)) return true;
-        return createError({
-          path: 'client',
-          message: 'Client must be a valid address',
-        });
-      },
-    }),
-  provider: Yup.string()
-    .required('Provider address is required')
-    .test({
-      name: 'providerIsAddress',
-      test: (v, { createError }) => {
-        if (!!v && isAddress(v)) return true;
-        return createError({
-          path: 'provider',
-          message: 'Provider must be a valid address',
-        });
-      },
-    }),
-  token: Yup.string(),
-  paymentDue: Yup.number(),
-  deadline: Yup.date(),
-  lateFee: Yup.string(),
-  lateFeeInterval: Yup.string(),
-});
-
-const LATE_FEE_INTERVAL_OPTIONS = [
-  { label: 'day', value: 1 },
-  { label: '2 days', value: 2 },
-  { label: 'week', value: 7 },
-  { label: '2 weeks', value: 14 },
-  { label: '4 weeks', value: 28 },
-];
 
 export type InstantPaymentFormProps = {
   invoiceForm: UseFormReturn;
@@ -90,7 +55,7 @@ export function InstantPaymentForm({
 
   // console.log('errors', errors);
 
-  // setLateFeeInterval(parseInt(v) * 1000 * 60 * 60 * 24);
+  // setLateFeeTimeInterval(parseInt(v) * 1000 * 60 * 60 * 24);
 
   const onSubmit = (values: any) => {
     console.log(values);
@@ -100,7 +65,7 @@ export function InstantPaymentForm({
     setValue('paymentDue', values.paymentDue);
     setValue('deadline', values?.deadline);
     setValue('lateFee', values?.lateFee);
-    setValue('lateFeeTimeInterval', values?.lateFeeInterval);
+    setValue('lateFeeTimeInterval', values?.lateFeeTimeInterval);
 
     updateStep?.();
   };
@@ -108,6 +73,11 @@ export function InstantPaymentForm({
   useEffect(() => {
     // set initial local values for select after options load
     localSetValue('token', _.first(TOKENS), { shouldDirty: true });
+    localSetValue(
+      'lateFeeTimeInterval',
+      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+      { shouldDirty: true },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS]);
 
@@ -185,7 +155,7 @@ export function InstantPaymentForm({
             >
               {LATE_FEE_INTERVAL_OPTIONS.map(interval => (
                 <option value={interval.value} key={interval.value}>
-                  Every {interval.label}
+                  {interval.label}
                 </option>
               ))}
             </Select>

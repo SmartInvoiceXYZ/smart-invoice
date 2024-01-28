@@ -7,5 +7,6 @@ export * from './invoice';
 export * from './ipfs';
 export * from './log';
 export * from './misc';
+export * from './resolvers';
 export * from './tokens';
 export * from './web3';

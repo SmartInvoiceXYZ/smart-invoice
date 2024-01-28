@@ -18,9 +18,10 @@ import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
+  useMediaStyles,
   useToast,
 } from '@smart-invoice/ui';
-import _ from 'lodash';
+// import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useChainId } from 'wagmi';
@@ -41,12 +42,7 @@ export function CreateInvoiceEscrow() {
     lg: '75%',
   });
 
-  const headingSize = useBreakpointValue({
-    base: '90%',
-    sm: '125%',
-    md: '150%',
-    lg: '225%',
-  });
+  const { headingSize } = useMediaStyles();
 
   const nextStepHandler = () => {
     setCurrentStep(currentStep + 1);
@@ -56,40 +52,13 @@ export function CreateInvoiceEscrow() {
     setCurrentStep(currentStep - 1);
   };
 
-  const { watch } = _.pick(invoiceForm, ['watch']);
-  const {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    client,
-    provider,
-    startDate,
-    endDate,
-    safetyValveDate,
-    resolver,
-    customResolver,
-    milestones,
-    token,
-  } = watch();
-
   const onTxSuccess = () => {
     // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
     toast.success({ title: 'Invoice Created' });
   };
 
   const { writeAsync } = useInvoiceCreate({
-    projectName,
-    projectDescription,
-    projectAgreement,
-    client,
-    provider,
-    startDate,
-    endDate,
-    safetyValveDate,
-    resolver,
-    customResolver,
-    milestones,
-    token,
+    invoiceForm,
     toast,
     onTxSuccess,
   });
