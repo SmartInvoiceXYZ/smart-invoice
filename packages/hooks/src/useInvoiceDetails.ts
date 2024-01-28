@@ -1,5 +1,6 @@
 import {
   fetchInvoice,
+  InstantDetails,
   Invoice,
   InvoiceDetails,
   TokenBalance,
@@ -26,56 +27,67 @@ import _ from 'lodash';
 import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
 
+import { useInstantDetails } from '.';
+
 const getInvoiceDetailsDetails = async (
   invoice: Invoice,
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
   nativeBalance: TokenBalance | undefined,
+  instantDetails: InstantDetails | undefined,
 ): Promise<InvoiceDetails | null> => {
   const currentMilestoneNumber = _.toNumber(
     _.get(invoice, 'currentMilestone')?.toString(),
   );
-  if (!invoice || !tokenMetadata || !tokenBalance) return null;
+  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance)
+    return null;
 
-  const invoiceDetails = {
-    ...invoice,
-    // conversions
-    currentMilestoneNumber,
-    chainId: chainByName(invoice?.network)?.id,
-    // computed values
-    total: totalAmount(invoice),
-    deposited: totalDeposited(invoice, tokenBalance),
-    due: totalDue(invoice, tokenBalance),
-    currentMilestoneAmount: currentMilestoneAmount(
-      invoice,
+  try {
+    const invoiceDetails = {
+      ...invoice,
+      // conversions
       currentMilestoneNumber,
-    ),
-    bigintAmounts: convertAmountsType(invoice),
-    parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
-    depositedMilestones: depositedMilestones(invoice, tokenBalance),
-    detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
-    // entities
-    dispute: lastDispute(invoice),
-    resolution: lastResolution(invoice),
-    // flags
-    isExpired: isInvoiceExpired(invoice),
-    isReleasable: isMilestoneReleasable(
-      invoice,
+      chainId: chainByName(invoice?.network)?.id,
+      // computed values
+      total: totalAmount(invoice),
+      deposited: totalDeposited(invoice, tokenBalance),
+      due: totalDue(invoice, tokenBalance),
+      currentMilestoneAmount: currentMilestoneAmount(
+        invoice,
+        currentMilestoneNumber,
+      ),
+      bigintAmounts: convertAmountsType(invoice),
+      parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
+      depositedMilestones: depositedMilestones(invoice, tokenBalance),
+      detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
+      // entities
+      dispute: lastDispute(invoice),
+      resolution: lastResolution(invoice),
+      // flags
+      isExpired: isInvoiceExpired(invoice),
+      isReleasable: isMilestoneReleasable(
+        invoice,
+        tokenBalance,
+        currentMilestoneNumber,
+      ),
+      isLockable: isLockable(invoice, tokenBalance),
+      isWithdrawable:
+        isInvoiceExpired(invoice) &&
+        !!tokenBalance?.value &&
+        tokenBalance?.value > BigInt(0),
+      // token data
+      tokenMetadata,
       tokenBalance,
-      currentMilestoneNumber,
-    ),
-    isLockable: isLockable(invoice, tokenBalance),
-    isWithdrawable:
-      isInvoiceExpired(invoice) &&
-      !!tokenBalance?.value &&
-      tokenBalance?.value > BigInt(0),
-    // token data
-    tokenMetadata,
-    tokenBalance,
-    nativeBalance,
-  };
+      nativeBalance,
+      ...instantDetails,
+    };
 
-  return invoiceDetails;
+    return invoiceDetails;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log("Couldn't assemble InvoiceDetails", e);
+    return null;
+  }
 };
 
 export const useInvoiceDetails = ({
@@ -96,6 +108,8 @@ export const useInvoiceDetails = ({
     staleTime: 1000 * 60 * 15,
   });
 
+  const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
+
   const { data: tokenMetadata } = useToken({
     address: invoice?.token as Hex,
     chainId,
@@ -110,6 +124,12 @@ export const useInvoiceDetails = ({
     enabled: !!invoice?.token && !!chainId,
   });
 
+  const { data: instantDetails } = useInstantDetails({
+    address,
+    chainId,
+    enabled: !!address && !!chainId && type === 'instant',
+  });
+
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
     useQuery<InvoiceDetails | null>({
       queryKey: [
@@ -119,6 +139,7 @@ export const useInvoiceDetails = ({
           token: tokenMetadata?.name,
           tokenBalance: tokenBalance?.formatted,
           nativeBalance: nativeBalance?.formatted,
+          instantDetails: _.mapValues(instantDetails, v => v?.toString()),
         },
       ],
       queryFn: () =>
@@ -127,8 +148,16 @@ export const useInvoiceDetails = ({
           tokenMetadata,
           tokenBalance,
           nativeBalance,
+          instantDetails,
         ),
-      enabled: !!address && !!chainId,
+      enabled:
+        !!address &&
+        !!chainId &&
+        !!tokenMetadata &&
+        !!tokenBalance &&
+        !!nativeBalance &&
+        !!instantDetails,
+
       staleTime: 1000 * 60 * 15,
     });
 

@@ -13,12 +13,14 @@ import {
   ProjectDetailsForm,
   RegisterSuccess,
 } from '@smart-invoice/forms';
+import { useInvoiceCreate } from '@smart-invoice/hooks';
 import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
+  useToast,
 } from '@smart-invoice/ui';
-// import _ from 'lodash';
+import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useChainId } from 'wagmi';
@@ -27,7 +29,8 @@ import { useOverlay } from '../../contexts/OverlayContext';
 
 export function CreateInvoiceEscrow() {
   const chainId = useChainId();
-  const escrowForm = useForm();
+  const invoiceForm = useForm();
+  const toast = useToast();
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -51,6 +54,48 @@ export function CreateInvoiceEscrow() {
 
   const goBackHandler = () => {
     setCurrentStep(currentStep - 1);
+  };
+
+  const { watch } = _.pick(invoiceForm, ['watch']);
+  const {
+    projectName,
+    projectDescription,
+    projectAgreement,
+    client,
+    provider,
+    startDate,
+    endDate,
+    safetyValveDate,
+    resolver,
+    customResolver,
+    milestones,
+    token,
+  } = watch();
+
+  const onTxSuccess = () => {
+    // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
+    toast.success({ title: 'Invoice Created' });
+  };
+
+  const { writeAsync } = useInvoiceCreate({
+    projectName,
+    projectDescription,
+    projectAgreement,
+    client,
+    provider,
+    startDate,
+    endDate,
+    safetyValveDate,
+    resolver,
+    customResolver,
+    milestones,
+    token,
+    toast,
+    onTxSuccess,
+  });
+
+  const handleSubmit = async () => {
+    await writeAsync?.();
   };
 
   // if (txHash) {
@@ -116,26 +161,32 @@ export function CreateInvoiceEscrow() {
             />
             {currentStep === 1 && (
               <ProjectDetailsForm
-                escrowForm={escrowForm}
+                invoiceForm={invoiceForm}
                 updateStep={nextStepHandler}
               />
             )}
 
             {currentStep === 2 && (
               <EscrowDetailsForm
-                escrowForm={escrowForm}
+                invoiceForm={invoiceForm}
                 updateStep={nextStepHandler}
               />
             )}
 
             {currentStep === 3 && (
               <PaymentsForm
-                escrowForm={escrowForm}
+                invoiceForm={invoiceForm}
                 updateStep={nextStepHandler}
               />
             )}
 
-            {currentStep === 4 && <FormConfirmation escrowForm={escrowForm} />}
+            {currentStep === 4 && (
+              <FormConfirmation
+                invoiceForm={invoiceForm}
+                handleSubmit={handleSubmit}
+                canSubmit={!!writeAsync}
+              />
+            )}
           </Flex>
         </Stack>
       </Stack>

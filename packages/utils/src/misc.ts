@@ -1,3 +1,7 @@
+export const getKeys = <T extends string | number | symbol>(
+  record: Record<T, any>,
+) => Object.keys(record) as T[];
+
 export function hashCode(s?: string) {
   if (!s) return 0;
   let h = 0;

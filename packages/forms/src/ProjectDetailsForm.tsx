@@ -30,13 +30,13 @@ const validationSchema = Yup.object().shape({
 });
 
 export function ProjectDetailsForm({
-  escrowForm,
+  invoiceForm,
   updateStep,
 }: {
-  escrowForm: UseFormReturn;
+  invoiceForm: UseFormReturn;
   updateStep: () => void;
 }) {
-  const { setValue, watch } = escrowForm;
+  const { setValue, watch } = invoiceForm;
   const {
     projectName,
     projectDescription,

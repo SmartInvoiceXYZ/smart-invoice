@@ -40,14 +40,14 @@ const validationSchema = Yup.object().shape({
 });
 
 export function PaymentsForm({
-  escrowForm,
+  invoiceForm,
   updateStep,
 }: {
-  escrowForm: UseFormReturn;
+  invoiceForm: UseFormReturn;
   updateStep: () => void;
 }) {
   const chainId = useChainId();
-  const { watch, setValue } = escrowForm;
+  const { watch, setValue } = invoiceForm;
   const { milestones, token } = watch();
   const localForm = useForm({
     defaultValues: {

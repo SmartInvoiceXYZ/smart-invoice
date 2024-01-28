@@ -27,14 +27,14 @@ import { useChainId } from 'wagmi';
 import * as Yup from 'yup';
 
 export function EscrowDetailsForm({
-  escrowForm,
+  invoiceForm,
   updateStep,
 }: {
-  escrowForm: UseFormReturn;
+  invoiceForm: UseFormReturn;
   updateStep: (i?: number) => void;
 }) {
   const chainId = useChainId();
-  const { watch, setValue } = escrowForm;
+  const { watch, setValue } = invoiceForm;
   const { provider, client, resolver, customResolver, resolverTerms } = watch();
 
   // TODO having trouble surfacing the error here

@@ -19,23 +19,6 @@ import { chainsMap } from '.';
 export const unsupportedNetwork = (chainId: number) =>
   !_.includes(SUPPORTED_NETWORKS, chainId);
 
-export const getDateString = (timeInSec: number) => {
-  if (timeInSec === 0) {
-    return 'Not provided';
-  }
-  const date = new Date(timeInSec ? timeInSec * 1000 : 0);
-  const ye = new Intl.DateTimeFormat('en', {
-    year: 'numeric',
-  }).format(date);
-  const mo = new Intl.DateTimeFormat('en', {
-    month: 'long',
-  }).format(date);
-  const da = new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-  }).format(date);
-  return `${mo} ${da}, ${ye}`;
-};
-
 export const getGraphUrl = (chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
     ? graphUrls(chainId)
@@ -112,20 +95,6 @@ export const getResolverString = (resolver: Address, chainId?: number) => {
   return info ? info.name : getAccountString(resolver);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const logError = (message?: any, ...optionalParams: any[]) => {
-  // eslint-disable-next-line no-console
-  console.error(message, optionalParams);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const logDebug = (message?: any, ...optionalParams: any[]) => {
-  if (process.env.NEXT_PUBLIC_DEBUG_LOGS === 'true') {
-    // eslint-disable-next-line no-console
-    console.debug(message, optionalParams);
-  }
-};
-
 const URL_REGEX =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
 
@@ -162,8 +131,6 @@ export const calculateResolutionFeePercentage = (resolutionRate: string) => {
   return feePercentage;
 };
 
-export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
-
 export const getAgreementLink = (
   projectAgreement: ProjectAgreement[] | undefined,
 ) => {
@@ -184,20 +151,3 @@ export const getAgreementLink = (
   }
   return address;
 };
-
-export const formatDate = (date: number | string) => {
-  const d = new Date(date);
-
-  let month = `${d.getUTCMonth() + 1}`;
-  if (month.length < 2) month = `0${month}`;
-
-  let day = `${d.getUTCDate()}`;
-  if (day.length < 2) day = `0${day}`;
-
-  const year = d.getUTCFullYear();
-
-  return [year, month, day].join('-');
-};
-
-export const sum = (array: number[]) =>
-  array.reduce((total: number, current: number) => total + current, 0);

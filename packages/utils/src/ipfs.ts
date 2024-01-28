@@ -4,7 +4,7 @@ import { decode, encode } from 'bs58';
 import _ from 'lodash';
 import { Hex } from 'viem';
 
-import { logDebug } from './helpers';
+import { logDebug } from './log';
 
 // TODO migrate to pinata/web3storage
 

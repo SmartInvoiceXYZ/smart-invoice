@@ -1,34 +1,33 @@
-import { Button, Heading, Link, Stack, Text } from '@chakra-ui/react';
-import { ChainId } from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { Container, InvoiceNotFound, Loader } from '@smart-invoice/ui';
+import { Button, Heading, Stack, Text } from '@chakra-ui/react';
+import { useInvoiceDetails } from '@smart-invoice/hooks/src';
+import {
+  ChakraNextLink,
+  Container,
+  InvoiceNotFound,
+  Loader,
+} from '@smart-invoice/ui';
 import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
-import NextLink from 'next/link';
+import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
-import { Address, isAddress } from 'viem';
+import { Address, Hex, hexToNumber } from 'viem';
 
 function LockedInvoice() {
-  const { hexChainId, invoiceId } = useParams<{
-    hexChainId: string;
+  const { hexChainId, invoiceId: address } = useParams<{
+    hexChainId: Hex;
     invoiceId: Address;
   }>();
-  const [invoice, setInvoice] = useState<Invoice>();
-  const router = useRouter();
-  const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
 
-  useEffect(() => {
-    if (isAddress(invoiceId)) {
-      fetchInvoice(invoiceChainId, invoiceId).then(setInvoice);
-    }
-  }, [invoiceId, invoiceChainId]);
+  const { invoiceDetails, isLoading } = useInvoiceDetails({
+    address,
+    chainId: hexToNumber(hexChainId),
+  });
+  const invoiceChainId = hexToNumber(hexChainId);
 
-  if (!isAddress(invoiceId) || invoice === null) {
+  if (!isLoading && invoiceDetails === null) {
     return <InvoiceNotFound />;
   }
 
-  if (!invoice) {
+  if (!invoiceDetails) {
     return (
       <Container overlay>
         <Loader size="80" />
@@ -36,10 +35,7 @@ function LockedInvoice() {
     );
   }
 
-  const { id, disputes, isLocked } = invoice;
-
-  const dispute =
-    isLocked && disputes.length > 0 ? disputes[disputes.length - 1] : undefined;
+  const { id, dispute } = _.pick(invoiceDetails, ['id', 'dispute']);
 
   if (!dispute) {
     return <InvoiceNotFound heading="Invoice Not Locked" />;
@@ -62,24 +58,24 @@ function LockedInvoice() {
 
         <Text color="white" textAlign="center" fontSize="sm" mb="1rem">
           You can view the transaction{' '}
-          <Link
+          <ChakraNextLink
             href={getTxLink(invoiceChainId, dispute.txHash)}
             isExternal
             color="red.500"
             textDecoration="underline"
           >
             here
-          </Link>
+          </ChakraNextLink>
           <br />
           You can view the details on IPFS{' '}
-          <Link
+          <ChakraNextLink
             href={getIpfsLink(dispute.ipfsHash)}
             isExternal
             color="red.500"
             textDecoration="underline"
           >
             here
-          </Link>
+          </ChakraNextLink>
         </Text>
 
         <Text color="white" fontStyle="italic" textAlign="center" mb="1rem">
@@ -87,28 +83,26 @@ function LockedInvoice() {
           ruling.
           <br />
           Return to the{' '}
-          <Link
-            as={NextLink}
-            href={`/invoice/${invoiceChainId.toString(16)}/${id}`}
-          >
+          <ChakraNextLink href={`/invoice/${invoiceChainId}/${id}`}>
             <u>invoice details page</u>
-          </Link>{' '}
+          </ChakraNextLink>{' '}
           to view the results.
         </Text>
 
-        <Button
-          w="100%"
-          maxW="30rem"
-          variant="outline"
-          colorScheme="red"
-          textTransform="uppercase"
-          fontFamily="mono"
-          fontWeight="normal"
-          size="lg"
-          onClick={() => router.push('/')}
-        >
-          Return Home
-        </Button>
+        <ChakraNextLink href="/">
+          <Button
+            w="100%"
+            maxW="30rem"
+            variant="outline"
+            colorScheme="red"
+            textTransform="uppercase"
+            fontFamily="mono"
+            fontWeight="normal"
+            size="lg"
+          >
+            Return Home
+          </Button>
+        </ChakraNextLink>
       </Stack>
     </Container>
   );

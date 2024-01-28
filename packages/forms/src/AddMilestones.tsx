@@ -15,7 +15,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { TokenData } from '@smart-invoice/types';
 import { Input, LinkInput } from '@smart-invoice/ui';
 import {
@@ -29,12 +29,13 @@ import {
   // uploadMetadata,
   // waitForTransaction,
 } from '@smart-invoice/utils';
+import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { formatUnits, Hash, isAddress, parseUnits } from 'viem';
 import { useWalletClient } from 'wagmi';
 
 export type AddMilestonesProps = {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   due: bigint;
   tokenData: Record<ChainId, Record<string, TokenData>>;
 };
@@ -43,143 +44,140 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
   const { data: walletClient } = useWalletClient();
   const {
     address,
-    token,
-    amounts,
-    deposits,
-    projectName,
-    projectDescription,
-    projectAgreement,
-    resolutionRate,
-    startDate,
-    endDate,
-  } = invoice ?? {};
-  const { decimals, symbol } = useMemo(
-    () => getTokenInfo(walletClient?.chain?.id, token, tokenData),
-    [walletClient, token, tokenData],
-  );
-  const [loading, setLoading] = useState(false);
-  const [txHash, setTxHash] = useState<Hash>();
+    tokenMetadata,
+    // amounts,
+    // deposits,
+    // projectName,
+    // projectDescription,
+    // projectAgreement,
+    // resolutionRate,
+    // startDate,
+    // endDate,
+  } = _.pick(invoice, ['address', 'tokenMetadata']);
 
-  const [addedTotal, setAddedTotal] = useState(BigInt(0));
-  const [addedTotalInput, setAddedTotalInput] = useState(0);
-  const [addedMilestones, setAddedMilestones] = useState(0);
-  const [milestoneAmountsInput, setMilestoneAmountsInput] = useState(
-    [] as number[],
-  );
-  const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
-  const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
-  const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  const [revisedProjectAgreement, setRevisedProjectAgreement] =
-    useState(projectAgreement);
-  const defaultSrc =
-    projectAgreement && projectAgreement.length > 0
-      ? projectAgreement[projectAgreement.length - 1].src
-      : '';
-  const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
-    useState(defaultSrc);
-  const defaultProjectType =
-    projectAgreement && projectAgreement.length > 0
-      ? projectAgreement[projectAgreement.length - 1].type
-      : '';
+  // const [loading, setLoading] = useState(false);
+  // const [txHash, setTxHash] = useState<Hash>();
 
-  const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
-    useState(defaultProjectType);
-  const [remainingFunds, setRemainingFunds] = useState(0);
+  // const [addedTotal, setAddedTotal] = useState(BigInt(0));
+  // const [addedTotalInput, setAddedTotalInput] = useState(0);
+  // const [addedMilestones, setAddedMilestones] = useState(0);
+  // const [milestoneAmountsInput, setMilestoneAmountsInput] = useState(
+  //   [] as number[],
+  // );
+  // const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
+  // const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
+  // const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
+  // const [revisedProjectAgreement, setRevisedProjectAgreement] =
+  //   useState(projectAgreement);
+  // const defaultSrc =
+  //   projectAgreement && projectAgreement.length > 0
+  //     ? projectAgreement[projectAgreement.length - 1].src
+  //     : '';
+  // const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
+  //   useState(defaultSrc);
+  // const defaultProjectType =
+  //   projectAgreement && projectAgreement.length > 0
+  //     ? projectAgreement[projectAgreement.length - 1].type
+  //     : '';
 
-  useEffect(() => {
-    if (!amounts) return;
+  // const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
+  //   useState(defaultProjectType);
+  // const [remainingFunds, setRemainingFunds] = useState(0);
 
-    const totalAmounts = formatUnits(
-      amounts.reduce((a: any, b: any) => a + BigInt(b), BigInt(0)),
-      decimals,
-    );
+  // useEffect(() => {
+  //   if (!amounts) return;
 
-    if (deposits && deposits.length > 0) {
-      const depositAmounts = [] as bigint[];
+  //   const totalAmounts = formatUnits(
+  //     amounts.reduce((a: any, b: any) => a + BigInt(b), BigInt(0)),
+  //     decimals,
+  //   );
 
-      for (let i = 0; i < deposits.length; i++) {
-        depositAmounts.push(deposits[i].amount);
-      }
-      const totalDeposits = formatUnits(
-        depositAmounts.reduce((a, b) => a + b),
-        decimals,
-      );
+  //   if (deposits && deposits.length > 0) {
+  //     const depositAmounts = [] as bigint[];
 
-      const remaining = parseInt(totalAmounts) - parseInt(totalDeposits);
-      setRemainingFunds(remaining);
-    } else {
-      setRemainingFunds(parseInt(totalAmounts));
-    }
-  }, [amounts, deposits, decimals]);
+  //     for (let i = 0; i < deposits.length; i++) {
+  //       depositAmounts.push(deposits[i].amount);
+  //     }
+  //     const totalDeposits = formatUnits(
+  //       depositAmounts.reduce((a, b) => a + b),
+  //       decimals,
+  //     );
+
+  //     const remaining = parseInt(totalAmounts) - parseInt(totalDeposits);
+  //     setRemainingFunds(remaining);
+  //   } else {
+  //     setRemainingFunds(parseInt(totalAmounts));
+  //   }
+  // }, [amounts, deposits, decimals]);
 
   const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
 
-  useEffect(() => {
-    const createdAt = BigInt(Date.now());
-    const newProjectAgreement = {
-      id: createdAt.toString(),
-      type: revisedProjectAgreementType,
-      src: revisedProjectAgreementSrc,
-      createdAt,
-    };
-    setRevisedProjectAgreement([
-      ...(projectAgreement ?? []),
-      newProjectAgreement,
-    ]);
-  }, [
-    revisedProjectAgreementSrc,
-    revisedProjectAgreementType,
-    projectAgreement,
-  ]);
+  // useEffect(() => {
+  //   const createdAt = BigInt(Date.now());
+  //   const newProjectAgreement = {
+  //     id: createdAt.toString(),
+  //     type: revisedProjectAgreementType,
+  //     src: revisedProjectAgreementSrc,
+  //     createdAt,
+  //   };
+  //   setRevisedProjectAgreement([
+  //     ...(projectAgreement ?? []),
+  //     newProjectAgreement,
+  //   ]);
+  // }, [
+  //   revisedProjectAgreementSrc,
+  //   revisedProjectAgreementType,
+  //   projectAgreement,
+  // ]);
+
+  // * add milestones click handler
   const addNewMilestones = async () => {
-    if (!milestoneAmounts.length) return;
-    try {
-      setLoading(true);
-      let detailsHash: Hash | undefined;
-      if (revisedProjectAgreementType === 'ipfs') {
-        const localProjectAgreement = revisedProjectAgreement;
-        detailsHash = '0x';
-        // detailsHash = await uploadMetadata({
-        //   projectName,
-        //   projectDescription,
-        //   projectAgreement: localProjectAgreement,
-        //   startDate: Math.floor(Number(startDate) / 1000),
-        //   endDate: Math.floor(Number(endDate) / 1000),
-        // });
-      }
-
-      if (walletClient) {
-        let hash: Hash | undefined;
-        const validAddress = address && isAddress(address);
-        if (!validAddress) return;
-        if (detailsHash) {
-          hash = '0x'; // await addMilestonesWithDetails(
-          //   walletClient,
-          //   validAddress,
-          //   milestoneAmounts,
-          //   detailsHash,
-          // );
-        } else {
-          hash = '0x'; // await addMilestones(
-          //   walletClient,
-          //   validAddress,
-          //   milestoneAmounts,
-          // );
-        }
-
-        setTxHash(hash);
-        const { chain } = walletClient;
-        // await waitForTransaction(chain, hash);
-        window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
-      }
-    } catch (addMilestonesError) {
-      setLoading(false);
-      logError({ addMilestonesError });
-    }
+    // if (!milestoneAmounts.length) return;
+    // try {
+    //   setLoading(true);
+    //   let detailsHash: Hash | undefined;
+    //   if (revisedProjectAgreementType === 'ipfs') {
+    //     const localProjectAgreement = revisedProjectAgreement;
+    //     detailsHash = '0x';
+    //     // detailsHash = await uploadMetadata({
+    //     //   projectName,
+    //     //   projectDescription,
+    //     //   projectAgreement: localProjectAgreement,
+    //     //   startDate: Math.floor(Number(startDate) / 1000),
+    //     //   endDate: Math.floor(Number(endDate) / 1000),
+    //     // });
+    //   }
+    //   if (walletClient) {
+    //     let hash: Hash | undefined;
+    //     const validAddress = address && isAddress(address);
+    //     if (!validAddress) return;
+    //     if (detailsHash) {
+    //       hash = '0x'; // await addMilestonesWithDetails(
+    //       //   walletClient,
+    //       //   validAddress,
+    //       //   milestoneAmounts,
+    //       //   detailsHash,
+    //       // );
+    //     } else {
+    //       hash = '0x'; // await addMilestones(
+    //       //   walletClient,
+    //       //   validAddress,
+    //       //   milestoneAmounts,
+    //       // );
+    //     }
+    //     setTxHash(hash);
+    //     const { chain } = walletClient;
+    //     // await waitForTransaction(chain, hash);
+    //     window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
+    //   }
+    // } catch (addMilestonesError) {
+    //   setLoading(false);
+    //   logError({ addMilestonesError });
+    // }
   };
 
   return (
-    <Stack w="100%" spacing="1rem">
+    <Stack w="100%" spacing={4}>
       <Heading
         fontWeight="bold"
         mb="1rem"
@@ -358,17 +356,11 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
       <Button
         onClick={addNewMilestones}
         isLoading={loading}
-        _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-        color="white"
-        backgroundColor="blue.1"
         isDisabled={
           milestoneAmountsInput.reduce((t, v) => t + v, 0) !== addedTotalInput
         }
         textTransform="uppercase"
         size={buttonSize}
-        fontFamily="mono"
-        fontWeight="bold"
         w="100%"
       >
         Add

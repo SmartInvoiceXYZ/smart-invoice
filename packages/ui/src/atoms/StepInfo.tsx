@@ -5,9 +5,9 @@ import {
   Icon,
   IconButton,
   Spacer,
+  Stack,
   Text,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { hashCode } from '@smart-invoice/utils';

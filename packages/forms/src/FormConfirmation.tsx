@@ -10,28 +10,29 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { useFetchTokens, useInvoiceCreate } from '@smart-invoice/hooks';
-import { AccountLink, useToast } from '@smart-invoice/ui';
+import { useFetchTokens } from '@smart-invoice/hooks';
+import { AccountLink } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
-// type FormConfirmationProps = {
-//   tokenData: Record<ChainId, Record<Address, TokenData>>;
-// };
+type FormConfirmationProps = {
+  invoiceForm: UseFormReturn;
+  handleSubmit: () => void;
+  canSubmit: boolean;
+};
 
 export function FormConfirmation({
-  escrowForm,
-}: {
-  escrowForm: UseFormReturn;
-}) {
+  invoiceForm,
+  handleSubmit,
+  canSubmit,
+}: FormConfirmationProps) {
   const chainId = useChainId();
-  const toast = useToast();
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
-  const { watch } = escrowForm;
+  const { watch } = invoiceForm;
   const {
     projectName,
     projectDescription,
@@ -49,7 +50,6 @@ export function FormConfirmation({
 
   const paymentDue = _.get(_.first(milestones), 'value');
   const { symbol } = getTokenInfo(chainId, token, tokenData);
-  console.log(symbol, token, tokenData?.[chainId]);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
   const flexWidth = useBreakpointValue({
@@ -58,32 +58,6 @@ export function FormConfirmation({
     md: '80%',
     lg: '70%',
   });
-
-  const onTxSuccess = () => {
-    // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
-    toast.success({ title: 'Invoice Created' });
-  };
-
-  const { writeAsync } = useInvoiceCreate({
-    projectName,
-    projectDescription,
-    projectAgreement,
-    client,
-    provider,
-    startDate,
-    endDate,
-    safetyValveDate,
-    resolver,
-    customResolver,
-    milestones,
-    token,
-    toast,
-    onTxSuccess,
-  });
-
-  const handleSubmit = async () => {
-    await writeAsync?.();
-  };
 
   const details = useMemo(() => {
     return _.compact([
@@ -109,9 +83,11 @@ export function FormConfirmation({
           <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
         ),
       },
-      resolver && {
+      (customResolver || resolver !== 'custom') && {
         label: 'Arbitration Provider:',
-        value: <AccountLink address={resolver} chainId={chainId} />,
+        value: (
+          <AccountLink address={customResolver || resolver} chainId={chainId} />
+        ),
       },
     ]);
   }, [
@@ -177,7 +153,7 @@ export function FormConfirmation({
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
           onClick={handleSubmit}
-          isDisabled={!writeAsync}
+          isDisabled={!canSubmit}
           textTransform="uppercase"
           size={buttonSize}
           fontFamily="mono"

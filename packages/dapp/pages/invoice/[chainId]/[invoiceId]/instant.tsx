@@ -5,10 +5,6 @@ import {
   Heading,
   HStack,
   Link,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalOverlay,
   SimpleGrid,
   Stack,
   Text,
@@ -21,140 +17,78 @@ import {
 import { ChainId } from '@smart-invoice/constants';
 import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { useFetchTokens } from '@smart-invoice/hooks';
+import { useFetchTokens, useInvoiceDetails } from '@smart-invoice/hooks';
 import {
   AccountLink,
   Container,
   CopyIcon,
   GenerateInvoicePDF,
+  InvoiceMetaDetails,
   InvoiceNotFound,
   Loader,
+  Modal,
   QuestionIcon,
 } from '@smart-invoice/ui';
-import {
-  balanceOf,
-  getAccountString,
-  getAddressLink,
-  getAgreementLink,
-  getDateString,
-  getDeadline,
-  getLateFee,
-  getTokenInfo,
-  getTotalDue,
-  getTotalFulfilled,
-  logError,
-} from '@smart-invoice/utils';
+import { getDateString } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits, isAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';
+import { useAccount, useChainId } from 'wagmi';
+
+import { useOverlay } from '../../../../contexts/OverlayContext';
 
 function ViewInstantInvoice() {
-  const { hexChainId, invoiceId } = useParams<{
-    hexChainId: string;
+  const { chainId: hexChainId, invoiceId } = useParams<{
+    chainId: Hex;
     invoiceId: Address;
   }>();
-  const invoiceChainId = parseInt(hexChainId, 16) as ChainId;
-  const { data: walletClient } = useWalletClient();
-  const account = walletClient?.account?.address;
-  const chain = walletClient?.chain;
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
-  const [invoice, setInvoice] = useState<Invoice>();
-  const [balanceLoading, setBalanceLoading] = useState(true);
-  const [balance, setBalance] = useState(BigInt(0));
-  const [modal, setModal] = useState(false);
-  const [selected, setSelected] = useState(0);
-  const [totalDue, setTotalDue] = useState(BigInt(0));
-  const [totalFulfilled, setTotalFulfilled] = useState(BigInt(0));
-  const [fulfilled, setFulfilled] = useState(false);
-  const [deadline, setDeadline] = useState(0);
-  const [lateFeeAmount, setLateFeeAmount] = useState(BigInt(0));
-  const [lateFeeTimeInterval, setLateFeeTimeInterval] = useState(0);
-  const [lateFeeTotal, setLateFeeTotal] = useState(BigInt(0));
-  const validToken = useMemo(
-    () => invoice?.token && isAddress(invoice?.token) && invoice.token,
-    [invoice],
-  );
-  const validAddress = useMemo(
-    () => invoice?.address && isAddress(invoice?.address) && invoice.address,
-    [invoice],
-  );
+  const invoiceChainId = hexChainId && hexToNumber(hexChainId);
+  const { modals, setModals } = useOverlay();
+  const chainId = useChainId();
+  const { address } = useAccount();
+
+  const { invoiceDetails, isLoading } = useInvoiceDetails({
+    address: invoiceId,
+    chainId: invoiceChainId,
+  });
+  console.log(invoiceDetails);
+
   const {
     client,
     provider,
     total,
-    token,
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
-  } = invoice || {};
+    tokenBalance,
+    totalDue,
+    fulfilled,
+    amountFulfilled,
+    deadline,
+    lateFee,
+    lateFeeTimeInterval,
+  } = _.pick(invoiceDetails, [
+    'client',
+    'provider',
+    'total',
+    'totalDue',
+    'tokenBalance',
+    'fulfilled',
+    'amountFulfilled',
+    'deadline',
+    'lateFee',
+    'lateFeeTimeInterval',
+  ]);
+  console.log(
+    tokenBalance,
+    totalDue,
+    total,
+    amountFulfilled,
+    deadline,
+    lateFee,
+    lateFeeTimeInterval,
+  );
   const validClient = client && isAddress(client) && client;
   const validProvider = provider && isAddress(provider) && provider;
 
   const { onCopy } = useClipboard(_.toLower(invoiceId));
-
-  useEffect(() => {
-    if (isAddress(invoiceId) && !Number.isNaN(invoiceChainId)) {
-      fetchInvoice(invoiceChainId, invoiceId).then(setInvoice);
-    }
-  }, [invoiceChainId, invoiceId]);
-
-  useEffect(() => {
-    const getValues = async () => {
-      if (!validAddress || !validToken || !chain || !total) return;
-
-      // Get Balance
-      try {
-        setBalanceLoading(true);
-        // const b = await balanceOf(chain, validToken, validAddress);
-        // setBalance(b);
-        setBalanceLoading(false);
-      } catch (balanceError) {
-        logError({ balanceError });
-      }
-
-      // Get Total Due
-      try {
-        // const t = await getTotalDue(chain, validAddress);
-        // setTotalDue(t);
-      } catch (totalDueError) {
-        logError({ totalDueError });
-        setTotalDue(total);
-      }
-
-      // Get Deadline, Late Fee and its time interval
-      try {
-        // const d = await getDeadline(chain, validAddress);
-        setDeadline(0); // Number(d));
-        // const { amount, timeInterval } = await getLateFee(chain, validAddress);
-        // setLateFeeAmount(amount);
-        // setLateFeeTimeInterval(Number(timeInterval));
-      } catch (lateFeeError) {
-        logError({ lateFeeError });
-      }
-
-      // Get Total Fulfilled
-      try {
-        // const tf = await getTotalFulfilled(chain, validAddress);
-        // setTotalFulfilled(tf.amount);
-        // setFulfilled(tf.isFulfilled);
-      } catch (totalFulfilledError) {
-        logError({ totalFulfilledError });
-      }
-    };
-
-    getValues();
-  }, [chain, total, validAddress, validToken]);
-
-  useEffect(() => {
-    if (invoice && totalDue !== BigInt(0) && deadline) {
-      setLateFeeTotal(totalDue - BigInt(invoice.total));
-    }
-  }, [invoice, deadline, totalDue]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
@@ -162,17 +96,17 @@ function ViewInstantInvoice() {
   const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
   // const smallScreen = useBreakpointValue({ base: true, sm: false });
 
-  if (!isAddress(invoiceId) || invoice === null) {
+  if (!isAddress(invoiceId) || (invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }
 
-  if (invoice && chain?.id !== invoiceChainId) {
+  if (invoiceDetails && chainId !== invoiceChainId) {
     return (
       <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
     );
   }
 
-  if (!invoice || balanceLoading) {
+  if (!invoiceDetails || isLoading) {
     return (
       <Container overlay>
         <Loader size="80" />
@@ -180,36 +114,43 @@ function ViewInstantInvoice() {
     );
   }
 
-  const isClient = account?.toLowerCase() === client;
-  const isProvider = account?.toLowerCase() === walletClient;
-  const { decimals, symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+  const isClient = _.toLower(address) === client;
+  const isProvider = _.toLower(address) === provider;
 
-  const due =
-    totalFulfilled >= totalDue || fulfilled
-      ? BigInt(0)
-      : totalDue - totalFulfilled;
+  const due = BigInt(0);
+  //   amountFulfilled && amountFulfilled >= (totalDue || fulfilled)
+  //     ? BigInt(0)
+  //     : totalDue - amountFulfilled;
 
   const isTippable = fulfilled;
-  const isWithdrawable = balance > 0;
+  const isWithdrawable = tokenBalance?.value
+    ? tokenBalance.value > BigInt(0)
+    : undefined;
 
   const onDeposit = () => {
-    setSelected(1);
-    setModal(true);
+    setModals({ deposit: true });
   };
 
   const onTip = async () => {
-    if (isTippable) {
-      setSelected(1);
-      setModal(true);
+    if (!isTippable) {
+      console.log('not tippable');
+      return;
     }
+    setModals({ tip: true });
   };
 
   const onWithdraw = async () => {
-    if (isWithdrawable && isProvider) {
-      setSelected(2);
-      setModal(true);
+    if (!isWithdrawable || !isProvider) {
+      console.log('not withdrawable or provider');
+      return;
     }
+
+    setModals({ withdraw: true });
   };
+
+  const daysPerInterval = lateFeeTimeInterval
+    ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
+    : undefined;
 
   return (
     <Container overlay>
@@ -231,127 +172,7 @@ function ViewInstantInvoice() {
           align="stretch"
           direction="column"
         >
-          <Stack align="stretch" justify="center">
-            <Heading fontWeight="normal" fontSize="2xl">
-              {projectName}
-            </Heading>
-
-            <HStack align="center" color="black" spacing={4}>
-              <Link
-                href={getAddressLink(invoiceChainId, invoiceId.toLowerCase())}
-                isExternal
-              >
-                {getAccountString(invoiceId)}
-              </Link>
-              <Button
-                onClick={onCopy}
-                variant="ghost"
-                colorScheme="blue"
-                h="auto"
-                w="auto"
-                minW="2"
-                p={2}
-              >
-                <CopyIcon boxSize={4} />
-              </Button>
-            </HStack>
-            {projectDescription && (
-              <Text color="black">{projectDescription}</Text>
-            )}
-
-            {/* <Link
-              href={getAgreementLink(projectAgreement)}
-              isExternal
-              textDecor="underline"
-              color="black"
-            >
-              Details of Agreement
-            </Link> */}
-          </Stack>
-
-          <Stack fontSize="sm" color="grey" align="stretch" justify="center">
-            {startDate ? (
-              <Wrap>
-                <WrapItem>
-                  <Text>{'Project Start Date: '}</Text>
-                </WrapItem>
-
-                <WrapItem>
-                  {/* <Text fontWeight="bold">{getDateString(startDate)}</Text> */}
-                </WrapItem>
-              </Wrap>
-            ) : null}
-            {endDate ? (
-              <Wrap>
-                <WrapItem>
-                  <Text>{'Project End Date: '}</Text>
-                </WrapItem>
-
-                <WrapItem>
-                  {/* <Text fontWeight="bold">{getDateString(endDate)}</Text> */}
-                </WrapItem>
-              </Wrap>
-            ) : null}
-
-            <Wrap>
-              <WrapItem>
-                <Text>{'Payment Deadline: '}</Text>
-              </WrapItem>
-
-              <WrapItem>
-                <Text fontWeight="bold">{getDateString(deadline)}</Text>
-
-                <Tooltip
-                  label={`Late fees start accumulating after ${new Date(
-                    deadline * 1000,
-                  ).toUTCString()} until total amount is paid.`}
-                  placement="auto-start"
-                >
-                  <QuestionIcon ml="1rem" boxSize="0.75rem" color="gray" />
-                </Tooltip>
-              </WrapItem>
-            </Wrap>
-
-            <Wrap>
-              <WrapItem>
-                <Text>{'Client Account: '}</Text>
-              </WrapItem>
-
-              <WrapItem fontWeight="bold">
-                {validClient ? (
-                  <AccountLink address={validClient} chainId={invoiceChainId} />
-                ) : (
-                  client
-                )}
-              </WrapItem>
-            </Wrap>
-
-            <Wrap>
-              <WrapItem>
-                <Text>{'Provider Account: '}</Text>
-              </WrapItem>
-
-              <WrapItem fontWeight="bold">
-                {validProvider ? (
-                  <AccountLink
-                    address={validProvider}
-                    chainId={invoiceChainId}
-                  />
-                ) : (
-                  provider
-                )}
-              </WrapItem>
-            </Wrap>
-
-            <Wrap>
-              {/* <GenerateInvoicePDF
-                invoice={invoice}
-                symbol={symbol}
-                buttonText="Preview & Download Invoice PDF"
-                buttonProps={{ textColor: 'blue.dark' }}
-              /> */}
-            </Wrap>
-          </Stack>
+          <InvoiceMetaDetails invoice={invoiceDetails} />
         </Stack>
 
         <Stack
@@ -380,39 +201,39 @@ function ViewInstantInvoice() {
               >
                 <Text>Amount</Text>
 
-                <Text>{`${formatUnits(total, decimals)} ${symbol}`}</Text>
+                <Text>{`${formatUnits(total, tokenBalance?.decimals || 18)} ${tokenBalance?.symbol}`}</Text>
               </Flex>
             ) : null}
 
-            <Flex
-              justify="space-between"
-              align="center"
-              fontWeight="bold"
-              fontSize="lg"
-              mb="1rem"
-            >
-              <Flex direction="column">
-                <Text>Late Fee</Text>
+            {!!lateFee && (
+              <Flex
+                justify="space-between"
+                align="center"
+                fontWeight="bold"
+                fontSize="lg"
+                mb="1rem"
+              >
+                <Flex direction="column">
+                  <Text>Late Fee</Text>
 
-                <Text
-                  fontSize="x-small"
-                  fontWeight="normal"
-                  fontStyle="italic"
-                  color="grey"
-                >
-                  {deadline && lateFeeAmount
-                    ? `${formatUnits(
-                        lateFeeAmount,
-                        decimals,
-                      )} ${symbol} every ${
-                        lateFeeTimeInterval / (1000 * 60 * 60 * 24)
-                      } days after ${getDateString(deadline)}`
-                    : `Not applicable`}
-                </Text>
+                  <Text
+                    fontSize="x-small"
+                    fontWeight="normal"
+                    fontStyle="italic"
+                    color="grey"
+                  >
+                    {deadline
+                      ? `${formatUnits(
+                          lateFee,
+                          tokenBalance?.decimals || 18,
+                        )} ${tokenBalance?.symbol} every ${daysPerInterval} days after ${getDateString(_.toNumber(deadline?.toString()))}`
+                      : `Not applicable`}
+                  </Text>
+                </Flex>
+
+                <Text>{`${formatUnits(lateFee, tokenBalance?.decimals || 18)} ${tokenBalance?.symbol}`}</Text>
               </Flex>
-
-              <Text>{`${formatUnits(lateFeeTotal, decimals)} ${symbol}`}</Text>
-            </Flex>
+            )}
 
             <Flex
               justify="space-between"
@@ -424,9 +245,9 @@ function ViewInstantInvoice() {
               <Text>Deposited</Text>
 
               <Text>{`(${formatUnits(
-                totalFulfilled,
-                decimals,
-              )} ${symbol})`}</Text>
+                amountFulfilled || BigInt(0),
+                tokenBalance?.decimals || 18,
+              )} ${tokenBalance?.symbol})`}</Text>
             </Flex>
 
             <Divider
@@ -442,11 +263,16 @@ function ViewInstantInvoice() {
               fontWeight="bold"
               fontSize="lg"
             >
-              <Text>{totalFulfilled > 0 ? 'Remaining' : 'Total'} Due</Text>
+              <Text>
+                {amountFulfilled && amountFulfilled > BigInt(0)
+                  ? 'Remaining'
+                  : 'Total'}{' '}
+                Due
+              </Text>
               <Text textAlign="right">{`${formatUnits(
                 due,
-                decimals,
-              )} ${symbol}`}</Text>{' '}
+                tokenBalance?.decimals || 18,
+              )} ${tokenBalance?.symbol}`}</Text>{' '}
             </Flex>
           </Flex>
           {isClient && (
@@ -497,63 +323,26 @@ function ViewInstantInvoice() {
               <SimpleGrid columns={1} spacing="1rem" w="100%">
                 <Button
                   size={buttonSize}
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
-                  fontWeight="bold"
-                  fontFamily="mono"
                   textTransform="uppercase"
                   onClick={() => onWithdraw()}
-                  isDisabled={balance <= 0}
+                  isDisabled={
+                    !!tokenBalance?.value && tokenBalance.value <= BigInt(0)
+                  }
                 >
-                  {balance === BigInt(0) && fulfilled ? 'Received' : 'Receive'}
+                  {tokenBalance?.value === BigInt(0) && fulfilled
+                    ? 'Received'
+                    : 'Receive'}
                 </Button>
               </SimpleGrid>
             </Stack>
           )}
         </Stack>
 
-        <Modal isOpen={modal} onClose={() => setModal(false)} isCentered>
-          <ModalOverlay>
-            <ModalContent
-              p="2rem"
-              maxW="40rem"
-              background="background"
-              borderRadius="0.5rem"
-              color="white"
-            >
-              <ModalCloseButton
-                _hover={{ bgColor: 'white20' }}
-                top="0.5rem"
-                right="0.5rem"
-                color="gray"
-              />
-              {/* {modal && selected === 1 && (
-                <DepositFunds
-                  invoice={invoice}
-                  deposited={totalFulfilled}
-                  due={
-                    totalDue >= totalFulfilled
-                      ? totalDue - totalFulfilled
-                      : BigInt(0)
-                  }
-                  total={total ?? BigInt(0)}
-                  fulfilled={fulfilled}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )}
-              {modal && selected === 2 && (
-                <WithdrawFunds
-                  invoice={invoice}
-                  balance={balance}
-                  tokenData={tokenData}
-                  close={() => setModal(false)}
-                />
-              )} */}
-            </ModalContent>
-          </ModalOverlay>
+        <Modal isOpen={modals?.deposit} onClose={() => setModals?.({})}>
+          <DepositFunds invoice={invoiceDetails} />
+        </Modal>
+        <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
+          <WithdrawFunds invoice={invoiceDetails} />
         </Modal>
       </Stack>
     </Container>

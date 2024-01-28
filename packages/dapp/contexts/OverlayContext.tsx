@@ -15,6 +15,7 @@ const defaults: Modals = {
   resolve: false,
   withdraw: false,
   addMilestone: false,
+  tip: false,
 };
 
 export type OverlayContextType = {

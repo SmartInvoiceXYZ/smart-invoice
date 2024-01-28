@@ -11,7 +11,7 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import {
   chainByName,
   getAccountString,
@@ -21,7 +21,7 @@ import {
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
-import { isAddress } from 'viem';
+import { isAddress, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import {
@@ -32,7 +32,7 @@ import {
   VerifyInvoice,
 } from '..';
 
-export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
+export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
   const { address } = useAccount();
 
   const {
@@ -43,6 +43,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
     startDate,
     endDate,
     terminationTime,
+    deadline,
     client,
     provider,
     resolver,
@@ -52,6 +53,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
     'provider',
     'resolver',
     'terminationTime',
+    'deadline',
     'projectName',
     'projectDescription',
     'projectAgreement',
@@ -64,7 +66,9 @@ export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
   const validProvider =
     !!provider && isAddress(provider) ? provider : undefined;
   const validResolver =
-    !!resolver && isAddress(resolver) ? resolver : undefined;
+    !!resolver && isAddress(resolver) && resolver !== zeroAddress
+      ? resolver
+      : undefined;
 
   const isClient = address === client;
 
@@ -92,12 +96,20 @@ export function InvoiceMetaDetails({ invoice }: { invoice: Invoice }) {
           label: 'Project End Date:',
           value: getDateString(_.toNumber(_.toString(endDate))),
         },
-      {
-        label: 'Safety Valve Withdrawal Date:',
-        value: getDateString(_.toNumber(_.toString(terminationTime))),
-        tip: `The Safety Valve gets activated on ${new Date(
-          Number(terminationTime) * 1000,
-        ).toUTCString()}`,
+      !!terminationTime &&
+        BigInt(terminationTime) !== BigInt(0) && {
+          label: 'Safety Valve Withdrawal Date:',
+          value: getDateString(_.toNumber(_.toString(terminationTime))),
+          tip: `The Safety Valve gets activated on ${new Date(
+            Number(terminationTime) * 1000,
+          ).toUTCString()}`,
+        },
+      deadline && {
+        label: 'Payment Deadline:',
+        value: getDateString(_.toNumber(_.toString(deadline))),
+        tip: `Late fees start accumulating after ${new Date(
+          _.toNumber(deadline?.toString()) * 1000,
+        ).toUTCString()} until total amount is paid.`,
       },
       validClient && {
         label: 'Client Account:',

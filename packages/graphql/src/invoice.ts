@@ -172,32 +172,42 @@ export type TokenBalance = {
   value: bigint;
 };
 
+export interface InstantDetails {
+  totalDue?: bigint;
+  amountFulfilled?: bigint;
+  fulfilled?: boolean;
+  deadline?: bigint;
+  lateFee?: bigint;
+  lateFeeTimeInterval?: bigint;
+}
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
-export type InvoiceDetails = Invoice & {
-  // conversions
-  currentMilestoneNumber: number;
-  chainId: number | undefined;
-  // computed values
-  deposited: bigint | undefined;
-  due: bigint | undefined;
-  total: bigint | undefined;
-  currentMilestoneAmount: bigint | undefined;
-  bigintAmounts: bigint[];
-  parsedAmounts: number[];
-  depositedMilestones: boolean[];
-  detailsHash: string | undefined;
-  // entities
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dispute?: any; // Dispute;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resolution?: any; // Resolution;
-  // flags
-  isExpired: boolean;
-  isReleasable: boolean;
-  isLockable: boolean;
-  isWithdrawable: boolean;
-  // token data
-  tokenMetadata: TokenMetadata | undefined;
-  tokenBalance: TokenBalance | undefined;
-  nativeBalance: TokenBalance | undefined;
-};
+export type InvoiceDetails = Invoice &
+  InstantDetails & {
+    // conversions
+    currentMilestoneNumber: number;
+    chainId: number | undefined;
+    // computed values
+    deposited: bigint | undefined;
+    due: bigint | undefined;
+    total: bigint | undefined;
+    currentMilestoneAmount: bigint | undefined;
+    bigintAmounts: bigint[];
+    parsedAmounts: number[];
+    depositedMilestones: boolean[];
+    detailsHash: string | undefined;
+    // entities
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dispute?: any; // Dispute;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolution?: any; // Resolution;
+    // flags
+    isExpired: boolean;
+    isReleasable: boolean;
+    isLockable: boolean;
+    isWithdrawable: boolean;
+    // token data
+    tokenMetadata: TokenMetadata | undefined;
+    tokenBalance: TokenBalance | undefined;
+    nativeBalance: TokenBalance | undefined;
+  };

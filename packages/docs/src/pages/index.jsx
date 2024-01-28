@@ -75,6 +75,7 @@ export default function Home() {
             <div className="container">
               <div className="row">
                 {features.map(props => (
+                  // eslint-disable-next-line react/jsx-props-no-spreading
                   <Feature key={getHashCode(props.title)} {...props} />
                 ))}
               </div>

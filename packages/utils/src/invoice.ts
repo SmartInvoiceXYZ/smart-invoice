@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
-// import { TokenBalance } from '@smart-invoice/graphql';
+// import { TokenBalance, InvoiceDetails } from '@smart-invoice/graphql';
 import _ from 'lodash';
 import { Address, Chain, formatUnits, Hash, isAddress } from 'viem';
 
-import { getInvoiceFactoryAddress, logError } from './helpers';
+import { getInvoiceFactoryAddress } from './helpers';
+import { logError } from './log';
 
 // TODO sort out Invoice/TokenBalance import
 
@@ -50,11 +51,10 @@ export const totalAmount = (invoice: any) => {
 };
 
 export const totalDue = (invoice: any, tokenBalance: any) => {
-  const { deposits, amounts } = _.pick(invoice, ['deposits', 'amounts']);
-
-  if (!deposits || !amounts) return undefined;
   const localTotalDeposited = totalDeposited(invoice, tokenBalance);
   const total = totalAmount(invoice);
+
+  if (!localTotalDeposited || !total) return undefined;
   return localTotalDeposited > total
     ? BigInt(0)
     : BigInt(total) - localTotalDeposited;

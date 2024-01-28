@@ -13,6 +13,7 @@ export type Modals = {
   resolve: boolean;
   withdraw: boolean;
   addMilestone: boolean;
+  tip: boolean;
 };
 
 type CustomToastProps = {

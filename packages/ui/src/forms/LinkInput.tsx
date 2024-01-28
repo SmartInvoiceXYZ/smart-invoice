@@ -5,10 +5,9 @@ import {
   InputGroup,
   InputLeftElement,
   Select,
-  Text,
-  Textarea,
-  Tooltip,
   Stack,
+  Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import { isValidLink, logDebug } from '@smart-invoice/utils';
 import React, { useState } from 'react';

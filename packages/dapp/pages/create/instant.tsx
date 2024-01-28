@@ -7,10 +7,10 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { INSTANT_STEPS } from '@smart-invoice/constants';
 import {
   FormConfirmation,
-  // InstantPaymentDetailsForm,
+  InstantPaymentDetailsForm,
   ProjectDetailsForm,
   RegisterSuccess,
 } from '@smart-invoice/forms';
@@ -21,20 +21,19 @@ import {
   StepInfo,
 } from '@smart-invoice/ui';
 import _ from 'lodash';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useChainId, useWalletClient } from 'wagmi';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
-
-type InstantStepNumber = keyof typeof INSTANT_STEPS;
 
 export function CreateInvoiceInstant() {
   const chainId = useChainId();
   const { modals, setModals } = useOverlay();
+  const invoiceForm = useForm();
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
-  const prevChainIdRef = useRef<number>();
-  const showChainChangeAlert = false;
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
@@ -61,6 +60,17 @@ export function CreateInvoiceInstant() {
       </Container>
     );
   }
+
+  const nextStepHandler = () => {
+    setCurrentStep(currentStep + 1);
+  };
+
+  const goBackHandler = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const handleSubmit = () => {};
+  const canSubmit = false;
 
   return (
     <Container overlay>
@@ -109,49 +119,38 @@ export function CreateInvoiceInstant() {
               borderRadius="0.5rem"
               w="100%"
             >
-              {/* <StepInfo
+              <StepInfo
                 stepNum={currentStep}
-                stepTitle={
-                  INSTANT_STEPS[currentStep as InstantStepNumber].step_title
-                }
-                stepDetails={
-                  INSTANT_STEPS[currentStep as InstantStepNumber].step_details
-                }
+                stepsDetails={INSTANT_STEPS}
                 goBack={goBackHandler}
-              /> */}
-
-              {/*
-              <ProjectDetailsForm
-                display={currentStep === 1 ? 'flex' : 'none'}
-                tokenData={tokenData}
-                allTokens={allTokens}
               />
 
-              <InstantPaymentDetailsForm
-                display={currentStep === 2 ? 'flex' : 'none'}
-                tokenData={tokenData}
-                allTokens={allTokens}
-              />
+              {currentStep === 1 && (
+                <ProjectDetailsForm
+                  invoiceForm={invoiceForm}
+                  updateStep={nextStepHandler}
+                />
+              )}
 
-              <FormConfirmation
-                display={currentStep === 3 ? 'flex' : 'none'}
-                tokenData={tokenData}
-                allTokens={allTokens}
-              />
+              {currentStep === 2 && (
+                <InstantPaymentDetailsForm invoiceForm={invoiceForm} />
+              )}
 
-              <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
+              {currentStep === 3 && (
+                <FormConfirmation
+                  invoiceForm={invoiceForm}
+                  handleSubmit={handleSubmit}
+                  canSubmit={canSubmit}
+                />
+              )}
+
+              {/* <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
                 <Button
-                  _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                  color="white"
-                  backgroundColor="blue.1"
                   onClick={nextStepHandler}
-                  isLoading={loading}
-                  isDisabled={!nextStepEnabled}
+                  // isLoading={loading}
+                  // isDisabled={!nextStepEnabled}
                   textTransform="uppercase"
                   size={buttonSize}
-                  fontFamily="mono"
-                  fontWeight="bold"
                 >
                   {currentStep === 3
                     ? INSTANT_STEPS[currentStep].next
