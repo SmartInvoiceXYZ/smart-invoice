@@ -40,6 +40,7 @@ export function PaymentsForm({
   const localForm = useForm({
     defaultValues: {
       milestones: milestones || [{ value: '1' }, { value: '1' }],
+      token,
     },
     resolver: yupResolver(escrowPaymentsSchema),
   });
@@ -153,7 +154,7 @@ export function PaymentsForm({
           })}
           <Flex>
             <FormErrorMessage mb={4}>
-              {errors?.milestones?.message}
+              {errors?.milestones?.message?.toString()}
             </FormErrorMessage>
           </Flex>
 

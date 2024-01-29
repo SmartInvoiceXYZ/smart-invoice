@@ -1,8 +1,7 @@
 import { Invoice } from '@smart-invoice/graphql';
 import {
-  balanceOf,
-  getDeadline,
-  getTotalFulfilled,
+  // getDeadline,
+  // getTotalFulfilled,
   logError,
 } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -12,8 +11,8 @@ import { Chain, useChainId } from 'wagmi';
 
 async function fetchInstantInfo(chainId: number, invoiceAddress: Hex) {
   try {
-    const deadline = await getDeadline(chainId, invoiceAddress);
-    const fulfilled = await getTotalFulfilled(chainId, invoiceAddress);
+    // const deadline = await getDeadline(chainId, invoiceAddress);
+    // const fulfilled = await getTotalFulfilled(chainId, invoiceAddress);
     return {
       deadline: 10,
       isFulfilled: true, // fulfilled.isFulfilled,

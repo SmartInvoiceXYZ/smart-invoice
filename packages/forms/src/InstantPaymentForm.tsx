@@ -38,6 +38,8 @@ export function InstantPaymentForm({
       provider,
       paymentDue,
       deadline: oneMonthFromNow(),
+      token: undefined as string | undefined,
+      lateFeeTimeInterval: undefined as string | undefined,
     },
   });
   const {
