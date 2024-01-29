@@ -22,6 +22,23 @@ export const LeftArrowIcon = createIcon({
   viewBox: '0 0 18 30',
 });
 
+export const DoubleLeftArrowIcon = createIcon({
+  displayName: 'DoubleLeftArrowIcon',
+  path: (
+    <>
+      <path
+        d="M18 2.68182L15.2699 0L0 15L15.2699 30L18 27.3182L5.46015 15L18 2.68182Z"
+        fill="#C2CFE0"
+      />
+      <path
+        d="M36 2.68182L33.2699 0L18 15L33.2699 30L36 27.3182L23.4602 15L36 2.68182Z"
+        fill="#C2CFE0"
+      />
+    </>
+  ),
+  viewBox: '0 0 36 30',
+});
+
 export const BackArrowIcon = createIcon({
   displayName: 'BackArrowIcon',
   path: (

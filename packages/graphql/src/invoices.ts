@@ -65,11 +65,8 @@ export const fetchInvoices = async (
   pageSize: number,
   sortBy: Invoice_orderBy,
   sortDesc: boolean = false,
-  onLoading: (isLoading: boolean, resultCount?: number) => void = () => {},
 ) => {
   if (chainId < 0) return undefined;
-
-  onLoading(true);
 
   const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
   const where = buildInvoicesFilter(searchInput);
@@ -95,8 +92,6 @@ export const fetchInvoices = async (
     sortBy,
     sortDesc,
   });
-
-  onLoading(false, data?.invoices.length);
 
   if (!data) {
     if (error) {

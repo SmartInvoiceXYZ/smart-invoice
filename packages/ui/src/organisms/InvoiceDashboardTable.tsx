@@ -1,11 +1,21 @@
 /* eslint-disable camelcase */
-import { Button, Flex, Heading, HStack, IconButton } from '@chakra-ui/react';
 import {
-  // Invoice_orderBy,
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  IconButton,
+  Spinner,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
+import {
   fetchInvoices,
+  Invoice_orderBy,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
-import { useQuery } from '@tanstack/react-query';
+import { chainsMap } from '@smart-invoice/utils';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   createColumnHelper,
   flexRender,
@@ -19,7 +29,12 @@ import { useRouter } from 'next/router';
 import React, { useMemo, useState } from 'react';
 import { Address, formatUnits } from 'viem';
 
-import { LeftArrowIcon, RightArrowIcon } from '../icons/ArrowIcons';
+import { ChakraNextLink, useMediaStyles } from '..';
+import {
+  DoubleLeftArrowIcon,
+  LeftArrowIcon,
+  RightArrowIcon,
+} from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
 
 export type SearchInputType = string | Address | undefined;
@@ -27,29 +42,26 @@ export type SearchInputType = string | Address | undefined;
 export type InvoiceDashboardTableProps = {
   chainId?: number;
   searchInput?: SearchInputType;
-  onLoading?: (isLoading: boolean, resultCount?: number) => void;
 };
 
 export function InvoiceDashboardTable({
   chainId,
   searchInput,
-  onLoading = () => {},
 }: InvoiceDashboardTableProps) {
   const router = useRouter();
 
+  const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<InvoiceDetails>();
 
     return [
       columnHelper.accessor('createdAt', {
         header: 'Date Created',
-        cell: info => info.getValue(),
-        footer: info => info.column.id,
+        cell: info => new Date(Number(info.getValue()) * 1000).toLocaleString(),
       }),
       columnHelper.accessor('projectName', {
         header: 'Invoice Name/ID',
         cell: info => info.getValue(),
-        footer: info => info.column.id,
       }),
       columnHelper.accessor(
         row =>
@@ -59,20 +71,24 @@ export function InvoiceDashboardTable({
           id: 'amount',
           header: 'Amount',
           cell: info => info.getValue(),
-          footer: info => info.column.id,
+          meta: 'total',
         },
       ),
       columnHelper.accessor(row => row?.tokenMetadata?.symbol, {
         id: 'currency',
         header: 'Currency',
         cell: info => info.getValue(),
-        footer: info => info.column.id,
       }),
-      columnHelper.accessor('released', {
-        header: 'Released',
-        cell: info => info.getValue(),
-        footer: info => info.column.id,
-      }),
+      columnHelper.accessor(
+        row =>
+          row?.released &&
+          formatUnits(row.released, row.tokenMetadata?.decimals || 18),
+        {
+          id: 'released',
+          header: 'Released',
+          cell: info => info.getValue(),
+        },
+      ),
       // columnHelper.accessor('action', { // TODO: clear up what this column is for? not on GQL schema...
       //   header: 'Action',
       //   cell: info => info.getValue(),
@@ -95,28 +111,28 @@ export function InvoiceDashboardTable({
     SearchInputType,
     number,
     number,
-    any, // Invoice_orderBy,
+    Invoice_orderBy,
     boolean,
-    (isLoading: boolean, resultCount?: number) => void,
   ] = useMemo(
     () => [
       chainId || -1,
       searchInput,
       pageIndex,
       pageSize,
-      sorting[0].id as any, // Invoice_orderBy,
+      sorting[0].id as Invoice_orderBy,
       sorting[0].desc,
-      onLoading,
     ],
-    [chainId, onLoading, pageIndex, pageSize, searchInput, sorting],
+    [chainId, pageIndex, pageSize, searchInput, sorting],
   );
 
-  const dataQuery = useQuery({
+  const defaultData = useMemo(() => [], []);
+
+  const { data, isLoading } = useQuery({
     queryKey: ['invoices', ...fetchDataOptions],
     queryFn: () => fetchInvoices(...fetchDataOptions),
+    enabled: !!chainId && !!searchInput,
+    placeholderData: keepPreviousData,
   });
-
-  const defaultData = useMemo(() => [], []);
 
   const pagination = useMemo(
     () => ({
@@ -127,9 +143,9 @@ export function InvoiceDashboardTable({
   );
 
   const table = useReactTable({
-    data: dataQuery.data ?? (defaultData as any),
+    data: data ?? (defaultData as any),
     columns,
-    pageCount: Math.ceil(dataQuery.status.length / pageSize) ?? -1,
+    pageCount: -1,
     state: {
       pagination,
       sorting,
@@ -141,6 +157,45 @@ export function InvoiceDashboardTable({
     manualPagination: true,
     debugTable: true,
   });
+
+  if (isLoading) {
+    return (
+      <Stack align="center">
+        <Heading color="gray" as="h1">
+          Invoices Loading
+        </Heading>
+        <Spinner />
+      </Stack>
+    );
+  }
+
+  if (!data?.length) {
+    return (
+      <Flex
+        direction="column"
+        align="center"
+        justify="center"
+        gap={4}
+        width="100%"
+      >
+        {chainId ? (
+          <Heading color="gray" size="lg">
+            No invoices found on {chainsMap(chainId)?.name}.
+          </Heading>
+        ) : (
+          <Heading color="gray" size="lg">
+            Wallet not connected.
+          </Heading>
+        )}
+
+        <ChakraNextLink href="/create">
+          <Button size={primaryButtonSize} minW="250px" paddingY={6}>
+            Create Invoice
+          </Button>
+        </ChakraNextLink>
+      </Flex>
+    );
+  }
 
   // cell props and getCellProps for individual cell control styling
   return (
@@ -189,33 +244,12 @@ export function InvoiceDashboardTable({
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            {table.getFooterGroups().map(footerGroup => (
-              <tr key={footerGroup.id}>
-                {footerGroup.headers.map(header => (
-                  <th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.footer,
-                          header.getContext(),
-                        )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </tfoot>
         </table>
       </div>
       <div className="pagination">
         <IconButton
           aria-label="First Page"
-          icon={
-            <Flex direction="column">
-              <LeftArrowIcon />
-              <LeftArrowIcon />
-            </Flex>
-          }
+          icon={<DoubleLeftArrowIcon />}
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         />
@@ -225,25 +259,11 @@ export function InvoiceDashboardTable({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         />
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of{' '}
-          {table.getPageCount()}
-        </span>
+        <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
         <IconButton
           aria-label="Next Page"
           icon={<RightArrowIcon />}
           onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        />
-        <IconButton
-          aria-label="Last Page"
-          icon={
-            <Flex direction="column">
-              <RightArrowIcon />
-              <RightArrowIcon />
-            </Flex>
-          }
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
         />
       </div>
