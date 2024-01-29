@@ -2,7 +2,7 @@
 import { getApp, initializeApp } from 'firebase/app';
 import { child, get, getDatabase, ref } from 'firebase/database';
 
-import { logDebug, logError } from './helpers';
+import { logDebug, logError } from './log';
 
 const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 const FIREBASE_AUTH_DOMAIN = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
@@ -24,7 +24,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-function createFirebaseApp(config: any) {
+function createFirebaseApp(config: typeof firebaseConfig) {
   try {
     return getApp();
   } catch {
