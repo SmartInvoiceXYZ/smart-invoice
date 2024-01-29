@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import {
+  Box,
   Button,
   Flex,
   Heading,
@@ -160,113 +161,121 @@ export function InvoiceDashboardTable({
 
   if (isLoading) {
     return (
-      <Stack align="center">
-        <Heading color="gray" as="h1">
-          Invoices Loading
-        </Heading>
-        <Spinner />
-      </Stack>
+      <Box paddingY={16}>
+        <Stack align="center">
+          <Heading color="gray" as="h1">
+            Invoices Loading
+          </Heading>
+          <Spinner />
+        </Stack>
+      </Box>
     );
   }
 
   if (!data?.length) {
     return (
-      <Flex
-        direction="column"
-        align="center"
-        justify="center"
-        gap={4}
-        width="100%"
-      >
-        {chainId ? (
-          <Heading color="gray" size="lg">
-            No invoices found on {chainsMap(chainId)?.name}.
-          </Heading>
-        ) : (
-          <Heading color="gray" size="lg">
-            Wallet not connected.
-          </Heading>
-        )}
+      <Box paddingY={16}>
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          gap={4}
+          width="100%"
+        >
+          {chainId ? (
+            <Heading color="gray" size="lg">
+              No invoices found on {chainsMap(chainId)?.name}.
+            </Heading>
+          ) : (
+            <Heading color="gray" size="lg">
+              Wallet not connected.
+            </Heading>
+          )}
 
-        <ChakraNextLink href="/create">
-          <Button size={primaryButtonSize} minW="250px" paddingY={6}>
-            Create Invoice
-          </Button>
-        </ChakraNextLink>
-      </Flex>
+          <ChakraNextLink href="/create">
+            <Button size={primaryButtonSize} minW="250px" paddingY={6}>
+              Create Invoice
+            </Button>
+          </ChakraNextLink>
+        </Flex>
+      </Box>
     );
   }
 
-  // cell props and getCellProps for individual cell control styling
   return (
-    <Styles>
-      <HStack justify="space-between" align="center" mb={8}>
-        <Heading textAlign="left" color="#192A3E">
-          My Invoices
-        </Heading>
+    <Box paddingY={16} flex="1 0 100%">
+      <Styles>
+        <HStack justify="space-between" align="center" mb={8}>
+          <Heading textAlign="left" color="#192A3E">
+            My Invoices
+          </Heading>
 
-        <Button
-          backgroundColor="blue.1"
-          _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-          color="white"
-          onClick={() => router.push('/create')}
-        >
-          Create Invoice
-        </Button>
-      </HStack>
-      <div className="tableWrap">
-        <table>
-          <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="pagination">
-        <IconButton
-          aria-label="First Page"
-          icon={<DoubleLeftArrowIcon />}
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-        />
-        <IconButton
-          aria-label="Previous Page"
-          icon={<LeftArrowIcon />}
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        />
-        <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
-        <IconButton
-          aria-label="Next Page"
-          icon={<RightArrowIcon />}
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        />
-      </div>
-    </Styles>
+          <Button
+            backgroundColor="blue.1"
+            _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
+            color="white"
+            onClick={() => router.push('/create')}
+          >
+            Create Invoice
+          </Button>
+        </HStack>
+        <div className="tableWrap">
+          <table>
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <th key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map(row => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="pagination">
+          <IconButton
+            aria-label="First Page"
+            icon={<DoubleLeftArrowIcon />}
+            disabled={!table.getCanPreviousPage()}
+            onClick={() => table.setPageIndex(0)}
+          />
+          <IconButton
+            aria-label="Previous Page"
+            icon={<LeftArrowIcon />}
+            disabled={!table.getCanPreviousPage()}
+            onClick={() => table.previousPage()}
+          />
+          <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
+          <IconButton
+            aria-label="Next Page"
+            disabled={data?.length < table.getState().pagination.pageSize}
+            icon={<RightArrowIcon />}
+            onClick={() => table.nextPage()}
+          />
+        </div>
+      </Styles>
+    </Box>
   );
 }
