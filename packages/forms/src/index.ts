@@ -2,6 +2,7 @@ export * from './AddMilestones';
 export * from './DepositFunds';
 export * from './EscrowDetailsForm';
 export * from './FormConfirmation';
+export * from './InstantPaymentForm';
 export * from './InvoiceButtonManager';
 export * from './InvoicePaymentDetails';
 export * from './LockFunds';

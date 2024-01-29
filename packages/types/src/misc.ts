@@ -12,7 +12,7 @@ export type Modals = {
   release: boolean;
   resolve: boolean;
   withdraw: boolean;
-  addMilestone: boolean;
+  addMilestones: boolean;
   tip: boolean;
 };
 

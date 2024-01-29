@@ -7,11 +7,15 @@ import {
   Link,
   Stack,
   Text,
-  useBreakpointValue,
 } from '@chakra-ui/react';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
+import {
+  ESCROW_STEPS,
+  INVOICE_TYPES,
+  LATE_FEE_INTERVAL_OPTIONS,
+} from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
-import { AccountLink } from '@smart-invoice/ui';
+import { ValueOf } from '@smart-invoice/types';
+import { AccountLink, useMediaStyles } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
@@ -22,12 +26,14 @@ type FormConfirmationProps = {
   invoiceForm: UseFormReturn;
   handleSubmit: () => void;
   canSubmit: boolean;
+  type: ValueOf<typeof INVOICE_TYPES>;
 };
 
 export function FormConfirmation({
   invoiceForm,
   handleSubmit,
   canSubmit,
+  type,
 }: FormConfirmationProps) {
   const chainId = useChainId();
   const { data } = useFetchTokens();
@@ -46,18 +52,20 @@ export function FormConfirmation({
     customResolver,
     milestones,
     token,
+    deadline,
+    lateFee,
+    lateFeeTimeInterval,
+    paymentDue,
   } = watch();
 
-  const paymentDue = _.get(_.first(milestones), 'value');
+  const lateFeeIntervalString = _.toLower(
+    LATE_FEE_INTERVAL_OPTIONS[_.toNumber(lateFeeTimeInterval)]?.label,
+  );
+
+  const initialPaymentDue = _.get(_.first(milestones), 'value');
   const { symbol } = getTokenInfo(chainId, token, tokenData);
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-  const flexWidth = useBreakpointValue({
-    base: '95%',
-    sm: '95%',
-    md: '80%',
-    lg: '70%',
-  });
+  const { headingSize, primaryButtonSize, columnWidth } = useMediaStyles();
 
   const details = useMemo(() => {
     return _.compact([
@@ -77,13 +85,34 @@ export function FormConfirmation({
         label: 'Expected End Date:',
         value: <Text textAlign="right">{getDateString(endDate / 1000)}</Text>,
       },
-      safetyValveDate && {
-        label: 'Safety Valve Date:',
-        value: (
-          <Text textAlign="right">{getDateString(safetyValveDate / 1000)}</Text>
-        ),
+      paymentDue && {
+        label: 'Payment Due:',
+        value: <Text textAlign="right">{`${paymentDue} ${symbol}`}</Text>,
       },
-      (customResolver || resolver !== 'custom') && {
+      type === INVOICE_TYPES.Escrow
+        ? {
+            label: 'Safety Valve Date:',
+            value: (
+              <Text textAlign="right">
+                {getDateString(safetyValveDate / 1000)}
+              </Text>
+            ),
+          }
+        : {
+            label: 'Deadline:',
+            value: (
+              <Text textAlign="right">{getDateString(deadline / 1000)}</Text>
+            ),
+          },
+      lateFee &&
+        lateFeeTimeInterval && {
+          label: 'Late Fee:',
+          value: (
+            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalString}`}</Text>
+          ),
+        },
+      // calculate payment due
+      (customResolver || (resolver && resolver !== 'custom')) && {
         label: 'Arbitration Provider:',
         value: (
           <AccountLink address={customResolver || resolver} chainId={chainId} />
@@ -97,12 +126,15 @@ export function FormConfirmation({
     endDate,
     safetyValveDate,
     resolver,
+    paymentDue,
+    lateFee,
+    lateFeeTimeInterval,
     chainId,
   ]);
 
   return (
     <Stack w="100%" spacing="1rem" color="#323C47" align="center">
-      <Heading id="project-title" size="md">
+      <Heading id="project-title" size={headingSize}>
         {projectName}
       </Heading>
 
@@ -122,7 +154,7 @@ export function FormConfirmation({
       <Divider />
 
       {_.map(details, ({ label, value }) => (
-        <Flex justify="space-between" width={flexWidth}>
+        <Flex justify="space-between" width={columnWidth}>
           <Text>{label}</Text>
           {value}
         </Flex>
@@ -141,9 +173,9 @@ export function FormConfirmation({
               {`${_.size(milestones)} ${_.size(milestones) > 1 ? 'Payments' : 'Payment'} Total`}
             </Text>
 
-            {paymentDue && (
+            {initialPaymentDue && (
               <Text color="blue.1" ml="2.5rem" fontWeight="bold">
-                {`${paymentDue} ${symbol} Due Today`}
+                {`${initialPaymentDue} ${symbol} Due Today`}
               </Text>
             )}
           </Flex>
@@ -155,7 +187,7 @@ export function FormConfirmation({
           onClick={handleSubmit}
           isDisabled={!canSubmit}
           textTransform="uppercase"
-          size={buttonSize}
+          size={primaryButtonSize}
           fontFamily="mono"
           fontWeight="bold"
         >

@@ -16,6 +16,14 @@ export const Button = {
       fontFamily: 'mono',
       fontWeight: props.fontWeight || 'normal',
     }),
+    outline: {
+      color: 'blue.1',
+      borderColor: 'blue.1',
+      borderWidth: 2,
+      backgroundColor: 'white',
+      _hover: { backgroundColor: 'rgba(61, 136, 248, 0.1)' },
+      _active: { backgroundColor: 'rgba(61, 136, 248, 0.1)' },
+    },
     ghost: {
       bg: 'blackAlpha.100',
       _hover: {

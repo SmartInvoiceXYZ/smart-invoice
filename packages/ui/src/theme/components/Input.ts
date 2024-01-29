@@ -1,10 +1,10 @@
 export const Input = {
   baseStyle: {},
   defaultProps: {
-    variant: 'filled',
+    variant: 'outline',
   },
   variants: {
-    filled: {
+    outline: {
       field: {
         bg: 'white',
         color: 'black',
@@ -12,6 +12,7 @@ export const Input = {
         borderColor: 'lightgrey',
         // _hover: { borderColor: 'lightgrey' },
         _invalid: { borderWidth: '2px', borderColor: 'red.500' },
+        // _invalid={{ border: '1px solid', borderColor: 'red' }}
       },
     },
   },

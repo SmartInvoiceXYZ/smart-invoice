@@ -1,3 +1,4 @@
+import { INVOICE_TYPES } from '@smart-invoice/constants/src';
 import {
   fetchInvoice,
   InstantDetails,
@@ -29,7 +30,7 @@ import { useBalance, useToken } from 'wagmi';
 
 import { useInstantDetails } from '.';
 
-const getInvoiceDetailsDetails = async (
+const getInvoiceDetails = async (
   invoice: Invoice,
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
@@ -41,6 +42,8 @@ const getInvoiceDetailsDetails = async (
   );
   if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance)
     return null;
+
+  // TODO change any of these if instantDetails?
 
   try {
     const invoiceDetails = {
@@ -110,12 +113,14 @@ export const useInvoiceDetails = ({
 
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
+  // fetch data about the invoice's token
   const { data: tokenMetadata } = useToken({
     address: invoice?.token as Hex,
     chainId,
     enabled: !!address && !!chainId,
   });
 
+  // fetch the invoice's balances
   const { data: nativeBalance } = useBalance({ address });
   const { data: tokenBalance } = useBalance({
     address,
@@ -124,12 +129,14 @@ export const useInvoiceDetails = ({
     enabled: !!invoice?.token && !!chainId,
   });
 
+  // fetch the invoice's instant details, if applicable
   const { data: instantDetails } = useInstantDetails({
     address,
     chainId,
-    enabled: !!address && !!chainId && type === 'instant',
+    enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
 
+  // enhance the invoice with computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
     useQuery<InvoiceDetails | null>({
       queryKey: [
@@ -143,7 +150,7 @@ export const useInvoiceDetails = ({
         },
       ],
       queryFn: () =>
-        getInvoiceDetailsDetails(
+        getInvoiceDetails(
           invoice,
           tokenMetadata,
           tokenBalance,
@@ -156,7 +163,9 @@ export const useInvoiceDetails = ({
         !!tokenMetadata &&
         !!tokenBalance &&
         !!nativeBalance &&
-        !!instantDetails,
+        type === INVOICE_TYPES.Instant
+          ? !!instantDetails
+          : true,
 
       staleTime: 1000 * 60 * 15,
     });

@@ -23,6 +23,7 @@ import {
   commify,
   getNativeTokenSymbol,
   getTxLink,
+  getUpdatedCheckAmount,
   getWrappedNativeToken,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -30,9 +31,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
-
-const checkedAtIndex = (index: number, checked: boolean[]) =>
-  _.map(checked, (_c, i) => i <= index);
 
 export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
   const {
@@ -142,33 +140,25 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
         How much will you be depositing today?
       </Text>
       <Stack spacing="0.5rem" align="center">
-        {_.map(amounts, (a: number, i: number) => (
+        {_.map(amounts, (localAmount: number, i: number) => (
           <Checkbox
             mx="auto"
             key={i.toString()}
             isChecked={checked?.[i]}
             isDisabled={depositedMilestones?.[i]}
             onChange={e => {
-              const newChecked = e.target.checked
-                ? checkedAtIndex(i, checked)
-                : checkedAtIndex(i - 1, checked);
-              // calculate values
-              const sumChecked = amounts?.reduce(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (tot: any, cur: any, ind: any) =>
-                  newChecked[ind] ? tot + BigInt(cur) : tot,
-                BigInt(0),
-              );
-              const newAmount =
-                deposited && sumChecked > BigInt(deposited)
-                  ? sumChecked - BigInt(deposited)
-                  : BigInt(0);
+              const { updateChecked, updateAmount } = getUpdatedCheckAmount({
+                e,
+                i,
+                previousChecked: checked,
+                invoice,
+              });
 
               // update form values
-              setValue('checked', newChecked);
+              setValue('checked', updateChecked);
               setValue(
                 'amount',
-                formatUnits(newAmount, tokenMetadata?.decimals || 18),
+                formatUnits(updateAmount, tokenMetadata?.decimals || 18),
               );
             }}
             color="blue.900"
@@ -179,7 +169,7 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
             <Text>
               Payment #{i + 1} -{'  '}
               {commify(
-                formatUnits(BigInt(a), tokenMetadata?.decimals || 18),
+                formatUnits(BigInt(localAmount), tokenMetadata?.decimals || 18),
               )}{' '}
               {tokenMetadata?.symbol}
             </Text>

@@ -27,13 +27,13 @@ function ViewInvoice() {
     ? parseInt(String(hexChainId), 16)
     : undefined;
 
-  const { invoiceDetails } = useInvoiceDetails({
+  const { invoiceDetails, isLoading } = useInvoiceDetails({
     chainId,
     address: invoiceId,
   });
   console.log(invoiceDetails);
 
-  if (!isAddress(invoiceId) || invoiceDetails === null) {
+  if ((!isAddress(invoiceId) || !invoiceDetails === null) && !isLoading) {
     return <InvoiceNotFound />;
   }
 
@@ -65,7 +65,11 @@ function ViewInvoice() {
         <InvoiceMetaDetails invoice={invoiceDetails} />
 
         <Stack minW={{ base: '90%', md: '50%' }}>
-          <InvoicePaymentDetails invoice={invoiceDetails} />
+          <InvoicePaymentDetails
+            invoice={invoiceDetails}
+            modals={modals}
+            setModals={setModals}
+          />
           <InvoiceButtonManager
             invoice={invoiceDetails}
             modals={modals}

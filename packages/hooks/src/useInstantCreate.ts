@@ -1,75 +1,68 @@
 import {
-  invoiceFactory,
   SMART_INVOICE_FACTORY_ABI,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { UseToastReturn } from '@smart-invoice/types';
-import { getTokenInfo } from '@smart-invoice/utils';
+import { UseToastReturn } from '@smart-invoice/types/src';
+import { getInvoiceFactoryAddress, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
   encodeAbiParameters,
   parseUnits,
-  toHex,
   TransactionReceipt,
+  zeroAddress,
 } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
-import { useFetchTokens } from '.';
 import { useDetailsPin } from './useDetailsPin';
+import { useFetchTokens } from './useFetchTokens';
 
-const ESCROW_TYPE = toHex('escrow', { size: 32 });
-
-interface UseInvoiceCreate {
-  invoiceForm: UseFormReturn;
-  toast: UseToastReturn;
-  onTxSuccess?: (result: TransactionReceipt) => void;
-}
-
-const REQUIRES_VERIFICATION = true;
-
-export const useInvoiceCreate = ({
+export const useInstantCreate = ({
   invoiceForm,
+  chainId,
   toast,
   onTxSuccess,
-}: UseInvoiceCreate) => {
-  const chainId = useChainId();
+}: {
+  invoiceForm: UseFormReturn;
+  chainId: number;
+  toast: UseToastReturn;
+  onTxSuccess?: (result: TransactionReceipt) => void;
+}) => {
+  const invoiceFactory = getInvoiceFactoryAddress(chainId);
 
+  const { data } = useFetchTokens();
+  const { tokenData } = _.pick(data, ['tokenData']);
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
     client,
     provider,
-    resolver,
-    customResolver,
     token,
-    safetyValveDate,
-    milestones,
     projectName,
     projectDescription,
     projectAgreement,
     startDate,
     endDate,
+    deadline,
+    paymentDue,
+    lateFee,
+    lateFeeTimeInterval,
   } = _.pick(invoiceValues, [
     'client',
     'provider',
-    'resolver',
-    'customResolver',
     'token',
-    'safetyValveDate',
-    'milestones',
     'projectName',
     'projectDescription',
     'projectAgreement',
     'startDate',
     'endDate',
+    'deadline',
+    'paymentDue',
+    'lateFee',
+    'lateFeeTimeInterval',
   ]);
-
-  const localInvoiceFactory = invoiceFactory(chainId);
-  const { data: fullTokenData } = useFetchTokens();
-  const { tokenData } = _.pick(fullTokenData, ['tokenData']);
 
   const invoiceToken = getTokenInfo(chainId, token, tokenData);
 
@@ -83,16 +76,21 @@ export const useInvoiceCreate = ({
 
   const { data: details } = useDetailsPin({ ...detailsData });
 
+  const paymentAmount = useMemo(() => {
+    if (!invoiceToken || !paymentDue) {
+      return BigInt(0);
+    }
+
+    return parseUnits(paymentDue, invoiceToken.decimals);
+  }, [invoiceToken, paymentDue]);
+
   const escrowData = useMemo(() => {
     if (
       !client ||
-      !(resolver || customResolver) ||
       !token ||
-      !safetyValveDate ||
+      !deadline ||
       !wrappedNativeToken(chainId) ||
-      !details ||
-      !localInvoiceFactory ||
-      !provider
+      !details
     ) {
       return '0x';
     }
@@ -100,50 +98,41 @@ export const useInvoiceCreate = ({
     return encodeAbiParameters(
       [
         { type: 'address' }, //     _client,
-        { type: 'uint8' }, //       _resolverType,
-        { type: 'address' }, //     _resolver,
         { type: 'address' }, //     _token,
-        { type: 'uint256' }, //     _terminationTime, // exact termination date in seconds since epoch
+        { type: 'uint256' }, //     _deadline, // exact time when late fee kicks in
         { type: 'bytes32' }, //     _details,
         { type: 'address' }, //     _wrappedNativeToken,
-        { type: 'bool' }, //        _requireVerification, // warns the client not to deposit funds until verifying they can release or lock funds
-        { type: 'address' }, //     _factory,
+        { type: 'uint256' }, //     _lateFee,
+        { type: 'uint256' }, //     _lateFeeTimeInterval
       ],
+
       [
         client,
-        1,
-        customResolver || resolver, // address _resolver (LEX DAO resolver address)
         token, // address _token (payment token address)
-        BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date
+        BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
-        REQUIRES_VERIFICATION,
-        localInvoiceFactory,
+        lateFee || BigInt(0), // late fee in payment token per interval
+        lateFeeTimeInterval || BigInt(0), // late fee time interval convert from some days duration to seconds
       ],
     );
   }, [
     client,
-    resolver,
     token,
+    deadline,
     details,
-    safetyValveDate,
     wrappedNativeToken,
-    localInvoiceFactory,
+    lateFee,
+    lateFeeTimeInterval,
   ]);
 
   const { config, error: prepareError } = usePrepareContractWrite({
-    address: localInvoiceFactory,
+    address: invoiceFactory,
+    chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
-    args: [
-      provider,
-      _.map(milestones, milestone =>
-        parseUnits(_.toString(milestone?.value), invoiceToken?.decimals),
-      ),
-      escrowData,
-      ESCROW_TYPE,
-    ],
-    enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
+    args: [provider, [paymentAmount], zeroAddress, zeroAddress],
+    enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
   });
 
   const {
@@ -152,13 +141,14 @@ export const useInvoiceCreate = ({
     isLoading,
   } = useContractWrite({
     ...config,
-    onSuccess: async result => {
-      const { hash } = result;
-      const data = await waitForTransaction({ chainId, hash });
+    onSuccess: async ({ hash }) => {
+      const txData = await waitForTransaction({ chainId, hash });
 
-      onTxSuccess?.(data);
+      onTxSuccess?.(txData);
     },
     onError: error => {
+      // eslint-disable-next-line no-console
+      console.log('onError', error);
       if (
         error.name === 'TransactionExecutionError' &&
         error.message.includes('User rejected the request')
@@ -177,8 +167,8 @@ export const useInvoiceCreate = ({
   });
 
   return {
-    writeAsync,
     prepareError,
+    writeAsync,
     writeError,
     isLoading,
   };

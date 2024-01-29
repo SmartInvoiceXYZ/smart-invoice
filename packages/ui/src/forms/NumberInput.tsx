@@ -38,8 +38,6 @@ export interface CustomNumberInputProps {
 
 type NumberInputProps = ChakraInputProps & CustomNumberInputProps;
 
-// TODO add tooltip
-
 /**
  * Primary UI component for Heading
  */
@@ -51,11 +49,12 @@ export function NumberInput({
   tooltip,
   registerOptions,
   step = 1,
-  variant = 'filled',
+  variant = 'outline',
   min = 0,
   max = 100,
   spacing,
   rightElement,
+  placeholder,
   ...props
 }: NumberInputProps) {
   if (!localForm) return null;
@@ -85,7 +84,7 @@ export function NumberInput({
               <HStack>
                 {label && <FormLabel m={0}>{label}</FormLabel>}
                 {tooltip && (
-                  <Tooltip>
+                  <Tooltip label={tooltip} placement="right" hasArrow>
                     <Icon
                       as={InfoOutlineIcon}
                       boxSize={3}
@@ -107,7 +106,11 @@ export function NumberInput({
                 {...localProps}
                 {...restField}
               >
-                <NumberInputField ref={ref} name={restField.name} />
+                <NumberInputField
+                  ref={ref}
+                  name={restField.name}
+                  placeholder={placeholder}
+                />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
                   <NumberDecrementStepper />

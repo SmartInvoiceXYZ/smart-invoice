@@ -2,6 +2,7 @@ export * from './useAddMilestones';
 export * from './useDeposit';
 export * from './useEscrowZap';
 export * from './useFetchTokens';
+export * from './useInstantCreate';
 export * from './useInstantDetails';
 export * from './useInvoiceCreate';
 export * from './useInvoiceDetails';

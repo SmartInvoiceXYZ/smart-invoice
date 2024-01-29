@@ -19,25 +19,13 @@ import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { FormInvoice } from '@smart-invoice/types';
 import { NumberInput, QuestionIcon, Select } from '@smart-invoice/ui';
-import { commify } from '@smart-invoice/utils';
+import { commify, escrowPaymentsSchema } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
-import * as Yup from 'yup';
 
 // TODO move FieldArray to its own component?
-
-const validationSchema = Yup.object().shape({
-  milestones: Yup.array()
-    .min(1, 'At least one milestone is required!')
-    .of(
-      Yup.object().shape({
-        value: Yup.string().required('Milestone Amount is required'),
-      }),
-    ),
-  token: Yup.string().required('Token is required'),
-});
 
 export function PaymentsForm({
   invoiceForm,
@@ -51,9 +39,9 @@ export function PaymentsForm({
   const { milestones, token } = watch();
   const localForm = useForm({
     defaultValues: {
-      milestones: milestones || [{ value: '1' }],
+      milestones: milestones || [{ value: '1' }, { value: '1' }],
     },
-    resolver: yupResolver(validationSchema),
+    resolver: yupResolver(escrowPaymentsSchema),
   });
   const {
     setValue: localSetValue,
@@ -179,6 +167,7 @@ export function PaymentsForm({
             >
               Add
             </Button>
+
             <Text>
               Total: {commify(total || 0)} {invoiceTokenData?.symbol}
             </Text>

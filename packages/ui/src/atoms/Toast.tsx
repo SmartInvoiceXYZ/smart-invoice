@@ -73,6 +73,7 @@ export function Toast({
       position="relative"
       borderRadius="15px"
       padding={4}
+      color="white"
     >
       <HStack spacing={3}>
         {/* {iconName ? (

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  // DatePicker,
   Flex,
   Grid,
   Link,
@@ -14,6 +13,7 @@ import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { FormInvoice } from '@smart-invoice/types';
 import { Checkbox, Input, Select } from '@smart-invoice/ui';
 import {
+  escrowDetailsSchema,
   getResolverInfo,
   getResolvers,
   getResolverString,
@@ -22,9 +22,8 @@ import {
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import { Hex, isAddress } from 'viem';
+import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
-import * as Yup from 'yup';
 
 export function EscrowDetailsForm({
   invoiceForm,
@@ -37,72 +36,8 @@ export function EscrowDetailsForm({
   const { watch, setValue } = invoiceForm;
   const { provider, client, resolver, customResolver, resolverTerms } = watch();
 
-  // TODO having trouble surfacing the error here
-  const schema = useMemo(
-    () =>
-      Yup.object().shape({
-        client: Yup.string()
-          .required('Client address is required')
-          .test({
-            name: 'clientIsAddress',
-            test: (v, { createError }) => {
-              if (!!v && isAddress(v)) return true;
-              console.log('client not address');
-
-              return createError({
-                path: 'client',
-                message: 'Client must be a valid address',
-              });
-            },
-          })
-          .when('provider', (p, localSchema) => {
-            console.log('client resolver', p);
-            if (!p) return localSchema;
-
-            return localSchema.test({
-              name: 'clientNotProvider',
-              test: (v, { createError }) => {
-                if (_.toLower(v) !== _.toLower(_.first(p))) return true;
-
-                console.log(_.toLower(v), _.toLower(_.first(p)));
-                return createError({
-                  path: 'client',
-                  message: 'Client cannot be same as provider',
-                });
-              },
-            });
-          }),
-        provider: Yup.string()
-          .required()
-          .test({
-            name: 'providerIsAddress',
-            test: (v, { createError }) => {
-              if (!!v && isAddress(v)) return true;
-              console.log('provider not address');
-
-              return createError({
-                path: 'provider',
-                message: 'Provider must be a valid address',
-              });
-            },
-          }),
-        resolver: Yup.string().required(),
-        customResolver: Yup.string().when('resolver', (r, localSchema) => {
-          if (_.first(r) !== 'custom') return localSchema;
-          return localSchema
-            .required('Custom resolver address is required')
-            .test((value: string) => isAddress(value));
-        }),
-        resolverTerms: Yup.boolean().when('resolver', (r, localSchema) => {
-          if (!isKnownResolver(_.first(r), chainId)) return localSchema;
-          return localSchema.oneOf([true], 'Field must be checked');
-        }),
-      }),
-    [chainId],
-  );
-
   const localForm = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(escrowDetailsSchema(chainId)),
     defaultValues: {
       client,
       provider,
@@ -116,7 +51,8 @@ export function EscrowDetailsForm({
     watch: localWatch,
     formState: { isValid, errors },
   } = localForm;
-  console.log(errors, isValid);
+  // eslint-disable-next-line no-console
+  console.log('errors', errors, 'isValid', isValid);
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);
