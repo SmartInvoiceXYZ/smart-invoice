@@ -14,7 +14,7 @@ const defaults: Modals = {
   release: false,
   resolve: false,
   withdraw: false,
-  addMilestone: false,
+  addMilestones: false,
   tip: false,
 };
 
