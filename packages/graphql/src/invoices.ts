@@ -31,7 +31,7 @@ const invoicesQuery = (
   skip?: number,
   orderBy?: Invoice_orderBy,
   orderDirection?: OrderDirection,
-  where?: any,
+  where?: ReturnType<typeof buildInvoicesFilter>,
 ) =>
   typedGql('query', { scalars })({
     invoices: [
@@ -73,7 +73,9 @@ export const fetchInvoices = async (
 
   const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
   const where = buildInvoicesFilter(searchInput);
-  console.log(where);
+
+  logDebug({ chainId, pageIndex, pageSize, sortBy, sortDirection, where });
+
   const query = invoicesQuery(
     pageSize,
     pageIndex * pageSize,
