@@ -42,6 +42,7 @@ export function EscrowDetailsForm({
       client,
       provider,
       customResolver,
+      resolver,
       resolverTerms,
     },
   });
