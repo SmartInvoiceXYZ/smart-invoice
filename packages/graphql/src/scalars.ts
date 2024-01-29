@@ -10,8 +10,10 @@ export const scalars = ZeusScalars({
     decode: (e: unknown) => BigInt(e as string),
   },
   Bytes: {
-    encode: (e: unknown) => (e as string).replace('0x', ''),
-    decode: (e: unknown) => `0x${e}`,
+    decode: (e: unknown) => {
+      const str = e as string;
+      return str.startsWith('0x') ? str : `0x${str}`;
+    },
   },
   Int8: {
     encode: (e: unknown) => (e as number).toString(),
