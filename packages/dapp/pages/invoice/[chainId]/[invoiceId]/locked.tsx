@@ -16,12 +16,12 @@ function LockedInvoice() {
     hexChainId: Hex;
     invoiceId: Address;
   }>();
+  const invoiceChainId = hexToNumber(hexChainId);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     address,
-    chainId: hexToNumber(hexChainId),
+    chainId: invoiceChainId,
   });
-  const invoiceChainId = hexToNumber(hexChainId);
 
   if (!isLoading && !invoiceDetails) {
     return <InvoiceNotFound />;

@@ -167,6 +167,7 @@ export function PaymentsForm({
             >
               Add
             </Button>
+
             <Text>
               Total: {commify(total || 0)} {invoiceTokenData?.symbol}
             </Text>

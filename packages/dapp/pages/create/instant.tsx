@@ -1,10 +1,4 @@
-import {
-  Flex,
-  Heading,
-  Stack,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {
   FormConfirmation,
@@ -36,14 +30,7 @@ export function CreateInvoiceInstant() {
   const toast = useToast();
   const { tokenData } = _.pick(data, ['tokenData']);
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const { headingSize } = useMediaStyles();
-
-  const stackWidth = useBreakpointValue({
-    base: '95%',
-    sm: '95%',
-    md: '85%',
-    lg: '75%',
-  });
+  const { headingSize, columnWidth } = useMediaStyles();
 
   const onTxSuccess = (tx: TransactionReceipt) => {
     // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
@@ -96,7 +83,7 @@ export function CreateInvoiceInstant() {
         spacing="2rem"
         align="center"
         justify="center"
-        w={stackWidth}
+        w={columnWidth}
         px="1rem"
         my="2rem"
         maxW="650px"

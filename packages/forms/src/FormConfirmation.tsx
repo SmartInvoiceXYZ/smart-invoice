@@ -7,7 +7,6 @@ import {
   Link,
   Stack,
   Text,
-  useBreakpointValue,
 } from '@chakra-ui/react';
 import {
   ESCROW_STEPS,
@@ -16,7 +15,7 @@ import {
 } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { ValueOf } from '@smart-invoice/types';
-import { AccountLink } from '@smart-invoice/ui';
+import { AccountLink, useMediaStyles } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
@@ -66,13 +65,7 @@ export function FormConfirmation({
   const initialPaymentDue = _.get(_.first(milestones), 'value');
   const { symbol } = getTokenInfo(chainId, token, tokenData);
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
-  const flexWidth = useBreakpointValue({
-    base: '95%',
-    sm: '95%',
-    md: '80%',
-    lg: '70%',
-  });
+  const { headingSize, primaryButtonSize, columnWidth } = useMediaStyles();
 
   const details = useMemo(() => {
     return _.compact([
@@ -141,7 +134,7 @@ export function FormConfirmation({
 
   return (
     <Stack w="100%" spacing="1rem" color="#323C47" align="center">
-      <Heading id="project-title" size="md">
+      <Heading id="project-title" size={headingSize}>
         {projectName}
       </Heading>
 
@@ -161,7 +154,7 @@ export function FormConfirmation({
       <Divider />
 
       {_.map(details, ({ label, value }) => (
-        <Flex justify="space-between" width={flexWidth}>
+        <Flex justify="space-between" width={columnWidth}>
           <Text>{label}</Text>
           {value}
         </Flex>
@@ -194,7 +187,7 @@ export function FormConfirmation({
           onClick={handleSubmit}
           isDisabled={!canSubmit}
           textTransform="uppercase"
-          size={buttonSize}
+          size={primaryButtonSize}
           fontFamily="mono"
           fontWeight="bold"
         >

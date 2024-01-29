@@ -140,7 +140,7 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
         How much will you be depositing today?
       </Text>
       <Stack spacing="0.5rem" align="center">
-        {_.map(amounts, (a: number, i: number) => (
+        {_.map(amounts, (localAmount: number, i: number) => (
           <Checkbox
             mx="auto"
             key={i.toString()}
@@ -169,7 +169,7 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
             <Text>
               Payment #{i + 1} -{'  '}
               {commify(
-                formatUnits(BigInt(a), tokenMetadata?.decimals || 18),
+                formatUnits(BigInt(localAmount), tokenMetadata?.decimals || 18),
               )}{' '}
               {tokenMetadata?.symbol}
             </Text>

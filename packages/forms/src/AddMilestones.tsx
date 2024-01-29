@@ -1,47 +1,62 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable radix */
+import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
   Button,
   Flex,
+  FormControl,
+  FormErrorMessage,
   Heading,
   HStack,
-  Input as ChakraInput,
-  InputGroup,
-  InputRightElement,
+  Icon,
+  IconButton,
   Link,
-  SimpleGrid,
   Stack,
   Text,
+  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { InvoiceDetails } from '@smart-invoice/graphql';
+import { useAddMilestones } from '@smart-invoice/hooks/src';
 import { TokenData } from '@smart-invoice/types';
-import { Input, LinkInput } from '@smart-invoice/ui';
+import {
+  Input,
+  LinkInput,
+  NumberInput,
+  QuestionIcon,
+  useToast,
+} from '@smart-invoice/ui';
 import {
   calculateResolutionFeePercentage,
+  commify,
   getTokenInfo,
   getTxLink,
-  logDebug,
-  logError,
-  // addMilestones,
-  // addMilestonesWithDetails,
-  // uploadMetadata,
-  // waitForTransaction,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
-import { formatUnits, Hash, isAddress, parseUnits } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { useMemo } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { formatUnits, Hex } from 'viem';
+import { useChainId } from 'wagmi';
 
 export type AddMilestonesProps = {
   invoice: InvoiceDetails;
-  due: bigint;
-  tokenData: Record<ChainId, Record<string, TokenData>>;
 };
 
-export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
-  const { data: walletClient } = useWalletClient();
+export function AddMilestones({ invoice }: AddMilestonesProps) {
+  const chainId = useChainId();
+  const toast = useToast();
+  const localForm = useForm({
+    defaultValues: {
+      milestones: [{ value: '' }, { value: '' }],
+    },
+  });
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+    control,
+  } = localForm;
   const {
     address,
     tokenMetadata,
@@ -55,8 +70,34 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
     // endDate,
   } = _.pick(invoice, ['address', 'tokenMetadata']);
 
-  // const [loading, setLoading] = useState(false);
-  // const [txHash, setTxHash] = useState<Hash>();
+  const {
+    fields: milestonesFields,
+    append: appendMilestone,
+    remove: removeMilestone,
+  } = useFieldArray({
+    name: 'milestones',
+    control,
+  });
+  console.log(watch());
+
+  const total = useMemo(() => {
+    console.log(milestonesFields);
+    if (!milestonesFields) return 0;
+    return milestonesFields.reduce((t, v) => t + parseInt(v.id), 0);
+  }, [milestonesFields]);
+
+  const onTxSuccess = () => {
+    // TODO: handle tx success, cache invalidation, close modal
+  };
+
+  const { writeAsync, isLoading } = useAddMilestones({
+    address: address as Hex,
+    chainId,
+    toast,
+    onTxSuccess,
+  });
+
+  const due = BigInt(0);
 
   // const [addedTotal, setAddedTotal] = useState(BigInt(0));
   // const [addedTotalInput, setAddedTotalInput] = useState(0);
@@ -189,134 +230,85 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
         Add New Payment Milestones
       </Heading>
 
-      {revisedProjectAgreementType === 'ipfs' ? (
-        <div />
-      ) : (
-        // <LinkInput
-        //   label="Link to Project Agreement (if updated)"
-        //   setValue={setRevisedProjectAgreementSrc}
-        //   linkType={revisedProjectAgreementType}
-        //   setLinkType={setRevisedProjectAgreementType}
-        //   backgroundColor="white"
-        //   tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
-        // />
-        ''
-      )}
+      <LinkInput
+        name="revisedProjectAgreementLink"
+        label="Link to Project Agreement (if updated)"
+        tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
+        localForm={localForm}
+      />
 
-      <SimpleGrid
-        w="100%"
-        columns={{ base: 2, sm: 2 }}
-        spacing="1rem"
-        mb={addedTotalInvalid ? '-0.5rem' : ''}
-      >
-        {/* <Input
-          label="Total Payment Added"
-          type="number"
-          color="black"
-          value={addedTotalInput}
-          isInvalid={addedTotalInvalid}
-          setValue={v => {
-            if (v && !Number.isNaN(Number(v))) {
-              setAddedTotalInput(Number(v));
-              const p = parseUnits(v, decimals);
-              setAddedTotal(p);
-              setAddedTotalInvalid(p < 0);
-            } else {
-              setAddedTotalInput(Number(v));
-              setAddedTotal(BigInt(0));
-              setAddedTotalInvalid(true);
-            }
-          }}
-        />
+      <FormControl isInvalid={!!errors?.milestones}>
+        <Stack w="100%">
+          <HStack align="center" spacing={1}>
+            <Heading size="sm">Milestone Amounts</Heading>
+            <Tooltip
+              label="Amounts of each milestone for the escrow. Additional milestones can be added later."
+              placement="right"
+              hasArrow
+            >
+              <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
+            </Tooltip>
+          </HStack>
+          {_.map(milestonesFields, (field, index) => {
+            const handleRemoveMilestone = () => {
+              removeMilestone(index);
+            };
 
-        <Input
-          gridArea={{ base: '2/1/2/span 2', sm: 'auto/auto/auto/auto' }}
-          label="Number of Payments"
-          color="black"
-          type="number"
-          value={addedMilestones}
-          isInvalid={addedMilestonesInvalid}
-          setValue={v => {
-            const numMilestones = v ? Number(v) : 1;
-            setAddedMilestones(numMilestones);
-            setMilestoneAmounts(
-              Array(numMilestones)
-                .fill(1)
-                .map(() => BigInt(0)),
+            return (
+              <HStack key={field.id} spacing={4}>
+                <HStack spacing={1} flexGrow={1}>
+                  <NumberInput
+                    name={`milestones.${index}.value`}
+                    step={1}
+                    min={0}
+                    max={1_000_000}
+                    placeholder="500"
+                    variant="outline"
+                    localForm={localForm}
+                  />
+                </HStack>
+                <IconButton
+                  icon={<Icon as={DeleteIcon} />}
+                  aria-label="remove milestone"
+                  variant="outline"
+                  onClick={handleRemoveMilestone}
+                />
+              </HStack>
             );
-            setMilestoneAmountsInput(
-              Array(numMilestones)
-                .fill(1)
-                .map(() => 0),
-            );
-            setAddedMilestonesInvalid(
-              Number.isNaN(Number(v)) || Number(v) === 0,
-            );
-          }}
-          tooltip="Number of milestones in which the total payment will be processed"
-        /> */}
-      </SimpleGrid>
+          })}
+          <Flex>
+            <FormErrorMessage mb={4}>
+              {errors?.milestones?.message as string}
+            </FormErrorMessage>
+          </Flex>
 
-      <Stack
-        w="100%"
-        spacing="1rem"
-        display={addedMilestones ? 'flex' : 'none'}
-      >
-        {Array.from(Array(Number(addedMilestones))).map((_val, index) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <Stack w="100%" spacing="0.5rem" key={index.toString()}>
-            <Flex justify="space-between" w="100%">
-              <Text fontWeight="700">
-                Payment #{amounts?.length ?? 0 + index + 1}
+          <Flex justify="space-between" align="flex-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                appendMilestone({ value: '1' });
+              }}
+              rightIcon={<Icon as={AddIcon} boxSize={3} />}
+            >
+              Add
+            </Button>
+
+            <Text>
+              Total: {commify(total || 0)} {tokenMetadata?.symbol}
+            </Text>
+          </Flex>
+        </Stack>
+      </FormControl>
+
+      {!!due && (
+        <Stack>
+          <Flex color="black" justify="space-between" w="100%" fontSize="sm">
+            <HStack>
+              <Text fontWeight="bold" color="black">
+                Potential Dispute Fee:
               </Text>
 
-              <Flex />
-            </Flex>
-
-            <InputGroup>
-              <ChakraInput
-                bg="white"
-                type="text"
-                color="black"
-                border="1px"
-                borderColor="lightgrey"
-                _hover={{ borderColor: 'lightgrey' }}
-                pr="3.5rem"
-                onChange={e => {
-                  if (!e.target.value || Number.isNaN(Number(e.target.value)))
-                    return;
-                  const amount = parseUnits(e.target.value, decimals);
-                  const newAmounts = milestoneAmounts.slice();
-                  newAmounts[index] = amount;
-                  setMilestoneAmounts(newAmounts);
-                  const newAmountsInput = [...milestoneAmountsInput];
-                  newAmountsInput[index] = Number(e.target.value);
-                  setMilestoneAmountsInput(newAmountsInput);
-                  logDebug('Sum of addMilestones: ', milestoneAmounts);
-                  logDebug('addedTotal: ', addedTotal);
-                }}
-              />
-
-              <InputRightElement color="black" w="3.5rem">
-                {symbol}
-              </InputRightElement>
-            </InputGroup>
-          </Stack>
-        ))}
-
-        <Text w="100%" textAlign="right" color="grey" fontWeight="bold">
-          Amounts Must Add Up to {formatUnits(addedTotal, decimals)} {symbol}
-        </Text>
-      </Stack>
-
-      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-        {due ? (
-          <HStack>
-            <Text fontWeight="bold" color="black">
-              Potential Dispute Fee:
-            </Text>
-
-            {/* <Text>
+              {/* <Text>
               {`${
                 addedTotalInput
                   ? (
@@ -329,25 +321,24 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
                     ).toFixed(5)
               } ${symbol}`}
             </Text> */}
-          </HStack>
-        ) : null}
-      </Flex>
+            </HStack>
+          </Flex>
 
-      <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-        {due ? (
-          <HStack>
-            <Text fontWeight="bold" color="black">
-              Expected Total Due:
-            </Text>
+          <Flex color="black" justify="space-between" w="100%" fontSize="sm">
+            <HStack>
+              <Text fontWeight="bold" color="black">
+                Expected Total Due:
+              </Text>
 
-            <Text>{`${
-              addedTotalInput
-                ? parseFloat(formatUnits(due, decimals)) + addedTotalInput
-                : formatUnits(due, decimals)
-            } ${symbol}`}</Text>
-          </HStack>
-        ) : null}
-      </Flex>
+              {/* <Text>{`${
+                addedTotalInput
+                  ? parseFloat(formatUnits(due, tokenMetadata?.decimals || 18)) + addedTotalInput
+                  : formatUnits(due, tokenMetadata?.decimals || 18)
+              } ${symbol}`}</Text> */}
+            </HStack>
+          </Flex>
+        </Stack>
+      )}
 
       <Text>
         Note: new milestones may take a few minutes to appear in the list
@@ -355,17 +346,15 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
 
       <Button
         onClick={addNewMilestones}
-        isLoading={loading}
-        isDisabled={
-          milestoneAmountsInput.reduce((t, v) => t + v, 0) !== addedTotalInput
-        }
+        isLoading={isLoading}
+        isDisabled={false}
         textTransform="uppercase"
         size={buttonSize}
         w="100%"
       >
         Add
       </Button>
-      {walletClient?.chain?.id && txHash && (
+      {/* {walletClient?.chain?.id && txHash && (
         <Text color="black" textAlign="center" fontSize="sm">
           Follow your transaction{' '}
           <Link
@@ -377,7 +366,7 @@ export function AddMilestones({ invoice, due, tokenData }: AddMilestonesProps) {
             here
           </Link>
         </Text>
-      )}
+      )} */}
     </Stack>
   );
 }

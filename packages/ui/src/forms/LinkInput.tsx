@@ -1,6 +1,11 @@
 import {
   ChakraProps,
   Flex,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  HStack,
+  Icon,
   Input,
   InputGroup,
   InputLeftElement,
@@ -10,149 +15,121 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { isValidLink, logDebug } from '@smart-invoice/utils';
-import React, { useState } from 'react';
+import { RegisterOptions, UseFormReturn } from 'react-hook-form';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
 
-type Required = 'required' | 'optional';
+// type Required = 'required' | 'optional';
 
 interface LinkInputProps extends ChakraProps {
+  name: string;
   label: string;
   linkType?: string;
-  // eslint-disable-next-line no-unused-vars
-  setLinkType: (value: string) => void;
-  value?: string;
-  // eslint-disable-next-line no-unused-vars
-  setValue: (value: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  localForm: UseFormReturn<any>;
+  registerOptions?: RegisterOptions;
   infoText?: string;
   tooltip?: string;
   placeholder?: string;
-  type?: string;
-  required?: Required;
 }
 
 export function LinkInput({
+  name,
   label,
-  linkType,
-  setLinkType,
-  value,
-  setValue,
   infoText,
   tooltip,
   placeholder,
-  type = 'text',
-  required,
+  localForm,
+  registerOptions,
   ...props
 }: LinkInputProps) {
-  const protocolInitValue = linkType ?? /[a-z]+(?=:\/\/)/.exec(value ?? '');
-  const [protocol, setProtocol] = useState(`${protocolInitValue}://`);
-  const [input, setInput] = useState('');
-  const [isInvalid, setInvalid] = useState(false);
+  const {
+    setValue,
+    watch,
+    register,
+    formState: { errors },
+  } = localForm;
+  const protocol = watch('protocol');
+
+  const inputValue = watch(name);
+  // const protocolInitValue = linkType ?? /[a-z]+(?=:\/\/)/.exec(value ?? '');
+  // const [protocol, setProtocol] = useState(`${protocolInitValue}://`);
+  // const [input, setInput] = useState('');
+  // const [isInvalid, setInvalid] = useState(false);
+
+  // useEffect(() => {
+  //   const protocolInitValue = /[a-z]+(?=:\/\/)/.exec(value ?? '');
+  //   const localProtocol = `${protocolInitValue}://`;
+  //   setValue('protocol', localProtocol);
+
+  // }, [inputValue])
+  const error = errors?.[name];
 
   return (
-    <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
-      <Stack align="left" w="100%" spacing={0}>
-        <Flex w="100%">
-          <Text fontWeight="700">{label}</Text>
+    <FormControl isInvalid={!!error}>
+      <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
+        <Stack align="left" w="100%" spacing={0}>
+          <Flex w="100%">
+            <HStack align="center" spacing={1}>
+              <FormLabel fontWeight="700" m={0}>
+                {label}
+              </FormLabel>
+              {tooltip && (
+                <Tooltip label={tooltip} placement="right" hasArrow>
+                  <Icon as={QuestionIcon} boxSize={3} />
+                </Tooltip>
+              )}
+            </HStack>
 
-          <Flex>
-            {infoText && <Text fontSize="xs">{infoText}</Text>}
-            {tooltip && (
-              <Tooltip label={tooltip} placement="auto-start">
-                <QuestionIcon ml=".25rem" boxSize="0.75rem" />
-              </Tooltip>
-            )}
+            <Flex>{infoText && <Text fontSize="xs">{infoText}</Text>}</Flex>
           </Flex>
-        </Flex>
+        </Stack>
 
-        <Text fontStyle="italic" fontSize="xs" marginLeft="5px">
-          {required}
-        </Text>
-      </Stack>
-
-      <Flex direction="column" w="100%">
-        <InputGroup>
-          <InputLeftElement
-            w="6.75rem"
-            overflow="hidden"
-            borderLeftRadius="0.375rem"
-            borderRightColor="background"
-            borderRightWidth="3px"
-          >
-            <Select
-              onChange={e => {
-                const newProtocol = e.target.value;
-                const newValue = newProtocol + input;
-                const isValid = isValidLink(newValue);
-                setValue(newValue);
-                setLinkType(newProtocol.substring(0, newProtocol.length - 3));
-                logDebug(newProtocol.substring(0, newProtocol.length - 3));
-                setInvalid(!isValid);
-                setProtocol(newProtocol);
-              }}
-              value={protocol}
-              bg="none"
-              color="black"
-              border="1px"
-              borderColor="lightgrey"
-              _hover={{ borderColor: 'lightgrey' }}
-              fontWeight="normal"
-              borderRadius="none"
+        <Flex direction="column" w="100%">
+          <InputGroup>
+            <InputLeftElement
+              w="6.75rem"
+              overflow="hidden"
+              borderLeftRadius="0.375rem"
+              borderRightColor="background"
+              borderRightWidth="3px"
             >
-              <option value="https://">https://</option>
-              <option value="ipfs://">ipfs://</option>
-            </Select>
-          </InputLeftElement>
+              <Select
+                onChange={e => {
+                  setValue(`${name}-protocol`, e.target.value);
+                  const newProtocol = e.target.value;
+                  const newValue = newProtocol + inputValue;
+                  const isValid = isValidLink(newValue);
+                  setValue(name, newValue);
+                  // setLinkType(newProtocol.substring(0, newProtocol.length - 3));
+                  // logDebug(newProtocol.substring(0, newProtocol.length - 3));
+                  // setInvalid(!isValid);
+                  // setProtocol(newProtocol);
+                }}
+                value={protocol}
+                bg="none"
+                color="black"
+                border="1px"
+                borderColor="lightgrey"
+                _hover={{ borderColor: 'lightgrey' }}
+                fontWeight="normal"
+                borderRadius="none"
+              >
+                <option value="https://">https://</option>
+                <option value="ipfs://">ipfs://</option>
+              </Select>
+            </InputLeftElement>
 
-          <Input
-            pl="7.25rem"
-            bg="white"
-            type={type}
-            value={input}
-            maxLength={240}
-            onChange={e => {
-              let newInput = e.target.value;
-              let newProtocol = protocol;
-              if (newInput.startsWith('https://') && newInput.length > 8) {
-                newProtocol = 'https://';
-                newInput = newInput.slice(8);
-              } else if (
-                newInput.startsWith('ipfs://') &&
-                newInput.length > 7
-              ) {
-                newProtocol = 'ipfs://';
-                newInput = newInput.slice(7);
-              }
-              const newValue = newProtocol + newInput;
-              const isValid = isValidLink(newValue);
-              setValue(newValue);
-              setLinkType(newProtocol.substring(0, newProtocol.length - 3));
-              setInvalid(!isValid);
-              setInput(newInput);
-              setProtocol(newProtocol);
-            }}
-            placeholder={placeholder}
-            color="black"
-            border="1px"
-            borderColor="lightgrey"
-            _hover={{ borderColor: 'lightgrey' }}
-            isInvalid={isInvalid}
-            _invalid={{ border: '1px solid', borderColor: 'red' }}
-          />
-        </InputGroup>
-        {isInvalid && (
-          <Text
-            w="100%"
-            color="red"
-            textAlign="right"
-            fontSize="xs"
-            fontWeight="700"
-            mt="0.5rem"
-          >
-            Invalid URL
-          </Text>
-        )}
-      </Flex>
-    </Stack>
+            <Input
+              maxLength={240}
+              placeholder={placeholder}
+              {...register(`${name}-input`, registerOptions)}
+              type="text"
+            />
+          </InputGroup>
+          <FormErrorMessage>Invalid URL</FormErrorMessage>
+        </Flex>
+      </Stack>
+    </FormControl>
   );
 }

@@ -1,10 +1,4 @@
-import {
-  Flex,
-  Heading,
-  Stack,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import {
   EscrowDetailsForm,
@@ -35,14 +29,7 @@ export function CreateInvoiceEscrow() {
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  const stackWidth = useBreakpointValue({
-    base: '95%',
-    sm: '95%',
-    md: '85%',
-    lg: '75%',
-  });
-
-  const { headingSize } = useMediaStyles();
+  const { headingSize, columnWidth } = useMediaStyles();
 
   const nextStepHandler = () => {
     setCurrentStep(currentStep + 1);
@@ -84,7 +71,7 @@ export function CreateInvoiceEscrow() {
         spacing="2rem"
         align="center"
         justify="center"
-        w={stackWidth}
+        w={columnWidth}
         px="1rem"
         my="2rem"
         maxW="650px"

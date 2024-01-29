@@ -1,6 +1,13 @@
 import { useBreakpointValue } from '@chakra-ui/react';
 
 export const useMediaStyles = () => {
+  const columnWidth = useBreakpointValue({
+    base: '95%',
+    sm: '95%',
+    md: '85%',
+    lg: '75%',
+  });
+
   const headingSize = useBreakpointValue({
     base: '125%',
     sm: '175%',
@@ -15,6 +22,7 @@ export const useMediaStyles = () => {
   });
 
   return {
+    columnWidth,
     headingSize,
     primaryButtonSize,
   };
