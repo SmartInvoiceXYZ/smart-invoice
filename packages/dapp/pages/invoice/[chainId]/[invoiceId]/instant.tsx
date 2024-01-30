@@ -16,7 +16,7 @@ import {
   Loader,
   Modal,
 } from '@smart-invoice/ui';
-import { getDateString } from '@smart-invoice/utils/src';
+import { getDateString } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';

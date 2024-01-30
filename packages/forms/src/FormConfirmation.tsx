@@ -59,7 +59,7 @@ export function FormConfirmation({
   } = watch();
 
   const lateFeeIntervalString = _.toLower(
-    LATE_FEE_INTERVAL_OPTIONS[_.toNumber(lateFeeTimeInterval)]?.label,
+    _.find(LATE_FEE_INTERVAL_OPTIONS, { value: lateFeeTimeInterval })?.label,
   );
 
   const initialPaymentDue = _.get(_.first(milestones), 'value');
@@ -154,7 +154,7 @@ export function FormConfirmation({
       <Divider />
 
       {_.map(details, ({ label, value }) => (
-        <Flex justify="space-between" width={columnWidth}>
+        <Flex justify="space-between" width={columnWidth} key={label}>
           <Text>{label}</Text>
           {value}
         </Flex>

@@ -1,4 +1,4 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants/src';
+import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { UseToastReturn } from '@smart-invoice/types';
 import { Hex, TransactionReceipt } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';

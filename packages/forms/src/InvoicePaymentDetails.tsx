@@ -9,7 +9,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types/src';
+import { Modals } from '@smart-invoice/types';
 import { AccountLink, Modal } from '@smart-invoice/ui';
 import { commify, getIpfsLink, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';

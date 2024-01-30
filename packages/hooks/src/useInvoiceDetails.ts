@@ -1,4 +1,4 @@
-import { INVOICE_TYPES } from '@smart-invoice/constants/src';
+import { INVOICE_TYPES } from '@smart-invoice/constants';
 import {
   fetchInvoice,
   InstantDetails,

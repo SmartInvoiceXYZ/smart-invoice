@@ -1,4 +1,4 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants/src';
+import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';

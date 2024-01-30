@@ -1,5 +1,5 @@
-import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants/src';
-import { getInvoiceFactoryAddress, logError } from '@smart-invoice/utils/src';
+import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
+import { getInvoiceFactoryAddress, logError } from '@smart-invoice/utils';
 import { Hex } from 'viem';
 import { useContractRead } from 'wagmi';
 

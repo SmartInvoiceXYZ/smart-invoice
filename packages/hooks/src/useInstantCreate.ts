@@ -2,7 +2,7 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { UseToastReturn } from '@smart-invoice/types/src';
+import { UseToastReturn } from '@smart-invoice/types';
 import { getInvoiceFactoryAddress, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
@@ -10,8 +10,8 @@ import { UseFormReturn } from 'react-hook-form';
 import {
   encodeAbiParameters,
   parseUnits,
+  toHex,
   TransactionReceipt,
-  zeroAddress,
 } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
@@ -81,7 +81,7 @@ export const useInstantCreate = ({
       return BigInt(0);
     }
 
-    return parseUnits(paymentDue, invoiceToken.decimals);
+    return parseUnits(_.toString(paymentDue), invoiceToken.decimals);
   }, [invoiceToken, paymentDue]);
 
   const escrowData = useMemo(() => {
@@ -93,6 +93,13 @@ export const useInstantCreate = ({
       !details
     ) {
       return '0x';
+    }
+    let lateFeeTimeIntervalSeconds = BigInt(0);
+    if (lateFeeTimeInterval) {
+      lateFeeTimeIntervalSeconds = BigInt(
+        // days to milliseconds
+        lateFeeTimeInterval * 24 * 60 * 60 * 1000,
+      );
     }
 
     return encodeAbiParameters(
@@ -112,8 +119,8 @@ export const useInstantCreate = ({
         BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
-        lateFee || BigInt(0), // late fee in payment token per interval
-        lateFeeTimeInterval || BigInt(0), // late fee time interval convert from some days duration to seconds
+        parseUnits(lateFee, invoiceToken?.decimals || 18), // late fee in payment token per interval
+        lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
   }, [
@@ -131,7 +138,12 @@ export const useInstantCreate = ({
     chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
-    args: [provider, [paymentAmount], zeroAddress, zeroAddress],
+    args: [
+      provider,
+      [paymentAmount],
+      escrowData,
+      toHex('instant', { size: 32 }),
+    ],
     enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
   });
 

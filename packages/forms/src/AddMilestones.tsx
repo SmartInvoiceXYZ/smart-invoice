@@ -18,7 +18,7 @@ import {
 } from '@chakra-ui/react';
 import { ChainId } from '@smart-invoice/constants';
 import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useAddMilestones } from '@smart-invoice/hooks/src';
+import { useAddMilestones } from '@smart-invoice/hooks';
 import { TokenData } from '@smart-invoice/types';
 import {
   Input,

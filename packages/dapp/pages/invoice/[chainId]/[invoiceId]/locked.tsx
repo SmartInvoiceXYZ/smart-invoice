@@ -1,5 +1,5 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { useInvoiceDetails } from '@smart-invoice/hooks/src';
+import { useInvoiceDetails } from '@smart-invoice/hooks';
 import {
   ChakraNextLink,
   Container,

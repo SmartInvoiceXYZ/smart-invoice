@@ -4,7 +4,7 @@ import {
   INSTANT_STEPS,
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks/src';
+import { useFetchTokens } from '@smart-invoice/hooks';
 import { Input, NumberInput, Select } from '@smart-invoice/ui';
 import {
   getTokenSymbol,
@@ -29,7 +29,8 @@ export function InstantPaymentForm({
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
   const { watch, setValue } = invoiceForm;
-  const { client, provider, paymentDue } = watch();
+  const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
+    watch();
 
   const localForm = useForm({
     resolver: yupResolver(instantPaymentSchema),
@@ -39,7 +40,7 @@ export function InstantPaymentForm({
       paymentDue,
       deadline: oneMonthFromNow(),
       token: undefined as string | undefined,
-      lateFeeTimeInterval: undefined as string | undefined,
+      lateFee,
     },
   });
   const {
@@ -77,7 +78,8 @@ export function InstantPaymentForm({
     localSetValue('token', _.first(TOKENS), { shouldDirty: true });
     localSetValue(
       'lateFeeTimeInterval',
-      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+      lateFeeTimeInterval ||
+        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
       { shouldDirty: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
