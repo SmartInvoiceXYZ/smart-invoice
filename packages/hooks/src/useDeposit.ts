@@ -1,50 +1,42 @@
 import { IERC20_ABI, PAYMENT_TYPES } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
-import { ContractFunctionResult, Hex } from 'viem';
+import { errorToastHandler } from '@smart-invoice/utils/src';
+import { Hex, TransactionReceipt } from 'viem';
 import {
   useChainId,
   useContractWrite,
   usePrepareContractWrite,
   useSendTransaction,
 } from 'wagmi';
+import { waitForTransaction } from 'wagmi/actions';
 
-const errorToastHandler = (error: Error, toast: UseToastReturn) => {
-  const localError = error as Error;
-  if (
-    localError.name === 'TransactionExecutionError' &&
-    localError.message.includes('User rejected the request')
-  ) {
-    toast.error({
-      title: 'Signature rejected!',
-      description: 'Please accept the transaction in your wallet',
-    });
-  } else {
-    toast.error({
-      title: 'Error occurred!',
-      description: 'An error occurred while processing the transaction.',
-    });
-  }
-};
+import { usePollSubgraph } from '.';
 
 export const useDeposit = ({
   invoice,
   amount,
   hasAmount,
   paymentType,
-  onSuccess,
+  onTxSuccess,
   toast,
 }: {
   invoice: Invoice;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
-  onSuccess?: (tx: ContractFunctionResult) => void;
+  onTxSuccess?: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
   const token = invoice?.token;
+
+  const txResultData = usePollSubgraph({
+    label: 'useDeposit',
+    fetchHelper: () => undefined,
+    checkResult: () => true,
+  });
 
   const {
     config,
@@ -65,20 +57,12 @@ export const useDeposit = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: async tx => {
-      console.log('deposit tx', tx);
+    onSuccess: async ({ hash }) => {
+      const data = await waitForTransaction({ hash, chainId });
 
-      // TODO catch success
-      onSuccess?.(tx);
-
-      // wait for tx
-      // update invoice
-      // close modal
+      onTxSuccess?.(data);
     },
-    onError: async error => {
-      // eslint-disable-next-line no-console
-      console.log('deposit error', error);
-    },
+    onError: async error => errorToastHandler('useDeposit', error, toast),
   });
 
   const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
@@ -96,7 +80,7 @@ export const useDeposit = ({
       const result = await writeAsync?.();
       return result;
     } catch (error: unknown) {
-      errorToastHandler(error as Error, toast);
+      errorToastHandler('useDeposit', error as Error, toast);
       return undefined;
     }
   };

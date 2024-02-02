@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  Deposit,
   InstantDetails,
   Invoice,
   InvoiceDetails,
@@ -9,16 +9,15 @@ import {
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 
+import { getDateString } from './date';
 import {
-  chainByName,
-  convertByte32ToIpfsCidV0,
   getResolverFee,
   getResolverInfo,
   isKnownResolver,
   resolverFeeLabel,
-} from '.';
-
-// TODO sort out Invoice/TokenBalance import
+} from './helpers';
+import { convertByte32ToIpfsCidV0 } from './ipfs';
+import { chainByName } from './web3';
 
 export const sevenDaysFromNow = () => {
   const localDate = new Date();
@@ -32,47 +31,62 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
-export const totalDeposited = (invoice: any, tokenBalance: any) => {
+export const totalDeposited = (
+  invoice: Invoice | undefined,
+  tokenBalance: TokenBalance | undefined,
+) => {
   const { released } = _.pick(invoice, ['released']);
 
   if (!released || !tokenBalance?.value) return undefined;
   return BigInt(released) + tokenBalance.value;
 };
 
-export const depositedMilestones = (invoice: any, tokenBalance: any) => {
+export const depositedMilestones = (
+  invoice: Invoice,
+  tokenBalance: TokenBalance,
+) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
   return _.map(amounts, (a: string) => {
     sum += BigInt(a);
-    return totalDeposited(invoice, tokenBalance) >= sum;
+    const amount = totalDeposited(invoice, tokenBalance);
+    if (!amount) return false;
+    return amount >= sum;
   });
 };
 
-export const depositedMilestonesString = (invoice: any, tokenBalance: any) => {
+export const depositedMilestonesString = (
+  invoice: Invoice,
+  tokenBalance: TokenBalance,
+) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
   return _.map(amounts, (a: string, i: number) => {
-    const prevAmount = amounts[i - 1] || BigInt(0);
+    const prevAmount = BigInt(amounts?.[i - 1] || 0) || BigInt(0);
     sum += BigInt(a);
-
-    if (totalDeposited(invoice, tokenBalance) >= sum) {
+    const deposited = totalDeposited(invoice, tokenBalance);
+    if (deposited && deposited >= sum) {
       return 'deposited';
     }
-    if (totalDeposited(invoice, tokenBalance) >= prevAmount) {
+    if (deposited && deposited >= prevAmount) {
       return 'partially deposited';
     }
     return undefined;
   });
 };
 
-const findDepositForAmount = (amount: number, deposits: any[]) => {
+const findDepositForAmount = (
+  amount: number,
+  deposits: Deposit[] | undefined,
+) => {
+  if (!deposits) return undefined;
   let sum = 0;
   return _.find(deposits, (deposit, i) => {
     if (!deposits) return undefined;
     sum += _.toNumber(deposits[i].toString());
-    return deposit >= sum ? i : i - 1 || 0;
+    return BigInt(deposit.toString()) >= sum ? i : i - 1 || 0;
   });
 };
 
@@ -82,7 +96,7 @@ const findDepositForAmount = (amount: number, deposits: any[]) => {
  * @param tokenBalance
  * @returns array of deposits
  */
-export const assignDeposits = (invoice: any) => {
+export const assignDeposits = (invoice: Invoice) => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
 
   return _.map(amounts, (a: string, i: number) => {
@@ -94,11 +108,11 @@ export const assignDeposits = (invoice: any) => {
     // get deposit for matching amount
     const deposit = findDepositForAmount(localSum, deposits);
 
-    return deposit;
+    return deposit as Deposit;
   });
 };
 
-export const totalAmount = (invoice: any) => {
+export const totalAmount = (invoice: Invoice) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   return _.reduce(
@@ -110,7 +124,7 @@ export const totalAmount = (invoice: any) => {
   );
 };
 
-export const totalDue = (invoice: any, tokenBalance: any) => {
+export const totalDue = (invoice: Invoice, tokenBalance: TokenBalance) => {
   const localTotalDeposited = totalDeposited(invoice, tokenBalance);
   const total = totalAmount(invoice);
 
@@ -120,24 +134,24 @@ export const totalDue = (invoice: any, tokenBalance: any) => {
     : BigInt(total) - localTotalDeposited;
 };
 
-export const lastDispute = (invoice: any) => {
+export const lastDispute = (invoice: Invoice) => {
   const { isLocked, disputes } = _.pick(invoice, ['isLocked', 'disputes']);
 
   if (!isLocked || _.isEmpty(disputes)) return undefined;
-  return disputes[_.size(disputes) - 1];
+  return disputes?.[_.size(disputes) - 1];
 };
 
-export const lastResolution = (invoice: any) => {
+export const lastResolution = (invoice: Invoice) => {
   const { isLocked, resolutions } = _.pick(invoice, [
     'isLocked',
     'resolutions',
   ]);
 
   if (!isLocked || _.isEmpty(resolutions)) return undefined;
-  return resolutions[_.size(resolutions) - 1];
+  return resolutions?.[_.size(resolutions) - 1];
 };
 
-export const isInvoiceExpired = (invoice: any) => {
+export const isInvoiceExpired = (invoice: Invoice) => {
   const { terminationTime } = _.pick(invoice, ['terminationTime']);
 
   if (!terminationTime) return false;
@@ -145,20 +159,20 @@ export const isInvoiceExpired = (invoice: any) => {
 };
 
 export const currentMilestoneAmount = (
-  invoice: any,
+  invoice: Invoice,
   currentMilestone: number,
 ) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   if (Number(currentMilestone) < _.size(amounts)) {
-    return amounts[Number(currentMilestone)];
+    return BigInt(amounts?.[Number(currentMilestone)] || 0);
   }
   return BigInt(0);
 };
 
 export const isMilestoneReleasable = (
-  invoice: any,
-  tokenBalance: any,
+  invoice: Invoice,
+  tokenBalance: TokenBalance,
   currentMilestone: number,
 ) => {
   const { isLocked } = _.pick(invoice, ['isLocked']);
@@ -170,25 +184,50 @@ export const isMilestoneReleasable = (
   return false;
 };
 
-export const isLockable = (invoice: any, tokenBalance: any) => {
-  const { isLocked, isExpired } = _.pick(invoice, ['isLocked', 'isExpired']);
-  if (isLocked || isExpired) return false;
+export const isLockable = (invoice: Invoice, tokenBalance: TokenBalance) => {
+  const { isLocked } = _.pick(invoice, ['isLocked']);
+  if (isLocked || isInvoiceExpired(invoice)) return false;
 
-  return !isLocked && !isExpired && tokenBalance?.value > BigInt(0);
+  return (
+    !isLocked && !isInvoiceExpired(invoice) && tokenBalance?.value > BigInt(0)
+  );
 };
 
-export const convertAmountsType = (invoice: any) => {
+export const convertAmountsType = (invoice: Invoice) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   return _.map(amounts, a => BigInt(a));
 };
 
-// Invoice, TokenMetadata
-export const parseMilestoneAmounts = (invoice: any, tokenMetadata: any) => {
+export const parseMilestoneAmounts = (
+  invoice: Invoice,
+  tokenMetadata: TokenMetadata,
+) => {
   const { amounts } = _.pick(invoice, ['amounts']);
   const { decimals } = tokenMetadata;
 
   return _.map(amounts, a => _.toNumber(formatUnits(BigInt(a), decimals)));
+};
+
+const getDeadlineLabel = (
+  instantDetails: InstantDetails | undefined,
+  tokenBalance: TokenBalance,
+) => {
+  const { lateFee, lateFeeTimeInterval, deadline } = _.pick(instantDetails, [
+    'lateFee',
+    'lateFeeTimeInterval',
+    'deadline',
+  ]);
+  if (!lateFee || !deadline || !lateFeeTimeInterval) return undefined;
+  const daysPerInterval = lateFeeTimeInterval
+    ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
+    : undefined;
+  return `${formatUnits(
+    lateFee,
+    tokenBalance?.decimals || 18,
+  )} ${tokenBalance?.symbol} every ${daysPerInterval} day${
+    daysPerInterval && daysPerInterval > 1 ? 's' : ''
+  } after ${getDateString(_.toNumber(deadline?.toString()))}`;
 };
 
 export const getInvoiceDetails = async (
@@ -226,6 +265,7 @@ export const getInvoiceDetails = async (
       total: totalAmount(invoice),
       deposited: totalDeposited(invoice, tokenBalance),
       due: totalDue(invoice, tokenBalance),
+      // milestones
       currentMilestoneAmount: currentMilestoneAmount(
         invoice,
         currentMilestoneNumber,
@@ -242,7 +282,9 @@ export const getInvoiceDetails = async (
         tokenBalance,
       ),
       depositedTxs: assignDeposits(invoice),
+      // details
       detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
+      // resolver
       resolverName: isKnownResolver(invoice?.resolver as Hex, chainId)
         ? resolverInfo?.name
         : invoice?.resolver,
@@ -250,6 +292,8 @@ export const getInvoiceDetails = async (
       resolverFee,
       resolverFeeDisplay: resolverFeeLabel(resolverFee, tokenMetadata),
       resolverAward: BigInt(0), // _.toNumber(formatUnits(balance / resolutionRate, 18)) : 0;
+      // instant
+      deadlineLabel: getDeadlineLabel(instantDetails, tokenBalance),
       // entities
       dispute: lastDispute(invoice),
       resolution: lastResolution(invoice),
@@ -264,7 +308,7 @@ export const getInvoiceDetails = async (
       isWithdrawable:
         isInvoiceExpired(invoice) &&
         !!tokenBalance?.value &&
-        tokenBalance?.value > BigInt(0),
+        tokenBalance.value > BigInt(0),
       // token data
       tokenMetadata,
       tokenBalance,

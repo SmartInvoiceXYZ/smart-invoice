@@ -56,15 +56,14 @@ export function InstantPaymentForm({
     [chainId, tokenData],
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSubmit = (values: any) => {
-    setValue('client', values?.client);
-    setValue('provider', values?.provider);
-    setValue('token', values?.token);
-    setValue('paymentDue', values.paymentDue);
-    setValue('deadline', values?.deadline);
-    setValue('lateFee', values?.lateFee);
-    setValue('lateFeeTimeInterval', values?.lateFeeTimeInterval);
+  const onSubmit = (values: unknown) => {
+    setValue('client', _.get(values, 'client'));
+    setValue('provider', _.get(values, 'provider'));
+    setValue('token', _.get(values, 'token'));
+    setValue('paymentDue', _.get(values, 'paymentDue'));
+    setValue('deadline', _.get(values, 'deadline'));
+    setValue('lateFee', _.get(values, 'lateFee'));
+    setValue('lateFeeTimeInterval', _.get(values, 'lateFeeTimeInterval'));
 
     updateStep?.();
   };

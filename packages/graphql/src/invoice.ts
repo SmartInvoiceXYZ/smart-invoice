@@ -181,7 +181,7 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
-interface Deposit {
+export interface Deposit {
   id: string;
   txHash: string;
   sender: string;
@@ -204,12 +204,13 @@ export type InvoiceDetails = Invoice &
     parsedAmounts: number[];
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];
-    depositedTxs: (any | undefined)[]; // Deposit[];
+    depositedTxs: (Deposit | undefined)[];
     detailsHash: string | undefined;
     resolverName: string | undefined;
     resolverInfo: any | undefined; // ResolverInfo;
     resolverFee: string | undefined;
     resolverFeeDisplay: string | undefined;
+    deadlineLabel: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispute?: any; // Dispute;

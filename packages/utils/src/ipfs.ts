@@ -1,51 +1,12 @@
-import { INVOICE_VERSION } from '@smart-invoice/constants';
+// import { INVOICE_VERSION } from '@smart-invoice/constants';
+// import { logDebug } from '@smart-invoice/shared';
+import { KeyRestrictions } from '@smart-invoice/types/src';
 import axios from 'axios';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
 import { Hex } from 'viem';
 
-import { logDebug } from './log';
-
-// TODO migrate to pinata/web3storage
-
-// type Metadata = {
-//   projectName: string;
-//   projectDescription: string;
-//   projectAgreement: string;
-//   startDate: number; // seconds since epoch
-//   endDate: number; // seconds since epoch
-//   version: string; // to differentiating versions of smart-invoice contract/json structure
-// }
-
-// export const uploadMetadata = async (meta: any) => {
-//   const metadata = { ...meta, version: INVOICE_VERSION };
-//   const objectString = JSON.stringify(metadata);
-//   const bufferedString = Buffer.from(objectString);
-//   logDebug(bufferedString);
-//   const result = await ipfsInfura.add(bufferedString); // automatically pinned
-//   logDebug(result);
-
-//   // infura uses `path` in return result
-//   const hash = result.path;
-//   // the graph was failing with CORS error, need to handle failover
-//   await ipfsInfura.pin.add(hash);
-//   // const bytes = Buffer.from(Base58.decode(hash));
-//   // return `0x${bytes.slice(2).toString('hex')}` as Hash;
-// };
-
-// export const uploadDisputeDetails = async (meta: any) => {
-//   const metadata = { ...meta, version: INVOICE_VERSION };
-//   const objectString = JSON.stringify(metadata);
-//   const bufferedString = Buffer.from(objectString);
-//   const result = await ipfsInfura.add(bufferedString); // automatically pinned
-
-//   // infura uses `path` in return result
-//   const hash = result.path;
-//   // the graph was failing with CORS error, need to handle failover
-//   await ipfsInfura.pin.add(hash);
-//   // const bytes = Buffer.from(Base58.decode(hash));
-//   // return `0x${bytes.slice(2).toString('hex')}` as Hash;
-// };
+const { PINATA_JWT } = process.env;
 
 export const pinJson = async (
   data: object,
@@ -131,3 +92,52 @@ export function convertByte32ToIpfsCidV0(str: Hex) {
   }
   return encode(Buffer.from(`1220${newStr}`, 'hex'));
 }
+
+export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
+  const options = {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      authorization: `Bearer ${PINATA_JWT}`,
+    },
+    body: JSON.stringify(keyRestrictions),
+  };
+
+  return fetch('https://api.pinata.cloud/users/generateApiKey', options)
+    .then(response => response.json())
+    .then(json => {
+      if (!_.includes(_.keys(json), 'JWT')) throw new Error('No JWT found');
+
+      const { JWT } = json;
+      return JWT;
+    })
+    .catch(error => {
+      // eslint-disable-next-line no-console
+      console.log(error);
+      return null;
+    });
+};
+
+export const keyRestrictions = () => {
+  const date = new Date();
+  return {
+    keyName: `Signed Upload JWT-${date.toISOString()}`,
+    maxUses: 2,
+    permissions: {
+      endpoints: {
+        data: {
+          pinList: false,
+          userPinnedDataTotal: false,
+        },
+        pinning: {
+          pinFileToIPFS: true, // image
+          pinJSONToIPFS: true, // json
+          pinJobs: false,
+          unpin: true, // image (both?)
+          userPinPolicy: false,
+        },
+      },
+    },
+  };
+};

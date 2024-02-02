@@ -1,5 +1,7 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
+import { UseToastReturn } from '@smart-invoice/types/src';
+import { errorToastHandler } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import { Hex, TransactionReceipt } from 'viem';
 import {
@@ -14,11 +16,13 @@ export const useLock = ({
   disputeReason,
   amount,
   onTxSuccess,
+  toast,
 }: {
   invoice: Invoice;
   disputeReason: string;
   amount: string | undefined;
   onTxSuccess?: (result: TransactionReceipt) => void;
+  toast: UseToastReturn;
 }) => {
   console.log('useLock', invoice);
 
@@ -49,20 +53,12 @@ export const useLock = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: async data => {
-      console.log('success', data);
-      const { hash } = _.pick(data, 'hash');
-
+    onSuccess: async ({ hash }) => {
       const result = await waitForTransaction({ hash });
 
       onTxSuccess?.(result);
-      // handle success
-      // close modal
-      // update invoice with status
     },
-    onError: error => {
-      console.log('error', error);
-    },
+    onError: error => errorToastHandler('useLock', error, toast),
   });
 
   return {

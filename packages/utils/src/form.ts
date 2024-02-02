@@ -1,6 +1,8 @@
 import { INVOICE_TYPES } from '@smart-invoice/constants';
-import { ChangeEvent } from '@smart-invoice/types';
+import { ChangeEvent, UseToastReturn } from '@smart-invoice/types';
 import _ from 'lodash';
+
+import { logError } from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const schemaContext = (schema: any, defaultValues: any) => {
@@ -71,4 +73,27 @@ export const getUpdatedCheckAmount = ({
   }
 
   return { updateAmount, updateChecked };
+};
+
+export const errorToastHandler = (
+  label: string,
+  error: Error,
+  toast: UseToastReturn,
+) => {
+  const localError = error as Error;
+  if (
+    localError.name === 'TransactionExecutionError' &&
+    localError.message.includes('User rejected the request')
+  ) {
+    toast.error({
+      title: 'Signature rejected!',
+      description: 'Please accept the transaction in your wallet',
+    });
+  } else {
+    logError(label, [error]);
+    toast.error({
+      title: 'Error occurred!',
+      description: 'An error occurred while processing the transaction.',
+    });
+  }
 };

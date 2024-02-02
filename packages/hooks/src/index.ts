@@ -15,5 +15,4 @@ export * from './usePollSubgraph';
 export * from './useRateForResolver';
 export * from './useRelease';
 export * from './useResolve';
-export * from './useTokenBalance';
 export * from './useWithdraw';

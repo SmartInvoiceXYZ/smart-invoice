@@ -1,6 +1,6 @@
 import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
-import { UseToastReturn } from '@smart-invoice/types/src';
-import { logError } from '@smart-invoice/utils/src';
+import { UseToastReturn } from '@smart-invoice/types';
+import { errorToastHandler } from '@smart-invoice/utils';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
@@ -31,23 +31,7 @@ export const useTip = ({
 
       onTxSuccess?.(data);
     },
-    onError: error => {
-      if (
-        error.name === 'TransactionExecutionError' &&
-        error.message.includes('User rejected the request')
-      ) {
-        toast.error({
-          title: 'Signature rejected!',
-          description: 'Please accept the transaction in your wallet',
-        });
-      } else {
-        logError('useWithdraw', error);
-        toast.error({
-          title: 'Error occurred!',
-          description: 'An error occurred while processing the transaction.',
-        });
-      }
-    },
+    onError: error => errorToastHandler('useTip', error, toast),
   });
 
   return { writeAsync };

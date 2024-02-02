@@ -51,7 +51,7 @@ export const useInvoiceDetails = ({
     enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
 
-  // enhance the invoice with computed values
+  // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
     useQuery<InvoiceDetails | null>({
       queryKey: [

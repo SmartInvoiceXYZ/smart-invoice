@@ -271,6 +271,15 @@ importers:
       global:
         specifier: ^4.4.0
         version: 4.4.0
+      graphql-request:
+        specifier: ^6.1.0
+        version: 6.1.0(graphql@16.8.1)
+      graphql-tag:
+        specifier: ^2.12.6
+        version: 2.12.6(graphql@16.8.1)
+      graphql-zeus:
+        specifier: ^5.3.3
+        version: 5.3.3
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -578,9 +587,6 @@ importers:
       '@smart-invoice/types':
         specifier: '*'
         version: link:../types
-      '@smart-invoice/ui':
-        specifier: '*'
-        version: 'link:'
       '@smart-invoice/utils':
         specifier: '*'
         version: link:../utils

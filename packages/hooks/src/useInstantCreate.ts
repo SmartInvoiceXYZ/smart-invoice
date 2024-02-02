@@ -3,7 +3,7 @@ import {
   wrappedNativeToken,
 } from '@smart-invoice/constants';
 import { UseToastReturn } from '@smart-invoice/types';
-import { getInvoiceFactoryAddress, getTokenInfo } from '@smart-invoice/utils';
+import { getInvoiceFactoryAddress } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -17,7 +17,6 @@ import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
 import { useDetailsPin } from './useDetailsPin';
-import { useFetchTokens } from './useFetchTokens';
 
 export const useInstantCreate = ({
   invoiceForm,
@@ -32,14 +31,13 @@ export const useInstantCreate = ({
 }) => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
 
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
     client,
     provider,
     token,
+    tokenMetadata,
     projectName,
     projectDescription,
     projectAgreement,
@@ -53,6 +51,7 @@ export const useInstantCreate = ({
     'client',
     'provider',
     'token',
+    'tokenMetadata',
     'projectName',
     'projectDescription',
     'projectAgreement',
@@ -63,8 +62,6 @@ export const useInstantCreate = ({
     'lateFee',
     'lateFeeTimeInterval',
   ]);
-
-  const invoiceToken = getTokenInfo(chainId, token, tokenData);
 
   const detailsData = {
     projectName,
@@ -77,17 +74,17 @@ export const useInstantCreate = ({
   const { data: details } = useDetailsPin({ ...detailsData });
 
   const paymentAmount = useMemo(() => {
-    if (!invoiceToken || !paymentDue) {
+    if (!tokenMetadata || !paymentDue) {
       return BigInt(0);
     }
 
-    return parseUnits(_.toString(paymentDue), invoiceToken.decimals);
-  }, [invoiceToken, paymentDue]);
+    return parseUnits(_.toString(paymentDue), tokenMetadata.decimals);
+  }, [tokenMetadata, paymentDue]);
 
   const escrowData = useMemo(() => {
     if (
       !client ||
-      !token ||
+      !tokenMetadata ||
       !deadline ||
       !wrappedNativeToken(chainId) ||
       !details
@@ -119,13 +116,14 @@ export const useInstantCreate = ({
         BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
-        parseUnits(lateFee, invoiceToken?.decimals || 18), // late fee in payment token per interval
+        parseUnits(lateFee, tokenMetadata?.decimals || 18), // late fee in payment token per interval
         lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
   }, [
     client,
     token,
+    tokenMetadata,
     deadline,
     details,
     wrappedNativeToken,

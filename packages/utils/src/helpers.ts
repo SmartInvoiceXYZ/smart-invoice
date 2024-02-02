@@ -1,7 +1,6 @@
 /* eslint-disable radix */
 import {
   DEFAULT_CHAIN_ID,
-  graphUrls,
   invoiceFactory,
   IPFS_ENDPOINT,
   isOfTypeChainId,
@@ -10,6 +9,7 @@ import {
   SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
+import { Invoice, TokenBalance, TokenMetadata } from '@smart-invoice/graphql';
 import { ProjectAgreement } from '@smart-invoice/types';
 import _ from 'lodash';
 import { Address, formatUnits, Hex } from 'viem';
@@ -30,8 +30,8 @@ export const getResolverInfo = (resolver: Address, chainId?: number) =>
     : resolverInfo(DEFAULT_CHAIN_ID)[_.toLower(resolver) as Hex];
 
 export const getResolverFee = (
-  invoice: any, // InvoiceDetails,
-  tokenBalance: any, // TokenBalance,
+  invoice: Invoice,
+  tokenBalance: TokenBalance,
 ) => {
   const { resolutionRate } = _.pick(invoice, ['resolutionRate']);
 
@@ -47,7 +47,7 @@ export const getResolverFee = (
 
 export const resolverFeeLabel = (
   fee: string | undefined,
-  tokenMetadata: any,
+  tokenMetadata: TokenMetadata | undefined,
 ) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
 export const getWrappedNativeToken = (chainId?: number) =>

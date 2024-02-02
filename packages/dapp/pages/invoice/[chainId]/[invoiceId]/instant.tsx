@@ -17,7 +17,6 @@ import {
   Modal,
   useMediaStyles,
 } from '@smart-invoice/ui';
-import { getDateString } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';
@@ -48,8 +47,8 @@ function ViewInstantInvoice() {
     fulfilled,
     amountFulfilled,
     deadline,
+    deadlineLabel,
     lateFee,
-    lateFeeTimeInterval,
   } = _.pick(invoiceDetails, [
     'client',
     'provider',
@@ -58,8 +57,8 @@ function ViewInstantInvoice() {
     'fulfilled',
     'amountFulfilled',
     'deadline',
+    'deadlineLabel',
     'lateFee',
-    'lateFeeTimeInterval',
   ]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
@@ -110,7 +109,7 @@ function ViewInstantInvoice() {
       console.log('not tippable');
       return;
     }
-    setModals({ tip: true });
+    setModals({ deposit: true });
   };
 
   const onWithdraw = async () => {
@@ -122,18 +121,6 @@ function ViewInstantInvoice() {
 
     setModals({ withdraw: true });
   };
-
-  const daysPerInterval = lateFeeTimeInterval
-    ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
-    : undefined;
-  const deadlineLabel =
-    !!lateFee &&
-    `${formatUnits(
-      lateFee,
-      tokenBalance?.decimals || 18,
-    )} ${tokenBalance?.symbol} every ${daysPerInterval} day${
-      daysPerInterval && daysPerInterval > 1 ? 's' : ''
-    } after ${getDateString(_.toNumber(deadline?.toString()))}`;
 
   return (
     <Container overlay>
@@ -254,17 +241,11 @@ function ViewInstantInvoice() {
             </Flex>
           </Flex>
           {isClient && (
-            <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
+            <SimpleGrid columns={isTippable ? 2 : 1} spacing="1rem" w="100%">
               <Button
                 size={primaryButtonSize}
-                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                color="white"
-                backgroundColor="blue.1"
-                fontWeight="bold"
-                fontFamily="mono"
                 textTransform="uppercase"
-                onClick={() => onDeposit()}
+                onClick={onDeposit}
                 isDisabled={fulfilled}
               >
                 {fulfilled ? 'Paid' : 'Make Payment'}
@@ -272,22 +253,10 @@ function ViewInstantInvoice() {
               {isTippable && (
                 <Button
                   size={primaryButtonSize}
-                  _hover={{
-                    backgroundColor: 'rgba(61, 136, 248, 1)',
-                    color: 'white',
-                  }}
-                  _active={{
-                    backgroundColor: 'rgba(61, 136, 248, 1)',
-                    color: 'white',
-                  }}
-                  color="blue.1"
-                  backgroundColor="white"
-                  borderWidth={1}
-                  borderColor="blue.1"
+                  variant="outline"
                   fontWeight="bold"
-                  fontFamily="mono"
                   textTransform="uppercase"
-                  onClick={() => onTip()}
+                  onClick={onTip}
                 >
                   Add Tip
                 </Button>

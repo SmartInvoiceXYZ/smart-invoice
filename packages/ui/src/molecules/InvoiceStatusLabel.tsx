@@ -1,6 +1,5 @@
-/* eslint-disable no-nested-ternary */
 import { Flex, Text } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useInvoiceStatus } from '@smart-invoice/hooks';
 import _ from 'lodash';
 import React from 'react';
@@ -8,7 +7,7 @@ import React from 'react';
 import { Loader } from '../atoms/Loader';
 
 export type InvoiceStatusLabelProps = {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   onClick?: () => void;
 };
 
@@ -16,8 +15,8 @@ export function InvoiceStatusLabel({
   invoice,
   onClick,
 }: InvoiceStatusLabelProps) {
-  const { data, isLoading } = useInvoiceStatus(invoice);
-  const { funded, label } = _.pick(data, ['funded', 'label']);
+  const { data: status, isLoading } = useInvoiceStatus({ invoice });
+  const { funded, label } = _.pick(status, ['funded', 'label']);
   const { isLocked, terminationTime } = invoice ?? {};
   const terminated = terminationTime && Number(terminationTime) > Date.now();
   const disputeResolved = label === 'Dispute Resolved';

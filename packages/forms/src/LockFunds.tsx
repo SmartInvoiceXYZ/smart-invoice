@@ -11,11 +11,12 @@ import {
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useLock } from '@smart-invoice/hooks';
 // import LockImage from '../../assets/lock.svg';
-import { AccountLink, Textarea } from '@smart-invoice/ui';
+import { AccountLink, Textarea, useToast } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolverString,
   isKnownResolver,
+  logDebug,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
@@ -24,6 +25,7 @@ import { useChainId } from 'wagmi';
 
 export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const chainId = useChainId();
+  const toast = useToast();
   const { resolver, resolverFee, resolverName, tokenBalance } = _.pick(
     invoice,
     [
@@ -48,19 +50,17 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
     // close modal
   };
 
-  const {
-    writeAsync: lockFunds,
-    writeLoading,
-    prepareError,
-  } = useLock({
+  const { writeAsync: lockFunds, writeLoading } = useLock({
     invoice,
     disputeReason,
     amount,
     onTxSuccess,
+    toast,
   });
-  console.log(lockFunds, prepareError);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: unknown) => {
+    logDebug('LockFunds onSubmit', values);
+
     lockFunds?.();
   };
 

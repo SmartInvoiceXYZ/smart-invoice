@@ -4,7 +4,7 @@ import {
   wrappedNativeToken,
 } from '@smart-invoice/constants';
 import { UseToastReturn } from '@smart-invoice/types';
-import { getTokenInfo } from '@smart-invoice/utils';
+import { errorToastHandler, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -158,22 +158,7 @@ export const useInvoiceCreate = ({
 
       onTxSuccess?.(data);
     },
-    onError: error => {
-      if (
-        error.name === 'TransactionExecutionError' &&
-        error.message.includes('User rejected the request')
-      ) {
-        toast.error({
-          title: 'Signature rejected!',
-          description: 'Please accept the transaction in your wallet',
-        });
-      } else {
-        toast.error({
-          title: 'Error occurred!',
-          description: 'An error occurred while processing the transaction.',
-        });
-      }
-    },
+    onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
 
   return {

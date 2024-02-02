@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
 import { ESCROW_ZAP_ABI } from '@smart-invoice/constants';
+import { logDebug } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
@@ -53,7 +53,7 @@ export const useEscrowZap = ({
   // const { data: details, isLoading: detailsLoading } = useDetailsPin({
   //   ...detailsData,
   // });
-  console.log('details', details);
+  logDebug('details', details);
 
   const tokenAddress = '0x';
   // const tokenAddress = _.get(
@@ -78,15 +78,11 @@ export const useEscrowZap = ({
       [BigInt(threshold), BigInt(saltNonce)],
     );
   }, [threshold, saltNonce]);
-  console.log(
-    'encodeSafeData - ',
-    'threshold',
+  logDebug('encodeSafeData - ', {
     threshold,
-    'nonce',
     saltNonce,
-    'compiled data',
-    !!encodedSafeData,
-  );
+    compiledData: !!encodedSafeData,
+  });
 
   const encodedSplitData = useMemo(
     () =>
@@ -96,15 +92,11 @@ export const useEscrowZap = ({
       ),
     [projectTeamSplit, daoSplit],
   );
-  console.log(
-    'encodeSplitData - ',
-    'team split',
+  logDebug('encodeSplitData - ', {
     projectTeamSplit,
-    'dao split',
     daoSplit,
-    'compiled data',
-    !!encodedSplitData,
-  );
+    compiledData: !!encodedSplitData,
+  });
 
   const encodedEscrowData = useMemo(() => {
     if (
@@ -138,20 +130,16 @@ export const useEscrowZap = ({
       ],
     );
   }, [tokenAddress, safetyValveDate, details, client, arbitration, resolver]);
-  console.log(
-    'encodeEscrowData - ',
-    {
-      client,
-      arbitration,
-      resolver,
-      tokenAddress,
-      safetyValveDate,
-      saltNonce,
-      details,
-    },
-    'compiled data',
-    !!encodedEscrowData,
-  );
+  logDebug('encodeEscrowData - ', {
+    client,
+    arbitration,
+    resolver,
+    tokenAddress,
+    safetyValveDate,
+    saltNonce,
+    details,
+    compiledData: !!encodedEscrowData,
+  });
 
   console.log(
     'enabled prepare',
@@ -201,7 +189,7 @@ export const useEscrowZap = ({
       !!encodedEscrowData &&
       enabled,
   });
-  console.log('prepareError', prepareError, status);
+  logDebug('prepareError', prepareError, status);
 
   const {
     writeAsync,
@@ -213,7 +201,7 @@ export const useEscrowZap = ({
       onSuccess?.(tx);
     },
   });
-  // console.log(writeAsync);
+  logDebug(writeAsync);
 
   return {
     writeAsync,
