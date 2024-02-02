@@ -15,43 +15,30 @@ import { AccountLink, Textarea } from '@smart-invoice/ui';
 import {
   getResolverInfo,
   getResolverString,
-  getTxLink,
   isKnownResolver,
-  // uploadDisputeDetails,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { formatUnits, Hex, TransactionReceipt } from 'viem';
+import { Hex, TransactionReceipt } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const chainId = useChainId();
-  const { resolver, resolutionRate, tokenBalance } = _.pick(invoice, [
-    'resolver',
-    'tokenBalance',
-    'resolutionRate',
-  ]);
+  const { resolver, resolverFee, resolverName, tokenBalance } = _.pick(
+    invoice,
+    [
+      'resolver',
+      'resolverFee',
+      'resolverName',
+      'tokenBalance',
+      'resolutionRate',
+    ],
+  );
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
-  // handle in invoice hook, knownResolverInfo, resolverFee, resolverFeeDisplay
-  const fee =
-    tokenBalance?.value &&
-    formatUnits(
-      !resolutionRate || resolutionRate === BigInt(0)
-        ? BigInt(0)
-        : tokenBalance.value / BigInt(resolutionRate),
-      18,
-    );
-  const feeDisplay = tokenBalance?.symbol && `${fee} ${tokenBalance.symbol}`;
-
   const disputeReason = watch('disputeReason');
   const amount = tokenBalance?.formatted;
-
-  const resolverInfo = getResolverInfo(resolver as Hex, chainId);
-  const resolverDisplayName = isKnownResolver(resolver as Hex, chainId)
-    ? resolverInfo.name
-    : resolver;
 
   const onTxSuccess = (tx: TransactionReceipt) => {
     // TODO handle tx success
@@ -74,8 +61,6 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   console.log(lockFunds, prepareError);
 
   const onSubmit = async (values: any) => {
-    console.log(values);
-
     lockFunds?.();
   };
 
@@ -133,9 +118,9 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
         dispute.
       </Text>
       <Text textAlign="center" fontSize="sm" mb="1rem">
-        {'Once a dispute has been initiated, '}
+        Once a dispute has been initiated,{' '}
         <AccountLink
-          name={resolverDisplayName}
+          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
         />{' '}
@@ -151,9 +136,9 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
         localForm={localForm}
       />
       <Text textAlign="center">
-        {`Upon resolution, a fee of ${feeDisplay} will be deducted from the locked fund amount and sent to `}
+        {`Upon resolution, a fee of ${resolverFee} will be deducted from the locked fund amount and sent to `}
         <AccountLink
-          name={resolverDisplayName}
+          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
         />{' '}

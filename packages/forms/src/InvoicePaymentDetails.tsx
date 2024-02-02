@@ -47,7 +47,7 @@ export function InvoicePaymentDetails({
     isReleasable,
     isExpired,
     tokenMetadata,
-    depositedMilestonesString,
+    depositedMilestonesDisplay,
     depositedTxs,
   } = _.pick(invoice, [
     'client',
@@ -66,7 +66,7 @@ export function InvoicePaymentDetails({
     'isReleasable',
     'isExpired',
     'tokenMetadata',
-    'depositedMilestonesString',
+    'depositedMilestonesDisplay',
     'depositedTxs',
   ]);
 
@@ -74,6 +74,15 @@ export function InvoicePaymentDetails({
     deposited && { label: 'Total Deposited', value: deposited },
     released && { label: 'Total Released', value: released },
     due && { label: 'Remaining Amount Due', value: due },
+  ];
+
+  const resolutionDetails = [
+    resolution.resolutionFee && {
+      distributee: resolver,
+      amount: resolution.resolutionFee,
+    },
+    { distributee: client, amount: resolution.clientAward },
+    { distributee: provider, amount: resolution.providerAward },
   ];
 
   return (
@@ -102,7 +111,7 @@ export function InvoicePaymentDetails({
               </HStack>
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
-                  const depositedText = depositedMilestonesString?.[index];
+                  const depositedText = depositedMilestonesDisplay?.[index];
                   const release = releases?.[index];
                   const deposit = depositedTxs?.[index];
 
@@ -211,8 +220,7 @@ export function InvoicePaymentDetails({
                               18,
                             ),
                           )
-                        } 
-                  ${tokenBalance?.symbol}`}
+                        } ${tokenBalance?.symbol}`}
                       </Text>
                     )}
                   </>
@@ -292,35 +300,22 @@ export function InvoicePaymentDetails({
                     </Text>
                   </Flex>
                   <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
-                    {resolution.resolutionFee && (
-                      <Text textAlign="right" color="purpleLight">
+                    {_.map(_.compact(resolutionDetails), detail => (
+                      <Text
+                        textAlign="right"
+                        color="purpleLight"
+                        key={detail.distributee}
+                      >
                         {`${formatUnits(
-                          BigInt(resolution.resolutionFee),
+                          BigInt(detail.amount),
                           tokenMetadata?.decimals || 18,
                         )} ${tokenMetadata?.symbol} to `}
                         <AccountLink
-                          address={resolver as Hex}
+                          address={detail.distributee as Hex}
                           chainId={chainId}
                         />
                       </Text>
-                    )}
-                    <Text textAlign="right" color="purpleLight">
-                      {`${formatUnits(
-                        BigInt(resolution.clientAward),
-                        tokenMetadata?.decimals || 18,
-                      )} ${tokenMetadata?.symbol} to `}
-                      <AccountLink address={client as Hex} chainId={chainId} />
-                    </Text>
-                    <Text textAlign="right" color="purpleLight">
-                      {`${formatUnits(
-                        BigInt(resolution.providerAward),
-                        tokenMetadata?.decimals || 18,
-                      )} ${tokenMetadata?.symbol} to `}
-                      <AccountLink
-                        address={provider as Hex}
-                        chainId={chainId}
-                      />
-                    </Text>
+                    ))}
                   </Stack>
                 </Flex>
               </Stack>

@@ -7,7 +7,7 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
+import { DepositFunds, TipForm, WithdrawFunds } from '@smart-invoice/forms';
 import { useInvoiceDetails } from '@smart-invoice/hooks';
 import {
   Container,
@@ -15,6 +15,7 @@ import {
   InvoiceNotFound,
   Loader,
   Modal,
+  useMediaStyles,
 } from '@smart-invoice/ui';
 import { getDateString } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -38,14 +39,12 @@ function ViewInstantInvoice() {
     address: invoiceId,
     chainId: invoiceChainId,
   });
-  console.log(invoiceDetails);
 
   const {
     client,
     provider,
     total,
     tokenBalance,
-    // totalDue,
     fulfilled,
     amountFulfilled,
     deadline,
@@ -55,7 +54,6 @@ function ViewInstantInvoice() {
     'client',
     'provider',
     'total',
-    // 'totalDue',
     'tokenBalance',
     'fulfilled',
     'amountFulfilled',
@@ -67,7 +65,7 @@ function ViewInstantInvoice() {
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
-  const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
   // const smallScreen = useBreakpointValue({ base: true, sm: false });
 
   if (!isAddress(invoiceId) || (invoiceDetails === null && !isLoading)) {
@@ -128,6 +126,14 @@ function ViewInstantInvoice() {
   const daysPerInterval = lateFeeTimeInterval
     ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
     : undefined;
+  const deadlineLabel =
+    !!lateFee &&
+    `${formatUnits(
+      lateFee,
+      tokenBalance?.decimals || 18,
+    )} ${tokenBalance?.symbol} every ${daysPerInterval} day${
+      daysPerInterval && daysPerInterval > 1 ? 's' : ''
+    } after ${getDateString(_.toNumber(deadline?.toString()))}`;
 
   return (
     <Container overlay>
@@ -199,12 +205,7 @@ function ViewInstantInvoice() {
                     fontStyle="italic"
                     color="grey"
                   >
-                    {deadline
-                      ? `${formatUnits(
-                          lateFee,
-                          tokenBalance?.decimals || 18,
-                        )} ${tokenBalance?.symbol} every ${daysPerInterval} day${daysPerInterval && daysPerInterval > 1 ? 's' : ''} after ${getDateString(_.toNumber(deadline?.toString()))}`
-                      : `Not applicable`}
+                    {deadline ? deadlineLabel : `Not applicable`}
                   </Text>
                 </Flex>
 
@@ -255,7 +256,7 @@ function ViewInstantInvoice() {
           {isClient && (
             <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
               <Button
-                size={buttonSize}
+                size={primaryButtonSize}
                 _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
                 _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
                 color="white"
@@ -270,7 +271,7 @@ function ViewInstantInvoice() {
               </Button>
               {isTippable && (
                 <Button
-                  size={buttonSize}
+                  size={primaryButtonSize}
                   _hover={{
                     backgroundColor: 'rgba(61, 136, 248, 1)',
                     color: 'white',
@@ -296,7 +297,7 @@ function ViewInstantInvoice() {
           {isProvider && (
             <SimpleGrid columns={1} spacing="1rem" w="100%">
               <Button
-                size={buttonSize}
+                size={primaryButtonSize}
                 textTransform="uppercase"
                 onClick={() => onWithdraw()}
                 isDisabled={
@@ -316,6 +317,9 @@ function ViewInstantInvoice() {
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
           <WithdrawFunds invoice={invoiceDetails} />
+        </Modal>
+        <Modal isOpen={modals?.tip} onClose={() => setModals?.({})}>
+          <TipForm invoice={invoiceDetails} />
         </Modal>
       </Stack>
     </Container>

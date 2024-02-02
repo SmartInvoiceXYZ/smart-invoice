@@ -1,15 +1,8 @@
-import {
-  Box,
-  Button,
-  Grid,
-  HStack,
-  Stack,
-  useBreakpointValue,
-} from '@chakra-ui/react';
+import { Box, Button, Grid, HStack, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import { FormInvoice, ValueOf } from '@smart-invoice/types';
-import { DatePicker, Input, Textarea } from '@smart-invoice/ui';
+import { DatePicker, Input, Textarea, useMediaStyles } from '@smart-invoice/ui';
 import {
   oneMonthFromNow,
   projectDetailsSchema,
@@ -54,11 +47,12 @@ export function ProjectDetailsForm({
     formState: { isValid },
   } = localForm;
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
 
   const onSubmit = async (values: Partial<FormInvoice>) => {
     const localProjectAgreement = [];
     if (values.projectAgreement) {
+      // TODO align with AddMilestones handling for projectAgreement
       // TODO handle ipfs agreement link
       localProjectAgreement.push({
         type: 'https',
@@ -148,7 +142,7 @@ export function ProjectDetailsForm({
             type="submit"
             isDisabled={!isValid}
             textTransform="uppercase"
-            size={buttonSize}
+            size={primaryButtonSize}
             fontFamily="mono"
             fontWeight="bold"
           >

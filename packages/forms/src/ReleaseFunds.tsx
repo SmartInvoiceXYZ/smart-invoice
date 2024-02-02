@@ -10,7 +10,7 @@ type ReleaseFundsProp = {
   invoice: InvoiceDetails;
 };
 
-// TODO handle release multiple milestones
+// TODO handle release specified/multiple milestones
 
 export const getReleaseAmount = (
   currentMilestone: number | undefined,
@@ -55,16 +55,18 @@ export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
       released ? updatedInvoice.released > released : false,
   });
 
-  const onSuccess = async () => {
+  const onTxSuccess = async () => {
     // TODO handle tx success
     await waitForRelease();
     toast.success({ title: 'Funds released successfully' });
+    // close modal
     // invalidate cache
+    // update invoice with new balances
   };
 
   const { writeAsync: releaseFunds, isLoading } = useRelease({
     invoice,
-    onSuccess,
+    onTxSuccess,
     toast,
   });
 

@@ -42,7 +42,7 @@ export const wrappedNativeToken = (chainId: number) =>
 export const invoiceFactory = (chainId: number) =>
   NETWORK_CONFIG[chainId].INVOICE_FACTORY;
 
-// TODO fix
+// TODO fix (import - getKeys)
 // export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG).map(k => Number(k));
 export const SUPPORTED_NETWORKS = [1, 5, 100, 137, 80001];
 

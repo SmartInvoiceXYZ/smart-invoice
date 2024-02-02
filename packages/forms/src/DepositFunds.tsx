@@ -91,12 +91,12 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
     paymentType?.value === PAYMENT_TYPES.NATIVE
       ? nativeBalance?.formatted
       : tokenBalance?.formatted;
-  const hasAmount = !!balance && balance > amount;
+  const hasAmount = !!balance && balance > amount; // (+ gasForChain)
 
   const { handleDeposit, isLoading, isReady } = useDeposit({
     invoice,
     amount,
-    hasAmount, // (+ gas)
+    hasAmount,
     paymentType: paymentType?.value,
     toast,
   });

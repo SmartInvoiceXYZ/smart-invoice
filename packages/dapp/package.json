@@ -33,7 +33,6 @@
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.3.3",
-    "ipfs-http-client": "50.1.2",
     "lodash": "^4.17.21",
     "next": "^14.0.4",
     "react": "^18.2.0",

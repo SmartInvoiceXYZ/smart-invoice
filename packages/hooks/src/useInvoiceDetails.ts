@@ -1,104 +1,12 @@
 import { INVOICE_TYPES } from '@smart-invoice/constants';
-import {
-  fetchInvoice,
-  InstantDetails,
-  Invoice,
-  InvoiceDetails,
-  TokenBalance,
-  TokenMetadata,
-} from '@smart-invoice/graphql';
-import {
-  assignDeposits,
-  chainByName,
-  convertAmountsType,
-  convertByte32ToIpfsCidV0,
-  currentMilestoneAmount,
-  depositedMilestones,
-  depositedMilestonesString,
-  isInvoiceExpired,
-  isLockable,
-  isMilestoneReleasable,
-  lastDispute,
-  lastResolution,
-  parseMilestoneAmounts,
-  totalAmount,
-  totalDeposited,
-  totalDue,
-} from '@smart-invoice/utils';
+import { fetchInvoice, Invoice, InvoiceDetails } from '@smart-invoice/graphql';
+import { getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
 
 import { useInstantDetails } from '.';
-
-const getInvoiceDetails = async (
-  invoice: Invoice,
-  tokenMetadata: TokenMetadata | undefined,
-  tokenBalance: TokenBalance | undefined,
-  nativeBalance: TokenBalance | undefined,
-  instantDetails: InstantDetails | undefined,
-): Promise<InvoiceDetails | null> => {
-  const currentMilestoneNumber = _.toNumber(
-    _.get(invoice, 'currentMilestone')?.toString(),
-  );
-  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance)
-    return null;
-
-  // TODO change any of these if instantDetails?
-
-  try {
-    const invoiceDetails = {
-      ...invoice,
-      // conversions
-      currentMilestoneNumber,
-      chainId: chainByName(invoice?.network)?.id,
-      // computed values
-      total: totalAmount(invoice),
-      deposited: totalDeposited(invoice, tokenBalance),
-      due: totalDue(invoice, tokenBalance),
-      currentMilestoneAmount: currentMilestoneAmount(
-        invoice,
-        currentMilestoneNumber,
-      ),
-      bigintAmounts: convertAmountsType(invoice),
-      parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
-      depositedMilestones: depositedMilestones(invoice, tokenBalance),
-      depositedMilestonesString: depositedMilestonesString(
-        invoice,
-        tokenBalance,
-      ),
-      depositedTxs: assignDeposits(invoice),
-      detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
-      // entities
-      dispute: lastDispute(invoice),
-      resolution: lastResolution(invoice),
-      // flags
-      isExpired: isInvoiceExpired(invoice),
-      isReleasable: isMilestoneReleasable(
-        invoice,
-        tokenBalance,
-        currentMilestoneNumber,
-      ),
-      isLockable: isLockable(invoice, tokenBalance),
-      isWithdrawable:
-        isInvoiceExpired(invoice) &&
-        !!tokenBalance?.value &&
-        tokenBalance?.value > BigInt(0),
-      // token data
-      tokenMetadata,
-      tokenBalance,
-      nativeBalance,
-      ...instantDetails,
-    };
-
-    return invoiceDetails;
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log("Couldn't assemble InvoiceDetails", e);
-    return null;
-  }
-};
 
 export const useInvoiceDetails = ({
   address,

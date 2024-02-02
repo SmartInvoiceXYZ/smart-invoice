@@ -1,11 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
-// import { TokenBalance, InvoiceDetails } from '@smart-invoice/graphql';
+import {
+  InstantDetails,
+  Invoice,
+  InvoiceDetails,
+  TokenBalance,
+  TokenMetadata,
+} from '@smart-invoice/graphql';
 import _ from 'lodash';
-import { Address, Chain, formatUnits, Hash, isAddress } from 'viem';
+import { formatUnits, Hex } from 'viem';
 
-import { getInvoiceFactoryAddress } from './helpers';
-import { logError } from './log';
+import {
+  chainByName,
+  convertByte32ToIpfsCidV0,
+  getResolverFee,
+  getResolverInfo,
+  isKnownResolver,
+  resolverFeeLabel,
+} from '.';
 
 // TODO sort out Invoice/TokenBalance import
 
@@ -32,7 +43,7 @@ export const depositedMilestones = (invoice: any, tokenBalance: any) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
-  return _.map(amounts, (a: string, i) => {
+  return _.map(amounts, (a: string) => {
     sum += BigInt(a);
     return totalDeposited(invoice, tokenBalance) >= sum;
   });
@@ -180,49 +191,91 @@ export const parseMilestoneAmounts = (invoice: any, tokenMetadata: any) => {
   return _.map(amounts, a => _.toNumber(formatUnits(BigInt(a), decimals)));
 };
 
-export const awaitInvoiceAddress = async (chainId: number, hash: Hash) => {
-  // const receipt = await waitForTransaction({ chainId: chain.id, hash });
-  const abi = SMART_INVOICE_FACTORY_ABI;
+export const getInvoiceDetails = async (
+  invoice: Invoice,
+  tokenMetadata: TokenMetadata | undefined,
+  tokenBalance: TokenBalance | undefined,
+  nativeBalance: TokenBalance | undefined,
+  instantDetails: InstantDetails | undefined,
+): Promise<InvoiceDetails | null> => {
+  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance)
+    return null;
 
-  // const [, address, , ,] = await readEvent({
-  //   abi,
-  //   chainId,
-  //   hash,
-  //   name: 'LogNewInvoice',
-  // });
-  // const eventFragment = abi.events[Object.keys(abi.events)[0]];
-  // const eventTopic = abi.getEventTopic(eventFragment);
-  // const event = receipt.logs.find((e) => e.topics[0] === eventTopic);
-  // if (event) {
-  //   const decodedLog = abi.decodeEventLog(
-  //     eventFragment,
-  //     event.data,
-  //     event.topics,
-  //   );
-  //   return decodedLog.invoice;
-  // }
-  return undefined; // address;
-};
+  const chainId = chainByName(invoice?.network)?.id;
 
-export const getResolutionRateFromFactory = async (
-  chain: Chain,
-  resolver: Address,
-  defaultValue: number = 20,
-) => {
-  if (!isAddress(resolver)) return defaultValue;
+  // current milestone
+  const currentMilestoneNumber = _.toNumber(
+    _.get(invoice, 'currentMilestone')?.toString(),
+  );
+  const currentMilestoneAmountLabel = currentMilestoneAmount(
+    invoice,
+    currentMilestoneNumber,
+  );
+
+  // resolver
+  const resolverInfo = getResolverInfo(invoice?.resolver as Hex, chainId);
+  const resolverFee = getResolverFee(invoice, tokenBalance);
+
   try {
-    const address = getInvoiceFactoryAddress(chain.id);
-    // const [resolutionRate] = await readContract(client, {
-    //   abi: SMART_INVOICE_FACTORY_ABI,
-    //   address,
-    //   chain,
-    //   functionName: 'resolutionRateOf',
-    //   args: [resolver],
-    // });
-    // return resolutionRate > 0 ? Number(resolutionRate) : defaultValue;
-    return defaultValue;
-  } catch (resolutionRateError) {
-    logError({ resolutionRateError });
-    return defaultValue;
+    const invoiceDetails = {
+      ...invoice,
+      // conversions
+      currentMilestoneNumber,
+      chainId,
+      // computed values
+      total: totalAmount(invoice),
+      deposited: totalDeposited(invoice, tokenBalance),
+      due: totalDue(invoice, tokenBalance),
+      currentMilestoneAmount: currentMilestoneAmount(
+        invoice,
+        currentMilestoneNumber,
+      ),
+      currentMilestoneAmountDisplay: formatUnits(
+        currentMilestoneAmountLabel,
+        tokenMetadata?.decimals,
+      ),
+      bigintAmounts: convertAmountsType(invoice),
+      parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
+      depositedMilestones: depositedMilestones(invoice, tokenBalance),
+      depositedMilestonesDisplay: depositedMilestonesString(
+        invoice,
+        tokenBalance,
+      ),
+      depositedTxs: assignDeposits(invoice),
+      detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
+      resolverName: isKnownResolver(invoice?.resolver as Hex, chainId)
+        ? resolverInfo?.name
+        : invoice?.resolver,
+      resolverInfo,
+      resolverFee,
+      resolverFeeDisplay: resolverFeeLabel(resolverFee, tokenMetadata),
+      resolverAward: BigInt(0), // _.toNumber(formatUnits(balance / resolutionRate, 18)) : 0;
+      // entities
+      dispute: lastDispute(invoice),
+      resolution: lastResolution(invoice),
+      // flags
+      isExpired: isInvoiceExpired(invoice),
+      isReleasable: isMilestoneReleasable(
+        invoice,
+        tokenBalance,
+        currentMilestoneNumber,
+      ),
+      isLockable: isLockable(invoice, tokenBalance),
+      isWithdrawable:
+        isInvoiceExpired(invoice) &&
+        !!tokenBalance?.value &&
+        tokenBalance?.value > BigInt(0),
+      // token data
+      tokenMetadata,
+      tokenBalance,
+      nativeBalance,
+      ...instantDetails,
+    };
+
+    return invoiceDetails;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log("Couldn't assemble InvoiceDetails", e);
+    return null;
   }
 };

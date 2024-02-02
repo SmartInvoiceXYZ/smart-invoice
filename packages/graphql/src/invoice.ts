@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { logDebug } from '@smart-invoice/utils';
+import { logDebug } from '@smart-invoice/shared';
 import { Address, Hex, isAddress } from 'viem';
 
 import { clients } from './client';
@@ -203,9 +203,13 @@ export type InvoiceDetails = Invoice &
     bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
-    depositedMilestonesString: (string | undefined)[];
-    depositedTxs: (any | undefined)[];
+    depositedMilestonesDisplay: (string | undefined)[];
+    depositedTxs: (any | undefined)[]; // Deposit[];
     detailsHash: string | undefined;
+    resolverName: string | undefined;
+    resolverInfo: any | undefined; // ResolverInfo;
+    resolverFee: string | undefined;
+    resolverFeeDisplay: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispute?: any; // Dispute;

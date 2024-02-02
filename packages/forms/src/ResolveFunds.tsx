@@ -1,11 +1,16 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useResolve } from '@smart-invoice/hooks';
-import { NumberInput, Textarea, TokenDescriptor } from '@smart-invoice/ui';
+import {
+  NumberInput,
+  Textarea,
+  TokenDescriptor,
+  useToast,
+} from '@smart-invoice/ui';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatUnits, parseUnits } from 'viem';
+import { formatUnits, parseUnits, TransactionReceipt } from 'viem';
 
 // TODO handle onChange for award amounts
 
@@ -23,7 +28,7 @@ export function ResolveFunds({
   ]);
 
   const isLocked = true;
-
+  const toast = useToast();
   const localForm = useForm({});
   const { watch, handleSubmit, setValue } = localForm;
 
@@ -58,14 +63,26 @@ export function ResolveFunds({
     [clientAward, providerAward, resolverAward],
   );
 
+  const onTxSuccess = (tx: TransactionReceipt) => {
+    // TODO handle tx success
+    console.log(tx);
+    // toast
+    // invalidate cache
+    // close modal
+  };
+
   const { writeAsync: resolve, isLoading } = useResolve({
     invoice,
     awards,
     comments,
+    onTxSuccess,
+    toast,
   });
 
   const onSubmit = async () => {
-    // await resolve();
+    console.log('submitting', awards, comments);
+
+    await resolve?.();
   };
 
   useEffect(() => {

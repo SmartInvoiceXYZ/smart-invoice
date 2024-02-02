@@ -1,4 +1,6 @@
 import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
+import { UseToastReturn } from '@smart-invoice/types/src';
+import { logError } from '@smart-invoice/utils/src';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
@@ -9,6 +11,7 @@ export const useTip = ({
   amount,
   chainId,
   onTxSuccess,
+  toast,
 }: TipProps) => {
   const { config } = usePrepareContractWrite({
     address,
@@ -21,12 +24,29 @@ export const useTip = ({
 
   const { writeAsync } = useContractWrite({
     ...config,
-    onSuccess: async txHash => {
+    onSuccess: async ({ hash }) => {
       // eslint-disable-next-line no-console
       console.log('Tip successful');
-      const data = await waitForTransaction(txHash);
+      const data = await waitForTransaction({ hash, chainId });
 
       onTxSuccess?.(data);
+    },
+    onError: error => {
+      if (
+        error.name === 'TransactionExecutionError' &&
+        error.message.includes('User rejected the request')
+      ) {
+        toast.error({
+          title: 'Signature rejected!',
+          description: 'Please accept the transaction in your wallet',
+        });
+      } else {
+        logError('useWithdraw', error);
+        toast.error({
+          title: 'Error occurred!',
+          description: 'An error occurred while processing the transaction.',
+        });
+      }
     },
   });
 
@@ -39,4 +59,5 @@ interface TipProps {
   token: Hex | undefined;
   amount: bigint | undefined;
   onTxSuccess?: (data: TransactionReceipt) => void;
+  toast: UseToastReturn;
 }

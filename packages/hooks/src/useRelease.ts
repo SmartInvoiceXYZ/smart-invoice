@@ -1,25 +1,26 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
+import { logError } from '@smart-invoice/utils/src';
 import _ from 'lodash';
-import { Hex } from 'viem';
+import { Hex, TransactionReceipt } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { SendTransactionResult } from 'wagmi/actions';
+import { waitForTransaction } from 'wagmi/actions';
 
 export const useRelease = ({
   invoice,
   milestone,
-  onSuccess,
+  onTxSuccess,
   toast,
 }: {
   invoice: Invoice;
   milestone?: number;
-  onSuccess: (tx: SendTransactionResult) => void;
+  onTxSuccess: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
-  const specifyMilestones = _.isNumber(milestone);
+  const specifiedMilestone = _.isNumber(milestone);
 
   const {
     config,
@@ -30,7 +31,7 @@ export const useRelease = ({
     address: invoice?.address as Hex,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
-    args: [BigInt(0)], //  specifyMilestones ? [milestone] : [], // optional args
+    args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
     enabled: !!invoice?.address,
   });
 
@@ -40,16 +41,27 @@ export const useRelease = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: async tx => {
-      onSuccess(tx);
+    onSuccess: async ({ hash }) => {
+      const data = await waitForTransaction({ hash, chainId });
 
-      // handle success
-      // close modal
-      // update invoice with new balances
+      onTxSuccess?.(data);
     },
     onError: async error => {
-      // eslint-disable-next-line no-console
-      console.log('release error', error);
+      if (
+        error.name === 'TransactionExecutionError' &&
+        error.message.includes('User rejected the request')
+      ) {
+        toast.error({
+          title: 'Signature rejected!',
+          description: 'Please accept the transaction in your wallet',
+        });
+      } else {
+        logError('useWithdraw', error);
+        toast.error({
+          title: 'Error occurred!',
+          description: 'An error occurred while processing the transaction.',
+        });
+      }
     },
   });
 

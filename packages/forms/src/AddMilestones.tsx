@@ -79,6 +79,7 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
     onTxSuccess,
   });
 
+  // TODO handle excess funds from previous deposits
   const excessFunds = useMemo(() => {
     if (!total || !deposited) return 0;
     return deposited - total; // bigint
