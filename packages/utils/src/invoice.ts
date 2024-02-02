@@ -32,9 +32,62 @@ export const depositedMilestones = (invoice: any, tokenBalance: any) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
-  return amounts.map((a: string) => {
+  return _.map(amounts, (a: string, i) => {
     sum += BigInt(a);
     return totalDeposited(invoice, tokenBalance) >= sum;
+  });
+};
+
+export const depositedMilestonesString = (invoice: any, tokenBalance: any) => {
+  const { amounts } = _.pick(invoice, ['amounts']);
+
+  let sum = BigInt(0);
+  return _.map(amounts, (a: string, i: number) => {
+    const prevAmount = amounts[i - 1] || BigInt(0);
+    sum += BigInt(a);
+
+    if (totalDeposited(invoice, tokenBalance) >= sum) {
+      return 'deposited';
+    }
+    if (totalDeposited(invoice, tokenBalance) >= prevAmount) {
+      return 'partially deposited';
+    }
+    return undefined;
+  });
+};
+
+const findDepositForAmount = (amount: number, deposits: bigint[]) => {
+  let sum = 0;
+  return _.find(deposits, (deposit, i) => {
+    if (!deposits) return undefined;
+    sum += _.toNumber(deposits[i].toString());
+    return deposit >= sum ? i : i - 1 || 0;
+  });
+};
+
+/**
+ * Match amounts to deposits
+ * @param invoice
+ * @param tokenBalance
+ * @returns array of deposits
+ */
+export const assignDeposits = (invoice: any, tokenBalance: any) => {
+  const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
+
+  let sum = BigInt(0);
+  return _.map(amounts, (a: string, i: number) => {
+    // sum of all amounts up to current index
+    const localSum = _.sumBy(
+      _.concat(_.slice(amounts, 0, i), [a]) as string[],
+      v => _.toNumber(v.toString()),
+    );
+    // get deposit for matching amount
+    console.log(localSum);
+    const deposit = findDepositForAmount(localSum, deposits);
+    console.log(deposit);
+
+    sum += BigInt(a);
+    return deposit; // deposit >= sum ? deposit : undefined;
   });
 };
 

@@ -8,11 +8,13 @@ import {
   TokenMetadata,
 } from '@smart-invoice/graphql';
 import {
+  assignDeposits,
   chainByName,
   convertAmountsType,
   convertByte32ToIpfsCidV0,
   currentMilestoneAmount,
   depositedMilestones,
+  depositedMilestonesString,
   isInvoiceExpired,
   isLockable,
   isMilestoneReleasable,
@@ -62,6 +64,11 @@ const getInvoiceDetails = async (
       bigintAmounts: convertAmountsType(invoice),
       parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
       depositedMilestones: depositedMilestones(invoice, tokenBalance),
+      depositedMilestonesString: depositedMilestonesString(
+        invoice,
+        tokenBalance,
+      ),
+      depositedTxs: assignDeposits(invoice, tokenBalance),
       detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
       // entities
       dispute: lastDispute(invoice),

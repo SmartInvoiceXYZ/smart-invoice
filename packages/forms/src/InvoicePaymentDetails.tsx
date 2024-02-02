@@ -30,7 +30,7 @@ export function InvoicePaymentDetails({
   setModals: (m: Partial<Modals>) => void;
 }) {
   const chainId = useChainId();
-
+  console.log(invoice);
   const {
     client,
     provider,
@@ -50,6 +50,8 @@ export function InvoicePaymentDetails({
     isReleasable,
     isExpired,
     tokenMetadata,
+    depositedMilestonesString,
+    depositedTxs,
   } = _.pick(invoice, [
     'client',
     'provider',
@@ -69,6 +71,8 @@ export function InvoicePaymentDetails({
     'isReleasable',
     'isExpired',
     'tokenMetadata',
+    'depositedMilestonesString',
+    'depositedTxs',
   ]);
 
   const details = [
@@ -103,35 +107,10 @@ export function InvoicePaymentDetails({
               </HStack>
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
-                  // let tot = BigInt(0);
-                  // let ind = -1;
-                  // let full = false;
-                  // if (!_.isEmpty(deposits)) {
-                  //   for (let i = 0; i < _.size(deposits); i += 1) {
-                  //     const newAmount = deposits?.[i]?.amount;
-                  //     if (!newAmount) break;
-                  //     tot += newAmount;
-                  //     console.log(tot);
-                  //     if (tot > sum) {
-                  //       ind = i;
-                  //       console.log(tot, sum, amt, full);
-                  //       if (tot - sum >= BigInt(amt)) {
-                  //         full = true;
-                  //         break;
-                  //       }
-                  //     }
-                  //   }
-                  // }
-                  // sum += BigInt(amt);
-                  const full = false;
-
-                  // const totalPayments = _.sum(amounts);
-                  // const paidPayments = _.difference(
-                  //   amounts,
-                  //   _.map(deposits, 'amount'),
-                  // );
-                  // const totalDeposits = _.sumBy(deposits, 'amount');
-                  // console.log(totalPayments, paidPayments, totalDeposits);
+                  const depositedText = depositedMilestonesString?.[index];
+                  const release = releases?.[index];
+                  console.log(depositedTxs?.[index]);
+                  const deposit = depositedTxs?.[index];
 
                   return (
                     <Flex
@@ -144,51 +123,43 @@ export function InvoicePaymentDetails({
                       <Text>Milestone #{index + 1}</Text>
 
                       <HStack align="center" justify="flex-end">
-                        {index < _.toNumber(currentMilestone?.toString()) &&
-                          _.size(releases) > index &&
-                          !!releases?.[index]?.timestamp && (
-                            <Link
-                              fontSize="xs"
-                              isExternal
-                              color="grey"
-                              fontStyle="italic"
-                              href={getTxLink(
-                                chainId,
-                                releases?.[index].txHash,
-                              )}
-                            >
-                              Released{' '}
-                              {new Date(
-                                _.toNumber(releases[index].timestamp) * 1000,
-                              ).toLocaleDateString()}
-                            </Link>
-                          )}
-                        {!(
-                          _.lt(index, currentMilestone) &&
-                          _.size(releases) > index
-                        ) &&
-                          index !== -1 &&
-                          !!deposits?.[index]?.timestamp && (
-                            <Link
-                              fontSize="xs"
-                              isExternal
-                              color="grey"
-                              fontStyle="italic"
-                              href={getTxLink(
-                                chainId,
-                                deposits?.[index]?.txHash,
-                              )}
-                            >
-                              {full ? '' : 'Partially '}Deposited{' '}
-                              {new Date(
-                                _.toNumber(deposits?.[index].timestamp) * 1000,
-                              ).toLocaleDateString()}
-                            </Link>
-                          )}
-                        <Text
-                          textAlign="right"
-                          fontWeight="500"
-                        >{`${commify(formatUnits(BigInt(amt), tokenBalance?.decimals || 18))} ${tokenBalance?.symbol}`}</Text>
+                        {release && (
+                          <Link
+                            fontSize="xs"
+                            isExternal
+                            color="grey"
+                            fontStyle="italic"
+                            href={getTxLink(chainId, release.txHash)}
+                          >
+                            Released{' '}
+                            {new Date(
+                              _.toNumber(release.timestamp) * 1000,
+                            ).toLocaleDateString()}
+                          </Link>
+                        )}
+                        {deposit && !release && (
+                          <Link
+                            fontSize="xs"
+                            isExternal
+                            color="grey"
+                            fontStyle="italic"
+                            href={getTxLink(chainId, deposit?.txHash)}
+                          >
+                            {`${_.capitalize(depositedText)} `}
+                            {new Date(
+                              _.toNumber(deposit?.timestamp) * 1000,
+                            ).toLocaleDateString()}
+                          </Link>
+                        )}
+
+                        <Text textAlign="right" fontWeight="500">
+                          {`${commify(
+                            formatUnits(
+                              BigInt(amt),
+                              tokenBalance?.decimals || 18,
+                            ),
+                          )} ${tokenBalance?.symbol}`}
+                        </Text>
                       </HStack>
                     </Flex>
                   );

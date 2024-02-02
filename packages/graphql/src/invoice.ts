@@ -195,6 +195,8 @@ export type InvoiceDetails = Invoice &
     bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
+    depositedMilestonesString: (string | undefined)[];
+    depositedTxs: any[]; // Deposit[];
     detailsHash: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

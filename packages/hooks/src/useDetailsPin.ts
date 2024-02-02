@@ -37,7 +37,7 @@ export const useDetailsPin = ({
     return {
       projectName: projectName || invoiceProjectName || '',
       projectDescription: projectDescription || invoiceProjectDescription || '',
-      projectAgreement: _.concat(invoiceProjectAgreement, [
+      projectAgreement: _.concat(invoiceProjectAgreement || [], [
         {
           id: createdAt.toString(),
           src: projectAgreement,
