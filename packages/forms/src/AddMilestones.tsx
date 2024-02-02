@@ -10,33 +10,28 @@ import {
   HStack,
   Icon,
   IconButton,
-  Link,
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
 } from '@chakra-ui/react';
-import { ChainId } from '@smart-invoice/constants';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useAddMilestones } from '@smart-invoice/hooks';
-import { TokenData } from '@smart-invoice/types';
 import {
-  Input,
   LinkInput,
   NumberInput,
   QuestionIcon,
+  useMediaStyles,
   useToast,
 } from '@smart-invoice/ui';
 import {
-  calculateResolutionFeePercentage,
   commify,
-  getTokenInfo,
-  getTxLink,
+  // getTxLink,
+  resolutionFeePercentage,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { formatUnits, Hex } from 'viem';
+import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 export type AddMilestonesProps = {
@@ -53,22 +48,13 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
   });
   const {
     watch,
-    setValue,
     formState: { errors },
     control,
   } = localForm;
-  const {
-    address,
-    tokenMetadata,
-    // amounts,
-    // deposits,
-    // projectName,
-    // projectDescription,
-    // projectAgreement,
-    // resolutionRate,
-    // startDate,
-    // endDate,
-  } = _.pick(invoice, ['address', 'tokenMetadata']);
+  const { address, tokenMetadata, resolutionRate, total, deposited } = _.pick(
+    invoice,
+    ['address', 'tokenMetadata', 'resolutionRate', 'total', 'deposited'],
+  );
 
   const {
     fields: milestonesFields,
@@ -78,13 +64,7 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
     name: 'milestones',
     control,
   });
-  console.log(watch());
-
-  const total = useMemo(() => {
-    console.log(milestonesFields);
-    if (!milestonesFields) return 0;
-    return milestonesFields.reduce((t, v) => t + parseInt(v.id), 0);
-  }, [milestonesFields]);
+  const { milestones } = watch();
 
   const onTxSuccess = () => {
     // TODO: handle tx success, cache invalidation, close modal
@@ -93,128 +73,31 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
   const { writeAsync, isLoading } = useAddMilestones({
     address: address as Hex,
     chainId,
+    invoice,
+    localForm,
     toast,
     onTxSuccess,
   });
 
-  const due = BigInt(0);
+  const excessFunds = useMemo(() => {
+    if (!total || !deposited) return 0;
+    return deposited - total; // bigint
+  }, [total, deposited, tokenMetadata]);
 
-  // const [addedTotal, setAddedTotal] = useState(BigInt(0));
-  // const [addedTotalInput, setAddedTotalInput] = useState(0);
-  // const [addedMilestones, setAddedMilestones] = useState(0);
-  // const [milestoneAmountsInput, setMilestoneAmountsInput] = useState(
-  //   [] as number[],
-  // );
-  // const [milestoneAmounts, setMilestoneAmounts] = useState([] as bigint[]);
-  // const [addedTotalInvalid, setAddedTotalInvalid] = useState(false);
-  // const [addedMilestonesInvalid, setAddedMilestonesInvalid] = useState(false);
-  // const [revisedProjectAgreement, setRevisedProjectAgreement] =
-  //   useState(projectAgreement);
-  // const defaultSrc =
-  //   projectAgreement && projectAgreement.length > 0
-  //     ? projectAgreement[projectAgreement.length - 1].src
-  //     : '';
-  // const [revisedProjectAgreementSrc, setRevisedProjectAgreementSrc] =
-  //   useState(defaultSrc);
-  // const defaultProjectType =
-  //   projectAgreement && projectAgreement.length > 0
-  //     ? projectAgreement[projectAgreement.length - 1].type
-  //     : '';
+  const newTotalDue = _.sumBy(milestones, ({ value }) => _.toNumber(value));
+  const newDisputeFee =
+    resolutionFeePercentage(resolutionRate.toString()) * newTotalDue;
 
-  // const [revisedProjectAgreementType, setRevisedProjectAgreementType] =
-  //   useState(defaultProjectType);
-  // const [remainingFunds, setRemainingFunds] = useState(0);
+  // const { resolutionRate: factoryResolutionRate } = useRateForResolver({
+  //   resolver: address as Hex,
+  //   chainId,
+  // });
 
-  // useEffect(() => {
-  //   if (!amounts) return;
-
-  //   const totalAmounts = formatUnits(
-  //     amounts.reduce((a: any, b: any) => a + BigInt(b), BigInt(0)),
-  //     decimals,
-  //   );
-
-  //   if (deposits && deposits.length > 0) {
-  //     const depositAmounts = [] as bigint[];
-
-  //     for (let i = 0; i < deposits.length; i++) {
-  //       depositAmounts.push(deposits[i].amount);
-  //     }
-  //     const totalDeposits = formatUnits(
-  //       depositAmounts.reduce((a, b) => a + b),
-  //       decimals,
-  //     );
-
-  //     const remaining = parseInt(totalAmounts) - parseInt(totalDeposits);
-  //     setRemainingFunds(remaining);
-  //   } else {
-  //     setRemainingFunds(parseInt(totalAmounts));
-  //   }
-  // }, [amounts, deposits, decimals]);
-
-  const buttonSize = useBreakpointValue({ base: 'md', md: 'lg' });
-
-  // useEffect(() => {
-  //   const createdAt = BigInt(Date.now());
-  //   const newProjectAgreement = {
-  //     id: createdAt.toString(),
-  //     type: revisedProjectAgreementType,
-  //     src: revisedProjectAgreementSrc,
-  //     createdAt,
-  //   };
-  //   setRevisedProjectAgreement([
-  //     ...(projectAgreement ?? []),
-  //     newProjectAgreement,
-  //   ]);
-  // }, [
-  //   revisedProjectAgreementSrc,
-  //   revisedProjectAgreementType,
-  //   projectAgreement,
-  // ]);
+  const { primaryButtonSize } = useMediaStyles();
 
   // * add milestones click handler
   const addNewMilestones = async () => {
-    // if (!milestoneAmounts.length) return;
-    // try {
-    //   setLoading(true);
-    //   let detailsHash: Hash | undefined;
-    //   if (revisedProjectAgreementType === 'ipfs') {
-    //     const localProjectAgreement = revisedProjectAgreement;
-    //     detailsHash = '0x';
-    //     // detailsHash = await uploadMetadata({
-    //     //   projectName,
-    //     //   projectDescription,
-    //     //   projectAgreement: localProjectAgreement,
-    //     //   startDate: Math.floor(Number(startDate) / 1000),
-    //     //   endDate: Math.floor(Number(endDate) / 1000),
-    //     // });
-    //   }
-    //   if (walletClient) {
-    //     let hash: Hash | undefined;
-    //     const validAddress = address && isAddress(address);
-    //     if (!validAddress) return;
-    //     if (detailsHash) {
-    //       hash = '0x'; // await addMilestonesWithDetails(
-    //       //   walletClient,
-    //       //   validAddress,
-    //       //   milestoneAmounts,
-    //       //   detailsHash,
-    //       // );
-    //     } else {
-    //       hash = '0x'; // await addMilestones(
-    //       //   walletClient,
-    //       //   validAddress,
-    //       //   milestoneAmounts,
-    //       // );
-    //     }
-    //     setTxHash(hash);
-    //     const { chain } = walletClient;
-    //     // await waitForTransaction(chain, hash);
-    //     window.location.href = `/invoice/${chain.id.toString(16)}/${address}`;
-    //   }
-    // } catch (addMilestonesError) {
-    //   setLoading(false);
-    //   logError({ addMilestonesError });
-    // }
+    writeAsync?.();
   };
 
   return (
@@ -231,7 +114,7 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
       </Heading>
 
       <LinkInput
-        name="revisedProjectAgreementLink"
+        name="projectAgreement"
         label="Link to Project Agreement (if updated)"
         tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         localForm={localForm}
@@ -262,10 +145,12 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
                     step={1}
                     min={0}
                     max={1_000_000}
+                    w="97%"
                     placeholder="500"
                     variant="outline"
                     localForm={localForm}
                   />
+                  <Text>{tokenMetadata?.symbol}</Text>
                 </HStack>
                 <IconButton
                   icon={<Icon as={DeleteIcon} />}
@@ -294,13 +179,13 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
             </Button>
 
             <Text>
-              Total: {commify(total || 0)} {tokenMetadata?.symbol}
+              Total: {commify(newTotalDue || 0)} {tokenMetadata?.symbol}
             </Text>
           </Flex>
         </Stack>
       </FormControl>
 
-      {!!due && (
+      {!!newTotalDue && (
         <Stack>
           <Flex color="black" justify="space-between" w="100%" fontSize="sm">
             <HStack>
@@ -308,19 +193,7 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
                 Potential Dispute Fee:
               </Text>
 
-              {/* <Text>
-              {`${
-                addedTotalInput
-                  ? (
-                      (remainingFunds + addedTotalInput) *
-                      calculateResolutionFeePercentage(resolutionRate)
-                    ).toFixed(5)
-                  : (
-                      remainingFunds *
-                      calculateResolutionFeePercentage(resolutionRate)
-                    ).toFixed(5)
-              } ${symbol}`}
-            </Text> */}
+              <Text>{`${newDisputeFee} ${tokenMetadata?.symbol}`}</Text>
             </HStack>
           </Flex>
 
@@ -330,11 +203,7 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
                 Expected Total Due:
               </Text>
 
-              {/* <Text>{`${
-                addedTotalInput
-                  ? parseFloat(formatUnits(due, tokenMetadata?.decimals || 18)) + addedTotalInput
-                  : formatUnits(due, tokenMetadata?.decimals || 18)
-              } ${symbol}`}</Text> */}
+              <Text>{`${newTotalDue} ${tokenMetadata?.symbol}`}</Text>
             </HStack>
           </Flex>
         </Stack>
@@ -347,9 +216,9 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
       <Button
         onClick={addNewMilestones}
         isLoading={isLoading}
-        isDisabled={false}
+        isDisabled={!writeAsync}
         textTransform="uppercase"
-        size={buttonSize}
+        size={primaryButtonSize}
         w="100%"
       >
         Add

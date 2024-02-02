@@ -125,7 +125,7 @@ export function commify(x: number | bigint | string): string {
   return _.toString(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export const calculateResolutionFeePercentage = (resolutionRate: string) => {
+export const resolutionFeePercentage = (resolutionRate: string) => {
   const feePercentage = 1 / parseInt(resolutionRate);
 
   return feePercentage;
