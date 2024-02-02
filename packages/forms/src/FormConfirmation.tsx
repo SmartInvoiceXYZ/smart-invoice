@@ -58,7 +58,7 @@ export function FormConfirmation({
     paymentDue,
   } = watch();
 
-  const lateFeeIntervalString = _.toLower(
+  const lateFeeIntervalLabel = _.toLower(
     _.find(LATE_FEE_INTERVAL_OPTIONS, { value: lateFeeTimeInterval })?.label,
   );
 
@@ -108,7 +108,7 @@ export function FormConfirmation({
         lateFeeTimeInterval && {
           label: 'Late Fee:',
           value: (
-            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalString}`}</Text>
+            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalLabel}`}</Text>
           ),
         },
       // calculate payment due

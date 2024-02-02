@@ -30,7 +30,6 @@ export function InvoicePaymentDetails({
   setModals: (m: Partial<Modals>) => void;
 }) {
   const chainId = useChainId();
-  console.log(invoice);
   const {
     client,
     provider,
@@ -39,11 +38,9 @@ export function InvoicePaymentDetails({
     due,
     total,
     resolver,
-    currentMilestone,
     tokenBalance,
     amounts,
     currentMilestoneAmount,
-    deposits,
     releases,
     dispute,
     resolution,
@@ -61,10 +58,8 @@ export function InvoicePaymentDetails({
     'resolver',
     'releases',
     'released',
-    'deposits',
     'amounts',
     'currentMilestoneAmount',
-    'currentMilestone',
     'tokenBalance',
     'dispute',
     'resolution',
@@ -109,7 +104,6 @@ export function InvoicePaymentDetails({
                 {_.map(amounts, (amt, index) => {
                   const depositedText = depositedMilestonesString?.[index];
                   const release = releases?.[index];
-                  console.log(depositedTxs?.[index]);
                   const deposit = depositedTxs?.[index];
 
                   return (

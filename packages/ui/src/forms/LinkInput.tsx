@@ -14,7 +14,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { isValidLink, logDebug } from '@smart-invoice/utils';
+import { logDebug } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
@@ -62,6 +62,7 @@ export function LinkInput({
     if (!inputValue) return;
     // update overall field value based on input change
     const newValue = protocol + inputValue;
+    logDebug('LinkInput - newValue', newValue);
     setValue(name, newValue, { shouldValidate: true, shouldDirty: true });
   }, [inputValue]);
 
@@ -108,9 +109,7 @@ export function LinkInput({
                   setValue(`${name}-protocol`, e.target.value);
                   const newProtocol = e.target.value;
                   const newValue = newProtocol + inputValue;
-                  // TODO check if link is valid
-                  const isValid = isValidLink(newValue);
-                  // handles resetting the field value
+                  // check validity at the form level
                   setValue(name, newValue);
                 }}
                 value={protocol}

@@ -1,11 +1,11 @@
-import { Box, Button, Grid, Stack, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Button, Grid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   INSTANT_STEPS,
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
-import { Input, NumberInput, Select } from '@smart-invoice/ui';
+import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
 import {
   getTokenSymbol,
   instantPaymentSchema,
@@ -49,19 +49,15 @@ export function InstantPaymentForm({
     formState: { isValid },
   } = localForm;
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
 
   const TOKENS = useMemo(
     () => (tokenData ? _.keys(tokenData[chainId]) : undefined),
     [chainId, tokenData],
   );
 
-  // console.log('errors', errors);
-
-  // setLateFeeTimeInterval(parseInt(v) * 1000 * 60 * 60 * 24);
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSubmit = (values: any) => {
-    console.log(values);
     setValue('client', values?.client);
     setValue('provider', values?.provider);
     setValue('token', values?.token);
@@ -172,7 +168,7 @@ export function InstantPaymentForm({
           type="submit"
           isDisabled={!isValid}
           textTransform="uppercase"
-          size={buttonSize}
+          size={primaryButtonSize}
           fontWeight="bold"
         >
           Next: {INSTANT_STEPS[2].next}

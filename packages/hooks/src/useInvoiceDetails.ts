@@ -68,7 +68,7 @@ const getInvoiceDetails = async (
         invoice,
         tokenBalance,
       ),
-      depositedTxs: assignDeposits(invoice, tokenBalance),
+      depositedTxs: assignDeposits(invoice),
       detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
       // entities
       dispute: lastDispute(invoice),

@@ -181,6 +181,14 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
+interface Deposit {
+  id: string;
+  txHash: string;
+  sender: string;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
 export type InvoiceDetails = Invoice &
   InstantDetails & {
@@ -196,7 +204,7 @@ export type InvoiceDetails = Invoice &
     parsedAmounts: number[];
     depositedMilestones: boolean[];
     depositedMilestonesString: (string | undefined)[];
-    depositedTxs: any[]; // Deposit[];
+    depositedTxs: (any | undefined)[];
     detailsHash: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

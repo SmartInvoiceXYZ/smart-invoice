@@ -79,7 +79,11 @@ export function handleIpfsDetails(
     invoiceObject.projectDescription = projectDescription.toString();
   }
   let projectAgreement = data.get('projectAgreement');
-  if (projectAgreement != null && !projectAgreement.isNull()) {
+  if (
+    projectAgreement != null &&
+    !projectAgreement.isNull() &&
+    projectAgreement.kind == JSONValueKind.ARRAY
+  ) {
     let projectArray = projectAgreement.toArray();
 
     let agreementArray = handleAgreementFile(projectArray);
