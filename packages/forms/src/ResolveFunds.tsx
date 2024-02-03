@@ -151,7 +151,7 @@ export function ResolveFunds({
         label="Resolution Comments"
         placeholder="Resolution Comments"
         localForm={localForm}
-        maxLength={10000}
+        registerOptions={{ required: true, maxLength: 10000 }}
       />
 
       <NumberInput
@@ -196,21 +196,16 @@ export function ResolveFunds({
 
       {isLoading && <Spinner size="xl" />}
 
-      {true && (
-        <Button
-          type="submit"
-          isDisabled={
-            !resolverAward ||
-            resolverAward <= BigInt(0) ||
-            !comments ||
-            !resolve
-          }
-          textTransform="uppercase"
-          variant="solid"
-        >
-          Resolve
-        </Button>
-      )}
+      <Button
+        type="submit"
+        isDisabled={
+          !resolverAward || resolverAward <= BigInt(0) || !comments || !resolve
+        }
+        textTransform="uppercase"
+        variant="solid"
+      >
+        Resolve
+      </Button>
 
       {/* {transaction && (
             <Text textAlign='center' fontSize='sm'>

@@ -217,9 +217,9 @@ export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
 
           <WrapItem fontWeight="bold">
             {invoice && verifiedStatus ? (
-              <Text color="green">Enabled!</Text>
+              <Text color="green.500">Enabled!</Text>
             ) : (
-              <Text color="red">Not enabled</Text>
+              <Text color="red.500">Not enabled</Text>
             )}
           </WrapItem>
 

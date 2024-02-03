@@ -19,6 +19,8 @@
     "@smart-invoice/hooks": "*",
     "@smart-invoice/types": "*",
     "@smart-invoice/utils": "*",
+    "@tanstack/react-query": "^5.18.1",
+    "@tanstack/react-table": "^8.11.3",
     "@testing-library/react": "^14.1.2",
     "blockies-ts": "^1.0.0",
     "framer-motion": "^10.17.12",

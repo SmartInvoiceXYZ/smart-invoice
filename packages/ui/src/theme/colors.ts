@@ -1,5 +1,6 @@
 export const colors = {
   red: {
+    50: 'rgba(255, 56, 100, 0.5)',
     200: '#ffe2eb',
     300: '#ffb1c3',
     400: '#ff7f9c',
@@ -16,15 +17,8 @@ export const colors = {
     4: '#0C3C84',
     dark: '#334D6E',
   },
-  green: '#38FF88',
-  background: 'white',
-  white10: 'rgba(255,255,255,0.1)',
-  white20: 'rgba(255,255,255,0.2)',
-  black30: 'rgba(0,0,0,0.3)',
-  black80: 'rgba(0,0,0,0.8)',
   grey: '#A4A4A4',
   borderGrey: '#505050',
   greyText: '#ABABAB',
   purple: '#702b89',
-  red50: 'rgba(255, 56, 100, 0.5)',
 };

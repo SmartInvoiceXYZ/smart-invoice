@@ -25,6 +25,7 @@ export const useInvoiceDetails = ({
     enabled: !!address && !!chainId,
     staleTime: 1000 * 60 * 15,
   });
+  // console.log(invoice);
 
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
@@ -73,8 +74,7 @@ export const useInvoiceDetails = ({
           instantDetails,
         ),
       enabled:
-        !!address &&
-        !!chainId &&
+        !!invoice &&
         !!tokenMetadata &&
         !!tokenBalance &&
         !!nativeBalance &&

@@ -1,17 +1,18 @@
-import { IERC20_ABI, PAYMENT_TYPES } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils/src';
-import { Hex, TransactionReceipt } from 'viem';
+import _ from 'lodash';
+import { Hex } from 'viem';
 import {
   useChainId,
   useContractWrite,
   usePrepareContractWrite,
   useSendTransaction,
 } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { fetchBalance, waitForTransaction } from 'wagmi/actions';
 
-import { usePollSubgraph } from '.';
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useDeposit = ({
   invoice,
@@ -21,21 +22,30 @@ export const useDeposit = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
-  onTxSuccess?: (tx: TransactionReceipt) => void;
+  onTxSuccess?: () => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
-  const token = invoice?.token;
+  const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
 
-  const txResultData = usePollSubgraph({
+  const waitForIndex = usePollSubgraph({
     label: 'useDeposit',
-    fetchHelper: () => undefined,
-    checkResult: () => true,
+    fetchHelper: () =>
+      fetchBalance({
+        address: invoice?.address as Hex,
+        chainId,
+        token: token as Hex,
+      }),
+    checkResult: b =>
+      tokenBalance?.value && b
+        ? b.value === amount + tokenBalance.value
+        : false,
+    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
   });
 
   const {
@@ -58,16 +68,28 @@ export const useDeposit = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }) => {
-      const data = await waitForTransaction({ hash, chainId });
+      toast.info(TOASTS.useDeposit.waitingForTx);
+      await waitForTransaction({ hash, chainId });
 
-      onTxSuccess?.(data);
+      toast.info(TOASTS.useDeposit.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
-    onError: async error => errorToastHandler('useDeposit', error, toast),
   });
 
   const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
     to: invoice?.address,
     value: amount,
+    onSuccess: async ({ hash }) => {
+      toast.info(TOASTS.useDeposit.waitingForTx);
+      await waitForTransaction({ hash, chainId });
+
+      toast.info(TOASTS.useDeposit.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
+    },
   });
 
   const handleDeposit = async () => {

@@ -3,6 +3,7 @@ import {
   Card,
   Divider,
   Flex,
+  Heading,
   HStack,
   Link,
   Stack,
@@ -77,12 +78,12 @@ export function InvoicePaymentDetails({
   ];
 
   const resolutionDetails = [
-    resolution.resolutionFee && {
+    resolution?.resolutionFee && {
       distributee: resolver,
       amount: resolution.resolutionFee,
     },
-    { distributee: client, amount: resolution.clientAward },
-    { distributee: provider, amount: resolution.providerAward },
+    { distributee: client, amount: resolution?.clientAward },
+    { distributee: provider, amount: resolution?.providerAward },
   ];
 
   return (
@@ -101,12 +102,12 @@ export function InvoicePaymentDetails({
           <Stack width="100%">
             <Stack w="100%" px={6} spacing={4}>
               <HStack width="100%" justifyContent="space-between">
-                <Text variant="textOne">Total Project Amount</Text>
+                <Heading size="md">Total Project Amount</Heading>
                 {!!total && (
-                  <Text variant="textOne">
+                  <Heading size="md">
                     {commify(formatUnits(total, tokenBalance?.decimals || 18))}{' '}
                     {tokenBalance?.symbol}
-                  </Text>
+                  </Heading>
                 )}
               </HStack>
               <Stack align="stretch" spacing="0.25rem">
@@ -187,28 +188,22 @@ export function InvoicePaymentDetails({
             <Divider my="1rem" />
 
             {!dispute && !resolution && (
-              <Flex
-                justify="space-between"
-                align="center"
-                fontWeight="bold"
-                fontSize="lg"
-                px={6}
-              >
+              <Flex justify="space-between" align="center" px={6}>
                 {isExpired || (due === BigInt(0) && !isReleasable) ? (
                   <>
-                    <Text>Remaining Balance</Text>
-                    <Text textAlign="right">
+                    <Heading size="md">Remaining Balance</Heading>
+                    <Heading size="md">
                       {`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}{' '}
-                    </Text>
+                    </Heading>
                   </>
                 ) : (
                   <>
-                    <Text>
+                    <Heading size="md">
                       {isReleasable && 'Next Amount to Release'}
                       {!isReleasable && 'Total Due Today'}
-                    </Text>
+                    </Heading>
                     {!!currentMilestoneAmount && (
-                      <Text textAlign="right">
+                      <Heading size="md">
                         {`${
                           tokenBalance?.value &&
                           commify(
@@ -221,7 +216,7 @@ export function InvoicePaymentDetails({
                             ),
                           )
                         } ${tokenBalance?.symbol}`}
-                      </Text>
+                      </Heading>
                     )}
                   </>
                 )}

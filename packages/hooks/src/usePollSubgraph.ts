@@ -6,7 +6,7 @@ export const usePollSubgraph = ({
 }: {
   label: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fetchHelper: () => any;
+  fetchHelper: () => Promise<any> | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkResult: (value: any) => boolean;
   interval?: number;
@@ -20,13 +20,16 @@ export const usePollSubgraph = ({
           if (result && checkResult(result)) {
             // eslint-disable-next-line no-use-before-define
             clearInterval(intervalId);
-            resolve(result);
+            console.log(result);
+            return Promise.resolve(result);
           }
           // eslint-disable-next-line no-console
           console.log(label);
+          return undefined;
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
+          return Promise.reject(e);
         }
       };
 

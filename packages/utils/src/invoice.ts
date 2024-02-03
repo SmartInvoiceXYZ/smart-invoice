@@ -77,16 +77,21 @@ export const depositedMilestonesString = (
   });
 };
 
+// [2, 2, 2]
+// [4, 2]
+
+// assuming possibly multiple milestones paid in one deposit,
+// but not catching amounts paid over multiple deposits
 const findDepositForAmount = (
-  amount: number,
+  amount: number, // total amount to with milestones up to the current amount
   deposits: Deposit[] | undefined,
 ) => {
   if (!deposits) return undefined;
+
   let sum = 0;
   return _.find(deposits, (deposit, i) => {
-    if (!deposits) return undefined;
-    sum += _.toNumber(deposits[i].toString());
-    return BigInt(deposit.toString()) >= sum ? i : i - 1 || 0;
+    sum += _.toNumber(deposits[i].amount.toString());
+    return sum >= amount ? deposit : deposits[i - 1] || 0;
   });
 };
 
@@ -98,7 +103,7 @@ const findDepositForAmount = (
  */
 export const assignDeposits = (invoice: Invoice) => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
-
+  const localDeposits = deposits;
   return _.map(amounts, (a: string, i: number) => {
     // sum of all amounts up to current index
     const localSum = _.sumBy(
@@ -106,7 +111,7 @@ export const assignDeposits = (invoice: Invoice) => {
       v => _.toNumber(v.toString()),
     );
     // get deposit for matching amount
-    const deposit = findDepositForAmount(localSum, deposits);
+    const deposit = findDepositForAmount(localSum, localDeposits);
 
     return deposit as Deposit;
   });

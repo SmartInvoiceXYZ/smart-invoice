@@ -1,23 +1,25 @@
 import {
   invoiceFactory,
+  LOG_TYPE,
   SMART_INVOICE_FACTORY_ABI,
+  TOASTS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql/src';
 import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler, getTokenInfo } from '@smart-invoice/utils';
-import _ from 'lodash';
-import { useMemo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
 import {
-  encodeAbiParameters,
-  parseUnits,
-  toHex,
-  TransactionReceipt,
-} from 'viem';
+  errorToastHandler,
+  getTokenInfo,
+  parseTxLogs,
+} from '@smart-invoice/utils';
+import _ from 'lodash';
+import { useMemo, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
-import { useFetchTokens } from '.';
+import { useFetchTokens, usePollSubgraph } from '.';
 import { useDetailsPin } from './useDetailsPin';
 
 const ESCROW_TYPE = toHex('escrow', { size: 32 });
@@ -25,7 +27,7 @@ const ESCROW_TYPE = toHex('escrow', { size: 32 });
 interface UseInvoiceCreate {
   invoiceForm: UseFormReturn;
   toast: UseToastReturn;
-  onTxSuccess?: (result: TransactionReceipt) => void;
+  onTxSuccess?: (result: Hex) => void;
 }
 
 const REQUIRES_VERIFICATION = true;
@@ -36,6 +38,8 @@ export const useInvoiceCreate = ({
   onTxSuccess,
 }: UseInvoiceCreate) => {
   const chainId = useChainId();
+  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
+  const [waitingForTx, setWaitingForTx] = useState(false);
 
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
@@ -82,6 +86,14 @@ export const useInvoiceCreate = ({
   };
 
   const { data: details } = useDetailsPin({ ...detailsData });
+
+  const waitForResult = usePollSubgraph({
+    label: 'Creating escrow invoice',
+    fetchHelper: () =>
+      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
+    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
+    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
+  });
 
   const escrowData = useMemo(() => {
     if (
@@ -152,11 +164,28 @@ export const useInvoiceCreate = ({
     isLoading,
   } = useContractWrite({
     ...config,
-    onSuccess: async result => {
-      const { hash } = result;
-      const data = await waitForTransaction({ chainId, hash });
+    onSuccess: async ({ hash }) => {
+      // wait for tx to confirm on chain
+      setWaitingForTx(true);
+      toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-      onTxSuccess?.(data);
+      const txData = await waitForTransaction({ chainId, hash });
+      // wait for subgraph to index
+      const localInvoiceId = parseTxLogs(
+        LOG_TYPE.Factory,
+        txData,
+        'LogNewInvoice',
+        'invoice',
+      );
+      if (!localInvoiceId) return;
+      setNewInvoiceId(localInvoiceId);
+      toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+
+      await waitForResult();
+      setWaitingForTx(false);
+
+      // pass back to component for further processing
+      onTxSuccess?.(localInvoiceId);
     },
     onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
@@ -165,6 +194,6 @@ export const useInvoiceCreate = ({
     writeAsync,
     prepareError,
     writeError,
-    isLoading,
+    isLoading: isLoading || waitingForTx,
   };
 };

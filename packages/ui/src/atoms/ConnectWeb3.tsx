@@ -28,7 +28,7 @@ export function ConnectWeb3() {
   return (
     <Container>
       <Flex
-        background="background"
+        background="white"
         borderRadius="1rem"
         direction="column"
         align="center"

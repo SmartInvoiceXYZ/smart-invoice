@@ -1,8 +1,8 @@
-import { Flex, Link, Text } from '@chakra-ui/react';
+import { Flex, Text } from '@chakra-ui/react';
 import {
+  getAccountString,
   getAddressLink,
   getResolverInfo,
-  getResolverString,
   isKnownResolver,
 } from '@smart-invoice/utils';
 import blockies from 'blockies-ts';
@@ -10,16 +10,20 @@ import _ from 'lodash';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
+import { ChakraNextLink } from './ChakraNextLink';
+
 export type AccountLinkProps = {
   name?: string;
   address?: Address;
   chainId?: number;
+  link?: string;
 };
 
 export function AccountLink({
   name,
   address: inputAddress,
   chainId: inputChainId,
+  link,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
   const address = _.toLower(inputAddress) as Address;
@@ -29,16 +33,17 @@ export function AccountLink({
     .create({ seed: address, size: 8, scale: 16 })
     .toDataURL();
 
-  const displayString = name || getResolverString(address, chainId);
+  const displayString =
+    name && !name?.startsWith('0x') ? name : getAccountString(address);
 
   const imageUrl = isResolver
     ? getResolverInfo(address, chainId).logoUrl
     : undefined;
 
   return (
-    <Link
-      href={getAddressLink(chainId, address)}
-      isExternal
+    <ChakraNextLink
+      href={link || getAddressLink(chainId, address)}
+      isExternal={!link}
       display="inline-flex"
       textAlign="right"
       bgColor="white"
@@ -62,7 +67,7 @@ export function AccountLink({
         bgColor="black"
         bgImage={imageUrl ? `url(${imageUrl})` : blockie}
         border="1px solid"
-        borderColor="white20"
+        borderColor="whiteAlpha.200"
         bgSize="cover"
         bgRepeat="no-repeat"
         bgPosition="center center"
@@ -71,6 +76,6 @@ export function AccountLink({
       <Text as="span" pl="0.25rem" fontSize="sm">
         {displayString}
       </Text>
-    </Link>
+    </ChakraNextLink>
   );
 }

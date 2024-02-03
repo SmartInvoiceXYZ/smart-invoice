@@ -1,11 +1,13 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils/src';
 import _ from 'lodash';
-import { Hex, TransactionReceipt } from 'viem';
+import { Hex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
+
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useRelease = ({
   invoice,
@@ -15,12 +17,19 @@ export const useRelease = ({
 }: {
   invoice: Invoice;
   milestone?: number;
-  onTxSuccess: (tx: TransactionReceipt) => void;
+  onTxSuccess: () => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
   const specifiedMilestone = _.isNumber(milestone);
+
+  const waitForIndex = usePollSubgraph({
+    label: 'waiting for funds to be released',
+    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
+    checkResult: updatedInvoice =>
+      invoice?.released ? updatedInvoice.released > invoice.released : false,
+  });
 
   const {
     config,
@@ -42,9 +51,11 @@ export const useRelease = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }) => {
-      const data = await waitForTransaction({ hash, chainId });
+      await waitForTransaction({ hash, chainId });
 
-      onTxSuccess?.(data);
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
     onError: error => errorToastHandler('useRelease', error, toast),
   });

@@ -33,13 +33,14 @@ export const pinJson = async (
   };
 
   // TODO can we replace axios and still pass auth?
-  const res = await axios.post(
-    'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-    pinataData,
-    config,
-  );
-
-  return _.get(res, 'data.IpfsHash');
+  return axios
+    .post('https://api.pinata.cloud/pinning/pinJSONToIPFS', pinataData, config)
+    .then(res => _.get(res, 'data.IpfsHash'))
+    .catch(e => {
+      // eslint-disable-next-line no-console
+      console.log(e);
+      return null;
+    });
 };
 
 interface handleDetailsPinProps {
@@ -66,7 +67,13 @@ export const fetchToken = async (count: number = 0) => {
     },
     method: 'POST',
     body: JSON.stringify({ count }),
-  }).then(res => res.text());
+  })
+    .then(res => res.text())
+    .catch(e => {
+      // eslint-disable-next-line no-console
+      console.log(e);
+      return null;
+    });
 
   return token;
 };

@@ -10,6 +10,7 @@ export * from './ipfs';
 export * from './misc';
 export * from './resolvers';
 export * from './tokens';
+export * from './tx';
 export * from './web3';
 
 export { logDebug, logError };

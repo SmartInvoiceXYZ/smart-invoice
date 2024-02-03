@@ -15,13 +15,15 @@ function handleAgreementFile(projectArray: Array<JSONValue>): Agreement[] {
   let agreementArray = new Array<Agreement>();
 
   for (let i = 0; i < projectArray.length; i++) {
+    if (projectArray[i].kind != JSONValueKind.OBJECT) return agreementArray;
+
     let obj = projectArray[i].toObject();
     let type = obj.get('type');
     let src = obj.get('src');
     let createdAt = obj.get('createdAt');
-    if (!type || !src || createdAt == null) {
-      return [];
-    }
+    if (!type || type.isNull()) return agreementArray;
+    if (!src || src.isNull()) return agreementArray;
+    if (!createdAt || createdAt.isNull()) return agreementArray;
     let typeValue = type.toString();
     let srcValue = src.toString();
     let createdAtValue = BigInt.fromString(createdAt.toString());
@@ -79,11 +81,15 @@ export function handleIpfsDetails(
     invoiceObject.projectDescription = projectDescription.toString();
   }
   let projectAgreement = data.get('projectAgreement');
+
   if (
     projectAgreement != null &&
     !projectAgreement.isNull() &&
-    projectAgreement.kind == JSONValueKind.ARRAY
+    projectAgreement.kind != JSONValueKind.STRING &&
+    projectAgreement.kind != JSONValueKind.OBJECT &&
+    projectAgreement.kind != JSONValueKind.NUMBER
   ) {
+    log.info('projectAgreement kind {}', [projectAgreement.kind.toString()]);
     let projectArray = projectAgreement.toArray();
 
     let agreementArray = handleAgreementFile(projectArray);

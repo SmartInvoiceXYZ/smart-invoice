@@ -2,19 +2,15 @@ import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types/src';
 import { errorToastHandler } from '@smart-invoice/utils/src';
-import _ from 'lodash';
+// import _ from 'lodash';
 import { Hex, TransactionReceipt } from 'viem';
-import {
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction,
-} from 'wagmi';
+import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
 export const useLock = ({
   invoice,
   disputeReason,
-  amount,
+  // amount,
   onTxSuccess,
   toast,
 }: {

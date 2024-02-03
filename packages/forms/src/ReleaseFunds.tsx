@@ -48,16 +48,8 @@ export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
     'tokenBalance',
   ]);
 
-  const waitForRelease = usePollSubgraph({
-    label: 'waiting for funds to be released',
-    fetchHelper: () => address && fetchInvoice(chainId, address as Hex),
-    checkResult: updatedInvoice =>
-      released ? updatedInvoice.released > released : false,
-  });
-
   const onTxSuccess = async () => {
     // TODO handle tx success
-    await waitForRelease();
     toast.success({ title: 'Funds released successfully' });
     // close modal
     // invalidate cache

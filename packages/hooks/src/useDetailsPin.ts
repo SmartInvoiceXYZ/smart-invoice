@@ -32,19 +32,32 @@ export const useDetailsPin = ({
       projectAgreement: invoiceProjectAgreement,
       startDate: invoiceStartDate,
       endDate: invoiceEndDate,
-    } = invoice || {};
+    } = _.pick(invoice, [
+      'projectName',
+      'projectDescription',
+      'projectAgreement',
+      'startDate',
+      'endDate',
+    ]);
+
+    if (!(projectName || projectAgreement !== '')) {
+      return undefined;
+    }
+
+    const newProjectAgreement = _.concat(invoiceProjectAgreement || []);
+    if (projectAgreement !== '') {
+      newProjectAgreement.push({
+        id: createdAt.toString(),
+        src: projectAgreement,
+        type: projectAgreement.startsWith('http') ? 'http' : 'ipfs',
+        createdAt,
+      });
+    }
 
     return {
       projectName: projectName || invoiceProjectName || '',
       projectDescription: projectDescription || invoiceProjectDescription || '',
-      projectAgreement: _.concat(invoiceProjectAgreement || [], [
-        {
-          id: createdAt.toString(),
-          src: projectAgreement,
-          type: projectAgreement?.startsWith('http') ? 'http' : 'ipfs',
-          createdAt,
-        },
-      ]),
+      projectAgreement: newProjectAgreement,
       startDate: startDate || invoiceStartDate,
       endDate: endDate || invoiceEndDate,
       version: INVOICE_VERSION,
@@ -60,15 +73,14 @@ export const useDetailsPin = ({
 
   const detailsPin = async () => {
     const token = await fetchToken();
+    if (!detailsData || !token) return null;
     const details = await handleDetailsPin({
       details: detailsData,
       name: `${projectName}-${startDate}`,
       token,
     });
 
-    const bytes32hash = convertIpfsCidV0ToByte32(details);
-
-    return bytes32hash;
+    return convertIpfsCidV0ToByte32(details);
   };
 
   const { data, isLoading, error } = useQuery({
@@ -77,7 +89,12 @@ export const useDetailsPin = ({
       { projectName, projectDescription, projectAgreement, startDate, endDate },
     ],
     queryFn: detailsPin,
-    enabled: !!(projectName || projectAgreement) && !!startDate && !!endDate,
+    enabled:
+      !!(projectName || projectAgreement) &&
+      !!startDate &&
+      !!endDate &&
+      !!detailsData,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
   return { data, isLoading, error };

@@ -10,6 +10,8 @@ import React, { useRef } from 'react';
 
 import { Toast } from '../atoms';
 
+const DEFAULT_TOAST_DURATION = 3000;
+
 const ToastBase = ({
   toast,
   title,
@@ -30,7 +32,7 @@ const ToastBase = ({
     description,
     status,
     id,
-    duration: duration ?? 3000,
+    duration: duration ?? DEFAULT_TOAST_DURATION,
     position: 'top-right',
     ...props,
     render: () => (
@@ -56,51 +58,42 @@ export const useToast = (): UseToastReturn => {
       toast.close(toastIdRef.current);
     }
   }
+  const closeProps = { isClosable: true, closeToast, toast };
 
   return {
     success(props: Omit<ToastProps, 'status'>) {
       toastIdRef.current = ToastBase({
         ...props,
         status: 'success' as ChakraAlertStatus,
-        closeToast,
-        isClosable: props.isClosable ?? true,
-        toast,
+        ...closeProps,
       });
     },
     error(props: Omit<ToastProps, 'status'>) {
       toastIdRef.current = ToastBase({
         ...props,
         status: 'error' as ChakraAlertStatus,
-        closeToast,
-        isClosable: props.isClosable ?? true,
-        toast,
+        ...closeProps,
       });
     },
     warning(props: Omit<ToastProps, 'status'>) {
       toastIdRef.current = ToastBase({
         ...props,
         status: 'warning' as ChakraAlertStatus,
-        closeToast,
-        isClosable: props.isClosable ?? true,
-        toast,
+        ...closeProps,
       });
     },
     loading(props: Omit<ToastProps, 'status'>) {
       toastIdRef.current = ToastBase({
         ...props,
         status: 'loading' as ChakraAlertStatus,
-        closeToast,
-        isClosable: props.isClosable ?? true,
-        toast,
+        ...closeProps,
       });
     },
     info(props: Omit<ToastProps, 'status'>) {
       toastIdRef.current = ToastBase({
         ...props,
         status: 'info' as ChakraAlertStatus,
-        closeToast,
-        isClosable: props.isClosable ?? true,
-        toast,
+        ...closeProps,
       });
     },
   };

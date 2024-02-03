@@ -37,7 +37,7 @@ export function CreateInvoiceInstant() {
     console.log('tx success');
   };
 
-  const { writeAsync } = useInstantCreate({
+  const { writeAsync, isLoading } = useInstantCreate({
     invoiceForm,
     chainId,
     toast,
@@ -115,7 +115,7 @@ export function CreateInvoiceInstant() {
           </Text>
 
           <Flex
-            bg="background"
+            bg="white"
             direction="column"
             justify="space-between"
             p="1rem"
@@ -148,6 +148,7 @@ export function CreateInvoiceInstant() {
                 invoiceForm={invoiceForm}
                 handleSubmit={handleSubmit}
                 canSubmit={!!writeAsync}
+                isLoading={isLoading}
                 type={INVOICE_TYPES.Instant}
               />
             )}

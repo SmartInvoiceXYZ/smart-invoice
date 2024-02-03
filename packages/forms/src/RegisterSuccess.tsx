@@ -104,7 +104,7 @@ export function RegisterSuccess() {
               p="0.5rem"
               justify="space-between"
               align="center"
-              bg="background"
+              bg="white"
               borderRadius="0.25rem"
               w="100%"
             >
@@ -141,7 +141,7 @@ export function RegisterSuccess() {
               p="0.5rem"
               justify="space-between"
               align="center"
-              bg="background"
+              bg="white"
               borderRadius="0.25rem"
               w="100%"
             >

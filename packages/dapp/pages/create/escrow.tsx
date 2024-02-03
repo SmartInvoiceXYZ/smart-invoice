@@ -1,5 +1,5 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { ESCROW_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
 import {
   EscrowDetailsForm,
   FormConfirmation,
@@ -15,9 +15,12 @@ import {
   useMediaStyles,
   useToast,
 } from '@smart-invoice/ui';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
 // import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Hex, numberToHex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
@@ -26,6 +29,8 @@ export function CreateInvoiceEscrow() {
   const chainId = useChainId();
   const invoiceForm = useForm();
   const toast = useToast();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -39,12 +44,19 @@ export function CreateInvoiceEscrow() {
     setCurrentStep(currentStep - 1);
   };
 
-  const onTxSuccess = () => {
-    // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
-    toast.success({ title: 'Invoice Created' });
+  const onTxSuccess = (result: Hex) => {
+    toast.success(TOASTS.useInvoiceCreate.success);
+    // invalidate cache
+    queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
+    queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
+
+    // redirect
+    setTimeout(() => {
+      router.push(`/invoice/${numberToHex(chainId)}/${result}`);
+    }, 500);
   };
 
-  const { writeAsync } = useInvoiceCreate({
+  const { writeAsync, isLoading } = useInvoiceCreate({
     invoiceForm,
     toast,
     onTxSuccess,
@@ -86,7 +98,7 @@ export function CreateInvoiceEscrow() {
           spacing={{ base: '1.5rem', lg: '1rem' }}
           w={{ base: '100%', md: 'auto' }}
         >
-          <Heading fontWeight="700" fontSize={headingSize}>
+          <Heading fontWeight="700" fontSize={headingSize} textAlign="center">
             Create an Escrow Invoice
           </Heading>
 
@@ -103,10 +115,10 @@ export function CreateInvoiceEscrow() {
           </Text>
 
           <Flex
-            bg="background"
             direction="column"
             justify="space-between"
             p="1rem"
+            bg="white"
             borderRadius="0.5rem"
             w="100%"
           >
@@ -142,6 +154,7 @@ export function CreateInvoiceEscrow() {
                 invoiceForm={invoiceForm}
                 handleSubmit={handleSubmit}
                 canSubmit={!!writeAsync}
+                isLoading={isLoading}
                 type={INVOICE_TYPES.Escrow}
               />
             )}

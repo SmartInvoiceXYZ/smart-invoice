@@ -152,7 +152,7 @@ function ViewInstantInvoice() {
           maxW={rightMaxW}
         >
           <Flex
-            bg="background"
+            bg="white"
             direction="column"
             justify="space-between"
             px={{ base: '1rem', md: '2rem' }}
@@ -282,7 +282,10 @@ function ViewInstantInvoice() {
         </Stack>
 
         <Modal isOpen={modals?.deposit} onClose={() => setModals?.({})}>
-          <DepositFunds invoice={invoiceDetails} />
+          <DepositFunds
+            invoice={invoiceDetails}
+            onClose={() => setModals?.({})}
+          />
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
           <WithdrawFunds invoice={invoiceDetails} />

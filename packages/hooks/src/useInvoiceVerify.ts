@@ -20,8 +20,7 @@ export const useInvoiceVerify = ({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
-    functionName: 'verify',
-    // args: [],
+    functionName: 'verify', // no args
     enabled: !!address,
   });
 

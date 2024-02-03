@@ -13,7 +13,7 @@ export const escrowDetailsSchema = (chainId: number) =>
         name: 'clientIsAddress',
         test: (v, { createError }) => {
           if (!!v && isAddress(v)) return true;
-          console.log('client not address');
+          // console.log('client not address');
 
           // TODO having trouble surfacing the custom error here
           return createError({
@@ -23,7 +23,7 @@ export const escrowDetailsSchema = (chainId: number) =>
         },
       })
       .when('provider', (p, localSchema) => {
-        console.log('client resolver', p);
+        // console.log('client resolver', p);
         if (!p) return localSchema;
 
         return localSchema.test({
@@ -31,7 +31,7 @@ export const escrowDetailsSchema = (chainId: number) =>
           test: (v, { createError }) => {
             if (_.toLower(v) !== _.toLower(_.first(p))) return true;
 
-            console.log(_.toLower(v), _.toLower(_.first(p)));
+            // console.log(_.toLower(v), _.toLower(_.first(p)));
             // TODO having trouble surfacing the custom error here
             return createError({
               path: 'client',
@@ -46,7 +46,7 @@ export const escrowDetailsSchema = (chainId: number) =>
         name: 'providerIsAddress',
         test: (v, { createError }) => {
           if (!!v && isAddress(v)) return true;
-          console.log('provider not address');
+          // console.log('provider not address');
 
           return createError({
             path: 'provider',

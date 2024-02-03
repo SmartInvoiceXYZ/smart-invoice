@@ -100,7 +100,7 @@ export function LinkInput({
               w="6.75rem"
               overflow="hidden"
               borderLeftRadius="0.375rem"
-              borderRightColor="background"
+              borderRightColor="white"
               borderRightWidth="3px"
               mr="-5px"
             >

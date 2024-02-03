@@ -19,11 +19,11 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
         <ModalContent
           p="2rem"
           maxW="40rem"
-          background="background"
+          background="white"
           borderRadius="0.5rem"
         >
           <ModalCloseButton
-            _hover={{ bgColor: 'white20' }}
+            _hover={{ bgColor: 'blackAlpha.200' }}
             top="0.5rem"
             right="0.5rem"
             color="gray"

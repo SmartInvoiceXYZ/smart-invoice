@@ -1,4 +1,5 @@
 import { INVOICE_TYPES } from '@smart-invoice/constants';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { ChangeEvent, UseToastReturn } from '@smart-invoice/types';
 import _ from 'lodash';
 
@@ -42,13 +43,14 @@ export const getUpdatedCheckAmount = ({
   e: ChangeEvent<HTMLInputElement>;
   i: number;
   previousChecked: boolean[];
-  invoice: any; // InvoiceDetails;
+  invoice: InvoiceDetails;
 }) => {
   const { amounts, deposited, invoiceType } = _.pick(invoice, [
     'amounts',
     'deposited',
     'invoiceType',
   ]);
+  const localDeposited = deposited ? BigInt(deposited) : BigInt(0);
 
   const updateChecked = e.target.checked
     ? checkedAtIndex(i, previousChecked)
@@ -61,8 +63,8 @@ export const getUpdatedCheckAmount = ({
     BigInt(0),
   );
   const updateAmount =
-    deposited && sumChecked > BigInt(deposited)
-      ? sumChecked - BigInt(deposited)
+    sumChecked > BigInt(localDeposited)
+      ? sumChecked - BigInt(localDeposited)
       : BigInt(0);
 
   if (invoiceType === INVOICE_TYPES.Instant) {
