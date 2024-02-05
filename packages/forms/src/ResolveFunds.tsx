@@ -16,10 +16,10 @@ import { formatUnits, parseUnits, TransactionReceipt } from 'viem';
 
 export function ResolveFunds({
   invoice,
-  close,
+  onClose,
 }: {
   invoice: InvoiceDetails;
-  close: () => void;
+  onClose: () => void;
 }) {
   const { resolutionRate, tokenBalance, tokenMetadata } = _.pick(invoice, [
     'resolutionRate',
@@ -115,7 +115,7 @@ export function ResolveFunds({
           Invoice is not locked
         </Text>
         <Button
-          onClick={close}
+          onClick={onClose}
           variant="solid"
           textTransform="uppercase"
           w="100%"

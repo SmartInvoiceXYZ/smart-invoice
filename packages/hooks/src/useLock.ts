@@ -1,11 +1,17 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import {
+  DEFAULT_CHAIN_ID,
+  SMART_INVOICE_ESCROW_ABI,
+  TOASTS,
+} from '@smart-invoice/constants';
+import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types/src';
 import { errorToastHandler } from '@smart-invoice/utils/src';
-// import _ from 'lodash';
-import { Hex, TransactionReceipt } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
+import _ from 'lodash';
+import { Hex } from 'viem';
+import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
+
+import { usePollSubgraph } from '.';
 
 export const useLock = ({
   invoice,
@@ -14,13 +20,15 @@ export const useLock = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   disputeReason: string;
   amount: string | undefined;
-  onTxSuccess?: (result: TransactionReceipt) => void;
+  onTxSuccess?: () => void;
   toast: UseToastReturn;
 }) => {
   console.log('useLock', invoice);
+  const currentChainId = useChainId();
+  const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
 
   const detailsHash =
     '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -31,6 +39,13 @@ export const useLock = ({
   //   amount: balance.toString(),
   // });
 
+  const waitForIndex = usePollSubgraph({
+    label: 'waiting for useLock tx',
+    fetchHelper: async () =>
+      fetchInvoice(invoiceChainId, _.get(invoice, 'address') as Hex),
+    checkResult: result => !!result?.locked === true,
+  });
+
   const {
     config,
     isLoading: prepareLoading,
@@ -40,7 +55,10 @@ export const useLock = ({
     functionName: 'lock',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [detailsHash],
-    enabled: !!invoice?.address && !!disputeReason,
+    enabled:
+      !!invoice?.address &&
+      !!disputeReason &&
+      currentChainId === invoiceChainId,
   });
 
   const {
@@ -50,9 +68,13 @@ export const useLock = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }) => {
-      const result = await waitForTransaction({ hash });
+      toast.info(TOASTS.useLock.waitingForTx);
+      await waitForTransaction({ hash });
 
-      onTxSuccess?.(result);
+      toast.info(TOASTS.useLock.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
     onError: error => errorToastHandler('useLock', error, toast),
   });

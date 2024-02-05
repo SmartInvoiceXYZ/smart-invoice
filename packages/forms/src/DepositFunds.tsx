@@ -103,8 +103,11 @@ export function DepositFunds({
   const onTxSuccess = () => {
     toast.success(TOASTS.useDeposit.success);
     // invalidate cache
-    queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
-    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    queryClient.refetchQueries();
+    // queryClient.invalidateQueries({
+    //   queryKey: ['invoiceDetails'],
+    // });
+    // queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
     onClose();
   };

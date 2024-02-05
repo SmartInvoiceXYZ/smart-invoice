@@ -148,7 +148,7 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
     if (error) {
       throw error;
     }
-    return undefined;
+    return null;
   }
 
   return data.invoice;

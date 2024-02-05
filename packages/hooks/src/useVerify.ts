@@ -5,7 +5,7 @@ import { Hex, TransactionReceipt } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
-export const useInvoiceVerify = ({
+export const useVerify = ({
   address,
   chainId,
   toast,

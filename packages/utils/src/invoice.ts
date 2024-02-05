@@ -7,7 +7,7 @@ import {
   TokenMetadata,
 } from '@smart-invoice/graphql';
 import _ from 'lodash';
-import { formatUnits, Hex } from 'viem';
+import { formatUnits, Hex, parseUnits } from 'viem';
 
 import { getDateString } from './date';
 import {
@@ -35,10 +35,13 @@ export const totalDeposited = (
   invoice: Invoice | undefined,
   tokenBalance: TokenBalance | undefined,
 ) => {
-  const { released } = _.pick(invoice, ['released']);
+  const { deposits } = _.pick(invoice, ['deposits']);
 
-  if (!released || !tokenBalance?.value) return undefined;
-  return BigInt(released) + tokenBalance.value;
+  if (!deposits) return undefined;
+  return parseUnits(
+    _.toString(_.sumBy(deposits, d => _.toNumber(formatUnits(d.amount, 18)))),
+    tokenBalance?.decimals || 18,
+  );
 };
 
 export const depositedMilestones = (
@@ -91,6 +94,7 @@ const findDepositForAmount = (
   let sum = 0;
   return _.find(deposits, (deposit, i) => {
     sum += _.toNumber(deposits[i].amount.toString());
+    console.log(sum, amount);
     return sum >= amount ? deposit : deposits[i - 1] || 0;
   });
 };
@@ -103,15 +107,16 @@ const findDepositForAmount = (
  */
 export const assignDeposits = (invoice: Invoice) => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
-  const localDeposits = deposits;
+
   return _.map(amounts, (a: string, i: number) => {
     // sum of all amounts up to current index
     const localSum = _.sumBy(
       _.concat(_.slice(amounts, 0, i), [a]) as string[],
       v => _.toNumber(v.toString()),
     );
+    console.log(localSum, deposits);
     // get deposit for matching amount
-    const deposit = findDepositForAmount(localSum, localDeposits);
+    const deposit = findDepositForAmount(localSum, deposits);
 
     return deposit as Deposit;
   });

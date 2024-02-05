@@ -1,5 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
+import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils/src';
 import _ from 'lodash';
@@ -15,7 +15,7 @@ export const useRelease = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   milestone?: number;
   onTxSuccess: () => void;
   toast: UseToastReturn;

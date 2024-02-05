@@ -1,5 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -12,7 +12,7 @@ export const useWithdraw = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   onTxSuccess: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
 }) => {

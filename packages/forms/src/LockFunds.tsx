@@ -42,9 +42,9 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const disputeReason = watch('disputeReason');
   const amount = tokenBalance?.formatted;
 
-  const onTxSuccess = (tx: TransactionReceipt) => {
+  const onTxSuccess = () => {
     // TODO handle tx success
-    console.log(tx);
+    console.log('Funds locked successfully');
     // toast
     // invalidate cache
     // close modal

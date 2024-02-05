@@ -46,6 +46,8 @@ import {
 } from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
 
+// TODO use `usePaginatedQuery`
+
 export type SearchInputType = string | Address | undefined;
 
 export type InvoiceDashboardTableProps = {
@@ -168,7 +170,7 @@ export function InvoiceDashboardTable({
   );
 
   const table = useReactTable({
-    data: data ?? (defaultData as any),
+    data: data ?? (defaultData as any[]),
     columns,
     pageCount: -1,
     state: {

@@ -1,9 +1,9 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
-import { usePollSubgraph, useRelease } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { useRelease } from '@smart-invoice/hooks';
 import { useToast } from '@smart-invoice/ui';
 import _ from 'lodash';
-import { formatUnits, Hex } from 'viem';
+import { formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
 
 type ReleaseFundsProp = {
@@ -18,13 +18,15 @@ export const getReleaseAmount = (
   balance: bigint | undefined,
 ) => {
   if (
-    !currentMilestone ||
+    _.isUndefined(currentMilestone) ||
     currentMilestone >= _.size(amounts) ||
+    // last milestone with extra balance
     (currentMilestone === _.size(amounts) - 1 &&
       balance &&
       amounts &&
       balance > amounts[currentMilestone])
   ) {
+    // TODO coordinate useRelease to handle specific milestones
     return balance || BigInt(0);
   }
   return amounts ? BigInt(amounts?.[currentMilestone]) : BigInt(0);
@@ -34,19 +36,10 @@ export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
   const toast = useToast();
   const chainId = useChainId();
 
-  const {
-    address,
-    currentMilestoneNumber,
-    bigintAmounts,
-    released,
-    tokenBalance,
-  } = _.pick(invoice, [
-    'address',
-    'currentMilestoneNumber',
-    'bigintAmounts',
-    'released',
-    'tokenBalance',
-  ]);
+  const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
+    invoice,
+    ['currentMilestoneNumber', 'bigintAmounts', 'tokenBalance'],
+  );
 
   const onTxSuccess = async () => {
     // TODO handle tx success

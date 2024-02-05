@@ -1,13 +1,13 @@
 import { Button, Stack, Text } from '@chakra-ui/react';
-import { Invoice } from '@smart-invoice/graphql';
-import { useInvoiceVerify } from '@smart-invoice/hooks';
-import { isAddress, TransactionReceipt } from 'viem';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { useVerify } from '@smart-invoice/hooks';
+import { isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useToast } from '../hooks';
 
 type VerifyInvoiceProps = {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   verifiedStatus: boolean;
   isClient: boolean;
 };
@@ -23,20 +23,24 @@ export function VerifyInvoice({
 
   const validAddress = address && isAddress(address) ? address : undefined;
 
-  const onTxSuccess = (tx: TransactionReceipt) => {
-    console.log('tx', tx);
+  const onTxSuccess = () => {
+    console.log('tx');
     // TODO handle tx success
     // parse logs
     // wait for subgraph
     // invalidate query
   };
 
-  const { writeAsync, isLoading } = useInvoiceVerify({
+  const { writeAsync, isLoading } = useVerify({
     address: validAddress,
     chainId,
     toast,
     onTxSuccess,
   });
+
+  const handleVerify = () => {
+    writeAsync?.();
+  };
 
   if (verifiedStatus || !isClient) return null;
 
@@ -50,7 +54,7 @@ export function VerifyInvoice({
         textTransform="uppercase"
         isLoading={isLoading}
         isDisabled={!writeAsync}
-        onClick={() => writeAsync?.()}
+        onClick={handleVerify}
       >
         <Text>Enable Non-Client Account Deposits</Text>
       </Button>

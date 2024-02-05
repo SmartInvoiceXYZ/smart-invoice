@@ -60,7 +60,12 @@ export function handleIpfsDetails(
 
   let hexHash = changetype<Bytes>(addQm(invoiceObject.details));
   let base58Hash = hexHash.toBase58();
-  invoiceObject.ipfsHash = base58Hash.toString();
+  let ipfsHash = base58Hash.toString();
+  invoiceObject.ipfsHash = ipfsHash;
+  // ignore bad data
+  if (ipfsHash == 'QmUEryz1WnGKfrJzB5N4rrnGdrD5qqV5f9hVKN7sihKmd3') {
+    return invoiceObject;
+  }
   let ipfsData = ipfs.cat(base58Hash);
   if (ipfsData === null) {
     log.info('IPFS data is null for hash {}', [base58Hash]);
