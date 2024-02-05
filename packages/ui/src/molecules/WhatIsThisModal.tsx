@@ -6,9 +6,9 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalOverlay,
+  Stack,
   Text,
   useBreakpointValue,
-  Stack,
 } from '@chakra-ui/react';
 import React from 'react';
 
@@ -34,7 +34,7 @@ export function WhatIsThisModal({ isOpen, onClose }: WhatIsThisModalProps) {
           <ModalCloseButton
             color="red.500"
             size="lg"
-            _hover={{ bgColor: 'white20' }}
+            _hover={{ bgColor: 'whiteAlpha.200' }}
             top="0"
             right="0"
           />

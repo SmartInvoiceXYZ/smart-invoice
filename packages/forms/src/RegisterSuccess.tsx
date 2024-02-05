@@ -11,11 +11,7 @@ import {
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
 import { ChakraNextLink, CopyIcon, Loader } from '@smart-invoice/ui';
-import {
-  awaitInvoiceAddress,
-  chainByName,
-  getTxLink,
-} from '@smart-invoice/utils';
+import { chainByName, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Address, isAddress } from 'viem';
@@ -29,33 +25,33 @@ export function RegisterSuccess() {
   const [invoiceId, setInvoiceID] = useState<Address>();
   const [invoice, setInvoice] = useState<Invoice>();
 
-  useEffect(() => {
-    if (txHash && chainId) {
-      awaitInvoiceAddress(chainId, txHash).then(id => {
-        setInvoiceID(id);
-      });
-    }
-  }, [txHash, chainId]);
+  // useEffect(() => {
+  //   if (txHash && chainId) {
+  //     awaitInvoiceAddress(chainId, txHash).then(id => {
+  //       setInvoiceID(id);
+  //     });
+  //   }
+  // }, [txHash, chainId]);
 
-  useEffect(() => {
-    if (!chainId || !invoiceId || !isAddress(invoiceId) || !!invoice)
-      return () => undefined;
+  // useEffect(() => {
+  //   if (!chainId || !invoiceId || !isAddress(invoiceId) || !!invoice)
+  //     return () => undefined;
 
-    let isSubscribed = true;
+  //   let isSubscribed = true;
 
-    const interval = setInterval(() => {
-      fetchInvoice(chainId, invoiceId).then(inv => {
-        if (isSubscribed && !!inv) {
-          setInvoice(inv as unknown as Invoice);
-        }
-      });
-    }, POLL_INTERVAL);
+  //   const interval = setInterval(() => {
+  //     fetchInvoice(chainId, invoiceId).then(inv => {
+  //       if (isSubscribed && !!inv) {
+  //         setInvoice(inv as unknown as Invoice);
+  //       }
+  //     });
+  //   }, POLL_INTERVAL);
 
-    return () => {
-      isSubscribed = false;
-      clearInterval(interval);
-    };
-  }, [chainId, invoiceId, invoice]);
+  //   return () => {
+  //     isSubscribed = false;
+  //     clearInterval(interval);
+  //   };
+  // }, [chainId, invoiceId, invoice]);
 
   const chainHex = chainByName(
     String(invoice?.network) as Network,
@@ -108,7 +104,7 @@ export function RegisterSuccess() {
               p="0.5rem"
               justify="space-between"
               align="center"
-              bg="background"
+              bg="white"
               borderRadius="0.25rem"
               w="100%"
             >
@@ -145,7 +141,7 @@ export function RegisterSuccess() {
               p="0.5rem"
               justify="space-between"
               align="center"
-              bg="background"
+              bg="white"
               borderRadius="0.25rem"
               w="100%"
             >

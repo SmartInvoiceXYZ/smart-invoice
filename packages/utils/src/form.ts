@@ -1,6 +1,9 @@
 import { INVOICE_TYPES } from '@smart-invoice/constants';
-import { ChangeEvent } from '@smart-invoice/types';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { ChangeEvent, UseToastReturn } from '@smart-invoice/types';
 import _ from 'lodash';
+
+import { logError } from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const schemaContext = (schema: any, defaultValues: any) => {
@@ -40,13 +43,14 @@ export const getUpdatedCheckAmount = ({
   e: ChangeEvent<HTMLInputElement>;
   i: number;
   previousChecked: boolean[];
-  invoice: any; // InvoiceDetails;
+  invoice: InvoiceDetails;
 }) => {
   const { amounts, deposited, invoiceType } = _.pick(invoice, [
     'amounts',
     'deposited',
     'invoiceType',
   ]);
+  const localDeposited = deposited ? BigInt(deposited) : BigInt(0);
 
   const updateChecked = e.target.checked
     ? checkedAtIndex(i, previousChecked)
@@ -59,8 +63,8 @@ export const getUpdatedCheckAmount = ({
     BigInt(0),
   );
   const updateAmount =
-    deposited && sumChecked > BigInt(deposited)
-      ? sumChecked - BigInt(deposited)
+    sumChecked > BigInt(localDeposited)
+      ? sumChecked - BigInt(localDeposited)
       : BigInt(0);
 
   if (invoiceType === INVOICE_TYPES.Instant) {
@@ -71,4 +75,27 @@ export const getUpdatedCheckAmount = ({
   }
 
   return { updateAmount, updateChecked };
+};
+
+export const errorToastHandler = (
+  label: string,
+  error: Error,
+  toast: UseToastReturn,
+) => {
+  const localError = error as Error;
+  if (
+    localError.name === 'TransactionExecutionError' &&
+    localError.message.includes('User rejected the request')
+  ) {
+    toast.error({
+      title: 'Signature rejected!',
+      description: 'Please accept the transaction in your wallet',
+    });
+  } else {
+    logError(label, [error]);
+    toast.error({
+      title: 'Error occurred!',
+      description: 'An error occurred while processing the transaction.',
+    });
+  }
 };

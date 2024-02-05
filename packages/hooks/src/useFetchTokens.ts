@@ -1,5 +1,10 @@
 import { IPFS_ENDPOINT } from '@smart-invoice/constants';
-import { formatTokenData, formatTokens, getCID } from '@smart-invoice/utils';
+import {
+  formatTokenData,
+  formatTokens,
+  getCID,
+  logError,
+} from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchTokens = async () => {
@@ -17,8 +22,7 @@ const fetchTokens = async () => {
       tokenData: formattedData,
     };
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log(error);
+    logError('fetchTokens error:', error);
     return {
       allTokens: [],
       tokenData: [],
@@ -30,6 +34,7 @@ export const useFetchTokens = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tokens'],
     queryFn: fetchTokens,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   return { data, error, isLoading };

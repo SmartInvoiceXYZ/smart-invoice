@@ -28,12 +28,11 @@ function ViewInvoice() {
     : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
-    chainId,
+    chainId: invoiceChainId || chainId,
     address: invoiceId,
   });
-  console.log(invoiceDetails);
 
-  if ((!isAddress(invoiceId) || !invoiceDetails === null) && !isLoading) {
+  if (!isAddress(invoiceId) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }
 

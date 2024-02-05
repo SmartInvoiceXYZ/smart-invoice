@@ -16,8 +16,6 @@ import _ from 'lodash';
 import ReactDatePicker, { ReactDatePickerProps } from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
 
-// import { CustomDatePickerButton } from './CustomDatePickerButton';
-
 // TODO handle separate controlled component
 // TODO currently only single date is supported, but type shows that it can be a range
 

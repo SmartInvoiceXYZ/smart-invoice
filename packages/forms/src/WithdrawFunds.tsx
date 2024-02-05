@@ -1,21 +1,26 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useWithdraw } from '@smart-invoice/hooks';
-import { getTxLink } from '@smart-invoice/utils';
+import { useToast } from '@smart-invoice/ui';
+// import { getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
-import { useChainId } from 'wagmi';
 
 export function WithdrawFunds({ invoice }: { invoice: InvoiceDetails }) {
-  const chainId = useChainId();
+  const toast = useToast();
 
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
-  // const onSuccess = () => {
-  //   // toast
-  //   // close modal
-  // };
+  const onTxSuccess = () => {
+    // handle success
+    // close modal
+    // update invoice with status
+  };
 
-  const { writeAsync: withdrawFunds, isLoading } = useWithdraw({ invoice });
+  const { writeAsync: withdrawFunds, isLoading } = useWithdraw({
+    invoice,
+    onTxSuccess,
+    toast,
+  });
 
   return (
     <Stack w="100%" spacing="1rem">

@@ -7,11 +7,11 @@ import { useContractReads } from 'wagmi';
 export const useInstantDetails = ({
   address,
   chainId,
-  enabled,
+  enabled = true,
 }: {
   address: Hex | undefined;
   chainId: number | undefined;
-  enabled: boolean;
+  enabled?: boolean;
 }) => {
   const instantEscrowContract = {
     address,
@@ -47,7 +47,7 @@ export const useInstantDetails = ({
           functionName: 'lateFeeTimeInterval',
         },
       ],
-      enabled,
+      enabled: enabled && !!address && !!chainId,
     });
 
   const parsedData = useMemo(() => {

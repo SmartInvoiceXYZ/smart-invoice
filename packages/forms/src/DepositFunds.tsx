@@ -15,7 +15,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { PAYMENT_TYPES } from '@smart-invoice/constants';
+import { PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useDeposit } from '@smart-invoice/hooks';
 import { NumberInput, QuestionIcon, useToast } from '@smart-invoice/ui';
@@ -26,32 +26,39 @@ import {
   getUpdatedCheckAmount,
   getWrappedNativeToken,
 } from '@smart-invoice/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
-export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
+export function DepositFunds({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceDetails;
+  onClose: () => void;
+}) {
   const {
     tokenMetadata,
     amounts,
     deposited,
-    due,
     currentMilestoneNumber,
+    currentMilestoneAmount,
     depositedMilestones,
   } = _.pick(invoice, [
     'tokenMetadata',
     'amounts',
     'deposited',
-    'due',
     'currentMilestoneNumber',
+    'currentMilestoneAmount',
     'depositedMilestones',
   ]);
   const chainId = useChainId();
   const { address } = useAccount();
+  const queryClient = useQueryClient();
   const toast = useToast();
-
   const TOKEN_DATA = useMemo(
     () => ({
       nativeSymbol: getNativeTokenSymbol(chainId)?.symbol,
@@ -91,13 +98,23 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
     paymentType?.value === PAYMENT_TYPES.NATIVE
       ? nativeBalance?.formatted
       : tokenBalance?.formatted;
-  const hasAmount = !!balance && balance > amount;
+  const hasAmount = !!balance && balance > amount; // (+ gasForChain)
+
+  const onTxSuccess = () => {
+    toast.success(TOASTS.useDeposit.success);
+    // invalidate cache
+    queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    // close modal
+    onClose();
+  };
 
   const { handleDeposit, isLoading, isReady } = useDeposit({
     invoice,
     amount,
-    hasAmount, // (+ gas)
+    hasAmount,
     paymentType: paymentType?.value,
+    onTxSuccess,
     toast,
   });
 
@@ -222,7 +239,6 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
                         ),
                       );
                     }}
-                    // width='100%'
                   >
                     {_.map(paymentTypeOptions, option => (
                       <option key={option.value} value={option.value}>
@@ -237,7 +253,7 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
             }
           />
         </Flex>
-        {!!due && amount > due && (
+        {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
           <Alert bg="yellow.500" borderRadius="md" mt={4} color="white">
             <AlertIcon color="whiteAlpha.800" />
             <AlertTitle fontSize="sm">
@@ -249,7 +265,7 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
       <Flex
         color="blackAlpha.700"
         justify="space-between"
-        w={due ? '70%' : '50%'}
+        w={currentMilestoneAmount ? '70%' : '50%'}
         fontSize="sm"
       >
         {!!deposited && (
@@ -262,11 +278,11 @@ export function DepositFunds({ invoice }: { invoice: InvoiceDetails }) {
             </Text>
           </Stack>
         )}
-        {!!due && (
+        {!!currentMilestoneAmount && (
           <Stack>
             <Text fontWeight="bold">Total Due</Text>
             <Text>
-              {`${formatUnits(BigInt(due), tokenMetadata?.decimals || 18)} ${tokenMetadata?.symbol}`}
+              {`${formatUnits(BigInt(currentMilestoneAmount), tokenMetadata?.decimals || 18)} ${tokenMetadata?.symbol}`}
             </Text>
           </Stack>
         )}

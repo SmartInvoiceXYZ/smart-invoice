@@ -1,50 +1,52 @@
-import { IERC20_ABI, PAYMENT_TYPES } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
-import { ContractFunctionResult, Hex } from 'viem';
+import { errorToastHandler } from '@smart-invoice/utils/src';
+import _ from 'lodash';
+import { Hex } from 'viem';
 import {
   useChainId,
   useContractWrite,
   usePrepareContractWrite,
   useSendTransaction,
 } from 'wagmi';
+import { fetchBalance, waitForTransaction } from 'wagmi/actions';
 
-const errorToastHandler = (error: Error, toast: UseToastReturn) => {
-  const localError = error as Error;
-  if (
-    localError.name === 'TransactionExecutionError' &&
-    localError.message.includes('User rejected the request')
-  ) {
-    toast.error({
-      title: 'Signature rejected!',
-      description: 'Please accept the transaction in your wallet',
-    });
-  } else {
-    toast.error({
-      title: 'Error occurred!',
-      description: 'An error occurred while processing the transaction.',
-    });
-  }
-};
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useDeposit = ({
   invoice,
   amount,
   hasAmount,
   paymentType,
-  onSuccess,
+  onTxSuccess,
   toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
-  onSuccess?: (tx: ContractFunctionResult) => void;
+  onTxSuccess?: () => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
-  const token = invoice?.token;
+  const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
+
+  const waitForIndex = usePollSubgraph({
+    label: 'useDeposit',
+    fetchHelper: () =>
+      fetchBalance({
+        address: invoice?.address as Hex,
+        chainId,
+        token: token as Hex,
+      }),
+    checkResult: b =>
+      tokenBalance?.value && b
+        ? b.value === amount + tokenBalance.value
+        : false,
+    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
+  });
 
   const {
     config,
@@ -65,25 +67,29 @@ export const useDeposit = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: async tx => {
-      console.log('deposit tx', tx);
+    onSuccess: async ({ hash }) => {
+      toast.info(TOASTS.useDeposit.waitingForTx);
+      await waitForTransaction({ hash, chainId });
 
-      // TODO catch success
-      onSuccess?.(tx);
+      toast.info(TOASTS.useDeposit.waitingForIndex);
+      await waitForIndex();
 
-      // wait for tx
-      // update invoice
-      // close modal
-    },
-    onError: async error => {
-      // eslint-disable-next-line no-console
-      console.log('deposit error', error);
+      onTxSuccess?.();
     },
   });
 
   const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
     to: invoice?.address,
     value: amount,
+    onSuccess: async ({ hash }) => {
+      toast.info(TOASTS.useDeposit.waitingForTx);
+      await waitForTransaction({ hash, chainId });
+
+      toast.info(TOASTS.useDeposit.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
+    },
   });
 
   const handleDeposit = async () => {
@@ -96,7 +102,7 @@ export const useDeposit = ({
       const result = await writeAsync?.();
       return result;
     } catch (error: unknown) {
-      errorToastHandler(error as Error, toast);
+      errorToastHandler('useDeposit', error as Error, toast);
       return undefined;
     }
   };

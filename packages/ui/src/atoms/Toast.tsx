@@ -22,47 +22,22 @@ import React from 'react';
 // };
 
 const bgValues: {
-  [key in AlertStatus]: {
-    bg: string;
-    bgImage: string;
-    displayBorder: string;
-  };
+  [key in AlertStatus]: { bg: string };
 } = {
-  success: {
-    bg: 'gray.800',
-    bgImage:
-      'linear-gradient(95.58deg, #FF3864 0%, #8B1DBA 53.65%, #4353DF 100%)',
-    displayBorder: 'block',
-  },
-  error: {
-    bg: 'red.500',
-    bgImage: '',
-    displayBorder: 'none',
-  },
-  info: {
-    bg: 'blue.500',
-    bgImage: 'whiteAlpha.700',
-    displayBorder: 'block',
-  },
-  warning: {
-    bg: 'blue.500',
-    bgImage: 'whiteAlpha.700',
-    displayBorder: 'block',
-  },
-  loading: {
-    bg: 'blue.500',
-    bgImage: 'whiteAlpha.700',
-    displayBorder: 'block',
-  },
+  success: { bg: 'green.500' },
+  error: { bg: 'red.500' },
+  info: { bg: 'blue.500' },
+  warning: { bg: 'blue.500' },
+  loading: { bg: 'blue.500' },
 };
 
 export function Toast({
   title,
   description,
   status = 'success',
-  icon,
-  iconName,
-  iconColor,
+  // icon,
+  // iconName,
+  // iconColor,
   closeToast,
   descriptionNoOfLines,
   ...props
@@ -74,6 +49,7 @@ export function Toast({
       borderRadius="15px"
       padding={4}
       color="white"
+      minW="350px"
     >
       <HStack spacing={3}>
         {/* {iconName ? (
@@ -105,24 +81,11 @@ export function Toast({
           <Icon
             as={CloseIcon}
             onClick={closeToast}
-            w="25px"
-            h="25px"
+            boxSize="20px"
             _hover={{ cursor: 'pointer' }}
           />
         </Flex>
       )}
-
-      <Box
-        display={bgValues[status].displayBorder}
-        top="-2px"
-        left="-2px"
-        width="104%"
-        height="104%"
-        bgImage={bgValues[status].bgImage}
-        filter="blur(10px)"
-        position="absolute"
-        zIndex={-1}
-      />
     </Flex>
   );
 }

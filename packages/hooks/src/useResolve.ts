@@ -1,7 +1,11 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
-import { Hex } from 'viem';
-import { useBalance, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { InvoiceDetails } from '@smart-invoice/graphql';
+import { UseToastReturn } from '@smart-invoice/types';
+import { errorToastHandler } from '@smart-invoice/utils';
+import _ from 'lodash';
+import { Hex, TransactionReceipt } from 'viem';
+import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { waitForTransaction } from 'wagmi/actions';
 
 // TODO fix pin
 
@@ -13,25 +17,26 @@ export const useResolve = ({
     resolver: resolverAward,
   },
   comments,
+  onTxSuccess,
+  toast,
 }: {
-  invoice: Invoice;
+  invoice: InvoiceDetails;
   awards: {
     client: bigint;
     provider: bigint;
     resolver: bigint;
   };
   comments: string;
+  onTxSuccess: (tx: TransactionReceipt) => void;
+  toast: UseToastReturn;
 }) => {
   const detailsHash =
     '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const chainId = useChainId();
+  const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
-  const { data: balance } = useBalance({
-    address: invoice?.address as Hex,
-    token: invoice?.token as Hex,
-  });
-
-  const fullBalance = true;
-  // balance.value === clientAward + providerAward + resolverAward;
+  const fullBalance =
+    tokenBalance?.value === clientAward + providerAward + resolverAward;
 
   const {
     config,
@@ -56,13 +61,12 @@ export const useResolve = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: () => {
-      // TODO handle success
+    onSuccess: async ({ hash }) => {
+      const data = await waitForTransaction({ hash, chainId });
+
+      onTxSuccess?.(data);
     },
-    onError: error => {
-      // eslint-disable-next-line no-console
-      console.log('error', error);
-    },
+    onError: error => errorToastHandler('useResolve', error, toast),
   });
 
   return {

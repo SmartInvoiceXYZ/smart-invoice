@@ -1,15 +1,8 @@
-import {
-  Button,
-  Flex,
-  Heading,
-  Stack,
-  Text,
-  useBreakpointValue,
-} from '@chakra-ui/react';
-import { ChakraNextLink } from '@smart-invoice/ui';
+import { Button, Flex, Heading, Stack, Text } from '@chakra-ui/react';
+import { ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
 
 function SelectInvoiceType() {
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
 
   return (
     <Flex direction="column" align="center" justify="center" gap={6}>
@@ -36,7 +29,7 @@ function SelectInvoiceType() {
         paddingX={10}
       >
         <ChakraNextLink href="/create/escrow">
-          <Button size={buttonSize} variant="max">
+          <Button size={primaryButtonSize} variant="max">
             <Stack spacing={6}>
               <Heading>Escrow</Heading>
 
@@ -53,7 +46,7 @@ function SelectInvoiceType() {
         </ChakraNextLink>
 
         <ChakraNextLink href="/create/instant">
-          <Button size={buttonSize} variant="max">
+          <Button size={primaryButtonSize} variant="max">
             <Stack spacing={6}>
               <Heading>Instant</Heading>
 

@@ -4,7 +4,7 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client';
 import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
-import { getGraphUrl } from '@smart-invoice/utils';
+import { getGraphUrl } from '@smart-invoice/shared';
 
 const cache = new InMemoryCache();
 

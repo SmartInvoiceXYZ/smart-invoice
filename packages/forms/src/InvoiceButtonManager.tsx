@@ -153,7 +153,7 @@ export function InvoiceButtonManager({
         <LockFunds invoice={invoice} />
       </Modal>
       <Modal isOpen={modals?.deposit} onClose={() => setModals({})}>
-        <DepositFunds invoice={invoice} />
+        <DepositFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.release} onClose={() => setModals({})}>
         <ReleaseFunds invoice={invoice} />

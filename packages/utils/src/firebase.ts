@@ -1,8 +1,7 @@
 // Import the functions you need from the SDKs you need
+import { logDebug, logError } from '@smart-invoice/shared';
 import { getApp, initializeApp } from 'firebase/app';
 import { child, get, getDatabase, ref } from 'firebase/database';
-
-import { logDebug, logError } from './log';
 
 const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 const FIREBASE_AUTH_DOMAIN = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
@@ -48,6 +47,3 @@ export const getCID = async () => {
     });
   return CID;
 };
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries

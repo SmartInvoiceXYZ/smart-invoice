@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable camelcase */
 import {
   Box,
@@ -24,6 +25,7 @@ import {
 import { chainsMap } from '@smart-invoice/utils';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
+  CellContext,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -34,9 +36,9 @@ import {
 } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import React, { useMemo, useState } from 'react';
-import { Address, formatUnits } from 'viem';
+import { Address, formatUnits, Hex } from 'viem';
 
-import { ChakraNextLink, theme, useMediaStyles } from '..';
+import { AccountLink, ChakraNextLink, theme, useMediaStyles } from '..';
 import {
   DoubleLeftArrowIcon,
   LeftArrowIcon,
@@ -50,6 +52,27 @@ export type InvoiceDashboardTableProps = {
   chainId?: number;
   searchInput?: SearchInputType;
 };
+
+function InvoiceLink({
+  cell,
+  chainId,
+}: {
+  cell: CellContext<InvoiceDetails, string | undefined>;
+  chainId?: number;
+}) {
+  const { projectName } = cell.row.original;
+  const address = cell.getValue();
+  return projectName ? (
+    <ChakraNextLink href={`/invoice/${chainId}/${address}`}>
+      {projectName}
+    </ChakraNextLink>
+  ) : (
+    <AccountLink
+      address={address as Hex}
+      link={`/invoice/${chainId}/${address}`}
+    />
+  );
+}
 
 export function InvoiceDashboardTable({
   chainId,
@@ -66,9 +89,9 @@ export function InvoiceDashboardTable({
         header: 'Date Created',
         cell: info => new Date(Number(info.getValue()) * 1000).toLocaleString(),
       }),
-      columnHelper.accessor('projectName', {
+      columnHelper.accessor('address', {
         header: 'Invoice Name/ID',
-        cell: info => info.getValue(),
+        cell: info => <InvoiceLink cell={info} chainId={chainId} />,
       }),
       columnHelper.accessor(
         row =>

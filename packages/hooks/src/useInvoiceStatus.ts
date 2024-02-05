@@ -1,37 +1,24 @@
-import { Invoice } from '@smart-invoice/graphql';
-import {
-  // getDeadline,
-  // getTotalFulfilled,
-  logError,
-} from '@smart-invoice/utils';
+import { INVOICE_TYPES } from '@smart-invoice/constants/src';
+import { InstantDetails, InvoiceDetails } from '@smart-invoice/graphql';
+import { logError } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex, isAddress } from 'viem';
-import { Chain, useChainId } from 'wagmi';
+import { useChainId } from 'wagmi';
 
-async function fetchInstantInfo(chainId: number, invoiceAddress: Hex) {
-  try {
-    // const deadline = await getDeadline(chainId, invoiceAddress);
-    // const fulfilled = await getTotalFulfilled(chainId, invoiceAddress);
-    return {
-      deadline: 10,
-      isFulfilled: true, // fulfilled.isFulfilled,
-      fulfilledAmount: 10, // fulfilled.amount,
-    };
-  } catch (instantFetchError) {
-    logError({ instantFetchError });
-    return undefined;
-  }
-}
+import { useInstantDetails } from '.';
 
 interface FetchInvoiceStatus {
-  chainId: number;
-  invoice: Partial<Invoice>;
+  invoice: Partial<InvoiceDetails>;
+  instantInfo: InstantDetails | undefined;
 }
 
 const defaultReturn = { funded: false, label: 'Awaiting Deposit' };
 
-const fetchInvoiceStatus = async ({ chainId, invoice }: FetchInvoiceStatus) => {
+const fetchInvoiceStatus = async ({
+  invoice,
+  instantInfo,
+}: FetchInvoiceStatus) => {
   const {
     currentMilestone,
     amounts,
@@ -43,6 +30,7 @@ const fetchInvoiceStatus = async ({ chainId, invoice }: FetchInvoiceStatus) => {
     resolutions,
     deposits,
     invoiceType,
+    tokenBalance,
   } = _.pick(invoice, [
     'currentMilestone',
     'amounts',
@@ -54,17 +42,16 @@ const fetchInvoiceStatus = async ({ chainId, invoice }: FetchInvoiceStatus) => {
     'resolutions',
     'deposits',
     'invoiceType',
+    'tokenBalance',
   ]);
 
   const validAddress = address && isAddress(address) && address;
   const validToken = token && isAddress(token) && token;
   if (!validAddress || !validToken) return defaultReturn;
 
-  if (invoiceType === 'escrow') {
-    console.log('test');
+  if (invoiceType === INVOICE_TYPES.Escrow) {
     try {
-      // TODO fetch balance
-      const balance = 0;
+      const balance = tokenBalance?.value || BigInt(0);
 
       if (Number(currentMilestone) === _.size(amounts)) {
         if (
@@ -96,15 +83,16 @@ const fetchInvoiceStatus = async ({ chainId, invoice }: FetchInvoiceStatus) => {
   }
 
   try {
-    const result = await fetchInstantInfo(chainId, validAddress);
-
-    if (result?.isFulfilled) {
+    if (instantInfo?.fulfilled) {
       return { funded: true, label: 'Completed' };
     }
     if (!_.isEmpty(deposits)) {
       return { funded: true, label: 'Partially Funded' };
     }
-    if (result?.deadline && result.deadline <= new Date().getTime() / 1000) {
+    if (
+      instantInfo?.deadline &&
+      instantInfo.deadline <= new Date().getTime() / 1000
+    ) {
       return { funded: false, label: 'Overdue' };
     }
   } catch (statusError) {
@@ -115,15 +103,21 @@ const fetchInvoiceStatus = async ({ chainId, invoice }: FetchInvoiceStatus) => {
   return defaultReturn;
 };
 
-export const useInvoiceStatus = (invoice: Invoice) => {
+export const useInvoiceStatus = ({ invoice }: { invoice: InvoiceDetails }) => {
   const chainId = useChainId();
+
+  const { data: instantInfo } = useInstantDetails({
+    address: _.get(invoice, 'address') as Hex,
+    chainId,
+    enabled: !!chainId && !!invoice,
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoiceStatus', { chainId, invoice }],
     queryFn: () =>
       fetchInvoiceStatus({
-        chainId,
         invoice,
+        instantInfo,
       }),
     enabled: !!chainId && !!invoice,
   });

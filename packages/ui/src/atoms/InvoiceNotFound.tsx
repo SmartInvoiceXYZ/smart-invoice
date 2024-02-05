@@ -1,6 +1,5 @@
-import { Button, Flex, Icon, Text, Stack } from '@chakra-ui/react';
+import { Button, Flex, Icon, Stack, Text } from '@chakra-ui/react';
 import { chainsMap } from '@smart-invoice/utils';
-import { useRouter } from 'next/router';
 import React from 'react';
 import { useChainId } from 'wagmi';
 
@@ -16,13 +15,12 @@ export function InvoiceNotFound({
   chainId?: number;
 }) {
   const currentChainId = useChainId();
-  const router = useRouter();
 
   return (
     <Container>
       <Stack
         spacing="1rem"
-        background="background"
+        background="white"
         borderRadius="1rem"
         align="center"
         w="calc(100% - 2rem)"
@@ -44,10 +42,15 @@ export function InvoiceNotFound({
           </Flex>
         )}
 
-        <Text fontSize="2xl" textAlign="center" fontFamily="heading">
+        <Text
+          fontSize="2xl"
+          textAlign="center"
+          fontFamily="heading"
+          color="black"
+        >
           {heading || 'Invoice Not Found'}
         </Text>
-        {chainId && (
+        {chainId && chainId !== currentChainId && (
           <Text color="greyText">
             Please switch to <b>{chainsMap(chainId)?.name}</b> to view this
             invoice.

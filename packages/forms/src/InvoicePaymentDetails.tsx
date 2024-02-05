@@ -3,13 +3,14 @@ import {
   Card,
   Divider,
   Flex,
+  Heading,
   HStack,
   Link,
   Stack,
   Text,
 } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types/src';
+import { Modals } from '@smart-invoice/types';
 import { AccountLink, Modal } from '@smart-invoice/ui';
 import { commify, getIpfsLink, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -30,7 +31,6 @@ export function InvoicePaymentDetails({
   setModals: (m: Partial<Modals>) => void;
 }) {
   const chainId = useChainId();
-
   const {
     client,
     provider,
@@ -39,17 +39,17 @@ export function InvoicePaymentDetails({
     due,
     total,
     resolver,
-    currentMilestone,
     tokenBalance,
     amounts,
     currentMilestoneAmount,
-    deposits,
     releases,
     dispute,
     resolution,
     isReleasable,
     isExpired,
     tokenMetadata,
+    depositedMilestonesDisplay,
+    depositedTxs,
   } = _.pick(invoice, [
     'client',
     'provider',
@@ -59,22 +59,31 @@ export function InvoicePaymentDetails({
     'resolver',
     'releases',
     'released',
-    'deposits',
     'amounts',
     'currentMilestoneAmount',
-    'currentMilestone',
     'tokenBalance',
     'dispute',
     'resolution',
     'isReleasable',
     'isExpired',
     'tokenMetadata',
+    'depositedMilestonesDisplay',
+    'depositedTxs',
   ]);
 
   const details = [
     deposited && { label: 'Total Deposited', value: deposited },
     released && { label: 'Total Released', value: released },
     due && { label: 'Remaining Amount Due', value: due },
+  ];
+
+  const resolutionDetails = [
+    resolution?.resolutionFee && {
+      distributee: resolver,
+      amount: resolution.resolutionFee,
+    },
+    { distributee: client, amount: resolution?.clientAward },
+    { distributee: provider, amount: resolution?.providerAward },
   ];
 
   return (
@@ -93,45 +102,19 @@ export function InvoicePaymentDetails({
           <Stack width="100%">
             <Stack w="100%" px={6} spacing={4}>
               <HStack width="100%" justifyContent="space-between">
-                <Text variant="textOne">Total Project Amount</Text>
+                <Heading size="md">Total Project Amount</Heading>
                 {!!total && (
-                  <Text variant="textOne">
+                  <Heading size="md">
                     {commify(formatUnits(total, tokenBalance?.decimals || 18))}{' '}
                     {tokenBalance?.symbol}
-                  </Text>
+                  </Heading>
                 )}
               </HStack>
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
-                  // let tot = BigInt(0);
-                  // let ind = -1;
-                  // let full = false;
-                  // if (!_.isEmpty(deposits)) {
-                  //   for (let i = 0; i < _.size(deposits); i += 1) {
-                  //     const newAmount = deposits?.[i]?.amount;
-                  //     if (!newAmount) break;
-                  //     tot += newAmount;
-                  //     console.log(tot);
-                  //     if (tot > sum) {
-                  //       ind = i;
-                  //       console.log(tot, sum, amt, full);
-                  //       if (tot - sum >= BigInt(amt)) {
-                  //         full = true;
-                  //         break;
-                  //       }
-                  //     }
-                  //   }
-                  // }
-                  // sum += BigInt(amt);
-                  const full = false;
-
-                  // const totalPayments = _.sum(amounts);
-                  // const paidPayments = _.difference(
-                  //   amounts,
-                  //   _.map(deposits, 'amount'),
-                  // );
-                  // const totalDeposits = _.sumBy(deposits, 'amount');
-                  // console.log(totalPayments, paidPayments, totalDeposits);
+                  const depositedText = depositedMilestonesDisplay?.[index];
+                  const release = releases?.[index];
+                  const deposit = depositedTxs?.[index];
 
                   return (
                     <Flex
@@ -144,51 +127,43 @@ export function InvoicePaymentDetails({
                       <Text>Milestone #{index + 1}</Text>
 
                       <HStack align="center" justify="flex-end">
-                        {index < _.toNumber(currentMilestone?.toString()) &&
-                          _.size(releases) > index &&
-                          !!releases?.[index]?.timestamp && (
-                            <Link
-                              fontSize="xs"
-                              isExternal
-                              color="grey"
-                              fontStyle="italic"
-                              href={getTxLink(
-                                chainId,
-                                releases?.[index].txHash,
-                              )}
-                            >
-                              Released{' '}
-                              {new Date(
-                                _.toNumber(releases[index].timestamp) * 1000,
-                              ).toLocaleDateString()}
-                            </Link>
-                          )}
-                        {!(
-                          _.lt(index, currentMilestone) &&
-                          _.size(releases) > index
-                        ) &&
-                          index !== -1 &&
-                          !!deposits?.[index]?.timestamp && (
-                            <Link
-                              fontSize="xs"
-                              isExternal
-                              color="grey"
-                              fontStyle="italic"
-                              href={getTxLink(
-                                chainId,
-                                deposits?.[index]?.txHash,
-                              )}
-                            >
-                              {full ? '' : 'Partially '}Deposited{' '}
-                              {new Date(
-                                _.toNumber(deposits?.[index].timestamp) * 1000,
-                              ).toLocaleDateString()}
-                            </Link>
-                          )}
-                        <Text
-                          textAlign="right"
-                          fontWeight="500"
-                        >{`${commify(formatUnits(BigInt(amt), tokenBalance?.decimals || 18))} ${tokenBalance?.symbol}`}</Text>
+                        {release && (
+                          <Link
+                            fontSize="xs"
+                            isExternal
+                            color="grey"
+                            fontStyle="italic"
+                            href={getTxLink(chainId, release.txHash)}
+                          >
+                            Released{' '}
+                            {new Date(
+                              _.toNumber(release.timestamp) * 1000,
+                            ).toLocaleDateString()}
+                          </Link>
+                        )}
+                        {deposit && !release && (
+                          <Link
+                            fontSize="xs"
+                            isExternal
+                            color="grey"
+                            fontStyle="italic"
+                            href={getTxLink(chainId, deposit?.txHash)}
+                          >
+                            {`${_.capitalize(depositedText)} `}
+                            {new Date(
+                              _.toNumber(deposit?.timestamp) * 1000,
+                            ).toLocaleDateString()}
+                          </Link>
+                        )}
+
+                        <Text textAlign="right" fontWeight="500">
+                          {`${commify(
+                            formatUnits(
+                              BigInt(amt),
+                              tokenBalance?.decimals || 18,
+                            ),
+                          )} ${tokenBalance?.symbol}`}
+                        </Text>
                       </HStack>
                     </Flex>
                   );
@@ -213,28 +188,22 @@ export function InvoicePaymentDetails({
             <Divider my="1rem" />
 
             {!dispute && !resolution && (
-              <Flex
-                justify="space-between"
-                align="center"
-                fontWeight="bold"
-                fontSize="lg"
-                px={6}
-              >
+              <Flex justify="space-between" align="center" px={6}>
                 {isExpired || (due === BigInt(0) && !isReleasable) ? (
                   <>
-                    <Text>Remaining Balance</Text>
-                    <Text textAlign="right">
+                    <Heading size="md">Remaining Balance</Heading>
+                    <Heading size="md">
                       {`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}{' '}
-                    </Text>
+                    </Heading>
                   </>
                 ) : (
                   <>
-                    <Text>
+                    <Heading size="md">
                       {isReleasable && 'Next Amount to Release'}
                       {!isReleasable && 'Total Due Today'}
-                    </Text>
+                    </Heading>
                     {!!currentMilestoneAmount && (
-                      <Text textAlign="right">
+                      <Heading size="md">
                         {`${
                           tokenBalance?.value &&
                           commify(
@@ -246,9 +215,8 @@ export function InvoicePaymentDetails({
                               18,
                             ),
                           )
-                        } 
-                  ${tokenBalance?.symbol}`}
-                      </Text>
+                        } ${tokenBalance?.symbol}`}
+                      </Heading>
                     )}
                   </>
                 )}
@@ -327,35 +295,22 @@ export function InvoicePaymentDetails({
                     </Text>
                   </Flex>
                   <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
-                    {resolution.resolutionFee && (
-                      <Text textAlign="right" color="purpleLight">
+                    {_.map(_.compact(resolutionDetails), detail => (
+                      <Text
+                        textAlign="right"
+                        color="purpleLight"
+                        key={detail.distributee}
+                      >
                         {`${formatUnits(
-                          BigInt(resolution.resolutionFee),
+                          BigInt(detail.amount),
                           tokenMetadata?.decimals || 18,
                         )} ${tokenMetadata?.symbol} to `}
                         <AccountLink
-                          address={resolver as Hex}
+                          address={detail.distributee as Hex}
                           chainId={chainId}
                         />
                       </Text>
-                    )}
-                    <Text textAlign="right" color="purpleLight">
-                      {`${formatUnits(
-                        BigInt(resolution.clientAward),
-                        tokenMetadata?.decimals || 18,
-                      )} ${tokenMetadata?.symbol} to `}
-                      <AccountLink address={client as Hex} chainId={chainId} />
-                    </Text>
-                    <Text textAlign="right" color="purpleLight">
-                      {`${formatUnits(
-                        BigInt(resolution.providerAward),
-                        tokenMetadata?.decimals || 18,
-                      )} ${tokenMetadata?.symbol} to `}
-                      <AccountLink
-                        address={provider as Hex}
-                        chainId={chainId}
-                      />
-                    </Text>
+                    ))}
                   </Stack>
                 </Flex>
               </Stack>

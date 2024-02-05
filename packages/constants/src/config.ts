@@ -61,7 +61,7 @@ export const CONFIG: Config = {
       },
     },
     5: {
-      SUBGRAPH: 'geovgy/v1-goerli-smart-invoice', // previously: psparacino/goerli-smart-invoices
+      SUBGRAPH: 'scottrepreneur/smart-invoice-goerli', //  'geovgy/v1-goerli-smart-invoice', // previously: psparacino/goerli-smart-invoices
       WRAPPED_NATIVE_TOKEN: toLower(
         '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
       ) as Address,

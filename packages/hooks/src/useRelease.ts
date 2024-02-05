@@ -1,25 +1,35 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { Invoice } from '@smart-invoice/graphql';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
+import { errorToastHandler } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { SendTransactionResult } from 'wagmi/actions';
+import { waitForTransaction } from 'wagmi/actions';
+
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useRelease = ({
   invoice,
   milestone,
-  onSuccess,
+  onTxSuccess,
   toast,
 }: {
   invoice: Invoice;
   milestone?: number;
-  onSuccess: (tx: SendTransactionResult) => void;
+  onTxSuccess: () => void;
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
 
-  const specifyMilestones = _.isNumber(milestone);
+  const specifiedMilestone = _.isNumber(milestone);
+
+  const waitForIndex = usePollSubgraph({
+    label: 'waiting for funds to be released',
+    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
+    checkResult: updatedInvoice =>
+      invoice?.released ? updatedInvoice.released > invoice.released : false,
+  });
 
   const {
     config,
@@ -30,7 +40,7 @@ export const useRelease = ({
     address: invoice?.address as Hex,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
-    args: [BigInt(0)], //  specifyMilestones ? [milestone] : [], // optional args
+    args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
     enabled: !!invoice?.address,
   });
 
@@ -40,17 +50,14 @@ export const useRelease = ({
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: async tx => {
-      onSuccess(tx);
+    onSuccess: async ({ hash }) => {
+      await waitForTransaction({ hash, chainId });
 
-      // handle success
-      // close modal
-      // update invoice with new balances
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
-    onError: async error => {
-      // eslint-disable-next-line no-console
-      console.log('release error', error);
-    },
+    onError: error => errorToastHandler('useRelease', error, toast),
   });
 
   return {

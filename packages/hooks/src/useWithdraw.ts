@@ -1,10 +1,22 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
 import { Invoice } from '@smart-invoice/graphql';
+import { UseToastReturn } from '@smart-invoice/types';
+import { errorToastHandler } from '@smart-invoice/utils';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { Hex, TransactionReceipt } from 'viem';
+import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { waitForTransaction } from 'wagmi/actions';
 
-export const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
+export const useWithdraw = ({
+  invoice,
+  onTxSuccess,
+  toast,
+}: {
+  invoice: Invoice;
+  onTxSuccess: (tx: TransactionReceipt) => void;
+  toast: UseToastReturn;
+}) => {
+  const chainId = useChainId();
   const { address } = _.pick(invoice, ['address']);
 
   const {
@@ -25,17 +37,12 @@ export const useWithdraw = ({ invoice }: { invoice: Invoice }) => {
     error: writeError,
   } = useContractWrite({
     ...config,
-    onSuccess: () => {
-      console.log('success');
+    onSuccess: async ({ hash }) => {
+      const data = await waitForTransaction({ hash, chainId });
 
-      // handle success
-      // close modal
-      // update invoice with status
+      onTxSuccess?.(data);
     },
-    onError: error => {
-      // eslint-disable-next-line no-console
-      console.log('error', error);
-    },
+    onError: error => errorToastHandler('useWithdraw', error, toast),
   });
 
   return {

@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { logDebug } from '@smart-invoice/utils';
+import { logDebug } from '@smart-invoice/shared';
 import { Address, Hex, isAddress } from 'viem';
 
 import { clients } from './client';
@@ -181,6 +181,14 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
+export interface Deposit {
+  id: string;
+  txHash: string;
+  sender: string;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
 export type InvoiceDetails = Invoice &
   InstantDetails & {
@@ -195,7 +203,14 @@ export type InvoiceDetails = Invoice &
     bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
+    depositedMilestonesDisplay: (string | undefined)[];
+    depositedTxs: (Deposit | undefined)[];
     detailsHash: string | undefined;
+    resolverName: string | undefined;
+    resolverInfo: any | undefined; // ResolverInfo;
+    resolverFee: string | undefined;
+    resolverFeeDisplay: string | undefined;
+    deadlineLabel: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispute?: any; // Dispute;

@@ -8,18 +8,18 @@ import {
   Icon,
   Input,
   InputGroup,
-  InputLeftElement,
+  InputLeftAddon,
   Select,
   Stack,
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { isValidLink, logDebug } from '@smart-invoice/utils';
+import { logDebug } from '@smart-invoice/utils';
+import _ from 'lodash';
+import { useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
 
 import { QuestionIcon } from '../icons/QuestionIcon';
-
-// type Required = 'required' | 'optional';
 
 interface LinkInputProps extends ChakraProps {
   name: string;
@@ -32,6 +32,8 @@ interface LinkInputProps extends ChakraProps {
   tooltip?: string;
   placeholder?: string;
 }
+
+const protocolOptions = ['https://', 'ipfs://'];
 
 export function LinkInput({
   name,
@@ -49,24 +51,30 @@ export function LinkInput({
     register,
     formState: { errors },
   } = localForm;
-  const protocol = watch('protocol');
 
-  const inputValue = watch(name);
-  // const protocolInitValue = linkType ?? /[a-z]+(?=:\/\/)/.exec(value ?? '');
-  // const [protocol, setProtocol] = useState(`${protocolInitValue}://`);
-  // const [input, setInput] = useState('');
-  // const [isInvalid, setInvalid] = useState(false);
+  const protocol = watch(`${name}-protocol`);
+  const inputValue = watch(`${name}-input`);
 
-  // useEffect(() => {
-  //   const protocolInitValue = /[a-z]+(?=:\/\/)/.exec(value ?? '');
-  //   const localProtocol = `${protocolInitValue}://`;
-  //   setValue('protocol', localProtocol);
-
-  // }, [inputValue])
   const error = errors?.[name];
 
+  // handle the validation in the form resolver, just set the value here
+  useEffect(() => {
+    if (!inputValue) return;
+    // update overall field value based on input change
+    const newValue = protocol + inputValue;
+    logDebug('LinkInput - newValue', newValue);
+    setValue(name, newValue, { shouldValidate: true, shouldDirty: true });
+  }, [inputValue]);
+
+  useEffect(() => {
+    setValue(`${name}-protocol`, 'https://');
+  }, []);
+
   return (
-    <FormControl isInvalid={!!error}>
+    <FormControl
+      isInvalid={!!error}
+      isRequired={_.includes(_.keys(registerOptions), 'required')}
+    >
       <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
         <Stack align="left" w="100%" spacing={0}>
           <Flex w="100%">
@@ -87,38 +95,40 @@ export function LinkInput({
 
         <Flex direction="column" w="100%">
           <InputGroup>
-            <InputLeftElement
+            <InputLeftAddon
+              px={0}
               w="6.75rem"
               overflow="hidden"
               borderLeftRadius="0.375rem"
-              borderRightColor="background"
+              borderRightColor="white"
               borderRightWidth="3px"
+              mr="-5px"
             >
               <Select
                 onChange={e => {
                   setValue(`${name}-protocol`, e.target.value);
                   const newProtocol = e.target.value;
                   const newValue = newProtocol + inputValue;
-                  const isValid = isValidLink(newValue);
+                  // check validity at the form level
                   setValue(name, newValue);
-                  // setLinkType(newProtocol.substring(0, newProtocol.length - 3));
-                  // logDebug(newProtocol.substring(0, newProtocol.length - 3));
-                  // setInvalid(!isValid);
-                  // setProtocol(newProtocol);
                 }}
                 value={protocol}
                 bg="none"
                 color="black"
                 border="1px"
+                w="100%"
                 borderColor="lightgrey"
                 _hover={{ borderColor: 'lightgrey' }}
                 fontWeight="normal"
                 borderRadius="none"
               >
-                <option value="https://">https://</option>
-                <option value="ipfs://">ipfs://</option>
+                {_.map(protocolOptions, option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </Select>
-            </InputLeftElement>
+            </InputLeftAddon>
 
             <Input
               maxLength={240}

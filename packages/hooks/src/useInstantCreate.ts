@@ -2,22 +2,21 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
-import { UseToastReturn } from '@smart-invoice/types/src';
-import { getInvoiceFactoryAddress, getTokenInfo } from '@smart-invoice/utils';
+import { UseToastReturn } from '@smart-invoice/types';
+import { getInvoiceFactoryAddress } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
   encodeAbiParameters,
   parseUnits,
+  toHex,
   TransactionReceipt,
-  zeroAddress,
 } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
 import { useDetailsPin } from './useDetailsPin';
-import { useFetchTokens } from './useFetchTokens';
 
 export const useInstantCreate = ({
   invoiceForm,
@@ -32,14 +31,13 @@ export const useInstantCreate = ({
 }) => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
 
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
     client,
     provider,
     token,
+    tokenMetadata,
     projectName,
     projectDescription,
     projectAgreement,
@@ -53,6 +51,7 @@ export const useInstantCreate = ({
     'client',
     'provider',
     'token',
+    'tokenMetadata',
     'projectName',
     'projectDescription',
     'projectAgreement',
@@ -63,8 +62,6 @@ export const useInstantCreate = ({
     'lateFee',
     'lateFeeTimeInterval',
   ]);
-
-  const invoiceToken = getTokenInfo(chainId, token, tokenData);
 
   const detailsData = {
     projectName,
@@ -77,22 +74,29 @@ export const useInstantCreate = ({
   const { data: details } = useDetailsPin({ ...detailsData });
 
   const paymentAmount = useMemo(() => {
-    if (!invoiceToken || !paymentDue) {
+    if (!tokenMetadata || !paymentDue) {
       return BigInt(0);
     }
 
-    return parseUnits(paymentDue, invoiceToken.decimals);
-  }, [invoiceToken, paymentDue]);
+    return parseUnits(_.toString(paymentDue), tokenMetadata.decimals);
+  }, [tokenMetadata, paymentDue]);
 
   const escrowData = useMemo(() => {
     if (
       !client ||
-      !token ||
+      !tokenMetadata ||
       !deadline ||
       !wrappedNativeToken(chainId) ||
       !details
     ) {
       return '0x';
+    }
+    let lateFeeTimeIntervalSeconds = BigInt(0);
+    if (lateFeeTimeInterval) {
+      lateFeeTimeIntervalSeconds = BigInt(
+        // days to milliseconds
+        lateFeeTimeInterval * 24 * 60 * 60 * 1000,
+      );
     }
 
     return encodeAbiParameters(
@@ -112,13 +116,14 @@ export const useInstantCreate = ({
         BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
-        lateFee || BigInt(0), // late fee in payment token per interval
-        lateFeeTimeInterval || BigInt(0), // late fee time interval convert from some days duration to seconds
+        parseUnits(lateFee, tokenMetadata?.decimals || 18), // late fee in payment token per interval
+        lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
   }, [
     client,
     token,
+    tokenMetadata,
     deadline,
     details,
     wrappedNativeToken,
@@ -131,7 +136,12 @@ export const useInstantCreate = ({
     chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
-    args: [provider, [paymentAmount], zeroAddress, zeroAddress],
+    args: [
+      provider,
+      [paymentAmount],
+      escrowData,
+      toHex('instant', { size: 32 }),
+    ],
     enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
   });
 

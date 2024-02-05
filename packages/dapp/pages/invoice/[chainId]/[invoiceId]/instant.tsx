@@ -7,7 +7,7 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { DepositFunds, WithdrawFunds } from '@smart-invoice/forms';
+import { DepositFunds, TipForm, WithdrawFunds } from '@smart-invoice/forms';
 import { useInvoiceDetails } from '@smart-invoice/hooks';
 import {
   Container,
@@ -15,8 +15,8 @@ import {
   InvoiceNotFound,
   Loader,
   Modal,
+  useMediaStyles,
 } from '@smart-invoice/ui';
-import { getDateString } from '@smart-invoice/utils/src';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';
@@ -38,36 +38,33 @@ function ViewInstantInvoice() {
     address: invoiceId,
     chainId: invoiceChainId,
   });
-  console.log(invoiceDetails);
 
   const {
     client,
     provider,
     total,
     tokenBalance,
-    // totalDue,
     fulfilled,
     amountFulfilled,
     deadline,
+    deadlineLabel,
     lateFee,
-    lateFeeTimeInterval,
   } = _.pick(invoiceDetails, [
     'client',
     'provider',
     'total',
-    // 'totalDue',
     'tokenBalance',
     'fulfilled',
     'amountFulfilled',
     'deadline',
+    'deadlineLabel',
     'lateFee',
-    'lateFeeTimeInterval',
   ]);
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
   const rightMaxW = useBreakpointValue({ base: '100%', md: '40rem' });
-  const buttonSize = useBreakpointValue({ base: 'md', lg: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
   // const smallScreen = useBreakpointValue({ base: true, sm: false });
 
   if (!isAddress(invoiceId) || (invoiceDetails === null && !isLoading)) {
@@ -112,7 +109,7 @@ function ViewInstantInvoice() {
       console.log('not tippable');
       return;
     }
-    setModals({ tip: true });
+    setModals({ deposit: true });
   };
 
   const onWithdraw = async () => {
@@ -124,10 +121,6 @@ function ViewInstantInvoice() {
 
     setModals({ withdraw: true });
   };
-
-  const daysPerInterval = lateFeeTimeInterval
-    ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
-    : undefined;
 
   return (
     <Container overlay>
@@ -159,7 +152,7 @@ function ViewInstantInvoice() {
           maxW={rightMaxW}
         >
           <Flex
-            bg="background"
+            bg="white"
             direction="column"
             justify="space-between"
             px={{ base: '1rem', md: '2rem' }}
@@ -199,12 +192,7 @@ function ViewInstantInvoice() {
                     fontStyle="italic"
                     color="grey"
                   >
-                    {deadline
-                      ? `${formatUnits(
-                          lateFee,
-                          tokenBalance?.decimals || 18,
-                        )} ${tokenBalance?.symbol} every ${daysPerInterval} day${daysPerInterval && daysPerInterval > 1 ? 's' : ''} after ${getDateString(_.toNumber(deadline?.toString()))}`
-                      : `Not applicable`}
+                    {deadline ? deadlineLabel : `Not applicable`}
                   </Text>
                 </Flex>
 
@@ -253,40 +241,22 @@ function ViewInstantInvoice() {
             </Flex>
           </Flex>
           {isClient && (
-            <SimpleGrid columns={fulfilled ? 2 : 1} spacing="1rem" w="100%">
+            <SimpleGrid columns={isTippable ? 2 : 1} spacing="1rem" w="100%">
               <Button
-                size={buttonSize}
-                _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
-                color="white"
-                backgroundColor="blue.1"
-                fontWeight="bold"
-                fontFamily="mono"
+                size={primaryButtonSize}
                 textTransform="uppercase"
-                onClick={() => onDeposit()}
+                onClick={onDeposit}
                 isDisabled={fulfilled}
               >
                 {fulfilled ? 'Paid' : 'Make Payment'}
               </Button>
               {isTippable && (
                 <Button
-                  size={buttonSize}
-                  _hover={{
-                    backgroundColor: 'rgba(61, 136, 248, 1)',
-                    color: 'white',
-                  }}
-                  _active={{
-                    backgroundColor: 'rgba(61, 136, 248, 1)',
-                    color: 'white',
-                  }}
-                  color="blue.1"
-                  backgroundColor="white"
-                  borderWidth={1}
-                  borderColor="blue.1"
+                  size={primaryButtonSize}
+                  variant="outline"
                   fontWeight="bold"
-                  fontFamily="mono"
                   textTransform="uppercase"
-                  onClick={() => onTip()}
+                  onClick={onTip}
                 >
                   Add Tip
                 </Button>
@@ -296,7 +266,7 @@ function ViewInstantInvoice() {
           {isProvider && (
             <SimpleGrid columns={1} spacing="1rem" w="100%">
               <Button
-                size={buttonSize}
+                size={primaryButtonSize}
                 textTransform="uppercase"
                 onClick={() => onWithdraw()}
                 isDisabled={
@@ -312,10 +282,16 @@ function ViewInstantInvoice() {
         </Stack>
 
         <Modal isOpen={modals?.deposit} onClose={() => setModals?.({})}>
-          <DepositFunds invoice={invoiceDetails} />
+          <DepositFunds
+            invoice={invoiceDetails}
+            onClose={() => setModals?.({})}
+          />
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
           <WithdrawFunds invoice={invoiceDetails} />
+        </Modal>
+        <Modal isOpen={modals?.tip} onClose={() => setModals?.({})}>
+          <TipForm invoice={invoiceDetails} />
         </Modal>
       </Stack>
     </Container>

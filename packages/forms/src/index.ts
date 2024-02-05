@@ -11,4 +11,5 @@ export * from './ProjectDetailsForm';
 export * from './RegisterSuccess';
 export * from './ReleaseFunds';
 export * from './ResolveFunds';
+export * from './TipForm';
 export * from './WithdrawFunds';

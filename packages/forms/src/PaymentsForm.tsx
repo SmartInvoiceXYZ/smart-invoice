@@ -12,13 +12,17 @@ import {
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { FormInvoice } from '@smart-invoice/types';
-import { NumberInput, QuestionIcon, Select } from '@smart-invoice/ui';
+import {
+  NumberInput,
+  QuestionIcon,
+  Select,
+  useMediaStyles,
+} from '@smart-invoice/ui';
 import { commify, escrowPaymentsSchema } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
@@ -62,7 +66,7 @@ export function PaymentsForm({
   );
   const invoiceTokenData = _.find(TOKENS, { address: localToken });
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('milestones', values?.milestones);
@@ -181,7 +185,7 @@ export function PaymentsForm({
           type="submit"
           isDisabled={!isValid}
           textTransform="uppercase"
-          size={buttonSize}
+          size={primaryButtonSize}
           fontFamily="mono"
           fontWeight="bold"
         >

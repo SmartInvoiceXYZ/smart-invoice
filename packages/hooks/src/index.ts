@@ -1,5 +1,6 @@
 export * from './useAddMilestones';
 export * from './useDeposit';
+export * from './useDetailsPin';
 export * from './useEscrowZap';
 export * from './useFetchTokens';
 export * from './useInstantCreate';
@@ -11,7 +12,7 @@ export * from './useInvoiceVerify';
 export * from './useIsClient';
 export * from './useLock';
 export * from './usePollSubgraph';
+export * from './useRateForResolver';
 export * from './useRelease';
 export * from './useResolve';
-export * from './useTokenBalance';
 export * from './useWithdraw';

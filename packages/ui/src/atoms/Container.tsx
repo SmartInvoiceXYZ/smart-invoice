@@ -9,11 +9,11 @@ interface ContainerProps extends FlexProps {
 export function Container({ children, overlay, ...props }: ContainerProps) {
   const overlayStyles = isBackdropFilterSupported()
     ? {
-        backgroundColor: 'black30',
+        backgroundColor: 'blackAlpha.300',
         backdropFilter: 'blur(8px)',
       }
     : {
-        backgroundColor: 'black80',
+        backgroundColor: 'blackAlpha.800',
       };
   return (
     <Flex

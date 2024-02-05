@@ -1,4 +1,6 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants/src';
+import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
+import { UseToastReturn } from '@smart-invoice/types';
+import { errorToastHandler } from '@smart-invoice/utils';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
@@ -9,6 +11,7 @@ export const useTip = ({
   amount,
   chainId,
   onTxSuccess,
+  toast,
 }: TipProps) => {
   const { config } = usePrepareContractWrite({
     address,
@@ -21,13 +24,14 @@ export const useTip = ({
 
   const { writeAsync } = useContractWrite({
     ...config,
-    onSuccess: async txHash => {
+    onSuccess: async ({ hash }) => {
       // eslint-disable-next-line no-console
       console.log('Tip successful');
-      const data = await waitForTransaction(txHash);
+      const data = await waitForTransaction({ hash, chainId });
 
       onTxSuccess?.(data);
     },
+    onError: error => errorToastHandler('useTip', error, toast),
   });
 
   return { writeAsync };
@@ -39,4 +43,5 @@ interface TipProps {
   token: Hex | undefined;
   amount: bigint | undefined;
   onTxSuccess?: (data: TransactionReceipt) => void;
+  toast: UseToastReturn;
 }

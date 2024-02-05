@@ -1,7 +1,6 @@
 /* eslint-disable radix */
 import {
   DEFAULT_CHAIN_ID,
-  graphUrls,
   invoiceFactory,
   IPFS_ENDPOINT,
   isOfTypeChainId,
@@ -10,19 +9,15 @@ import {
   SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
+import { Invoice, TokenBalance, TokenMetadata } from '@smart-invoice/graphql';
 import { ProjectAgreement } from '@smart-invoice/types';
 import _ from 'lodash';
-import { Address, Hex } from 'viem';
+import { Address, formatUnits, Hex } from 'viem';
 
 import { chainsMap } from '.';
 
 export const unsupportedNetwork = (chainId: number) =>
   !_.includes(SUPPORTED_NETWORKS, chainId);
-
-export const getGraphUrl = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? graphUrls(chainId)
-    : graphUrls(DEFAULT_CHAIN_ID);
 
 export const getResolvers = (chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
@@ -33,6 +28,27 @@ export const getResolverInfo = (resolver: Address, chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
     ? resolverInfo(chainId)[_.toLower(resolver) as Hex]
     : resolverInfo(DEFAULT_CHAIN_ID)[_.toLower(resolver) as Hex];
+
+export const getResolverFee = (
+  invoice: Invoice,
+  tokenBalance: TokenBalance,
+) => {
+  const { resolutionRate } = _.pick(invoice, ['resolutionRate']);
+
+  return tokenBalance?.value && resolutionRate
+    ? formatUnits(
+        !resolutionRate || resolutionRate === BigInt(0)
+          ? BigInt(0)
+          : tokenBalance.value / BigInt(resolutionRate),
+        18,
+      )
+    : undefined;
+};
+
+export const resolverFeeLabel = (
+  fee: string | undefined,
+  tokenMetadata: TokenMetadata | undefined,
+) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
 export const getWrappedNativeToken = (chainId?: number) =>
   chainId && wrappedNativeToken(chainId);
@@ -125,7 +141,7 @@ export function commify(x: number | bigint | string): string {
   return _.toString(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export const calculateResolutionFeePercentage = (resolutionRate: string) => {
+export const resolutionFeePercentage = (resolutionRate: string) => {
   const feePercentage = 1 / parseInt(resolutionRate);
 
   return feePercentage;

@@ -1,11 +1,11 @@
-import { Box, Button, Grid, Stack, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Button, Grid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   INSTANT_STEPS,
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks/src';
-import { Input, NumberInput, Select } from '@smart-invoice/ui';
+import { useFetchTokens } from '@smart-invoice/hooks';
+import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
 import {
   getTokenSymbol,
   instantPaymentSchema,
@@ -29,7 +29,8 @@ export function InstantPaymentForm({
   const { data } = useFetchTokens();
   const { tokenData } = _.pick(data, ['tokenData']);
   const { watch, setValue } = invoiceForm;
-  const { client, provider, paymentDue } = watch();
+  const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
+    watch();
 
   const localForm = useForm({
     resolver: yupResolver(instantPaymentSchema),
@@ -39,7 +40,7 @@ export function InstantPaymentForm({
       paymentDue,
       deadline: oneMonthFromNow(),
       token: undefined as string | undefined,
-      lateFeeTimeInterval: undefined as string | undefined,
+      lateFee,
     },
   });
   const {
@@ -48,26 +49,21 @@ export function InstantPaymentForm({
     formState: { isValid },
   } = localForm;
 
-  const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
+  const { primaryButtonSize } = useMediaStyles();
 
   const TOKENS = useMemo(
     () => (tokenData ? _.keys(tokenData[chainId]) : undefined),
     [chainId, tokenData],
   );
 
-  // console.log('errors', errors);
-
-  // setLateFeeTimeInterval(parseInt(v) * 1000 * 60 * 60 * 24);
-
-  const onSubmit = (values: any) => {
-    console.log(values);
-    setValue('client', values?.client);
-    setValue('provider', values?.provider);
-    setValue('token', values?.token);
-    setValue('paymentDue', values.paymentDue);
-    setValue('deadline', values?.deadline);
-    setValue('lateFee', values?.lateFee);
-    setValue('lateFeeTimeInterval', values?.lateFeeTimeInterval);
+  const onSubmit = (values: unknown) => {
+    setValue('client', _.get(values, 'client'));
+    setValue('provider', _.get(values, 'provider'));
+    setValue('token', _.get(values, 'token'));
+    setValue('paymentDue', _.get(values, 'paymentDue'));
+    setValue('deadline', _.get(values, 'deadline'));
+    setValue('lateFee', _.get(values, 'lateFee'));
+    setValue('lateFeeTimeInterval', _.get(values, 'lateFeeTimeInterval'));
 
     updateStep?.();
   };
@@ -77,7 +73,8 @@ export function InstantPaymentForm({
     localSetValue('token', _.first(TOKENS), { shouldDirty: true });
     localSetValue(
       'lateFeeTimeInterval',
-      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+      lateFeeTimeInterval ||
+        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
       { shouldDirty: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,7 +167,7 @@ export function InstantPaymentForm({
           type="submit"
           isDisabled={!isValid}
           textTransform="uppercase"
-          size={buttonSize}
+          size={primaryButtonSize}
           fontWeight="bold"
         >
           Next: {INSTANT_STEPS[2].next}

@@ -26,6 +26,7 @@ type FormConfirmationProps = {
   invoiceForm: UseFormReturn;
   handleSubmit: () => void;
   canSubmit: boolean;
+  isLoading: boolean;
   type: ValueOf<typeof INVOICE_TYPES>;
 };
 
@@ -33,6 +34,7 @@ export function FormConfirmation({
   invoiceForm,
   handleSubmit,
   canSubmit,
+  isLoading,
   type,
 }: FormConfirmationProps) {
   const chainId = useChainId();
@@ -58,8 +60,8 @@ export function FormConfirmation({
     paymentDue,
   } = watch();
 
-  const lateFeeIntervalString = _.toLower(
-    LATE_FEE_INTERVAL_OPTIONS[_.toNumber(lateFeeTimeInterval)]?.label,
+  const lateFeeIntervalLabel = _.toLower(
+    _.find(LATE_FEE_INTERVAL_OPTIONS, { value: lateFeeTimeInterval })?.label,
   );
 
   const initialPaymentDue = _.get(_.first(milestones), 'value');
@@ -108,7 +110,7 @@ export function FormConfirmation({
         lateFeeTimeInterval && {
           label: 'Late Fee:',
           value: (
-            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalString}`}</Text>
+            <Text textAlign="right">{`${lateFee} ${symbol} per ${lateFeeIntervalLabel}`}</Text>
           ),
         },
       // calculate payment due
@@ -154,7 +156,7 @@ export function FormConfirmation({
       <Divider />
 
       {_.map(details, ({ label, value }) => (
-        <Flex justify="space-between" width={columnWidth}>
+        <Flex justify="space-between" width={columnWidth} key={label}>
           <Text>{label}</Text>
           {value}
         </Flex>
@@ -186,6 +188,7 @@ export function FormConfirmation({
         <Button
           onClick={handleSubmit}
           isDisabled={!canSubmit}
+          isLoading={isLoading}
           textTransform="uppercase"
           size={primaryButtonSize}
           fontFamily="mono"
