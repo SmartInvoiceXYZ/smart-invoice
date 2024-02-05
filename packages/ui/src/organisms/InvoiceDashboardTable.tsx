@@ -8,7 +8,13 @@ import {
   IconButton,
   Spinner,
   Stack,
+  Table,
+  Tbody,
+  Td,
   Text,
+  Th,
+  Thead,
+  Tr,
 } from '@chakra-ui/react';
 import {
   fetchInvoices,
@@ -30,7 +36,7 @@ import { useRouter } from 'next/router';
 import React, { useMemo, useState } from 'react';
 import { Address, formatUnits } from 'viem';
 
-import { ChakraNextLink, useMediaStyles } from '..';
+import { ChakraNextLink, theme, useMediaStyles } from '..';
 import {
   DoubleLeftArrowIcon,
   LeftArrowIcon,
@@ -90,11 +96,6 @@ export function InvoiceDashboardTable({
           cell: info => info.getValue(),
         },
       ),
-      // columnHelper.accessor('action', { // TODO: clear up what this column is for? not on GQL schema...
-      //   header: 'Action',
-      //   cell: info => info.getValue(),
-      //   footer: info => info.column.id,
-      // }),
     ];
   }, []);
 
@@ -221,38 +222,46 @@ export function InvoiceDashboardTable({
           </Button>
         </HStack>
         <div className="tableWrap">
-          <table>
-            <thead>
+          <Table>
+            <Thead>
               {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
+                <Tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => (
-                    <th key={header.id}>
+                    <Th key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
-                    </th>
+                    </Th>
                   ))}
-                </tr>
+                </Tr>
               ))}
-            </thead>
-            <tbody>
+            </Thead>
+            <Tbody>
               {table.getRowModel().rows.map(row => (
-                <tr key={row.id}>
+                <Tr
+                  key={row.id}
+                  onClick={() =>
+                    router.push(
+                      `/invoice/${chainId?.toString(16)}/${row.getValue('address')}`,
+                    )
+                  }
+                  _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
+                >
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id}>
+                    <Td key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
                       )}
-                    </td>
+                    </Td>
                   ))}
-                </tr>
+                </Tr>
               ))}
-            </tbody>
-          </table>
+            </Tbody>
+          </Table>
         </div>
         <div className="pagination">
           <IconButton
@@ -268,12 +277,14 @@ export function InvoiceDashboardTable({
             onClick={() => table.previousPage()}
           />
           <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
-          <IconButton
-            aria-label="Next Page"
-            disabled={data?.length < table.getState().pagination.pageSize}
-            icon={<RightArrowIcon />}
-            onClick={() => table.nextPage()}
-          />
+          {data?.length >= table.getState().pagination.pageSize ? (
+            <IconButton
+              aria-label="Next Page"
+              disabled={data?.length < table.getState().pagination.pageSize}
+              icon={<RightArrowIcon />}
+              onClick={() => table.nextPage()}
+            />
+          ) : null}
         </div>
       </Styles>
     </Box>
