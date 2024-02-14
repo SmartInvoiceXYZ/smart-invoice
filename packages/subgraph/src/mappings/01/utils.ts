@@ -89,6 +89,10 @@ export function addQm(a: ByteArray): ByteArray {
 
 export function updateInvoice(address: Address, invoice: Invoice): Invoice {
   if (invoice == null) return invoice;
+  // ignore bad address
+  if (address.toHexString() == '0x47838384f6cc2b08d5c86a2b48cdcb9d40516189') {
+    return invoice;
+  }
 
   let type = invoice.invoiceType;
   if (type == null) return invoice;
