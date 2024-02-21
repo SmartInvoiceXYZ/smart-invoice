@@ -49,7 +49,6 @@ dataSources:
         - event: LogNewInvoice(indexed uint256,indexed address,uint256[],bytes32,uint256)
           handler: handleLogNewInvoice
         {{/v01}}
-          
       file: ./src/mappings/{{factoryName}}/factory.ts
 {{/factories}}
 templates:
@@ -291,6 +290,8 @@ templates:
           file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
         - name: SmartInvoiceSplitEscrow{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
+        - name: SmartInvoiceUpdatable{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
         {{/v01}}

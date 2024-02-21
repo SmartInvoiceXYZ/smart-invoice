@@ -49,7 +49,7 @@ export function ProjectDetailsForm({
 
   const { primaryButtonSize } = useMediaStyles();
 
-  const onSubmit = async (values: Partial<FormInvoice>) => {
+  const onSubmit = async (values: Partial<any>) => {
     const localProjectAgreement = [];
     if (values.projectAgreement) {
       // TODO align with AddMilestones handling for projectAgreement
