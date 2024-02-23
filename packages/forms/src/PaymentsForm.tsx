@@ -23,7 +23,11 @@ import {
   Select,
   useMediaStyles,
 } from '@smart-invoice/ui';
-import { commify, escrowPaymentsSchema } from '@smart-invoice/utils';
+import {
+  commify,
+  escrowPaymentsSchema,
+  getDecimals,
+} from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
@@ -90,10 +94,17 @@ export function PaymentsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS]);
 
-  const total = _.sumBy(
-    localMilestones,
-    (milestone: { value: string }) => _.toNumber(milestone.value) || 0,
-  );
+  const [total, decimals] = localMilestones
+    ? localMilestones
+        .map((milestone: { value: string }) => [
+          _.toNumber(milestone.value) || 0,
+          getDecimals(milestone.value),
+        ])
+        .reduce(
+          ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
+          [0, 0],
+        )
+    : [0, 0];
 
   return (
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
@@ -174,7 +185,7 @@ export function PaymentsForm({
             </Button>
 
             <Text>
-              Total: {commify(total || 0)} {invoiceTokenData?.symbol}
+              Total: {commify(total, decimals)} {invoiceTokenData?.symbol}
             </Text>
           </Flex>
         </Stack>

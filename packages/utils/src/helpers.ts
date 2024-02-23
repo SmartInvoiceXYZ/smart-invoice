@@ -133,10 +133,18 @@ export const isValidLink = (url: string) => {
   return isValidURL(url);
 };
 
-export function commify(x: number | bigint | string): string {
+export const getDecimals = (value: string) => {
+  const [, decimal] = value.split('.');
+  return decimal?.length || 0;
+};
+
+export function commify(
+  x: number | bigint | string,
+  decimals?: number,
+): string {
   if (_.toString(x).includes('.')) {
     const [whole, decimal] = x.toString().split('.');
-    return `${commify(whole)}.${decimal}`;
+    return `${commify(whole)}.${decimal.substring(0, Math.min(decimals ?? decimal.length, decimal.length))}`;
   }
   return _.toString(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
