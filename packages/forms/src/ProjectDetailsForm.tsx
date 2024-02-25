@@ -2,7 +2,13 @@ import { Box, Button, Grid, HStack, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
 import { ValueOf } from '@smart-invoice/types';
-import { DatePicker, Input, Textarea, useMediaStyles } from '@smart-invoice/ui';
+import {
+  DatePicker,
+  Input,
+  LinkInput,
+  Textarea,
+  useMediaStyles,
+} from '@smart-invoice/ui';
 import {
   oneMonthFromNow,
   projectDetailsSchema,
@@ -50,20 +56,20 @@ export function ProjectDetailsForm({
   const { primaryButtonSize } = useMediaStyles();
 
   const onSubmit = async (values: Partial<any>) => {
-    const localProjectAgreement = [];
-    if (values.projectAgreement) {
-      // TODO align with AddMilestones handling for projectAgreement
-      // TODO handle ipfs agreement link
-      localProjectAgreement.push({
-        type: 'https',
-        src: values.projectAgreement,
-        createdAt: Math.floor(Date.now() / 1000),
-      });
-    }
+    // if (values.projectAgreement) {
+    //   // TODO align with AddMilestones handling for projectAgreement
+    //   // TODO handle ipfs agreement link
+    //   localProjectAgreement.push({
+    //     type: 'https',
+    //     src: values.projectAgreement,
+    //     createdAt: Math.floor(Date.now() / 1000),
+    //   });
+    // }
+    // don't handle project agreement here
 
     setValue('projectName', values.projectName);
     setValue('projectDescription', values.projectDescription);
-    setValue('projectAgreement', localProjectAgreement);
+    setValue('projectAgreement', values.projectAgreement);
     setValue('startDate', values.startDate);
     setValue('endDate', values.endDate);
     setValue('safetyValveDate', values.safetyValveDate);
@@ -93,13 +99,14 @@ export function ProjectDetailsForm({
           registerOptions={{ required: true }}
           localForm={localForm}
         />
-        <Input
-          label="Project Proposal, Agreement or Specification"
+        <LinkInput
           name="projectAgreement"
+          label="Project Proposal, Agreement or Specification"
           tooltip="A URL to a project proposal, agreement or specification. This could be a RIP or other proposal. This is optional."
           placeholder="https://github.com/AcmeAcademy/buidler"
           localForm={localForm}
         />
+
         <HStack>
           <Box w="30%">
             <DatePicker

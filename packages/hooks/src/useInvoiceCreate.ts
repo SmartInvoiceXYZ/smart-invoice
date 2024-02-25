@@ -80,7 +80,7 @@ export const useInvoiceCreate = ({
   const detailsData = {
     projectName,
     projectDescription,
-    projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+    projectAgreement,
     startDate,
     endDate,
   };
