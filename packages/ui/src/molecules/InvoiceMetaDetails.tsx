@@ -70,7 +70,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
       ? resolver
       : undefined;
 
-  const isClient = address === client;
+  const isClient = _.toLower(address) === client;
 
   const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
   const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
