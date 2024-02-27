@@ -49,29 +49,28 @@ export function ConnectWeb3() {
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
 
-        {isClient &&
-          (address ? (
-            <>
-              <Text fontSize="2xl" fontFamily="heading" mb={4}>
-                Connect Wallet
-              </Text>
-              <Text color="greyText" mb={4} textAlign="center">
-                {`Please switch to ${_.map(
-                  SUPPORTED_NETWORKS,
-                  network => chainsMap(network)?.name,
-                ).join(' or ')}`}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text fontSize="2xl" fontFamily="heading" mb={4}>
-                Network not supported
-              </Text>
-              <Text color="greyText" mb={4} textAlign="center">
-                To get started, connect your wallet
-              </Text>
-            </>
-          ))}
+        {isClient && address ? (
+          <>
+            <Text fontSize="2xl" fontFamily="heading" mb={4}>
+              Connect Wallet
+            </Text>
+            <Text color="greyText" mb={4} textAlign="center">
+              {`Please switch to ${_.map(
+                SUPPORTED_NETWORKS,
+                network => chainsMap(network)?.name,
+              ).join(' or ')}`}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text fontSize="2xl" fontFamily="heading" mb={4}>
+              Network not supported
+            </Text>
+            <Text color="greyText" mb={4} textAlign="center">
+              To get started, connect your wallet
+            </Text>
+          </>
+        )}
 
         {isClient && !address && (
           <Button onClick={openConnectModal} px={12} isLoading={isConnecting}>

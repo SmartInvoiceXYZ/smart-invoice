@@ -96,6 +96,16 @@ export const useInvoiceCreate = ({
   });
 
   const escrowData = useMemo(() => {
+    console.log(
+      !client,
+      !(resolver || customResolver),
+      !token,
+      !safetyValveDate,
+      !wrappedNativeToken(chainId),
+      !details,
+      !localInvoiceFactory,
+      !provider,
+    );
     if (
       !client ||
       !(resolver || customResolver) ||
@@ -142,6 +152,7 @@ export const useInvoiceCreate = ({
     wrappedNativeToken,
     localInvoiceFactory,
   ]);
+  console.log(escrowData);
 
   const { config, error: prepareError } = usePrepareContractWrite({
     address: localInvoiceFactory,

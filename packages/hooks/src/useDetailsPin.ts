@@ -44,13 +44,15 @@ export const useDetailsPin = ({
       return undefined;
     }
 
-    const newProjectAgreement = _.concat(invoiceProjectAgreement || []);
-    if (projectAgreement !== '') {
+    // TODO working around bigint type for createdAt
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newProjectAgreement: any[] = _.concat(invoiceProjectAgreement || []);
+    if (projectAgreement && projectAgreement !== '') {
       newProjectAgreement.push({
         id: createdAt.toString(),
         src: projectAgreement,
-        type: projectAgreement.startsWith('http') ? 'http' : 'ipfs',
-        createdAt,
+        type: projectAgreement?.startsWith('http') ? 'http' : 'ipfs',
+        createdAt: createdAt.toString(),
       });
     }
 
@@ -70,6 +72,7 @@ export const useDetailsPin = ({
     endDate,
     invoice,
   ]);
+  console.log('detailsData', detailsData);
 
   const detailsPin = async () => {
     const token = await fetchToken();
@@ -96,6 +99,7 @@ export const useDetailsPin = ({
       !!detailsData,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
+  console.log(data, isLoading, error);
 
   return { data, isLoading, error };
 };

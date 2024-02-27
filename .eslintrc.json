@@ -74,18 +74,10 @@
   "settings": {
     "import/resolver": {
       "typescript": {
-        "project": [
-          "tsconfig.base.json",
-          "apps/*/tsconfig.json",
-          "libs/*/tsconfig.json"
-        ]
+        "project": ["tsconfig.base.json", "packages/**/tsconfig.json"]
       },
       "node": {
-        "project": [
-          "tsconfig.base.json",
-          "apps/*/tsconfig.json",
-          "libs/*/tsconfig.json"
-        ]
+        "project": ["tsconfig.base.json", "packages/**/tsconfig.json"]
       }
     }
   }

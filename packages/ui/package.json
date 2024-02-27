@@ -26,7 +26,7 @@
     "blockies-ts": "^1.0.0",
     "framer-motion": "^10.17.12",
     "lodash": "^4.17.21",
-    "next": "^14.0.4",
+    "next": "14.0.1",
     "react": "^18.2.0",
     "react-datepicker": "^4.25.0",
     "react-hook-form": "^7.49.3",
