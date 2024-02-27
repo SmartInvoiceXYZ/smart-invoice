@@ -69,3 +69,4 @@ packages/subgraph/src/types
 
 # next.js
 .next
+packages/subgraph/subgraph.template.yaml
