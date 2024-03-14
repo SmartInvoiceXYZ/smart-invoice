@@ -20,7 +20,7 @@ const ZAP_DATA = {
   arbitration: 1,
   token: getWrappedTokenAddress(5), // token
   escrowDeadline: Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60, // deadline
-  details: ethers.utils.formatBytes32String("ipfs://"), // details
+  details: formatBytes32String("ipfs://"), // details
   fallbackHandler: "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
 };
 
@@ -41,11 +41,11 @@ async function main() {
     safeSplitsEscrowZapAddress,
   );
 
-  const encodedSafeData = ethers.utils.defaultAbiCoder.encode(
+  const encodedSafeData = defaultAbiCoder.encode(
     ["uint256", "uint256"],
     [ZAP_DATA.threshold, ZAP_DATA.saltNonce],
   );
-  const encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+  const encodedEscrowData = defaultAbiCoder.encode(
     [
       "address",
       "uint32",
@@ -81,11 +81,11 @@ async function main() {
     );
   const createResult = await SafeSplitsEscrowZapCreateReceipt.wait();
 
-  const [split] = ethers.utils.defaultAbiCoder.decode(
+  const [split] = defaultAbiCoder.decode(
     ["address"],
     createResult.events[2].topics[1],
   );
-  const [escrow] = ethers.utils.defaultAbiCoder.decode(
+  const [escrow] = defaultAbiCoder.decode(
     ["address"],
     createResult.events[5].topics[2],
   );

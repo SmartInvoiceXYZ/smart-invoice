@@ -4,7 +4,7 @@ title: Creating a Smart Invoice (Provider)
 
 ## Step 1: Project Details
 
-Here you will enter your project’s details in sequential order:
+Here you will enter your project's details in sequential order:
 
 1. Project Name or ID
 2. Link to Project Agreement

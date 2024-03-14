@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./interfaces/ISmartInvoiceInstant.sol";
-import "./interfaces/IWRAPPED.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {ISmartInvoiceInstant} from "./interfaces/ISmartInvoiceInstant.sol";
+import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 contract SmartInvoiceInstant is
     ISmartInvoiceInstant,
@@ -24,17 +24,17 @@ contract SmartInvoiceInstant is
     address public provider;
     address public token;
     bytes32 public details;
-    uint256 public deadline;
+    uint256 public override deadline;
 
     uint256[] public amounts;
     uint256 public total = 0;
-    uint256 public totalFulfilled = 0;
-    bool public fulfilled;
+    uint256 public override totalFulfilled = 0;
+    bool public override fulfilled;
     uint256 public fulfillTime = 0;
     uint256 public constant MAX_DEADLINE = 63113904; // 2-year limit on locker
 
-    uint256 public lateFee = 0;
-    uint256 public lateFeeTimeInterval = 0;
+    uint256 public override lateFee = 0;
+    uint256 public override lateFeeTimeInterval = 0;
 
     event Deposit(address indexed sender, uint256 amount);
     event Fulfilled(address indexed sender);
@@ -90,11 +90,10 @@ contract SmartInvoiceInstant is
         return total + totalLateFee;
     }
 
-    function depositTokens(address _token, uint256 _amount)
-        external
-        override
-        nonReentrant
-    {
+    function depositTokens(
+        address _token,
+        uint256 _amount
+    ) external override nonReentrant {
         require(_token == token, "!token");
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         _deposit(_amount);
@@ -116,7 +115,10 @@ contract SmartInvoiceInstant is
         }
     }
 
-    function tip(address _token, uint256 _amount) external nonReentrant {
+    function tip(
+        address _token,
+        uint256 _amount
+    ) external override nonReentrant {
         require(fulfilled, "!fulfilled");
         require(_token == token, "!token");
         totalFulfilled += _amount;

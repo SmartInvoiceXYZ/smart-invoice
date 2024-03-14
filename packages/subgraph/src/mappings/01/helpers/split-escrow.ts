@@ -63,7 +63,6 @@ function fetchSplitEscrowInfo(address: Address): InvoiceObject {
     invoiceObject.disputeId = disputeId.value;
   }
   if (!details.reverted) {
-    //needs to be broken out based on invoice type
     invoiceObject = handleIpfsDetails(details.value, invoiceObject);
   }
   if (!dao.reverted) {

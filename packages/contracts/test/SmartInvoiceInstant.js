@@ -45,7 +45,7 @@ describe("SmartInvoiceInstant", function () {
     );
     invoice = await SmartInvoiceInstant.deploy();
     await invoice.deployed();
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    const data = AbiCoder.prototype.encode(
       [
         "address",
         "address",

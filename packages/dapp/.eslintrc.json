@@ -1,25 +1,12 @@
 {
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "jest": true
   },
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "ecmaFeatures": {
-      "experimentalObjectRestSpread": true,
-      "jsx": true
-    },
-    "sourceType": "module"
-  },
+  "extends": ["../../.eslintrc.json"],
   "rules": {
-    "react/prop-types": "off",
-
-    "import/no-default-export": "off",
-    "import/prefer-default-export": "off"
-  },
-  "extends": [
-    "eslint:recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react/recommended"
-  ]
+    "no-use-before-define": "off",
+    "import/no-default-export": "off"
+  }
 }

@@ -1,0 +1,43 @@
+{
+  "name": "@smart-invoice/ui",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@chakra-ui/icon": "^3.2.0",
+    "@chakra-ui/icons": "2.1.1",
+    "@chakra-ui/react": "^2.8.2",
+    "@emotion/react": "^11.1.4",
+    "@emotion/styled": "^11.3.0",
+    "@rainbow-me/rainbowkit": "^1.3.3",
+    "@react-pdf/renderer": "^3.1.14",
+    "@smart-invoice/constants": "*",
+    "@smart-invoice/graphql": "*",
+    "@smart-invoice/hooks": "*",
+    "@smart-invoice/types": "*",
+    "@smart-invoice/utils": "*",
+    "@tanstack/react-query": "^5.18.1",
+    "@tanstack/react-table": "^8.11.3",
+    "@testing-library/react": "^14.1.2",
+    "@vercel/analytics": "^1.1.1",
+    "blockies-ts": "^1.0.0",
+    "framer-motion": "^10.17.12",
+    "lodash": "^4.17.21",
+    "next": "14.0.1",
+    "react": "^18.2.0",
+    "react-datepicker": "^4.25.0",
+    "react-hook-form": "^7.49.3",
+    "styled-components": "^6.1.8",
+    "viem": "1.21.4",
+    "wagmi": "^1.4.13"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/lodash": "^4.14.202",
+    "@types/node": "20.11.5",
+    "@types/react": "^18.2.47"
+  }
+}

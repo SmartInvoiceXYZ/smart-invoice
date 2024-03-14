@@ -21,7 +21,7 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 const resolutionRate = 20;
 const requireVerification = true;
-const invoiceType = ethers.utils.formatBytes32String("split-escrow");
+const invoiceType = formatBytes32String("split-escrow");
 const daoFee = 1000; // out of 10000
 
 describe("SmartInvoiceSplitEscrow", function () {
@@ -66,7 +66,7 @@ describe("SmartInvoiceSplitEscrow", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await factory.addImplementation(invoiceType, invoice.address);
-    data = ethers.utils.AbiCoder.prototype.encode(
+    data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -140,7 +140,7 @@ describe("SmartInvoiceSplitEscrow", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.initLock();
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    const data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",

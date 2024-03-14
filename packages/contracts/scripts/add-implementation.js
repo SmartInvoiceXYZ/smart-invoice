@@ -36,7 +36,7 @@ const ESCROW_TYPES = {
 
 // TODO separate if need CI/CD runs, no easy parameter strategy afaik
 const escrowTypeData = ESCROW_TYPES.updatable;
-const escrowType = ethers.utils.formatBytes32String(escrowTypeData.key);
+const escrowType = formatBytes32String(escrowTypeData.key);
 
 async function main() {
   if (!escrowType) return;
@@ -58,7 +58,7 @@ async function main() {
   console.log("Account address:", address);
   console.log(
     "Account balance:",
-    ethers.utils.formatEther(await deployer.provider.getBalance(address)),
+    formatEther(await deployer.provider.getBalance(address)),
     getNetworkCurrency(chainId),
   );
 

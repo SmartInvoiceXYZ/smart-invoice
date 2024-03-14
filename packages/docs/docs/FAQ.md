@@ -45,7 +45,7 @@ title: FAQ
 </details></h4>
 
 <h4><details>
-<summary>Why can’t I release or withdraw my payment? (CLIENT)</summary>
+<summary>Why can't I release or withdraw my payment? (CLIENT)</summary>
 
 <p>&nbsp;</p>
 

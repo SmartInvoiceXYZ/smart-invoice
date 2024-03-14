@@ -2,7 +2,7 @@ import { Address, log } from '@graphprotocol/graph-ts';
 
 import { Invoice } from '../../../types/schema';
 import { InvoiceObject } from '../utils';
-import { SmartInvoiceUpdatable01 } from '../../../types/templates/SmartInvoiceEscrow01/SmartInvoiceUpdatable01';
+import { SmartInvoiceUpdatable01 } from '../../../types/templates/SmartInvoiceUpdatable01/SmartInvoiceUpdatable01';
 import { handleIpfsDetails } from './ipfs';
 
 function fetchEscrowInfo(address: Address): InvoiceObject {
@@ -65,7 +65,6 @@ function fetchEscrowInfo(address: Address): InvoiceObject {
     invoiceObject.disputeId = disputeId.value;
   }
   if (!details.reverted) {
-    //needs to be broken out based on invoice type
     invoiceObject = handleIpfsDetails(details.value, invoiceObject);
   }
 

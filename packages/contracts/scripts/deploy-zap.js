@@ -82,10 +82,10 @@ async function main() {
     zapData.fallbackHandler, //             fallback handler
     zapData.safeFactory, //                 safe factory
     zapData.splitMain, //                   split main
-    zapData.spoilsManager, //               spoils manager
+    zapData.spoilsManager, //               spoils manager, not used in regular zap
     getFactory(chainId), //                 escrow factory
     getWrappedTokenAddress(chainId), //     wrapped token
-    zapData.dao, //                         dao
+    zapData.dao, //                         dao, not used in regular zap
   ];
   const encodedData = ethers.utils.defaultAbiCoder.encode(
     Array.from({ length: zapDeployData.length }, () => "address"),

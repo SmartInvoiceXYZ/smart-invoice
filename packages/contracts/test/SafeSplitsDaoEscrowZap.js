@@ -29,7 +29,7 @@ const ZAP_DATA = {
   isProjectSplit: true,
   token: getWrappedTokenAddress(5),
   escrowDeadline: Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60,
-  details: ethers.utils.formatBytes32String("ipfs://"),
+  details: formatBytes32String("ipfs://"),
   fallbackHandler: "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
 };
 
@@ -97,7 +97,7 @@ describe("SafeSplitsDaoEscrowZap", function () {
       spoilsValues.percentageScale,
       spoilsValues.receiver,
       spoilsValues.newOwner,
-      ethers.utils.formatBytes32String(String(currentTimestamp())),
+      formatBytes32String(String(currentTimestamp())),
     );
     const spoilsManagerDeploy = await spoilsManagerReceipt.wait();
     const spoilsManagerAddress = spoilsManagerDeploy.logs[0].address;
@@ -135,7 +135,7 @@ describe("SafeSplitsDaoEscrowZap", function () {
       getWrappedTokenAddress(chainId), //     wrapped token
       zapData.dao, //                         dao
     ];
-    const encodedData = ethers.utils.defaultAbiCoder.encode(
+    const encodedData = defaultAbiCoder.encode(
       [
         "address",
         "address",
@@ -151,7 +151,7 @@ describe("SafeSplitsDaoEscrowZap", function () {
     const SafeSplitsDaoEscrowZapReceipt =
       await factory.createSafeSplitsEscrowZap(
         encodedData,
-        ethers.utils.formatBytes32String(String(ZAP_DATA.saltNonce)),
+        formatBytes32String(String(ZAP_DATA.saltNonce)),
       );
     const zapDeploy = await SafeSplitsDaoEscrowZapReceipt.wait();
     const zapAddress = zapDeploy.logs[0].address;
@@ -161,15 +161,15 @@ describe("SafeSplitsDaoEscrowZap", function () {
   beforeEach(async function () {
     i++; // increment to avoid nonce collisions in Create2 deployments
     // create with zap
-    encodedSafeData = ethers.utils.defaultAbiCoder.encode(
+    const encodedSafeData = defaultAbiCoder.encode(
       ["uint256", "uint256"],
       [ZAP_DATA.threshold, ZAP_DATA.saltNonce + i],
     );
-    encodedSplitData = ethers.utils.defaultAbiCoder.encode(
-      ["bool", "bool"],
-      [ZAP_DATA.isProjectSplit, ZAP_DATA.isDaoSplit],
+    const encodedSplitData = defaultAbiCoder.encode(
+      ["bool"],
+      [ZAP_DATA.isDaoSplit],
     );
-    encodedEscrowData = ethers.utils.defaultAbiCoder.encode(
+    const encodedEscrowData = defaultAbiCoder.encode(
       [
         "address",
         "uint32",
@@ -204,7 +204,7 @@ describe("SafeSplitsDaoEscrowZap", function () {
     );
     // parse create with zap event
     const [safeAddress, teamSplitAddress, daoSplitAddress, escrowAddress] =
-      ethers.utils.defaultAbiCoder.decode(
+      defaultAbiCoder.decode(
         ["address", "address", "address", "address"],
         zapCreatedEvent.data,
       );
