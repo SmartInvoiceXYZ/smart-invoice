@@ -16,15 +16,13 @@ import {
   useToast,
 } from '@smart-invoice/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
 // import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, Hex, numberToHex } from 'viem';
+import { Address, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
-import { Invoice } from '@smart-invoice/graphql/src';
 
 export function CreateInvoiceEscrow() {
   const chainId = useChainId();
