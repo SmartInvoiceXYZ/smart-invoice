@@ -20,20 +20,22 @@ import { useRouter } from 'next/router';
 // import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Hex, numberToHex } from 'viem';
+import { Address, Hex, numberToHex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
+import { Invoice } from '@smart-invoice/graphql/src';
 
 export function CreateInvoiceEscrow() {
   const chainId = useChainId();
   const invoiceForm = useForm();
   const toast = useToast();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [txHash, setTxHash] = useState<Address>();
 
+  const [invoiceId, setInvoiceId] = useState<Address>();
   const { headingSize, columnWidth } = useMediaStyles();
 
   const nextStepHandler = () => {
@@ -50,10 +52,10 @@ export function CreateInvoiceEscrow() {
     queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
     queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
 
-    // redirect
-    setTimeout(() => {
-      router.push(`/invoice/${numberToHex(chainId)}/${result}`);
-    }, 500);
+    setInvoiceId(result as Address);
+
+    // Send to Success step
+    nextStepHandler();
   };
 
   const { writeAsync, isLoading } = useInvoiceCreate({
@@ -63,18 +65,9 @@ export function CreateInvoiceEscrow() {
   });
 
   const handleSubmit = async () => {
-    await writeAsync?.();
+    const data = await writeAsync?.();
+    setTxHash(data?.hash);
   };
-
-  // if (txHash) {
-  // eslint-disable-next-line no-constant-condition
-  if (false) {
-    return (
-      <Container overlay>
-        <RegisterSuccess />
-      </Container>
-    );
-  }
 
   return (
     <Container overlay>
@@ -156,6 +149,13 @@ export function CreateInvoiceEscrow() {
                 canSubmit={!!writeAsync}
                 isLoading={isLoading}
                 type={INVOICE_TYPES.Escrow}
+              />
+            )}
+
+            {currentStep === 5 && (
+              <RegisterSuccess
+                invoiceId={invoiceId as Address}
+                txHash={txHash as Address}
               />
             )}
           </Flex>
