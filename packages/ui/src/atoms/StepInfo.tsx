@@ -38,7 +38,7 @@ export function StepInfo({
   return (
     <Stack spacing="1rem" maxW={maxW} align="stretch">
       <Flex justify="space-between" my={4}>
-        {stepNum !== 1 ? (
+        {stepNum !== 1 && stepNum !== 5 ? (
           <IconButton
             icon={
               <Icon

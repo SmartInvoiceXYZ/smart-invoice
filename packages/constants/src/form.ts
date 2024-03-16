@@ -35,6 +35,11 @@ export const ESCROW_STEPS: { [key: number]: EscrowStep } = {
     step_details: [],
     next: 'create invoice',
   },
+  5: {
+    step_title: 'Invoice Created',
+    step_details: [],
+    next: 'invoice created',
+  },
 };
 
 export const INSTANT_STEPS: { [key: number]: EscrowStep } = {
