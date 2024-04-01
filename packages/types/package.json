@@ -16,6 +16,6 @@
     "@chakra-ui/react": "^2.8.2",
     "@smart-invoice/graphql": "*",
     "react": "^18.2.0",
-    "viem": "^1.21.4"
+    "viem": "^2.8.18"
   }
 }

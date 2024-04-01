@@ -1,18 +1,18 @@
 import { Button, Flex, Text } from '@chakra-ui/react';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 import { useIsClient } from '@smart-invoice/hooks';
 import { chainsMap } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React from 'react';
 import { useAccount } from 'wagmi';
-
+import { createWeb3ModalThing } from '@smart-invoice/utils';
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { Container } from './Container';
 import { Loader } from './Loader';
 
 export function ConnectWeb3() {
-  const { openConnectModal } = useConnectModal();
+  const { open, close } = useWeb3Modal();
   const { address, isConnecting } = useAccount();
 
   const isClient = useIsClient();
@@ -73,7 +73,7 @@ export function ConnectWeb3() {
         )}
 
         {isClient && !address && (
-          <Button onClick={openConnectModal} px={12} isLoading={isConnecting}>
+          <Button onClick={() => open()} px={12} isLoading={isConnecting}>
             Connect
           </Button>
         )}
