@@ -1,33 +1,11 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
-import {
-  coinbaseWallet,
-  injectedWallet,
-  ledgerWallet,
-  metaMaskWallet,
-  rainbowWallet,
-  walletConnectWallet,
-} from '@rainbow-me/rainbowkit/wallets';
+import { createWeb3Modal } from '@web3modal/wagmi/react';
+import { defaultWagmiConfig } from '@web3modal/wagmi/react/config';
 import _ from 'lodash';
-import { Chain, configureChains, createConfig } from 'wagmi';
-import {
-  gnosis as defaultGnosis,
-  goerli,
-  mainnet,
-  polygon,
-  polygonMumbai,
-} from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { publicProvider } from 'wagmi/providers/public';
-
+import { type Chain } from 'viem';
+import { cookieStorage, createStorage } from 'wagmi';
+import { gnosis, mainnet, polygon, polygonMumbai, sepolia } from 'wagmi/chains';
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
-
-const gnosis = {
-  ...defaultGnosis,
-  hasIcon: true,
-  iconUrl: '/chains/gnosis.png',
-  iconBackground: 'none',
-};
 
 const mainnetChains = [1, 100, 137];
 const testnetChains = [5, 80001];
@@ -35,11 +13,19 @@ const orderedChains = _.concat(mainnetChains, testnetChains);
 
 export const chainsList: { [key: number]: Chain } = {
   1: mainnet,
-  5: goerli,
+  11155111: sepolia,
   100: gnosis,
   137: polygon,
   80001: polygonMumbai,
 };
+
+const chainsOrdered: Chain[] = [
+  mainnet,
+  sepolia,
+  gnosis,
+  polygon,
+  polygonMumbai,
+];
 
 export const chainsMap = (chainId: number) => {
   if (!chainId) {
@@ -59,37 +45,30 @@ export const chainByName = (name: string | undefined) => {
   return chain;
 };
 
-const { chains, publicClient } = configureChains(
-  _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
-  [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-    publicProvider(),
-  ],
-);
-const options = {
-  appName: APP_NAME,
-  projectId: PROJECT_ID,
-  chains,
+const chains = _.map(orderedChains, 'id');
+
+const metadata = {
+  name: APP_NAME,
+  description: APP_NAME,
+  url: 'http://localhost:3000', // origin must match your domain & subdomain
+  icons: ['/favicon.ico'],
 };
 
-const connectors = connectorsForWallets([
-  {
-    groupName: 'Recommended',
-    wallets: [
-      injectedWallet({ chains, shimDisconnect: true }),
-      rainbowWallet({ chains, projectId: PROJECT_ID }),
-      ledgerWallet({ chains, projectId: PROJECT_ID }),
-      metaMaskWallet({ chains, projectId: PROJECT_ID }),
-      coinbaseWallet({ appName: APP_NAME, chains }),
-      walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
-    ],
-  },
-]);
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
+export const config = defaultWagmiConfig({
+  chains: [...chainsOrdered] as any,
+  projectId: PROJECT_ID,
+  metadata,
+  ssr: true,
+  storage: createStorage({
+    storage: cookieStorage,
+  }),
 });
 
-export { chains, wagmiConfig };
+const createWeb3ModalThing = () =>
+  createWeb3Modal({
+    wagmiConfig: config,
+    projectId: PROJECT_ID,
+    enableAnalytics: false,
+  });
+
+export { chains, createWeb3ModalThing, config as wagmiConfig };
