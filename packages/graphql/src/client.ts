@@ -6,7 +6,7 @@ import {
 import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
 import { getGraphUrl } from '@smart-invoice/shared';
 
-const cache = new InMemoryCache();
+export const cache = new InMemoryCache();
 
 export const clients = SUPPORTED_NETWORKS.reduce(
   (o, chainId) => ({
