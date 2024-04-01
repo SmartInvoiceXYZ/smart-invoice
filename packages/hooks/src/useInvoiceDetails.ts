@@ -1,42 +1,38 @@
-import { INVOICE_TYPES } from '@smart-invoice/constants';
+import useSWR from 'swr';
 import { fetchInvoice, Invoice, InvoiceDetails } from '@smart-invoice/graphql';
 import { getInvoiceDetails } from '@smart-invoice/utils';
-import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
-import { useBalance, useToken } from 'wagmi';
+import { useToken, useBalance } from 'wagmi';
+import { INVOICE_TYPES } from '@smart-invoice/constants';
 
 import { useInstantDetails } from '.';
 
-export const useInvoiceDetails = ({
-  address,
-  chainId,
-}: {
-  address: Hex;
-  chainId: number;
-}) => {
-  const {
-    data: invoice,
-    isLoading,
-    error,
-  } = useQuery<Invoice>({
-    queryKey: ['invoiceDetails', { address, chainId }],
-    queryFn: () => fetchInvoice(chainId, address),
-    enabled: !!address && !!chainId,
-    staleTime: 1000 * 60 * 15,
-  });
-  // console.log(invoice);
+// Define a fetcher function that calls your fetchInvoice method.
+const fetcher = (chainId, address) => fetchInvoice(chainId, address);
+
+export const useInvoiceDetails = ({ address, chainId }: { address: Hex; chainId: number }) => {
+  // Replace useQuery with useSWR for fetching invoice details.
+  const { data: invoice, error } = useSWR<Invoice>(
+    address && chainId ? ['invoiceDetails', chainId, address] : null,
+    () => fetcher(chainId, address),
+    {
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 1000 * 60 * 15 // 15 minutes
+    }
+  );
 
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
-  // fetch data about the invoice's token
+  // Use existing hooks for token metadata and balances.
   const { data: tokenMetadata } = useToken({
     address: invoice?.token as Hex,
     chainId,
     enabled: !!address && !!chainId,
   });
 
-  // fetch the invoice's balances
   const { data: nativeBalance } = useBalance({ address });
   const { data: tokenBalance } = useBalance({
     address,
@@ -45,50 +41,38 @@ export const useInvoiceDetails = ({
     enabled: !!invoice?.token && !!chainId,
   });
 
-  // fetch the invoice's instant details, if applicable
   const { data: instantDetails } = useInstantDetails({
     address,
     chainId,
     enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
 
-  // enhance the invoice with assorted computed values
-  const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
-    useQuery<InvoiceDetails | null>({
-      queryKey: [
+  // Enhanced invoice details are fetched with SWR as well.
+  const { data: invoiceDetails, isValidating: isInvoiceDetailsLoading } = useSWR<InvoiceDetails | null>(
+    invoice && tokenMetadata && tokenBalance && nativeBalance && (type !== INVOICE_TYPES.Instant || instantDetails)
+      ? [
         'extendedInvoiceDetails',
-        {
-          invoiceId: _.get(invoice, 'id'),
-          token: tokenMetadata?.name,
-          tokenBalance: tokenBalance?.formatted,
-          nativeBalance: nativeBalance?.formatted,
-          instantDetails: _.mapValues(instantDetails, v => v?.toString()),
-        },
-      ],
-      queryFn: () =>
-        getInvoiceDetails(
-          invoice,
-          tokenMetadata,
-          tokenBalance,
-          nativeBalance,
-          instantDetails,
-        ),
-      enabled:
-        !!invoice &&
-        !!tokenMetadata &&
-        !!tokenBalance &&
-        !!nativeBalance &&
-        type === INVOICE_TYPES.Instant
-          ? !!instantDetails
-          : true,
-
-      staleTime: 1000 * 60 * 15,
-    });
+        invoice?.id,
+        tokenMetadata?.name,
+        tokenBalance?.formatted,
+        nativeBalance?.formatted,
+        _.mapValues(instantDetails, v => v?.toString())
+      ]
+      : null,
+    () => getInvoiceDetails(invoice, tokenMetadata, tokenBalance, nativeBalance, instantDetails),
+    {
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 1000 * 60 * 15 // 15 minutes
+    }
+  );
 
   return {
     data: invoice,
     invoiceDetails,
-    isLoading: isLoading || isInvoiceDetailsLoading,
+    isLoading: !invoice && !error,
+    isInvoiceDetailsLoading,
     error,
   };
 };
