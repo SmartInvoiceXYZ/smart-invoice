@@ -31,8 +31,8 @@
     "react-datepicker": "^4.25.0",
     "react-hook-form": "^7.49.3",
     "styled-components": "^6.1.8",
-    "viem": "^2.8.18",
-    "wagmi": "^2.5.12"
+    "viem": "1.21.4",
+    "wagmi": "^1.4.13"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

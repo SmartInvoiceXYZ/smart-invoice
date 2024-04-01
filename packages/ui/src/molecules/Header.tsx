@@ -7,7 +7,8 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
-import { ChakraNextLink, ConnectWeb3 } from '@smart-invoice/ui';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ChakraNextLink } from '@smart-invoice/ui';
 import _ from 'lodash';
 
 import { HamburgerIcon } from '../icons/HamburgerIcon';
@@ -98,7 +99,11 @@ export function Header() {
       >
         {!upTo780 && (
           <Flex justifyContent="flex-end" width="230px">
-            <ConnectWeb3 />
+            <ConnectButton
+              accountStatus="address"
+              chainStatus="icon"
+              showBalance={false}
+            />
           </Flex>
         )}
         {upTo780 && (
@@ -141,7 +146,11 @@ export function Header() {
         }}
       >
         <Flex height="60px" alignItems="center">
-          <ConnectWeb3 />
+          <ConnectButton
+            accountStatus="address"
+            chainStatus="icon"
+            showBalance={false}
+          />
         </Flex>
 
         {_.map(links, ({ label, href }) => (

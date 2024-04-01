@@ -1,18 +1,19 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import 'focus-visible/dist/focus-visible';
-import { AppProps } from 'next/app';
+import '@rainbow-me/rainbowkit/styles.css';
 
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { ErrorBoundary, globalStyles, Layout, theme } from '@smart-invoice/ui';
-import { wagmiConfig, createWeb3ModalThing } from '@smart-invoice/utils';
+import { chains, wagmiConfig } from '@smart-invoice/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { WagmiProvider } from 'wagmi';
+import { AppProps } from 'next/app';
+import React from 'react';
+import { WagmiConfig } from 'wagmi';
 
 import { OverlayContextProvider } from '../contexts/OverlayContext';
-
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,23 +27,25 @@ const queryClient = new QueryClient({
 
 function App({ Component, pageProps }: AppProps) {
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={theme}>
-          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-          <CSSReset />
-          <Global styles={globalStyles} />
-          <ErrorBoundary>
-            <OverlayContextProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </OverlayContextProvider>
-          </ErrorBoundary>
-        </ChakraProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
-    </WagmiProvider>
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider chains={chains}>
+        <QueryClientProvider client={queryClient}>
+          <ChakraProvider theme={theme}>
+            <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+            <CSSReset />
+            <Global styles={globalStyles} />
+            <ErrorBoundary>
+              <OverlayContextProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </OverlayContextProvider>
+            </ErrorBoundary>
+          </ChakraProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </RainbowKitProvider>
+    </WagmiConfig>
   );
 }
 
