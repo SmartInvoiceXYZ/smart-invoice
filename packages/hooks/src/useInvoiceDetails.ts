@@ -10,7 +10,6 @@ import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
-
 import { useInstantDetails } from '.';
 
 export const useInvoiceDetails = ({
@@ -86,8 +85,6 @@ export const useInvoiceDetails = ({
         type === INVOICE_TYPES.Instant
           ? !!instantDetails
           : true,
-
-      staleTime: 1000 * 60 * 15,
     });
 
   return {
