@@ -12,11 +12,11 @@ import {
 } from '@smart-invoice/ui';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
-import { useEffect } from 'react';
 
 function ViewInvoice() {
   const chainId = useChainId();
