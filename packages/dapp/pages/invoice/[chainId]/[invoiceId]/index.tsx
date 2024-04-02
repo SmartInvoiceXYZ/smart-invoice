@@ -16,6 +16,7 @@ import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
+import { useEffect } from 'react';
 
 function ViewInvoice() {
   const chainId = useChainId();
