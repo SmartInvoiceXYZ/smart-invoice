@@ -4,6 +4,8 @@
 import { logDebug } from '@smart-invoice/shared';
 import { Address, isAddress } from 'viem';
 
+import _ from 'lodash';
+
 import { clients } from './client';
 import { scalars } from './scalars';
 import { _SubgraphErrorPolicy_, Invoice_orderBy, OrderDirection } from './zeus';
@@ -80,11 +82,12 @@ export const fetchInvoices = async (
     sortDirection,
     where,
   );
-  const { data, error } = await clients[chainId].query({ query });
+
+  const { client } = _.find(clients, { network: chainId })!;
+  const result = await client.request(query);
 
   logDebug({
-    data,
-    error,
+    result,
     chainId,
     searchInput,
     pageIndex,
@@ -93,14 +96,7 @@ export const fetchInvoices = async (
     sortDesc,
   });
 
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
-
-  return data.invoices;
+  return result.invoices;
 };
 
 // type GetElementType<T extends any[] | undefined | null> = T extends (infer U)[]

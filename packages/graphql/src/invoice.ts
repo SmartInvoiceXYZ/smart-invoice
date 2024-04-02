@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { logDebug } from '@smart-invoice/shared';
 import { Address, Hex, isAddress } from 'viem';
-
+import _ from 'lodash';
 import { clients } from './client';
 import { scalars } from './scalars';
 import {
@@ -140,18 +140,14 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
   if (!address) return null;
 
   const query = invoiceQuery(address);
-  const { data, error } = await clients[chainId].query({ query });
 
-  logDebug({ data, error, address });
+  const { client } = _.find(clients, { network: chainId })!;
 
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
+  const result = await client.request(query);
 
-  return data.invoice;
+  logDebug({ result, address });
+
+  return result.invoice;
 };
 
 export type TokenMetadata = {

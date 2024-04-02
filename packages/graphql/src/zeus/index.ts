@@ -799,9 +799,8 @@ type IsScalar<S, SCLR extends ScalarDefinition> = S extends 'scalar' & {
       : unknown
     : unknown
   : S;
-type IsArray<T, U, SCLR extends ScalarDefinition> = T extends Array<infer R>
-  ? InputType<R, U, SCLR>[]
-  : InputType<T, U, SCLR>;
+type IsArray<T, U, SCLR extends ScalarDefinition> =
+  T extends Array<infer R> ? InputType<R, U, SCLR>[] : InputType<T, U, SCLR>;
 type FlattenArray<T> = T extends Array<infer R> ? R : T;
 type BaseZeusResolver = boolean | 1 | string | Variable<any, string>;
 
@@ -809,61 +808,60 @@ type IsInterfaced<
   SRC extends DeepAnify<DST>,
   DST,
   SCLR extends ScalarDefinition,
-> = FlattenArray<SRC> extends ZEUS_INTERFACES | ZEUS_UNIONS
-  ? {
-      [P in keyof SRC]: SRC[P] extends '__union' & infer R
-        ? P extends keyof DST
-          ? IsArray<
-              R,
-              '__typename' extends keyof DST
-                ? DST[P] & { __typename: true }
-                : DST[P],
-              SCLR
-            >
-          : IsArray<
-              R,
-              '__typename' extends keyof DST
-                ? { __typename: true }
-                : Record<string, never>,
-              SCLR
-            >
-        : never;
-    }[keyof SRC] & {
-      [P in keyof Omit<
-        Pick<
-          SRC,
-          {
-            [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
-          }[keyof DST]
-        >,
-        '__typename'
-      >]: IsPayLoad<DST[P]> extends BaseZeusResolver
-        ? IsScalar<SRC[P], SCLR>
-        : IsArray<SRC[P], DST[P], SCLR>;
-    }
-  : {
-      [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<
-        DST[P]
-      > extends BaseZeusResolver
-        ? IsScalar<SRC[P], SCLR>
-        : IsArray<SRC[P], DST[P], SCLR>;
-    };
+> =
+  FlattenArray<SRC> extends ZEUS_INTERFACES | ZEUS_UNIONS
+    ? {
+        [P in keyof SRC]: SRC[P] extends '__union' & infer R
+          ? P extends keyof DST
+            ? IsArray<
+                R,
+                '__typename' extends keyof DST
+                  ? DST[P] & { __typename: true }
+                  : DST[P],
+                SCLR
+              >
+            : IsArray<
+                R,
+                '__typename' extends keyof DST
+                  ? { __typename: true }
+                  : Record<string, never>,
+                SCLR
+              >
+          : never;
+      }[keyof SRC] & {
+        [P in keyof Omit<
+          Pick<
+            SRC,
+            {
+              [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
+            }[keyof DST]
+          >,
+          '__typename'
+        >]: IsPayLoad<DST[P]> extends BaseZeusResolver
+          ? IsScalar<SRC[P], SCLR>
+          : IsArray<SRC[P], DST[P], SCLR>;
+      }
+    : {
+        [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<
+          DST[P]
+        > extends BaseZeusResolver
+          ? IsScalar<SRC[P], SCLR>
+          : IsArray<SRC[P], DST[P], SCLR>;
+      };
 
-export type MapType<
-  SRC,
-  DST,
-  SCLR extends ScalarDefinition,
-> = SRC extends DeepAnify<DST> ? IsInterfaced<SRC, DST, SCLR> : never;
+export type MapType<SRC, DST, SCLR extends ScalarDefinition> =
+  SRC extends DeepAnify<DST> ? IsInterfaced<SRC, DST, SCLR> : never;
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type InputType<
-  SRC,
-  DST,
-  SCLR extends ScalarDefinition = {},
-> = IsPayLoad<DST> extends { __alias: infer R }
-  ? {
-      [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<SRC, R[P], SCLR>];
-    } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
-  : MapType<SRC, IsPayLoad<DST>, SCLR>;
+export type InputType<SRC, DST, SCLR extends ScalarDefinition = {}> =
+  IsPayLoad<DST> extends { __alias: infer R }
+    ? {
+        [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<
+          SRC,
+          R[P],
+          SCLR
+        >];
+      } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
+    : MapType<SRC, IsPayLoad<DST>, SCLR>;
 export type SubscriptionToGraphQL<Z, T, SCLR extends ScalarDefinition> = {
   ws: WebSocket;
   on: (fn: (args: InputType<T, Z, SCLR>) => void) => void;
@@ -914,17 +912,18 @@ type VR<T extends string> = VariableRequired<VariableRequired<T>>;
 
 export type GraphQLVariableType = VR<AllVariableTypes>;
 
-type ExtractVariableTypeString<T extends string> = T extends VR<infer R1>
-  ? R1 extends VR<infer R2>
-    ? R2 extends VR<infer R3>
-      ? R3 extends VR<infer R4>
-        ? R4 extends VR<infer R5>
-          ? R5
-          : R4
-        : R3
-      : R2
-    : R1
-  : T;
+type ExtractVariableTypeString<T extends string> =
+  T extends VR<infer R1>
+    ? R1 extends VR<infer R2>
+      ? R2 extends VR<infer R3>
+        ? R3 extends VR<infer R4>
+          ? R4 extends VR<infer R5>
+            ? R5
+            : R4
+          : R3
+        : R2
+      : R1
+    : T;
 
 type DecomposeType<T, Type> = T extends `[${infer R}]`
   ? Array<DecomposeType<R, Type>> | undefined
@@ -963,39 +962,39 @@ export type Variable<T extends GraphQLVariableType, Name extends string> = {
   ' __zeus_type': T;
 };
 
-export type ExtractVariablesDeep<Query> = Query extends Variable<
-  infer VType,
-  infer VName
->
-  ? { [key in VName]: GetVariableType<VType> }
-  : Query extends string | number | boolean | Array<string | number | boolean>
-    ? // eslint-disable-next-line @typescript-eslint/ban-types
-      {}
-    : UnionToIntersection<
-        {
-          [K in keyof Query]: WithOptionalNullables<
-            ExtractVariablesDeep<Query[K]>
-          >;
-        }[keyof Query]
-      >;
-
-export type ExtractVariables<Query> = Query extends Variable<
-  infer VType,
-  infer VName
->
-  ? { [key in VName]: GetVariableType<VType> }
-  : Query extends [infer Inputs, infer Outputs]
-    ? ExtractVariablesDeep<Inputs> & ExtractVariables<Outputs>
+export type ExtractVariablesDeep<Query> =
+  Query extends Variable<infer VType, infer VName>
+    ? { [key in VName]: GetVariableType<VType> }
     : Query extends string | number | boolean | Array<string | number | boolean>
       ? // eslint-disable-next-line @typescript-eslint/ban-types
         {}
       : UnionToIntersection<
           {
             [K in keyof Query]: WithOptionalNullables<
-              ExtractVariables<Query[K]>
+              ExtractVariablesDeep<Query[K]>
             >;
           }[keyof Query]
         >;
+
+export type ExtractVariables<Query> =
+  Query extends Variable<infer VType, infer VName>
+    ? { [key in VName]: GetVariableType<VType> }
+    : Query extends [infer Inputs, infer Outputs]
+      ? ExtractVariablesDeep<Inputs> & ExtractVariables<Outputs>
+      : Query extends
+            | string
+            | number
+            | boolean
+            | Array<string | number | boolean>
+        ? // eslint-disable-next-line @typescript-eslint/ban-types
+          {}
+        : UnionToIntersection<
+            {
+              [K in keyof Query]: WithOptionalNullables<
+                ExtractVariables<Query[K]>
+              >;
+            }[keyof Query]
+          >;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
