@@ -14,5 +14,6 @@ export * from './usePollSubgraph';
 export * from './useRateForResolver';
 export * from './useRelease';
 export * from './useResolve';
+export * from './useRevalidateInvoice';
 export * from './useVerify';
 export * from './useWithdraw';
