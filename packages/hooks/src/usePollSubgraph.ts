@@ -1,3 +1,5 @@
+import { useRevalidateInvoice } from './useRevalidateInvoice';
+
 export const usePollSubgraph = ({
   label,
   fetchHelper,
@@ -11,6 +13,7 @@ export const usePollSubgraph = ({
   checkResult: (value: any) => boolean;
   interval?: number;
 }) => {
+  const { setShouldRevalidate } = useRevalidateInvoice();
   const waitForResult = async () =>
     new Promise(resolve => {
       const checkResultHandler = async () => {
@@ -21,6 +24,7 @@ export const usePollSubgraph = ({
             // eslint-disable-next-line no-use-before-define
             clearInterval(intervalId);
             console.log(result);
+            setShouldRevalidate(true);
             return Promise.resolve(result);
           }
           // eslint-disable-next-line no-console
