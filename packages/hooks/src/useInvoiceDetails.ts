@@ -1,11 +1,15 @@
 import { INVOICE_TYPES } from '@smart-invoice/constants';
-import { fetchInvoice, Invoice, InvoiceDetails } from '@smart-invoice/graphql';
+import {
+  cache,
+  fetchInvoice,
+  Invoice,
+  InvoiceDetails,
+} from '@smart-invoice/graphql';
 import { getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
-
 import { useInstantDetails } from '.';
 
 export const useInvoiceDetails = ({
@@ -15,6 +19,7 @@ export const useInvoiceDetails = ({
   address: Hex;
   chainId: number;
 }) => {
+  cache.reset();
   const {
     data: invoice,
     isLoading,
@@ -23,7 +28,6 @@ export const useInvoiceDetails = ({
     queryKey: ['invoiceDetails', { address, chainId }],
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
-    staleTime: 1000 * 60 * 15,
   });
   // console.log(invoice);
 
@@ -81,8 +85,6 @@ export const useInvoiceDetails = ({
         type === INVOICE_TYPES.Instant
           ? !!instantDetails
           : true,
-
-      staleTime: 1000 * 60 * 15,
     });
 
   return {

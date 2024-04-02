@@ -1,3 +1,4 @@
+import { cache } from '@smart-invoice/graphql/';
 export const usePollSubgraph = ({
   label,
   fetchHelper,
@@ -20,7 +21,7 @@ export const usePollSubgraph = ({
           if (result && checkResult(result)) {
             // eslint-disable-next-line no-use-before-define
             clearInterval(intervalId);
-            console.log(result);
+            cache.reset();
             return Promise.resolve(result);
           }
           // eslint-disable-next-line no-console

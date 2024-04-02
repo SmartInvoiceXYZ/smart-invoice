@@ -47,11 +47,7 @@ export function CreateInvoiceInstant() {
   // if (txHash) {
   // eslint-disable-next-line no-constant-condition
   if (false) {
-    return (
-      <Container overlay>
-        <RegisterSuccess />
-      </Container>
-    );
+    return <Container overlay>{/* <RegisterSuccess /> */}</Container>;
   }
 
   const nextStepHandler = () => {
