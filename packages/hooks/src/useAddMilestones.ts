@@ -1,4 +1,4 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils';
@@ -6,8 +6,8 @@ import _ from 'lodash';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits, TransactionReceipt } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
-
+import { fetchBalance, waitForTransaction } from 'wagmi/actions';
+import { usePollSubgraph } from './usePollSubgraph';
 // import { useDetailsPin } from './useDetailsPin';
 
 export const useAddMilestones = ({
@@ -34,6 +34,23 @@ export const useAddMilestones = ({
       : BigInt(0),
   );
 
+  const { token, total } = _.pick(invoice, ['token', 'total']);
+
+  const newTotal =
+    _.sum(_.map(parsedMilestones, m => Number(m))) + Number(total);
+
+  const waitForIndex = usePollSubgraph({
+    label: 'useDeposit',
+    fetchHelper: () =>
+      fetchBalance({
+        address: invoice?.address as Hex,
+        chainId,
+        token: token as Hex,
+      }),
+    checkResult: () => newTotal < Number(total),
+    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
+  });
+
   const { config, error: prepareError } = usePrepareContractWrite({
     address,
     chainId,
@@ -50,9 +67,13 @@ export const useAddMilestones = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }): Promise<void> => {
-      const txData = await waitForTransaction({ hash, chainId });
+      toast.info(TOASTS.useAddMilestone.waitingForTx);
+      await waitForTransaction({ hash, chainId });
 
-      onTxSuccess?.(txData);
+      toast.info(TOASTS.useAddMilestone.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
     onError: error => errorToastHandler('useAddMilestones', error, toast),
   });
@@ -67,5 +88,5 @@ interface AddMilestonesProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   toast: UseToastReturn;
-  onTxSuccess?: (txData: TransactionReceipt) => void;
+  onTxSuccess?: () => void;
 }

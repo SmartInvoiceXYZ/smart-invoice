@@ -1,6 +1,7 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable radix */
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   Flex,
@@ -34,11 +35,13 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
-export type AddMilestonesProps = {
+export function AddMilestones({
+  invoice,
+  onClose,
+}: {
   invoice: InvoiceDetails;
-};
-
-export function AddMilestones({ invoice }: AddMilestonesProps) {
+  onClose: () => void;
+}) {
   const chainId = useChainId();
   const toast = useToast();
   const localForm = useForm({
@@ -65,9 +68,15 @@ export function AddMilestones({ invoice }: AddMilestonesProps) {
     control,
   });
   const { milestones } = watch();
-
+  const queryClient = useQueryClient();
   const onTxSuccess = () => {
-    // TODO: handle tx success, cache invalidation, close modal
+    // invalidate cache
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    // close modal
+    onClose();
   };
 
   const { writeAsync, isLoading } = useAddMilestones({

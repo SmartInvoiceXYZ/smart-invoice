@@ -20,12 +20,20 @@ import {
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { Hex, TransactionReceipt } from 'viem';
+import { Hex } from 'viem';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChainId } from 'wagmi';
 
-export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
+export function LockFunds({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceDetails;
+  onClose: () => void;
+}) {
   const chainId = useChainId();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const { resolver, resolverFee, resolverName, tokenBalance } = _.pick(
     invoice,
     [
@@ -45,9 +53,13 @@ export function LockFunds({ invoice }: { invoice: InvoiceDetails }) {
   const onTxSuccess = () => {
     // TODO handle tx success
     console.log('Funds locked successfully');
-    // toast
     // invalidate cache
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
+    onClose();
   };
 
   const { writeAsync: lockFunds, writeLoading } = useLock({

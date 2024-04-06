@@ -319,7 +319,7 @@ export function InvoicePaymentDetails({
         </Card>
       </Stack>
       <Modal isOpen={modals?.addMilestones} onClose={() => setModals({})}>
-        <AddMilestones invoice={invoice} />
+        <AddMilestones invoice={invoice} onClose={() => setModals({})} />
       </Modal>
     </>
   );
