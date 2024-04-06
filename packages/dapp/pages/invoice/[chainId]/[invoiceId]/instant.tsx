@@ -288,7 +288,10 @@ function ViewInstantInvoice() {
           />
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
-          <WithdrawFunds invoice={invoiceDetails} />
+          <WithdrawFunds
+            invoice={invoiceDetails}
+            onClose={() => setModals?.({})}
+          />
         </Modal>
         <Modal isOpen={modals?.tip} onClose={() => setModals?.({})}>
           <TipForm invoice={invoiceDetails} />

@@ -1,14 +1,13 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable radix */
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   Flex,
   FormControl,
   FormErrorMessage,
-  Heading,
   HStack,
+  Heading,
   Icon,
   IconButton,
   Stack,
@@ -29,6 +28,7 @@ import {
   // getTxLink,
   resolutionFeePercentage,
 } from '@smart-invoice/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
