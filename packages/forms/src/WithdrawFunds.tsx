@@ -5,7 +5,13 @@ import { useToast } from '@smart-invoice/ui';
 // import { getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 
-export function WithdrawFunds({ invoice }: { invoice: InvoiceDetails }) {
+export function WithdrawFunds({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceDetails;
+  onClose: () => void;
+}) {
   const toast = useToast();
 
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);

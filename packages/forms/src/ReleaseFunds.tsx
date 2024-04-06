@@ -1,10 +1,12 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
+import { TOASTS } from '@smart-invoice/constants';
 import { useRelease } from '@smart-invoice/hooks';
 import { useToast } from '@smart-invoice/ui';
 import _ from 'lodash';
 import { formatUnits } from 'viem';
 import { useChainId } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 
 type ReleaseFundsProp = {
   invoice: InvoiceDetails;
@@ -32,21 +34,30 @@ export const getReleaseAmount = (
   return amounts ? BigInt(amounts?.[currentMilestone]) : BigInt(0);
 };
 
-export function ReleaseFunds({ invoice }: ReleaseFundsProp) {
+export function ReleaseFunds({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceDetails;
+  onClose: () => void;
+}) {
   const toast = useToast();
   const chainId = useChainId();
-
+  const queryClient = useQueryClient();
   const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
     invoice,
     ['currentMilestoneNumber', 'bigintAmounts', 'tokenBalance'],
   );
 
-  const onTxSuccess = async () => {
-    // TODO handle tx success
-    toast.success({ title: 'Funds released successfully' });
-    // close modal
+  const onTxSuccess = () => {
+    toast.success(TOASTS.useRelease.success);
     // invalidate cache
-    // update invoice with new balances
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    // close modal
+    onClose();
   };
 
   const { writeAsync: releaseFunds, isLoading } = useRelease({
