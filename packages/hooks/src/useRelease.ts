@@ -1,4 +1,4 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
 import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils/src';
@@ -51,8 +51,10 @@ export const useRelease = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }) => {
+      toast.info(TOASTS.useRelease.waitingForTx);
       await waitForTransaction({ hash, chainId });
 
+      toast.info(TOASTS.useRelease.waitingForIndex);
       await waitForIndex();
 
       onTxSuccess?.();

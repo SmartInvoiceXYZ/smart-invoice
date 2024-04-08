@@ -2,18 +2,30 @@ import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useWithdraw } from '@smart-invoice/hooks';
 import { useToast } from '@smart-invoice/ui';
+import { useQueryClient } from '@tanstack/react-query';
 // import { getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 
-export function WithdrawFunds({ invoice }: { invoice: InvoiceDetails }) {
+export function WithdrawFunds({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceDetails;
+  onClose: () => void;
+}) {
   const toast = useToast();
 
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
+  const queryClient = useQueryClient();
 
   const onTxSuccess = () => {
-    // handle success
+    // invalidate cache
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
-    // update invoice with status
+    onClose();
   };
 
   const { writeAsync: withdrawFunds, isLoading } = useWithdraw({

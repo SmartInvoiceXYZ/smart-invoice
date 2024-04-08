@@ -150,19 +150,19 @@ export function InvoiceButtonManager({
       </SimpleGrid>
 
       <Modal isOpen={modals?.lock} onClose={() => setModals({})}>
-        <LockFunds invoice={invoice} />
+        <LockFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.deposit} onClose={() => setModals({})}>
         <DepositFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.release} onClose={() => setModals({})}>
-        <ReleaseFunds invoice={invoice} />
+        <ReleaseFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.resolve} onClose={() => setModals({})}>
         <ResolveFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
       <Modal isOpen={modals?.withdraw} onClose={() => setModals({})}>
-        <WithdrawFunds invoice={invoice} />
+        <WithdrawFunds invoice={invoice} onClose={() => setModals({})} />
       </Modal>
     </>
   );

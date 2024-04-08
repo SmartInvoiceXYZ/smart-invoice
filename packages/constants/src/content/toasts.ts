@@ -98,4 +98,21 @@ export const TOASTS = {
       description: 'Your resolution has been made. Refreshing balances...',
     },
   },
+
+  useAddMilestone: {
+    waitingForTx: {
+      title: 'Adding milestone(s)',
+      description: 'Waiting for transaction confirmation',
+      duration: 5000,
+    },
+    waitingForIndex: {
+      title: 'Milestone(s) added onchain',
+      description: 'Waiting for milestone(s) to be indexed by the subgraph',
+      duration: 8000,
+    },
+    success: {
+      title: 'Milestone(s) Updated successfully',
+      description: 'Your milestones have been updated. Refreshing Invoice...',
+    },
+  },
 };
