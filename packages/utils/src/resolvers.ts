@@ -3,7 +3,11 @@ import { isAddress } from 'viem';
 import * as Yup from 'yup';
 
 import { isKnownResolver } from './helpers';
-import { oneMonthFromNow } from './invoice';
+import {
+  oneMonthFromNow,
+  sevenDaysFromDate,
+  sevenDaysFromNow,
+} from './invoice';
 
 export const escrowDetailsSchema = (chainId: number) =>
   Yup.object().shape({
@@ -121,8 +125,10 @@ export const projectDetailsSchema = Yup.object().shape({
   endDate: Yup.date().required('End Date is required'),
   // ideally could dynamically choose these. Setting a default covers this largely
   deadline: Yup.date(),
-  safetyValveDate: Yup.date().min(
-    oneMonthFromNow(),
-    'Safety valve date must be at least a month in the future',
-  ),
+  safetyValveDate: Yup.date().when('endDate', (endDate, schema) => {
+    return schema.min(
+      sevenDaysFromDate(endDate),
+      'Safety Valve Date must be at least 7 days after End Date',
+    );
+  }),
 });

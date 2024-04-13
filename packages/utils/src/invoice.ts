@@ -31,6 +31,12 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
+export const sevenDaysFromDate = (date: any) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + 7);
+  return result;
+};
+
 export const totalDeposited = (
   invoice: Invoice | undefined,
   tokenBalance: TokenBalance | undefined,

@@ -12,6 +12,7 @@ import {
 import {
   oneMonthFromNow,
   projectDetailsSchema,
+  sevenDaysFromDate,
   sevenDaysFromNow,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -137,7 +138,7 @@ export function ProjectDetailsForm({
               <DatePicker
                 label="Safety Valve Date"
                 name="safetyValveDate"
-                tooltip="The date the project is expected to end. This value is not formally used in the escrow."
+                tooltip="The date the client can withdraw funds. Should be well in the future generally!"
                 localForm={localForm}
               />
             )}
