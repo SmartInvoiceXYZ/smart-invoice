@@ -133,7 +133,7 @@ export const useInvoiceCreate = ({
       ],
       [
         client,
-        1,
+        0,
         customResolver || resolver, // address _resolver (LEX DAO resolver address)
         token, // address _token (payment token address)
         BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date

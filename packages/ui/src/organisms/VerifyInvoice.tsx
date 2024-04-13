@@ -1,10 +1,12 @@
 import { Button, Stack, Text } from '@chakra-ui/react';
+import { TOASTS } from '@smart-invoice/constants/src';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useVerify } from '@smart-invoice/hooks';
 import { isAddress } from 'viem';
 import { useChainId } from 'wagmi';
+import { useToast } from '@smart-invoice/ui';
 
-import { useToast } from '../hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 type VerifyInvoiceProps = {
   invoice: InvoiceDetails;
@@ -20,18 +22,20 @@ export function VerifyInvoice({
   const chainId = useChainId();
   const toast = useToast();
   const { address } = invoice || {};
-
+  const queryClient = useQueryClient();
   const validAddress = address && isAddress(address) ? address : undefined;
 
   const onTxSuccess = () => {
-    console.log('tx');
-    // TODO handle tx success
-    // parse logs
-    // wait for subgraph
-    // invalidate query
+    toast.success(TOASTS.useVerify.success);
+    // invalidate cache
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
   };
 
   const { writeAsync, isLoading } = useVerify({
+    invoice,
     address: validAddress,
     chainId,
     toast,

@@ -224,7 +224,7 @@ export function InvoicePaymentDetails({
             )}
 
             {dispute && (
-              <Stack w="100%" align="stretch" spacing="1rem">
+              <Stack px={6}>
                 <Flex
                   justify="space-between"
                   align="center"
@@ -234,15 +234,23 @@ export function InvoicePaymentDetails({
                   <Text>Amount Locked</Text>
                   <Text textAlign="right">{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
                 </Flex>
-                <Text color="purple">
+                <Text color="black">
                   {`A dispute is in progress with `}
                   <AccountLink address={resolver as Hex} chainId={chainId} />
                   <br />
-                  <Link href={getIpfsLink(dispute.ipfsHash)} isExternal>
+                  <Link
+                    href={getIpfsLink(dispute.ipfsHash)}
+                    color="blue.1"
+                    isExternal
+                  >
                     <u>View details on IPFS</u>
                   </Link>
                   <br />
-                  <Link href={getTxLink(chainId, dispute.txHash)} isExternal>
+                  <Link
+                    href={getTxLink(chainId, dispute.txHash)}
+                    color="blue.1"
+                    isExternal
+                  >
                     <u>View transaction</u>
                   </Link>
                 </Text>
