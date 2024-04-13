@@ -35,6 +35,11 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
+export const getDecimals = (value: string) => {
+  const [, decimal] = value.split('.');
+  return decimal?.length || 0;
+};
+
 export function AddMilestones({
   invoice,
   onClose,
@@ -98,10 +103,17 @@ export function AddMilestones({
   const newDisputeFee =
     resolutionFeePercentage(resolutionRate.toString()) * newTotalDue;
 
-  // const { resolutionRate: factoryResolutionRate } = useRateForResolver({
-  //   resolver: address as Hex,
-  //   chainId,
-  // });
+  const [totalNew, decimals] = milestones
+    ? milestones
+        .map((milestone: { value: string }) => [
+          _.toNumber(milestone.value) || 0,
+          getDecimals(milestone.value),
+        ])
+        .reduce(
+          ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
+          [0, 0],
+        )
+    : [0, 0];
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -189,7 +201,8 @@ export function AddMilestones({
             </Button>
 
             <Text>
-              Total: {commify(newTotalDue || 0)} {tokenMetadata?.symbol}
+              Total: {commify(totalNew.toFixed(decimals), decimals)}{' '}
+              {tokenMetadata?.symbol}
             </Text>
           </Flex>
         </Stack>
@@ -202,8 +215,16 @@ export function AddMilestones({
               <Text fontWeight="bold" color="black">
                 Potential Dispute Fee:
               </Text>
-
-              <Text>{`${newDisputeFee} ${tokenMetadata?.symbol}`}</Text>
+              <Text>
+                {commify(
+                  newDisputeFee.toFixed(
+                    newDisputeFee < 1 ? decimals + 3 : decimals,
+                  ),
+                  newDisputeFee < 1 ? decimals + 3 : decimals,
+                )}{' '}
+                {tokenMetadata?.symbol}
+              </Text>
+              decimal : {getDecimals(newDisputeFee.toString())}
             </HStack>
           </Flex>
 
@@ -213,7 +234,10 @@ export function AddMilestones({
                 Expected Total Due:
               </Text>
 
-              <Text>{`${newTotalDue} ${tokenMetadata?.symbol}`}</Text>
+              <Text>
+                {commify(totalNew.toFixed(decimals), decimals)}{' '}
+                {tokenMetadata?.symbol}
+              </Text>
             </HStack>
           </Flex>
         </Stack>
