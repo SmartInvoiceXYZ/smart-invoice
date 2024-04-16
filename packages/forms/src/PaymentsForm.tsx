@@ -185,7 +185,9 @@ export function PaymentsForm({
             </Button>
 
             <Text>
-              Total: {commify(total, decimals)} {invoiceTokenData?.symbol}
+              Total: {commify(total.toFixed(decimals), decimals)}
+              {` `}
+              {invoiceTokenData?.symbol}
             </Text>
           </Flex>
         </Stack>
