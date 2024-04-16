@@ -115,4 +115,21 @@ export const TOASTS = {
       description: 'Your milestones have been updated. Refreshing Invoice...',
     },
   },
+
+  useVerify: {
+    waitingForTx: {
+      title: 'Enabling Non-Client Deposits ',
+      description: 'Waiting for transaction confirmation',
+      duration: 5000,
+    },
+    waitingForIndex: {
+      title: 'Non-Client Deposits have been enabled onchain',
+      description: 'Waiting for update to be indexed by the subgraph',
+      duration: 8000,
+    },
+    success: {
+      title: 'Non-Client Deposits enabled successfully',
+      description: 'Your settings have been updated. Refreshing Invoice...',
+    },
+  },
 };

@@ -1,20 +1,24 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils';
 import { Hex, TransactionReceipt } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
+import { usePollSubgraph } from '.';
+import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 
 export const useVerify = ({
+  invoice,
   address,
   chainId,
   toast,
   onTxSuccess,
 }: {
+  invoice: InvoiceDetails;
   address: Hex | undefined;
   chainId: number;
   toast: UseToastReturn;
-  onTxSuccess?: (data: TransactionReceipt) => void;
+  onTxSuccess?: () => void;
 }) => {
   const { config, error: prepareError } = usePrepareContractWrite({
     address,
@@ -24,6 +28,12 @@ export const useVerify = ({
     enabled: !!address,
   });
 
+  const waitForIndex = usePollSubgraph({
+    label: 'Waiting for non-client deposit to be enabled',
+    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
+    checkResult: result => !!result?.verified === true,
+  });
+
   const {
     writeAsync,
     error: writeError,
@@ -31,12 +41,16 @@ export const useVerify = ({
   } = useContractWrite({
     ...config,
 
-    onSuccess: async result => {
-      const data = await waitForTransaction({ chainId, hash: result.hash });
+    onSuccess: async ({ hash }) => {
+      toast.info(TOASTS.useVerify.waitingForTx);
+      await waitForTransaction({ hash, chainId });
 
-      onTxSuccess?.(data);
+      toast.info(TOASTS.useVerify.waitingForIndex);
+      await waitForIndex();
+
+      onTxSuccess?.();
     },
-    onError: error => errorToastHandler('useInvoiceVerify', error, toast),
+    onError: error => errorToastHandler('useVerify', error, toast),
   });
 
   return {
