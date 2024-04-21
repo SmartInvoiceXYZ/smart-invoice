@@ -44,7 +44,7 @@ export function CreateInvoiceEscrow() {
     setCurrentStep(currentStep - 1);
   };
 
-  const onTxSuccess = (result: Hex) => {
+  const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
     queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });

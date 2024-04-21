@@ -1,5 +1,5 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { INSTANT_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
+import { INSTANT_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
 import {
   FormConfirmation,
   InstantPaymentForm,
@@ -17,13 +17,15 @@ import {
 import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { TransactionReceipt } from 'viem';
-import { useChainId } from 'wagmi';
+
+import { Address, useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function CreateInvoiceInstant() {
   const chainId = useChainId();
+  const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const invoiceForm = useForm();
   const { data } = useFetchTokens();
@@ -31,10 +33,18 @@ export function CreateInvoiceInstant() {
   const { tokenData } = _.pick(data, ['tokenData']);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { headingSize, columnWidth } = useMediaStyles();
+  const [invoiceId, setInvoiceId] = useState<Address>();
+  const [txHash, setTxHash] = useState<Address>();
+  const onTxSuccess = (result: Address) => {
+    toast.success(TOASTS.useInvoiceCreate.success);
+    // invalidate cache
+    queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
+    queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
 
-  const onTxSuccess = (tx: TransactionReceipt) => {
-    // TODO handle toast, subgraph result, invalidate cache and redirect to invoice page
-    console.log('tx success');
+    setInvoiceId(result as Address);
+
+    // Send to Success step
+    nextStepHandler();
   };
 
   const { writeAsync, isLoading } = useInstantCreate({
@@ -44,12 +54,6 @@ export function CreateInvoiceInstant() {
     onTxSuccess,
   });
 
-  // if (txHash) {
-  // eslint-disable-next-line no-constant-condition
-  if (false) {
-    return <Container overlay>{/* <RegisterSuccess /> */}</Container>;
-  }
-
   const nextStepHandler = () => {
     setCurrentStep(currentStep + 1);
   };
@@ -58,10 +62,9 @@ export function CreateInvoiceInstant() {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
-    console.log('submitting');
-
-    writeAsync?.();
+  const handleSubmit = async () => {
+    const txData = await writeAsync?.();
+    setTxHash(txData?.hash);
   };
 
   if (!tokenData) {
@@ -146,6 +149,12 @@ export function CreateInvoiceInstant() {
                 canSubmit={!!writeAsync}
                 isLoading={isLoading}
                 type={INVOICE_TYPES.Instant}
+              />
+            )}
+            {currentStep === 4 && (
+              <RegisterSuccess
+                invoiceId={invoiceId as Address}
+                txHash={txHash as Address}
               />
             )}
           </Flex>
