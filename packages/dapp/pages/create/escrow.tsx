@@ -16,10 +16,9 @@ import {
   useToast,
 } from '@smart-invoice/ui';
 import { useQueryClient } from '@tanstack/react-query';
-// import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, Hex } from 'viem';
+import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
