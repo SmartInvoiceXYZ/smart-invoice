@@ -14,14 +14,13 @@ import {
   useMediaStyles,
   useToast,
 } from '@smart-invoice/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 import { Address, useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
-import { useQueryClient } from '@tanstack/react-query';
 
 export function CreateInvoiceInstant() {
   const chainId = useChainId();
