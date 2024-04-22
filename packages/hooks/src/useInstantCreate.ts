@@ -1,14 +1,23 @@
 import {
+  LOG_TYPE,
   SMART_INVOICE_FACTORY_ABI,
+  TOASTS,
   wrappedNativeToken,
 } from '@smart-invoice/constants';
 import { UseToastReturn } from '@smart-invoice/types';
-import { getInvoiceFactoryAddress } from '@smart-invoice/utils';
-import _ from 'lodash';
-import { useMemo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
 import {
+  errorToastHandler,
+  getInvoiceFactoryAddress,
+  parseTxLogs,
+} from '@smart-invoice/utils';
+import _ from 'lodash';
+import { useMemo, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+
+import {
+  Address,
   encodeAbiParameters,
+  Hex,
   parseUnits,
   toHex,
   TransactionReceipt,
@@ -17,7 +26,8 @@ import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
 import { useDetailsPin } from './useDetailsPin';
-
+import { usePollSubgraph } from './usePollSubgraph';
+import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 export const useInstantCreate = ({
   invoiceForm,
   chainId,
@@ -27,10 +37,11 @@ export const useInstantCreate = ({
   invoiceForm: UseFormReturn;
   chainId: number;
   toast: UseToastReturn;
-  onTxSuccess?: (result: TransactionReceipt) => void;
+  onTxSuccess?: (result: Address) => void;
 }) => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
-
+  const [waitingForTx, setWaitingForTx] = useState(false);
+  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
@@ -73,6 +84,14 @@ export const useInstantCreate = ({
 
   const { data: details } = useDetailsPin({ ...detailsData });
 
+  const waitForResult = usePollSubgraph({
+    label: 'Creating escrow invoice',
+    fetchHelper: () =>
+      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
+    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
+    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
+  });
+
   const paymentAmount = useMemo(() => {
     if (!tokenMetadata || !paymentDue) {
       return BigInt(0);
@@ -82,13 +101,7 @@ export const useInstantCreate = ({
   }, [tokenMetadata, paymentDue]);
 
   const escrowData = useMemo(() => {
-    if (
-      !client ||
-      !tokenMetadata ||
-      !deadline ||
-      !wrappedNativeToken(chainId) ||
-      !details
-    ) {
+    if (!client || !deadline || !wrappedNativeToken(chainId) || !details) {
       return '0x';
     }
     let lateFeeTimeIntervalSeconds = BigInt(0);
@@ -116,7 +129,7 @@ export const useInstantCreate = ({
         BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
-        parseUnits(lateFee, tokenMetadata?.decimals || 18), // late fee in payment token per interval
+        parseUnits(lateFee || '0', tokenMetadata?.decimals || 18), // late fee in payment token per interval
         lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
@@ -152,28 +165,29 @@ export const useInstantCreate = ({
   } = useContractWrite({
     ...config,
     onSuccess: async ({ hash }) => {
-      const txData = await waitForTransaction({ chainId, hash });
+      // wait for tx to confirm on chain
+      setWaitingForTx(true);
+      toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-      onTxSuccess?.(txData);
+      const txData = await waitForTransaction({ chainId, hash });
+      // wait for subgraph to index
+      const localInvoiceId = parseTxLogs(
+        LOG_TYPE.Factory,
+        txData,
+        'LogNewInvoice',
+        'invoice',
+      );
+      if (!localInvoiceId) return;
+      setNewInvoiceId(localInvoiceId);
+      toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+
+      await waitForResult();
+      setWaitingForTx(false);
+
+      // pass back to component for further processing
+      onTxSuccess?.(localInvoiceId);
     },
-    onError: error => {
-      // eslint-disable-next-line no-console
-      console.log('onError', error);
-      if (
-        error.name === 'TransactionExecutionError' &&
-        error.message.includes('User rejected the request')
-      ) {
-        toast.error({
-          title: 'Signature rejected!',
-          description: 'Please accept the transaction in your wallet',
-        });
-      } else {
-        toast.error({
-          title: 'Error occurred!',
-          description: 'An error occurred while processing the transaction.',
-        });
-      }
-    },
+    onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
 
   return {

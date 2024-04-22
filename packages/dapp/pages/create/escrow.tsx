@@ -16,10 +16,9 @@ import {
   useToast,
 } from '@smart-invoice/ui';
 import { useQueryClient } from '@tanstack/react-query';
-// import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, Hex } from 'viem';
+import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
@@ -44,7 +43,7 @@ export function CreateInvoiceEscrow() {
     setCurrentStep(currentStep - 1);
   };
 
-  const onTxSuccess = (result: Hex) => {
+  const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
     queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
