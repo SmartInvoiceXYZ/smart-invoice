@@ -52,7 +52,7 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     // TODO handle tx success
-    console.log('Funds locked successfully');
+
     // invalidate cache
     queryClient.invalidateQueries({
       queryKey: ['invoiceDetails'],

@@ -26,7 +26,6 @@ export const useLock = ({
   onTxSuccess?: () => void;
   toast: UseToastReturn;
 }) => {
-  console.log('useLock', invoice);
   const currentChainId = useChainId();
   const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
 

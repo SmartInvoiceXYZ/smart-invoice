@@ -100,7 +100,7 @@ const findDepositForAmount = (
   let sum = 0;
   return _.find(deposits, (deposit, i) => {
     sum += _.toNumber(deposits[i].amount.toString());
-    console.log(sum, amount);
+
     return sum >= amount ? deposit : deposits[i - 1] || 0;
   });
 };
@@ -120,7 +120,7 @@ export const assignDeposits = (invoice: Invoice) => {
       _.concat(_.slice(amounts, 0, i), [a]) as string[],
       v => _.toNumber(v.toString()),
     );
-    console.log(localSum, deposits);
+
     // get deposit for matching amount
     const deposit = findDepositForAmount(localSum, deposits);
 

@@ -6,11 +6,6 @@ import { useToast } from '@smart-invoice/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { formatUnits } from 'viem';
-import { useChainId } from 'wagmi';
-
-type ReleaseFundsProp = {
-  invoice: InvoiceDetails;
-};
 
 // TODO handle release specified/multiple milestones
 
@@ -42,7 +37,7 @@ export function ReleaseFunds({
   onClose: () => void;
 }) {
   const toast = useToast();
-  const chainId = useChainId();
+
   const queryClient = useQueryClient();
   const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
     invoice,

@@ -14,14 +14,7 @@ import {
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import {
-  Address,
-  encodeAbiParameters,
-  Hex,
-  parseUnits,
-  toHex,
-  TransactionReceipt,
-} from 'viem';
+import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
 
