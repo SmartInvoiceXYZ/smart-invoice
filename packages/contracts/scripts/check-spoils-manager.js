@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 const { ethers } = require("hardhat");
 
-const spoilsManagerAbi = require("../build/contracts/SpoilsManager.sol/SpoilsManager.json")
-  .abi;
+const spoilsManagerAbi =
+  require("../build/contracts/SpoilsManager.sol/SpoilsManager.json").abi;
 
 const SPOILS_MANAGER_ADDRESS = "0x3fA4E6e03Fbd434A577387924aF39efd3b4b50F2";
 

@@ -4,6 +4,7 @@ import {
   Flex,
   Heading,
   HStack,
+  Icon,
   Link,
   Spacer,
   Stack,
@@ -18,7 +19,6 @@ import { chainByName, getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Address, useChainId } from 'wagmi';
-import { Icon } from '@chakra-ui/react';
 
 export function RegisterSuccess({
   invoiceId,

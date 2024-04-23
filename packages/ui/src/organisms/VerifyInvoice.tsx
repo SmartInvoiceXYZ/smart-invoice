@@ -2,11 +2,10 @@ import { Button, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smart-invoice/constants/src';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useVerify } from '@smart-invoice/hooks';
+import { useToast } from '@smart-invoice/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { isAddress } from 'viem';
 import { useChainId } from 'wagmi';
-import { useToast } from '@smart-invoice/ui';
-
-import { useQueryClient } from '@tanstack/react-query';
 
 type VerifyInvoiceProps = {
   invoice: InvoiceDetails;
