@@ -29,4 +29,5 @@
     "../../jest.config.ts",
   ],
   "exclude": ["node_modules", "dist"],
+  "references": [{ "path": "../types/tsconfig.lib.json" }],
 }
