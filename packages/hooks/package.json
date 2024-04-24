@@ -8,10 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@smart-invoice/constants": "*",
-    "@smart-invoice/graphql": "*",
-    "@smart-invoice/types": "*",
-    "@smart-invoice/utils": "*",
+    "@smart-invoice/constants": "workspace:*",
+    "@smart-invoice/graphql": "workspace:*",
+    "@smart-invoice/types": "workspace:*",
+    "@smart-invoice/utils": "workspace:*",
     "@tanstack/react-query": "^5.18.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
