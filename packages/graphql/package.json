@@ -10,8 +10,8 @@
   "dependencies": {
     "@apollo/client": "^3.8.10",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@smart-invoice/constants": "*",
-    "@smart-invoice/shared": "*",
+    "@smart-invoice/constants": "workspace:*",
+    "@smart-invoice/shared": "workspace:*",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.3.3",

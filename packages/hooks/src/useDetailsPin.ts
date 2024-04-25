@@ -72,7 +72,6 @@ export const useDetailsPin = ({
     endDate,
     invoice,
   ]);
-  console.log('detailsData', detailsData);
 
   const detailsPin = async () => {
     const token = await fetchToken();
@@ -99,7 +98,6 @@ export const useDetailsPin = ({
       !!detailsData,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
-  console.log(data, isLoading, error);
 
   return { data, isLoading, error };
 };

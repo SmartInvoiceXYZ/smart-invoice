@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
-    "@smart-invoice/graphql": "*",
+    "@smart-invoice/graphql": "workspace:*",
     "react": "^18.2.0",
     "viem": "^1.21.4"
   }

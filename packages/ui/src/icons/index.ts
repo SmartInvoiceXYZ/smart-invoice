@@ -5,4 +5,4 @@ export * from './HamburgerIcon';
 export * from './QuestionIcon';
 export * from './SearchIcon';
 export * from './VerticalDots';
-export * from './WalletFilledIcon'
+export * from './WalletFilledIcon';

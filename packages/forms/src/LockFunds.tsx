@@ -18,10 +18,10 @@ import {
   isKnownResolver,
   logDebug,
 } from '@smart-invoice/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { Hex } from 'viem';
-import { useQueryClient } from '@tanstack/react-query';
 import { useChainId } from 'wagmi';
 
 export function LockFunds({
@@ -52,7 +52,7 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     // TODO handle tx success
-    console.log('Funds locked successfully');
+
     // invalidate cache
     queryClient.invalidateQueries({
       queryKey: ['invoiceDetails'],

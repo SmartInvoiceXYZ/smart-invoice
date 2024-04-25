@@ -3,11 +3,7 @@ import { isAddress } from 'viem';
 import * as Yup from 'yup';
 
 import { isKnownResolver } from './helpers';
-import {
-  oneMonthFromNow,
-  sevenDaysFromDate,
-  sevenDaysFromNow,
-} from './invoice';
+import { sevenDaysFromDate } from './invoice';
 
 export const escrowDetailsSchema = (chainId: number) =>
   Yup.object().shape({

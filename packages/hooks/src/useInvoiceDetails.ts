@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
+
 import { useInstantDetails } from '.';
 
 export const useInvoiceDetails = ({

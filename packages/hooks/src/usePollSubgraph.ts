@@ -1,4 +1,5 @@
 import { cache } from '@smart-invoice/graphql/';
+
 export const usePollSubgraph = ({
   label,
   fetchHelper,

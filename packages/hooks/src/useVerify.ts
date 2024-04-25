@@ -1,11 +1,12 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
+import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 import { UseToastReturn } from '@smart-invoice/types';
 import { errorToastHandler } from '@smart-invoice/utils';
-import { Hex, TransactionReceipt } from 'viem';
+import { Hex } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';
+
 import { usePollSubgraph } from '.';
-import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
 
 export const useVerify = ({
   invoice,

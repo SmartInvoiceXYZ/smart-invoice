@@ -29,4 +29,14 @@
     "../../jest.config.ts",
   ],
   "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../constants/tsconfig.lib.json" },
+    { "path": "../forms/tsconfig.lib.json" },
+    { "path": "../graphql/tsconfig.lib.json" },
+    { "path": "../hooks/tsconfig.lib.json" },
+    { "path": "../shared/tsconfig.lib.json" },
+    { "path": "../types/tsconfig.lib.json" },
+    { "path": "../ui/tsconfig.lib.json" },
+    { "path": "../utils/tsconfig.lib.json" },
+  ],
 }

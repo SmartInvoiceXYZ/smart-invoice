@@ -1,16 +1,11 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
 import { TOASTS } from '@smart-invoice/constants';
+import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useRelease } from '@smart-invoice/hooks';
 import { useToast } from '@smart-invoice/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { formatUnits } from 'viem';
-import { useChainId } from 'wagmi';
-import { useQueryClient } from '@tanstack/react-query';
-
-type ReleaseFundsProp = {
-  invoice: InvoiceDetails;
-};
 
 // TODO handle release specified/multiple milestones
 
@@ -42,7 +37,7 @@ export function ReleaseFunds({
   onClose: () => void;
 }) {
   const toast = useToast();
-  const chainId = useChainId();
+
   const queryClient = useQueryClient();
   const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
     invoice,

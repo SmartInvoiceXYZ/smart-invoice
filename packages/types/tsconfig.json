@@ -6,7 +6,6 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -14,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
   },
+  "references": [],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../jest.config.ts"],
   "exclude": ["node_modules", "dist"],
 }
