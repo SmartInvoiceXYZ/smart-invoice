@@ -60,18 +60,19 @@ export const CONFIG: Config = {
         [toLower('0x153Fbf5da827903e030Dc317C4031755D74D508a')]: LEXDAO_DATA,
       },
     },
-    5: {
-      SUBGRAPH: 'scottrepreneur/smart-invoice-goerli', //  'geovgy/v1-goerli-smart-invoice', // previously: psparacino/goerli-smart-invoices
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0x546adED0B0179d550e87cf909939a1207Fd26fB7',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0x1206b51217271FC3ffCa57d0678121983ce0390E')]: LEXDAO_DATA,
-      },
-    },
+    // -> Goerli deprecated
+    // 5: {
+    //   SUBGRAPH: 'scottrepreneur/smart-invoice-goerli', //  'geovgy/v1-goerli-smart-invoice', // previously: psparacino/goerli-smart-invoices
+    //   WRAPPED_NATIVE_TOKEN: toLower(
+    //     '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+    //   ) as Address,
+    //   INVOICE_FACTORY: toLower(
+    //     '0x546adED0B0179d550e87cf909939a1207Fd26fB7',
+    //   ) as Address,
+    //   RESOLVERS: {
+    //     [toLower('0x1206b51217271FC3ffCa57d0678121983ce0390E')]: LEXDAO_DATA,
+    //   },
+    // },
     137: {
       SUBGRAPH: 'psparacino/v1-matic-smart-invoices',
       WRAPPED_NATIVE_TOKEN: toLower(
@@ -84,18 +85,19 @@ export const CONFIG: Config = {
         [toLower('0xc680eB3C6395C8Ab94Cbf3Bb46Cd7C3340481e40')]: LEXDAO_DATA,
       },
     },
-    80001: {
-      SUBGRAPH: 'psparacino/v1-mumbai-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0x131dcaeE86EF12D106446bf35f8Ae98A614ee5A9',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
-      },
-    },
+    // -> Poulygon Mumbai deprecated
+    // 80001: {
+    //   SUBGRAPH: 'psparacino/v1-mumbai-smart-invoices',
+    //   WRAPPED_NATIVE_TOKEN: toLower(
+    //     '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889',
+    //   ) as Address,
+    //   INVOICE_FACTORY: toLower(
+    //     '0x131dcaeE86EF12D106446bf35f8Ae98A614ee5A9',
+    //   ) as Address,
+    //   RESOLVERS: {
+    //     [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
+    //   },
+    // },
     // 31337: {
     //   SUBGRAPH: 'psparacino/goerli-smart-invoices',
     //   WRAPPED_NATIVE_TOKEN: toLower(

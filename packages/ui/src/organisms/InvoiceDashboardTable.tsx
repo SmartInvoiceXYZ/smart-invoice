@@ -65,13 +65,13 @@ function InvoiceLink({
   const { projectName } = cell.row.original;
   const address = cell.getValue();
   return projectName ? (
-    <ChakraNextLink href={`/invoice/${chainId}/${address}`}>
+    <ChakraNextLink href={`/invoice/${chainId?.toString(16)}/${address}`}>
       {projectName}
     </ChakraNextLink>
   ) : (
     <AccountLink
       address={address as Hex}
-      link={`/invoice/${chainId}/${address}`}
+      link={`/invoice/${chainId?.toString(16)}/${address}`}
     />
   );
 }

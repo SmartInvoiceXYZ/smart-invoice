@@ -1,4 +1,4 @@
-import { Stack } from '@chakra-ui/react';
+import { Box, Stack } from '@chakra-ui/react';
 import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
@@ -28,7 +28,7 @@ function ViewInvoice() {
     : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
-    chainId: invoiceChainId || chainId,
+    chainId,
     address: invoiceId,
   });
 
@@ -44,8 +44,11 @@ function ViewInvoice() {
 
   if (!invoiceDetails) {
     return (
-      <Container overlay>
+      <Container overlay gap={10}>
         <Loader size="80" />
+        If the invoice does not load,
+        <br />
+        Please refresh the browser.
       </Container>
     );
   }
