@@ -32,7 +32,7 @@ export const invoiceFactory = (chainId: number) =>
 
 // TODO fix (import - getKeys)
 // export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG).map(k => Number(k));
-export const SUPPORTED_NETWORKS = [1, 5, 100, 137, 80001];
+export const SUPPORTED_NETWORKS = [1, 100, 137];
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
 

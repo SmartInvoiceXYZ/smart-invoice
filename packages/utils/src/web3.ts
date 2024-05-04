@@ -9,13 +9,7 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
 import { Chain, configureChains, createConfig } from 'wagmi';
-import {
-  gnosis as defaultGnosis,
-  goerli,
-  mainnet,
-  polygon,
-  polygonMumbai,
-} from 'wagmi/chains';
+import { gnosis as defaultGnosis, mainnet, polygon } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
 
@@ -30,15 +24,12 @@ const gnosis = {
 };
 
 const mainnetChains = [1, 100, 137];
-const testnetChains = [5, 80001];
-const orderedChains = _.concat(mainnetChains, testnetChains);
+const orderedChains = mainnetChains; // concat testnetchains if in future
 
 export const chainsList: { [key: number]: Chain } = {
   1: mainnet,
-  5: goerli,
   100: gnosis,
   137: polygon,
-  80001: polygonMumbai,
 };
 
 export const chainsMap = (chainId: number) => {
