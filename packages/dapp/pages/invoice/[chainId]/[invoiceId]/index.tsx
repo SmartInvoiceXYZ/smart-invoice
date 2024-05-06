@@ -48,7 +48,7 @@ function ViewInvoice() {
         <Loader size="80" />
         If the invoice does not load,
         <br />
-        Please refresh the browser.
+        please refresh the browser.
       </Container>
     );
   }
