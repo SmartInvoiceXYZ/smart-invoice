@@ -96,7 +96,7 @@ export function InvoiceDashboardTable({
       }),
       columnHelper.accessor('address', {
         header: 'Invoice Name/ID',
-        cell: info => <InvoiceLink cell={info} chainId={chainId} />,
+        cell: (info: any) => <InvoiceLink cell={info} chainId={chainId} />,
       }),
       columnHelper.accessor(
         row =>
