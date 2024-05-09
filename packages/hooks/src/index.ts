@@ -8,6 +8,7 @@ export * from './useInstantDetails';
 export * from './useInvoiceCreate';
 export * from './useInvoiceDetails';
 export * from './useInvoiceStatus';
+export * from './useIpfsDetails';
 export * from './useIsClient';
 export * from './useLock';
 export * from './usePollSubgraph';

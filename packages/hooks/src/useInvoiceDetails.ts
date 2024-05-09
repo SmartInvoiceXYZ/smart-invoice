@@ -8,10 +8,10 @@ import {
 import { getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Hex } from 'viem';
+import { fromHex, Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
 
-import { useInstantDetails } from '.';
+import { useInstantDetails, useIpfsDetails } from '.';
 
 export const useInvoiceDetails = ({
   address,
@@ -88,9 +88,33 @@ export const useInvoiceDetails = ({
           : true,
     });
 
+  // fetch invoice details from Ipfs
+  // TODO: remove after subgraph is fixed
+  const { data: ipfsDetails } = useIpfsDetails({
+    cid: _.get(invoiceDetails, 'detailsHash', ''),
+  });
+
+  const enhancedInvoiceFromIpfs = {
+    ...invoice,
+    projectName: ipfsDetails?.projectName,
+    startDate: ipfsDetails?.startDate,
+    endDate: ipfsDetails?.endDate,
+    projectAgreement: ipfsDetails?.projectAgreement,
+    projectDescription: ipfsDetails?.projectDescription,
+  } as Invoice;
+
+  const enhancedInvoiceDetailsFromIpfs = {
+    ...invoiceDetails,
+    projectName: ipfsDetails?.projectName,
+    startDate: ipfsDetails?.startDate,
+    endDate: ipfsDetails?.endDate,
+    projectAgreement: ipfsDetails?.projectAgreement,
+    projectDescription: ipfsDetails?.projectDescription,
+  } as InvoiceDetails;
+
   return {
-    data: invoice,
-    invoiceDetails,
+    data: enhancedInvoiceFromIpfs,
+    invoiceDetails: enhancedInvoiceDetailsFromIpfs,
     isLoading: isLoading || isInvoiceDetailsLoading,
     error,
   };

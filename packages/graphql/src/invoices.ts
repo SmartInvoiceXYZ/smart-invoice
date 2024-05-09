@@ -50,6 +50,7 @@ const invoicesQuery = (
         invoiceType: true,
         network: true,
         projectName: true,
+        ipfsHash: true,
         released: true,
         token: true,
         total: true,

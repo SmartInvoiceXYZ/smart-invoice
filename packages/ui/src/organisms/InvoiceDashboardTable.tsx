@@ -45,6 +45,7 @@ import {
   RightArrowIcon,
 } from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
+import { useIpfsDetails } from '@smart-invoice/hooks/src';
 
 // TODO use `usePaginatedQuery`
 
@@ -59,14 +60,16 @@ function InvoiceLink({
   cell,
   chainId,
 }: {
-  cell: CellContext<InvoiceDetails, string | undefined>;
+  cell: CellContext<InvoiceDetails & { ipfsHash: string }, string | undefined>;
   chainId?: number;
 }) {
-  const { projectName } = cell.row.original;
+  const { ipfsHash } = cell.row.original;
   const address = cell.getValue();
-  return projectName ? (
+  const { data, isFetched } = useIpfsDetails({ cid: ipfsHash });
+
+  return data && isFetched ? (
     <ChakraNextLink href={`/invoice/${chainId?.toString(16)}/${address}`}>
-      {projectName}
+      {data?.projectName}
     </ChakraNextLink>
   ) : (
     <AccountLink
