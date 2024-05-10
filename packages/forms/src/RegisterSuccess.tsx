@@ -29,7 +29,7 @@ export function RegisterSuccess({
 }) {
   const chainId = useChainId();
 
-  const chainHex = chainByName(String('gnosis') as Network)?.id?.toString(16);
+  const chainHex = chainId.toString(16);
 
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
   const { onCopy: copyLink } = useClipboard(
