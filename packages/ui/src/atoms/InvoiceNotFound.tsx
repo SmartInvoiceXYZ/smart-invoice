@@ -1,11 +1,12 @@
 import { Button, Flex, Icon, Stack, Text } from '@chakra-ui/react';
 import { chainsMap } from '@smart-invoice/utils';
 import React from 'react';
-import { useChainId } from 'wagmi';
+import { useChainId, useSwitchNetwork } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { ChakraNextLink } from '.';
 import { Container } from './Container';
+import { useParams } from 'next/navigation';
 
 export function InvoiceNotFound({
   heading,
@@ -15,6 +16,7 @@ export function InvoiceNotFound({
   chainId?: number;
 }) {
   const currentChainId = useChainId();
+  const { switchNetwork } = useSwitchNetwork();
 
   return (
     <Container>
@@ -57,16 +59,15 @@ export function InvoiceNotFound({
           </Text>
         )}
 
-        <ChakraNextLink href="/">
-          <Button
-            colorScheme="red"
-            px={12}
-            fontFamily="mono"
-            fontWeight="normal"
-          >
-            Return Home
-          </Button>
-        </ChakraNextLink>
+        <Button
+          colorScheme="red"
+          px={12}
+          fontFamily="mono"
+          fontWeight="normal"
+          onClick={() => switchNetwork?.(chainId)}
+        >
+          Switch Network
+        </Button>
       </Stack>
     </Container>
   );
