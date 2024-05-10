@@ -30,7 +30,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatUnits, Hex, parseUnits } from 'viem';
+import { formatEther, formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
 export function DepositFunds({
@@ -228,7 +228,7 @@ export function DepositFunds({
             max={amountsSum}
             localForm={localForm}
             rightElement={
-              <Flex minW="130px">
+              <Flex minW="130px" ml={4}>
                 {TOKEN_DATA.isWrapped ? (
                   <Select
                     value={paymentType?.value}
@@ -255,14 +255,25 @@ export function DepositFunds({
             }
           />
         </Flex>
-        {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
-          <Alert bg="yellow.500" borderRadius="md" mt={4} color="white">
-            <AlertIcon color="whiteAlpha.800" />
-            <AlertTitle fontSize="sm">
-              Your deposit is greater than the total amount due!
-            </AlertTitle>
-          </Alert>
-        )}
+        <Stack gap={4} mt={4}>
+          {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
+            <Alert bg="red.500" borderRadius="md" color="white">
+              <AlertIcon color="whiteAlpha.800" />
+              <AlertTitle fontSize="sm">
+                Your deposit is greater than the total amount due!
+              </AlertTitle>
+            </Alert>
+          )}
+
+          {displayBalance && displayBalance < formatEther(amount) && (
+            <Alert bg="red.500" borderRadius="md" color="white">
+              <AlertIcon color="whiteAlpha.800" />
+              <AlertTitle fontSize="sm">
+                Your balance is less than the amount you are trying to deposit!
+              </AlertTitle>
+            </Alert>
+          )}
+        </Stack>
       </Stack>
       <Flex
         color="blackAlpha.700"
@@ -274,9 +285,13 @@ export function DepositFunds({
           <Stack align="flex-start">
             <Text fontWeight="bold">Total Deposited</Text>
             <Text>
-              {`${commify(
-                formatUnits(BigInt(deposited), tokenMetadata?.decimals || 18),
-              )} ${tokenMetadata?.symbol}`}
+              {commify(
+                _.toNumber(
+                  formatUnits(BigInt(deposited), tokenMetadata?.decimals || 18),
+                ).toFixed(4),
+              )}
+              {` `}
+              {tokenMetadata?.symbol}
             </Text>
           </Stack>
         )}
@@ -284,7 +299,7 @@ export function DepositFunds({
           <Stack>
             <Text fontWeight="bold">Total Due</Text>
             <Text>
-              {`${formatUnits(BigInt(currentMilestoneAmount), tokenMetadata?.decimals || 18)} ${tokenMetadata?.symbol}`}
+              {`${_.toNumber(formatUnits(BigInt(currentMilestoneAmount), tokenMetadata?.decimals || 18)).toFixed(4)} ${tokenMetadata?.symbol}`}
             </Text>
           </Stack>
         )}
@@ -292,7 +307,7 @@ export function DepositFunds({
           <Stack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
             <Text>
-              {`${_.toNumber(displayBalance).toFixed(2)} ${
+              {`${_.toNumber(displayBalance).toFixed(4)} ${
                 paymentType?.value === PAYMENT_TYPES.TOKEN
                   ? tokenMetadata?.symbol
                   : TOKEN_DATA.nativeSymbol
