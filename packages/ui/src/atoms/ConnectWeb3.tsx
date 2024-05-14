@@ -5,7 +5,7 @@ import { useIsClient } from '@smart-invoice/hooks';
 import { chainsMap } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { Container } from './Container';
@@ -14,7 +14,7 @@ import { Loader } from './Loader';
 export function ConnectWeb3() {
   const { openConnectModal } = useConnectModal();
   const { address, isConnecting } = useAccount();
-
+  const chainId = useChainId();
   const isClient = useIsClient();
 
   if (!isClient || isConnecting) {
@@ -62,19 +62,20 @@ export function ConnectWeb3() {
             </Text>
           </>
         ) : (
-          <>
-            <Text fontSize="2xl" fontFamily="heading" mb={4}>
-              Network not supported
-            </Text>
-            <Text color="greyText" mb={4} textAlign="center">
-              To get started, connect your wallet
-            </Text>
-          </>
+          <Text
+            fontSize="xl"
+            fontFamily="heading"
+            mb={4}
+            maxW={200}
+            textAlign="center"
+          >
+            To get started, connect your wallet
+          </Text>
         )}
 
         {isClient && !address && (
           <Button onClick={openConnectModal} px={12} isLoading={isConnecting}>
-            Connect
+            Connect Wallet
           </Button>
         )}
       </Flex>

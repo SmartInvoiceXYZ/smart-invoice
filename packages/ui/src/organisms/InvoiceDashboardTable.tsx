@@ -18,12 +18,17 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import {
+  cache,
   fetchInvoices,
   Invoice_orderBy,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
 import { chainsMap } from '@smart-invoice/utils';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   CellContext,
   createColumnHelper,
@@ -35,9 +40,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
-import React, { useMemo, useState } from 'react';
-import { Address, formatUnits, Hex } from 'viem';
 
+import { useEffect, useMemo, useState } from 'react';
+import { Address, formatUnits, Hex } from 'viem';
+import { useIpfsDetails } from '@smart-invoice/hooks/src';
+import { useAccount } from 'wagmi';
 import { AccountLink, ChakraNextLink, theme, useMediaStyles } from '..';
 import {
   DoubleLeftArrowIcon,
@@ -45,8 +52,6 @@ import {
   RightArrowIcon,
 } from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
-import { useIpfsDetails } from '@smart-invoice/hooks/src';
-
 // TODO use `usePaginatedQuery`
 
 export type SearchInputType = string | Address | undefined;
@@ -84,6 +89,11 @@ export function InvoiceDashboardTable({
   searchInput,
 }: InvoiceDashboardTableProps) {
   const router = useRouter();
+  const { address } = useAccount();
+
+  useEffect(() => {
+    cache.reset();
+  }, [chainId, address]);
 
   const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
