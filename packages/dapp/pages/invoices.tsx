@@ -1,5 +1,5 @@
 import { InvoiceDashboardTable } from '@smart-invoice/ui';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAccount, useChainId } from 'wagmi';
 
 function Invoices() {
