@@ -4,14 +4,28 @@
     "node": true,
     "es6": true
   },
-  "extends": ["airbnb", "prettier", "plugin:mocha/recommended"],
+  "extends": [
+    "airbnb",
+    "plugin:mocha/recommended",
+    "plugin:prettier/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 8,
+    "ecmaVersion": 2023,
     "sourceType": "module"
   },
-  "plugins": ["simple-import-sort", "mocha"],
-  "settings": {},
+  "plugins": [
+    "prettier",
+    "simple-import-sort",
+    "react",
+    "mocha",
+    "react-hooks"
+  ],
   "rules": {
+    // defaults
+    "no-console": "warn",
+    "no-unused-vars": "off",
     // Prefer non-default exports
     "import/no-default-export": "error",
     "import/prefer-default-export": "off",
@@ -19,17 +33,53 @@
     // Auto-sort imports
     "sort-imports": "off",
     "import/order": "off",
-    "simple-import-sort/imports": "off",
+    "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
 
-    // Allow props spreading
-    "react/jsx-props-no-spreading": "off",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
 
-    // disable prop-types
-    "react/prop-types": "off",
+    // REACT
+    "react/prop-types": "off", // disable prop-types
+    "react/require-default-props": "off", // disable require default props
+    "react/react-in-jsx-scope": "off", // react in jsx scope
+    "react/jsx-filename-extension": [2, { "extensions": [".ts", ".tsx"] }],
+
+    // TS
+    "@typescript-eslint/no-explicit-any": "warn", // disable explicit any
+    "@typescript-eslint/no-unused-vars": ["warn"], // ts no unused vars
 
     // disable form label
-    "jsx-a11y/label-has-associated-control": "off"
+    "jsx-a11y/label-has-associated-control": "off",
+
+    // leverage prettier
+    "prettier/prettier": "error"
   },
-  "ignorePatterns": ["packages/subgraph/**", "packages/contracts/test/*"]
+  "ignorePatterns": [
+    "**/node_modules/*",
+    "dist/*",
+    "tmp/*",
+    ".next",
+    "packages/subgraph/**",
+    "packages/contracts/test/*",
+    "packages/subgraph/subgraph.template.yaml"
+  ],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": ["tsconfig.base.json", "packages/**/tsconfig.json"]
+      },
+      "node": {
+        "project": ["tsconfig.base.json", "packages/**/tsconfig.json"]
+      }
+    }
+  }
 }

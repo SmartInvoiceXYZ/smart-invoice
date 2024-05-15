@@ -8,12 +8,10 @@ dataSources:
   {{#factories}}
   - kind: ethereum/contract
     name: SmartInvoiceFactory{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       address: '{{address}}'
       abi: SmartInvoiceFactory{{factoryName}}
-      # prettier-ignore
       startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
@@ -49,7 +47,6 @@ dataSources:
         - event: LogNewInvoice(indexed uint256,indexed address,uint256[],bytes32,uint256)
           handler: handleLogNewInvoice
         {{/v01}}
-          
       file: ./src/mappings/{{factoryName}}/factory.ts
 {{/factories}}
 templates:
@@ -57,7 +54,6 @@ templates:
 {{#v00}}
   - kind: ethereum/contract
     name: SmartInvoice{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoice{{factoryName}}
@@ -100,7 +96,6 @@ templates:
 {{#v01}}
   - kind: ethereum/contract
     name: SmartInvoiceEscrow{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoiceEscrow{{factoryName}}
@@ -141,7 +136,6 @@ templates:
       file: ./src/mappings/{{factoryName}}/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceInstant{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoiceInstant{{factoryName}}
@@ -173,7 +167,6 @@ templates:
       file: ./src/mappings/{{factoryName}}/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceSplitEscrow{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoiceSplitEscrow{{factoryName}}
@@ -214,7 +207,6 @@ templates:
       file: ./src/mappings/{{factoryName}}/invoice.ts
   - kind: ethereum/contract
     name: SmartInvoiceUpdatable{{factoryName}}
-    # prettier-ignore
     network: {{network}}
     source:
       abi: SmartInvoiceUpdatable{{factoryName}}
@@ -263,7 +255,6 @@ templates:
 {{/factories}}
   - kind: ethereum/contract
     name: ERC20
-    # prettier-ignore
     network: {{network}}
     source:
       abi: ERC20
@@ -289,8 +280,12 @@ templates:
           file: ./src/abis/{{factoryName}}/SmartInvoiceEscrow{{factoryName}}.json
         - name: SmartInvoiceInstant{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceInstant{{factoryName}}.json
+        - name: SmartInvoiceUpdatable{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
         - name: SmartInvoiceSplitEscrow{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
+        - name: SmartInvoiceUpdatable{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
         {{/v01}}

@@ -20,7 +20,7 @@ async function main() {
   console.log("Account address:", address);
   console.log(
     "Account balance:",
-    ethers.utils.formatEther(await deployer.provider.getBalance(address)),
+    formatEther(await deployer.provider.getBalance(address)),
     getNetworkCurrency(chainId),
   );
 

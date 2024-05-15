@@ -13,6 +13,13 @@ import { getToken } from './helpers/token';
 import { updateInvoice } from './utils';
 
 export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
+  if (
+    event.params.invoice.toHexString() ==
+    '0x47838384f6cc2b08d5c86a2b48cdcb9d40516189'
+  ) {
+    return;
+  }
+
   let invoice = new Invoice(event.params.invoice.toHexString());
 
   log.info('handleLogNewInvoice {}', [event.params.invoice.toHexString()]);

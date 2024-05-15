@@ -21,7 +21,7 @@ const terminationTime =
   parseInt(new Date().getTime() / 1000, 10) + 30 * 24 * 60 * 60;
 const resolutionRate = 20;
 const requireVerification = true;
-const invoiceType = ethers.utils.formatBytes32String("escrow");
+const invoiceType = formatBytes32String("escrow");
 
 describe("SmartInvoiceEscrow", function () {
   let SmartInvoiceEscrow;
@@ -58,10 +58,10 @@ describe("SmartInvoiceEscrow", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await factory.addImplementation(
-      ethers.utils.formatBytes32String("escrow"),
+      formatBytes32String("escrow"),
       invoice.address,
     );
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    const data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",
@@ -90,7 +90,7 @@ describe("SmartInvoiceEscrow", function () {
       provider.address,
       amounts,
       data,
-      ethers.utils.formatBytes32String("escrow"),
+      formatBytes32String("escrow"),
     );
     invoiceAddress = await awaitInvoiceAddress(await receipt.wait());
     invoice = await SmartInvoiceEscrow.attach(invoiceAddress);
@@ -129,7 +129,7 @@ describe("SmartInvoiceEscrow", function () {
     invoice = await SmartInvoiceEscrow.deploy();
     await invoice.deployed();
     await invoice.initLock();
-    const data = ethers.utils.AbiCoder.prototype.encode(
+    const data = AbiCoder.prototype.encode(
       [
         "address",
         "uint8",

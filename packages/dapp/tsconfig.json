@@ -1,0 +1,42 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next",
+      },
+    ],
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "next.config.js",
+    "../../jest.config.ts",
+  ],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../constants/tsconfig.lib.json" },
+    { "path": "../forms/tsconfig.lib.json" },
+    { "path": "../graphql/tsconfig.lib.json" },
+    { "path": "../hooks/tsconfig.lib.json" },
+    { "path": "../shared/tsconfig.lib.json" },
+    { "path": "../types/tsconfig.lib.json" },
+    { "path": "../ui/tsconfig.lib.json" },
+    { "path": "../utils/tsconfig.lib.json" },
+  ],
+}

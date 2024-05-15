@@ -7,7 +7,7 @@ const EMPTY_BYTES32 =
 
 awaitInvoiceAddress = async receipt => {
   if (!receipt || !receipt.logs) return "";
-  const abi = new ethers.utils.Interface([
+  const abi = new Interface([
     "event LogNewInvoice(uint256 indexed id, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)",
   ]);
   const eventFragment = abi.events[Object.keys(abi.events)[0]];
@@ -45,7 +45,7 @@ const createEscrow = async (
   requireVerification,
 ) => {
   await factory.addImplementation(type, invoice.address);
-  const data = ethers.utils.AbiCoder.prototype.encode(
+  const data = AbiCoder.prototype.encode(
     [
       "address",
       "uint8",
@@ -137,7 +137,7 @@ const createSplitEscrow = async (
   daoFee,
 ) => {
   await factory.addImplementation(type, invoice.address);
-  const data = ethers.utils.AbiCoder.prototype.encode(
+  const data = AbiCoder.prototype.encode(
     [
       "address",
       "uint8",
@@ -187,7 +187,7 @@ const createUpdatableEscrow = async (
   providerReceiver,
 ) => {
   await factory.addImplementation(type, invoice.address);
-  const data = ethers.utils.AbiCoder.prototype.encode(
+  const data = AbiCoder.prototype.encode(
     [
       "address",
       "uint8",
@@ -331,7 +331,7 @@ const createInstantInvoice = async (
   // await factory.addImplementation(type, invoice.address);
   lateFeeAmount = lateFeeAmount ?? 0;
   lateFeeTimeInterval = lateFeeTimeInterval ?? 0;
-  const data = ethers.utils.AbiCoder.prototype.encode(
+  const data = AbiCoder.prototype.encode(
     [
       "address",
       "address",

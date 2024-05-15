@@ -12,8 +12,8 @@ const {
   abi: spoilsManagerFactoryAbi,
 } = require("../build/contracts/SpoilsManager.sol/SpoilsManagerFactory.json");
 
-const INITIAL_SPOILS = 10; // out of 100 multiplied by scale used in SplitsMain
-const PERCENTAGE_SCALE = 1e4;
+const INITIAL_SPOILS = 10; // out of 100 multiplied by scale used in SplitMain
+const PERCENTAGE_SCALE = 1e4; // percentage scale from SplitMain
 const INITIAL_RECEIVER = undefined; // fallback to deploymentsJson.zap.dao
 const INITIAL_OWNER = undefined; // fallback to deployer.address
 

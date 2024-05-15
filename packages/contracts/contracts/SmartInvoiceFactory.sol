@@ -3,10 +3,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./interfaces/ISmartInvoiceFactory.sol";
-import "./interfaces/ISmartInvoice.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {ISmartInvoice} from "./interfaces/ISmartInvoice.sol";
 
 contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     uint256 public invoiceCount = 0;
@@ -25,24 +25,6 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     mapping(bytes32 => uint256) public currentVersions;
 
     address public immutable wrappedNativeToken;
-
-    event LogNewInvoice(
-        uint256 indexed index,
-        address indexed invoice,
-        uint256[] amounts,
-        bytes32 invoiceType,
-        uint256 version
-    );
-    event UpdateResolutionRate(
-        address indexed resolver,
-        uint256 indexed resolutionRate,
-        bytes32 details
-    );
-    event AddImplementation(
-        bytes32 indexed name,
-        uint256 indexed version,
-        address implementation
-    );
 
     constructor(address _wrappedNativeToken) {
         require(
@@ -99,12 +81,10 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         return invoiceAddress;
     }
 
-    function predictDeterministicAddress(bytes32 _type, bytes32 _salt)
-        external
-        view
-        override
-        returns (address)
-    {
+    function predictDeterministicAddress(
+        bytes32 _type,
+        bytes32 _salt
+    ) external view override returns (address) {
         uint256 _version = currentVersions[_type];
         address _implementation = implementations[_type][_version];
         return Clones.predictDeterministicAddress(_implementation, _salt);
@@ -152,28 +132,26 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     // Arbitration
     // ******************
 
-    function updateResolutionRate(uint256 _resolutionRate, bytes32 _details)
-        external
-    {
+    function updateResolutionRate(
+        uint256 _resolutionRate,
+        bytes32 _details
+    ) external {
         resolutionRates[msg.sender] = _resolutionRate;
         emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
     }
 
-    function resolutionRateOf(address _resolver)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function resolutionRateOf(
+        address _resolver
+    ) external view override returns (uint256) {
         return resolutionRates[_resolver];
     }
 
     /** @dev marks a deployed contract as a suitable implementation for additional escrow invoices formats */
 
-    function addImplementation(bytes32 _type, address _implementation)
-        external
-        onlyRole(ADMIN)
-    {
+    function addImplementation(
+        bytes32 _type,
+        address _implementation
+    ) external onlyRole(ADMIN) {
         require(_implementation != address(0), "implemenation is zero address");
 
         uint256 _version = currentVersions[_type];

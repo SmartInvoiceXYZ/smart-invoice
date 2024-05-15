@@ -4,16 +4,16 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./interfaces/ISmartInvoiceEscrow.sol";
-import "./interfaces/ISmartInvoiceFactory.sol";
-import "./interfaces/IArbitrable.sol";
-import "./interfaces/IArbitrator.sol";
-import "./interfaces/IWRAPPED.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
+import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {IArbitrable} from "./interfaces/IArbitrable.sol";
+import {IArbitrator} from "./interfaces/IArbitrator.sol";
+import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 // TODO migrate to custom errors
 // TODO update recipient to provider throughout
@@ -187,7 +187,7 @@ contract SmartInvoiceEscrow is
     /**
      * @dev Verifies the client and contract are paired
      */
-    function verify() external {
+    function verify() external override {
         require(msg.sender == client, "!client");
         emit Verified(client, address(this));
     }
@@ -196,7 +196,7 @@ contract SmartInvoiceEscrow is
      * @dev Adds milestones without extra details.
      * @param _milestones The array of new milestones to be added
      */
-    function addMilestones(uint256[] calldata _milestones) external {
+    function addMilestones(uint256[] calldata _milestones) external override {
         _addMilestones(_milestones, bytes32(0));
     }
 
@@ -208,7 +208,7 @@ contract SmartInvoiceEscrow is
     function addMilestones(
         uint256[] calldata _milestones,
         bytes32 _details
-    ) external {
+    ) external override {
         _addMilestones(_milestones, _details);
     }
 

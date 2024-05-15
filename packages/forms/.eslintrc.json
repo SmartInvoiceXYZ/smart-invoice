@@ -1,0 +1,6 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error"
+  }
+}
