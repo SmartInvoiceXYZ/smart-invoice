@@ -13,16 +13,6 @@ import { useBalance, useToken } from 'wagmi';
 
 import { useInstantDetails, useIpfsDetails } from '.';
 
-const fetchTokenData = async () => {
-  const response = await fetch(
-    'https://smart-invoice.infura-ipfs.io/ipfs/QmSqhPHwiJnjsbfmrrENGU1GrggVJ9vijMaZquR9ujUW4C',
-  );
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-};
-
 export const useInvoiceDetails = ({
   address,
   chainId,
@@ -105,10 +95,6 @@ export const useInvoiceDetails = ({
   });
 
 
-  const { data: tokens } = useQuery({
-    queryFn: fetchTokenData,
-    queryKey: ['tokens']
-  })
 
 
   const enhancedInvoiceFromIpfs = ipfsDetails
@@ -119,8 +105,8 @@ export const useInvoiceDetails = ({
       endDate: ipfsDetails?.endDate,
       projectAgreement: ipfsDetails?.projectAgreement,
       projectDescription: ipfsDetails?.projectDescription,
-      tokenMetaData,
-    } as Invoice)
+      tokenMetadata,
+    } as Partial<InvoiceDetails>)
     : { ...invoice, tokenMetadata };
 
   const enhancedInvoiceDetailsFromIpfs = ipfsDetails
@@ -131,7 +117,7 @@ export const useInvoiceDetails = ({
       endDate: ipfsDetails?.endDate,
       projectAgreement: ipfsDetails?.projectAgreement,
       projectDescription: ipfsDetails?.projectDescription,
-    } as InvoiceDetails)
+    } as Partial<InvoiceDetails>)
     : { ...invoice, tokenMetadata };
 
 
