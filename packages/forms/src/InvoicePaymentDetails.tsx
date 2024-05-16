@@ -61,6 +61,7 @@ export function InvoicePaymentDetails({
     'released',
     'amounts',
     'currentMilestoneAmount',
+    'token',
     'tokenBalance',
     'dispute',
     'resolution',
@@ -105,8 +106,13 @@ export function InvoicePaymentDetails({
                 <Heading size="md">Total Project Amount</Heading>
                 {!!total && (
                   <Heading size="md">
-                    {commify(formatUnits(total, tokenBalance?.decimals || 18))}{' '}
-                    {tokenBalance?.symbol}
+                    {commify(
+                      formatUnits(
+                        total,
+                        tokenBalance?.decimals || tokenMetadata?.decimals || 18,
+                      ),
+                    )}{' '}
+                    {tokenBalance?.symbol || tokenMetadata?.symbol}
                   </Heading>
                 )}
               </HStack>
@@ -160,9 +166,11 @@ export function InvoicePaymentDetails({
                           {`${commify(
                             formatUnits(
                               BigInt(amt),
-                              tokenBalance?.decimals || 18,
+                              tokenBalance?.decimals ||
+                              tokenMetadata?.decimals ||
+                              18,
                             ),
-                          )} ${tokenBalance?.symbol}`}
+                          )} ${tokenBalance?.symbol || tokenMetadata?.symbol}`}
                         </Text>
                       </HStack>
                     </Flex>
@@ -204,18 +212,17 @@ export function InvoicePaymentDetails({
                     </Heading>
                     {!!currentMilestoneAmount && (
                       <Heading size="md">
-                        {`${
-                          tokenBalance?.value &&
+                        {`${tokenBalance?.value &&
                           commify(
                             formatUnits(
                               isReleasable
                                 ? BigInt(currentMilestoneAmount)
                                 : BigInt(currentMilestoneAmount) -
-                                    tokenBalance.value,
+                                tokenBalance.value,
                               18,
                             ),
                           )
-                        } ${tokenBalance?.symbol}`}
+                          } ${tokenBalance?.symbol}`}
                       </Heading>
                     )}
                   </>

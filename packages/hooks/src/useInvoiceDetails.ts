@@ -5,7 +5,7 @@ import {
   Invoice,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
-import { getInvoiceDetails } from '@smart-invoice/utils';
+import { fetchToken, getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { fromHex, Hex } from 'viem';
@@ -80,10 +80,10 @@ export const useInvoiceDetails = ({
         ),
       enabled:
         !!invoice &&
-        !!tokenMetadata &&
-        !!tokenBalance &&
-        !!nativeBalance &&
-        type === INVOICE_TYPES.Instant
+          !!tokenMetadata &&
+          !!tokenBalance &&
+          !!nativeBalance &&
+          type === INVOICE_TYPES.Instant
           ? !!instantDetails
           : true,
     });
@@ -94,23 +94,33 @@ export const useInvoiceDetails = ({
     cid: _.get(invoiceDetails, 'detailsHash', ''),
   });
 
-  const enhancedInvoiceFromIpfs = {
-    ...invoice,
-    projectName: ipfsDetails?.projectName,
-    startDate: ipfsDetails?.startDate,
-    endDate: ipfsDetails?.endDate,
-    projectAgreement: ipfsDetails?.projectAgreement,
-    projectDescription: ipfsDetails?.projectDescription,
-  } as Invoice;
 
-  const enhancedInvoiceDetailsFromIpfs = {
-    ...invoiceDetails,
-    projectName: ipfsDetails?.projectName,
-    startDate: ipfsDetails?.startDate,
-    endDate: ipfsDetails?.endDate,
-    projectAgreement: ipfsDetails?.projectAgreement,
-    projectDescription: ipfsDetails?.projectDescription,
-  } as InvoiceDetails;
+
+
+  const enhancedInvoiceFromIpfs = ipfsDetails
+    ? ({
+      ...invoice,
+      projectName: ipfsDetails?.projectName,
+      startDate: ipfsDetails?.startDate,
+      endDate: ipfsDetails?.endDate,
+      projectAgreement: ipfsDetails?.projectAgreement,
+      projectDescription: ipfsDetails?.projectDescription,
+      tokenMetadata,
+    } as Partial<InvoiceDetails>)
+    : { ...invoice, tokenMetadata };
+
+  const enhancedInvoiceDetailsFromIpfs = ipfsDetails
+    ? ({
+      ...invoiceDetails,
+      projectName: ipfsDetails?.projectName,
+      startDate: ipfsDetails?.startDate,
+      endDate: ipfsDetails?.endDate,
+      projectAgreement: ipfsDetails?.projectAgreement,
+      projectDescription: ipfsDetails?.projectDescription,
+    } as Partial<InvoiceDetails>)
+    : { ...invoice, tokenMetadata };
+
+
 
   return {
     data: enhancedInvoiceFromIpfs,

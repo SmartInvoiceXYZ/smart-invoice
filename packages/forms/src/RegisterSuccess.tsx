@@ -15,7 +15,7 @@ import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
 import { Network } from '@smart-invoice/types';
 import { ChakraNextLink, CopyIcon, Loader } from '@smart-invoice/ui';
 import { Checkbox } from '@smart-invoice/ui/src/theme/components';
-import { chainByName, getTxLink } from '@smart-invoice/utils';
+import { getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Address, useChainId } from 'wagmi';

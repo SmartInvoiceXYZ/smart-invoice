@@ -43,8 +43,13 @@ export const chainsMap = (chainId: number) => {
   return chain;
 };
 
-export const chainByName = (name: string | undefined) => {
+export const chainByName = (name: string | undefined): Chain | null => {
   if (!name) return null;
+
+  if (name === 'mainnet') {
+    return mainnet;
+  }
+
   const chain = _.find(_.values(chainsList), { network: name });
   if (!chain) throw new Error(`Chain ${name} not found`);
   return chain;
