@@ -5,13 +5,23 @@ import {
   Invoice,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
-import { getInvoiceDetails } from '@smart-invoice/utils';
+import { fetchToken, getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { fromHex, Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
 
 import { useInstantDetails, useIpfsDetails } from '.';
+
+const fetchTokenData = async () => {
+  const response = await fetch(
+    'https://smart-invoice.infura-ipfs.io/ipfs/QmSqhPHwiJnjsbfmrrENGU1GrggVJ9vijMaZquR9ujUW4C',
+  );
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
 
 export const useInvoiceDetails = ({
   address,
@@ -80,10 +90,10 @@ export const useInvoiceDetails = ({
         ),
       enabled:
         !!invoice &&
-        !!tokenMetadata &&
-        !!tokenBalance &&
-        !!nativeBalance &&
-        type === INVOICE_TYPES.Instant
+          !!tokenMetadata &&
+          !!tokenBalance &&
+          !!nativeBalance &&
+          type === INVOICE_TYPES.Instant
           ? !!instantDetails
           : true,
     });
@@ -94,23 +104,37 @@ export const useInvoiceDetails = ({
     cid: _.get(invoiceDetails, 'detailsHash', ''),
   });
 
-  const enhancedInvoiceFromIpfs = {
-    ...invoice,
-    projectName: ipfsDetails?.projectName,
-    startDate: ipfsDetails?.startDate,
-    endDate: ipfsDetails?.endDate,
-    projectAgreement: ipfsDetails?.projectAgreement,
-    projectDescription: ipfsDetails?.projectDescription,
-  } as Invoice;
 
-  const enhancedInvoiceDetailsFromIpfs = {
-    ...invoiceDetails,
-    projectName: ipfsDetails?.projectName,
-    startDate: ipfsDetails?.startDate,
-    endDate: ipfsDetails?.endDate,
-    projectAgreement: ipfsDetails?.projectAgreement,
-    projectDescription: ipfsDetails?.projectDescription,
-  } as InvoiceDetails;
+  const { data: tokens } = useQuery({
+    queryFn: fetchTokenData,
+    queryKey: ['tokens']
+  })
+
+
+  const enhancedInvoiceFromIpfs = ipfsDetails
+    ? ({
+      ...invoice,
+      projectName: ipfsDetails?.projectName,
+      startDate: ipfsDetails?.startDate,
+      endDate: ipfsDetails?.endDate,
+      projectAgreement: ipfsDetails?.projectAgreement,
+      projectDescription: ipfsDetails?.projectDescription,
+      tokenMetaData,
+    } as Invoice)
+    : { ...invoice, tokenMetadata };
+
+  const enhancedInvoiceDetailsFromIpfs = ipfsDetails
+    ? ({
+      ...invoiceDetails,
+      projectName: ipfsDetails?.projectName,
+      startDate: ipfsDetails?.startDate,
+      endDate: ipfsDetails?.endDate,
+      projectAgreement: ipfsDetails?.projectAgreement,
+      projectDescription: ipfsDetails?.projectDescription,
+    } as InvoiceDetails)
+    : { ...invoice, tokenMetadata };
+
+
 
   return {
     data: enhancedInvoiceFromIpfs,
