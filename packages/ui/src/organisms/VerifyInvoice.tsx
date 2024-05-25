@@ -45,7 +45,6 @@ export function VerifyInvoice({
     writeAsync?.();
   };
 
-  console.log(verifiedStatus, !isClient);
   if (verifiedStatus || !isClient) return null;
 
   return (

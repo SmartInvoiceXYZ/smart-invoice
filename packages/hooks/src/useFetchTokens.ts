@@ -34,7 +34,7 @@ export const useFetchTokens = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tokens'],
     queryFn: fetchTokens,
-    staleTime: 1000 * 60 * 60 * 24,
+    staleTime: Infinity, // 1000 * 60 * 60 * 24,
   });
 
   return { data, error, isLoading };
