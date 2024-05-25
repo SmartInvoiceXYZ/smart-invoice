@@ -15,8 +15,7 @@ export const DEFAULT_CHAIN_ID = 5;
 
 // TODO use wagmi Chain objects
 
-export const graphUrls = (chainId: number) =>
-  `https://api.thegraph.com/subgraphs/name/${NETWORK_CONFIG[chainId].SUBGRAPH}`;
+export const graphUrls = (chainId: number) => NETWORK_CONFIG[chainId].SUBGRAPH;
 
 export const resolvers = (chainId: number) =>
   Object.keys(NETWORK_CONFIG[chainId].RESOLVERS);

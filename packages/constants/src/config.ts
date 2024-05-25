@@ -37,7 +37,8 @@ export const CONFIG: Config = {
   BOX_ENDPOINT: 'https://ipfs.3box.io',
   NETWORK_CONFIG: {
     1: {
-      SUBGRAPH: 'psparacino/v1-mainnet-smart-invoices',
+      SUBGRAPH:
+        'https://api.studio.thegraph.com/query/307/smart-invoice-mainnet/v0.0.1',
       WRAPPED_NATIVE_TOKEN: toLower(
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
       ) as Address,
@@ -49,7 +50,8 @@ export const CONFIG: Config = {
       },
     },
     100: {
-      SUBGRAPH: 'scottrepreneur/smart-invoice-gnosis',
+      SUBGRAPH:
+        'https://api.thegraph.com/subgraphs/name/scottrepreneur/smart-invoice-gnosis',
       WRAPPED_NATIVE_TOKEN: toLower(
         '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
       ) as Address,
@@ -61,7 +63,8 @@ export const CONFIG: Config = {
       },
     },
     137: {
-      SUBGRAPH: 'psparacino/v1-matic-smart-invoices',
+      SUBGRAPH:
+        'https://api.thegraph.com/subgraphs/name/psparacino/v1-matic-smart-invoices',
       WRAPPED_NATIVE_TOKEN: toLower(
         '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
       ) as Address,

@@ -80,10 +80,10 @@ export const useInvoiceDetails = ({
         ),
       enabled:
         !!invoice &&
-          !!tokenMetadata &&
-          !!tokenBalance &&
-          !!nativeBalance &&
-          type === INVOICE_TYPES.Instant
+        !!tokenMetadata &&
+        !!tokenBalance &&
+        !!nativeBalance &&
+        type === INVOICE_TYPES.Instant
           ? !!instantDetails
           : true,
     });
@@ -94,33 +94,28 @@ export const useInvoiceDetails = ({
     cid: _.get(invoiceDetails, 'detailsHash', ''),
   });
 
-
-
-
   const enhancedInvoiceFromIpfs = ipfsDetails
     ? ({
-      ...invoice,
-      projectName: ipfsDetails?.projectName,
-      startDate: ipfsDetails?.startDate,
-      endDate: ipfsDetails?.endDate,
-      projectAgreement: ipfsDetails?.projectAgreement,
-      projectDescription: ipfsDetails?.projectDescription,
-      tokenMetadata,
-    } as Partial<InvoiceDetails>)
+        ...invoice,
+        projectName: ipfsDetails?.projectName,
+        startDate: ipfsDetails?.startDate,
+        endDate: ipfsDetails?.endDate,
+        projectAgreement: ipfsDetails?.projectAgreement,
+        projectDescription: ipfsDetails?.projectDescription,
+        tokenMetadata,
+      } as Partial<InvoiceDetails>)
     : { ...invoice, tokenMetadata };
 
   const enhancedInvoiceDetailsFromIpfs = ipfsDetails
     ? ({
-      ...invoiceDetails,
-      projectName: ipfsDetails?.projectName,
-      startDate: ipfsDetails?.startDate,
-      endDate: ipfsDetails?.endDate,
-      projectAgreement: ipfsDetails?.projectAgreement,
-      projectDescription: ipfsDetails?.projectDescription,
-    } as Partial<InvoiceDetails>)
+        ...invoiceDetails,
+        projectName: ipfsDetails?.projectName,
+        startDate: ipfsDetails?.startDate,
+        endDate: ipfsDetails?.endDate,
+        projectAgreement: ipfsDetails?.projectAgreement,
+        projectDescription: ipfsDetails?.projectDescription,
+      } as Partial<InvoiceDetails>)
     : { ...invoice, tokenMetadata };
-
-
 
   return {
     data: enhancedInvoiceFromIpfs,

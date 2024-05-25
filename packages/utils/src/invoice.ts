@@ -45,7 +45,11 @@ export const totalDeposited = (
 
   if (!deposits) return undefined;
   return parseUnits(
-    _.toString(_.sumBy(deposits, d => _.toNumber(formatUnits(d.amount, 18)))),
+    _.toString(
+      _.sumBy(deposits, d =>
+        _.toNumber(formatUnits(d.amount, tokenBalance?.decimals || 18)),
+      ),
+    ),
     tokenBalance?.decimals || 18,
   );
 };
