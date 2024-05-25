@@ -167,8 +167,8 @@ export function InvoicePaymentDetails({
                             formatUnits(
                               BigInt(amt),
                               tokenBalance?.decimals ||
-                              tokenMetadata?.decimals ||
-                              18,
+                                tokenMetadata?.decimals ||
+                                18,
                             ),
                           )} ${tokenBalance?.symbol || tokenMetadata?.symbol}`}
                         </Text>
@@ -212,17 +212,18 @@ export function InvoicePaymentDetails({
                     </Heading>
                     {!!currentMilestoneAmount && (
                       <Heading size="md">
-                        {`${tokenBalance?.value &&
+                        {`${
+                          tokenBalance?.value &&
                           commify(
                             formatUnits(
                               isReleasable
                                 ? BigInt(currentMilestoneAmount)
                                 : BigInt(currentMilestoneAmount) -
-                                tokenBalance.value,
-                              18,
+                                    tokenBalance.value,
+                              tokenBalance?.decimals || 18,
                             ),
                           )
-                          } ${tokenBalance?.symbol}`}
+                        } ${tokenBalance?.symbol}`}
                       </Heading>
                     )}
                   </>
