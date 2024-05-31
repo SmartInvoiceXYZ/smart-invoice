@@ -46,7 +46,7 @@ export const CONFIG: Config = {
         '0x5E14cF595e18F91170009946205f8BBa21b323ca',
       ) as Address,
       RESOLVERS: {
-        [toLower('0x01b92e2c0d06325089c6fd53c98a214f5c75b2ac')]: LEXDAO_DATA,
+        [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
       },
     },
     100: {
@@ -72,7 +72,7 @@ export const CONFIG: Config = {
         '0x6dcF61a9170419f30e065A43540aa3663b837342',
       ) as Address,
       RESOLVERS: {
-        [toLower('0xc680eB3C6395C8Ab94Cbf3Bb46Cd7C3340481e40')]: LEXDAO_DATA,
+        [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
       },
     },
   },
