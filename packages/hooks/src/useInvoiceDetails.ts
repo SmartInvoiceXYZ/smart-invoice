@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { fromHex, Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
+import { parseISO, getTime } from 'date-fns'
 
 import { useInstantDetails, useIpfsDetails } from '.';
 
@@ -98,8 +99,8 @@ export const useInvoiceDetails = ({
     ? ({
         ...invoice,
         projectName: ipfsDetails?.projectName,
-        startDate: ipfsDetails?.startDate,
-        endDate: ipfsDetails?.endDate,
+        startDate: getTime(parseISO(ipfsDetails?.startDate))/1000 as any,
+        endDate: getTime(parseISO(ipfsDetails?.endDate))/1000 as any,
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
         tokenMetadata,
@@ -110,8 +111,8 @@ export const useInvoiceDetails = ({
     ? ({
         ...invoiceDetails,
         projectName: ipfsDetails?.projectName,
-        startDate: ipfsDetails?.startDate,
-        endDate: ipfsDetails?.endDate,
+        startDate: getTime(parseISO(ipfsDetails?.startDate))/1000 as any,
+        endDate: getTime(parseISO(ipfsDetails?.endDate))/1000 as any,
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
       } as Partial<InvoiceDetails>)
