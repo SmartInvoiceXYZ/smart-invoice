@@ -85,8 +85,8 @@ title: FAQ
 <p>&nbsp;</p>
 
 1. Ethereum Mainnet
-2. xDai Chain
-3. Rinkeby Testnet
+2. Gnosis Chain
+3. Polygon
 
 </details></h4>
 

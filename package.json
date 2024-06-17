@@ -12,8 +12,6 @@
     "subgraph:auth": "pnpm --filter @smart-invoice/subgraph auth",
     "subgraph:codegen": "pnpm --filter @smart-invoice/subgraph codegen",
     "subgraph:build": "pnpm --filter @smart-invoice/subgraph build",
-    "subgraph:deploy-kovan": "pnpm --filter @smart-invoice/subgraph deploy-kovan",
-    "subgraph:deploy-rinkeby": "pnpm --filter @smart-invoice/subgraph deploy-rinkeby",
     "dapp:build": "pnpm --filter @smart-invoice/dapp build",
     "dapp:dev": "pnpm --filter @smart-invoice/dapp dev",
     "dapp:start": "pnpm --filter @smart-invoice/dapp start",
