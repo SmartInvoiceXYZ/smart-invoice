@@ -31,54 +31,54 @@ interface Config {
   NETWORK_CONFIG: Record<number, NetworkConfig>;
 }
 
-export const CONFIG: Config = {
-  INFURA_ID: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || '',
-  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
-  BOX_ENDPOINT: 'https://ipfs.3box.io',
-  NETWORK_CONFIG: {
-    1: {
-      SUBGRAPH:
-        'https://api.studio.thegraph.com/query/307/smart-invoice-mainnet/v0.0.1',
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0x5E14cF595e18F91170009946205f8BBa21b323ca',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
-      },
+const STUDIO_ID = '78711';
+const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;
+
+export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
+  1: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x5E14cF595e18F91170009946205f8BBa21b323ca',
+    ) as Address,
+    RESOLVERS: {
+      [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
     },
-    100: {
-      SUBGRAPH:
-        'https://api.thegraph.com/subgraphs/name/scottrepreneur/smart-invoice-gnosis',
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0xdDd96D43b0B2Ca179DCefA58e71798d0ce56c9c8',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0x153Fbf5da827903e030Dc317C4031755D74D508a')]: LEXDAO_DATA,
-      },
+  },
+  100: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xdDd96D43b0B2Ca179DCefA58e71798d0ce56c9c8',
+    ) as Address,
+    RESOLVERS: {
+      [toLower('0x153Fbf5da827903e030Dc317C4031755D74D508a')]: LEXDAO_DATA,
     },
-    137: {
-      SUBGRAPH:
-        'https://api.thegraph.com/subgraphs/name/psparacino/v1-matic-smart-invoices',
-      WRAPPED_NATIVE_TOKEN: toLower(
-        '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-      ) as Address,
-      INVOICE_FACTORY: toLower(
-        '0x6dcF61a9170419f30e065A43540aa3663b837342',
-      ) as Address,
-      RESOLVERS: {
-        [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
-      },
+  },
+  137: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x6dcF61a9170419f30e065A43540aa3663b837342',
+    ) as Address,
+    RESOLVERS: {
+      [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
     },
   },
 };
 
-export const { NETWORK_CONFIG } = CONFIG;
+export const CONFIG: Config = {
+  INFURA_ID: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || '',
+  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
+  BOX_ENDPOINT: 'https://ipfs.3box.io',
+  NETWORK_CONFIG,
+};
 
 export type ChainId = keyof typeof NETWORK_CONFIG;
 

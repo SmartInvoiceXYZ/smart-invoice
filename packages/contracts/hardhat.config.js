@@ -1,4 +1,5 @@
 require("hardhat/config");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config();
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-ethers");
@@ -48,20 +49,8 @@ module.exports = {
       url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts,
     },
-    polygonMumbai: {
-      url: `https://polygon-mumbai.infura.io/v3/${INFURA_PROJECT_ID}`,
-      accounts,
-    },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
-      accounts,
-    },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${INFURA_PROJECT_ID}`,
-      accounts,
-    },
-    goerli: {
-      url: `https://goerli.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts,
     },
     ganache: {
