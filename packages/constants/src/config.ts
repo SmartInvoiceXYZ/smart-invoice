@@ -1,15 +1,63 @@
-import { toLower } from 'lodash';
+import _, { toLower } from 'lodash';
 import { Address } from 'viem';
 
 const LexDAOLogo = '/assets/lex-dao.png';
 const LEXDAO_TERMS_URL =
   'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver';
 
+const KlerosLogo = '/assets/kleros.svg'; // todo: update this
+const KLEROS_TERMS_URL = 'https://kleros.io/terms-of-service/'; // todo: update this
+export const KLEROS_ARBITRATION_SAFE = toLower(
+  '0xb09F7Ada3F914356daB3eCDb3aAeac772700D4D0',
+);
+export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
+  '0x18542245cA523DFF96AF766047fE9423E0BED3C0',
+);
+
 const LEXDAO_DATA = {
   name: 'LexDAO',
   logoUrl: LexDAOLogo,
   termsUrl: LEXDAO_TERMS_URL,
 };
+
+const KLEROS_DATA = {
+  name: 'Kleros',
+  logoUrl: KlerosLogo,
+  termsUrl: KLEROS_TERMS_URL,
+};
+
+const SMART_INVOICE_ARBITRATION = {
+  name: 'Smart Invoice',
+  logoUrl: '/favicon.ico',
+  termsUrl: 'https://github.com/smart-invoice/smart-invoice/blob/main/LICENSE', // todo: update this
+}
+
+export const KLEROS_COURTS = [
+  {
+    id: 1,
+    name: 'General Court',
+    link: 'https://klerosboard.com/100/courts/0',
+    jurors_drawn: 3,
+    reward: '13 DAI/USDC per juror',
+    safe_address: KLEROS_ARBITRATION_SAFE,
+  },
+  {
+    id: 2,
+    name: 'Solidity Court',
+    link: 'https://klerosboard.com/100/courts/13',
+    jurors_drawn: 2,
+    reward: '30 DAI/USDC per juror',
+    safe_address: KLEROS_ARBITRATION_SAFE,
+  },
+  {
+    id: 3,
+    name: 'Javascript Court',
+    link: 'https://klerosboard.com/100/courts/14',
+    jurors_drawn: 2,
+    reward: '30 DAI/USDC per juror',
+    safe_address: KLEROS_ARBITRATION_SAFE,
+  },
+];
 
 export type Resolver = {
   name: string;
@@ -45,6 +93,8 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     ) as Address,
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
+      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },
   100: {
@@ -56,7 +106,9 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
       '0xdDd96D43b0B2Ca179DCefA58e71798d0ce56c9c8',
     ) as Address,
     RESOLVERS: {
-      [toLower('0x153Fbf5da827903e030Dc317C4031755D74D508a')]: LEXDAO_DATA,
+      [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
+      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },
   137: {
@@ -68,7 +120,9 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
       '0x6dcF61a9170419f30e065A43540aa3663b837342',
     ) as Address,
     RESOLVERS: {
-      [toLower('0xf8DBd458f841424e2fD5fBDf18A7dEA17eb2211D')]: LEXDAO_DATA,
+      [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
+      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },
 };

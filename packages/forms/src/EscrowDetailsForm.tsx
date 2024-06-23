@@ -9,7 +9,11 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
+import {
+  ESCROW_STEPS,
+  KLEROS_ARBITRATION_SAFE,
+  KLEROS_COURTS,
+} from '@smart-invoice/constants';
 import { FormInvoice } from '@smart-invoice/types';
 import { Checkbox, Input, Select } from '@smart-invoice/ui';
 import {
@@ -61,7 +65,11 @@ export function EscrowDetailsForm({
     setValue('resolver', values?.resolver);
     setValue('customResolver', values?.customResolver);
     setValue('resolverTerms', values?.resolverTerms);
-
+    if (values?.resolver !== KLEROS_ARBITRATION_SAFE) {
+      setValue('klerosCourt', undefined);
+    } else {
+      setValue('klerosCourt', values?.klerosCourt);
+    }
     updateStep();
   };
 
@@ -102,7 +110,7 @@ export function EscrowDetailsForm({
           />
         </Flex>
 
-        <Stack>
+        <Stack gap={4}>
           <Select
             name="resolver"
             label="Arbitration Provider"
@@ -115,6 +123,22 @@ export function EscrowDetailsForm({
             ))}
             <option value="custom">Custom</option>
           </Select>
+
+          {localResolver === KLEROS_ARBITRATION_SAFE && (
+            <Select
+              name="klerosCourt"
+              tooltip="This kleros court will be used in case of dispute."
+              label="Kleros Court"
+              localForm={localForm}
+            >
+              {KLEROS_COURTS.map((court: { id: number; name: string }) => (
+                <option key={court.id} value={court.id}>
+                  {court.name}
+                </option>
+              ))}
+            </Select>
+          )}
+
           {localResolver === 'custom' ||
           !isKnownResolver(localResolver as Hex, chainId) ? (
             <Input
