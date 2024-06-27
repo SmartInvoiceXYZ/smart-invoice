@@ -47,6 +47,7 @@ export const useInvoiceCreate = ({
     client,
     provider,
     resolver,
+    klerosCourt,
     customResolver,
     token,
     safetyValveDate,
@@ -62,6 +63,7 @@ export const useInvoiceCreate = ({
     'resolver',
     'customResolver',
     'token',
+    'klerosCourt',
     'safetyValveDate',
     'milestones',
     'projectName',
@@ -81,6 +83,7 @@ export const useInvoiceCreate = ({
     projectName,
     projectDescription,
     projectAgreement,
+    ...(klerosCourt && { klerosCourt }),
     startDate,
     endDate,
   };

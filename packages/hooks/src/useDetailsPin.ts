@@ -16,6 +16,7 @@ export const useDetailsPin = ({
   startDate,
   endDate,
   invoice,
+  klerosCourt,
 }: {
   projectName?: string;
   projectDescription?: string;
@@ -23,6 +24,7 @@ export const useDetailsPin = ({
   startDate?: number;
   endDate?: number;
   invoice?: InvoiceDetails;
+  klerosCourt?: number;
 }) => {
   const detailsData = useMemo(() => {
     const createdAt = BigInt(Date.now());
@@ -38,6 +40,7 @@ export const useDetailsPin = ({
       'projectAgreement',
       'startDate',
       'endDate',
+      'klerosCourt',
     ]);
 
     if (!(projectName || projectAgreement !== '')) {
@@ -63,6 +66,7 @@ export const useDetailsPin = ({
       startDate: startDate || invoiceStartDate,
       endDate: endDate || invoiceEndDate,
       version: INVOICE_VERSION,
+      ...(klerosCourt && { klerosCourt }),
     };
   }, [
     projectName,
@@ -71,6 +75,7 @@ export const useDetailsPin = ({
     startDate,
     endDate,
     invoice,
+    klerosCourt,
   ]);
 
   const detailsPin = async () => {
@@ -88,7 +93,14 @@ export const useDetailsPin = ({
   const { data, isLoading, error } = useQuery({
     queryKey: [
       'detailsPin',
-      { projectName, projectDescription, projectAgreement, startDate, endDate },
+      {
+        projectName,
+        projectDescription,
+        projectAgreement,
+        startDate,
+        endDate,
+        ...(klerosCourt && { klerosCourt }),
+      },
     ],
     queryFn: detailsPin,
     enabled:
