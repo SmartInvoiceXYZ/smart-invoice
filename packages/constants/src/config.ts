@@ -7,9 +7,12 @@ const LEXDAO_TERMS_URL =
 
 const KlerosLogo = '/assets/kleros.svg'; // todo: update this
 const KLEROS_TERMS_URL = 'https://kleros.io/terms-of-service/'; // todo: update this
-export const KLEROS_ARBITRATION_SAFE = toLower(
-  '0xb09F7Ada3F914356daB3eCDb3aAeac772700D4D0',
-);
+
+// @note: Kleros And Smart Invoice use the same safe address,
+// but they are differentiated by case for frontend!
+export const KLEROS_ARBITRATION_SAFE =
+  '0x18542245cA523DFF96AF766047fE9423E0BED3C0';
+
 export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
   '0x18542245cA523DFF96AF766047fE9423E0BED3C0',
 );
@@ -30,7 +33,7 @@ const SMART_INVOICE_ARBITRATION = {
   name: 'Smart Invoice',
   logoUrl: '/favicon.ico',
   termsUrl: 'https://github.com/smart-invoice/smart-invoice/blob/main/LICENSE', // todo: update this
-}
+};
 
 export const KLEROS_COURTS = [
   {
@@ -93,7 +96,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     ) as Address,
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
-      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
       [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },
@@ -107,7 +110,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     ) as Address,
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
-      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
       [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },
@@ -121,7 +124,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     ) as Address,
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
-      [toLower(KLEROS_ARBITRATION_SAFE)]: KLEROS_DATA,
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
       [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
     },
   },

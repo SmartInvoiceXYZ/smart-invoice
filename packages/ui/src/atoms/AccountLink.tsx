@@ -26,7 +26,7 @@ export function AccountLink({
   link,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
-  const address = _.toLower(inputAddress) as Address;
+  const address = inputAddress as Address;
   const chainId = inputChainId || walletChainId;
   const isResolver = isKnownResolver(address, chainId);
   const blockie = blockies

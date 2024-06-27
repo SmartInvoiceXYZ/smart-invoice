@@ -48,6 +48,7 @@ export function EscrowDetailsForm({
       customResolver,
       resolver,
       resolverTerms,
+      klerosCourt: 1,
     },
   });
   const {
@@ -66,7 +67,7 @@ export function EscrowDetailsForm({
     setValue('customResolver', values?.customResolver);
     setValue('resolverTerms', values?.resolverTerms);
     if (values?.resolver !== KLEROS_ARBITRATION_SAFE) {
-      setValue('klerosCourt', undefined);
+      setValue('klerosCourt', 0);
     } else {
       setValue('klerosCourt', values?.klerosCourt);
     }
