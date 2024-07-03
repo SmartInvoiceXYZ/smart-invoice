@@ -5,12 +5,11 @@ import {
   Invoice,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
-import { fetchToken, getInvoiceDetails } from '@smart-invoice/utils';
+import { getInvoiceDetails } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { fromHex, Hex } from 'viem';
+import { Hex } from 'viem';
 import { useBalance, useToken } from 'wagmi';
-import { parseISO, getTime } from 'date-fns'
 
 import { useInstantDetails, useIpfsDetails } from '.';
 
@@ -99,8 +98,16 @@ export const useInvoiceDetails = ({
     ? ({
         ...invoice,
         projectName: ipfsDetails?.projectName,
-        startDate: getTime(parseISO(ipfsDetails?.startDate))/1000 as any,
-        endDate: getTime(parseISO(ipfsDetails?.endDate))/1000 as any,
+        startDate: BigInt(
+          typeof ipfsDetails?.startDate === 'string'
+            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
+            : ipfsDetails?.startDate,
+        ),
+        endDate: BigInt(
+          typeof ipfsDetails?.endDate === 'string'
+            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
+            : ipfsDetails?.endDate,
+        ),
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
         tokenMetadata,
@@ -111,8 +118,16 @@ export const useInvoiceDetails = ({
     ? ({
         ...invoiceDetails,
         projectName: ipfsDetails?.projectName,
-        startDate: getTime(parseISO(ipfsDetails?.startDate))/1000 as any,
-        endDate: getTime(parseISO(ipfsDetails?.endDate))/1000 as any,
+        startDate: BigInt(
+          typeof ipfsDetails?.startDate === 'string'
+            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
+            : ipfsDetails?.startDate,
+        ),
+        endDate: BigInt(
+          typeof ipfsDetails?.endDate === 'string'
+            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
+            : ipfsDetails?.endDate,
+        ),
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
       } as Partial<InvoiceDetails>)
