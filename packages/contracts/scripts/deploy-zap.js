@@ -36,7 +36,7 @@ async function main() {
     await safeSplitsEscrowZapImpl.deployed();
     console.log("Implementation Address:", safeSplitsEscrowZapImpl.address);
 
-    waitForDeployTx(safeSplitsEscrowZapImpl, chainId);
+    await waitForDeployTx(safeSplitsEscrowZapImpl, chainId);
 
     await verifyContract(chainId, safeSplitsEscrowZapImpl.address, []);
     const updateImplementation = addZapImplementation(
@@ -56,7 +56,7 @@ async function main() {
       zapFactoryInstance.address,
     );
 
-    waitForDeployTx(zapFactoryInstance, chainId);
+    await waitForDeployTx(zapFactoryInstance, chainId);
 
     await verifyContract(chainId, zapFactoryInstance.address, [
       safeSplitsEscrowZapImpl.address,

@@ -12,6 +12,8 @@ function readDeploymentInfo(name) {
     encoding: "utf8",
   });
 
+  if (!data) throw new Error("Deployment info not found for network: ", name);
+
   return JSON.parse(data);
 }
 

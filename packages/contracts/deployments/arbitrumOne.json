@@ -1,0 +1,25 @@
+{
+  "network": "arbitrumOne",
+  "factory": "0xb4CdeF4aa610C046864467592FaE456a58d3443a",
+  "txHash": "0xdbb5a7d2de0c9850418a713ff37ff3d3c1b39dc3e286806590c340976000f73e",
+  "blockNumber": "228638106",
+  "implementations": {
+    "escrow": [
+      "0x851E59A39571e599954702f0E4996Bf838D9c863"
+    ],
+    "instant": [
+      "0xd8E1F218021550FAddA4b1E353578b80a1cE1A94"
+    ],
+    "split-escrow": [
+      "0x44346bB92eF9512389B30cB471234c7546CA5946"
+    ],
+    "updatable": [
+      "0xc166B597fB34CBE71fB76C4A502CAcc42d9Bb231"
+    ]
+  },
+  "zap": {
+    "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E"
+  }
+}
