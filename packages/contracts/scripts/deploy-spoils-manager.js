@@ -115,7 +115,7 @@ async function main() {
   const zapData = getZapData(chainId);
 
   if (
-    spoilsManagerData &&
+    !spoilsManagerData ||
     (spoilsManagerData.factory === "0x" ||
       (spoilsManagerData.implementations &&
         spoilsManagerData.implementations.length === 0))

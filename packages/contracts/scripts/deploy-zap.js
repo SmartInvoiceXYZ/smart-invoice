@@ -22,7 +22,10 @@ async function main() {
   let zapFactoryInstance;
 
   // todo handle other networks
-  if (chainId !== 5 && chainId !== 31337 && chainId !== 100) return;
+  if (chainId !== 5 && chainId !== 31337 && chainId !== 100 && chainId !== 10) {
+    console.log("Unsupported Network: ", chainId);
+    return;
+  }
   const zapData = getZapData(chainId);
   const deploymentInfo = readDeploymentInfo(network.name);
   let updateFactory = deploymentInfo;

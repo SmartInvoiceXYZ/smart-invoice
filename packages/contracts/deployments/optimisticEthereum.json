@@ -18,8 +18,24 @@
     ]
   },
   "zap": {
+    "dao": "0xf4f65a5c6590fbc15b3869510e5f1e7114041c53",
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
     "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
-    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E"
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
+    "spoilsManager": "0x9aFA71188fC0cd4445AbC4e671B466C2ea405130",
+    "splitMain": "0x2ed6c4B5dA6378c7897AC67Ba9e43102Feb694EE",
+    "implementations": [
+      "0x9f24a07300cA38EB247F87464021dCDa15fe1c2e"
+    ],
+    "factory": "0x9C51aA40551B35aB16D410AdeF9659Ed3bcd8bD6",
+    "instances": [
+      "0xd5a159a1D70888047DF151B757157eb9A03e7075"
+    ]
+  },
+  "spoilsManager": {
+    "factory": "0x2f1068222B28939ABD4Cce3e0fab800b8DDA5AE2",
+    "implementations": [
+      "0xF4640751e7363a0572d4Ba93a9b049B956b33c17"
+    ]
   }
 }

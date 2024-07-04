@@ -68,9 +68,8 @@ function addZapInstance(deploymentInfo, zap) {
     return newDeploymentInfo;
   }
 
-  const zapImplementations = deploymentInfo.zap.instances;
   if (deploymentInfo.zap.instances && deploymentInfo.zap.instances.length > 0) {
-    zapImplementations.unshift(zap);
+    deploymentInfo.zap.instances.unshift(zap);
   } else {
     newDeploymentInfo.zap.instances = [zap];
   }
@@ -87,9 +86,8 @@ function addZapImplementation(deploymentInfo, implementation) {
     return newDeploymentInfo;
   }
 
-  const zapImplementations = deploymentInfo.zap.implementations;
-  if (deploymentInfo.zap.implementations.length > 0) {
-    zapImplementations.push(implementation);
+  if (deploymentInfo.zap.implementations && deploymentInfo.zap.implementations.length > 0) {
+    deploymentInfo.zap.implementations.push(implementation);
   } else {
     newDeploymentInfo.zap.implementations = [implementation];
   }
