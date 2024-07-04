@@ -5,7 +5,7 @@ const LexDAOLogo = '/assets/lex-dao.png';
 const LEXDAO_TERMS_URL =
   'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver';
 
-const KlerosLogo = '/assets/kleros.svg'; // todo: update this
+export const KLEROS_LOGO = '/assets/kleros.svg'; 
 const KLEROS_TERMS_URL =
   'https://docs.google.com/document/d/1z_l2Wc8YHSspB0Lm5cmMDhu9h0W5G4thvDLqWRtuxbA/';
 
@@ -18,6 +18,8 @@ export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
   '0x18542245cA523DFF96AF766047fE9423E0BED3C0',
 );
 
+export const KLEROS_GOOGLE_FORM = 'https://forms.gle/K3oMAzAb32G5SbpM9';
+
 const LEXDAO_DATA = {
   name: 'LexDAO',
   logoUrl: LexDAOLogo,
@@ -28,7 +30,7 @@ const KLEROS_DATA = {
   name: 'Kleros',
   disclaimer:
     'Only choose Kleros if total invoice value is greater than 1000 USD',
-  logoUrl: KlerosLogo,
+  logoUrl: KLEROS_LOGO,
   termsUrl: KLEROS_TERMS_URL,
 };
 

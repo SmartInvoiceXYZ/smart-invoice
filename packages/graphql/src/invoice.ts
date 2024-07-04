@@ -210,6 +210,7 @@ export type InvoiceDetails = Invoice &
     resolverInfo: any | undefined; // ResolverInfo;
     resolverFee: string | undefined;
     resolverFeeDisplay: string | undefined;
+    klerosCourt: number | string | undefined;
     deadlineLabel: string | undefined;
     // entities
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,4 +226,5 @@ export type InvoiceDetails = Invoice &
     tokenMetadata: TokenMetadata | undefined;
     tokenBalance: TokenBalance | undefined;
     nativeBalance: TokenBalance | undefined;
+    
   };

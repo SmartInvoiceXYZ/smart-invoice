@@ -47,6 +47,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
     client,
     provider,
     resolver,
+    klerosCourt,
   } = _.pick(invoice, [
     'id',
     'client',
@@ -59,6 +60,7 @@ export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
     'projectAgreement',
     'startDate',
     'endDate',
+    'klerosCourt',
   ]);
 
   const invoiceChainId = chainByName(invoice?.network)?.id;
@@ -121,7 +123,13 @@ export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
       },
       validResolver && {
         label: 'Arbitration Provider:',
-        value: <AccountLink address={validResolver} chainId={invoiceChainId} />,
+        value: (
+          <AccountLink
+            address={validResolver}
+            chainId={invoiceChainId}
+            court={klerosCourt}
+          />
+        ),
       },
     ],
     [
