@@ -6,7 +6,8 @@ const LEXDAO_TERMS_URL =
   'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver';
 
 const KlerosLogo = '/assets/kleros.svg'; // todo: update this
-const KLEROS_TERMS_URL = 'https://kleros.io/terms-of-service/'; // todo: update this
+const KLEROS_TERMS_URL =
+  'https://docs.google.com/document/d/1z_l2Wc8YHSspB0Lm5cmMDhu9h0W5G4thvDLqWRtuxbA/';
 
 // @note: Kleros And Smart Invoice use the same safe address,
 // but they are differentiated by case for frontend!
@@ -25,14 +26,19 @@ const LEXDAO_DATA = {
 
 const KLEROS_DATA = {
   name: 'Kleros',
+  disclaimer:
+    'Only choose Kleros if total invoice value is greater than 1000 USD',
   logoUrl: KlerosLogo,
   termsUrl: KLEROS_TERMS_URL,
 };
 
 const SMART_INVOICE_ARBITRATION = {
-  name: 'Smart Invoice',
+  name: 'Smart Invoice In-house',
+  disclaimer:
+    'Only choose Smart Invoice In-house if invoice value is less than 1000 USD',
   logoUrl: '/favicon.ico',
-  termsUrl: 'https://github.com/smart-invoice/smart-invoice/blob/main/LICENSE', // todo: update this
+  termsUrl:
+    'https://docs.smartinvoice.xyz/arbitration/smart-invoice-arbitration',
 };
 
 export const KLEROS_COURTS = [
@@ -65,6 +71,7 @@ export const KLEROS_COURTS = [
 export type Resolver = {
   name: string;
   logoUrl: string;
+  disclaimer?: string;
   termsUrl: string;
 };
 

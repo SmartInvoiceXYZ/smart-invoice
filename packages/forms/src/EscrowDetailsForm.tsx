@@ -1,4 +1,7 @@
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
   Box,
   Button,
   Flex,
@@ -124,6 +127,16 @@ export function EscrowDetailsForm({
             ))}
             <option value="custom">Custom</option>
           </Select>
+
+          {localResolver &&
+            getResolverInfo(localResolver as Hex, chainId)?.disclaimer && (
+              <Alert bg="yellow.500" borderRadius="md" color="white">
+                <AlertIcon color="whiteAlpha.800" />
+                <AlertTitle fontSize="sm">
+                  {getResolverInfo(localResolver as Hex, chainId).disclaimer}
+                </AlertTitle>
+              </Alert>
+            )}
 
           {localResolver === KLEROS_ARBITRATION_SAFE && (
             <Select
