@@ -1,0 +1,19 @@
+{
+  "network": "holesky",
+  "startBlock": "1861812",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "1861812",
+      "address": "0xE0986c3bdAB537fBeb7c94D0C5EF961d6d8bf63a",
+      "v01": true
+    }
+  ],
+  "tokens": [
+    {
+      "tokenAddress": "0x94373a4919b3240d86ea41593d5eba789fef3848",
+      "startBlock": "1861812",
+      "tokenName": "WETH"
+    }
+  ]
+}
