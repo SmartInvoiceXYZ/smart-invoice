@@ -30,7 +30,7 @@ async function deploySpoilsManagerFactory(chainId) {
   await spoilsManagerImplementation.initLock();
   console.log("Initialized Lock Successful");
 
-  verifyContract(
+  await verifyContract(
     chainId,
     spoilsManagerImplementation.address,
     [],
@@ -46,7 +46,7 @@ async function deploySpoilsManagerFactory(chainId) {
   await spoilsManagerFactory.deployed();
   console.log("Spoils Manager Factory Address:", spoilsManagerFactory.address);
 
-  verifyContract(
+  await verifyContract(
     chainId,
     spoilsManagerFactory.address,
     [spoilsManagerImplementation.address],
@@ -115,7 +115,7 @@ async function main() {
   const zapData = getZapData(chainId);
 
   if (
-    spoilsManagerData &&
+    !spoilsManagerData ||
     (spoilsManagerData.factory === "0x" ||
       (spoilsManagerData.implementations &&
         spoilsManagerData.implementations.length === 0))

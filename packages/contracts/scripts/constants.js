@@ -1,9 +1,12 @@
-const goerli = require("../deployments/goerli.json");
 const localhost = require("../deployments/localhost.json");
 const gnosis = require("../deployments/gnosis.json");
 const polygon = require("../deployments/polygon.json");
-const mumbai = require("../deployments/polygonMumbai.json");
 const mainnet = require("../deployments/mainnet.json");
+const sepolia = require("../deployments/sepolia.json");
+const holesky = require("../deployments/holesky.json");
+const arbitrumOne = require("../deployments/arbitrumOne.json");
+const base = require("../deployments/base.json");
+const optimisticEthereum = require("../deployments/optimisticEthereum.json");
 
 const NETWORK_DATA = {
   1: {
@@ -12,19 +15,46 @@ const NETWORK_DATA = {
     networkCurrency: "ETH",
     factory: mainnet.factory,
   },
-  5: {
-    name: "goerli",
-    wrappedTokenAddress: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-    networkCurrency: "ETH",
-    factory: goerli.factory,
-    zap: goerli.zap,
-    spoilsManager: goerli.spoilsManager,
+  11155111: {
+    name: "sepolia",
+    wrappedTokenAddress: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    networkCurrency: "sETH",
+    factory: sepolia.factory,
+    zap: sepolia.zap,
+    spoilsManager: sepolia.spoilsManager,
   },
-  // 77: {
-  //   name: "sokol",
-  //   wrappedTokenAddress: "0xc655c6D80ac92d75fBF4F40e95280aEb855B1E87",
-  //   networkCurrency: "SPOA",
-  // },
+  17000: {
+    name: "holesky",
+    wrappedTokenAddress: "0x94373a4919b3240d86ea41593d5eba789fef3848",
+    networkCurrency: "hETH",
+    factory: holesky.factory,
+    zap: holesky.zap,
+    spoilsManager: holesky.spoilsManager,
+  },
+  8453: {
+    name: "base",
+    wrappedTokenAddress: "0x4200000000000000000000000000000000000006",
+    networkCurrency: "ETH",
+    factory: base.factory,
+    zap: base.zap,
+    spoilsManager: base.spoilsManager,
+  },
+  42161: {
+    name: "arbitrumOne",
+    wrappedTokenAddress: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+    networkCurrency: "ETH",
+    factory: arbitrumOne.factory,
+    zap: arbitrumOne.zap,
+    spoilsManager: arbitrumOne.spoilsManager,
+  },
+  10: {
+    name: "optimisticEthereum",
+    wrappedTokenAddress: "0x4200000000000000000000000000000000000006",
+    networkCurrency: "ETH",
+    factory: optimisticEthereum.factory,
+    zap: optimisticEthereum.zap,
+    spoilsManager: optimisticEthereum.spoilsManager,
+  },
   100: {
     name: "gnosis",
     wrappedTokenAddress: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
@@ -32,7 +62,6 @@ const NETWORK_DATA = {
     factory: gnosis.factory,
     zap: gnosis.zap,
     spoilsManager: gnosis.spoilsManager,
-    useBlockscout: true,
   },
   137: {
     name: "polygon",
@@ -49,14 +78,6 @@ const NETWORK_DATA = {
     factory: localhost.factory,
     zap: localhost.zap,
     spoilsManager: localhost.spoilsManager,
-  },
-  80001: {
-    name: "mumbai",
-    wrappedTokenAddress: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
-    networkCurrency: "MATIC",
-    factory: mumbai.factory,
-    zap: mumbai.zap,
-    spoilsManager: mumbai.spoilsManager,
   },
 };
 

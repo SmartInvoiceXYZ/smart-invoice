@@ -1,0 +1,19 @@
+{
+  "network": "base",
+  "startBlock": "16649094",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "16649094",
+      "address": "0xF9822818143948237A60A1a1CEFC85D6F1b929Df",
+      "v01": true
+    }
+  ],
+  "tokens": [
+    {
+      "tokenAddress": "0x4200000000000000000000000000000000000006",
+      "startBlock": "16649094",
+      "tokenName": "WETH"
+    }
+  ]
+}
