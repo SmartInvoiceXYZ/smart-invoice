@@ -11,14 +11,11 @@ async function verifyContract(chainId, address, constructorArguments, message) {
   // don't verify on local network
   if (chainId === 31337) return undefined;
 
-  // const TASK_VERIFY = getUseBlockscout(chainId)
-  //   ? "verify:verify-blockscout"
-  //   : "verify:verify";
-  const TASK_VERIFY = "verify:verify";
+  const TASK_VERIFY = "verify";
 
   const result = await run(TASK_VERIFY, {
     address,
-    constructorArguments,
+    constructorArgsParams: constructorArguments
   });
 
   if (message) {

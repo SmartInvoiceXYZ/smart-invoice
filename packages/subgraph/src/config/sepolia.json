@@ -1,0 +1,19 @@
+{
+  "network": "sepolia",
+  "startBlock": "6243433",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "6243433",
+      "address": "0x8227b9868e00B8eE951F17B480D369b84Cd17c20",
+      "v01": true
+    }
+  ],
+  "tokens": [
+    {
+      "startBlock": "6243433",
+      "tokenAddress": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+      "tokenName": "WETH"
+    }
+  ]
+}

@@ -57,6 +57,7 @@ pids
 
 # subgraph
 packages/subgraph/src/types
+packages/subgraph/subgraph.yaml
 
 # yarn version
 .yarn*

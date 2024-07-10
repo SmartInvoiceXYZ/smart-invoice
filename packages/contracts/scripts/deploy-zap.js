@@ -22,7 +22,10 @@ async function main() {
   let zapFactoryInstance;
 
   // todo handle other networks
-  if (chainId !== 5 && chainId !== 31337 && chainId !== 100) return;
+  if (chainId !== 5 && chainId !== 31337 && chainId !== 100 && chainId !== 10) {
+    console.log("Unsupported Network: ", chainId);
+    return;
+  }
   const zapData = getZapData(chainId);
   const deploymentInfo = readDeploymentInfo(network.name);
   let updateFactory = deploymentInfo;
@@ -36,7 +39,7 @@ async function main() {
     await safeSplitsEscrowZapImpl.deployed();
     console.log("Implementation Address:", safeSplitsEscrowZapImpl.address);
 
-    waitForDeployTx(safeSplitsEscrowZapImpl, chainId);
+    await waitForDeployTx(safeSplitsEscrowZapImpl, chainId);
 
     await verifyContract(chainId, safeSplitsEscrowZapImpl.address, []);
     const updateImplementation = addZapImplementation(
@@ -56,7 +59,7 @@ async function main() {
       zapFactoryInstance.address,
     );
 
-    waitForDeployTx(zapFactoryInstance, chainId);
+    await waitForDeployTx(zapFactoryInstance, chainId);
 
     await verifyContract(chainId, zapFactoryInstance.address, [
       safeSplitsEscrowZapImpl.address,
