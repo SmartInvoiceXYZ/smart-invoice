@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Button,
   Divider,
@@ -11,11 +12,13 @@ import {
 import {
   ESCROW_STEPS,
   INVOICE_TYPES,
+  KLEROS_ARBITRATION_SAFE,
+  KLEROS_COURTS,
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { ValueOf } from '@smart-invoice/types';
-import { AccountLink, useMediaStyles } from '@smart-invoice/ui';
+import { AccountLink, ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
 import { getDateString, getTokenInfo } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
@@ -47,6 +50,7 @@ export function FormConfirmation({
     projectAgreement,
     client,
     provider,
+    klerosCourt,
     startDate,
     endDate,
     safetyValveDate,
@@ -120,6 +124,20 @@ export function FormConfirmation({
           <AccountLink address={customResolver || resolver} chainId={chainId} />
         ),
       },
+      // if kleros resolver, show court
+      klerosCourt &&
+        resolver === KLEROS_ARBITRATION_SAFE && {
+          label: 'Kleros Court:',
+          value: (
+            <ChakraNextLink
+              href={_.find(KLEROS_COURTS, { id: klerosCourt })?.link}
+              textAlign="right"
+              isExternal
+            >
+              {_.find(KLEROS_COURTS, { id: klerosCourt })?.name}
+            </ChakraNextLink>
+          ),
+        },
     ]);
   }, [
     client,
@@ -128,6 +146,7 @@ export function FormConfirmation({
     endDate,
     safetyValveDate,
     resolver,
+    klerosCourt,
     paymentDue,
     lateFee,
     lateFeeTimeInterval,

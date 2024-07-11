@@ -1,11 +1,18 @@
-import { INVOICE_TYPES } from '@smart-invoice/constants';
+import {
+  INVOICE_TYPES,
+  KLEROS_ARBITRATION_SAFE,
+} from '@smart-invoice/constants';
 import {
   cache,
   fetchInvoice,
   Invoice,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
-import { getInvoiceDetails } from '@smart-invoice/utils';
+import {
+  getInvoiceDetails,
+  getResolverFee,
+  getResolverInfo,
+} from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';
@@ -30,7 +37,6 @@ export const useInvoiceDetails = ({
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
   });
-  // console.log(invoice);
 
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
@@ -94,6 +100,14 @@ export const useInvoiceDetails = ({
     cid: _.get(invoiceDetails, 'detailsHash', ''),
   });
 
+  // if kleros court is set in ipfs details
+
+  const klerosResolverInfo = getResolverInfo(
+    KLEROS_ARBITRATION_SAFE as Hex,
+    chainId,
+  );
+  // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
+
   const enhancedInvoiceFromIpfs = ipfsDetails
     ? ({
         ...invoice,
@@ -108,7 +122,13 @@ export const useInvoiceDetails = ({
             ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
             : ipfsDetails?.endDate,
         ),
-        projectAgreement: ipfsDetails?.projectAgreement,
+        klerosCourt: ipfsDetails?.klerosCourt || undefined,
+        resolverInfo: ipfsDetails?.klerosCourt
+          ? klerosResolverInfo
+          : invoiceDetails?.resolverInfo,
+        resolverName: ipfsDetails?.klerosCourt
+          ? klerosResolverInfo?.name
+          : invoiceDetails?.resolverName,
         projectDescription: ipfsDetails?.projectDescription,
         tokenMetadata,
       } as Partial<InvoiceDetails>)
@@ -128,6 +148,13 @@ export const useInvoiceDetails = ({
             ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
             : ipfsDetails?.endDate,
         ),
+        klerosCourt: ipfsDetails?.klerosCourt || undefined,
+        resolverInfo: ipfsDetails?.klerosCourt
+          ? klerosResolverInfo
+          : invoiceDetails?.resolverInfo,
+        resolverName: ipfsDetails?.klerosCourt
+          ? klerosResolverInfo?.name
+          : invoiceDetails?.resolverName,
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
       } as Partial<InvoiceDetails>)

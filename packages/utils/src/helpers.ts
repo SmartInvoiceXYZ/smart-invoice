@@ -26,8 +26,8 @@ export const getResolvers = (chainId?: number) =>
 
 export const getResolverInfo = (resolver: Address, chainId?: number) =>
   chainId && isOfTypeChainId(chainId)
-    ? resolverInfo(chainId)[_.toLower(resolver) as Hex]
-    : resolverInfo(DEFAULT_CHAIN_ID)[_.toLower(resolver) as Hex];
+    ? resolverInfo(chainId)[resolver]
+    : resolverInfo(DEFAULT_CHAIN_ID)[resolver];
 
 export const getResolverFee = (
   invoice: Invoice,
