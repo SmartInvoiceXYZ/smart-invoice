@@ -40,7 +40,7 @@ export const wrappedNativeToken = (chainId: number) =>
 export const invoiceFactory = (chainId: number) =>
   NETWORK_CONFIG[chainId].INVOICE_FACTORY;
 
-export const SUPPORTED_NETWORKS = [
+export const SUPPORTED_NETWORKS: Array<number> = [
   arbitrum.id,
   base.id,
   gnosis.id,
