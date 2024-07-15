@@ -127,7 +127,7 @@ export function InstantPaymentForm({
               localForm={localForm}
             >
               {_.map(TOKENS, t => (
-                <option value={t.symbol} key={t.address}>
+                <option value={t.address} key={t.address}>
                   {t.symbol}
                 </option>
               ))}
