@@ -24,7 +24,7 @@ interface SelectProps extends ChakraProps {
   tooltip?: string;
   required?: Required;
   isDisabled?: boolean;
-  placeholder?: string;
+  _placeholder?: string;
 }
 
 export function Select({
@@ -36,7 +36,7 @@ export function Select({
   required,
   isDisabled = false,
   children,
-  placeholder,
+  _placeholder,
   ...props
 }: React.PropsWithChildren<SelectProps>) {
   const { control } = localForm;
@@ -77,7 +77,7 @@ export function Select({
               color="black"
               border="1px"
               borderColor="lightgrey"
-              placeholder={placeholder}
+              placeholder={_placeholder}
               _hover={{ borderColor: 'lightgrey' }}
               isDisabled={isDisabled}
               {...props}
