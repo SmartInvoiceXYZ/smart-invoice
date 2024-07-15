@@ -15,11 +15,12 @@ import {
 import { PDFViewer } from '@react-pdf/renderer';
 import { Invoice } from '@smart-invoice/graphql';
 import { useFetchTokens } from '@smart-invoice/hooks';
-import { chainByName, getTokenInfo } from '@smart-invoice/utils';
+import { chainByName } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React from 'react';
 
 import { InvoicePDF } from '../molecules';
+import { IToken } from '@smart-invoice/types/src';
 
 interface GenerateInvoicePDFProps {
   invoice: Invoice;
@@ -38,12 +39,13 @@ export function GenerateInvoicePDF({
     'network',
     'token',
   ]);
+
   const invoiceChainId = chainByName(network)?.id;
 
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
-  const { symbol } = getTokenInfo(invoiceChainId, token, tokenData);
+  const { data: tokens } = useFetchTokens();
+  const invoiceToken = _.filter(tokens, { address: token, chainId: invoiceChainId })[0] as IToken;
 
+  const symbol = invoiceToken?.symbol;
   return (
     <Stack align="stretch">
       <Button onClick={onOpen} variant="link" {...buttonProps}>

@@ -40,7 +40,6 @@ jobs:
         env:
           PROJECT_ID: smart-invoice-docs
           PROJECT_PATH: ./packages/docs
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Deploy Dapp
         uses: w9jds/firebase-action@master
         with:
@@ -48,4 +47,3 @@ jobs:
         env:
           PROJECT_ID: smart-invoice-factory
           PROJECT_PATH: ./packages/dapp
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

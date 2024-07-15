@@ -7,7 +7,7 @@ import {
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { IToken } from '@smart-invoice/types/src';
 import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
-import { instantPaymentSchema, oneMonthFromNow } from '@smart-invoice/utils';
+import { getWrappedNativeToken, instantPaymentSchema, oneMonthFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -23,7 +23,22 @@ export function InstantPaymentForm({
   updateStep,
 }: InstantPaymentFormProps) {
   const chainId = useChainId();
+
+
   const { data: tokens } = useFetchTokens();
+
+  const TOKENS = useMemo(
+    // eslint-disable-next-line eqeqeq
+    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : []),
+    [chainId, tokens],
+  ) as IToken[];
+
+
+  const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
+  // eslint-disable-next-line eqeqeq
+  const defaultTokenData = useMemo(() => _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH' && t.chainId == chainId)[0], [chainId, TOKENS]);
+
+
   const { watch, setValue } = invoiceForm;
   const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
     watch();
@@ -35,7 +50,7 @@ export function InstantPaymentForm({
       provider,
       paymentDue,
       deadline: oneMonthFromNow(),
-      token: undefined as string | undefined,
+      token: nativeWrappedToken,
       lateFee,
     },
   });
@@ -47,14 +62,7 @@ export function InstantPaymentForm({
 
   const { primaryButtonSize } = useMediaStyles();
 
-  const TOKENS = useMemo(
-    // eslint-disable-next-line eqeqeq
-    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : undefined),
-    [chainId, tokens],
-  ) as IToken[];
 
-  // eslint-disable-next-line eqeqeq
-  const defaultToken = _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH')[0];
 
   const onSubmit = (values: unknown) => {
     setValue('client', _.get(values, 'client'));
@@ -70,7 +78,7 @@ export function InstantPaymentForm({
 
   useEffect(() => {
     // set initial local values for select after options load
-    localSetValue('token', defaultToken?.address, { shouldDirty: true });
+    localSetValue('token', nativeWrappedToken, { shouldDirty: true });
     localSetValue(
       'lateFeeTimeInterval',
       lateFeeTimeInterval ||
@@ -114,6 +122,7 @@ export function InstantPaymentForm({
             <Select
               name="token"
               required="required"
+              _placeholder={defaultTokenData?.symbol}
               tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
               localForm={localForm}
             >

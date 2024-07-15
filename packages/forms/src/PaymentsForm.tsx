@@ -16,7 +16,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
-import { FormInvoice } from '@smart-invoice/types';
+import { FormInvoice, IToken } from '@smart-invoice/types';
 import {
   NumberInput,
   QuestionIcon,
@@ -27,6 +27,7 @@ import {
   commify,
   escrowPaymentsSchema,
   getDecimals,
+  getWrappedNativeToken,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
@@ -45,10 +46,31 @@ export function PaymentsForm({
   const chainId = useChainId();
   const { watch, setValue } = invoiceForm;
   const { milestones, token } = watch();
+
+
+  const { data: tokens } = useFetchTokens();
+
+  const TOKENS = useMemo(
+    // eslint-disable-next-line eqeqeq
+    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : []),
+    [chainId, tokens],
+  ) as IToken[];
+
+
+  const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
+
+  
+
+  // eslint-disable-next-line eqeqeq
+  const defaultTokenData = useMemo(() => _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH' && t.chainId == chainId)[0], [chainId, TOKENS]);
+
+
+  
+
   const localForm = useForm({
     defaultValues: {
       milestones: milestones || [{ value: '1' }, { value: '1' }],
-      token,
+      token: nativeWrappedToken,
     },
     resolver: yupResolver(escrowPaymentsSchema),
   });
@@ -61,14 +83,7 @@ export function PaymentsForm({
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
 
-  const { data } = useFetchTokens();
-  const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
-
-  const TOKENS = useMemo(
-    () => tokenData && _.values(tokenData[chainId]),
-    [chainId, allTokens],
-  );
-  const invoiceTokenData = _.find(TOKENS, { address: localToken });
+  const invoiceTokenData = _.filter(TOKENS, (t) => t.address === localToken)[0] ?? defaultTokenData;
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -89,10 +104,10 @@ export function PaymentsForm({
   });
 
   useEffect(() => {
-    localSetValue('token', token || _.first(TOKENS)?.address);
-
+    localSetValue('token', nativeWrappedToken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS]);
+
 
   const [total, decimals] = localMilestones
     ? localMilestones
@@ -109,11 +124,12 @@ export function PaymentsForm({
   return (
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
       <Flex w="100%">
-        <FormControl isRequired>
+        <FormControl isRequired >
           <Select
             name="token"
             label="Payment Token"
             required="required"
+            _placeholder={defaultTokenData?.symbol}
             tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
             localForm={localForm}
           >
@@ -187,7 +203,7 @@ export function PaymentsForm({
             <Text>
               Total: {commify(total.toFixed(decimals), decimals)}
               {` `}
-              {invoiceTokenData?.symbol}
+              {invoiceTokenData?.symbol || defaultTokenData?.symbol}
             </Text>
           </Flex>
         </Stack>

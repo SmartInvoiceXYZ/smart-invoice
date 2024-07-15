@@ -27,7 +27,6 @@
     "abitype": "^0.10.3",
     "base-58": "^0.0.1",
     "dotenv": "^16.0.1",
-    "firebase": "^10.7.0",
     "focus-visible": "^5.2.0",
     "framer-motion": "^10.17.12",
     "global": "^4.4.0",

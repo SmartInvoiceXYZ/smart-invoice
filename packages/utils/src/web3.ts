@@ -55,9 +55,6 @@ export const chainsList: { [key: number]: Chain } = {
 };
 
 export const chainsMap = (chainId: number) => {
-  if (!chainId) {
-    return null;
-  }
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -65,11 +62,15 @@ export const chainsMap = (chainId: number) => {
   return chain;
 };
 
-export const chainByName = (name: string | undefined): Chain | null => {
+export const chainByName = (name?: string): Chain | null => {
   if (!name) return null;
 
   if (name === 'mainnet') {
     return mainnet;
+  }
+
+  if (name.startsWith('arbitrum')) {
+    return arbitrum
   }
 
   const chain = _.find(_.values(chainsList), { network: name });
