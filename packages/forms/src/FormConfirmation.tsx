@@ -19,7 +19,7 @@ import {
 import { useFetchTokens } from '@smart-invoice/hooks';
 import { ValueOf } from '@smart-invoice/types';
 import { AccountLink, ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
-import { getDateString, getTokenInfo } from '@smart-invoice/utils';
+import { getDateString } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -41,8 +41,7 @@ export function FormConfirmation({
   type,
 }: FormConfirmationProps) {
   const chainId = useChainId();
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
+  const { data: tokens } = useFetchTokens();
   const { watch } = invoiceForm;
   const {
     projectName,
@@ -69,7 +68,11 @@ export function FormConfirmation({
   );
 
   const initialPaymentDue = _.get(_.first(milestones), 'value');
-  const { symbol } = getTokenInfo(chainId, token, tokenData);
+  const symbol = _.filter(
+    tokens,
+    // eslint-disable-next-line eqeqeq
+    t => t.address == token && t.chainId == chainId,
+  )[0]?.symbol;
 
   const { headingSize, primaryButtonSize, columnWidth } = useMediaStyles();
 

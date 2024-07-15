@@ -5,12 +5,9 @@ import {
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
+import { IToken } from '@smart-invoice/types/src';
 import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
-import {
-  getTokenSymbol,
-  instantPaymentSchema,
-  oneMonthFromNow,
-} from '@smart-invoice/utils';
+import { instantPaymentSchema, oneMonthFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -26,8 +23,7 @@ export function InstantPaymentForm({
   updateStep,
 }: InstantPaymentFormProps) {
   const chainId = useChainId();
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
+  const { data: tokens } = useFetchTokens();
   const { watch, setValue } = invoiceForm;
   const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
     watch();
@@ -52,9 +48,13 @@ export function InstantPaymentForm({
   const { primaryButtonSize } = useMediaStyles();
 
   const TOKENS = useMemo(
-    () => (tokenData ? _.keys(tokenData[chainId]) : undefined),
-    [chainId, tokenData],
-  );
+    // eslint-disable-next-line eqeqeq
+    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : undefined),
+    [chainId, tokens],
+  ) as IToken[];
+
+  // eslint-disable-next-line eqeqeq
+  const defaultToken = _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH')[0];
 
   const onSubmit = (values: unknown) => {
     setValue('client', _.get(values, 'client'));
@@ -70,7 +70,7 @@ export function InstantPaymentForm({
 
   useEffect(() => {
     // set initial local values for select after options load
-    localSetValue('token', _.first(TOKENS), { shouldDirty: true });
+    localSetValue('token', defaultToken?.address, { shouldDirty: true });
     localSetValue(
       'lateFeeTimeInterval',
       lateFeeTimeInterval ||
@@ -118,8 +118,8 @@ export function InstantPaymentForm({
               localForm={localForm}
             >
               {_.map(TOKENS, t => (
-                <option value={t} key={t}>
-                  {getTokenSymbol(chainId, t, tokenData)}
+                <option value={t.symbol} key={t.address}>
+                  {t.symbol}
                 </option>
               ))}
             </Select>

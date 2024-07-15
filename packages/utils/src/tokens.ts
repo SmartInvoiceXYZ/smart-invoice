@@ -4,7 +4,7 @@ import {
   DEFAULT_CHAIN_ID,
   isOfTypeChainId,
 } from '@smart-invoice/constants';
-import { TokenData, TokenDataInput } from '@smart-invoice/types';
+import { IToken } from '@smart-invoice/types';
 import _ from 'lodash';
 import { Address, getAddress, Hex, zeroAddress } from 'viem';
 
