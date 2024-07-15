@@ -59,18 +59,12 @@ export function PaymentsForm({
 
   const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
 
-  
-
-  // eslint-disable-next-line eqeqeq
-  const defaultTokenData = useMemo(() => _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH' && t.chainId == chainId)[0], [chainId, TOKENS]);
 
 
-  
 
   const localForm = useForm({
     defaultValues: {
       milestones: milestones || [{ value: '1' }, { value: '1' }],
-      token: nativeWrappedToken,
     },
     resolver: yupResolver(escrowPaymentsSchema),
   });
@@ -83,7 +77,7 @@ export function PaymentsForm({
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
 
-  const invoiceTokenData = _.filter(TOKENS, (t) => t.address === localToken)[0] ?? defaultTokenData;
+  const invoiceTokenData = _.filter(TOKENS, (t) => t.address === localToken)[0];
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -106,19 +100,19 @@ export function PaymentsForm({
   useEffect(() => {
     localSetValue('token', nativeWrappedToken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [TOKENS]);
+  }, [TOKENS, nativeWrappedToken]);
 
 
   const [total, decimals] = localMilestones
     ? localMilestones
-        .map((milestone: { value: string }) => [
-          _.toNumber(milestone.value) || 0,
-          getDecimals(milestone.value),
-        ])
-        .reduce(
-          ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
-          [0, 0],
-        )
+      .map((milestone: { value: string }) => [
+        _.toNumber(milestone.value) || 0,
+        getDecimals(milestone.value),
+      ])
+      .reduce(
+        ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
+        [0, 0],
+      )
     : [0, 0];
 
   return (
@@ -129,7 +123,7 @@ export function PaymentsForm({
             name="token"
             label="Payment Token"
             required="required"
-            _placeholder={defaultTokenData?.symbol}
+            // _placeholder={defaultTokenData?.symbol}
             tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
             localForm={localForm}
           >
@@ -203,7 +197,7 @@ export function PaymentsForm({
             <Text>
               Total: {commify(total.toFixed(decimals), decimals)}
               {` `}
-              {invoiceTokenData?.symbol || defaultTokenData?.symbol}
+              {invoiceTokenData?.symbol}
             </Text>
           </Flex>
         </Stack>

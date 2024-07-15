@@ -34,9 +34,7 @@ export function InstantPaymentForm({
   ) as IToken[];
 
 
-  const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
-  // eslint-disable-next-line eqeqeq
-  const defaultTokenData = useMemo(() => _.filter(TOKENS, (t: IToken) => t.symbol == 'WETH' && t.chainId == chainId)[0], [chainId, TOKENS]);
+  const nativeWrappedToken = getWrappedNativeToken(chainId) || '';
 
 
   const { watch, setValue } = invoiceForm;
@@ -50,7 +48,6 @@ export function InstantPaymentForm({
       provider,
       paymentDue,
       deadline: oneMonthFromNow(),
-      token: nativeWrappedToken,
       lateFee,
     },
   });
@@ -82,11 +79,11 @@ export function InstantPaymentForm({
     localSetValue(
       'lateFeeTimeInterval',
       lateFeeTimeInterval ||
-        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
       { shouldDirty: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [TOKENS]);
+  }, [TOKENS, nativeWrappedToken]);
 
   return (
     <Stack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
@@ -122,7 +119,6 @@ export function InstantPaymentForm({
             <Select
               name="token"
               required="required"
-              _placeholder={defaultTokenData?.symbol}
               tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
               localForm={localForm}
             >
@@ -135,17 +131,6 @@ export function InstantPaymentForm({
           </Box>
         }
       />
-      {/* {(paymentInvalid || milestonesInvalid) && (
-        <Text
-          w="100%"
-          color="red"
-          textAlign="left"
-          fontSize="xs"
-          fontWeight="700"
-        >
-          Payment must be greater than 0
-        </Text>
-      )} */}
 
       <NumberInput
         name="lateFee"
