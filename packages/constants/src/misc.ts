@@ -2,6 +2,17 @@
 
 // TODO look at overlap with utils/web3.ts
 // import { getKeys } from '../utils/getKeys';
+import {
+  arbitrum,
+  base,
+  gnosis,
+  holesky,
+  mainnet,
+  optimism,
+  polygon,
+  sepolia,
+} from 'viem/chains';
+
 import { CONFIG } from './config';
 
 const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
@@ -29,9 +40,16 @@ export const wrappedNativeToken = (chainId: number) =>
 export const invoiceFactory = (chainId: number) =>
   NETWORK_CONFIG[chainId].INVOICE_FACTORY;
 
-// TODO fix (import - getKeys)
-// export const SUPPORTED_NETWORKS = getKeys(NETWORK_CONFIG).map(k => Number(k));
-export const SUPPORTED_NETWORKS = [1, 100, 137];
+export const SUPPORTED_NETWORKS = [
+  arbitrum.id,
+  base.id,
+  gnosis.id,
+  holesky.id,
+  mainnet.id,
+  optimism.id,
+  polygon.id,
+  sepolia.id,
+];
 
 export const INVOICE_VERSION = 'smart-invoice-v0';
 

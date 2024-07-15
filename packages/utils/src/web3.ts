@@ -9,9 +9,19 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
 import { Chain, configureChains, createConfig } from 'wagmi';
-import { gnosis as defaultGnosis, mainnet, polygon, arbitrum,  optimism, sepolia, base, holesky } from 'wagmi/chains';
+import {
+  arbitrum,
+  base,
+  gnosis as defaultGnosis,
+  holesky,
+  mainnet,
+  optimism,
+  polygon,
+  sepolia,
+} from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
+
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 
@@ -22,9 +32,16 @@ const gnosis = {
   iconBackground: 'none',
 };
 
-const mainnetChains = [mainnet.id, gnosis.id, polygon.id, arbitrum.id, optimism.id, base.id]; 
-const testnetchains = [ sepolia.id, holesky.id];
-const orderedChains = [...mainnetChains, ...testnetchains]; 
+const mainnetChains = [
+  mainnet.id,
+  gnosis.id,
+  polygon.id,
+  arbitrum.id,
+  optimism.id,
+  base.id,
+];
+const testnetchains = [sepolia.id, holesky.id];
+const orderedChains = [...mainnetChains, ...testnetchains];
 
 export const chainsList: { [key: number]: Chain } = {
   [mainnet.id]: mainnet,

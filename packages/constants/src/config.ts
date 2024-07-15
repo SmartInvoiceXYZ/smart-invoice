@@ -202,7 +202,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
       [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
       [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
     },
-  }
+  },
 };
 
 export const CONFIG: Config = {
