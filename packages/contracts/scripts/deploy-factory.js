@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 const { ethers, network } = require("hardhat");
-const { waitForDeployTx } = require("./utils/general");
+const { waitForDeployTx, verifyContract } = require("./utils/general");
 const {
   getNetworkCurrency,
   getNetworkName,
   getWrappedTokenAddress,
 } = require("./constants");
-const { verifyContract, writeDeploymentInfo } = require("./utils/file");
+const { writeDeploymentInfo } = require("./utils/file");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -20,7 +20,7 @@ async function main() {
   console.log("Account address:", address);
   console.log(
     "Account balance:",
-    formatEther(await deployer.provider.getBalance(address)),
+    ethers.utils.formatEther(await deployer.provider.getBalance(address)),
     getNetworkCurrency(chainId),
   );
 
@@ -37,7 +37,6 @@ async function main() {
   console.log("Transaction Hash:", txHash);
 
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
-  // console.log("Block Number:", receipt.blockNumber);
 
   // overwrites any existing info
   const deploymentInfo = {
@@ -50,12 +49,11 @@ async function main() {
 
   writeDeploymentInfo(deploymentInfo, network.name);
 
-  waitForDeployTx(smartInvoiceFactory, chainId, 5);
+  await waitForDeployTx(smartInvoiceFactory, chainId, 5);
 
-  console.log("Deployed SmartInvoiceFactory to:", smartInvoiceFactory.address);
-  // console.log("Wrapped token address:", getWrappedTokenAddress(chainId));
+  console.log("Deployed SmartInvoiceFactory to:", deploymentInfo.factory);
 
-  verifyContract(network, smartInvoiceFactory.address, [
+  await verifyContract(network, deploymentInfo.factory, [
     getWrappedTokenAddress(chainId),
   ]);
 }

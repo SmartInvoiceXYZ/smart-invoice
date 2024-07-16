@@ -61,6 +61,7 @@ export const escrowDetailsSchema = (chainId: number) =>
         .required('Custom resolver address is required')
         .test((value: string) => isAddress(value));
     }),
+    klerosCourt: Yup.number(), // TODO: add custom validator
     resolverTerms: Yup.boolean().when('resolver', (r, localSchema) => {
       if (!isKnownResolver(_.first(r), chainId)) return localSchema;
       return localSchema.oneOf(

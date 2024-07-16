@@ -1,0 +1,19 @@
+{
+  "network": "arbitrum-one",
+  "startBlock": "228638106",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "228638106",
+      "address": "0xb4CdeF4aa610C046864467592FaE456a58d3443a",
+      "v01": true
+    }
+  ],
+  "tokens": [
+    {
+      "tokenAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+      "startBlock": "228638106",
+      "tokenName": "WETH"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { CONFIG } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
+import { IToken } from '@smart-invoice/types/src';
 import { Container } from '@smart-invoice/ui';
 import {
   chainsMap,
@@ -20,8 +21,6 @@ import {
   getAddressLink,
   getInvoiceFactoryAddress,
   getKeys,
-  getTokens,
-  getTokenSymbol,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React from 'react';
@@ -31,10 +30,9 @@ const chainIds = getKeys(NETWORK_CONFIG);
 
 function Contracts() {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
-  const { data } = useFetchTokens();
-  const { tokenData, allTokens } = _.pick(data, ['tokenData', 'allTokens']);
+  const { data: tokens } = useFetchTokens();
 
-  if (!tokenData || !allTokens) {
+  if (!tokens) {
     return (
       <Container>
         <Text>Contract Information Loading</Text>
@@ -61,10 +59,13 @@ function Contracts() {
           <TabPanels>
             {_.map(chainIds, chainId => {
               const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId) || '0x';
-              const TOKENS = getTokens(allTokens, chainId);
-
+              const TOKENS: IToken[] = _.filter(
+                tokens,
+                // eslint-disable-next-line eqeqeq
+                (token: IToken) => token.chainId == chainId,
+              );
               return (
-                <TabPanel>
+                <TabPanel key={chainId}>
                   <Stack spacing={1}>
                     <Text textAlign="center">
                       INVOICE FACTORY:{' '}
@@ -82,17 +83,22 @@ function Contracts() {
 
                     {TOKENS?.map(token => {
                       return (
-                        <Text textAlign="center" key={token}>
-                          {getTokenSymbol(chainId, token, tokenData)}
+                        <Text
+                          textAlign="center"
+                          key={token.chainId.toString() + token.address}
+                        >
+                          {token.symbol}
                           {': '}
 
                           <Link
-                            href={getAddressLink(chainId, token)}
+                            href={getAddressLink(chainId, token.address)}
                             isExternal
                             fontWeight={600}
                             color="blue.500"
                           >
-                            {isSmallScreen ? getAccountString(token) : token}
+                            {isSmallScreen
+                              ? getAccountString(token.address)
+                              : token.address}
                           </Link>
                         </Text>
                       );

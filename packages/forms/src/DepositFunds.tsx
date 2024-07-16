@@ -30,7 +30,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatEther, formatUnits, Hex, parseUnits } from 'viem';
+import { formatEther, formatUnits, Hex, parseUnits, zeroAddress } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
 export function DepositFunds({
@@ -59,9 +59,10 @@ export function DepositFunds({
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const toast = useToast();
+  
   const TOKEN_DATA = useMemo(
     () => ({
-      nativeSymbol: getNativeTokenSymbol(chainId)?.symbol,
+      nativeSymbol: getNativeTokenSymbol(chainId),
       wrappedToken: getWrappedNativeToken(chainId),
       isWrapped: _.eq(
         _.toLower(tokenMetadata?.address),

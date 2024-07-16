@@ -6,10 +6,20 @@ import {
   metaMaskWallet,
   rainbowWallet,
   walletConnectWallet,
+  safeWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
 import { Chain, configureChains, createConfig } from 'wagmi';
-import { gnosis as defaultGnosis, mainnet, polygon } from 'wagmi/chains';
+import {
+  arbitrum,
+  base,
+  gnosis as defaultGnosis,
+  holesky,
+  mainnet,
+  optimism,
+  polygon,
+  sepolia,
+} from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { publicProvider } from 'wagmi/providers/public';
 
@@ -23,19 +33,29 @@ const gnosis = {
   iconBackground: 'none',
 };
 
-const mainnetChains = [1, 100, 137];
-const orderedChains = mainnetChains; // concat testnetchains if in future
+const mainnetChains = [
+  mainnet.id,
+  gnosis.id,
+  polygon.id,
+  arbitrum.id,
+  optimism.id,
+  base.id,
+];
+const testnetchains = [sepolia.id, holesky.id];
+const orderedChains = [...mainnetChains, ...testnetchains];
 
 export const chainsList: { [key: number]: Chain } = {
-  1: mainnet,
-  100: gnosis,
-  137: polygon,
+  [mainnet.id]: mainnet,
+  [gnosis.id]: gnosis,
+  [polygon.id]: polygon,
+  [arbitrum.id]: arbitrum,
+  [optimism.id]: optimism,
+  [sepolia.id]: sepolia,
+  [base.id]: base,
+  [holesky.id]: holesky,
 };
 
 export const chainsMap = (chainId: number) => {
-  if (!chainId) {
-    return null;
-  }
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -43,11 +63,15 @@ export const chainsMap = (chainId: number) => {
   return chain;
 };
 
-export const chainByName = (name: string | undefined): Chain | null => {
+export const chainByName = (name?: string): Chain | null => {
   if (!name) return null;
 
   if (name === 'mainnet') {
     return mainnet;
+  }
+
+  if (name.startsWith('arbitrum')) {
+    return arbitrum
   }
 
   const chain = _.find(_.values(chainsList), { network: name });
@@ -75,6 +99,7 @@ const connectors = connectorsForWallets([
       injectedWallet({ chains, shimDisconnect: true }),
       rainbowWallet({ chains, projectId: PROJECT_ID }),
       ledgerWallet({ chains, projectId: PROJECT_ID }),
+      safeWallet({ chains }),
       metaMaskWallet({ chains, projectId: PROJECT_ID }),
       coinbaseWallet({ appName: APP_NAME, chains }),
       walletConnectWallet({ chains, projectId: PROJECT_ID, options }),

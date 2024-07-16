@@ -1,4 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
+import { KLEROS_LOGO } from '@smart-invoice/constants/src';
 import {
   getAccountString,
   getAddressLink,
@@ -17,16 +18,18 @@ export type AccountLinkProps = {
   address?: Address;
   chainId?: number;
   link?: string;
+  court?: number | string | undefined;
 };
 
 export function AccountLink({
   name,
   address: inputAddress,
   chainId: inputChainId,
+  court,
   link,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
-  const address = _.toLower(inputAddress) as Address;
+  const address = inputAddress as Address;
   const chainId = inputChainId || walletChainId;
   const isResolver = isKnownResolver(address, chainId);
   const blockie = blockies
@@ -65,7 +68,8 @@ export function AccountLink({
         justify="center"
         align="center"
         bgColor="black"
-        bgImage={imageUrl ? `url(${imageUrl})` : blockie}
+        // eslint-disable-next-line no-nested-ternary
+        bgImage={court ? KLEROS_LOGO : imageUrl ? `url(${imageUrl})` : blockie}
         border="1px solid"
         borderColor="whiteAlpha.200"
         bgSize="cover"

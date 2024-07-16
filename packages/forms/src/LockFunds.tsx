@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Flex,
   Heading,
@@ -8,6 +9,10 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import {
+  KLEROS_ARBITRATION_SAFE,
+  KLEROS_GOOGLE_FORM,
+} from '@smart-invoice/constants/src';
 import { InvoiceDetails } from '@smart-invoice/graphql';
 import { useLock } from '@smart-invoice/hooks';
 // import LockImage from '../../assets/lock.svg';
@@ -34,16 +39,18 @@ export function LockFunds({
   const chainId = useChainId();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const { resolver, resolverFee, resolverName, tokenBalance } = _.pick(
-    invoice,
-    [
+
+  console.log(invoice);
+
+  const { resolver, resolverFee, resolverName, tokenBalance, klerosCourt } =
+    _.pick(invoice, [
       'resolver',
       'resolverFee',
       'resolverName',
       'tokenBalance',
       'resolutionRate',
-    ],
-  );
+      'klerosCourt',
+    ]);
   const localForm = useForm();
   const { watch, handleSubmit } = localForm;
 
@@ -135,11 +142,11 @@ export function LockFunds({
           name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
+          court={klerosCourt}
         />{' '}
         will review your case, the project agreement and dispute reasoning
         before making a decision on how to fairly distribute remaining funds.
       </Text>
-
       <Textarea
         name="disputeReason"
         tooltip="Why do you want to lock these funds?"
@@ -153,6 +160,7 @@ export function LockFunds({
           name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
+          court={klerosCourt}
         />{' '}
         for helping resolve this dispute.
       </Text>
@@ -166,7 +174,20 @@ export function LockFunds({
           {`Lock ${tokenBalance?.formatted} ${tokenBalance?.symbol}`}
         </Button>
       )}
-
+      {klerosCourt && (
+        <Alert bg="red.300" borderRadius="md" color="red.600" gap={2}>
+          Note: For Kleros Arbitration you also need to fill out
+          <Link
+            href={KLEROS_GOOGLE_FORM}
+            isExternal
+            fontWeight={600}
+            color="red.700"
+            textDecor="underline"
+          >
+            this google form
+          </Link>
+        </Alert>
+      )}
       <Flex justify="center">
         {isKnownResolver(resolver as Hex, chainId) && (
           <Link
@@ -175,8 +196,7 @@ export function LockFunds({
             color="primary.300"
             textDecor="underline"
           >
-            Learn about {getResolverString(resolver as Hex, chainId)} dispute
-            process & terms
+            Learn about {resolverName} dispute process & terms
           </Link>
         )}
       </Flex>

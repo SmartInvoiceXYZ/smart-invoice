@@ -20,6 +20,7 @@ export type FormInvoice = {
   milestones: { value: string }[];
   customResolver?: string;
   resolverTerms?: boolean;
+  klerosCourt?: number;
   safetyValveDate?: Date;
   deadline?: Date;
   token: string;

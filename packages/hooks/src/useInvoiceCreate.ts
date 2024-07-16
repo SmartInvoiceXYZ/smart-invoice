@@ -9,7 +9,6 @@ import { fetchInvoice, Invoice } from '@smart-invoice/graphql/src';
 import { UseToastReturn } from '@smart-invoice/types';
 import {
   errorToastHandler,
-  getTokenInfo,
   parseTxLogs,
 } from '@smart-invoice/utils';
 import _ from 'lodash';
@@ -47,6 +46,7 @@ export const useInvoiceCreate = ({
     client,
     provider,
     resolver,
+    klerosCourt,
     customResolver,
     token,
     safetyValveDate,
@@ -62,6 +62,7 @@ export const useInvoiceCreate = ({
     'resolver',
     'customResolver',
     'token',
+    'klerosCourt',
     'safetyValveDate',
     'milestones',
     'projectName',
@@ -72,15 +73,15 @@ export const useInvoiceCreate = ({
   ]);
 
   const localInvoiceFactory = invoiceFactory(chainId);
-  const { data: fullTokenData } = useFetchTokens();
-  const { tokenData } = _.pick(fullTokenData, ['tokenData']);
-
-  const invoiceToken = getTokenInfo(chainId, token, tokenData);
+  
+  const { data: tokens } = useFetchTokens();
+  const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 
   const detailsData = {
     projectName,
     projectDescription,
     projectAgreement,
+    ...(klerosCourt && { klerosCourt }),
     startDate,
     endDate,
   };
