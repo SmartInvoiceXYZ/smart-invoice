@@ -6,6 +6,7 @@ import {
   metaMaskWallet,
   rainbowWallet,
   walletConnectWallet,
+  safeWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
 import { Chain, configureChains, createConfig } from 'wagmi';
@@ -98,6 +99,7 @@ const connectors = connectorsForWallets([
       injectedWallet({ chains, shimDisconnect: true }),
       rainbowWallet({ chains, projectId: PROJECT_ID }),
       ledgerWallet({ chains, projectId: PROJECT_ID }),
+      safeWallet({ chains }),
       metaMaskWallet({ chains, projectId: PROJECT_ID }),
       coinbaseWallet({ appName: APP_NAME, chains }),
       walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
