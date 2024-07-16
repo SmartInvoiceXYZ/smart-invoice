@@ -27,9 +27,8 @@ export function CreateInvoiceInstant() {
   const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const invoiceForm = useForm();
-  const { data } = useFetchTokens();
+  const { data: tokens } = useFetchTokens();
   const toast = useToast();
-  const { tokenData } = _.pick(data, ['tokenData']);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { headingSize, columnWidth } = useMediaStyles();
   const [invoiceId, setInvoiceId] = useState<Address>();
@@ -66,7 +65,7 @@ export function CreateInvoiceInstant() {
     setTxHash(txData?.hash);
   };
 
-  if (!tokenData) {
+  if (!tokens) {
     return (
       <Container overlay>
         <Text>Loading</Text>

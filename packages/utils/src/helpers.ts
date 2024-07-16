@@ -50,11 +50,17 @@ export const resolverFeeLabel = (
   tokenMetadata: TokenMetadata | undefined,
 ) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
-export const getWrappedNativeToken = (chainId?: number) =>
-  chainId && wrappedNativeToken(chainId);
+export const getWrappedNativeToken = (chainId: number) =>
+{
+  if(!chainId) return undefined;
+  return wrappedNativeToken(chainId);
+}
 
-export const getNativeTokenSymbol = (chainId?: number) =>
-  chainId ? chainsMap(chainId)?.nativeCurrency : undefined;
+export const getNativeTokenSymbol = (chainId: number) =>
+{
+  if(!chainId) return undefined;
+  return chainsMap(chainId).nativeCurrency.symbol;
+}
 
 export const getInvoiceFactoryAddress = (chainId: number) =>
   isOfTypeChainId(chainId)

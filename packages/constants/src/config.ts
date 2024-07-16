@@ -1,5 +1,6 @@
 import _, { toLower } from 'lodash';
 import { Address } from 'viem';
+import { mainnet, arbitrum, polygon, optimism, gnosis, sepolia, base, holesky } from 'viem/chains';
 
 const LexDAOLogo = '/assets/lex-dao.png';
 const LEXDAO_TERMS_URL =
@@ -34,7 +35,7 @@ const KLEROS_DATA = {
   termsUrl: KLEROS_TERMS_URL,
 };
 
-const SMART_INVOICE_ARBITRATION = {
+const SMART_INVOICE_ARBITRATION_DATA = {
   name: 'Smart Invoice In-house',
   disclaimer:
     'Only choose Smart Invoice In-house if invoice value is less than 1000 USD',
@@ -95,7 +96,7 @@ const STUDIO_ID = '78711';
 const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;
 
 export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
-  1: {
+  [mainnet.id]: {
     SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.1`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
@@ -106,10 +107,10 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
       [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
-      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
     },
   },
-  100: {
+  [gnosis.id]: {
     SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.1`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
@@ -120,10 +121,10 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
       [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
-      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
     },
   },
-  137: {
+  [polygon.id]: {
     SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.1`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
@@ -134,7 +135,72 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     RESOLVERS: {
       [toLower('0x5B620676E28693fC14876b035b08CbB1B657dF38')]: LEXDAO_DATA,
       [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
-      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
+    },
+  },
+  [arbitrum.id]: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-arbitrum/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xb4CdeF4aa610C046864467592FaE456a58d3443a',
+    ) as Address,
+    RESOLVERS: {
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
+    },
+  },
+  [optimism.id]: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-optimism/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x4200000000000000000000000000000000000006',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xF9822818143948237A60A1a1CEFC85D6F1b929Df',
+    ) as Address,
+    RESOLVERS: {
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
+    },
+  },
+  [sepolia.id]: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-sepolia/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x8227b9868e00B8eE951F17B480D369b84Cd17c20',
+    ) as Address,
+    RESOLVERS: {
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
+    },
+  },
+  [base.id]: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-base/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x4200000000000000000000000000000000000006',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xF9822818143948237A60A1a1CEFC85D6F1b929Df',
+    ) as Address,
+    RESOLVERS: {
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
+    },
+  },
+  [holesky.id]: {
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-holesky/v0.0.1`,
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xE0986c3bdAB537fBeb7c94D0C5EF961d6d8bf63a',
+    ) as Address,
+    RESOLVERS: {
+      [KLEROS_ARBITRATION_SAFE]: KLEROS_DATA,
+      [toLower(SMART_INVOICE_ARBITRATION_SAFE)]: SMART_INVOICE_ARBITRATION_DATA,
     },
   },
 };

@@ -1,33 +1,19 @@
-import { IPFS_ENDPOINT } from '@smart-invoice/constants';
-import {
-  formatTokenData,
-  formatTokens,
-  getCID,
-  logError,
-} from '@smart-invoice/utils';
+import { IToken } from '@smart-invoice/types/src';
+import { logError } from '@smart-invoice/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchTokens = async () => {
-  const CID = await getCID();
-  const IPFS_TOKENS = `${IPFS_ENDPOINT}/ipfs/${CID}`;
+  const IPFS_TOKENS = `https://t2crtokens.eth.limo/`;
 
-  try {
-    const response = await fetch(IPFS_TOKENS);
-    const fullData = await response.json();
-    const formattedData = formatTokenData(fullData);
-    const formattedTokens = formatTokens(formattedData);
+  const response = await fetch(IPFS_TOKENS);
+  const tokenData = await response.json();
 
-    return {
-      allTokens: formattedTokens,
-      tokenData: formattedData,
-    };
-  } catch (error) {
-    logError('fetchTokens error:', error);
-    return {
-      allTokens: [],
-      tokenData: [],
-    };
+  if (tokenData?.tokens) {
+    return tokenData.tokens as IToken[];
   }
+
+  logError('fetchTokens error:', tokenData);
+  return [] as IToken[];
 };
 
 export const useFetchTokens = () => {

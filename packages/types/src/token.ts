@@ -1,15 +1,10 @@
-import { Hex } from 'viem';
+import { Address } from 'viem';
 
-type CommonTokenData = {
+export type IToken = {
+  chainId: number;
+  address: Address;
   symbol: string;
+  name: string;
   decimals: number;
-  image?: string;
-};
-
-export type TokenDataInput = {
-  tokenContract: Hex;
-} & CommonTokenData;
-
-export type TokenData = {
-  address?: string;
-} & CommonTokenData;
+  logoURI: string;
+}

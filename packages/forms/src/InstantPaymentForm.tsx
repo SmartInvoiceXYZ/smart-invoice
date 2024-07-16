@@ -5,12 +5,9 @@ import {
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smart-invoice/constants';
 import { useFetchTokens } from '@smart-invoice/hooks';
+import { IToken } from '@smart-invoice/types/src';
 import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
-import {
-  getTokenSymbol,
-  instantPaymentSchema,
-  oneMonthFromNow,
-} from '@smart-invoice/utils';
+import { getWrappedNativeToken, instantPaymentSchema, oneMonthFromNow } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -26,8 +23,20 @@ export function InstantPaymentForm({
   updateStep,
 }: InstantPaymentFormProps) {
   const chainId = useChainId();
-  const { data } = useFetchTokens();
-  const { tokenData } = _.pick(data, ['tokenData']);
+
+
+  const { data: tokens } = useFetchTokens();
+
+  const TOKENS = useMemo(
+    // eslint-disable-next-line eqeqeq
+    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : []),
+    [chainId, tokens],
+  ) as IToken[];
+
+
+  const nativeWrappedToken = getWrappedNativeToken(chainId) || '';
+
+
   const { watch, setValue } = invoiceForm;
   const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
     watch();
@@ -39,7 +48,6 @@ export function InstantPaymentForm({
       provider,
       paymentDue,
       deadline: oneMonthFromNow(),
-      token: undefined as string | undefined,
       lateFee,
     },
   });
@@ -51,10 +59,7 @@ export function InstantPaymentForm({
 
   const { primaryButtonSize } = useMediaStyles();
 
-  const TOKENS = useMemo(
-    () => (tokenData ? _.keys(tokenData[chainId]) : undefined),
-    [chainId, tokenData],
-  );
+
 
   const onSubmit = (values: unknown) => {
     setValue('client', _.get(values, 'client'));
@@ -70,15 +75,15 @@ export function InstantPaymentForm({
 
   useEffect(() => {
     // set initial local values for select after options load
-    localSetValue('token', _.first(TOKENS), { shouldDirty: true });
+    localSetValue('token', nativeWrappedToken, { shouldDirty: true });
     localSetValue(
       'lateFeeTimeInterval',
       lateFeeTimeInterval ||
-        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
       { shouldDirty: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [TOKENS]);
+  }, [TOKENS, nativeWrappedToken]);
 
   return (
     <Stack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
@@ -118,25 +123,14 @@ export function InstantPaymentForm({
               localForm={localForm}
             >
               {_.map(TOKENS, t => (
-                <option value={t} key={t}>
-                  {getTokenSymbol(chainId, t, tokenData)}
+                <option value={t.address} key={t.address}>
+                  {t.symbol}
                 </option>
               ))}
             </Select>
           </Box>
         }
       />
-      {/* {(paymentInvalid || milestonesInvalid) && (
-        <Text
-          w="100%"
-          color="red"
-          textAlign="left"
-          fontSize="xs"
-          fontWeight="700"
-        >
-          Payment must be greater than 0
-        </Text>
-      )} */}
 
       <NumberInput
         name="lateFee"
