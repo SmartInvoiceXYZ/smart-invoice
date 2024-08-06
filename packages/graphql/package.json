@@ -1,12 +1,7 @@
 {
   "name": "@smart-invoice/graphql",
-  "version": "0.1.0",
   "description": "",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "0.1.0",
   "dependencies": {
     "@apollo/client": "^3.8.10",
     "@graphql-typed-document-node/core": "^3.2.0",
@@ -20,5 +15,10 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

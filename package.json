@@ -1,56 +1,10 @@
 {
   "name": "smart-invoice",
   "version": "0.1.0",
-  "keywords": [
-    "ethereum",
-    "smart-invoice",
-    "escrow",
-    "workspaces"
-  ],
-  "private": true,
-  "scripts": {
-    "update-deps": "pnpm update -i -r --latest",
-    "preinstall": "only-allow pnpm",
-    "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
-    "changeset": "changeset",
-    "syncpack": "syncpack list-mismatches",
-    "build": "pnpm -r build",
-    "publish": "pnpm -r publish",
-    "subgraph:auth": "pnpm --filter @smart-invoice/subgraph auth",
-    "subgraph:codegen": "pnpm --filter @smart-invoice/subgraph codegen",
-    "subgraph:build": "pnpm --filter @smart-invoice/subgraph build",
-    "dapp:build": "pnpm --filter @smart-invoice/dapp build",
-    "dapp:dev": "pnpm --filter @smart-invoice/dapp dev",
-    "dapp:start": "pnpm --filter @smart-invoice/dapp start",
-    "dapp:test": "pnpm --filter @smart-invoice/dapp test",
-    "dapp:lint": "pnpm --filter @smart-invoice/dapp lint",
-    "dapp:format": "pnpm --filter @smart-invoice/dapp format",
-    "docs:start": "pnpm --filter @smart-invoice/docs start",
-    "docs:build": "pnpm --filter @smart-invoice/docs build",
-    "constants:build": "pnpm --filter @smart-invoice/constants build",
-    "contracts:build": "pnpm --filter @smart-invoice/contracts build",
-    "contracts:lint": "pnpm --filter @smart-invoice/contracts lint",
-    "contracts:test": "pnpm --filter @smart-invoice/contracts test",
-    "contracts:deploy-factory": "pnpm --filter @smart-invoice/contracts deploy-factory",
-    "lint": "eslint --ignore-path .prettierignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
-    "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
-    "prepare": "husky install"
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "next": "14.0.1"
   },
-  "workspaces": {
-    "nohoist": [
-      "**/@graphprotocol/graph-ts",
-      "**/@graphprotocol/graph-ts/**",
-      "**/@nomiclabs/**",
-      "**/solidity-coverage",
-      "**/bulma",
-      "**/@ethersproject/**",
-      "**/@docusaurus/**"
-    ],
-    "packages": [
-      "packages/*"
-    ]
-  },
-  "license": "MIT",
   "devDependencies": {
     "@babel/eslint-parser": "^7.23.3",
     "@changesets/cli": "^2.27.7",
@@ -64,7 +18,7 @@
     "eslint": "^8.56.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-mocha": "^10.2.0",
     "eslint-plugin-prettier": "^5.1.3",
@@ -83,6 +37,13 @@
     "syncpack": "^12.4.0",
     "typescript": "^5.3.2"
   },
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "smart-invoice",
+    "workspaces"
+  ],
+  "license": "MIT",
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix",
@@ -92,8 +53,47 @@
       "prettier --write"
     ]
   },
-  "dependencies": {
-    "lodash": "^4.17.21",
-    "next": "14.0.1"
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
+    "changeset": "changeset",
+    "constants:build": "pnpm --filter @smart-invoice/constants build",
+    "contracts:build": "pnpm --filter @smart-invoice/contracts build",
+    "contracts:deploy-factory": "pnpm --filter @smart-invoice/contracts deploy-factory",
+    "contracts:lint": "pnpm --filter @smart-invoice/contracts lint",
+    "contracts:test": "pnpm --filter @smart-invoice/contracts test",
+    "dapp:build": "pnpm --filter @smart-invoice/dapp build",
+    "dapp:dev": "pnpm --filter @smart-invoice/dapp dev",
+    "dapp:format": "pnpm --filter @smart-invoice/dapp format",
+    "dapp:lint": "pnpm --filter @smart-invoice/dapp lint",
+    "dapp:start": "pnpm --filter @smart-invoice/dapp start",
+    "dapp:test": "pnpm --filter @smart-invoice/dapp test",
+    "docs:build": "pnpm --filter @smart-invoice/docs build",
+    "docs:start": "pnpm --filter @smart-invoice/docs start",
+    "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
+    "lint": "eslint --ignore-path .prettierignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
+    "preinstall": "only-allow pnpm",
+    "prepare": "husky install",
+    "publish": "pnpm -r publish",
+    "subgraph:auth": "pnpm --filter @smart-invoice/subgraph auth",
+    "subgraph:build": "pnpm --filter @smart-invoice/subgraph build",
+    "subgraph:codegen": "pnpm --filter @smart-invoice/subgraph codegen",
+    "syncpack": "syncpack list-mismatches",
+    "update-deps": "pnpm update -i -r --latest"
+  },
+  "workspaces": {
+    "nohoist": [
+      "**/@graphprotocol/graph-ts",
+      "**/@graphprotocol/graph-ts/**",
+      "**/@nomiclabs/**",
+      "**/solidity-coverage",
+      "**/bulma",
+      "**/@ethersproject/**",
+      "**/@docusaurus/**"
+    ],
+    "packages": [
+      "packages/*"
+    ]
   }
 }

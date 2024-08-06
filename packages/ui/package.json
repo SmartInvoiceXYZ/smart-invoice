@@ -1,11 +1,6 @@
 {
   "name": "@smart-invoice/ui",
   "version": "0.1.0",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "2.1.1",
@@ -31,13 +26,18 @@
     "react-datepicker": "^4.25.0",
     "react-hook-form": "^7.49.3",
     "styled-components": "^6.1.8",
-    "viem": "1.21.4",
+    "viem": "^1.21.4",
     "wagmi": "^1.4.13"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
     "@types/lodash": "^4.14.202",
-    "@types/node": "20.11.5",
+    "@types/node": "^20.11.5",
     "@types/react": "^18.2.47"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
