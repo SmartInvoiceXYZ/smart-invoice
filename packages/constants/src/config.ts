@@ -1,4 +1,4 @@
-import _, { toLower } from 'lodash';
+import { toLower } from 'lodash';
 import { Address } from 'viem';
 import {
   arbitrum,
@@ -11,11 +11,12 @@ import {
   sepolia,
 } from 'viem/chains';
 
-const LexDAOLogo = '/assets/lex-dao.png';
+const LEXDAO_LOGO = '/assets/lex-dao.png';
+
 const LEXDAO_TERMS_URL =
   'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver';
 
-export const KLEROS_LOGO = '/assets/kleros.svg';
+const KLEROS_LOGO = '/assets/kleros.svg';
 const KLEROS_TERMS_URL =
   'https://docs.google.com/document/d/1z_l2Wc8YHSspB0Lm5cmMDhu9h0W5G4thvDLqWRtuxbA/';
 
@@ -32,7 +33,7 @@ export const KLEROS_GOOGLE_FORM = 'https://forms.gle/K3oMAzAb32G5SbpM9';
 
 const LEXDAO_DATA = {
   name: 'LexDAO',
-  logoUrl: LexDAOLogo,
+  logoUrl: LEXDAO_LOGO,
   termsUrl: LEXDAO_TERMS_URL,
 };
 
@@ -94,12 +95,12 @@ export type NetworkConfig = {
   RESOLVERS: Record<Address, Resolver>;
 };
 
-interface Config {
+export type Config = {
   INFURA_ID: string;
   IPFS_ENDPOINT: string;
   BOX_ENDPOINT: string;
   NETWORK_CONFIG: Record<number, NetworkConfig>;
-}
+};
 
 const STUDIO_ID = '78711';
 const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;

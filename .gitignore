@@ -67,3 +67,7 @@ packages/subgraph/subgraph.yaml
 
 **/flat/
 **/.next/
+
+# typescript
+dist/
+*.tsbuildinfo
