@@ -106,7 +106,7 @@ const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;
 
 export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
   [mainnet.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     ) as Address,
@@ -120,7 +120,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [gnosis.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.4`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.5`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
     ) as Address,
@@ -134,7 +134,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [polygon.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.1`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     ) as Address,
@@ -148,7 +148,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [arbitrum.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-arbitrum/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-arbitrum/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     ) as Address,
@@ -161,7 +161,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [optimism.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-optimism/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-optimism/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -174,7 +174,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-sepolia/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-sepolia/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     ) as Address,
@@ -187,7 +187,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [base.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-base/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-base/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -200,7 +200,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [holesky.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-holesky/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-holesky/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
     ) as Address,
