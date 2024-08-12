@@ -3,7 +3,8 @@ description: Smart Invoice
 schema:
   file: ./src/schema.graphql
 features:
-  [ipfsOnEthereumContracts]
+  - ipfsOnEthereumContracts
+  - nonFatalErrors
 dataSources:
   {{#factories}}
   - kind: ethereum/contract
