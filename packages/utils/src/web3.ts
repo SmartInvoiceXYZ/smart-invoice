@@ -1,15 +1,5 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
-import {
-  coinbaseWallet,
-  injectedWallet,
-  ledgerWallet,
-  metaMaskWallet,
-  rainbowWallet,
-  walletConnectWallet,
-  safeWallet
-} from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
-import { Chain, configureChains, createConfig } from 'wagmi';
+import { Chain,} from 'wagmi';
 import {
   arbitrum,
   base,
@@ -20,11 +10,15 @@ import {
   polygon,
   sepolia,
 } from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { publicProvider } from 'wagmi/providers/public';
+import { http } from '@wagmi/core'
+import { fallback } from 'viem';
+import { getDefaultConfig, connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { injectedWallet, rainbowWallet, ledgerWallet, safeWallet, metaMaskWallet, coinbaseWallet, walletConnectWallet, argentWallet } from '@rainbow-me/rainbowkit/wallets';
+
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
+const GROVE_KEY = process.env.NEXT_PUBLIC_GROVE_KEY || '';
 
 const gnosis = {
   ...defaultGnosis,
@@ -43,6 +37,8 @@ const mainnetChains = [
 ];
 const testnetchains = [sepolia.id, holesky.id];
 const orderedChains = [...mainnetChains, ...testnetchains];
+
+
 
 export const chainsList: { [key: number]: Chain } = {
   [mainnet.id]: mainnet,
@@ -79,38 +75,66 @@ export const chainByName = (name?: string): Chain | null => {
   return chain;
 };
 
-const { chains, publicClient } = configureChains(
-  _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
-  [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-    publicProvider(),
-  ],
-);
+const chains = orderedChains.map(chainId => chainsMap(chainId));
+
 const options = {
   appName: APP_NAME,
   projectId: PROJECT_ID,
   chains,
 };
 
-const connectors = connectorsForWallets([
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [coinbaseWallet, walletConnectWallet],
+    },
+    {
+      groupName: 'Others',
+      wallets: [injectedWallet, safeWallet, ledgerWallet, metaMaskWallet, argentWallet], 
+    }
+  ],
   {
-    groupName: 'Recommended',
-    wallets: [
-      injectedWallet({ chains, shimDisconnect: true }),
-      rainbowWallet({ chains, projectId: PROJECT_ID }),
-      ledgerWallet({ chains, projectId: PROJECT_ID }),
-      safeWallet({ chains }),
-      metaMaskWallet({ chains, projectId: PROJECT_ID }),
-      coinbaseWallet({ appName: APP_NAME, chains }),
-      walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
-    ],
-  },
-]);
+    appName: APP_NAME,
+    projectId: PROJECT_ID,
+  }
+);
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
+const transports = {
+   [arbitrum.id]: fallback([
+     http(`https://arbitrum-one.rpc.grove.city/v1/${GROVE_KEY}`),
+     http()
+   ]),
+   [base.id]: fallback([
+     http(`https://base-mainnet.rpc.grove.city/v1/${GROVE_KEY}`), 
+     http()
+   ]),
+   [gnosis.id]: fallback([
+     http(`https://gnosischain-mainnet.rpc.grove.city/v1/${GROVE_KEY}`), 
+     http()
+   ]),
+   [polygon.id]: fallback([
+     http(`https://poly-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+     http()
+   ]),
+   [sepolia.id]: fallback([
+     http(`https://sepolia.rpc.grove.city/v1/${GROVE_KEY}`),
+     http()
+   ]),
+   [holesky.id]: fallback([
+     http(`https://holesky-fullnode-testnet.rpc.grove.city/v1/${GROVE_KEY}`),
+     http()
+   ]),
+   [mainnet.id]: fallback([
+     http(`https://eth-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+     http()
+   ]),
+}
+
+const wagmiConfig = getDefaultConfig({
+  ...options,
+  transports,
   connectors,
-  publicClient,
 });
 
 export { chains, wagmiConfig };
