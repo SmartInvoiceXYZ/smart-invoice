@@ -5,7 +5,7 @@ import { errorToastHandler } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits, TransactionReceipt } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { useContractWrite } from 'wagmi';
 import { fetchBalance, waitForTransaction } from 'wagmi/actions';
 
 import { usePollSubgraph } from './usePollSubgraph';

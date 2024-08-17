@@ -11,6 +11,7 @@
     "@emotion/react": "^11.1.4",
     "@emotion/styled": "^11.3.0",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@rainbow-me/rainbowkit": "^2.1.4",
     "@react-pdf/renderer": "^3.1.14",
     "@smart-invoice/constants": "workspace:*",
     "@smart-invoice/forms": "workspace:*",
@@ -19,10 +20,12 @@
     "@smart-invoice/types": "workspace:*",
     "@smart-invoice/ui": "workspace:*",
     "@smart-invoice/utils": "workspace:*",
-    "@tanstack/react-query": "^5.18.1",
+    "@tanstack/react-query": "^5.51.23",
     "@tanstack/react-query-devtools": "^5.18.1",
     "@tanstack/react-table": "^8.11.3",
     "@vercel/analytics": "^1.1.1",
+    "@wagmi/connectors": "^5.1.5",
+    "@wagmi/core": "^2.13.4",
     "abitype": "^0.10.3",
     "base-58": "^0.0.1",
     "dotenv": "^16.0.1",
@@ -37,7 +40,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.3",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "viem": "2.x",
+    "wagmi": "^2.12.5"
   },
   "scripts": {
     "dev": "next dev",
@@ -56,7 +61,7 @@
     "safari >= 14"
   ],
   "devDependencies": {
-    "@next/eslint-plugin-next": "^14.0.4",
+    "@next/eslint-plugin-next": "^14.2.5",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
     "@types/jest": "^29.5.11",
@@ -74,6 +79,6 @@
     "extends": [
       "next",
       "next/core-web-vitals"
-    ]
+    ] 
   }
 }

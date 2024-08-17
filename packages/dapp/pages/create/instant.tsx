@@ -1,4 +1,5 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { INSTANT_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
 import {
   FormConfirmation,
@@ -14,11 +15,10 @@ import {
   useMediaStyles,
   useToast,
 } from '@smart-invoice/ui';
-import { useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, useChainId } from 'wagmi';
+import { useChainId } from 'wagmi';
+import { Address } from 'viem';
 
 import { useOverlay } from '../../contexts/OverlayContext';
 

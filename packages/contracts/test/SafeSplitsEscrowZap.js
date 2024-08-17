@@ -143,11 +143,10 @@ describe("SafeSplitsEscrowZap", function () {
       e => e.event === "SafeSplitsEscrowCreated",
     );
     // parse create with zap event
-    const [safeAddress, splitAddress, escrowAddress] =
-      defaultAbiCoder.decode(
-        ["address", "address", "address"],
-        zapCreatedEvent.data,
-      );
+    const [safeAddress, splitAddress, escrowAddress] = defaultAbiCoder.decode(
+      ["address", "address", "address"],
+      zapCreatedEvent.data,
+    );
     safe = new ethers.Contract(safeAddress, safeAbi, deployer);
     splitMain = new ethers.Contract(zapData.splitMain, splitMainAbi, deployer);
     escrow = await ethers.getContractAt("SmartInvoiceUpdatable", escrowAddress);

@@ -1,4 +1,4 @@
-import _, { toLower } from 'lodash';
+import { toLower } from 'lodash';
 import { Address } from 'viem';
 import {
   arbitrum,

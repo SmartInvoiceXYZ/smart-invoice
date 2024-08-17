@@ -1,5 +1,18 @@
+import { connectorsForWallets, getDefaultConfig } from '@rainbow-me/rainbowkit';
+import {
+  argentWallet,
+  coinbaseWallet,
+  injectedWallet,
+  ledgerWallet,
+  metaMaskWallet,
+  rainbowWallet,
+  safeWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { http } from '@wagmi/core';
 import _ from 'lodash';
-import { Chain,} from 'wagmi';
+import { fallback } from 'viem';
+import { Chain } from 'wagmi';
 import {
   arbitrum,
   base,
@@ -10,11 +23,6 @@ import {
   polygon,
   sepolia,
 } from 'wagmi/chains';
-import { http } from '@wagmi/core'
-import { fallback } from 'viem';
-import { getDefaultConfig, connectorsForWallets } from '@rainbow-me/rainbowkit';
-import { injectedWallet, rainbowWallet, ledgerWallet, safeWallet, metaMaskWallet, coinbaseWallet, walletConnectWallet, argentWallet } from '@rainbow-me/rainbowkit/wallets';
-
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
@@ -37,8 +45,6 @@ const mainnetChains = [
 ];
 const testnetchains = [sepolia.id, holesky.id];
 const orderedChains = [...mainnetChains, ...testnetchains];
-
-
 
 export const chainsList: { [key: number]: Chain } = {
   [mainnet.id]: mainnet,
@@ -67,7 +73,7 @@ export const chainByName = (name?: string): Chain | null => {
   }
 
   if (name.startsWith('arbitrum')) {
-    return arbitrum
+    return arbitrum;
   }
 
   const chain = _.find(_.values(chainsList), { network: name });
@@ -91,45 +97,51 @@ const connectors = connectorsForWallets(
     },
     {
       groupName: 'Others',
-      wallets: [injectedWallet, safeWallet, ledgerWallet, metaMaskWallet, argentWallet], 
-    }
+      wallets: [
+        injectedWallet,
+        safeWallet,
+        ledgerWallet,
+        metaMaskWallet,
+        argentWallet,
+      ],
+    },
   ],
   {
     appName: APP_NAME,
     projectId: PROJECT_ID,
-  }
+  },
 );
 
 const transports = {
-   [arbitrum.id]: fallback([
-     http(`https://arbitrum-one.rpc.grove.city/v1/${GROVE_KEY}`),
-     http()
-   ]),
-   [base.id]: fallback([
-     http(`https://base-mainnet.rpc.grove.city/v1/${GROVE_KEY}`), 
-     http()
-   ]),
-   [gnosis.id]: fallback([
-     http(`https://gnosischain-mainnet.rpc.grove.city/v1/${GROVE_KEY}`), 
-     http()
-   ]),
-   [polygon.id]: fallback([
-     http(`https://poly-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
-     http()
-   ]),
-   [sepolia.id]: fallback([
-     http(`https://sepolia.rpc.grove.city/v1/${GROVE_KEY}`),
-     http()
-   ]),
-   [holesky.id]: fallback([
-     http(`https://holesky-fullnode-testnet.rpc.grove.city/v1/${GROVE_KEY}`),
-     http()
-   ]),
-   [mainnet.id]: fallback([
-     http(`https://eth-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
-     http()
-   ]),
-}
+  [arbitrum.id]: fallback([
+    http(`https://arbitrum-one.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [base.id]: fallback([
+    http(`https://base-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [gnosis.id]: fallback([
+    http(`https://gnosischain-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [polygon.id]: fallback([
+    http(`https://poly-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [sepolia.id]: fallback([
+    http(`https://sepolia.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [holesky.id]: fallback([
+    http(`https://holesky-fullnode-testnet.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+  [mainnet.id]: fallback([
+    http(`https://eth-mainnet.rpc.grove.city/v1/${GROVE_KEY}`),
+    http(),
+  ]),
+};
 
 const wagmiConfig = getDefaultConfig({
   ...options,

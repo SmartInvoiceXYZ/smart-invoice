@@ -108,7 +108,7 @@ export const useInvoiceDetails = ({
   );
   // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
 
-  const enhancedInvoiceFromIpfs = ipfsDetails
+  const enhancedInvoiceFromIpfs: InvoiceDetails = ipfsDetails
     ? ({
         ...invoice,
         projectName: ipfsDetails?.projectName,
@@ -131,10 +131,10 @@ export const useInvoiceDetails = ({
           : invoiceDetails?.resolverName,
         projectDescription: ipfsDetails?.projectDescription,
         tokenMetadata,
-      } as Partial<InvoiceDetails>)
+      }) 
     : { ...invoice, tokenMetadata };
 
-  const enhancedInvoiceDetailsFromIpfs = ipfsDetails
+  const enhancedInvoiceDetailsFromIpfs: InvoiceDetails = ipfsDetails
     ? ({
         ...invoiceDetails,
         projectName: ipfsDetails?.projectName,
@@ -157,7 +157,7 @@ export const useInvoiceDetails = ({
           : invoiceDetails?.resolverName,
         projectAgreement: ipfsDetails?.projectAgreement,
         projectDescription: ipfsDetails?.projectDescription,
-      } as Partial<InvoiceDetails>)
+      })
     : { ...invoice, tokenMetadata };
 
   return {

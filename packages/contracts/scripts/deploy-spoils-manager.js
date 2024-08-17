@@ -116,9 +116,9 @@ async function main() {
 
   if (
     !spoilsManagerData ||
-    (spoilsManagerData.factory === "0x" ||
-      (spoilsManagerData.implementations &&
-        spoilsManagerData.implementations.length === 0))
+    spoilsManagerData.factory === "0x" ||
+    (spoilsManagerData.implementations &&
+      spoilsManagerData.implementations.length === 0)
   ) {
     console.log("deploying spoils manager factory");
     spoilsManagerData = await deploySpoilsManagerFactory(chainId);

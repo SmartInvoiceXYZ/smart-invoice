@@ -18,7 +18,8 @@ import { Checkbox } from '@smart-invoice/ui/src/theme/components';
 import { getTxLink } from '@smart-invoice/utils';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { Address, useChainId } from 'wagmi';
+import { useChainId } from 'wagmi';
+import { Address } from 'viem';
 
 export function RegisterSuccess({
   invoiceId,

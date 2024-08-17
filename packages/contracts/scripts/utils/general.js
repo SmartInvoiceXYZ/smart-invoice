@@ -15,7 +15,7 @@ async function verifyContract(chainId, address, constructorArguments, message) {
 
   const result = await run(TASK_VERIFY, {
     address,
-    constructorArgsParams: constructorArguments
+    constructorArgsParams: constructorArguments,
   });
 
   if (message) {

@@ -5,15 +5,14 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { OverlayContextProvider } from '@smart-invoice/dapp/contexts/OverlayContext';
 import { ErrorBoundary, globalStyles, Layout, theme } from '@smart-invoice/ui';
-import { chains, wagmiConfig } from '@smart-invoice/utils';
+import { wagmiConfig } from '@smart-invoice/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AppProps } from 'next/app';
 import React from 'react';
 import { WagmiProvider } from 'wagmi';
-
-import { OverlayContextProvider } from '../contexts/OverlayContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +28,7 @@ const queryClient = new QueryClient({
 function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
@@ -44,8 +43,8 @@ function App({ Component, pageProps }: AppProps) {
             </ErrorBoundary>
           </ChakraProvider>
           <ReactQueryDevtools initialIsOpen={false} />
-          </RainbowKitProvider>
-        </QueryClientProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }

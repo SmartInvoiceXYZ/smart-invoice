@@ -51,9 +51,8 @@ describe("SmartInvoiceSplitEscrow", function () {
     mockWrappedNativeToken = await MockWrappedTokenFactory.deploy();
     await mockWrappedNativeToken.deployed();
 
-    const MockArbitratorFactory = await ethers.getContractFactory(
-      "MockArbitrator",
-    );
+    const MockArbitratorFactory =
+      await ethers.getContractFactory("MockArbitrator");
     mockArbitrator = await MockArbitratorFactory.deploy(10);
 
     const SmartInvoiceFactory = await ethers.getContractFactory(

@@ -23,6 +23,7 @@ import {
   Invoice_orderBy,
   InvoiceDetails,
 } from '@smart-invoice/graphql';
+import { useIpfsDetails } from '@smart-invoice/hooks/src';
 import { chainsMap } from '@smart-invoice/utils';
 import {
   keepPreviousData,
@@ -40,11 +41,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
-
 import { useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, Hex } from 'viem';
-import { useIpfsDetails } from '@smart-invoice/hooks/src';
 import { useAccount } from 'wagmi';
+
 import { AccountLink, ChakraNextLink, theme, useMediaStyles } from '..';
 import {
   DoubleLeftArrowIcon,

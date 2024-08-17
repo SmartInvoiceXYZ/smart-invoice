@@ -7,10 +7,7 @@ import {
 } from '@smart-invoice/constants';
 import { fetchInvoice, Invoice } from '@smart-invoice/graphql/src';
 import { UseToastReturn } from '@smart-invoice/types';
-import {
-  errorToastHandler,
-  parseTxLogs,
-} from '@smart-invoice/utils';
+import { errorToastHandler, parseTxLogs } from '@smart-invoice/utils';
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -73,7 +70,7 @@ export const useInvoiceCreate = ({
   ]);
 
   const localInvoiceFactory = invoiceFactory(chainId);
-  
+
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 

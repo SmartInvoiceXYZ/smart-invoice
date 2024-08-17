@@ -21,9 +21,16 @@ function handleAgreementFile(projectArray: Array<JSONValue>): Agreement[] {
     let type = obj.get('type');
     let src = obj.get('src');
     let createdAt = obj.get('createdAt');
-    if (!type || type.isNull() || type.kind != JSONValueKind.STRING) return agreementArray;
-    if (!src || src.isNull() || src.kind != JSONValueKind.STRING) return agreementArray;
-    if (!createdAt || createdAt.isNull() || createdAt.kind != JSONValueKind.STRING) return agreementArray;
+    if (!type || type.isNull() || type.kind != JSONValueKind.STRING)
+      return agreementArray;
+    if (!src || src.isNull() || src.kind != JSONValueKind.STRING)
+      return agreementArray;
+    if (
+      !createdAt ||
+      createdAt.isNull() ||
+      createdAt.kind != JSONValueKind.STRING
+    )
+      return agreementArray;
     let typeValue = type.toString();
     let srcValue = src.toString();
     let createdAtValue = BigInt.fromString(createdAt.toString());

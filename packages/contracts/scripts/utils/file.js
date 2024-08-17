@@ -86,7 +86,10 @@ function addZapImplementation(deploymentInfo, implementation) {
     return newDeploymentInfo;
   }
 
-  if (deploymentInfo.zap.implementations && deploymentInfo.zap.implementations.length > 0) {
+  if (
+    deploymentInfo.zap.implementations &&
+    deploymentInfo.zap.implementations.length > 0
+  ) {
     deploymentInfo.zap.implementations.push(implementation);
   } else {
     newDeploymentInfo.zap.implementations = [implementation];

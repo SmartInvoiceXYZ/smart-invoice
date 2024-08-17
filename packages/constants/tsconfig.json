@@ -11,9 +11,9 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "preserve"
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../jest.config.ts"],
   "exclude": ["node_modules", "dist"],
-  "references": [],
+  "references": []
 }

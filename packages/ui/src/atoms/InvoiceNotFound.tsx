@@ -1,12 +1,12 @@
 import { Button, Flex, Icon, Stack, Text } from '@chakra-ui/react';
 import { chainsMap } from '@smart-invoice/utils';
+import { useParams } from 'next/navigation';
 import React from 'react';
 import { useChainId, useSwitchNetwork } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
 import { ChakraNextLink } from '.';
 import { Container } from './Container';
-import { useParams } from 'next/navigation';
 
 export function InvoiceNotFound({
   heading,

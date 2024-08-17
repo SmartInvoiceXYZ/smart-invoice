@@ -59,7 +59,7 @@ export function DepositFunds({
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const toast = useToast();
-  
+
   const TOKEN_DATA = useMemo(
     () => ({
       nativeSymbol: getNativeTokenSymbol(chainId),
