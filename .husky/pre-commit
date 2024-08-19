@@ -3,3 +3,4 @@
 
 pnpx lint-staged
 pnpx syncpack format
+pnpx syncpack list-mismatches

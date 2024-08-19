@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "author": "",
   "dependencies": {
-    "@smartinvoicexyz/constants": "workspace:*"
+    "@smartinvoicexyz/constants": "0.1.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

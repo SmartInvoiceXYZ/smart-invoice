@@ -31,9 +31,6 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "release:major": "npm version major && npm publish --access public",
-    "release:minor": "npm version minor && npm publish --access public",
-    "release:patch": "npm version patch && npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "dist/src/index.d.ts"

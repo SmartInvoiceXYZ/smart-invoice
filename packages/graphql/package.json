@@ -1,13 +1,13 @@
 {
   "name": "@smartinvoicexyz/graphql",
   "description": "Unified source for helpers and schema used across the GraphQL services within the Smart Invoice protocol.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "",
   "dependencies": {
     "@apollo/client": "^3.8.10",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@smartinvoicexyz/constants": "workspace:*",
-    "@smartinvoicexyz/shared": "workspace:*",
+    "@smartinvoicexyz/constants": "0.1.1",
+    "@smartinvoicexyz/shared": "0.1.0",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.3.3",
@@ -37,9 +37,6 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "release:major": "npm version major && npm publish --access public",
-    "release:minor": "npm version minor && npm publish --access public",
-    "release:patch": "npm version patch && npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "dist/src/index.d.ts"

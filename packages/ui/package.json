@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/ui",
   "description": "Unified source for UI components used across the Smart Invoice protocol.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "2.1.1",
@@ -10,11 +10,11 @@
     "@emotion/styled": "^11.3.0",
     "@rainbow-me/rainbowkit": "^1.3.3",
     "@react-pdf/renderer": "^3.1.14",
-    "@smartinvoicexyz/constants": "workspace:*",
-    "@smartinvoicexyz/graphql": "workspace:*",
-    "@smartinvoicexyz/hooks": "workspace:*",
-    "@smartinvoicexyz/types": "workspace:*",
-    "@smartinvoicexyz/utils": "workspace:*",
+    "@smartinvoicexyz/constants": "0.1.1",
+    "@smartinvoicexyz/graphql": "0.1.2",
+    "@smartinvoicexyz/hooks": "0.1.2",
+    "@smartinvoicexyz/types": "0.1.2",
+    "@smartinvoicexyz/utils": "0.1.2",
     "@tanstack/react-query": "^5.18.1",
     "@tanstack/react-table": "^8.11.3",
     "@testing-library/jest-dom": "^6.2.0",
@@ -56,9 +56,6 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "release:major": "npm version major && npm publish --access public",
-    "release:minor": "npm version minor && npm publish --access public",
-    "release:patch": "npm version patch && npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "dist/src/index.d.ts"
