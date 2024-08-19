@@ -9,16 +9,16 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
-        "name": "next",
-      },
-    ],
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
@@ -26,7 +26,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js",
-    "../../jest.config.ts",
+    "../../jest.config.ts"
   ],
   "exclude": ["node_modules", "dist"],
   "references": [
@@ -37,6 +37,6 @@
     { "path": "../shared/tsconfig.lib.json" },
     { "path": "../types/tsconfig.lib.json" },
     { "path": "../ui/tsconfig.lib.json" },
-    { "path": "../utils/tsconfig.lib.json" },
-  ],
+    { "path": "../utils/tsconfig.lib.json" }
+  ]
 }

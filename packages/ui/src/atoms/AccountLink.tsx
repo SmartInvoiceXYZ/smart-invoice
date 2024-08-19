@@ -1,5 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { KLEROS_DATA } from '@smartinvoicexyz/constants/src';
+import { KLEROS_DATA } from '@smartinvoicexyz/constants';
 import {
   getAccountString,
   getAddressLink,

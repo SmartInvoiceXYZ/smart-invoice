@@ -1,5 +1,5 @@
 import { Button, Stack, Text } from '@chakra-ui/react';
-import { TOASTS } from '@smartinvoicexyz/constants/src';
+import { TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useVerify } from '@smartinvoicexyz/hooks';
 import { useQueryClient } from '@tanstack/react-query';

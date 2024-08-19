@@ -9,7 +9,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants/src';
+import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useLock } from '@smartinvoicexyz/hooks';
 // import LockImage from '../../assets/lock.svg';

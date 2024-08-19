@@ -1,4 +1,4 @@
-import { INVOICE_TYPES } from '@smartinvoicexyz/constants/src';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InstantDetails, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';

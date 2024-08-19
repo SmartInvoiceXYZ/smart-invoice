@@ -5,7 +5,7 @@ import {
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
-import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql/src';
+import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
 import _ from 'lodash';

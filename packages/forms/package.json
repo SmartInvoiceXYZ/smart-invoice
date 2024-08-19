@@ -1,6 +1,6 @@
 {
   "name": "@smartinvoicexyz/forms",
-  "description": "",
+  "description": "Unified source for form components and utilities used across the Smart Invoice protocol.",
   "version": "0.1.0",
   "author": "",
   "dependencies": {
@@ -9,10 +9,10 @@
     "@hookform/resolvers": "^3.3.4",
     "@smartinvoicexyz/constants": "0.1.1",
     "@smartinvoicexyz/graphql": "0.1.2",
-    "@smartinvoicexyz/hooks": "0.1.2",
+    "@smartinvoicexyz/hooks": "0.1.3",
     "@smartinvoicexyz/types": "0.1.2",
-    "@smartinvoicexyz/ui": "0.1.2",
-    "@smartinvoicexyz/utils": "0.1.2",
+    "@smartinvoicexyz/ui": "0.1.3",
+    "@smartinvoicexyz/utils": "0.1.3",
     "@tanstack/react-query": "^5.18.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
@@ -25,12 +25,27 @@
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.47"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "forms",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
   "license": "ISC",
-  "main": "src/index.ts",
+  "main": "dist/src/index.js",
+  "private": false,
   "scripts": {
     "build": "tsc",
-    "publish": "npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "types": "dist/src/index.d.ts"
 }

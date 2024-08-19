@@ -1,7 +1,7 @@
 import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
-import { errorToastHandler } from '@smartinvoicexyz/utils/src';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import {

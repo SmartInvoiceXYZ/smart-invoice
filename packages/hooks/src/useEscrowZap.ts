@@ -1,5 +1,5 @@
 import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
-import { logDebug } from '@smartinvoicexyz/utils/src';
+import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';

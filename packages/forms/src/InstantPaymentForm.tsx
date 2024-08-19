@@ -5,7 +5,7 @@ import {
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
-import { IToken } from '@smartinvoicexyz/types/src';
+import { IToken } from '@smartinvoicexyz/types';
 import {
   Input,
   NumberInput,

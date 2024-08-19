@@ -1,4 +1,4 @@
-import { IToken } from '@smartinvoicexyz/types/src';
+import { IToken } from '@smartinvoicexyz/types';
 import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 

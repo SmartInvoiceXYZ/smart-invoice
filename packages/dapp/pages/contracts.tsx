@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { CONFIG } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
-import { IToken } from '@smartinvoicexyz/types/src';
+import { IToken } from '@smartinvoicexyz/types';
 import { Container } from '@smartinvoicexyz/ui';
 import {
   chainsMap,

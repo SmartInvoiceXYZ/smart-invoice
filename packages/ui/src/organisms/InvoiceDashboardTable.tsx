@@ -23,7 +23,7 @@ import {
   Invoice_orderBy,
   InvoiceDetails,
 } from '@smartinvoicexyz/graphql';
-import { useIpfsDetails } from '@smartinvoicexyz/hooks/src';
+import { useIpfsDetails } from '@smartinvoicexyz/hooks';
 import { chainsMap } from '@smartinvoicexyz/utils';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {

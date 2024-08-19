@@ -1,12 +1,12 @@
 {
   "name": "@smartinvoicexyz/hooks",
   "description": "Unified source for React hooks used across the Smart Invoice protocol.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "dependencies": {
     "@smartinvoicexyz/constants": "0.1.1",
     "@smartinvoicexyz/graphql": "0.1.2",
     "@smartinvoicexyz/types": "0.1.2",
-    "@smartinvoicexyz/utils": "0.1.2",
+    "@smartinvoicexyz/utils": "0.1.3",
     "@tanstack/react-query": "^5.18.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
