@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/ui",
   "description": "Unified source for UI components used across the Smart Invoice protocol.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "2.1.1",
@@ -12,7 +12,7 @@
     "@react-pdf/renderer": "^3.1.14",
     "@smartinvoicexyz/constants": "0.1.1",
     "@smartinvoicexyz/graphql": "0.1.2",
-    "@smartinvoicexyz/hooks": "0.1.3",
+    "@smartinvoicexyz/hooks": "0.1.4",
     "@smartinvoicexyz/types": "0.1.2",
     "@smartinvoicexyz/utils": "0.1.3",
     "@tanstack/react-query": "^5.18.1",

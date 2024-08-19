@@ -16,7 +16,7 @@ import { useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { waitForTransaction, WriteContractResult } from 'wagmi/actions';
 
 import { useDetailsPin } from './useDetailsPin';
 import { usePollSubgraph } from './usePollSubgraph';
@@ -27,12 +27,17 @@ export const useInstantCreate = ({
   toast,
   onTxSuccess,
 }: {
-  waitingForTx: boolean;
   invoiceForm: UseFormReturn;
   chainId: number;
   toast: UseToastReturn;
   onTxSuccess?: (result: Address) => void;
-}) => {
+}): {
+  waitingForTx: boolean;
+  prepareError: Error | null;
+  writeAsync: (() => Promise<WriteContractResult>) | undefined;
+  writeError: Error | null;
+  isLoading: boolean;
+} => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
   const [waitingForTx, setWaitingForTx] = useState(false);
   const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
@@ -106,7 +111,7 @@ export const useInstantCreate = ({
       );
     }
 
-    return encodeAbiParameters(
+    const encodedParams = encodeAbiParameters(
       [
         { type: 'address' }, //     _client,
         { type: 'address' }, //     _token,
@@ -116,7 +121,6 @@ export const useInstantCreate = ({
         { type: 'uint256' }, //     _lateFee,
         { type: 'uint256' }, //     _lateFeeTimeInterval
       ],
-
       [
         client,
         token, // address _token (payment token address)
@@ -127,6 +131,8 @@ export const useInstantCreate = ({
         lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
+
+    return encodedParams;
   }, [
     client,
     token,
