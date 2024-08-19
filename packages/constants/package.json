@@ -1,8 +1,9 @@
 {
-  "name": "@smart-invoice/constants",
-  "description": "",
+  "name": "@smartinvoicexyz/constants",
+  "description": "Unified source for configs and constants used across the Smart Invoice protocol.",
   "version": "0.1.0",
   "author": "",
+  "private": false,
   "dependencies": {
     "lodash": "^4.17.21",
     "viem": "^1.21.4"
@@ -11,11 +12,28 @@
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.5"
   },
-  "keywords": [],
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-invoice",
+    "smartinvoicexyz",
+    "constants"
+  ],
   "license": "ISC",
-  "main": "src/index.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
   }
 }

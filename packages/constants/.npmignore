@@ -1,0 +1,5 @@
+src/
+node_modules/
+tsconfig.json
+.npmignore
+tsconfig.lib.json

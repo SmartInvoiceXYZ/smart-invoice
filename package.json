@@ -53,7 +53,7 @@
       "prettier --write"
     ]
   },
-  "private": true,
+  "private": false,
   "scripts": {
     "build": "pnpm -r build",
     "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
