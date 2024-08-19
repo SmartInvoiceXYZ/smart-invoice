@@ -18,28 +18,28 @@
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.47"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
     "dist",
     "README.md",
     "package.json"
   ],
-  "engines": {
-    "node": ">=18"
-  },
   "keywords": [
     "ethereum",
+    "hooks",
     "smart-invoice",
-    "smartinvoicexyz",
-    "hooks"
+    "smartinvoicexyz"
   ],
   "license": "ISC",
   "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "release:patch": "npm version patch && npm publish --access public",
+    "release:major": "npm version major && npm publish --access public",
     "release:minor": "npm version minor && npm publish --access public",
-    "release:major": "npm version major && npm publish --access public"
-  }
+    "release:patch": "npm version patch && npm publish --access public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "types": "dist/src/index.d.ts"
 }
