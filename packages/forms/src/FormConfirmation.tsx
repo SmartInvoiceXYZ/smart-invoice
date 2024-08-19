@@ -1,4 +1,3 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Button,
   Divider,
@@ -15,11 +14,15 @@ import {
   KLEROS_ARBITRATION_SAFE,
   KLEROS_COURTS,
   LATE_FEE_INTERVAL_OPTIONS,
-} from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks';
-import { ValueOf } from '@smart-invoice/types';
-import { AccountLink, ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
-import { getDateString } from '@smart-invoice/utils';
+} from '@smartinvoicexyz/constants';
+import { useFetchTokens } from '@smartinvoicexyz/hooks';
+import { ValueOf } from '@smartinvoicexyz/types';
+import {
+  AccountLink,
+  ChakraNextLink,
+  useMediaStyles,
+} from '@smartinvoicexyz/ui';
+import { getDateString } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';

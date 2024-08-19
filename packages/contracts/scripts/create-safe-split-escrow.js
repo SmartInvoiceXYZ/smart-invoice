@@ -2,6 +2,8 @@
 const { ethers } = require("hardhat");
 const { getZapData, getWrappedTokenAddress } = require("./constants");
 
+const { formatBytes32String, defaultAbiCoder } = ethers.utils;
+
 const ZAP_DATA = {
   owners: [
     "0x68d36DcBDD7Bbf206e27134F28103abE7cf972df",

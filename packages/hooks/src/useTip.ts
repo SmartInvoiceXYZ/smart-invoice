@@ -1,6 +1,6 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils';
+import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { waitForTransaction } from 'wagmi/actions';

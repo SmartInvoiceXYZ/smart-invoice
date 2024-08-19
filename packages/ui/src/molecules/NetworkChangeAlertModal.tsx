@@ -7,12 +7,12 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
-import { Modals } from '@smart-invoice/types';
-import { chainsMap } from '@smart-invoice/utils';
+import { Modals } from '@smartinvoicexyz/types';
+import { chainsMap } from '@smartinvoicexyz/utils';
 
 type NetworkChangeAlertModalProps = {
   modals: { networkChange: boolean };
-  setModals: (modals: Partial<Modals>) => void;
+  setModals: (_modals: Partial<Modals>) => void;
   chainId?: number;
 };
 

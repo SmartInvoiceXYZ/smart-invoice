@@ -1,12 +1,12 @@
 {
-  "name": "@smart-invoice/hooks",
+  "name": "@smartinvoicexyz/hooks",
   "description": "",
   "version": "0.1.0",
   "dependencies": {
-    "@smart-invoice/constants": "workspace:*",
-    "@smart-invoice/graphql": "workspace:*",
-    "@smart-invoice/types": "workspace:*",
-    "@smart-invoice/utils": "workspace:*",
+    "@smartinvoicexyz/constants": "workspace:*",
+    "@smartinvoicexyz/graphql": "workspace:*",
+    "@smartinvoicexyz/types": "workspace:*",
+    "@smartinvoicexyz/utils": "workspace:*",
     "@tanstack/react-query": "^5.18.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",

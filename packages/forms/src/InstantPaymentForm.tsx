@@ -3,11 +3,20 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   INSTANT_STEPS,
   LATE_FEE_INTERVAL_OPTIONS,
-} from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks';
-import { IToken } from '@smart-invoice/types/src';
-import { Input, NumberInput, Select, useMediaStyles } from '@smart-invoice/ui';
-import { getWrappedNativeToken, instantPaymentSchema, oneMonthFromNow } from '@smart-invoice/utils';
+} from '@smartinvoicexyz/constants';
+import { useFetchTokens } from '@smartinvoicexyz/hooks';
+import { IToken } from '@smartinvoicexyz/types/src';
+import {
+  Input,
+  NumberInput,
+  Select,
+  useMediaStyles,
+} from '@smartinvoicexyz/ui';
+import {
+  getWrappedNativeToken,
+  instantPaymentSchema,
+  oneMonthFromNow,
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React, { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -24,7 +33,6 @@ export function InstantPaymentForm({
 }: InstantPaymentFormProps) {
   const chainId = useChainId();
 
-
   const { data: tokens } = useFetchTokens();
 
   const TOKENS = useMemo(
@@ -33,9 +41,7 @@ export function InstantPaymentForm({
     [chainId, tokens],
   ) as IToken[];
 
-
   const nativeWrappedToken = getWrappedNativeToken(chainId) || '';
-
 
   const { watch, setValue } = invoiceForm;
   const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
@@ -59,8 +65,6 @@ export function InstantPaymentForm({
 
   const { primaryButtonSize } = useMediaStyles();
 
-
-
   const onSubmit = (values: unknown) => {
     setValue('client', _.get(values, 'client'));
     setValue('provider', _.get(values, 'provider'));
@@ -79,7 +83,7 @@ export function InstantPaymentForm({
     localSetValue(
       'lateFeeTimeInterval',
       lateFeeTimeInterval ||
-      _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
+        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
       { shouldDirty: true },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

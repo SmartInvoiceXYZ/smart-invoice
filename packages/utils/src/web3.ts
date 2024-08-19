@@ -5,8 +5,8 @@ import {
   ledgerWallet,
   metaMaskWallet,
   rainbowWallet,
+  safeWallet,
   walletConnectWallet,
-  safeWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
 import { Chain, configureChains, createConfig } from 'wagmi';
@@ -71,7 +71,7 @@ export const chainByName = (name?: string): Chain | null => {
   }
 
   if (name.startsWith('arbitrum')) {
-    return arbitrum
+    return arbitrum;
   }
 
   const chain = _.find(_.values(chainsList), { network: name });

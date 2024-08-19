@@ -2,7 +2,7 @@ import {
   DEFAULT_CHAIN_ID,
   graphUrls,
   isOfTypeChainId,
-} from '@smart-invoice/constants';
+} from '@smartinvoicexyz/constants';
 
 export * from './log';
 

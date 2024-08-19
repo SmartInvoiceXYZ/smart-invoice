@@ -9,10 +9,10 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types';
-import { AccountLink, Modal } from '@smart-invoice/ui';
-import { commify, getIpfsLink, getTxLink } from '@smart-invoice/utils';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { Modals } from '@smartinvoicexyz/types';
+import { AccountLink, Modal } from '@smartinvoicexyz/ui';
+import { commify, getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
@@ -28,7 +28,7 @@ export function InvoicePaymentDetails({
 }: {
   invoice: InvoiceDetails;
   modals: Modals;
-  setModals: (m: Partial<Modals>) => void;
+  setModals: (_m: Partial<Modals>) => void;
 }) {
   const chainId = useChainId();
   const {

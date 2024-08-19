@@ -1,7 +1,7 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
-import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils/src';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils/src';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';

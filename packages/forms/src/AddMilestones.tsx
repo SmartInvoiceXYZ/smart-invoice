@@ -14,20 +14,20 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useAddMilestones } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useAddMilestones } from '@smartinvoicexyz/hooks';
 import {
   LinkInput,
   NumberInput,
   QuestionIcon,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import {
   commify,
   // getTxLink,
   resolutionFeePercentage,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';
@@ -93,11 +93,14 @@ export function AddMilestones({
     onTxSuccess,
   });
 
-  // TODO handle excess funds from previous deposits
+  // TODO: handle excess funds from previous deposits
   const excessFunds = useMemo(() => {
     if (!total || !deposited) return 0;
     return deposited - total; // bigint
   }, [total, deposited, tokenMetadata]);
+
+  // eslint-disable-next-line no-console
+  console.log('excessFunds', excessFunds);
 
   const newTotalDue = _.sumBy(milestones, ({ value }) => _.toNumber(value));
   const newDisputeFee =

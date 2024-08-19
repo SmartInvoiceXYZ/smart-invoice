@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react';
-import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
+import { SUPPORTED_NETWORKS } from '@smartinvoicexyz/constants';
 import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';

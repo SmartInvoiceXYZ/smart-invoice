@@ -1,10 +1,10 @@
 {
-  "name": "@smart-invoice/shared",
+  "name": "@smartinvoicexyz/shared",
   "description": "",
   "version": "0.1.0",
   "author": "",
   "dependencies": {
-    "@smart-invoice/constants": "workspace:*"
+    "@smartinvoicexyz/constants": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

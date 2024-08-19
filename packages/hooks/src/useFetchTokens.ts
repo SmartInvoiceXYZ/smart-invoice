@@ -1,5 +1,5 @@
-import { IToken } from '@smart-invoice/types/src';
-import { logError } from '@smart-invoice/utils';
+import { IToken } from '@smartinvoicexyz/types/src';
+import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const fetchTokens = async () => {

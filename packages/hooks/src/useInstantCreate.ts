@@ -3,14 +3,14 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
   wrappedNativeToken,
-} from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
+} from '@smartinvoicexyz/constants';
+import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
   getInvoiceFactoryAddress,
   parseTxLogs,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -27,6 +27,7 @@ export const useInstantCreate = ({
   toast,
   onTxSuccess,
 }: {
+  waitingForTx: boolean;
   invoiceForm: UseFormReturn;
   chainId: number;
   toast: UseToastReturn;
@@ -184,6 +185,7 @@ export const useInstantCreate = ({
   });
 
   return {
+    waitingForTx,
     prepareError,
     writeAsync,
     writeError,

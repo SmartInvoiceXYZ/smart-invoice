@@ -2,4 +2,5 @@ src/
 node_modules/
 tsconfig.json
 .npmignore
+.eslintrc.js
 tsconfig.lib.json

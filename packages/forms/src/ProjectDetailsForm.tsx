@@ -1,22 +1,31 @@
 import { Box, Button, Grid, HStack, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS, INVOICE_TYPES } from '@smart-invoice/constants';
-import { ValueOf } from '@smart-invoice/types';
+import { ESCROW_STEPS, INVOICE_TYPES } from '@smartinvoicexyz/constants';
+import { ValueOf } from '@smartinvoicexyz/types';
 import {
   DatePicker,
   Input,
   LinkInput,
   Textarea,
   useMediaStyles,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import {
   oneMonthFromNow,
   projectDetailsSchema,
-  sevenDaysFromDate,
   sevenDaysFromNow,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useForm, UseFormReturn } from 'react-hook-form';
+
+type FormValues = {
+  projectName: string | undefined;
+  projectDescription: string | undefined;
+  projectAgreement: string | undefined;
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  safetyValveDate: Date | undefined;
+  deadline: Date | undefined;
+};
 
 export function ProjectDetailsForm({
   invoiceForm,
@@ -56,7 +65,7 @@ export function ProjectDetailsForm({
 
   const { primaryButtonSize } = useMediaStyles();
 
-  const onSubmit = async (values: Partial<any>) => {
+  const onSubmit = async (values: Partial<FormValues>) => {
     // if (values.projectAgreement) {
     //   // TODO align with AddMilestones handling for projectAgreement
     //   // TODO handle ipfs agreement link

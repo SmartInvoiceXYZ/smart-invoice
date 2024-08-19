@@ -14,7 +14,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { logDebug } from '@smart-invoice/utils';
+import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';

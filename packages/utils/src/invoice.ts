@@ -5,7 +5,7 @@ import {
   InvoiceDetails,
   TokenBalance,
   TokenMetadata,
-} from '@smart-invoice/graphql';
+} from '@smartinvoicexyz/graphql';
 import _ from 'lodash';
 import { formatUnits, Hex, parseUnits } from 'viem';
 

@@ -7,4 +7,4 @@ export type IToken = {
   name: string;
   decimals: number;
   logoURI: string;
-}
+};

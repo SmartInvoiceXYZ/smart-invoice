@@ -1,5 +1,5 @@
 import { Button, Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
+import { ChakraNextLink, useMediaStyles } from '@smartinvoicexyz/ui';
 
 function SelectInvoiceType() {
   const { primaryButtonSize } = useMediaStyles();

@@ -1,13 +1,12 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { KLEROS_LOGO } from '@smart-invoice/constants/src';
+import { KLEROS_LOGO } from '@smartinvoicexyz/constants/src';
 import {
   getAccountString,
   getAddressLink,
   getResolverInfo,
   isKnownResolver,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import blockies from 'blockies-ts';
-import _ from 'lodash';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 

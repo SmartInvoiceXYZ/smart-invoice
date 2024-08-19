@@ -1,10 +1,10 @@
 {
-  "name": "@smart-invoice/types",
+  "name": "@smartinvoicexyz/types",
   "description": "",
   "version": "0.1.0",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
-    "@smart-invoice/graphql": "workspace:*",
+    "@smartinvoicexyz/graphql": "workspace:*",
     "react": "^18.2.0",
     "viem": "^1.21.4"
   },

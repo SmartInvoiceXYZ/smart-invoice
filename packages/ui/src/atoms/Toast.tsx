@@ -8,7 +8,7 @@ import {
   Icon,
   Text,
 } from '@chakra-ui/react';
-import { ToastProps } from '@smart-invoice/types';
+import { ToastProps } from '@smartinvoicexyz/types';
 import React from 'react';
 
 // const icons: {

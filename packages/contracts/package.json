@@ -1,5 +1,5 @@
 {
-  "name": "@smart-invoice/contracts",
+  "name": "@smartinvoicexyz/contracts",
   "version": "0.1.0",
   "dependencies": {
     "@nomicfoundation/hardhat-verify": "^2.0.8",

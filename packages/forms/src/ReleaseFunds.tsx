@@ -1,8 +1,8 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useRelease } from '@smart-invoice/hooks';
-import { useToast } from '@smart-invoice/ui';
+import { TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useRelease } from '@smartinvoicexyz/hooks';
+import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { formatUnits } from 'viem';

@@ -1,5 +1,5 @@
 {
-  "name": "@smart-invoice/subgraph",
+  "name": "@smartinvoicexyz/subgraph",
   "version": "0.1.0",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.78.0",

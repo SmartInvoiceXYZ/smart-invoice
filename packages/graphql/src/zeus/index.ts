@@ -2,7 +2,7 @@
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
 export const HOST =
-  'https://api.thegraph.com/subgraphs/name/psparacino/goerli-smart-invoices';
+  `https://api.studio.thegraph.com/query/78711/smart-invoice-gnosis/v0.0.5`;
 
 export const HEADERS = {};
 export const apiSubscription = (options: chainOptions) => (query: string) => {
@@ -57,13 +57,29 @@ const handleFetchResponse = (response: Response): Promise<GraphQLResponse> => {
 
 export const apiFetch =
   (options: fetchOptions) =>
-  (query: string, variables: Record<string, unknown> = {}) => {
-    const fetchOptions = options[1] || {};
-    if (fetchOptions.method && fetchOptions.method === 'GET') {
-      return fetch(
-        `${options[0]}?query=${encodeURIComponent(query)}`,
-        fetchOptions,
-      )
+    (query: string, variables: Record<string, unknown> = {}) => {
+      const fetchOptions = options[1] || {};
+      if (fetchOptions.method && fetchOptions.method === 'GET') {
+        return fetch(
+          `${options[0]}?query=${encodeURIComponent(query)}`,
+          fetchOptions,
+        )
+          .then(handleFetchResponse)
+          .then((response: GraphQLResponse) => {
+            if (response.errors) {
+              throw new GraphQLError(response);
+            }
+            return response.data;
+          });
+      }
+      return fetch(`${options[0]}`, {
+        body: JSON.stringify({ query, variables }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        ...fetchOptions,
+      })
         .then(handleFetchResponse)
         .then((response: GraphQLResponse) => {
           if (response.errors) {
@@ -71,23 +87,7 @@ export const apiFetch =
           }
           return response.data;
         });
-    }
-    return fetch(`${options[0]}`, {
-      body: JSON.stringify({ query, variables }),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      ...fetchOptions,
-    })
-      .then(handleFetchResponse)
-      .then((response: GraphQLResponse) => {
-        if (response.errors) {
-          throw new GraphQLError(response);
-        }
-        return response.data;
-      });
-  };
+    };
 
 export const InternalsBuildQuery = ({
   ops,
@@ -160,92 +160,91 @@ export const InternalsBuildQuery = ({
       return `${k} ${keyForDirectives}${hasOperationName} ${query}`;
     }
     const varsString = vars.map(v => `${v.name}: ${v.graphQLType}`).join(', ');
-    return `${k} ${keyForDirectives}${hasOperationName}${
-      varsString ? `(${varsString})` : ''
-    } ${query}`;
+    return `${k} ${keyForDirectives}${hasOperationName}${varsString ? `(${varsString})` : ''
+      } ${query}`;
   };
   return ibb;
 };
 
 export const Thunder =
   (fn: FetchFunction) =>
-  <
-    O extends keyof typeof Ops,
-    SCLR extends ScalarDefinition,
-    R extends keyof ValueTypes = GenericOperation<O>,
-  >(
-    operation: O,
-    graphqlOptions?: ThunderGraphQLOptions<SCLR>,
-  ) =>
-  <Z extends ValueTypes[R]>(
-    o: (Z & ValueTypes[R]) | ValueTypes[R],
-    ops?: OperationOptions & { variables?: Record<string, unknown> },
-  ) =>
-    fn(
-      Zeus(operation, o, {
-        operationOptions: ops,
-        scalars: graphqlOptions?.scalars,
-      }),
-      ops?.variables,
-    ).then(data => {
-      if (graphqlOptions?.scalars) {
-        return decodeScalarsInResponse({
-          response: data,
-          initialOp: operation,
-          initialZeusQuery: o as VType,
-          returns: ReturnTypes,
-          scalars: graphqlOptions.scalars,
-          ops: Ops,
-        });
-      }
-      return data;
-    }) as Promise<InputType<GraphQLTypes[R], Z, SCLR>>;
+    <
+      O extends keyof typeof Ops,
+      SCLR extends ScalarDefinition,
+      R extends keyof ValueTypes = GenericOperation<O>,
+    >(
+      operation: O,
+      graphqlOptions?: ThunderGraphQLOptions<SCLR>,
+    ) =>
+      <Z extends ValueTypes[R]>(
+        o: (Z & ValueTypes[R]) | ValueTypes[R],
+        ops?: OperationOptions & { variables?: Record<string, unknown> },
+      ) =>
+        fn(
+          Zeus(operation, o, {
+            operationOptions: ops,
+            scalars: graphqlOptions?.scalars,
+          }),
+          ops?.variables,
+        ).then(data => {
+          if (graphqlOptions?.scalars) {
+            return decodeScalarsInResponse({
+              response: data,
+              initialOp: operation,
+              initialZeusQuery: o as VType,
+              returns: ReturnTypes,
+              scalars: graphqlOptions.scalars,
+              ops: Ops,
+            });
+          }
+          return data;
+        }) as Promise<InputType<GraphQLTypes[R], Z, SCLR>>;
 
 export const Chain = (...options: chainOptions) => Thunder(apiFetch(options));
 
 export const SubscriptionThunder =
   (fn: SubscriptionFunction) =>
-  <
-    O extends keyof typeof Ops,
-    SCLR extends ScalarDefinition,
-    R extends keyof ValueTypes = GenericOperation<O>,
-  >(
-    operation: O,
-    graphqlOptions?: ThunderGraphQLOptions<SCLR>,
-  ) =>
-  <Z extends ValueTypes[R]>(
-    o: (Z & ValueTypes[R]) | ValueTypes[R],
-    ops?: OperationOptions & { variables?: ExtractVariables<Z> },
-  ) => {
-    const returnedFunction = fn(
-      Zeus(operation, o, {
-        operationOptions: ops,
-        scalars: graphqlOptions?.scalars,
-      }),
-    ) as SubscriptionToGraphQL<Z, GraphQLTypes[R], SCLR>;
-    if (returnedFunction?.on && graphqlOptions?.scalars) {
-      const wrapped = returnedFunction.on;
-      returnedFunction.on = (
-        fnToCall: (args: InputType<GraphQLTypes[R], Z, SCLR>) => void,
-      ) =>
-        wrapped((data: InputType<GraphQLTypes[R], Z, SCLR>) => {
-          if (graphqlOptions?.scalars) {
-            return fnToCall(
-              decodeScalarsInResponse({
-                response: data,
-                initialOp: operation,
-                initialZeusQuery: o as VType,
-                returns: ReturnTypes,
-                scalars: graphqlOptions.scalars,
-                ops: Ops,
-              }),
-            );
-          }
-          return fnToCall(data);
-        });
-    }
-    return returnedFunction;
-  };
+    <
+      O extends keyof typeof Ops,
+      SCLR extends ScalarDefinition,
+      R extends keyof ValueTypes = GenericOperation<O>,
+    >(
+      operation: O,
+      graphqlOptions?: ThunderGraphQLOptions<SCLR>,
+    ) =>
+      <Z extends ValueTypes[R]>(
+        o: (Z & ValueTypes[R]) | ValueTypes[R],
+        ops?: OperationOptions & { variables?: ExtractVariables<Z> },
+      ) => {
+        const returnedFunction = fn(
+          Zeus(operation, o, {
+            operationOptions: ops,
+            scalars: graphqlOptions?.scalars,
+          }),
+        ) as SubscriptionToGraphQL<Z, GraphQLTypes[R], SCLR>;
+        if (returnedFunction?.on && graphqlOptions?.scalars) {
+          const wrapped = returnedFunction.on;
+          returnedFunction.on = (
+            fnToCall: (args: InputType<GraphQLTypes[R], Z, SCLR>) => void,
+          ) =>
+            wrapped((data: InputType<GraphQLTypes[R], Z, SCLR>) => {
+              if (graphqlOptions?.scalars) {
+                return fnToCall(
+                  decodeScalarsInResponse({
+                    response: data,
+                    initialOp: operation,
+                    initialZeusQuery: o as VType,
+                    returns: ReturnTypes,
+                    scalars: graphqlOptions.scalars,
+                    ops: Ops,
+                  }),
+                );
+              }
+              return fnToCall(data);
+            });
+        }
+        return returnedFunction;
+      };
 
 export const Subscription = (...options: chainOptions) =>
   SubscriptionThunder(apiSubscription(options));
@@ -378,35 +377,35 @@ export const traverseResponse = ({
 
 export type AllTypesPropsType = {
   [x: string]:
+  | undefined
+  | `scalar.${string}`
+  | 'enum'
+  | {
+    [x: string]:
     | undefined
-    | `scalar.${string}`
-    | 'enum'
+    | string
     | {
-        [x: string]:
-          | undefined
-          | string
-          | {
-              [x: string]: string | undefined;
-            };
-      };
+      [x: string]: string | undefined;
+    };
+  };
 };
 
 export type ReturnTypesType = {
   [x: string]:
-    | {
-        [x: string]: string | undefined;
-      }
-    | `scalar.${string}`
-    | undefined;
+  | {
+    [x: string]: string | undefined;
+  }
+  | `scalar.${string}`
+  | undefined;
 };
 export type InputValueType = {
   [x: string]:
-    | undefined
-    | boolean
-    | string
-    | number
-    | [any, undefined | boolean | InputValueType]
-    | InputValueType;
+  | undefined
+  | boolean
+  | string
+  | number
+  | [any, undefined | boolean | InputValueType]
+  | InputValueType;
 };
 export type VType =
   | undefined
@@ -420,8 +419,8 @@ export type PlainType = boolean | number | string | null | undefined;
 export type ZeusArgsType =
   | PlainType
   | {
-      [x: string]: ZeusArgsType;
-    }
+    [x: string]: ZeusArgsType;
+  }
   | Array<ZeusArgsType>;
 
 export type Operations = Record<string, string>;
@@ -794,10 +793,10 @@ type IsScalar<S, SCLR extends ScalarDefinition> = S extends 'scalar' & {
   name: infer T;
 }
   ? T extends keyof SCLR
-    ? SCLR[T]['decode'] extends (s: unknown) => unknown
-      ? ReturnType<SCLR[T]['decode']>
-      : unknown
-    : unknown
+  ? SCLR[T]['decode'] extends (s: unknown) => unknown
+  ? ReturnType<SCLR[T]['decode']>
+  : unknown
+  : unknown
   : S;
 type IsArray<T, U, SCLR extends ScalarDefinition> = T extends Array<infer R>
   ? InputType<R, U, SCLR>[]
@@ -811,43 +810,43 @@ type IsInterfaced<
   SCLR extends ScalarDefinition,
 > = FlattenArray<SRC> extends ZEUS_INTERFACES | ZEUS_UNIONS
   ? {
-      [P in keyof SRC]: SRC[P] extends '__union' & infer R
-        ? P extends keyof DST
-          ? IsArray<
-              R,
-              '__typename' extends keyof DST
-                ? DST[P] & { __typename: true }
-                : DST[P],
-              SCLR
-            >
-          : IsArray<
-              R,
-              '__typename' extends keyof DST
-                ? { __typename: true }
-                : Record<string, never>,
-              SCLR
-            >
-        : never;
-    }[keyof SRC] & {
-      [P in keyof Omit<
-        Pick<
-          SRC,
-          {
-            [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
-          }[keyof DST]
-        >,
-        '__typename'
-      >]: IsPayLoad<DST[P]> extends BaseZeusResolver
-        ? IsScalar<SRC[P], SCLR>
-        : IsArray<SRC[P], DST[P], SCLR>;
-    }
+    [P in keyof SRC]: SRC[P] extends '__union' & infer R
+    ? P extends keyof DST
+    ? IsArray<
+      R,
+      '__typename' extends keyof DST
+      ? DST[P] & { __typename: true }
+      : DST[P],
+      SCLR
+    >
+    : IsArray<
+      R,
+      '__typename' extends keyof DST
+      ? { __typename: true }
+      : Record<string, never>,
+      SCLR
+    >
+    : never;
+  }[keyof SRC] & {
+    [P in keyof Omit<
+      Pick<
+        SRC,
+        {
+          [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
+        }[keyof DST]
+      >,
+      '__typename'
+    >]: IsPayLoad<DST[P]> extends BaseZeusResolver
+    ? IsScalar<SRC[P], SCLR>
+    : IsArray<SRC[P], DST[P], SCLR>;
+  }
   : {
-      [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<
-        DST[P]
-      > extends BaseZeusResolver
-        ? IsScalar<SRC[P], SCLR>
-        : IsArray<SRC[P], DST[P], SCLR>;
-    };
+    [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<
+      DST[P]
+    > extends BaseZeusResolver
+    ? IsScalar<SRC[P], SCLR>
+    : IsArray<SRC[P], DST[P], SCLR>;
+  };
 
 export type MapType<
   SRC,
@@ -861,8 +860,8 @@ export type InputType<
   SCLR extends ScalarDefinition = {},
 > = IsPayLoad<DST> extends { __alias: infer R }
   ? {
-      [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<SRC, R[P], SCLR>];
-    } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
+    [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<SRC, R[P], SCLR>];
+  } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
   : MapType<SRC, IsPayLoad<DST>, SCLR>;
 export type SubscriptionToGraphQL<Z, T, SCLR extends ScalarDefinition> = {
   ws: WebSocket;
@@ -916,28 +915,28 @@ export type GraphQLVariableType = VR<AllVariableTypes>;
 
 type ExtractVariableTypeString<T extends string> = T extends VR<infer R1>
   ? R1 extends VR<infer R2>
-    ? R2 extends VR<infer R3>
-      ? R3 extends VR<infer R4>
-        ? R4 extends VR<infer R5>
-          ? R5
-          : R4
-        : R3
-      : R2
-    : R1
+  ? R2 extends VR<infer R3>
+  ? R3 extends VR<infer R4>
+  ? R4 extends VR<infer R5>
+  ? R5
+  : R4
+  : R3
+  : R2
+  : R1
   : T;
 
 type DecomposeType<T, Type> = T extends `[${infer R}]`
   ? Array<DecomposeType<R, Type>> | undefined
   : T extends `${infer R}!`
-    ? NonNullable<DecomposeType<R, Type>>
-    : Type | undefined;
+  ? NonNullable<DecomposeType<R, Type>>
+  : Type | undefined;
 
 type ExtractTypeFromGraphQLType<T extends string> =
   T extends keyof ZEUS_VARIABLES
-    ? ZEUS_VARIABLES[T]
-    : T extends keyof BuiltInVariableTypes
-      ? BuiltInVariableTypes[T]
-      : any;
+  ? ZEUS_VARIABLES[T]
+  : T extends keyof BuiltInVariableTypes
+  ? BuiltInVariableTypes[T]
+  : any;
 
 export type GetVariableType<T extends string> = DecomposeType<
   T,
@@ -969,15 +968,15 @@ export type ExtractVariablesDeep<Query> = Query extends Variable<
 >
   ? { [key in VName]: GetVariableType<VType> }
   : Query extends string | number | boolean | Array<string | number | boolean>
-    ? // eslint-disable-next-line @typescript-eslint/ban-types
-      {}
-    : UnionToIntersection<
-        {
-          [K in keyof Query]: WithOptionalNullables<
-            ExtractVariablesDeep<Query[K]>
-          >;
-        }[keyof Query]
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+  {}
+  : UnionToIntersection<
+    {
+      [K in keyof Query]: WithOptionalNullables<
+        ExtractVariablesDeep<Query[K]>
       >;
+    }[keyof Query]
+  >;
 
 export type ExtractVariables<Query> = Query extends Variable<
   infer VType,
@@ -985,17 +984,17 @@ export type ExtractVariables<Query> = Query extends Variable<
 >
   ? { [key in VName]: GetVariableType<VType> }
   : Query extends [infer Inputs, infer Outputs]
-    ? ExtractVariablesDeep<Inputs> & ExtractVariables<Outputs>
-    : Query extends string | number | boolean | Array<string | number | boolean>
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
-        {}
-      : UnionToIntersection<
-          {
-            [K in keyof Query]: WithOptionalNullables<
-              ExtractVariables<Query[K]>
-            >;
-          }[keyof Query]
-        >;
+  ? ExtractVariablesDeep<Inputs> & ExtractVariables<Outputs>
+  : Query extends string | number | boolean | Array<string | number | boolean>
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+  {}
+  : UnionToIntersection<
+    {
+      [K in keyof Query]: WithOptionalNullables<
+        ExtractVariables<Query[K]>
+      >;
+    }[keyof Query]
+  >;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
@@ -1054,26 +1053,26 @@ export type ValueTypes = {
     type_contains_nocase?: string | undefined | null | Variable<any, string>;
     type_not_contains?: string | undefined | null | Variable<any, string>;
     type_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     type_starts_with?: string | undefined | null | Variable<any, string>;
     type_starts_with_nocase?: string | undefined | null | Variable<any, string>;
     type_not_starts_with?: string | undefined | null | Variable<any, string>;
     type_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     type_ends_with?: string | undefined | null | Variable<any, string>;
     type_ends_with_nocase?: string | undefined | null | Variable<any, string>;
     type_not_ends_with?: string | undefined | null | Variable<any, string>;
     type_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     src?: string | undefined | null | Variable<any, string>;
     src_not?: string | undefined | null | Variable<any, string>;
     src_gt?: string | undefined | null | Variable<any, string>;
@@ -1090,70 +1089,70 @@ export type ValueTypes = {
     src_starts_with_nocase?: string | undefined | null | Variable<any, string>;
     src_not_starts_with?: string | undefined | null | Variable<any, string>;
     src_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     src_ends_with?: string | undefined | null | Variable<any, string>;
     src_ends_with_nocase?: string | undefined | null | Variable<any, string>;
     src_not_ends_with?: string | undefined | null | Variable<any, string>;
     src_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     createdAt_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Agreement_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Agreement_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Agreement_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Agreement_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Agreement_orderBy']: Agreement_orderBy;
   ['BigDecimal']: unknown;
@@ -1192,25 +1191,25 @@ export type ValueTypes = {
     txHash_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_not?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
@@ -1218,25 +1217,25 @@ export type ValueTypes = {
     sender_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: string | undefined | null | Variable<any, string>;
     invoice_not?: string | undefined | null | Variable<any, string>;
     invoice_gt?: string | undefined | null | Variable<any, string>;
@@ -1249,119 +1248,119 @@ export type ValueTypes = {
     invoice_contains_nocase?: string | undefined | null | Variable<any, string>;
     invoice_not_contains?: string | undefined | null | Variable<any, string>;
     invoice_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_?:
-      | ValueTypes['Invoice_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Invoice_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_lt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     timestamp_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Deposit_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Deposit_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Deposit_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Deposit_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Deposit_orderBy']: Deposit_orderBy;
   ['Dispute']: AliasType<{
@@ -1393,25 +1392,25 @@ export type ValueTypes = {
     txHash_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: string | undefined | null | Variable<any, string>;
     invoice_not?: string | undefined | null | Variable<any, string>;
     invoice_gt?: string | undefined | null | Variable<any, string>;
@@ -1424,39 +1423,39 @@ export type ValueTypes = {
     invoice_contains_nocase?: string | undefined | null | Variable<any, string>;
     invoice_not_contains?: string | undefined | null | Variable<any, string>;
     invoice_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_?:
-      | ValueTypes['Invoice_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Invoice_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_not?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
@@ -1464,63 +1463,63 @@ export type ValueTypes = {
     sender_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash?: string | undefined | null | Variable<any, string>;
     ipfsHash_not?: string | undefined | null | Variable<any, string>;
     ipfsHash_gt?: string | undefined | null | Variable<any, string>;
@@ -1531,222 +1530,222 @@ export type ValueTypes = {
     ipfsHash_not_in?: Array<string> | undefined | null | Variable<any, string>;
     ipfsHash_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_starts_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeToken_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeFee_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     disputeId_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     timestamp_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Dispute_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Dispute_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Dispute_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Dispute_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Dispute_orderBy']: Dispute_orderBy;
   /** 8 bytes signed integer
@@ -1782,20 +1781,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Agreement_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Agreement_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Agreement_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Agreement_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Agreement'],
     ];
@@ -1806,20 +1805,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Deposit_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Deposit_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Deposit_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Deposit_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Deposit'],
     ];
@@ -1828,20 +1827,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Withdraw_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Withdraw_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Withdraw_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Withdraw_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Withdraw'],
     ];
@@ -1850,20 +1849,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Release_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Release_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Release_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Release_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Release'],
     ];
@@ -1872,20 +1871,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Dispute_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Dispute_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Dispute_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Dispute_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Dispute'],
     ];
@@ -1894,20 +1893,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Resolution_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Resolution_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Resolution_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Resolution_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Resolution'],
     ];
@@ -1917,20 +1916,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Verified_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Verified_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Verified_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Verified_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Verified'],
     ];
@@ -1939,20 +1938,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['MilestonesAdded_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['MilestonesAdded_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['MilestonesAdded'],
     ];
@@ -1965,20 +1964,20 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Tip_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Tip_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Tip_filter']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Tip_filter']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['Tip'],
     ];
@@ -2007,122 +2006,122 @@ export type ValueTypes = {
     network_contains_nocase?: string | undefined | null | Variable<any, string>;
     network_not_contains?: string | undefined | null | Variable<any, string>;
     network_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     network_starts_with?: string | undefined | null | Variable<any, string>;
     network_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     network_not_starts_with?: string | undefined | null | Variable<any, string>;
     network_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     network_ends_with?: string | undefined | null | Variable<any, string>;
     network_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     network_not_ends_with?: string | undefined | null | Variable<any, string>;
     network_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     address?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     address_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     address_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     address_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     address_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     address_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     address_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     address_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     address_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     address_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     factoryAddress_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     token?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     token_not?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     token_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
@@ -2130,25 +2129,25 @@ export type ValueTypes = {
     token_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     token_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     token_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     token_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     token_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     token_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     client?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_not?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
@@ -2156,207 +2155,207 @@ export type ValueTypes = {
     client_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     client_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     client_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     client_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     provider_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     provider_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType?: ValueTypes['ADR'] | undefined | null | Variable<any, string>;
     resolverType_not?:
-      | ValueTypes['ADR']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['ADR']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType_in?:
-      | Array<ValueTypes['ADR']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['ADR']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType_not_in?:
-      | Array<ValueTypes['ADR']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['ADR']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     resolver_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionRate_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     isLocked?: boolean | undefined | null | Variable<any, string>;
     isLocked_not?: boolean | undefined | null | Variable<any, string>;
     isLocked_in?: Array<boolean> | undefined | null | Variable<any, string>;
     isLocked_not_in?: Array<boolean> | undefined | null | Variable<any, string>;
     amounts?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amounts_not?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amounts_contains?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amounts_contains_nocase?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amounts_not_contains?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amounts_not_contains_nocase?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     numMilestones?: number | undefined | null | Variable<any, string>;
     numMilestones_not?: number | undefined | null | Variable<any, string>;
     numMilestones_gt?: number | undefined | null | Variable<any, string>;
@@ -2365,50 +2364,50 @@ export type ValueTypes = {
     numMilestones_lte?: number | undefined | null | Variable<any, string>;
     numMilestones_in?: Array<number> | undefined | null | Variable<any, string>;
     numMilestones_not_in?:
-      | Array<number>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<number>
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     currentMilestone_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     total?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     total_not?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     total_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
@@ -2416,215 +2415,215 @@ export type ValueTypes = {
     total_gte?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     total_lte?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     total_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     total_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     released?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     released_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     released_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     released_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     released_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     released_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     released_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     released_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     createdAt_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     createdAt_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     creationTxHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     terminationTime_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash?: string | undefined | null | Variable<any, string>;
     ipfsHash_not?: string | undefined | null | Variable<any, string>;
     ipfsHash_gt?: string | undefined | null | Variable<any, string>;
@@ -2635,80 +2634,80 @@ export type ValueTypes = {
     ipfsHash_not_in?: Array<string> | undefined | null | Variable<any, string>;
     ipfsHash_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_starts_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     disputeId_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputeId_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName?: string | undefined | null | Variable<any, string>;
     projectName_not?: string | undefined | null | Variable<any, string>;
     projectName_gt?: string | undefined | null | Variable<any, string>;
@@ -2717,58 +2716,58 @@ export type ValueTypes = {
     projectName_lte?: string | undefined | null | Variable<any, string>;
     projectName_in?: Array<string> | undefined | null | Variable<any, string>;
     projectName_not_in?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_contains?: string | undefined | null | Variable<any, string>;
     projectName_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_contains?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_starts_with?: string | undefined | null | Variable<any, string>;
     projectName_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_ends_with?: string | undefined | null | Variable<any, string>;
     projectName_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_ends_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectName_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription?: string | undefined | null | Variable<any, string>;
     projectDescription_not?: string | undefined | null | Variable<any, string>;
     projectDescription_gt?: string | undefined | null | Variable<any, string>;
@@ -2776,313 +2775,313 @@ export type ValueTypes = {
     projectDescription_gte?: string | undefined | null | Variable<any, string>;
     projectDescription_lte?: string | undefined | null | Variable<any, string>;
     projectDescription_in?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_in?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_contains?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_contains?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_ends_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_ends_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectDescription_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement?: Array<string> | undefined | null | Variable<any, string>;
     projectAgreement_not?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     projectAgreement_?:
-      | ValueTypes['Agreement_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Agreement_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     startDate_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     startDate_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     endDate_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     endDate_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     deposits?: Array<string> | undefined | null | Variable<any, string>;
     deposits_not?: Array<string> | undefined | null | Variable<any, string>;
     deposits_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     deposits_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     deposits_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     deposits_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     deposits_?:
-      | ValueTypes['Deposit_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Deposit_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     withdraws?: Array<string> | undefined | null | Variable<any, string>;
     withdraws_not?: Array<string> | undefined | null | Variable<any, string>;
     withdraws_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     withdraws_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     withdraws_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     withdraws_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     withdraws_?:
-      | ValueTypes['Withdraw_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Withdraw_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     releases?: Array<string> | undefined | null | Variable<any, string>;
     releases_not?: Array<string> | undefined | null | Variable<any, string>;
     releases_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     releases_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     releases_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     releases_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     releases_?:
-      | ValueTypes['Release_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Release_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     disputes?: Array<string> | undefined | null | Variable<any, string>;
     disputes_not?: Array<string> | undefined | null | Variable<any, string>;
     disputes_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputes_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputes_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputes_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     disputes_?:
-      | ValueTypes['Dispute_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Dispute_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutions?: Array<string> | undefined | null | Variable<any, string>;
     resolutions_not?: Array<string> | undefined | null | Variable<any, string>;
     resolutions_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutions_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutions_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutions_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutions_?:
-      | ValueTypes['Resolution_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Resolution_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata?: string | undefined | null | Variable<any, string>;
     tokenMetadata_not?: string | undefined | null | Variable<any, string>;
     tokenMetadata_gt?: string | undefined | null | Variable<any, string>;
@@ -3091,125 +3090,125 @@ export type ValueTypes = {
     tokenMetadata_lte?: string | undefined | null | Variable<any, string>;
     tokenMetadata_in?: Array<string> | undefined | null | Variable<any, string>;
     tokenMetadata_not_in?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_contains?: string | undefined | null | Variable<any, string>;
     tokenMetadata_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_contains?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_ends_with?: string | undefined | null | Variable<any, string>;
     tokenMetadata_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_ends_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     tokenMetadata_?:
-      | ValueTypes['Token_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Token_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     verified?: Array<string> | undefined | null | Variable<any, string>;
     verified_not?: Array<string> | undefined | null | Variable<any, string>;
     verified_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     verified_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     verified_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     verified_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     verified_?:
-      | ValueTypes['Verified_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Verified_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded?: Array<string> | undefined | null | Variable<any, string>;
     milestonesAdded_not?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestonesAdded_?:
-      | ValueTypes['MilestonesAdded_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['MilestonesAdded_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType?: string | undefined | null | Variable<any, string>;
     invoiceType_not?: string | undefined | null | Variable<any, string>;
     invoiceType_gt?: string | undefined | null | Variable<any, string>;
@@ -3218,257 +3217,257 @@ export type ValueTypes = {
     invoiceType_lte?: string | undefined | null | Variable<any, string>;
     invoiceType_in?: Array<string> | undefined | null | Variable<any, string>;
     invoiceType_not_in?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_contains?: string | undefined | null | Variable<any, string>;
     invoiceType_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_contains?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_starts_with?: string | undefined | null | Variable<any, string>;
     invoiceType_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_ends_with?: string | undefined | null | Variable<any, string>;
     invoiceType_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_ends_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoiceType_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     version?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     version_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     version_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     version_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     version_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     version_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     version_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     version_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     lateFee_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFee_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     lateFeeTimeInterval_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     tipAmount?: Array<string> | undefined | null | Variable<any, string>;
     tipAmount_not?: Array<string> | undefined | null | Variable<any, string>;
     tipAmount_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     tipAmount_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     tipAmount_not_contains?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     tipAmount_not_contains_nocase?:
-      | Array<string>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<string>
+    | undefined
+    | null
+    | Variable<any, string>;
     tipAmount_?:
-      | ValueTypes['Tip_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Tip_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     deadline_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     deadline_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     fulfilled?: boolean | undefined | null | Variable<any, string>;
     fulfilled_not?: boolean | undefined | null | Variable<any, string>;
     fulfilled_in?: Array<boolean> | undefined | null | Variable<any, string>;
     fulfilled_not_in?:
-      | Array<boolean>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<boolean>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Invoice_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Invoice_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Invoice_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Invoice_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Invoice_orderBy']: Invoice_orderBy;
   ['MilestonesAdded']: AliasType<{
@@ -3494,109 +3493,109 @@ export type ValueTypes = {
     sender_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones_not?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones_contains?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones_contains_nocase?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones_not_contains?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestones_not_contains_nocase?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['MilestonesAdded_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['MilestonesAdded_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['MilestonesAdded_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['MilestonesAdded_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['MilestonesAdded_orderBy']: MilestonesAdded_orderBy;
   /** Defines the order direction, either ascending or descending */
@@ -3605,22 +3604,22 @@ export type ValueTypes = {
     invoice?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Invoice'],
     ];
@@ -3629,56 +3628,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Invoice_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Invoice_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Invoice_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Invoice_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Invoice'],
     ];
     deposit?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Deposit'],
     ];
@@ -3687,56 +3686,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Deposit_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Deposit_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Deposit_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Deposit_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Deposit'],
     ];
     agreement?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Agreement'],
     ];
@@ -3745,56 +3744,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Agreement_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Agreement_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Agreement_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Agreement_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Agreement'],
     ];
     release?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Release'],
     ];
@@ -3803,56 +3802,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Release_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Release_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Release_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Release_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Release'],
     ];
     withdraw?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Withdraw'],
     ];
@@ -3861,56 +3860,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Withdraw_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Withdraw_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Withdraw_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Withdraw_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Withdraw'],
     ];
     dispute?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Dispute'],
     ];
@@ -3919,56 +3918,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Dispute_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Dispute_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Dispute_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Dispute_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Dispute'],
     ];
     resolution?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Resolution'],
     ];
@@ -3977,56 +3976,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Resolution_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Resolution_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Resolution_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Resolution_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Resolution'],
     ];
     token?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Token'],
     ];
@@ -4035,56 +4034,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Token_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Token_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Token_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Token_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Token'],
     ];
     verified?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Verified'],
     ];
@@ -4093,56 +4092,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Verified_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Verified_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Verified_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Verified_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Verified'],
     ];
     milestonesAdded?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['MilestonesAdded'],
     ];
@@ -4151,56 +4150,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['MilestonesAdded_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['MilestonesAdded_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['MilestonesAdded'],
     ];
     tip?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Tip'],
     ];
@@ -4209,44 +4208,44 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Tip_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Tip_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Tip_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Tip_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Tip'],
     ];
     _meta?: [
       {
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['_Meta_'],
     ];
@@ -4277,25 +4276,25 @@ export type ValueTypes = {
     txHash_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: string | undefined | null | Variable<any, string>;
     invoice_not?: string | undefined | null | Variable<any, string>;
     invoice_gt?: string | undefined | null | Variable<any, string>;
@@ -4308,155 +4307,155 @@ export type ValueTypes = {
     invoice_contains_nocase?: string | undefined | null | Variable<any, string>;
     invoice_not_contains?: string | undefined | null | Variable<any, string>;
     invoice_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_?:
-      | ValueTypes['Invoice_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Invoice_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     milestone_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     milestone_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amount?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_lt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     timestamp_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Release_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Release_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Release_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Release_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Release_orderBy']: Release_orderBy;
   ['Resolution']: AliasType<{
@@ -4491,63 +4490,63 @@ export type ValueTypes = {
     txHash_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     details_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     details_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     details_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash?: string | undefined | null | Variable<any, string>;
     ipfsHash_not?: string | undefined | null | Variable<any, string>;
     ipfsHash_gt?: string | undefined | null | Variable<any, string>;
@@ -4558,44 +4557,44 @@ export type ValueTypes = {
     ipfsHash_not_in?: Array<string> | undefined | null | Variable<any, string>;
     ipfsHash_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_contains?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_starts_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     ipfsHash_not_ends_with?: string | undefined | null | Variable<any, string>;
     ipfsHash_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: string | undefined | null | Variable<any, string>;
     invoice_not?: string | undefined | null | Variable<any, string>;
     invoice_gt?: string | undefined | null | Variable<any, string>;
@@ -4608,373 +4607,373 @@ export type ValueTypes = {
     invoice_contains_nocase?: string | undefined | null | Variable<any, string>;
     invoice_not_contains?: string | undefined | null | Variable<any, string>;
     invoice_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_?:
-      | ValueTypes['Invoice_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Invoice_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType?: ValueTypes['ADR'] | undefined | null | Variable<any, string>;
     resolverType_not?:
-      | ValueTypes['ADR']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['ADR']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType_in?:
-      | Array<ValueTypes['ADR']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['ADR']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolverType_not_in?:
-      | Array<ValueTypes['ADR']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['ADR']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     resolver_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolver_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     clientAward_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     providerAward_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_gt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_lt?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionDetails_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     resolutionFee_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     ruling?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     ruling_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     ruling_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     ruling_lt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     ruling_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     ruling_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     ruling_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     ruling_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     timestamp_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Resolution_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Resolution_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Resolution_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Resolution_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Resolution_orderBy']: Resolution_orderBy;
   ['Subscription']: AliasType<{
     invoice?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Invoice'],
     ];
@@ -4983,56 +4982,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Invoice_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Invoice_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Invoice_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Invoice_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Invoice'],
     ];
     deposit?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Deposit'],
     ];
@@ -5041,56 +5040,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Deposit_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Deposit_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Deposit_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Deposit_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Deposit'],
     ];
     agreement?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Agreement'],
     ];
@@ -5099,56 +5098,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Agreement_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Agreement_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Agreement_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Agreement_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Agreement'],
     ];
     release?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Release'],
     ];
@@ -5157,56 +5156,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Release_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Release_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Release_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Release_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Release'],
     ];
     withdraw?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Withdraw'],
     ];
@@ -5215,56 +5214,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Withdraw_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Withdraw_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Withdraw_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Withdraw_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Withdraw'],
     ];
     dispute?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Dispute'],
     ];
@@ -5273,56 +5272,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Dispute_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Dispute_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Dispute_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Dispute_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Dispute'],
     ];
     resolution?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Resolution'],
     ];
@@ -5331,56 +5330,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Resolution_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Resolution_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Resolution_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Resolution_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Resolution'],
     ];
     token?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Token'],
     ];
@@ -5389,56 +5388,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Token_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Token_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Token_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Token_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Token'],
     ];
     verified?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Verified'],
     ];
@@ -5447,56 +5446,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Verified_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Verified_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Verified_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Verified_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Verified'],
     ];
     milestonesAdded?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['MilestonesAdded'],
     ];
@@ -5505,56 +5504,56 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['MilestonesAdded_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['MilestonesAdded_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['MilestonesAdded'],
     ];
     tip?: [
       {
         id:
-          | string
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | string
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Tip'],
     ];
@@ -5563,44 +5562,44 @@ export type ValueTypes = {
         skip?: number | undefined | null | Variable<any, string>;
         first?: number | undefined | null | Variable<any, string>;
         orderBy?:
-          | ValueTypes['Tip_orderBy']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Tip_orderBy']
+        | undefined
+        | null
+        | Variable<any, string>;
         orderDirection?:
-          | ValueTypes['OrderDirection']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['OrderDirection']
+        | undefined
+        | null
+        | Variable<any, string>;
         where?:
-          | ValueTypes['Tip_filter']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ValueTypes['Tip_filter']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<
-              any,
-              string
-            > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<
+          any,
+          string
+        > /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError:
-          | ValueTypes['_SubgraphErrorPolicy_']
-          | Variable<any, string>;
+        | ValueTypes['_SubgraphErrorPolicy_']
+        | Variable<any, string>;
       },
       ValueTypes['Tip'],
     ];
     _meta?: [
       {
         block?:
-          | ValueTypes['Block_height']
-          | undefined
-          | null
-          | Variable<any, string>;
+        | ValueTypes['Block_height']
+        | undefined
+        | null
+        | Variable<any, string>;
       },
       ValueTypes['_Meta_'],
     ];
@@ -5628,69 +5627,69 @@ export type ValueTypes = {
     sender_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     sender_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     sender_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_lt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Tip_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Tip_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Tip_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Tip_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Tip_orderBy']: Tip_orderBy;
   ['Token']: AliasType<{
@@ -5721,26 +5720,26 @@ export type ValueTypes = {
     name_contains_nocase?: string | undefined | null | Variable<any, string>;
     name_not_contains?: string | undefined | null | Variable<any, string>;
     name_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     name_starts_with?: string | undefined | null | Variable<any, string>;
     name_starts_with_nocase?: string | undefined | null | Variable<any, string>;
     name_not_starts_with?: string | undefined | null | Variable<any, string>;
     name_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     name_ends_with?: string | undefined | null | Variable<any, string>;
     name_ends_with_nocase?: string | undefined | null | Variable<any, string>;
     name_not_ends_with?: string | undefined | null | Variable<any, string>;
     name_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     symbol?: string | undefined | null | Variable<any, string>;
     symbol_not?: string | undefined | null | Variable<any, string>;
     symbol_gt?: string | undefined | null | Variable<any, string>;
@@ -5753,30 +5752,30 @@ export type ValueTypes = {
     symbol_contains_nocase?: string | undefined | null | Variable<any, string>;
     symbol_not_contains?: string | undefined | null | Variable<any, string>;
     symbol_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     symbol_starts_with?: string | undefined | null | Variable<any, string>;
     symbol_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     symbol_not_starts_with?: string | undefined | null | Variable<any, string>;
     symbol_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     symbol_ends_with?: string | undefined | null | Variable<any, string>;
     symbol_ends_with_nocase?: string | undefined | null | Variable<any, string>;
     symbol_not_ends_with?: string | undefined | null | Variable<any, string>;
     symbol_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     decimals?: number | undefined | null | Variable<any, string>;
     decimals_not?: number | undefined | null | Variable<any, string>;
     decimals_gt?: number | undefined | null | Variable<any, string>;
@@ -5787,20 +5786,20 @@ export type ValueTypes = {
     decimals_not_in?: Array<number> | undefined | null | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Token_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Token_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Token_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Token_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Token_orderBy']: Token_orderBy;
   ['Verified']: AliasType<{
@@ -5825,79 +5824,79 @@ export type ValueTypes = {
     client_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     client_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     client_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     client_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     client_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_not?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_gt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_lt?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     invoice_gte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_lte?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Verified_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Verified_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Verified_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Verified_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Verified_orderBy']: Verified_orderBy;
   ['Withdraw']: AliasType<{
@@ -5924,25 +5923,25 @@ export type ValueTypes = {
     txHash_gte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_lte?: ValueTypes['Bytes'] | undefined | null | Variable<any, string>;
     txHash_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_in?:
-      | Array<ValueTypes['Bytes']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Bytes']>
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     txHash_not_contains?:
-      | ValueTypes['Bytes']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Bytes']
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice?: string | undefined | null | Variable<any, string>;
     invoice_not?: string | undefined | null | Variable<any, string>;
     invoice_gt?: string | undefined | null | Variable<any, string>;
@@ -5955,119 +5954,119 @@ export type ValueTypes = {
     invoice_contains_nocase?: string | undefined | null | Variable<any, string>;
     invoice_not_contains?: string | undefined | null | Variable<any, string>;
     invoice_not_contains_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_starts_with?: string | undefined | null | Variable<any, string>;
     invoice_not_starts_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_not_ends_with?: string | undefined | null | Variable<any, string>;
     invoice_not_ends_with_nocase?:
-      | string
-      | undefined
-      | null
-      | Variable<any, string>;
+    | string
+    | undefined
+    | null
+    | Variable<any, string>;
     invoice_?:
-      | ValueTypes['Invoice_filter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['Invoice_filter']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_gt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_lt?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     amount_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     amount_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp?: ValueTypes['BigInt'] | undefined | null | Variable<any, string>;
     timestamp_not?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lt?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_gte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_lte?:
-      | ValueTypes['BigInt']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BigInt']
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     timestamp_not_in?:
-      | Array<ValueTypes['BigInt']>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['BigInt']>
+    | undefined
+    | null
+    | Variable<any, string>;
     /** Filter for the block changed event. */
     _change_block?:
-      | ValueTypes['BlockChangedFilter']
-      | undefined
-      | null
-      | Variable<any, string>;
+    | ValueTypes['BlockChangedFilter']
+    | undefined
+    | null
+    | Variable<any, string>;
     and?:
-      | Array<ValueTypes['Withdraw_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Withdraw_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
     or?:
-      | Array<ValueTypes['Withdraw_filter'] | undefined | null>
-      | undefined
-      | null
-      | Variable<any, string>;
+    | Array<ValueTypes['Withdraw_filter'] | undefined | null>
+    | undefined
+    | null
+    | Variable<any, string>;
   };
   ['Withdraw_orderBy']: Withdraw_orderBy;
   ['_Block_']: AliasType<{
@@ -6165,13 +6164,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Agreement_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Agreement_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Agreement_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Agreement_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Agreement_orderBy']: Agreement_orderBy;
   ['BigDecimal']: unknown;
@@ -6263,13 +6262,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Deposit_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Deposit_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Deposit_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Deposit_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Deposit_orderBy']: Deposit_orderBy;
   ['Dispute']: AliasType<{
@@ -6402,13 +6401,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Dispute_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Dispute_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Dispute_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Dispute_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Dispute_orderBy']: Dispute_orderBy;
   /** 8 bytes signed integer
@@ -6445,9 +6444,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Agreement_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Agreement_filter'] | undefined | null;
       },
       ResolverInputTypes['Agreement'],
@@ -6460,9 +6459,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Deposit_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Deposit_filter'] | undefined | null;
       },
       ResolverInputTypes['Deposit'],
@@ -6473,9 +6472,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Withdraw_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Withdraw_filter'] | undefined | null;
       },
       ResolverInputTypes['Withdraw'],
@@ -6486,9 +6485,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Release_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Release_filter'] | undefined | null;
       },
       ResolverInputTypes['Release'],
@@ -6499,9 +6498,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Dispute_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Dispute_filter'] | undefined | null;
       },
       ResolverInputTypes['Dispute'],
@@ -6512,9 +6511,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Resolution_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Resolution_filter'] | undefined | null;
       },
       ResolverInputTypes['Resolution'],
@@ -6526,9 +6525,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Verified_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Verified_filter'] | undefined | null;
       },
       ResolverInputTypes['Verified'],
@@ -6538,13 +6537,13 @@ export type ResolverInputTypes = {
         skip?: number | undefined | null;
         first?: number | undefined | null;
         orderBy?:
-          | ResolverInputTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null;
+        | ResolverInputTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['MilestonesAdded_filter'] | undefined | null;
       },
       ResolverInputTypes['MilestonesAdded'],
@@ -6559,9 +6558,9 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Tip_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?: ResolverInputTypes['Tip_filter'] | undefined | null;
       },
       ResolverInputTypes['Tip'],
@@ -6617,14 +6616,14 @@ export type ResolverInputTypes = {
     factoryAddress_lte?: ResolverInputTypes['Bytes'] | undefined | null;
     factoryAddress_in?: Array<ResolverInputTypes['Bytes']> | undefined | null;
     factoryAddress_not_in?:
-      | Array<ResolverInputTypes['Bytes']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Bytes']>
+    | undefined
+    | null;
     factoryAddress_contains?: ResolverInputTypes['Bytes'] | undefined | null;
     factoryAddress_not_contains?:
-      | ResolverInputTypes['Bytes']
-      | undefined
-      | null;
+    | ResolverInputTypes['Bytes']
+    | undefined
+    | null;
     token?: ResolverInputTypes['Bytes'] | undefined | null;
     token_not?: ResolverInputTypes['Bytes'] | undefined | null;
     token_gt?: ResolverInputTypes['Bytes'] | undefined | null;
@@ -6677,9 +6676,9 @@ export type ResolverInputTypes = {
     resolutionRate_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     resolutionRate_in?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     resolutionRate_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     isLocked?: boolean | undefined | null;
     isLocked_not?: boolean | undefined | null;
     isLocked_in?: Array<boolean> | undefined | null;
@@ -6688,17 +6687,17 @@ export type ResolverInputTypes = {
     amounts_not?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     amounts_contains?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     amounts_contains_nocase?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     amounts_not_contains?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     amounts_not_contains_nocase?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     numMilestones?: number | undefined | null;
     numMilestones_not?: number | undefined | null;
     numMilestones_gt?: number | undefined | null;
@@ -6714,13 +6713,13 @@ export type ResolverInputTypes = {
     currentMilestone_gte?: ResolverInputTypes['BigInt'] | undefined | null;
     currentMilestone_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     currentMilestone_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     currentMilestone_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     total?: ResolverInputTypes['BigInt'] | undefined | null;
     total_not?: ResolverInputTypes['BigInt'] | undefined | null;
     total_gt?: ResolverInputTypes['BigInt'] | undefined | null;
@@ -6753,14 +6752,14 @@ export type ResolverInputTypes = {
     creationTxHash_lte?: ResolverInputTypes['Bytes'] | undefined | null;
     creationTxHash_in?: Array<ResolverInputTypes['Bytes']> | undefined | null;
     creationTxHash_not_in?:
-      | Array<ResolverInputTypes['Bytes']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Bytes']>
+    | undefined
+    | null;
     creationTxHash_contains?: ResolverInputTypes['Bytes'] | undefined | null;
     creationTxHash_not_contains?:
-      | ResolverInputTypes['Bytes']
-      | undefined
-      | null;
+    | ResolverInputTypes['Bytes']
+    | undefined
+    | null;
     terminationTime?: ResolverInputTypes['BigInt'] | undefined | null;
     terminationTime_not?: ResolverInputTypes['BigInt'] | undefined | null;
     terminationTime_gt?: ResolverInputTypes['BigInt'] | undefined | null;
@@ -6769,9 +6768,9 @@ export type ResolverInputTypes = {
     terminationTime_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     terminationTime_in?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     terminationTime_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     details?: ResolverInputTypes['Bytes'] | undefined | null;
     details_not?: ResolverInputTypes['Bytes'] | undefined | null;
     details_gt?: ResolverInputTypes['Bytes'] | undefined | null;
@@ -6857,9 +6856,9 @@ export type ResolverInputTypes = {
     projectAgreement_not_contains?: Array<string> | undefined | null;
     projectAgreement_not_contains_nocase?: Array<string> | undefined | null;
     projectAgreement_?:
-      | ResolverInputTypes['Agreement_filter']
-      | undefined
-      | null;
+    | ResolverInputTypes['Agreement_filter']
+    | undefined
+    | null;
     startDate?: ResolverInputTypes['BigInt'] | undefined | null;
     startDate_not?: ResolverInputTypes['BigInt'] | undefined | null;
     startDate_gt?: ResolverInputTypes['BigInt'] | undefined | null;
@@ -6946,9 +6945,9 @@ export type ResolverInputTypes = {
     milestonesAdded_not_contains?: Array<string> | undefined | null;
     milestonesAdded_not_contains_nocase?: Array<string> | undefined | null;
     milestonesAdded_?:
-      | ResolverInputTypes['MilestonesAdded_filter']
-      | undefined
-      | null;
+    | ResolverInputTypes['MilestonesAdded_filter']
+    | undefined
+    | null;
     invoiceType?: string | undefined | null;
     invoiceType_not?: string | undefined | null;
     invoiceType_gt?: string | undefined | null;
@@ -6992,13 +6991,13 @@ export type ResolverInputTypes = {
     lateFeeTimeInterval_gte?: ResolverInputTypes['BigInt'] | undefined | null;
     lateFeeTimeInterval_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     lateFeeTimeInterval_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     lateFeeTimeInterval_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     tipAmount?: Array<string> | undefined | null;
     tipAmount_not?: Array<string> | undefined | null;
     tipAmount_contains?: Array<string> | undefined | null;
@@ -7021,13 +7020,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Invoice_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Invoice_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Invoice_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Invoice_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Invoice_orderBy']: Invoice_orderBy;
   ['MilestonesAdded']: AliasType<{
@@ -7069,31 +7068,31 @@ export type ResolverInputTypes = {
     milestones?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     milestones_not?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     milestones_contains?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     milestones_contains_nocase?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     milestones_not_contains?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     milestones_not_contains_nocase?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['MilestonesAdded_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['MilestonesAdded_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['MilestonesAdded_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['MilestonesAdded_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['MilestonesAdded_orderBy']: MilestonesAdded_orderBy;
   /** Defines the order direction, either ascending or descending */
@@ -7103,9 +7102,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Invoice'],
@@ -7116,17 +7115,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Invoice_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Invoice_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Invoice_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Invoice'],
@@ -7135,9 +7134,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Deposit'],
@@ -7148,17 +7147,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Deposit_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Deposit_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Deposit_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Deposit'],
@@ -7167,9 +7166,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Agreement'],
@@ -7180,17 +7179,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Agreement_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Agreement_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Agreement_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Agreement'],
@@ -7199,9 +7198,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Release'],
@@ -7212,17 +7211,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Release_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Release_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Release_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Release'],
@@ -7231,9 +7230,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Withdraw'],
@@ -7244,17 +7243,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Withdraw_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Withdraw_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Withdraw_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Withdraw'],
@@ -7263,9 +7262,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Dispute'],
@@ -7276,17 +7275,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Dispute_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Dispute_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Dispute_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Dispute'],
@@ -7295,9 +7294,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Resolution'],
@@ -7308,17 +7307,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Resolution_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Resolution_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Resolution_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Resolution'],
@@ -7327,9 +7326,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Token'],
@@ -7340,17 +7339,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Token_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Token_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Token_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Token'],
@@ -7359,9 +7358,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Verified'],
@@ -7372,17 +7371,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Verified_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Verified_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Verified_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Verified'],
@@ -7391,9 +7390,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['MilestonesAdded'],
@@ -7403,21 +7402,21 @@ export type ResolverInputTypes = {
         skip?: number | undefined | null;
         first?: number | undefined | null;
         orderBy?:
-          | ResolverInputTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null;
+        | ResolverInputTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['MilestonesAdded_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['MilestonesAdded_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['MilestonesAdded'],
@@ -7426,9 +7425,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Tip'],
@@ -7439,17 +7438,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Tip_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Tip_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Tip_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Tip'],
@@ -7536,13 +7535,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Release_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Release_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Release_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Release_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Release_orderBy']: Release_orderBy;
   ['Resolution']: AliasType<{
@@ -7661,9 +7660,9 @@ export type ResolverInputTypes = {
     providerAward_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     providerAward_in?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     providerAward_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     resolutionDetails?: ResolverInputTypes['Bytes'] | undefined | null;
     resolutionDetails_not?: ResolverInputTypes['Bytes'] | undefined | null;
     resolutionDetails_gt?: ResolverInputTypes['Bytes'] | undefined | null;
@@ -7671,18 +7670,18 @@ export type ResolverInputTypes = {
     resolutionDetails_gte?: ResolverInputTypes['Bytes'] | undefined | null;
     resolutionDetails_lte?: ResolverInputTypes['Bytes'] | undefined | null;
     resolutionDetails_in?:
-      | Array<ResolverInputTypes['Bytes']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Bytes']>
+    | undefined
+    | null;
     resolutionDetails_not_in?:
-      | Array<ResolverInputTypes['Bytes']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Bytes']>
+    | undefined
+    | null;
     resolutionDetails_contains?: ResolverInputTypes['Bytes'] | undefined | null;
     resolutionDetails_not_contains?:
-      | ResolverInputTypes['Bytes']
-      | undefined
-      | null;
+    | ResolverInputTypes['Bytes']
+    | undefined
+    | null;
     resolutionFee?: ResolverInputTypes['BigInt'] | undefined | null;
     resolutionFee_not?: ResolverInputTypes['BigInt'] | undefined | null;
     resolutionFee_gt?: ResolverInputTypes['BigInt'] | undefined | null;
@@ -7691,9 +7690,9 @@ export type ResolverInputTypes = {
     resolutionFee_lte?: ResolverInputTypes['BigInt'] | undefined | null;
     resolutionFee_in?: Array<ResolverInputTypes['BigInt']> | undefined | null;
     resolutionFee_not_in?:
-      | Array<ResolverInputTypes['BigInt']>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['BigInt']>
+    | undefined
+    | null;
     ruling?: ResolverInputTypes['BigInt'] | undefined | null;
     ruling_not?: ResolverInputTypes['BigInt'] | undefined | null;
     ruling_gt?: ResolverInputTypes['BigInt'] | undefined | null;
@@ -7713,13 +7712,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Resolution_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Resolution_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Resolution_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Resolution_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Resolution_orderBy']: Resolution_orderBy;
   ['Subscription']: AliasType<{
@@ -7727,9 +7726,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Invoice'],
@@ -7740,17 +7739,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Invoice_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Invoice_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Invoice_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Invoice'],
@@ -7759,9 +7758,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Deposit'],
@@ -7772,17 +7771,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Deposit_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Deposit_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Deposit_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Deposit'],
@@ -7791,9 +7790,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Agreement'],
@@ -7804,17 +7803,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Agreement_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Agreement_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Agreement_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Agreement'],
@@ -7823,9 +7822,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Release'],
@@ -7836,17 +7835,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Release_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Release_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Release_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Release'],
@@ -7855,9 +7854,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Withdraw'],
@@ -7868,17 +7867,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Withdraw_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Withdraw_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Withdraw_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Withdraw'],
@@ -7887,9 +7886,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Dispute'],
@@ -7900,17 +7899,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Dispute_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Dispute_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Dispute_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Dispute'],
@@ -7919,9 +7918,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Resolution'],
@@ -7932,17 +7931,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Resolution_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Resolution_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Resolution_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Resolution'],
@@ -7951,9 +7950,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Token'],
@@ -7964,17 +7963,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Token_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Token_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Token_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Token'],
@@ -7983,9 +7982,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Verified'],
@@ -7996,17 +7995,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Verified_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Verified_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Verified_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Verified'],
@@ -8015,9 +8014,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['MilestonesAdded'],
@@ -8027,21 +8026,21 @@ export type ResolverInputTypes = {
         skip?: number | undefined | null;
         first?: number | undefined | null;
         orderBy?:
-          | ResolverInputTypes['MilestonesAdded_orderBy']
-          | undefined
-          | null;
+        | ResolverInputTypes['MilestonesAdded_orderBy']
+        | undefined
+        | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['MilestonesAdded_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['MilestonesAdded_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['MilestonesAdded'],
@@ -8050,9 +8049,9 @@ export type ResolverInputTypes = {
       {
         id: string /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Tip'],
@@ -8063,17 +8062,17 @@ export type ResolverInputTypes = {
         first?: number | undefined | null;
         orderBy?: ResolverInputTypes['Tip_orderBy'] | undefined | null;
         orderDirection?:
-          | ResolverInputTypes['OrderDirection']
-          | undefined
-          | null;
+        | ResolverInputTypes['OrderDirection']
+        | undefined
+        | null;
         where?:
-          | ResolverInputTypes['Tip_filter']
-          | undefined
-          | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
+        | ResolverInputTypes['Tip_filter']
+        | undefined
+        | null /** The block at which the query should be executed. Can either be a `{ hash: Bytes }` value containing a block hash, a `{ number: Int }` containing the block number, or a `{ number_gte: Int }` containing the minimum block number. In the case of `number_gte`, the query will be executed on the latest block only if the subgraph has progressed to or past the minimum block number. Defaults to the latest block when omitted. */;
         block?:
-          | ResolverInputTypes['Block_height']
-          | undefined
-          | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
+        | ResolverInputTypes['Block_height']
+        | undefined
+        | null /** Set to `allow` to receive data even if the subgraph has skipped over errors while syncing. */;
         subgraphError: ResolverInputTypes['_SubgraphErrorPolicy_'];
       },
       ResolverInputTypes['Tip'],
@@ -8120,13 +8119,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Tip_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Tip_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Tip_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Tip_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Tip_orderBy']: Tip_orderBy;
   ['Token']: AliasType<{
@@ -8196,13 +8195,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Token_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Token_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Token_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Token_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Token_orderBy']: Token_orderBy;
   ['Verified']: AliasType<{
@@ -8243,13 +8242,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Verified_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Verified_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Verified_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Verified_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Verified_orderBy']: Verified_orderBy;
   ['Withdraw']: AliasType<{
@@ -8319,13 +8318,13 @@ export type ResolverInputTypes = {
     /** Filter for the block changed event. */
     _change_block?: ResolverInputTypes['BlockChangedFilter'] | undefined | null;
     and?:
-      | Array<ResolverInputTypes['Withdraw_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Withdraw_filter'] | undefined | null>
+    | undefined
+    | null;
     or?:
-      | Array<ResolverInputTypes['Withdraw_filter'] | undefined | null>
-      | undefined
-      | null;
+    | Array<ResolverInputTypes['Withdraw_filter'] | undefined | null>
+    | undefined
+    | null;
   };
   ['Withdraw_orderBy']: Withdraw_orderBy;
   ['_Block_']: AliasType<{

@@ -11,17 +11,17 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { CONFIG } from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks';
-import { IToken } from '@smart-invoice/types/src';
-import { Container } from '@smart-invoice/ui';
+import { CONFIG } from '@smartinvoicexyz/constants';
+import { useFetchTokens } from '@smartinvoicexyz/hooks';
+import { IToken } from '@smartinvoicexyz/types/src';
+import { Container } from '@smartinvoicexyz/ui';
 import {
   chainsMap,
   getAccountString,
   getAddressLink,
   getInvoiceFactoryAddress,
   getKeys,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React from 'react';
 

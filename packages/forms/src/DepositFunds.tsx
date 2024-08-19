@@ -15,22 +15,22 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useDeposit } from '@smart-invoice/hooks';
-import { NumberInput, QuestionIcon, useToast } from '@smart-invoice/ui';
+import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useDeposit } from '@smartinvoicexyz/hooks';
+import { NumberInput, QuestionIcon, useToast } from '@smartinvoicexyz/ui';
 import {
   commify,
   getNativeTokenSymbol,
   getTxLink,
   getUpdatedCheckAmount,
   getWrappedNativeToken,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatEther, formatUnits, Hex, parseUnits, zeroAddress } from 'viem';
+import { formatEther, formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
 export function DepositFunds({
@@ -59,7 +59,7 @@ export function DepositFunds({
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const toast = useToast();
-  
+
   const TOKEN_DATA = useMemo(
     () => ({
       nativeSymbol: getNativeTokenSymbol(chainId),

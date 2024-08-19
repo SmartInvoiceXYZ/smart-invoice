@@ -1,19 +1,23 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { INSTANT_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
+import {
+  INSTANT_STEPS,
+  INVOICE_TYPES,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import {
   FormConfirmation,
   InstantPaymentForm,
   ProjectDetailsForm,
   RegisterSuccess,
-} from '@smart-invoice/forms';
-import { useFetchTokens, useInstantCreate } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useFetchTokens, useInstantCreate } from '@smartinvoicexyz/hooks';
 import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
