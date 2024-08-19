@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/shared",
-  "description": "",
-  "version": "0.1.0",
+  "description": "Unified source for shared helper functions used across the Smart Invoice protocol.",
+  "version": "0.1.1",
   "author": "",
   "dependencies": {
     "@smartinvoicexyz/constants": "0.1.1"
@@ -11,11 +11,27 @@
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.5"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "shared",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
   "license": "ISC",
-  "main": "src/index.ts",
+  "main": "dist/src/index.js",
+  "private": false,
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "types": "dist/src/index.d.ts"
 }
