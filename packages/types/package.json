@@ -1,6 +1,6 @@
 {
   "name": "@smartinvoicexyz/types",
-  "description": "",
+  "description": "Unified source for TypeScript types and interfaces used across the Smart Invoice protocol.",
   "version": "0.1.0",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",

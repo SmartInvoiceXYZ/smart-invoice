@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/hooks",
-  "description": "",
-  "version": "0.1.0",
+  "description": "Unified source for React hooks used across the Smart Invoice protocol.",
+  "version": "0.1.1",
   "dependencies": {
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -18,9 +18,28 @@
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.47"
   },
-  "main": "src/index.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-invoice",
+    "smartinvoicexyz",
+    "hooks"
+  ],
+  "license": "ISC",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release:patch": "npm version patch && npm publish --access public",
+    "release:minor": "npm version minor && npm publish --access public",
+    "release:major": "npm version major && npm publish --access public"
   }
 }

@@ -8,12 +8,17 @@
     "strict": true,
     "esModuleInterop": true,
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "rootDir": ".",
+    "outDir": "dist",
+    "declaration": true,
+    "emitDeclarationOnly": false,
+    "noEmit": false,
   },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist"],
   "references": [],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../jest.config.ts"],
-  "exclude": ["node_modules", "dist"]
 }

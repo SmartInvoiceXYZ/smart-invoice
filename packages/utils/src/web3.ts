@@ -9,7 +9,14 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
-import { Chain, configureChains, createConfig } from 'wagmi';
+import { Chain, FallbackTransport } from 'viem';
+import {
+  Config,
+  configureChains,
+  createConfig,
+  PublicClient,
+  WebSocketPublicClient,
+} from 'wagmi';
 import {
   arbitrum,
   base,
@@ -55,7 +62,7 @@ export const chainsList: { [key: number]: Chain } = {
   [holesky.id]: holesky,
 };
 
-export const chainsMap = (chainId: number) => {
+export const chainsMap: (_chainId: number) => Chain = (chainId: number) => {
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -79,13 +86,29 @@ export const chainByName = (name?: string): Chain | null => {
   return chain;
 };
 
-const { chains, publicClient } = configureChains(
-  _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
-  [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-    publicProvider(),
-  ],
-);
+type ConfiguredChains = {
+  chains: Chain[];
+  publicClient: ({
+    chainId,
+  }: {
+    chainId?: number | undefined;
+  }) => PublicClient<FallbackTransport>;
+  webSocketPublicClient: ({
+    chainId,
+  }: {
+    chainId?: number | undefined;
+  }) => WebSocketPublicClient<FallbackTransport> | undefined;
+};
+
+const { chains, publicClient, webSocketPublicClient }: ConfiguredChains =
+  configureChains<Chain>(
+    _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
+    [
+      infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
+      publicProvider(),
+    ],
+  );
+
 const options = {
   appName: APP_NAME,
   projectId: PROJECT_ID,
@@ -107,10 +130,14 @@ const connectors = connectorsForWallets([
   },
 ]);
 
-const wagmiConfig = createConfig({
+const wagmiConfig: Config<
+  PublicClient<FallbackTransport>,
+  WebSocketPublicClient<FallbackTransport>
+> = createConfig({
   autoConnect: true,
   connectors,
   publicClient,
+  webSocketPublicClient,
 });
 
 export { chains, wagmiConfig };

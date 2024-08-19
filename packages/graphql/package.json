@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/graphql",
   "description": "Unified source for helpers and schema used across the GraphQL services within the Smart Invoice protocol.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "",
   "private": false,
   "dependencies": {
@@ -23,6 +23,9 @@
     "README.md",
     "package.json"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "ethereum",
     "smart-invoice",

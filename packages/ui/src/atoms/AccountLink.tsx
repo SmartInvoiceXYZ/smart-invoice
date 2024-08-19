@@ -1,5 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { KLEROS_LOGO } from '@smartinvoicexyz/constants/src';
+import { KLEROS_DATA } from '@smartinvoicexyz/constants/src';
 import {
   getAccountString,
   getAddressLink,
@@ -42,6 +42,13 @@ export function AccountLink({
     ? getResolverInfo(address, chainId).logoUrl
     : undefined;
 
+  // eslint-disable-next-line no-nested-ternary
+  const bgImage = court
+    ? KLEROS_DATA.logoUrl
+    : imageUrl
+      ? `url(${imageUrl})`
+      : blockie;
+
   return (
     <ChakraNextLink
       href={link || getAddressLink(chainId, address)}
@@ -67,8 +74,7 @@ export function AccountLink({
         justify="center"
         align="center"
         bgColor="black"
-        // eslint-disable-next-line no-nested-ternary
-        bgImage={court ? KLEROS_LOGO : imageUrl ? `url(${imageUrl})` : blockie}
+        bgImage={bgImage}
         border="1px solid"
         borderColor="whiteAlpha.200"
         bgSize="cover"

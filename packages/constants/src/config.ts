@@ -31,13 +31,13 @@ export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
 
 export const KLEROS_GOOGLE_FORM = 'https://forms.gle/K3oMAzAb32G5SbpM9';
 
-const LEXDAO_DATA = {
+export const LEXDAO_DATA = {
   name: 'LexDAO',
   logoUrl: LEXDAO_LOGO,
   termsUrl: LEXDAO_TERMS_URL,
 };
 
-const KLEROS_DATA = {
+export const KLEROS_DATA = {
   name: 'Kleros',
   disclaimer:
     'Only choose Kleros if total invoice value is greater than 1000 USD',
@@ -45,7 +45,7 @@ const KLEROS_DATA = {
   termsUrl: KLEROS_TERMS_URL,
 };
 
-const SMART_INVOICE_ARBITRATION_DATA = {
+export const SMART_INVOICE_ARBITRATION_DATA = {
   name: 'Smart Invoice In-house',
   disclaimer:
     'Only choose Smart Invoice In-house if invoice value is less than 1000 USD',
