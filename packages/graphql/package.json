@@ -26,6 +26,7 @@
     "package.json"
   ],
   "keywords": [
+    "escrow",
     "ethereum",
     "graphql",
     "smart-invoice",

@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/utils",
   "description": "Unified source for utility functions used across the Smart Invoice protocol.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "",
   "dependencies": {
     "@rainbow-me/rainbowkit": "^1.3.3",
@@ -23,11 +23,29 @@
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.5"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "smart-invoice",
+    "smartinvoicexyz",
+    "utils"
+  ],
   "license": "ISC",
-  "main": "src/index.ts",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "release:major": "npm version major && npm publish --access public",
+    "release:minor": "npm version minor && npm publish --access public",
+    "release:patch": "npm version patch && npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "types": "dist/src/index.d.ts"
 }

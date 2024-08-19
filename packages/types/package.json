@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/types",
   "description": "Unified source for TypeScript types and interfaces used across the Smart Invoice protocol.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -13,9 +13,29 @@
     "@types/react": "^18.2.47",
     "typescript": "^5.3.2"
   },
-  "main": "src/index.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "smart-invoice",
+    "smartinvoicexyz",
+    "types"
+  ],
+  "license": "ISC",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
+    "release:major": "npm version major && npm publish --access public",
+    "release:minor": "npm version minor && npm publish --access public",
+    "release:patch": "npm version patch && npm publish --access public",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "types": "dist/src/index.d.ts"
 }
