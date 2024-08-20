@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/forms",
   "description": "Unified source for form components and utilities used across the Smart Invoice protocol.",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "author": "",
   "dependencies": {
     "@chakra-ui/icons": "2.1.1",
@@ -11,7 +11,7 @@
     "@smartinvoicexyz/graphql": "0.1.2",
     "@smartinvoicexyz/hooks": "0.1.4",
     "@smartinvoicexyz/types": "0.1.2",
-    "@smartinvoicexyz/ui": "0.1.4",
+    "@smartinvoicexyz/ui": "0.1.5",
     "@smartinvoicexyz/utils": "0.1.3",
     "@tanstack/react-query": "^5.18.1",
     "lodash": "^4.17.21",

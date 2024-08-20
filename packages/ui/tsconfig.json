@@ -6,19 +6,20 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "rootDir": ".",
     "outDir": "dist",
     "declaration": true,
     "emitDeclarationOnly": false,
-    "noEmit": false,
+    "noEmit": false
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"],
-  "references": [],
+  "references": []
 }
