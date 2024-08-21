@@ -4,13 +4,10 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
   wrappedNativeToken,
-} from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql/src';
-import { UseToastReturn } from '@smart-invoice/types';
-import {
-  errorToastHandler,
-  parseTxLogs,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/constants';
+import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -73,7 +70,7 @@ export const useInvoiceCreate = ({
   ]);
 
   const localInvoiceFactory = invoiceFactory(chainId);
-  
+
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 
@@ -97,16 +94,6 @@ export const useInvoiceCreate = ({
   });
 
   const escrowData = useMemo(() => {
-    console.log(
-      !client,
-      !(resolver || customResolver),
-      !token,
-      !safetyValveDate,
-      !wrappedNativeToken(chainId),
-      !details,
-      !localInvoiceFactory,
-      !provider,
-    );
     if (
       !client ||
       !(resolver || customResolver) ||
@@ -153,7 +140,6 @@ export const useInvoiceCreate = ({
     wrappedNativeToken,
     localInvoiceFactory,
   ]);
-  console.log(escrowData);
 
   const { config, error: prepareError } = usePrepareContractWrite({
     address: localInvoiceFactory,

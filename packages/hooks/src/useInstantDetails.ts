@@ -1,4 +1,4 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
+import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { Hex } from 'viem';

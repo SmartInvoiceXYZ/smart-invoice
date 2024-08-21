@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 
-import { logDebug } from '@smart-invoice/shared';
+import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, isAddress } from 'viem';
 
 import { clients } from './client';

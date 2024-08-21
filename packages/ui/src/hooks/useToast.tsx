@@ -4,7 +4,7 @@ import {
   ToastId,
   useToast as useChakraToast,
 } from '@chakra-ui/react';
-import { ToastProps, UseToastReturn } from '@smart-invoice/types';
+import { ToastProps, UseToastReturn } from '@smartinvoicexyz/types';
 import _ from 'lodash';
 import React, { useRef } from 'react';
 

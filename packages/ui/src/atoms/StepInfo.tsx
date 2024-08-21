@@ -9,8 +9,8 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { hashCode } from '@smart-invoice/utils';
+import { ESCROW_STEPS } from '@smartinvoicexyz/constants';
+import { hashCode } from '@smartinvoicexyz/utils';
 import React from 'react';
 
 import { BackArrowIcon } from '../icons/ArrowIcons';

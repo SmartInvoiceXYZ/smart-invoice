@@ -1,15 +1,15 @@
-import { Box, Stack } from '@chakra-ui/react';
+import { Stack } from '@chakra-ui/react';
 import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
-} from '@smart-invoice/forms';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   Container,
   InvoiceMetaDetails,
   InvoiceNotFound,
   Loader,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { Hex, isAddress } from 'viem';

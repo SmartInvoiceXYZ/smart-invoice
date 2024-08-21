@@ -1,68 +1,83 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Smart Invoice dApp
 
-## Available Scripts
+The Smart Invoice dApp is a Next.js application that serves as the interface for the Smart Invoice protocol. It enables web3 freelancers to create and manage cryptocurrency invoices, securely hold funds in escrow, and resolve disputes through arbitration.
 
-In the project directory, you can run:
+## Installation
 
-### `yarn start`
+To set up the Smart Invoice dApp locally, follow these steps:
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. Clone the repository:
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+   ```bash
+   git clone https://github.com/SmartInvoiceXYZ/smart-invoice.git
+   cd smart-invoice/packages/dapp
+   ```
 
-### `yarn test`
+2. Install the dependencies:
+   ```bash
+   pnpm install
+   ```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Development
 
-### `yarn build`
+To start the development server, run:
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+pnpm dev
+```
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+This command starts the dApp on `http://localhost:3000` and watches for file changes.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Building for Production
 
-### `yarn eject`
+To build the application for production, run:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+pnpm build
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+This command generates an optimized build in the `.next` directory.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Running in Production
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+To start the dApp in production mode, first build it using the `build` command, and then run:
 
-## Learn More
+```bash
+pnpm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+This will start the production server on `http://localhost:3000`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Testing
 
-### Code Splitting
+The dApp includes a suite of tests to ensure its reliability. You can run the tests with the following commands:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+- **Run all tests:**
 
-### Analyzing the Bundle Size
+  ```bash
+  pnpm test
+  ```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+- **Watch mode:**
+  ```bash
+  pnpm test:watch
+  ```
 
-### Making a Progressive Web App
+## Linting and Formatting
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+To maintain code quality and consistency, the dApp includes linting and formatting tools:
 
-### Advanced Configuration
+- **Lint the codebase:**
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+  ```bash
+  pnpm lint
+  ```
 
-### Deployment
+- **Format the codebase:**
+  ```bash
+  pnpm format
+  ```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+## Contributing
 
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+Contributions are welcome! Please open an issue or submit a pull request with your improvements.

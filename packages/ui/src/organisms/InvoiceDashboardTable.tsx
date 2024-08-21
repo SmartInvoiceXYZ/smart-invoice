@@ -22,13 +22,10 @@ import {
   fetchInvoices,
   Invoice_orderBy,
   InvoiceDetails,
-} from '@smart-invoice/graphql';
-import { chainsMap } from '@smart-invoice/utils';
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+} from '@smartinvoicexyz/graphql';
+import { useIpfsDetails } from '@smartinvoicexyz/hooks';
+import { chainsMap } from '@smartinvoicexyz/utils';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   CellContext,
   createColumnHelper,
@@ -40,11 +37,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
-
 import { useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, Hex } from 'viem';
-import { useIpfsDetails } from '@smart-invoice/hooks/src';
 import { useAccount } from 'wagmi';
+
 import { AccountLink, ChakraNextLink, theme, useMediaStyles } from '..';
 import {
   DoubleLeftArrowIcon,

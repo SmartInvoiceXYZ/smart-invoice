@@ -1,6 +1,6 @@
-// import { INVOICE_VERSION } from '@smart-invoice/constants';
-// import { logDebug } from '@smart-invoice/shared';
-import { KeyRestrictions } from '@smart-invoice/types/src';
+// import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
+// import { logDebug } from '@smartinvoicexyz/shared';
+import { KeyRestrictions } from '@smartinvoicexyz/types';
 import axios from 'axios';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';

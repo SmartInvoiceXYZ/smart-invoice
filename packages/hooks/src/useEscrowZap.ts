@@ -1,5 +1,5 @@
-import { ESCROW_ZAP_ABI } from '@smart-invoice/constants';
-import { logDebug } from '@smart-invoice/utils/src';
+import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
+import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
@@ -32,9 +32,7 @@ export const useEscrowZap = ({
   arbitration = 0,
   projectTeamSplit = false,
   daoSplit = false,
-  token,
   safetyValveDate,
-  detailsData,
   enabled = true,
   onSuccess,
 }: UseEscrowZapProps) => {
@@ -141,26 +139,6 @@ export const useEscrowZap = ({
     compiledData: !!encodedEscrowData,
   });
 
-  console.log(
-    'enabled prepare',
-    {
-      owners,
-      percentAllocations,
-      milestoneAmounts,
-      encodedSafeData,
-      provider,
-      encodedSplitData,
-      encodedEscrowData,
-      enabled,
-    },
-    _.isEqual(_.size(percentAllocations), _.size(owners)) &&
-      !_.isEmpty(milestoneAmounts) &&
-      !!encodedSafeData &&
-      !!provider && // _safeAddress
-      !!encodedSplitData &&
-      !!encodedEscrowData &&
-      enabled,
-  );
   const {
     config,
     isLoading: prepareLoading,

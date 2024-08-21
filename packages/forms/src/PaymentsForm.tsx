@@ -14,21 +14,21 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ESCROW_STEPS } from '@smart-invoice/constants';
-import { useFetchTokens } from '@smart-invoice/hooks';
-import { FormInvoice, IToken } from '@smart-invoice/types';
+import { ESCROW_STEPS } from '@smartinvoicexyz/constants';
+import { useFetchTokens } from '@smartinvoicexyz/hooks';
+import { FormInvoice, IToken } from '@smartinvoicexyz/types';
 import {
   NumberInput,
   QuestionIcon,
   Select,
   useMediaStyles,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import {
   commify,
   escrowPaymentsSchema,
   getDecimals,
   getWrappedNativeToken,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
@@ -45,8 +45,7 @@ export function PaymentsForm({
 }) {
   const chainId = useChainId();
   const { watch, setValue } = invoiceForm;
-  const { milestones, token } = watch();
-
+  const { milestones } = watch();
 
   const { data: tokens } = useFetchTokens();
 
@@ -56,11 +55,7 @@ export function PaymentsForm({
     [chainId, tokens],
   ) as IToken[];
 
-
   const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
-
-
-
 
   const localForm = useForm({
     defaultValues: {
@@ -77,7 +72,7 @@ export function PaymentsForm({
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
 
-  const invoiceTokenData = _.filter(TOKENS, (t) => t.address === localToken)[0];
+  const invoiceTokenData = _.filter(TOKENS, t => t.address === localToken)[0];
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -102,23 +97,22 @@ export function PaymentsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS, nativeWrappedToken]);
 
-
   const [total, decimals] = localMilestones
     ? localMilestones
-      .map((milestone: { value: string }) => [
-        _.toNumber(milestone.value) || 0,
-        getDecimals(milestone.value),
-      ])
-      .reduce(
-        ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
-        [0, 0],
-      )
+        .map((milestone: { value: string }) => [
+          _.toNumber(milestone.value) || 0,
+          getDecimals(milestone.value),
+        ])
+        .reduce(
+          ([tot, maxDecimals], [v, d]) => [tot + v, Math.max(d, maxDecimals)],
+          [0, 0],
+        )
     : [0, 0];
 
   return (
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
       <Flex w="100%">
-        <FormControl isRequired >
+        <FormControl isRequired>
           <Select
             name="token"
             label="Payment Token"

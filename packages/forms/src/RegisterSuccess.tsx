@@ -2,22 +2,16 @@ import { CheckCircleIcon } from '@chakra-ui/icons';
 import {
   Button,
   Flex,
-  Heading,
   HStack,
   Icon,
   Link,
-  Spacer,
   Stack,
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { Network } from '@smart-invoice/types';
-import { ChakraNextLink, CopyIcon, Loader } from '@smart-invoice/ui';
-import { Checkbox } from '@smart-invoice/ui/src/theme/components';
-import { getTxLink } from '@smart-invoice/utils';
+import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
+import { getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
 import { Address, useChainId } from 'wagmi';
 
 export function RegisterSuccess({

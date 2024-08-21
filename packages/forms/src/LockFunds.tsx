@@ -9,20 +9,16 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import {
-  KLEROS_ARBITRATION_SAFE,
-  KLEROS_GOOGLE_FORM,
-} from '@smart-invoice/constants/src';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useLock } from '@smart-invoice/hooks';
+import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useLock } from '@smartinvoicexyz/hooks';
 // import LockImage from '../../assets/lock.svg';
-import { AccountLink, Textarea, useToast } from '@smart-invoice/ui';
+import { AccountLink, Textarea, useToast } from '@smartinvoicexyz/ui';
 import {
   getResolverInfo,
-  getResolverString,
   isKnownResolver,
   logDebug,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
@@ -39,8 +35,6 @@ export function LockFunds({
   const chainId = useChainId();
   const toast = useToast();
   const queryClient = useQueryClient();
-
-  console.log(invoice);
 
   const { resolver, resolverFee, resolverName, tokenBalance, klerosCourt } =
     _.pick(invoice, [

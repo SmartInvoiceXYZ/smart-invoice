@@ -3,8 +3,8 @@ import {
   InMemoryCache,
   NormalizedCacheObject,
 } from '@apollo/client';
-import { SUPPORTED_NETWORKS } from '@smart-invoice/constants';
-import { getGraphUrl } from '@smart-invoice/shared';
+import { SUPPORTED_NETWORKS } from '@smartinvoicexyz/constants';
+import { getGraphUrl } from '@smartinvoicexyz/shared';
 
 export const cache = new InMemoryCache();
 

@@ -1,4 +1,4 @@
-import { cache } from '@smart-invoice/graphql/';
+import { cache } from '@smartinvoicexyz/graphql';
 
 export const usePollSubgraph = ({
   label,

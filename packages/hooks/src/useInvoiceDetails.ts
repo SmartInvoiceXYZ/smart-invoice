@@ -1,18 +1,14 @@
 import {
   INVOICE_TYPES,
   KLEROS_ARBITRATION_SAFE,
-} from '@smart-invoice/constants';
+} from '@smartinvoicexyz/constants';
 import {
   cache,
   fetchInvoice,
   Invoice,
   InvoiceDetails,
-} from '@smart-invoice/graphql';
-import {
-  getInvoiceDetails,
-  getResolverFee,
-  getResolverInfo,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/graphql';
+import { getInvoiceDetails, getResolverInfo } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex } from 'viem';

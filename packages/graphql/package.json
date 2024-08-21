@@ -1,17 +1,13 @@
 {
-  "name": "@smart-invoice/graphql",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "@smartinvoicexyz/graphql",
+  "description": "Unified source for helpers and schema used across the GraphQL services within the Smart Invoice protocol.",
+  "version": "0.1.2",
+  "author": "",
   "dependencies": {
     "@apollo/client": "^3.8.10",
     "@graphql-typed-document-node/core": "^3.2.0",
-    "@smart-invoice/constants": "workspace:*",
-    "@smart-invoice/shared": "workspace:*",
+    "@smartinvoicexyz/constants": "0.1.1",
+    "@smartinvoicexyz/shared": "0.1.1",
     "graphql-request": "^6.1.0",
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.3.3",
@@ -20,5 +16,28 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202"
-  }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "graphql",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
+  "license": "ISC",
+  "main": "dist/src/index.js",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "types": "dist/src/index.d.ts"
 }

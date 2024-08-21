@@ -1,7 +1,7 @@
 import { Button, SimpleGrid } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types';
-import { Modal } from '@smart-invoice/ui';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { Modals } from '@smartinvoicexyz/types';
+import { Modal } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useAccount } from 'wagmi';
 
@@ -20,7 +20,7 @@ export function InvoiceButtonManager({
 }: {
   invoice: InvoiceDetails | undefined;
   modals: Modals;
-  setModals: (m: Partial<Modals>) => void;
+  setModals: (_m: Partial<Modals>) => void;
 }) {
   const { address } = useAccount();
 

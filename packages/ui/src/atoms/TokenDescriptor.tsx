@@ -1,5 +1,5 @@
 import { InputRightElement } from '@chakra-ui/react';
-import { TokenBalance } from '@smart-invoice/graphql';
+import { TokenBalance } from '@smartinvoicexyz/graphql';
 import React from 'react';
 
 export function TokenDescriptor({
