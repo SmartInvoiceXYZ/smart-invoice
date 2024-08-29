@@ -41,8 +41,9 @@ contract SmartInvoiceInstant is
     event Tip(address indexed sender, uint256 amount);
     event Withdraw(uint256 balance);
 
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     function init(
         address _recipient,

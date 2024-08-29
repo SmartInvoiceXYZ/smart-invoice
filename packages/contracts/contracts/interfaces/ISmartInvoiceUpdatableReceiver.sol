@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./ISmartInvoice.sol";
+import {ISmartInvoice} from "./ISmartInvoice.sol";
 
 interface ISmartInvoiceEscrow is ISmartInvoice {
     function release() external;

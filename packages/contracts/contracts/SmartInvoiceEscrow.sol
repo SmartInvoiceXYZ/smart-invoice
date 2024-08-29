@@ -2,7 +2,6 @@
 // solhint-disable not-rely-on-time, max-states-count
 
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,6 +27,11 @@ contract SmartInvoiceEscrow is
 {
     using SafeERC20 for IERC20;
 
+    enum ADR {
+        INDIVIDUAL,
+        ARBITRATOR
+    }
+
     uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
     // Note that Aragon Court treats the possible outcomes as arbitrary numbers, leaving the Arbitrable (us) to define how to understand them.
     // Some outcomes [0, 1, and 2] are reserved by Aragon Court: "missing", "leaked", and "refused", respectively.
@@ -46,11 +50,6 @@ contract SmartInvoiceEscrow is
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
 
     address public wrappedNativeToken;
-
-    enum ADR {
-        INDIVIDUAL,
-        ARBITRATOR
-    }
 
     address public client;
     address public provider;
@@ -93,8 +92,9 @@ contract SmartInvoiceEscrow is
     );
     event Verified(address indexed client, address indexed invoice);
 
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Initializes the contract with the provided recipient, amounts, and data.

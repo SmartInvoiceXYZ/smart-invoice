@@ -12,8 +12,6 @@ interface ISpoilsManager {
         address _newOwner
     ) external;
 
-    function initLock() external;
-
     function owner() external view returns (address);
 
     function receiver() external view returns (address);

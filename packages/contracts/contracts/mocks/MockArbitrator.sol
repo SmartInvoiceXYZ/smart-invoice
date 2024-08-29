@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 
-import "../interfaces/IArbitrable.sol";
+import {IArbitrable} from "../interfaces/IArbitrable.sol";
 
 contract MockArbitrator {
+    // solhint-disable-next-line immutable-vars-naming, style-guide-casing
+    uint256 private immutable cost;
+
     mapping(address => uint256) public disputes;
     mapping(uint256 => uint256) public choices;
     uint256 public currentDisputeId;
-    uint256 private immutable cost;
 
     event DisputeCreation(
         uint256 indexed _disputeID,
@@ -32,12 +34,11 @@ contract MockArbitrator {
         IArbitrable(_arbitrable).rule(_disputeId, _ruling);
     }
 
-    function createDispute(uint256 _choices, bytes calldata)
-        external
-        payable
-        returns (uint256 disputeID)
-    {
-        require(msg.value == 10, "!cost");
+    function createDispute(
+        uint256 _choices,
+        bytes calldata
+    ) external payable returns (uint256 disputeID) {
+        require(msg.value == cost, "!cost");
         currentDisputeId = currentDisputeId + 1;
         disputes[msg.sender] = currentDisputeId;
         choices[currentDisputeId] = _choices;

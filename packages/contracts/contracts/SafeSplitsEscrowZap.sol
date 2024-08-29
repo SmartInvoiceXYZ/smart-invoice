@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "./interfaces/ISafeSplitsEscrowZap.sol";
-import "./interfaces/ISafeProxyFactory.sol";
-import "./interfaces/ISplitMain.sol";
-import "./interfaces/ISmartInvoiceFactory.sol";
-import "./interfaces/ISmartInvoiceSplitEscrow.sol";
-import "./interfaces/IWRAPPED.sol";
+import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
+import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
+import {ISplitMain} from "./interfaces/ISplitMain.sol";
+import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
-contract SafeSplitsEscrowZap is AccessControl, Initializable {
+contract SafeSplitsEscrowZap is
+    AccessControl,
+    Initializable,
+    ISafeSplitsEscrowZap
+{
     /// @notice The SafeL2 singleton address
     address public safeSingleton;
 
@@ -43,8 +45,17 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
     error EscrowNotCreated();
     error NotAuthorized();
 
-    event SafeSplitsEscrowCreated(address safe, address projectTeamSplit, address escrow);
-    event UpdatedAddresses(address safeSingleton, address safeFactory, address splitMain, address escrowFactory);
+    event SafeSplitsEscrowCreated(
+        address safe,
+        address projectTeamSplit,
+        address escrow
+    );
+    event UpdatedAddresses(
+        address safeSingleton,
+        address safeFactory,
+        address splitMain,
+        address escrowFactory
+    );
     event UpdatedDistributorFee(uint32 distributorFee);
 
     struct ZapData {
@@ -64,8 +75,9 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         address providerReceiver;
     }
 
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     function init(bytes calldata _data) external virtual initializer {
         _handleData(_data);
@@ -81,7 +93,10 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
             address _splitMain,
             address _escrowFactory,
             address _wrappedNativeToken
-        ) = abi.decode(_data, (address, address, address, address, address, address));
+        ) = abi.decode(
+                _data,
+                (address, address, address, address, address, address)
+            );
 
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;
@@ -97,14 +112,22 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
      * @param _safeData The number of required confirmations for a Safe transaction
      * @param _zapData Resulting data struct
      */
-    function _deploySafe(address[] memory _owners, bytes calldata _safeData, ZapData memory _zapData)
-        internal
-        returns (ZapData memory)
-    {
-        (uint256 _threshold, uint256 _saltNonce) = abi.decode(_safeData, (uint256, uint256));
+    function _deploySafe(
+        address[] memory _owners,
+        bytes calldata _safeData,
+        ZapData memory _zapData
+    ) internal returns (ZapData memory) {
+        (uint256 _threshold, uint256 _saltNonce) = abi.decode(
+            _safeData,
+            (uint256, uint256)
+        );
 
         bytes memory safeInitializer = abi.encodeWithSelector(
-            bytes4(keccak256("setup(address[],uint256,address,bytes,address,address,uint256,address)")),
+            bytes4(
+                keccak256(
+                    "setup(address[],uint256,address,bytes,address,address,uint256,address)"
+                )
+            ),
             _owners,
             _threshold,
             address(0), //          to
@@ -116,7 +139,11 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         );
 
         // (implementation address, initializer data, salt nonce)
-        _zapData.safe = safeFactory.createProxyWithNonce(safeSingleton, safeInitializer, _saltNonce);
+        _zapData.safe = safeFactory.createProxyWithNonce(
+            safeSingleton,
+            safeInitializer,
+            _saltNonce
+        );
         if (_zapData.safe == address(0)) {
             revert SafeNotCreated();
         }
@@ -142,7 +169,12 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         }
 
         // (recipients array, percent allocations array, no distributor fee, safe address)
-        _zapData.projectTeamSplit = splitMain.createSplit(_owners, _percentAllocations, distributorFee, _zapData.safe);
+        _zapData.projectTeamSplit = splitMain.createSplit(
+            _owners,
+            _percentAllocations,
+            distributorFee,
+            _zapData.safe
+        );
 
         if (_zapData.projectTeamSplit == address(0)) {
             revert ProjectTeamSplitNotCreated();
@@ -151,7 +183,9 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         return _zapData;
     }
 
-    function _handleEscrowData(bytes calldata _escrowData) internal pure returns (EscrowData memory) {
+    function _handleEscrowData(
+        bytes calldata _escrowData
+    ) internal pure returns (EscrowData memory) {
         (
             address client,
             uint32 arbitration,
@@ -160,7 +194,10 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
             uint256 terminationTime,
             uint256 _saltNonce,
             bytes32 details
-        ) = abi.decode(_escrowData, (address, uint32, address, address, uint256, uint256, bytes32));
+        ) = abi.decode(
+                _escrowData,
+                (address, uint32, address, address, uint256, uint256, bytes32)
+            );
 
         EscrowData memory escrowData = EscrowData({
             client: client,
@@ -219,7 +256,9 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         return _zapData;
     }
 
-    function _handleEscrowParams(ZapData memory _zapData) internal pure returns (address[] memory) {
+    function _handleEscrowParams(
+        ZapData memory _zapData
+    ) internal pure returns (address[] memory) {
         address[] memory escrowParams = new address[](2);
         escrowParams[0] = _zapData.safe;
 
@@ -241,19 +280,37 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         bytes calldata _splitData,
         bytes calldata _escrowData
     ) internal virtual {
-        ZapData memory zapData = ZapData({safe: _safeAddress, projectTeamSplit: address(0), escrow: address(0)});
+        ZapData memory zapData = ZapData({
+            safe: _safeAddress,
+            projectTeamSplit: address(0),
+            escrow: address(0)
+        });
 
         if (zapData.safe == address(0)) {
             zapData = _deploySafe(_owners, _safeData, zapData);
         }
 
-        zapData = _createSplit(_owners, _percentAllocations, _splitData, zapData);
+        zapData = _createSplit(
+            _owners,
+            _percentAllocations,
+            _splitData,
+            zapData
+        );
 
         address[] memory escrowParams = _handleEscrowParams(zapData);
 
-        zapData = _deployEscrow(_milestoneAmounts, _escrowData, escrowParams, zapData);
+        zapData = _deployEscrow(
+            _milestoneAmounts,
+            _escrowData,
+            escrowParams,
+            zapData
+        );
 
-        emit SafeSplitsEscrowCreated(zapData.safe, zapData.projectTeamSplit, zapData.escrow);
+        emit SafeSplitsEscrowCreated(
+            zapData.safe,
+            zapData.projectTeamSplit,
+            zapData.escrow
+        );
     }
 
     /**
@@ -280,13 +337,23 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         }
 
         _createSafeSplitEscrow(
-            _owners, _percentAllocations, _milestoneAmounts, _safeData, _safeAddress, _splitData, _escrowData
+            _owners,
+            _percentAllocations,
+            _milestoneAmounts,
+            _safeData,
+            _safeAddress,
+            _splitData,
+            _escrowData
         );
     }
 
     function _updateAddresses(bytes calldata _data) internal {
-        (address _safeSingleton, address _safeFactory, address _splitMain, address _escrowFactory) =
-            abi.decode(_data, (address, address, address, address));
+        (
+            address _safeSingleton,
+            address _safeFactory,
+            address _splitMain,
+            address _escrowFactory
+        ) = abi.decode(_data, (address, address, address, address));
 
         if (_safeSingleton != address(0)) {
             safeSingleton = _safeSingleton;
@@ -301,7 +368,12 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
             escrowFactory = ISmartInvoiceFactory(_escrowFactory);
         }
 
-        emit UpdatedAddresses(_safeSingleton, _safeFactory, _splitMain, _escrowFactory);
+        emit UpdatedAddresses(
+            _safeSingleton,
+            _safeFactory,
+            _splitMain,
+            _escrowFactory
+        );
     }
 
     // ADMIN
@@ -325,29 +397,5 @@ contract SafeSplitsEscrowZap is AccessControl, Initializable {
         }
         distributorFee = _distributorFee;
         emit UpdatedDistributorFee(_distributorFee);
-    }
-}
-
-contract SafeSplitsEscrowZapFactory {
-    address public implementation;
-
-    constructor(address _implementation) {
-        implementation = _implementation;
-    }
-
-    event SafeSplitsEscrowZapCreated(
-        address indexed safeSplitsEscrowZap, address indexed implementation, bytes32 indexed salt
-    );
-
-    /**
-     * @dev Create a new SpoilsManager contract
-     * @param _data addresses of the contracts used in the zap
-     * @param _salt Salt used to create the contract address
-     */
-    function createSafeSplitsEscrowZap(bytes calldata _data, bytes32 _salt) external returns (address) {
-        address safeSplitEscrowZap = Clones.cloneDeterministic(implementation, _salt);
-        SafeSplitsEscrowZap(safeSplitEscrowZap).init(_data);
-        emit SafeSplitsEscrowZapCreated(safeSplitEscrowZap, implementation, _salt);
-        return safeSplitEscrowZap;
     }
 }

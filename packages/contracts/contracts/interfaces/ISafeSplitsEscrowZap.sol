@@ -7,20 +7,13 @@ interface ISafeSplitsEscrowZap {
         address[] memory _owners,
         uint32[] memory _percentAllocations,
         uint256[] memory _milestoneAmounts,
-        bytes memory _safeData,
-        bytes memory _escrowData
+        bytes calldata _safeData,
+        address _safeAddress,
+        bytes calldata _splitData,
+        bytes calldata _escrowData
     ) external;
 
-    function getAddresses()
-        external
-        view
-        returns (address, address, address, address, address, address);
-
-    function getDistributorFee() external view returns (uint32);
-
     function init(bytes memory _data) external;
-
-    function initLock() external;
 
     function updateAddresses(bytes memory _data) external;
 

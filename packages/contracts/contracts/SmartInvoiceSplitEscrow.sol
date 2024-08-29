@@ -2,11 +2,11 @@
 // solhint-disable not-rely-on-time, max-states-count
 
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./SmartInvoiceEscrow.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {SmartInvoiceEscrow} from "./SmartInvoiceEscrow.sol";
 
 // splittable digital deal lockers w/ embedded arbitration tailored for guild work
 contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
@@ -84,11 +84,10 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         if (!_requireVerification) emit Verified(client, address(this));
     }
 
-    function _transferPayment(address _token, uint256 _amount)
-        internal
-        virtual
-        override
-    {
+    function _transferPayment(
+        address _token,
+        uint256 _amount
+    ) internal virtual override {
         uint256 daoAmount;
         unchecked {
             daoAmount = (_amount * daoFee) / 10000;

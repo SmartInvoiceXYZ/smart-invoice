@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 
-import {ERC20} from "@rari-capital/solmate/src/tokens/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title ISplitMain
@@ -60,7 +60,7 @@ interface ISplitMain {
 
     function distributeERC20(
         address split,
-        ERC20 token,
+        IERC20 token,
         address[] calldata accounts,
         uint32[] calldata percentAllocations,
         uint32 distributorFee,
@@ -69,7 +69,7 @@ interface ISplitMain {
 
     function updateAndDistributeERC20(
         address split,
-        ERC20 token,
+        IERC20 token,
         address[] calldata accounts,
         uint32[] calldata percentAllocations,
         uint32 distributorFee,
@@ -79,7 +79,7 @@ interface ISplitMain {
     function withdraw(
         address account,
         uint256 withdrawETH,
-        ERC20[] calldata tokens
+        IERC20[] calldata tokens
     ) external;
 
     /**
@@ -140,7 +140,7 @@ interface ISplitMain {
      */
     event DistributeERC20(
         address indexed split,
-        ERC20 indexed token,
+        IERC20 indexed token,
         uint256 amount,
         address indexed distributorAddress
     );
@@ -154,7 +154,7 @@ interface ISplitMain {
     event Withdrawal(
         address indexed account,
         uint256 ethAmount,
-        ERC20[] tokens,
+        IERC20[] tokens,
         uint256[] tokenAmounts
     );
 }

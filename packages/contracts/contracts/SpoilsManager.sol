@@ -2,9 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract SpoilsManager is Ownable, Initializable {
     /// @dev The scale used to calculate the spoils percentage
@@ -16,8 +15,9 @@ contract SpoilsManager is Ownable, Initializable {
     /// @notice The address of the owner's receiver
     address public receiver;
 
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Initialize the SpoilsManager contract
@@ -60,61 +60,5 @@ contract SpoilsManager is Ownable, Initializable {
      */
     function getSpoils() external view returns (uint32) {
         return spoils * SPLIT_PERCENTAGE_SCALE;
-    }
-}
-
-contract SpoilsManagerFactory {
-    address public implementation;
-
-    error InvalidSpoilsAmount();
-    error InvalidReceiverAddress();
-
-    constructor(address _implementation) {
-        implementation = _implementation;
-    }
-
-    event SpoilsManagerCreated(
-        address indexed spoilsManager,
-        address indexed implementation,
-        bytes32 indexed salt
-    );
-
-    /**
-     * @dev Create a new SpoilsManager contract
-     * @param _spoils Percentage of each payment to be sent to the owner's receiver
-     * @param _receiver Address of the owner's receiver
-     * @param _newOwner Address of the initial owner of the SpoilsManager contract
-     * @param _salt Salt used to create the contract address
-     */
-    function createSpoilsManager(
-        uint32 _spoils,
-        uint32 _percentageScale,
-        address _receiver,
-        address _newOwner,
-        bytes32 _salt
-    ) external returns (address) {
-        if (_spoils == uint32(0)) {
-            revert InvalidSpoilsAmount();
-        }
-        if (_receiver == address(0)) {
-            revert InvalidReceiverAddress();
-        }
-
-        address spoilsManager = Clones.cloneDeterministic(
-            implementation,
-            _salt
-        );
-        address newOwner = _newOwner;
-        if (newOwner == address(0)) {
-            newOwner = msg.sender;
-        }
-        SpoilsManager(spoilsManager).init(
-            _spoils,
-            _percentageScale,
-            _receiver,
-            newOwner
-        );
-        emit SpoilsManagerCreated(spoilsManager, implementation, _salt);
-        return spoilsManager;
     }
 }

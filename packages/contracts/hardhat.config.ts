@@ -1,13 +1,10 @@
-require("hardhat/config");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require("dotenv").config();
-require("@nomiclabs/hardhat-ganache");
-require("@nomiclabs/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify");
-require("@nomiclabs/hardhat-waffle");
-require("hardhat-gas-reporter");
-require("solidity-coverage");
-require("hardhat-interface-generator");
+import '@nomicfoundation/hardhat-toolbox-viem';
+import 'hardhat-chai-matchers-viem';
+
+import dotenv from 'dotenv';
+import type { HardhatUserConfig } from 'hardhat/config';
+
+dotenv.config();
 
 const {
   INFURA_PROJECT_ID,
@@ -23,18 +20,22 @@ const {
   BASESCAN_API_KEY,
 } = process.env;
 
-if (!PRIVATE_KEY && !MNEMONIC) {
-  console.error("invalid env variable: PRIVATE_KEY or MNEMONIC");
+let accounts: string[] | { mnemonic: string } | undefined;
+
+if (MNEMONIC) {
+  accounts = { mnemonic: MNEMONIC };
+} else if (PRIVATE_KEY) {
+  accounts = [PRIVATE_KEY.startsWith('0x') ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
+}
+
+if (!accounts) {
+  console.error('invalid env variable: PRIVATE_KEY or MNEMONIC');
   process.exit(1);
 }
 
-const accounts = MNEMONIC
-  ? { mnemonic: MNEMONIC }
-  : [PRIVATE_KEY.startsWith("0x") ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
-
-module.exports = {
+const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.4",
+    version: '0.8.26',
     settings: {
       optimizer: {
         enabled: true,
@@ -43,7 +44,7 @@ module.exports = {
     },
   },
   paths: {
-    artifacts: "./build",
+    artifacts: './build',
   },
   networks: {
     gnosis: {
@@ -80,25 +81,24 @@ module.exports = {
     },
     hardhat: {
       forking: {
-        enabled: process.env.FORK ? process.env.FORK === "true" : false,
-        url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+        enabled: process.env.FORK ? process.env.FORK === 'true' : false,
+        url: `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
       },
     },
-    ganache: {
-      url: "http://127.0.0.1:8555",
-      defaultBalanceEther: 1000,
+    anvil: {
+      url: 'http://127.0.0.1:8545',
     },
   },
   etherscan: {
     apiKey: {
-      gnosis: GNOSISSCAN_API_KEY,
-      sepolia: ETHERSCAN_API_KEY,
-      holesky: ETHERSCAN_API_KEY,
-      polygon: POLYGONSCAN_API_KEY,
-      optimisticEthereum: OPTIMISTIC_ETHERSCAN_API_KEY,
-      arbitrumOne: ARBISCAN_API_KEY,
-      mainnet: ETHERSCAN_API_KEY,
-      base: BASESCAN_API_KEY,
+      gnosis: GNOSISSCAN_API_KEY!,
+      sepolia: ETHERSCAN_API_KEY!,
+      holesky: ETHERSCAN_API_KEY!,
+      polygon: POLYGONSCAN_API_KEY!,
+      optimisticEthereum: OPTIMISTIC_ETHERSCAN_API_KEY!,
+      arbitrumOne: ARBISCAN_API_KEY!,
+      mainnet: ETHERSCAN_API_KEY!,
+      base: BASESCAN_API_KEY!,
     },
   },
   gasReporter: {
@@ -107,3 +107,5 @@ module.exports = {
     currency: CURRENCY,
   },
 };
+
+export default config;
