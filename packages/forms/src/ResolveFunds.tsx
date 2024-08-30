@@ -44,7 +44,13 @@ export function ResolveFunds({
     return bal ? _.toNumber(formatUnits(bal / resolutionRate, 18)) : 0;
   }, [tokenBalance?.value, resolutionRate]);
 
-  const availableFunds = _.toNumber(tokenBalance?.formatted) - resolverAward;
+  const availableFunds =
+    _.toNumber(
+      formatUnits(
+        tokenBalance?.value ?? BigInt(0),
+        tokenBalance?.decimals ?? 18,
+      ),
+    ) - resolverAward;
 
   const clientAward = watch('clientAward');
   const providerAward = watch('providerAward');
@@ -138,9 +144,10 @@ export function ResolveFunds({
         Resolve Dispute
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem">
-        {`You'll need to distribute the total balance of ${
-          tokenBalance?.formatted
-        } ${tokenMetadata?.symbol} between the client and provider, excluding the ${
+        {`You'll need to distribute the total balance of ${formatUnits(
+          tokenBalance?.value ?? BigInt(0),
+          tokenBalance?.decimals ?? 18,
+        )} ${tokenMetadata?.symbol} between the client and provider, excluding the ${
           resolutionRate === BigInt(0) ? '0' : BigInt(100) / resolutionRate
         }% arbitration fee which you shall receive.`}
       </Text>

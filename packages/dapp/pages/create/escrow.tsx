@@ -22,7 +22,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
@@ -34,7 +34,7 @@ export function CreateInvoiceEscrow() {
   const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [txHash, setTxHash] = useState<Address>();
+  const [txHash, setTxHash] = useState<Hex>();
 
   const [invoiceId, setInvoiceId] = useState<Address>();
   const { headingSize, columnWidth } = useMediaStyles();
@@ -66,8 +66,8 @@ export function CreateInvoiceEscrow() {
   });
 
   const handleSubmit = async () => {
-    const data = await writeAsync?.();
-    setTxHash(data?.hash);
+    const hash = await writeAsync?.();
+    setTxHash(hash);
   };
 
   return (

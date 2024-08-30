@@ -1,15 +1,15 @@
 {
   "name": "@smartinvoicexyz/constants",
   "description": "Unified source for configs and constants used across the Smart Invoice protocol.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "",
   "dependencies": {
     "lodash": "^4.17.21",
-    "viem": "^1.21.4"
+    "viem": "^2.21.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.5"
+    "@types/lodash": "^4.17.7",
+    "@types/node": "^22.5.1"
   },
   "engines": {
     "node": ">=18"
@@ -31,7 +31,8 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   },
   "types": "dist/src/index.d.ts"
 }

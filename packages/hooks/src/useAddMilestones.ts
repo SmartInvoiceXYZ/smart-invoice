@@ -2,14 +2,14 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { getBalance, waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { fetchBalance, waitForTransaction } from 'wagmi/actions';
+import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { usePollSubgraph } from './usePollSubgraph';
-// import { useDetailsPin } from './useDetailsPin';
 
 export const useAddMilestones = ({
   address,
@@ -21,11 +21,7 @@ export const useAddMilestones = ({
 }: AddMilestonesProps) => {
   const { getValues } = localForm;
   const { milestones } = getValues();
-
-  // const { data: details } = useDetailsPin({
-  //   projectAgreement,
-  //   invoice,
-  // });
+  const config = useConfig();
 
   const { tokenMetadata } = _.pick(invoice, ['tokenMetadata']);
 
@@ -43,41 +39,57 @@ export const useAddMilestones = ({
   const waitForIndex = usePollSubgraph({
     label: 'useDeposit',
     fetchHelper: () =>
-      fetchBalance({
-        address: invoice?.address as Hex,
+      getBalance(config, {
         chainId,
+        address: invoice?.address as Hex,
         token: token as Hex,
       }),
     checkResult: () => newTotal < Number(total),
     interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
   });
 
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const { error: prepareError, data } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'addMilestones',
     args: [parsedMilestones],
-    enabled: _.every(parsedMilestones, m => m > BigInt(0)),
+    query: {
+      enabled: _.every(parsedMilestones, m => m > BigInt(0)),
+    },
   });
 
   const {
-    writeAsync,
-    isLoading,
+    writeContractAsync,
+    isPending: isLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }): Promise<void> => {
-      toast.info(TOASTS.useAddMilestone.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useAddMilestone.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-      toast.info(TOASTS.useAddMilestone.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useAddMilestone.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: (error: Error) =>
+        errorToastHandler('useAddMilestones', error, toast),
     },
-    onError: error => errorToastHandler('useAddMilestones', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useAddMilestones', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return { writeAsync, isLoading, prepareError, writeError };
 };

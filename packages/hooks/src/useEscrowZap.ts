@@ -1,10 +1,9 @@
 import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { WriteContractResult } from 'wagmi/actions';
+import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
 // import useDetailsPin from './useDetailsPin';
 
 type OwnerAndAllocation = { address: string; percent: number };
@@ -140,11 +139,11 @@ export const useEscrowZap = ({
   });
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
     status,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: '0x', // NETWORK_CONFIG[chainId].ZAP_ADDRESS,
     abi: ESCROW_ZAP_ABI,
@@ -158,28 +157,38 @@ export const useEscrowZap = ({
       encodedSplitData,
       encodedEscrowData,
     ],
-    enabled:
-      _.isEqual(_.size(percentAllocations), _.size(owners)) &&
-      !_.isEmpty(milestoneAmounts) &&
-      !!encodedSafeData &&
-      !!provider && // _safeAddress
-      !!encodedSplitData &&
-      !!encodedEscrowData &&
-      enabled,
+    query: {
+      enabled:
+        _.isEqual(_.size(percentAllocations), _.size(owners)) &&
+        !_.isEmpty(milestoneAmounts) &&
+        !!encodedSafeData &&
+        !!provider && // _safeAddress
+        !!encodedSplitData &&
+        !!encodedEscrowData &&
+        enabled,
+    },
   });
   logDebug('prepareError', prepareError, status);
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async tx => {
-      onSuccess?.(tx);
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        onSuccess?.(hash);
+      },
     },
   });
-  logDebug(writeAsync);
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    if (!data) {
+      logDebug('writeAsync - no data');
+      return undefined;
+    }
+    return writeContractAsync(data.request);
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,
@@ -202,5 +211,5 @@ interface UseEscrowZapProps {
   safetyValveDate: Date;
   detailsData: any; // ProjectDetails;
   enabled?: boolean;
-  onSuccess?: (tx: WriteContractResult) => void;
+  onSuccess?: (hash: Hex) => void;
 }

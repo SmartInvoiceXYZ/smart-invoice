@@ -76,10 +76,15 @@ async function main(): Promise<void> {
       zapFactoryInstance.address as Hex,
     );
   } else if (!zapFactoryInstance) {
-    zapFactoryInstance = await viem.getContractAt(
+    zapFactoryInstance = (await viem.getContractAt(
       'SafeSplitsEscrowZapFactory',
       zapData.factory,
-    );
+    )) as ContractTypesMap['SafeSplitsEscrowZapFactory'];
+  }
+
+  if (!zapFactoryInstance) {
+    console.log('Failed to get Safe-Splits-Escrow Zap Factory');
+    return;
   }
 
   // Regular zap = 6 params, DAO zap = 8 params

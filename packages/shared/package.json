@@ -1,15 +1,13 @@
 {
   "name": "@smartinvoicexyz/shared",
   "description": "Unified source for shared helper functions used across the Smart Invoice protocol.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "",
   "dependencies": {
-    "@smartinvoicexyz/constants": "0.1.1"
+    "@smartinvoicexyz/constants": "workspace:*"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.11",
-    "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.5"
+    "@types/node": "^22.5.1"
   },
   "engines": {
     "node": ">=18"
@@ -31,7 +29,8 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   },
   "types": "dist/src/index.d.ts"
 }

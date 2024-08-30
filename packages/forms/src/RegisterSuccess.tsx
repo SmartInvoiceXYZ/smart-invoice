@@ -12,7 +12,8 @@ import {
 import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
 import { getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { Address, useChainId } from 'wagmi';
+import { Address } from 'viem';
+import { useChainId } from 'wagmi';
 
 export function RegisterSuccess({
   invoiceId,

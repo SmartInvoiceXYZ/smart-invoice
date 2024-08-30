@@ -159,14 +159,10 @@ export type TokenMetadata = {
   name: string;
   symbol: string;
   decimals: number;
-  totalSupply: {
-    formatted: string;
-    value: bigint;
-  };
+  totalSupply: bigint;
 };
 
 export type TokenBalance = {
-  formatted: string;
   decimals: number;
   symbol: string;
   value: bigint;

@@ -5,6 +5,7 @@ import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 // import { getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
+import { formatUnits } from 'viem';
 
 export function WithdrawFunds({
   invoice,
@@ -58,7 +59,9 @@ export function WithdrawFunds({
           fontSize="1rem"
           fontWeight="bold"
           textAlign="center"
-        >{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
+        >
+          {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+        </Text>
       </Stack>
       {/* {transaction && (
         <Text textAlign='center' fontSize='sm'>

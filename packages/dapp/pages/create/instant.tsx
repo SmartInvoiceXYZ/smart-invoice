@@ -21,7 +21,8 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, useChainId } from 'wagmi';
+import { Address, Hex } from 'viem';
+import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
 
@@ -35,7 +36,7 @@ export function CreateInvoiceInstant() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { headingSize, columnWidth } = useMediaStyles();
   const [invoiceId, setInvoiceId] = useState<Address>();
-  const [txHash, setTxHash] = useState<Address>();
+  const [txHash, setTxHash] = useState<Hex>();
   const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
@@ -64,8 +65,8 @@ export function CreateInvoiceInstant() {
   };
 
   const handleSubmit = async () => {
-    const txData = await writeAsync?.();
-    setTxHash(txData?.hash);
+    const hash = await writeAsync?.();
+    setTxHash(hash);
   };
 
   if (!tokens) {

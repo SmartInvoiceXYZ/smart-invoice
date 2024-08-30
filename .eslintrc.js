@@ -71,7 +71,6 @@ module.exports = {
     'tmp/*',
     '.next',
     'packages/subgraph/**',
-    'packages/contracts/test/*',
     'packages/subgraph/subgraph.template.yaml',
   ],
   settings: {

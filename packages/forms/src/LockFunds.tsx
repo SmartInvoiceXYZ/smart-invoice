@@ -22,7 +22,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { Hex } from 'viem';
+import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function LockFunds({
@@ -49,7 +49,6 @@ export function LockFunds({
   const { watch, handleSubmit } = localForm;
 
   const disputeReason = watch('disputeReason');
-  const amount = tokenBalance?.formatted;
 
   const onTxSuccess = () => {
     // TODO handle tx success
@@ -66,7 +65,6 @@ export function LockFunds({
   const { writeAsync: lockFunds, writeLoading } = useLock({
     invoice,
     disputeReason,
-    amount,
     onTxSuccess,
     toast,
   });
@@ -165,7 +163,7 @@ export function LockFunds({
           textTransform="uppercase"
           variant="solid"
         >
-          {`Lock ${tokenBalance?.formatted} ${tokenBalance?.symbol}`}
+          {`Lock ${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
         </Button>
       )}
       {klerosCourt && (

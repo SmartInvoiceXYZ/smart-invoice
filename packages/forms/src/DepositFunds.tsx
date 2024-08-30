@@ -124,7 +124,7 @@ export function DepositFunds({
   const depositHandler = async () => {
     const result = await handleDeposit();
     if (!result) return;
-    setTransaction(result.hash);
+    setTransaction(result);
   };
   const paymentTypeOptions = [
     {
