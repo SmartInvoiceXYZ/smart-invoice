@@ -1,0 +1,33 @@
+{
+  "name": "@smartinvoicexyz/contracts",
+  "version": "0.1.1",
+  "private": false,
+  "description": "Solidity smart contracts of the Smart Invoice protocol.",
+  "files": [
+    "**/*.sol",
+    "/build/contracts/*.json",
+    "!/mocks/**/*"
+  ],
+  "scripts": {
+    "prepack": "bash ../scripts/bash/prepack.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SmartInvoiceXYZ/smart-invoice.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "escrow",
+    "invoice",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SmartInvoiceXYZ/smart-invoice/issues"
+  },
+  "homepage": "https://github.com/SmartInvoiceXYZ/smart-invoice/tree/main/packages/contracts"
+}

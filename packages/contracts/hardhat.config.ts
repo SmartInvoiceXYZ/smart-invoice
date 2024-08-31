@@ -43,9 +43,6 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  paths: {
-    artifacts: './build',
-  },
   networks: {
     gnosis: {
       url: `https://rpc.ankr.com/gnosis`,

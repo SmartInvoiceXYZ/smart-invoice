@@ -173,6 +173,8 @@ importers:
         specifier: ^2.21.0
         version: 2.21.0(bufferutil@4.0.8)(typescript@5.5.4)(utf-8-validate@6.0.4)(zod@3.23.8)
 
+  packages/contracts/contracts: {}
+
   packages/dapp:
     dependencies:
       '@apollo/client':

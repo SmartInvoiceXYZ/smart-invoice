@@ -10,7 +10,7 @@
     "noEmit": true
   },
   "include": [
-    "build/**/*.ts",
+    "artifacts/**/*.ts",
     "scripts/**/*.ts",
     "test/**/*.ts",
     "hardhat.config.ts"
