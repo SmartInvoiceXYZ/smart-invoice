@@ -55,9 +55,7 @@ async function main(): Promise<void> {
   );
 
   console.log(
-    `Adding ${escrowTypeData.invoiceType} Implementation on ${getNetworkName(
-      chainId,
-    )} to factory: ${factoryInstance.address}`,
+    `Adding ${escrowTypeData.invoiceType} Implementation on ${getNetworkName(chainId)} to factory: ${factoryInstance.address}`,
   );
   console.log('Account address:', address);
   console.log(

@@ -1,42 +1,50 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {SmartInvoiceEscrow} from "./SmartInvoiceEscrow.sol";
 
-// updatable digital deal lockers w/ embedded arbitration tailored for guild work
+/// @title SmartInvoiceUpdatable
+/// @notice An updatable smart invoice escrow contract with embedded arbitration tailored for guild work.
 contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
     using SafeERC20 for IERC20;
 
-    /// @notice The receiving address for the provider
+    /// @notice The receiving address for the provider.
     address public providerReceiver;
 
+    /// @dev Custom errors for more efficient gas usage.
+    error InvalidProviderReceiver();
+
+    /// @notice Emitted when the client address is updated.
+    /// @param client The updated client address.
     event UpdatedClient(address indexed client);
+
+    /// @notice Emitted when the provider address is updated.
+    /// @param provider The updated provider address.
     event UpdatedProvider(address indexed provider);
+
+    /// @notice Emitted when the provider's receiver address is updated.
+    /// @param providerReceiver The updated provider receiver address.
     event UpdatedProviderReceiver(address indexed providerReceiver);
 
-    /**
-     * Modifier for functions that can only be called by the provider
-     */
+    /// @dev Modifier for functions that can only be called by the provider.
     modifier onlyProvider() {
-        require(msg.sender == provider, "not provider");
+        if (msg.sender != provider) revert NotProvider();
         _;
     }
 
-    /**
-     * Modifier for functions that can only be called by the client
-     */
+    /// @dev Modifier for functions that can only be called by the client.
     modifier onlyClient() {
-        require(msg.sender == client, "not client");
+        if (msg.sender != client) revert NotClient();
         _;
     }
 
     /**
-     * Internal function for updating the client address
-     * @param _client Updated client address
+     * @notice Internal function for updating the client address.
+     * @param _client The updated client address.
      */
     function _updateClient(address _client) internal {
         client = _client;
@@ -44,17 +52,17 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
     }
 
     /**
-     * Updates the client address
-     * @param _client Updated client address
+     * @notice Updates the client address.
+     * @param _client The updated client address.
      */
     function updateClient(address _client) external onlyClient {
-        require(_client != address(0), "invalid client");
+        if (_client == address(0)) revert InvalidClient();
         _updateClient(_client);
     }
 
     /**
-     * Internal function for updating the provider's receiver address
-     * @param _providerReceiver Updated provider receiver address
+     * @notice Internal function for updating the provider's receiver address.
+     * @param _providerReceiver The updated provider receiver address.
      */
     function _updateProviderReceiver(address _providerReceiver) internal {
         providerReceiver = _providerReceiver;
@@ -62,19 +70,19 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
     }
 
     /**
-     * Updates the provider's receiver address
-     * @param _providerReceiver Updated provider receiver address
+     * @notice Updates the provider's receiver address.
+     * @param _providerReceiver The updated provider receiver address.
      */
     function updateProviderReceiver(
         address _providerReceiver
     ) external onlyProvider {
-        require(_providerReceiver != address(0), "invalid provider receiver");
+        if (_providerReceiver == address(0)) revert InvalidProviderReceiver();
         _updateProviderReceiver(_providerReceiver);
     }
 
     /**
-     * Internal function for updating the provider address
-     * @param _provider Updated provider address
+     * @notice Internal function for updating the provider address.
+     * @param _provider The updated provider address.
      */
     function _updateProvider(address _provider) internal {
         provider = _provider;
@@ -82,17 +90,17 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
     }
 
     /**
-     * @dev Updates the provider address
-     * @param _provider The data to be handled and decoded
+     * @notice Updates the provider address.
+     * @param _provider The updated provider address.
      */
     function updateProvider(address _provider) external onlyProvider {
-        require(_provider != address(0), "invalid provider receiver");
+        if (_provider == address(0)) revert InvalidProvider();
         _updateProvider(_provider);
     }
 
     /**
-     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
-     * @param _data The data to be handled and decoded
+     * @notice Handles the provided data, decodes it, and initializes necessary contract state variables.
+     * @param _data The data to be handled and decoded.
      */
     function _handleData(bytes calldata _data) internal override {
         (
@@ -122,20 +130,17 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
                 )
             );
 
-        require(_providerReceiver != address(0), "invalid provider receiver");
-        require(_client != address(0), "invalid client");
-        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
-        require(_resolver != address(0), "invalid resolver");
-        require(_token != address(0), "invalid token");
-        require(_terminationTime > block.timestamp, "duration ended");
-        require(
-            _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
-            "duration too long"
-        );
-        require(
-            _wrappedNativeToken != address(0),
-            "invalid wrappedNativeToken"
-        );
+        if (_providerReceiver == address(0)) revert InvalidProviderReceiver();
+        if (_client == address(0)) revert InvalidClient();
+        if (_resolverType > uint8(ADR.ARBITRATOR)) revert InvalidResolverType();
+        if (_resolver == address(0)) revert InvalidResolver();
+        if (_token == address(0)) revert InvalidToken();
+        if (_terminationTime <= block.timestamp) revert DurationEnded();
+        if (_terminationTime > block.timestamp + MAX_TERMINATION_TIME)
+            revert DurationTooLong();
+        if (_wrappedNativeToken == address(0))
+            revert InvalidWrappedNativeToken();
+
         uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
             .resolutionRateOf(_resolver);
         if (_resolutionRate == 0) {
@@ -155,6 +160,11 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
         if (!_requireVerification) emit Verified(client, address(this));
     }
 
+    /**
+     * @dev Internal function to transfer payment to the provider's receiver.
+     * @param _token The address of the token to transfer.
+     * @param _amount The amount of tokens to transfer.
+     */
     function _transferPayment(
         address _token,
         uint256 _amount

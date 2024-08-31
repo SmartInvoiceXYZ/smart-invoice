@@ -84,7 +84,10 @@ describe('SmartInvoiceFactory', function () {
 
   it('Should revert deploy if zero wrappedNativeToken', async function () {
     const hash = viem.deployContract('SmartInvoiceFactory', [zeroAddress]);
-    await expect(hash).to.be.revertedWith('invalid wrappedNativeToken');
+    await expect(hash).to.be.revertedWithCustomError(
+      invoiceFactory,
+      'InvalidWrappedNativeToken',
+    );
   });
 
   it('Should deploy and set DEFAULT_ADMIN and ADMIN roles as msg.sender', async function () {
@@ -211,7 +214,10 @@ describe('SmartInvoiceFactory', function () {
       '0x',
       fakeType,
     ]);
-    await expect(txHash).to.be.revertedWith('Implementation does not exist');
+    await expect(txHash).to.be.revertedWithCustomError(
+      invoiceFactory,
+      'ImplementationDoesNotExist',
+    );
   });
 
   it('Should predict SmartInvoice address', async function () {

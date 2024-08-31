@@ -148,6 +148,6 @@ describe('SpoilsManagerFactory', function () {
         spoilsValues.receiver,
         spoilsValues.newOwner,
       ]),
-    ).to.be.revertedWith('Initializable: contract is already initialized');
+    ).to.be.revertedWithCustomError(spoilsManager, 'InvalidInitialization');
   });
 });

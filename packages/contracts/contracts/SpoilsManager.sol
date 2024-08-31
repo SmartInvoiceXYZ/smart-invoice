@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SpoilsManager is Ownable, Initializable {
+/// @title Spoils Manager Contract
+/// @notice Manages the distribution of spoils, allowing an owner to set a receiver and adjust the spoils percentage distributed to that receiver.
+contract SpoilsManager is OwnableUpgradeable {
     /// @dev The scale used to calculate the spoils percentage
     uint32 public SPLIT_PERCENTAGE_SCALE; // 100 * SPLIT_PERCENTAGE_SCALE = 100%
 
@@ -34,7 +35,7 @@ contract SpoilsManager is Ownable, Initializable {
     ) external virtual initializer {
         spoils = _spoils;
         receiver = _receiver;
-        _transferOwnership(_newOwner);
+        __Ownable_init(_newOwner);
         SPLIT_PERCENTAGE_SCALE = _percentageScale;
     }
 

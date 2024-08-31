@@ -176,8 +176,9 @@ describe('SmartInvoiceEscrow', function () {
       amounts,
       data,
     ]);
-    await expect(receipt).to.be.revertedWith(
-      'Initializable: contract is already initialized',
+    await expect(receipt).to.be.revertedWithCustomError(
+      newInvoice,
+      'InvalidInitialization',
     );
   });
 
@@ -198,7 +199,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('invalid client');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidClient',
+    );
   });
 
   it('Should revert init if invalid provider', async function () {
@@ -218,7 +222,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('invalid provider');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidProvider',
+    );
   });
 
   it('Should revert init if invalid resolver', async function () {
@@ -238,7 +245,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('invalid resolver');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidResolver',
+    );
   });
 
   it('Should revert init if invalid token', async function () {
@@ -258,7 +268,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('invalid token');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidToken',
+    );
   });
 
   it('Should revert init if invalid wrappedNativeToken', async function () {
@@ -277,7 +290,10 @@ describe('SmartInvoiceEscrow', function () {
       zeroAddress,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('invalid wrappedNativeToken');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidWrappedNativeToken',
+    );
   });
 
   it('Should revert init if terminationTime has ended', async function () {
@@ -297,7 +313,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('duration ended');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'DurationEnded',
+    );
   });
 
   it('Should revert init if terminationTime too long', async function () {
@@ -317,7 +336,10 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.be.revertedWith('duration too long');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'DurationTooLong',
+    );
   });
 
   it('Default resolution rate should equal 20', async function () {
@@ -364,20 +386,24 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
       requireVerification,
     );
-    await expect(receipt).to.revertedWith('invalid resolverType');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InvalidResolverType',
+    );
   });
 
   it('Should revert release by non client', async function () {
     await expect(
       invoice.write.release({ account: provider.account }),
-    ).to.be.revertedWith('!client');
+    ).to.be.revertedWithCustomError(invoice, 'NotClient');
   });
 
   it('Should revert release with low balance', async function () {
     // await setBalanceOf(mockToken, invoice.address, 5);
     await setBalanceOf(mockToken, invoice.address, 5);
-    await expect(invoice.write.release()).to.be.revertedWith(
-      'insufficient balance',
+    await expect(invoice.write.release()).to.be.revertedWithCustomError(
+      invoice,
+      'InsufficientBalance',
     );
   });
 
@@ -455,7 +481,10 @@ describe('SmartInvoiceEscrow', function () {
     await expect(receipt).to.emit(invoice, 'Release').withArgs(1, 15);
 
     await setBalanceOf(mockToken, invoice.address, 0);
-    await expect(invoice.write.release()).to.be.revertedWith('balance is 0');
+    await expect(invoice.write.release()).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should revert release if locked', async function () {
@@ -471,7 +500,10 @@ describe('SmartInvoiceEscrow', function () {
       zeroHash,
       mockWrappedNativeToken,
     );
-    expect(lockedInvoice.write.release()).to.be.revertedWith('locked');
+    expect(lockedInvoice.write.release()).to.be.revertedWithCustomError(
+      invoice,
+      'Locked',
+    );
   });
 
   it('Should release with milestone number', async function () {
@@ -503,26 +535,35 @@ describe('SmartInvoiceEscrow', function () {
   it('Should revert release with higher milestone number', async function () {
     await setBalanceOf(mockToken, invoice.address, 10);
     const receipt = invoice.write.release([1n]);
-    await expect(receipt).to.revertedWith('insufficient balance');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InsufficientBalance',
+    );
   });
 
   it('Should revert release with invalid milestone number', async function () {
     await setBalanceOf(mockToken, invoice.address, 10);
     const receipt = invoice.write.release([5n]);
-    await expect(receipt).to.revertedWith('invalid milestone');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InvalidMilestone',
+    );
   });
 
   it('Should revert release with passed milestone number', async function () {
     await setBalanceOf(mockToken, invoice.address, 10);
     await invoice.write.release();
     const receipt = invoice.write.release([0n]);
-    await expect(receipt).to.revertedWith('milestone passed');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InvalidMilestone',
+    );
   });
 
   it('Should revert release milestone if not client', async function () {
     await setBalanceOf(mockToken, invoice.address, 10);
     const receipt = invoice.write.release([0n], { account: provider.account });
-    await expect(receipt).to.revertedWith('!client');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'NotClient');
   });
 
   it('Should revert release milestone if locked', async function () {
@@ -538,9 +579,9 @@ describe('SmartInvoiceEscrow', function () {
       zeroHash,
       mockWrappedNativeToken,
     );
-    await expect(lockedInvoice.write.release([0n])).to.be.revertedWith(
-      'locked',
-    );
+    await expect(
+      lockedInvoice.write.release([0n]),
+    ).to.be.revertedWithCustomError(invoice, 'Locked');
   });
 
   it('Should releaseTokens with passed token', async function () {
@@ -560,7 +601,7 @@ describe('SmartInvoiceEscrow', function () {
     const receipt = invoice.write.releaseTokens([otherMockToken], {
       account: provider.account,
     });
-    await expect(receipt).to.revertedWith('!client');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'NotClient');
   });
 
   it('Should revert withdraw before terminationTime', async function () {
@@ -584,7 +625,7 @@ describe('SmartInvoiceEscrow', function () {
     invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
 
     const receipt = invoice.write.withdraw();
-    await expect(receipt).to.revertedWith('!terminated');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'Terminated');
   });
 
   it('Should revert withdraw if locked', async function () {
@@ -600,7 +641,10 @@ describe('SmartInvoiceEscrow', function () {
       zeroHash,
       mockWrappedNativeToken,
     );
-    await expect(lockedInvoice.write.withdraw()).to.be.revertedWith('locked');
+    await expect(lockedInvoice.write.withdraw()).to.be.revertedWithCustomError(
+      invoice,
+      'Locked',
+    );
   });
 
   it('Should withdraw after terminationTime', async function () {
@@ -655,7 +699,10 @@ describe('SmartInvoiceEscrow', function () {
     await setBalanceOf(mockToken, invoice.address, 0);
 
     const receipt = invoice.write.withdraw();
-    await expect(receipt).to.be.revertedWith('balance is 0');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should call withdraw from withdrawTokens', async function () {
@@ -732,7 +779,7 @@ describe('SmartInvoiceEscrow', function () {
     invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
 
     const receipt = invoice.write.withdrawTokens([otherMockToken]);
-    await expect(receipt).to.be.revertedWith('!terminated');
+    await expect(receipt).to.be.revertedWithCustomError(invoice, 'Terminated');
   });
 
   it('Should revert withdrawTokens for otherToken if balance is 0', async function () {
@@ -758,7 +805,10 @@ describe('SmartInvoiceEscrow', function () {
     await testClient.increaseTime({ seconds: 1000 });
     await setBalanceOf(otherMockToken, invoice.address, 0);
     const receipt = invoice.write.withdrawTokens([otherMockToken]);
-    await expect(receipt).to.be.revertedWith('balance is 0');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should revert lock if terminated', async function () {
@@ -784,7 +834,7 @@ describe('SmartInvoiceEscrow', function () {
     await testClient.increaseTime({ seconds: 1000 });
     await setBalanceOf(mockToken, invoice.address, 10);
     const receipt = invoice.write.lock([zeroHash]);
-    await expect(receipt).to.be.revertedWith('terminated');
+    await expect(receipt).to.be.revertedWithCustomError(invoice, 'Terminated');
   });
 
   it('Should revert lock if balance is 0', async function () {
@@ -808,7 +858,10 @@ describe('SmartInvoiceEscrow', function () {
     invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
     await setBalanceOf(mockToken, invoice.address, 0);
     const receipt = invoice.write.lock([zeroHash]);
-    await expect(receipt).to.be.revertedWith('balance is 0');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should revert lock if not client or provider', async function () {
@@ -834,7 +887,7 @@ describe('SmartInvoiceEscrow', function () {
     const receipt = invoice.write.lock([zeroHash], {
       account: resolver.account,
     });
-    await expect(receipt).to.be.revertedWith('!party');
+    await expect(receipt).to.be.revertedWithCustomError(invoice, 'NotParty');
   });
 
   it('Should revert lock if locked', async function () {
@@ -851,7 +904,7 @@ describe('SmartInvoiceEscrow', function () {
       mockWrappedNativeToken,
     );
     const receipt = lockedInvoice.write.lock([zeroHash]);
-    await expect(receipt).to.be.revertedWith('locked');
+    await expect(receipt).to.be.revertedWithCustomError(invoice, 'Locked');
   });
 
   it('Should lock if balance is greater than 0', async function () {
@@ -871,9 +924,9 @@ describe('SmartInvoiceEscrow', function () {
   });
 
   it('Should revert resolve if not locked', async function () {
-    await expect(invoice.write.resolve([0n, 10n, zeroHash])).to.be.revertedWith(
-      '!locked',
-    );
+    await expect(
+      invoice.write.resolve([0n, 10n, zeroHash]),
+    ).to.be.revertedWithCustomError(invoice, 'Locked');
   });
 
   it('Should revert resolve if balance is 0', async function () {
@@ -892,7 +945,7 @@ describe('SmartInvoiceEscrow', function () {
     await setBalanceOf(mockToken, lockedInvoice.address, 0);
     await expect(
       lockedInvoice.write.resolve([0n, 10n, zeroHash]),
-    ).to.be.revertedWith('balance is 0');
+    ).to.be.revertedWithCustomError(invoice, 'BalanceIsZero');
   });
 
   it('Should revert resolve if not resolver', async function () {
@@ -911,7 +964,7 @@ describe('SmartInvoiceEscrow', function () {
     await setBalanceOf(mockToken, lockedInvoice.address, 10);
     await expect(
       lockedInvoice.write.resolve([0n, 10n, zeroHash]),
-    ).to.be.revertedWith('!resolver');
+    ).to.be.revertedWithCustomError(invoice, 'NotResolver');
   });
 
   it('Should revert resolve if awards do not add up', async function () {
@@ -932,7 +985,7 @@ describe('SmartInvoiceEscrow', function () {
       lockedInvoice.write.resolve([0n, 0n, zeroHash], {
         account: resolver.account,
       }),
-    ).to.be.revertedWith('resolution != remainder');
+    ).to.be.revertedWithCustomError(invoice, 'ResolutionMismatch');
   });
 
   it('Should revert resolver if not individual', async function () {
@@ -956,9 +1009,9 @@ describe('SmartInvoiceEscrow', function () {
     expect(await invoice.read.resolverType()).to.be.equal(
       arbitratorResolverType,
     );
-    await expect(invoice.write.resolve([0n, 0n, zeroHash])).to.be.revertedWith(
-      '!individual resolver',
-    );
+    await expect(
+      invoice.write.resolve([0n, 0n, zeroHash]),
+    ).to.be.revertedWithCustomError(invoice, 'InvalidIndividualResolver');
   });
 
   it('Should resolve with correct rewards', async function () {
@@ -1092,8 +1145,9 @@ describe('SmartInvoiceEscrow', function () {
     expect(await invoice.read.resolverType()).to.be.equal(
       individualResolverType,
     );
-    await expect(invoice.write.rule([0n, 0n])).to.be.revertedWith(
-      '!arbitrator resolver',
+    await expect(invoice.write.rule([0n, 0n])).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidArbitratorResolver',
     );
   });
 
@@ -1115,7 +1169,10 @@ describe('SmartInvoiceEscrow', function () {
     );
     invoiceAddress = await awaitInvoiceAddress(tx);
     invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
-    await expect(invoice.write.rule([0n, 0n])).to.be.revertedWith('!locked');
+    await expect(invoice.write.rule([0n, 0n])).to.be.revertedWithCustomError(
+      invoice,
+      'Locked',
+    );
   });
 
   it('Should revert rule if not resolver', async function () {
@@ -1140,7 +1197,7 @@ describe('SmartInvoiceEscrow', function () {
 
     await expect(
       lockedInvoice.write.rule([0n, 0n], { account: provider.account }),
-    ).to.be.revertedWith('!resolver');
+    ).to.be.revertedWithCustomError(invoice, 'NotResolver');
   });
 
   it('Should revert rule if invalid disputeId', async function () {
@@ -1168,7 +1225,10 @@ describe('SmartInvoiceEscrow', function () {
       6n,
       10n,
     ]);
-    await expect(receipt).to.be.revertedWith('incorrect disputeId');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'IncorrectDisputeId',
+    );
   });
 
   it('Should revert rule if invalid ruling', async function () {
@@ -1195,7 +1255,10 @@ describe('SmartInvoiceEscrow', function () {
       lockedInvoice.address,
       6n,
     ]);
-    await expect(receipt).to.be.revertedWith('invalid ruling');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidRuling',
+    );
   });
 
   it('Should revert rule if balance is 0', async function () {
@@ -1222,7 +1285,10 @@ describe('SmartInvoiceEscrow', function () {
       lockedInvoice.address,
       1n,
     ]);
-    await expect(receipt).to.be.revertedWith('balance is 0');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should rule 1:1 for ruling 0', async function () {
@@ -1441,7 +1507,10 @@ describe('SmartInvoiceEscrow', function () {
       to: invoice.address,
       value: 10n,
     });
-    await expect(receipt).to.be.revertedWith('!wrappedNativeToken');
+    await expect(receipt).to.be.revertedWithCustomError(
+      invoice,
+      'InvalidWrappedNativeToken',
+    );
   });
 
   it('Should revert receive if locked', async function () {
@@ -1461,7 +1530,7 @@ describe('SmartInvoiceEscrow', function () {
       to: lockedInvoice.address,
       value: 10n,
     });
-    await expect(receipt).to.be.revertedWith('locked');
+    await expect(receipt).to.be.revertedWithCustomError(invoice, 'Locked');
   });
 
   it('Should accept receive and convert to wrapped token', async function () {
@@ -1591,7 +1660,7 @@ describe('SmartInvoiceEscrow', function () {
       invoice.write.addMilestones([[13n, 14n]], {
         account: randomSigner.account,
       }),
-    ).to.be.revertedWith('!party');
+    ).to.be.revertedWithCustomError(invoice, 'NotParty');
   });
 
   it('Should revert addMilestones if locked', async function () {
@@ -1609,7 +1678,7 @@ describe('SmartInvoiceEscrow', function () {
     );
     await expect(
       lockedInvoice.write.addMilestones([[13n, 14n]]),
-    ).to.be.revertedWith('locked');
+    ).to.be.revertedWithCustomError(invoice, 'Locked');
   });
 
   it('Should revert addMilestones if terminationTime passed', async function () {
@@ -1633,21 +1702,21 @@ describe('SmartInvoiceEscrow', function () {
     invoiceAddress = await awaitInvoiceAddress(tx);
     invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
 
-    await expect(invoice.write.addMilestones([[13n, 14n]])).to.be.revertedWith(
-      'terminated',
-    );
+    await expect(
+      invoice.write.addMilestones([[13n, 14n]]),
+    ).to.be.revertedWithCustomError(invoice, 'Terminated');
   });
 
   it('Should revert addMilestones if milestones array length is not between 1-10', async function () {
     await expect(
       invoice.write.addMilestones([[]], { account: client.account }),
-    ).to.be.revertedWith('no milestones are being added');
+    ).to.be.revertedWithCustomError(invoice, 'NoMilestones');
     await expect(
       invoice.write.addMilestones(
         [[1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n]],
         { account: client.account },
       ),
-    ).to.be.revertedWith('only 10 new milestones at a time');
+    ).to.be.revertedWithCustomError(invoice, 'ExceedsMilestoneLimit');
   });
 
   it('Should addMilestones(uint256[],bytes32) and update details', async function () {

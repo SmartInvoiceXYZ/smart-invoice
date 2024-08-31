@@ -148,8 +148,9 @@ describe('SmartInvoiceInstant', function () {
     );
 
     const hash = invoice1.write.init([provider.account.address, amounts, data]);
-    await expect(hash).to.revertedWith(
-      'Initializable: contract is already initialized',
+    await expect(hash).to.be.revertedWithCustomError(
+      invoice1,
+      'InvalidInitialization',
     );
   });
 
@@ -166,7 +167,7 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith('invalid client');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'InvalidClient');
   });
 
   it('Should revert init if invalid provider', async function () {
@@ -182,7 +183,10 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith('invalid provider');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InvalidProvider',
+    );
   });
 
   it('Should revert init if invalid token', async function () {
@@ -198,7 +202,7 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith('invalid token');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'InvalidToken');
   });
 
   it('Should revert init if invalid wrappedNativeToken', async function () {
@@ -214,7 +218,10 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       zeroAddress,
     );
-    await expect(receipt).to.revertedWith('invalid wrappedNativeToken');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'InvalidWrappedNativeToken',
+    );
   });
 
   it('Should revert init if deadline has ended', async function () {
@@ -232,7 +239,7 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith('duration ended');
+    await expect(receipt).to.revertedWithCustomError(invoice, 'DurationEnded');
   });
 
   it('Should revert init if deadline too long', async function () {
@@ -250,7 +257,10 @@ describe('SmartInvoiceInstant', function () {
       zeroHash,
       mockWrappedNativeToken.address,
     );
-    await expect(receipt).to.revertedWith('duration too long');
+    await expect(receipt).to.revertedWithCustomError(
+      invoice,
+      'DurationTooLong',
+    );
   });
 
   it('Should withdraw to provider', async function () {
@@ -293,7 +303,10 @@ describe('SmartInvoiceInstant', function () {
     invoice = await viem.getContractAt('SmartInvoiceInstant', address!);
     await setBalanceOf(mockToken.address, invoice.address, 0);
 
-    await expect(invoice.write.withdraw()).to.be.revertedWith('balance is 0');
+    await expect(invoice.write.withdraw()).to.be.revertedWithCustomError(
+      invoice,
+      'BalanceIsZero',
+    );
   });
 
   it('Should call withdraw from withdrawTokens', async function () {
@@ -360,7 +373,7 @@ describe('SmartInvoiceInstant', function () {
     await setBalanceOf(otherMockToken.address, invoice.address, 0);
 
     const hash = invoice.write.withdrawTokens([otherMockToken.address]);
-    await expect(hash).to.be.revertedWith('balance is 0');
+    await expect(hash).to.be.revertedWithCustomError(invoice, 'BalanceIsZero');
   });
 
   it('Should receive and emit Deposit, and convert to wrapped token', async function () {
@@ -523,7 +536,10 @@ describe('SmartInvoiceInstant', function () {
       to: invoice.address,
       value: 10n,
     });
-    await expect(hash).to.be.revertedWith('!wrappedNativeToken');
+    await expect(hash).to.be.revertedWithCustomError(
+      invoice,
+      'TokenNotWrappedNativeToken',
+    );
   });
 
   it('Should depositTokens and emit Deposit', async function () {
@@ -679,7 +695,7 @@ describe('SmartInvoiceInstant', function () {
     const hash = invoice.write.depositTokens([otherMockToken.address, 10n], {
       account: client.account,
     });
-    await expect(hash).to.be.revertedWith('!token');
+    await expect(hash).to.be.revertedWithCustomError(invoice, 'TokenMismatch');
   });
 
   it('Should getTotalDue and return sum greater than total if late fee', async function () {
@@ -946,7 +962,7 @@ describe('SmartInvoiceInstant', function () {
       account: client.account,
     });
 
-    expect(tipReceipt).to.be.revertedWith('!token');
+    expect(tipReceipt).to.be.revertedWithCustomError(invoice, 'InvalidToken');
     expect(await invoice.read.fulfilled()).to.equal(false);
     expect(await invoice.read.totalFulfilled()).to.equal(5);
   });

@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {SpoilsManager} from "./SpoilsManager.sol";
 
+/// @title Spoils Manager Factory Contract
+/// @notice Factory contract for deploying new instances of the SpoilsManager contract, allowing configuration of spoils percentage and receiver.
 contract SpoilsManagerFactory {
     address public implementation;
 

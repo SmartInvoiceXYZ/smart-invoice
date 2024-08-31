@@ -86,7 +86,10 @@ describe('SpoilsManager', function () {
     const newSpoils = 15;
     await expect(
       spoilsManager.write.setSpoils([newSpoils], { account: deployer.account }),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      spoilsManager,
+      'OwnableUnauthorizedAccount',
+    );
   });
 
   it('Should allow owner to update receiver', async function () {
@@ -103,6 +106,9 @@ describe('SpoilsManager', function () {
       spoilsManager.write.setReceiver([newReceiver], {
         account: deployer.account,
       }),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      spoilsManager,
+      'OwnableUnauthorizedAccount',
+    );
   });
 });

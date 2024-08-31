@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable not-rely-on-time, max-states-count
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {SmartInvoiceEscrow} from "./SmartInvoiceEscrow.sol";
 
-// splittable digital deal lockers w/ embedded arbitration tailored for guild work
+/// @title SmartInvoiceSplitEscrow
+/// @notice An extension of the SmartInvoiceEscrow contract that adds DAO fee handling.
 contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
     using SafeERC20 for IERC20;
 
     address public dao;
     uint256 public daoFee;
 
+    /// @dev Error definitions for more efficient gas usage.
+    error InvalidDAO();
+
     /**
-     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
+     * @notice Handles the provided data, decodes it, and initializes necessary contract state variables.
      * @param _data The data to be handled and decoded
      */
     function _handleData(bytes calldata _data) internal override {
@@ -49,25 +53,21 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
                 )
             );
 
-        if (_daoFee > 0) require(_dao != address(0), "invalid dao");
+        if (_daoFee > 0 && _dao == address(0)) revert InvalidDAO();
+        if (_client == address(0)) revert InvalidClient();
+        if (_resolverType > uint8(ADR.ARBITRATOR)) revert InvalidResolverType();
+        if (_resolver == address(0)) revert InvalidResolver();
+        if (_token == address(0)) revert InvalidToken();
+        if (_terminationTime <= block.timestamp) revert DurationEnded();
+        if (_terminationTime > block.timestamp + MAX_TERMINATION_TIME)
+            revert DurationTooLong();
+        if (_wrappedNativeToken == address(0))
+            revert InvalidWrappedNativeToken();
 
-        require(_client != address(0), "invalid client");
-        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
-        require(_resolver != address(0), "invalid resolver");
-        require(_token != address(0), "invalid token");
-        require(_terminationTime > block.timestamp, "duration ended");
-        require(
-            _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
-            "duration too long"
-        );
-        require(
-            _wrappedNativeToken != address(0),
-            "invalid wrappedNativeToken"
-        );
         uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
             .resolutionRateOf(_resolver);
         if (_resolutionRate == 0) {
-            _resolutionRate = 20;
+            _resolutionRate = 20; // Default resolution rate if not specified
         }
 
         client = _client;
@@ -84,15 +84,19 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         if (!_requireVerification) emit Verified(client, address(this));
     }
 
+    /**
+     * @dev Internal function to transfer payment to the provider and DAO.
+     * @param _token The address of the token to transfer.
+     * @param _amount The amount of tokens to transfer.
+     */
     function _transferPayment(
         address _token,
         uint256 _amount
     ) internal virtual override {
-        uint256 daoAmount;
-        unchecked {
-            daoAmount = (_amount * daoFee) / 10000;
-        }
+        uint256 daoAmount = (_amount * daoFee) / 10000;
+        uint256 providerAmount = _amount - daoAmount;
+
         IERC20(_token).safeTransfer(dao, daoAmount);
-        IERC20(_token).safeTransfer(provider, _amount - daoAmount);
+        IERC20(_token).safeTransfer(provider, providerAmount);
     }
 }

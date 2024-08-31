@@ -1,11 +1,12 @@
 {
   "name": "@smartinvoicexyz/contracts",
   "description": "Solidity smart contracts of the Smart Invoice protocol.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@nomicfoundation/hardhat-viem": "^2.0.3",
-    "@openzeppelin/contracts": "4.9.6",
+    "@openzeppelin/contracts": "5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@types/chai": "^4.3.19",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^9.1.0",
@@ -68,6 +69,7 @@
     "test-instant": "hardhat test ./test/SmartInvoiceInstant.ts",
     "test-split": "hardhat test ./test/SmartInvoiceSplitEscrow.ts",
     "test-spoils": "hardhat test ./test/SpoilsManager.ts",
+    "test-spoils-factory": "hardhat test ./test/SpoilsManagerFactory.ts",
     "test-updatable": "hardhat test ./test/SmartInvoiceUpdatable.ts",
     "test-zap": "hardhat test ./test/SafeSplitsEscrowZap.ts",
     "typecheck": "tsc --noEmit",
