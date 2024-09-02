@@ -1,4 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# yarn lint-staged
+pnpx lint-staged
+pnpx syncpack format
+pnpx syncpack list-mismatches

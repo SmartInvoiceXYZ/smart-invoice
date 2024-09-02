@@ -1,7 +1,7 @@
-import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils/src';
+import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import {

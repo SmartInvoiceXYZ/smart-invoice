@@ -4,8 +4,8 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   SMART_INVOICE_INSTANT_ABI,
   SMART_INVOICE_SPLIT_ESCROW_ABI,
-} from '@smart-invoice/constants';
-import { ValueOf } from '@smart-invoice/types';
+} from '@smartinvoicexyz/constants';
+import { ValueOf } from '@smartinvoicexyz/types';
 import _ from 'lodash';
 import {
   decodeEventLog,
@@ -16,7 +16,7 @@ import {
 
 export const logParser: {
   [key: ValueOf<typeof LOG_TYPE>]: (
-    log: Log,
+    _log: Log,
   ) => DecodeEventLogReturnType | undefined;
 } = {
   Factory: (log: Log) => {

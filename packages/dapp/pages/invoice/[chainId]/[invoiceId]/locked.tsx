@@ -1,12 +1,12 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   ChakraNextLink,
   Container,
   InvoiceNotFound,
   Loader,
-} from '@smart-invoice/ui';
-import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
+} from '@smartinvoicexyz/ui';
+import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { Address, Hex, hexToNumber } from 'viem';

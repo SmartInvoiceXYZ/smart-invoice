@@ -1,4 +1,4 @@
-import { Modals } from '@smart-invoice/types';
+import { Modals } from '@smartinvoicexyz/types';
 import React, {
   createContext,
   ReactNode,
@@ -20,7 +20,7 @@ const defaults: Modals = {
 
 export type OverlayContextType = {
   modals: Modals;
-  setModals: (modals: Partial<Modals>) => void;
+  setModals: (_modals: Partial<Modals>) => void;
   closeModals: () => void;
 };
 

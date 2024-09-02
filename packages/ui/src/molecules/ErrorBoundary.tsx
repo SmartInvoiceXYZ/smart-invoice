@@ -1,5 +1,5 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { logError } from '@smart-invoice/utils';
+import { logError } from '@smartinvoicexyz/utils';
 import React from 'react';
 
 export class ErrorBoundary extends React.Component {

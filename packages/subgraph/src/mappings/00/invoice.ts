@@ -28,7 +28,7 @@ export function handleMilestonesAdded(event: MilestonesAddedEvent): void {
     log.info('handleMilestonesAdded {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let addition = new MilestonesAdded(event.logIndex.toHexString());
+    let addition = new MilestonesAdded(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     addition.sender = event.params.sender;
     addition.invoice = event.params.invoice;
     addition.milestones = event.params.milestones;
@@ -63,7 +63,7 @@ export function handleVerified(event: VerifiedEvent): void {
     log.info('handleVerified {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let verification = new Verified(event.logIndex.toHexString());
+    let verification = new Verified(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     verification.client = event.params.client;
     verification.invoice = event.params.invoice;
 
@@ -82,7 +82,7 @@ export function handleRelease(event: ReleaseEvent): void {
     log.info('handleRelease {}', [event.address.toHexString()]);
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let release = new Release(event.logIndex.toHexString());
+    let release = new Release(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     release.txHash = event.transaction.hash;
     release.invoice = invoice.id;
     release.milestone = event.params.milestone;
@@ -102,7 +102,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let withdraw = new Withdraw(event.logIndex.toHexString());
+    let withdraw = new Withdraw(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     withdraw.txHash = event.transaction.hash;
     withdraw.invoice = invoice.id;
     withdraw.amount = event.params.balance;
@@ -121,7 +121,7 @@ export function handleLock(event: LockEvent): void {
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let dispute = new Dispute(event.logIndex.toHexString());
+    let dispute = new Dispute(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     dispute.txHash = event.transaction.hash;
 
     dispute.invoice = event.address.toHexString();
@@ -145,7 +145,7 @@ export function handleResolve(event: ResolveEvent): void {
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let resolution = new Resolution(event.logIndex.toHexString());
+    let resolution = new Resolution(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     resolution.txHash = event.transaction.hash;
     resolution.details = event.params.details;
     let hexHash = changetype<Bytes>(addQm(resolution.details));
@@ -173,7 +173,7 @@ export function handleDeposit(event: DepositEvent): void {
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let deposit = new Deposit(event.logIndex.toHexString());
+    let deposit = new Deposit(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     deposit.txHash = event.transaction.hash;
     deposit.invoice = invoice.id;
     deposit.sender = event.params.sender;
@@ -193,7 +193,7 @@ export function handleRule(event: RuleEvent): void {
   if (invoice != null) {
     invoice = updateInvoiceInfo(event.address, invoice);
 
-    let resolution = new Resolution(event.logIndex.toHexString());
+    let resolution = new Resolution(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
     resolution.txHash = event.transaction.hash;
     let hexHash = changetype<Bytes>(addQm(resolution.details));
     let base58Hash = hexHash.toBase58();

@@ -31,9 +31,9 @@ type CustomToastProps = {
 export type ToastProps = CustomToastProps & ChakraToastProps;
 
 export interface UseToastReturn {
-  success: (props: Omit<ToastProps, 'status'>) => void;
-  error: (props: Omit<ToastProps, 'status'>) => void;
-  warning: (props: Omit<ToastProps, 'status'>) => void;
-  loading: (props: Omit<ToastProps, 'status'>) => void;
-  info: (props: Omit<ToastProps, 'status'>) => void;
+  success: (_props: Omit<ToastProps, 'status'>) => void;
+  error: (_props: Omit<ToastProps, 'status'>) => void;
+  warning: (_props: Omit<ToastProps, 'status'>) => void;
+  loading: (_props: Omit<ToastProps, 'status'>) => void;
+  info: (_props: Omit<ToastProps, 'status'>) => void;
 }

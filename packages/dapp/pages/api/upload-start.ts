@@ -1,4 +1,4 @@
-import { generateApiKey, keyRestrictions } from '@smart-invoice/utils';
+import { generateApiKey, keyRestrictions } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { NextApiRequest, NextApiResponse } from 'next';
 

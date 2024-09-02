@@ -6,13 +6,13 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-import { Invoice } from '@smart-invoice/graphql';
-import { Network } from '@smart-invoice/types';
+import { Invoice } from '@smartinvoicexyz/graphql';
+import { Network } from '@smartinvoicexyz/types';
 import {
   chainByName,
   getAccountString,
   unixToDateTime,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React, { Fragment } from 'react';
 import { formatEther } from 'viem';

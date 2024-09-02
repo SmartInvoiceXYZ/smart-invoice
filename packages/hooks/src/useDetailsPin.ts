@@ -1,10 +1,10 @@
-import { INVOICE_VERSION } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
+import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import {
   convertIpfsCidV0ToByte32,
   fetchToken,
   handleDetailsPin,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';

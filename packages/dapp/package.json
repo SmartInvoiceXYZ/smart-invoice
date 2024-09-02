@@ -1,9 +1,16 @@
 {
-  "name": "@smart-invoice/dapp",
+  "name": "@smartinvoicexyz/dapp",
+  "description": "A Next.js application that provides a interface for web3 freelancers to manage cryptocurrency invoicing, escrow services, and arbitration.",
   "version": "0.1.0",
-  "private": true,
+  "browserslist": [
+    "chrome >= 67",
+    "edge >= 79",
+    "firefox >= 68",
+    "opera >= 54",
+    "safari >= 14"
+  ],
   "dependencies": {
-    "@apollo/client": "^3.8.9",
+    "@apollo/client": "^3.8.10",
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "2.1.1",
     "@chakra-ui/react": "^2.8.2",
@@ -13,20 +20,22 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@rainbow-me/rainbowkit": "^1.3.3",
     "@react-pdf/renderer": "^3.1.14",
-    "@smart-invoice/constants": "workspace:*",
-    "@smart-invoice/forms": "workspace:*",
-    "@smart-invoice/graphql": "workspace:*",
-    "@smart-invoice/hooks": "workspace:*",
-    "@smart-invoice/types": "workspace:*",
-    "@smart-invoice/ui": "workspace:*",
-    "@smart-invoice/utils": "workspace:*",
+    "@smartinvoicexyz/constants": "0.1.1",
+    "@smartinvoicexyz/forms": "0.1.4",
+    "@smartinvoicexyz/graphql": "0.1.2",
+    "@smartinvoicexyz/hooks": "0.1.4",
+    "@smartinvoicexyz/types": "0.1.2",
+    "@smartinvoicexyz/ui": "0.1.5",
+    "@smartinvoicexyz/utils": "0.1.3",
     "@tanstack/react-query": "^5.18.1",
     "@tanstack/react-query-devtools": "^5.18.1",
     "@tanstack/react-table": "^8.11.3",
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^14.1.2",
     "@vercel/analytics": "^1.1.1",
     "abitype": "^0.10.3",
     "base-58": "^0.0.1",
-    "dotenv": "^16.0.1",
+    "dotenv": "^16.3.1",
     "focus-visible": "^5.2.0",
     "framer-motion": "^10.17.12",
     "global": "^4.4.0",
@@ -42,26 +51,8 @@
     "viem": "^1.21.4",
     "wagmi": "^1.4.13"
   },
-  "scripts": {
-    "dev": "next dev",
-    "start": "next start",
-    "build": "next build",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
-    "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,jsx,ts,tsx}\""
-  },
-  "browserslist": [
-    "chrome >= 67",
-    "edge >= 79",
-    "firefox >= 68",
-    "opera >= 54",
-    "safari >= 14"
-  ],
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.0.4",
-    "@testing-library/jest-dom": "^6.2.0",
-    "@testing-library/react": "^14.1.2",
     "@types/jest": "^29.5.11",
     "@types/lodash": "^4.14.202",
     "@types/react": "^18.2.47",
@@ -78,5 +69,15 @@
       "next",
       "next/core-web-vitals"
     ]
+  },
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "format": "prettier --ignore-path .prettierignore --write \"**/*.{js,jsx,ts,tsx}\"",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "jest --watch"
   }
 }

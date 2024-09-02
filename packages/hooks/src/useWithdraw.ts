@@ -1,9 +1,9 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { Hex, TransactionReceipt } from 'viem';
+import { Hex } from 'viem';
 import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { fetchBalance, waitForTransaction } from 'wagmi/actions';
 

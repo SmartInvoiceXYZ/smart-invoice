@@ -7,8 +7,8 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { DepositFunds, TipForm, WithdrawFunds } from '@smart-invoice/forms';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+import { DepositFunds, TipForm, WithdrawFunds } from '@smartinvoicexyz/forms';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   Container,
   InvoiceMetaDetails,
@@ -16,7 +16,7 @@ import {
   Loader,
   Modal,
   useMediaStyles,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
 import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';

@@ -1,21 +1,37 @@
 {
-  "name": "@smart-invoice/shared",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "@smartinvoicexyz/shared",
+  "description": "Unified source for shared helper functions used across the Smart Invoice protocol.",
+  "version": "0.1.1",
+  "author": "",
   "dependencies": {
-    "@smart-invoice/constants": "workspace:*"
+    "@smartinvoicexyz/constants": "0.1.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
     "@types/lodash": "^4.14.202",
-    "@types/node": "20.11.5"
+    "@types/node": "^20.11.5"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "shared",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
+  "license": "ISC",
+  "main": "dist/src/index.js",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "types": "dist/src/index.d.ts"
 }

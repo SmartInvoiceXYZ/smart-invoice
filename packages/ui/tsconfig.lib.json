@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "moduleResolution": "Bundler",
     "outDir": "../../dist/out-tsc",
     "composite": true,
     "types": ["node", "next"]

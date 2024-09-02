@@ -24,13 +24,13 @@ const {
 } = process.env;
 
 if (!PRIVATE_KEY && !MNEMONIC) {
-  console.error('invalid env variable: PRIVATE_KEY or MNEMONIC');
+  console.error("invalid env variable: PRIVATE_KEY or MNEMONIC");
   process.exit(1);
 }
 
 const accounts = MNEMONIC
   ? { mnemonic: MNEMONIC }
-  : [PRIVATE_KEY.startsWith('0x') ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
+  : [PRIVATE_KEY.startsWith("0x") ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
 
 module.exports = {
   solidity: {

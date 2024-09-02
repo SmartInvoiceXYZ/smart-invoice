@@ -8,11 +8,11 @@ import {
   resolvers,
   SUPPORTED_NETWORKS,
   wrappedNativeToken,
-} from '@smart-invoice/constants';
-import { Invoice, TokenBalance, TokenMetadata } from '@smart-invoice/graphql';
-import { ProjectAgreement } from '@smart-invoice/types';
+} from '@smartinvoicexyz/constants';
+import { Invoice, TokenBalance, TokenMetadata } from '@smartinvoicexyz/graphql';
+import { ProjectAgreement } from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import { Address, formatUnits, Hex } from 'viem';
+import { Address, formatUnits } from 'viem';
 
 import { chainsMap } from '.';
 
@@ -50,17 +50,15 @@ export const resolverFeeLabel = (
   tokenMetadata: TokenMetadata | undefined,
 ) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
-export const getWrappedNativeToken = (chainId: number) =>
-{
-  if(!chainId) return undefined;
+export const getWrappedNativeToken = (chainId: number) => {
+  if (!chainId) return undefined;
   return wrappedNativeToken(chainId);
-}
+};
 
-export const getNativeTokenSymbol = (chainId: number) =>
-{
-  if(!chainId) return undefined;
+export const getNativeTokenSymbol = (chainId: number) => {
+  if (!chainId) return undefined;
   return chainsMap(chainId).nativeCurrency.symbol;
-}
+};
 
 export const getInvoiceFactoryAddress = (chainId: number) =>
   isOfTypeChainId(chainId)

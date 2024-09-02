@@ -1,5 +1,5 @@
-import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
-import { getInvoiceFactoryAddress } from '@smart-invoice/utils';
+import { SMART_INVOICE_FACTORY_ABI } from '@smartinvoicexyz/constants';
+import { getInvoiceFactoryAddress } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import { useContractRead } from 'wagmi';

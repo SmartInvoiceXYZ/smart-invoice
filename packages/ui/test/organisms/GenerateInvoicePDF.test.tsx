@@ -1,4 +1,4 @@
-import { Invoice } from '@smart-invoice/graphql';
+import { Invoice } from '@smartinvoicexyz/graphql';
 import { render } from '@testing-library/react';
 import React from 'react';
 

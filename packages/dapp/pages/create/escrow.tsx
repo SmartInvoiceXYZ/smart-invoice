@@ -1,20 +1,24 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { ESCROW_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
+import {
+  ESCROW_STEPS,
+  INVOICE_TYPES,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import {
   EscrowDetailsForm,
   FormConfirmation,
   PaymentsForm,
   ProjectDetailsForm,
   RegisterSuccess,
-} from '@smart-invoice/forms';
-import { useInvoiceCreate } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useInvoiceCreate } from '@smartinvoicexyz/hooks';
 import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';

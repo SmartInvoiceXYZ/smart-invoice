@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { logDebug } from '@smart-invoice/shared';
+import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
 import { clients } from './client';

@@ -1,12 +1,12 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useResolve } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useResolve } from '@smartinvoicexyz/hooks';
 import {
   NumberInput,
   Textarea,
   TokenDescriptor,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -63,9 +63,9 @@ export function ResolveFunds({
     [clientAward, providerAward, resolverAward],
   );
 
-  const onTxSuccess = (tx: TransactionReceipt) => {
-    // TODO handle tx success
-    console.log(tx);
+  const onTxSuccess = (_tx: TransactionReceipt) => {
+    // TODO: handle tx success
+    // console.log(tx);
     // toast
     // invalidate cache
     // close modal
@@ -80,7 +80,7 @@ export function ResolveFunds({
   });
 
   const onSubmit = async () => {
-    console.log('submitting', awards, comments);
+    // console.log('submitting', awards, comments);
 
     await resolve?.();
   };
