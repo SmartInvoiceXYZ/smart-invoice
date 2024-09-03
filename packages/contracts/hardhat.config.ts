@@ -28,11 +28,6 @@ if (MNEMONIC) {
   accounts = [PRIVATE_KEY.startsWith('0x') ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
 }
 
-if (!accounts) {
-  console.error('invalid env variable: PRIVATE_KEY or MNEMONIC');
-  process.exit(1);
-}
-
 const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.26',
