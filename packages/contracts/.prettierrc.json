@@ -1,6 +1,6 @@
 {
   "printWidth": 80,
-  "singleQuote": false,
+  "singleQuote": true,
   "trailingComma": "all",
   "tabWidth": 2,
   "arrowParens": "avoid",
@@ -8,6 +8,7 @@
     {
       "files": "*.sol",
       "options": {
+        "singleQuote": false,
         "tabWidth": 4
       }
     }

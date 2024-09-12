@@ -11,12 +11,12 @@ import {
   Layout,
   theme,
 } from '@smartinvoicexyz/ui';
-import { chains, wagmiConfig } from '@smartinvoicexyz/utils';
+import { wagmiConfig } from '@smartinvoicexyz/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AppProps } from 'next/app';
 import React from 'react';
-import { WagmiConfig } from 'wagmi';
+import { WagmiProvider } from 'wagmi';
 
 import { OverlayContextProvider } from '../contexts/OverlayContext';
 
@@ -33,9 +33,9 @@ const queryClient = new QueryClient({
 
 function App({ Component, pageProps }: AppProps) {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <QueryClientProvider client={queryClient}>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
           <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
             <CSSReset />
@@ -49,9 +49,9 @@ function App({ Component, pageProps }: AppProps) {
             </ErrorBoundary>
           </ChakraProvider>
           <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </RainbowKitProvider>
-    </WagmiConfig>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 

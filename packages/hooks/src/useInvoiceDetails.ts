@@ -11,10 +11,10 @@ import {
 import { getInvoiceDetails, getResolverInfo } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useBalance, useToken } from 'wagmi';
+import { formatUnits, Hex } from 'viem';
+import { useBalance } from 'wagmi';
 
-import { useInstantDetails, useIpfsDetails } from '.';
+import { useInstantDetails, useIpfsDetails, useToken } from '.';
 
 export const useInvoiceDetails = ({
   address,
@@ -40,7 +40,6 @@ export const useInvoiceDetails = ({
   const { data: tokenMetadata } = useToken({
     address: invoice?.token as Hex,
     chainId,
-    enabled: !!address && !!chainId,
   });
 
   // fetch the invoice's balances
@@ -49,7 +48,9 @@ export const useInvoiceDetails = ({
     address,
     token: invoice?.token as Hex,
     chainId,
-    enabled: !!invoice?.token && !!chainId,
+    query: {
+      enabled: !!invoice?.token && !!chainId,
+    },
   });
 
   // fetch the invoice's instant details, if applicable
@@ -67,8 +68,12 @@ export const useInvoiceDetails = ({
         {
           invoiceId: _.get(invoice, 'id'),
           token: tokenMetadata?.name,
-          tokenBalance: tokenBalance?.formatted,
-          nativeBalance: nativeBalance?.formatted,
+          tokenBalance: tokenBalance
+            ? formatUnits(tokenBalance.value, tokenBalance.decimals)
+            : undefined,
+          nativeBalance: nativeBalance
+            ? formatUnits(nativeBalance.value, nativeBalance.decimals)
+            : undefined,
           instantDetails: _.mapValues(instantDetails, v => v?.toString()),
         },
       ],

@@ -3,7 +3,7 @@
   "description": "A Graph Protocol subgraph for indexing and querying Smart Invoice events across multiple blockchain networks.",
   "version": "0.1.0",
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.78.0",
+    "@graphprotocol/graph-cli": "^0.81.0",
     "@graphprotocol/graph-ts": "^0.35.1",
     "mustache": "^4.2.0"
   },

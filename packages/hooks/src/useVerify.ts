@@ -2,9 +2,10 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { usePollSubgraph } from '.';
 
@@ -21,12 +22,15 @@ export const useVerify = ({
   toast: UseToastReturn;
   onTxSuccess?: () => void;
 }) => {
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const config = useConfig();
+  const { data, error: prepareError } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'verify', // no args
-    enabled: !!address,
+    query: {
+      enabled: !!address,
+    },
   });
 
   const waitForIndex = usePollSubgraph({
@@ -36,23 +40,35 @@ export const useVerify = ({
   });
 
   const {
-    writeAsync,
+    writeContractAsync,
     error: writeError,
-    isLoading,
-  } = useContractWrite({
-    ...config,
+    isPending: isLoading,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useVerify.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useVerify.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+        toast.info(TOASTS.useVerify.waitingForIndex);
+        await waitForIndex();
 
-      toast.info(TOASTS.useVerify.waitingForIndex);
-      await waitForIndex();
-
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: error => errorToastHandler('useVerify', error, toast),
     },
-    onError: error => errorToastHandler('useVerify', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useVerify', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

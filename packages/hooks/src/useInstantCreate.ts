@@ -11,12 +11,12 @@ import {
   getInvoiceFactoryAddress,
   parseTxLogs,
 } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction, WriteContractResult } from 'wagmi/actions';
+import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
 import { usePollSubgraph } from './usePollSubgraph';
@@ -34,7 +34,7 @@ export const useInstantCreate = ({
 }): {
   waitingForTx: boolean;
   prepareError: Error | null;
-  writeAsync: (() => Promise<WriteContractResult>) | undefined;
+  writeAsync: () => Promise<Hex | undefined>;
   writeError: Error | null;
   isLoading: boolean;
 } => {
@@ -144,7 +144,7 @@ export const useInstantCreate = ({
     lateFeeTimeInterval,
   ]);
 
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const { data, error: prepareError } = useSimulateContract({
     address: invoiceFactory,
     chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
@@ -155,40 +155,61 @@ export const useInstantCreate = ({
       escrowData,
       toHex('instant', { size: 32 }),
     ],
-    enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
+    query: {
+      enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
+    },
   });
+
+  const config = useConfig();
 
   const {
-    writeAsync,
+    writeContractAsync,
     error: writeError,
-    isLoading,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      // wait for tx to confirm on chain
-      setWaitingForTx(true);
-      toast.info(TOASTS.useInvoiceCreate.waitingForTx);
+    isPending: isLoading,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        // wait for tx to confirm on chain
+        setWaitingForTx(true);
+        toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-      const txData = await waitForTransaction({ chainId, hash });
-      // wait for subgraph to index
-      const localInvoiceId = parseTxLogs(
-        LOG_TYPE.Factory,
-        txData,
-        'LogNewInvoice',
-        'invoice',
-      );
-      if (!localInvoiceId) return;
-      setNewInvoiceId(localInvoiceId);
-      toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+        const txData = await waitForTransactionReceipt(config, {
+          chainId,
+          hash,
+        });
+        // wait for subgraph to index
+        const localInvoiceId = parseTxLogs(
+          LOG_TYPE.Factory,
+          txData,
+          'LogNewInvoice',
+          'invoice',
+        );
+        if (!localInvoiceId) return;
+        setNewInvoiceId(localInvoiceId);
+        toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
 
-      await waitForResult();
-      setWaitingForTx(false);
+        await waitForResult();
+        setWaitingForTx(false);
 
-      // pass back to component for further processing
-      onTxSuccess?.(localInvoiceId);
+        // pass back to component for further processing
+        onTxSuccess?.(localInvoiceId);
+      },
+      onError: (error: Error) =>
+        errorToastHandler('useInstantCreate', error, toast),
     },
-    onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useInstantCreate', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     waitingForTx,

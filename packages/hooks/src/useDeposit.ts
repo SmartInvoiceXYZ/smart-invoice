@@ -2,15 +2,17 @@ import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { getBalance, waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
-  useContractWrite,
-  usePrepareContractWrite,
+  useConfig,
   useSendTransaction,
+  useSimulateContract,
+  useWriteContract,
 } from 'wagmi';
-import { fetchBalance, waitForTransaction } from 'wagmi/actions';
 
 import { usePollSubgraph } from './usePollSubgraph';
 
@@ -33,10 +35,12 @@ export const useDeposit = ({
 
   const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
 
+  const config = useConfig();
+
   const waitForIndex = usePollSubgraph({
     label: 'useDeposit',
     fetchHelper: () =>
-      fetchBalance({
+      getBalance(config, {
         address: invoice?.address as Hex,
         chainId,
         token: token as Hex,
@@ -49,63 +53,85 @@ export const useDeposit = ({
   });
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: token as Hex,
     abi: IERC20_ABI,
     functionName: 'transfer',
     args: [invoice?.address as Hex, amount],
-    enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
+    query: {
+      enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useDeposit.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useDeposit.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-      toast.info(TOASTS.useDeposit.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useDeposit.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
     },
   });
 
-  const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
-    to: invoice?.address,
-    value: amount,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useDeposit.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  const { isPending: sendLoading, sendTransactionAsync } = useSendTransaction({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useDeposit.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-      toast.info(TOASTS.useDeposit.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useDeposit.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
     },
   });
 
-  const handleDeposit = async () => {
+  const handleDeposit = async (): Promise<Hex | undefined> => {
     try {
       if (paymentType === PAYMENT_TYPES.NATIVE) {
-        const result = await sendTransactionAsync();
+        const result = await sendTransactionAsync({
+          to: invoice?.address as Hex,
+          value: amount,
+        });
         return result;
       }
 
-      const result = await writeAsync?.();
+      if (!data) {
+        throw new Error('useDeposit: data is undefined');
+      }
+
+      const result = await writeContractAsync(data.request);
       return result;
     } catch (error: unknown) {
       errorToastHandler('useDeposit', error as Error, toast);
       return undefined;
     }
   };
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useDeposit', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

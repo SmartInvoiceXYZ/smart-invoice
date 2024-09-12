@@ -1,4 +1,4 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   coinbaseWallet,
   injectedWallet,
@@ -9,60 +9,57 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
-import { Chain, FallbackTransport } from 'viem';
-import {
-  Config,
-  configureChains,
-  createConfig,
-  PublicClient,
-  WebSocketPublicClient,
-} from 'wagmi';
+import { Chain, http, Transport } from 'viem';
+import { Config } from 'wagmi';
 import {
   arbitrum,
   base,
-  gnosis as defaultGnosis,
+  gnosis,
   holesky,
   mainnet,
   optimism,
   polygon,
   sepolia,
 } from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { publicProvider } from 'wagmi/providers/public';
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 
-const gnosis = {
-  ...defaultGnosis,
-  hasIcon: true,
-  iconUrl: '/chains/gnosis.png',
-  iconBackground: 'none',
+const infuraNetworkName: { [key: number]: string } = {
+  [mainnet.id]: 'mainnet',
+  [polygon.id]: 'polygon-mainnet',
+  [arbitrum.id]: 'arbitrum-mainnet',
+  [optimism.id]: 'optimism-mainnet',
+  [sepolia.id]: 'sepolia',
+  [base.id]: 'base-mainnet',
+  [holesky.id]: 'holesky',
 };
 
-const mainnetChains = [
-  mainnet.id,
-  gnosis.id,
-  polygon.id,
-  arbitrum.id,
-  optimism.id,
-  base.id,
+type _chains = readonly [Chain, ...Chain[]];
+type _transports = Record<_chains[number]['id'], Transport>;
+
+const chains: _chains = [
+  mainnet,
+  gnosis,
+  polygon,
+  arbitrum,
+  optimism,
+  base,
+  holesky,
+  sepolia,
 ];
-const testnetchains = [sepolia.id, holesky.id];
-const orderedChains = [...mainnetChains, ...testnetchains];
 
-export const chainsList: { [key: number]: Chain } = {
-  [mainnet.id]: mainnet,
-  [gnosis.id]: gnosis,
-  [polygon.id]: polygon,
-  [arbitrum.id]: arbitrum,
-  [optimism.id]: optimism,
-  [sepolia.id]: sepolia,
-  [base.id]: base,
-  [holesky.id]: holesky,
-};
+type ChainsList = { [key: number]: Chain };
 
-export const chainsMap: (_chainId: number) => Chain = (chainId: number) => {
+export const chainsList: ChainsList = chains.reduce(
+  (acc: ChainsList, chain: Chain) => ({
+    ...acc,
+    [chain.id]: chain,
+  }),
+  {} as ChainsList,
+);
+
+export const chainsMap = (chainId: number): Chain => {
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -73,71 +70,50 @@ export const chainsMap: (_chainId: number) => Chain = (chainId: number) => {
 export const chainByName = (name?: string): Chain | null => {
   if (!name) return null;
 
-  if (name === 'mainnet') {
-    return mainnet;
-  }
-
-  if (name.startsWith('arbitrum')) {
-    return arbitrum;
-  }
-
-  const chain = _.find(_.values(chainsList), { network: name });
+  const chain = chains.find((c: Chain) => c.name.toLowerCase().includes(name));
   if (!chain) throw new Error(`Chain ${name} not found`);
+
   return chain;
 };
 
-type ConfiguredChains = {
-  chains: Chain[];
-  publicClient: ({
-    chainId,
-  }: {
-    chainId?: number | undefined;
-  }) => PublicClient<FallbackTransport>;
-  webSocketPublicClient: ({
-    chainId,
-  }: {
-    chainId?: number | undefined;
-  }) => WebSocketPublicClient<FallbackTransport> | undefined;
-};
+const transports: _transports = chains.reduce(
+  (acc: _transports, chain: Chain) => {
+    const infuraNetwork = infuraNetworkName[chain.id];
+    if (!infuraNetwork) {
+      return {
+        ...acc,
+        [chain.id]: http(),
+      };
+    }
 
-const { chains, publicClient, webSocketPublicClient }: ConfiguredChains =
-  configureChains<Chain>(
-    _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
-    [
-      infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-      publicProvider(),
-    ],
-  );
+    return {
+      ...acc,
+      [chain.id]: http(`https://${infuraNetwork}.infura.io/v3/${PROJECT_ID}`),
+    };
+  },
+  {} as _transports,
+);
 
-const options = {
+const wagmiConfig: Config<_chains, _transports> = getDefaultConfig({
+  ssr: true,
   appName: APP_NAME,
   projectId: PROJECT_ID,
   chains,
-};
-
-const connectors = connectorsForWallets([
-  {
-    groupName: 'Recommended',
-    wallets: [
-      injectedWallet({ chains, shimDisconnect: true }),
-      rainbowWallet({ chains, projectId: PROJECT_ID }),
-      ledgerWallet({ chains, projectId: PROJECT_ID }),
-      safeWallet({ chains }),
-      metaMaskWallet({ chains, projectId: PROJECT_ID }),
-      coinbaseWallet({ appName: APP_NAME, chains }),
-      walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
-    ],
-  },
-]);
-
-const wagmiConfig: Config<
-  PublicClient<FallbackTransport>,
-  WebSocketPublicClient<FallbackTransport>
-> = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
-  webSocketPublicClient,
+  transports,
+  wallets: [
+    {
+      groupName: 'Recommended',
+      wallets: [
+        injectedWallet,
+        rainbowWallet,
+        ledgerWallet,
+        safeWallet,
+        metaMaskWallet,
+        coinbaseWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
 });
 
 export { chains, wagmiConfig };

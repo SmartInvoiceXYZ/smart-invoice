@@ -2,10 +2,16 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import {
+  useChainId,
+  useConfig,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 import { usePollSubgraph } from './usePollSubgraph';
 
@@ -21,6 +27,7 @@ export const useRelease = ({
   toast: UseToastReturn;
 }) => {
   const chainId = useChainId();
+  const config = useConfig();
 
   const specifiedMilestone = _.isNumber(milestone);
 
@@ -32,35 +39,50 @@ export const useRelease = ({
   });
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: invoice?.address as Hex,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
-    enabled: !!invoice?.address,
+    query: {
+      enabled: !!invoice?.address,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useRelease.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useRelease.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-      toast.info(TOASTS.useRelease.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useRelease.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: (error: Error) => errorToastHandler('useRelease', error, toast),
     },
-    onError: error => errorToastHandler('useRelease', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useRelease', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

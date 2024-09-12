@@ -201,7 +201,7 @@ export function InvoicePaymentDetails({
                   <>
                     <Heading size="md">Remaining Balance</Heading>
                     <Heading size="md">
-                      {`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}{' '}
+                      {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
                     </Heading>
                   </>
                 ) : (
@@ -240,7 +240,9 @@ export function InvoicePaymentDetails({
                   fontSize="lg"
                 >
                   <Text>Amount Locked</Text>
-                  <Text textAlign="right">{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
+                  <Text textAlign="right">
+                    {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+                  </Text>
                 </Flex>
                 <Text color="black">
                   {`A dispute is in progress with `}

@@ -6,31 +6,36 @@ import {
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { useCallback } from 'react';
+import { Hex, zeroHash } from 'viem';
+import {
+  useChainId,
+  useConfig,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 import { usePollSubgraph } from '.';
 
 export const useLock = ({
   invoice,
   disputeReason,
-  // amount,
   onTxSuccess,
   toast,
 }: {
   invoice: InvoiceDetails;
   disputeReason: string;
-  amount: string | undefined;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
 }) => {
   const currentChainId = useChainId();
   const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
 
-  const detailsHash =
-    '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const detailsHash = zeroHash;
+
+  const config = useConfig();
 
   // const detailsHash = await uploadDisputeDetails({
   //   reason: disputeReason,
@@ -46,37 +51,52 @@ export const useLock = ({
   });
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'lock',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [detailsHash],
-    enabled:
-      !!invoice?.address &&
-      !!disputeReason &&
-      currentChainId === invoiceChainId,
+    query: {
+      enabled:
+        !!invoice?.address &&
+        !!disputeReason &&
+        currentChainId === invoiceChainId,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useLock.waitingForTx);
-      await waitForTransaction({ hash });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useLock.waitingForTx);
+        await waitForTransactionReceipt(config, { hash });
 
-      toast.info(TOASTS.useLock.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useLock.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: error => errorToastHandler('useLock', error, toast),
     },
-    onError: error => errorToastHandler('useLock', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useLock', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

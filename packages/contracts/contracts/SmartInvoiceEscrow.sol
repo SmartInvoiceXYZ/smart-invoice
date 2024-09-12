@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable not-rely-on-time, max-states-count
 
-pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
@@ -15,10 +14,8 @@ import {IArbitrable} from "./interfaces/IArbitrable.sol";
 import {IArbitrator} from "./interfaces/IArbitrator.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
-// TODO migrate to custom errors
-// TODO update recipient to provider throughout
-
-// splittable digital deal lockers w/ embedded arbitration tailored for guild work
+/// @title SmartInvoiceEscrow
+/// @notice A contract that acts as a digital escrow for split payments with embedded arbitration, designed for use in guild or collaborative work settings.
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
@@ -28,12 +25,13 @@ contract SmartInvoiceEscrow is
 {
     using SafeERC20 for IERC20;
 
-    uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
-    // Note that Aragon Court treats the possible outcomes as arbitrary numbers, leaving the Arbitrable (us) to define how to understand them.
-    // Some outcomes [0, 1, and 2] are reserved by Aragon Court: "missing", "leaked", and "refused", respectively.
-    // Note that Aragon Court emits the LOWEST outcome in the event of a tie.
+    enum ADR {
+        INDIVIDUAL,
+        ARBITRATOR
+    }
 
-    // solhint-disable-next-line var-name-mixedcase
+    uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
+
     uint8[2][6] public RULINGS = [
         [1, 1], // 0 = refused to arbitrate
         [1, 0], // 1 = 100% to client
@@ -46,11 +44,6 @@ contract SmartInvoiceEscrow is
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
 
     address public wrappedNativeToken;
-
-    enum ADR {
-        INDIVIDUAL,
-        ARBITRATOR
-    }
 
     address public client;
     address public provider;
@@ -68,51 +61,26 @@ contract SmartInvoiceEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
-    event MilestonesAdded(
-        address indexed sender,
-        address indexed invoice,
-        uint256[] milestones
-    );
-    event DetailsUpdated(address indexed sender, bytes32 details);
-    event Deposit(address indexed sender, uint256 amount);
-    event Release(uint256 milestone, uint256 amount);
-    event Withdraw(uint256 balance);
-    event Lock(address indexed sender, bytes32 details);
-    event Resolve(
-        address indexed resolver,
-        uint256 clientAward,
-        uint256 providerAward,
-        uint256 resolutionFee,
-        bytes32 details
-    );
-    event Rule(
-        address indexed resolver,
-        uint256 clientAward,
-        uint256 providerAward,
-        uint256 ruling
-    );
-    event Verified(address indexed client, address indexed invoice);
-
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
-     * @dev Initializes the contract with the provided recipient, amounts, and data.
-     * @param _recipient The address of the recipient
-     * @param _amounts The array of amounts associated with the recipient
+     * @dev Initializes the contract with the provided provider, amounts, and data.
+     * @param _provider The address of the provider
+     * @param _amounts The array of amounts associated with the provider
      * @param _data The additional data needed for initialization
-     * #todo rename recipient parameter to provider for consistency
      */
     function init(
-        address _recipient,
+        address _provider,
         uint256[] calldata _amounts,
         bytes calldata _data
     ) external virtual override initializer {
-        require(_recipient != address(0), "invalid provider");
+        if (_provider == address(0)) revert InvalidProvider();
 
         _handleData(_data);
 
-        provider = _recipient;
+        provider = _provider;
         amounts = _amounts;
         uint256 _total = 0;
         for (uint256 i = 0; i < amounts.length; i++) {
@@ -131,7 +99,7 @@ contract SmartInvoiceEscrow is
             uint8 _resolverType,
             address _resolver,
             address _token,
-            uint256 _terminationTime, // exact termination date in seconds since epoch
+            uint256 _terminationTime,
             bytes32 _details,
             address _wrappedNativeToken,
             bool _requireVerification,
@@ -157,20 +125,16 @@ contract SmartInvoiceEscrow is
             _resolutionRate = 20;
         }
 
-        require(_client != address(0), "invalid client");
-        require(_resolverType <= uint8(ADR.ARBITRATOR), "invalid resolverType");
-        require(_resolver != address(0), "invalid resolver");
-        require(_token != address(0), "invalid token");
-        require(_terminationTime > block.timestamp, "duration ended");
-        require(
-            _terminationTime <= block.timestamp + MAX_TERMINATION_TIME,
-            "duration too long"
-        );
-        require(_resolutionRate > 0, "invalid resolutionRate");
-        require(
-            _wrappedNativeToken != address(0),
-            "invalid wrappedNativeToken"
-        );
+        if (_client == address(0)) revert InvalidClient();
+        if (_resolverType > uint8(ADR.ARBITRATOR)) revert InvalidResolverType();
+        if (_resolver == address(0)) revert InvalidResolver();
+        if (_token == address(0)) revert InvalidToken();
+        if (_terminationTime <= block.timestamp) revert DurationEnded();
+        if (_terminationTime > block.timestamp + MAX_TERMINATION_TIME)
+            revert DurationTooLong();
+        if (_resolutionRate == 0) revert InvalidResolutionRate();
+        if (_wrappedNativeToken == address(0))
+            revert InvalidWrappedNativeToken();
 
         client = _client;
         resolverType = ADR(_resolverType);
@@ -188,7 +152,7 @@ contract SmartInvoiceEscrow is
      * @dev Verifies the client and contract are paired
      */
     function verify() external override {
-        require(msg.sender == client, "!client");
+        if (msg.sender != client) revert NotClient();
         emit Verified(client, address(this));
     }
 
@@ -221,11 +185,12 @@ contract SmartInvoiceEscrow is
         uint256[] calldata _milestones,
         bytes32 _details
     ) internal {
-        require(!locked, "locked");
-        require(block.timestamp < terminationTime, "terminated");
-        require(_msgSender() == client || _msgSender() == provider, "!party");
-        require(_milestones.length > 0, "no milestones are being added");
-        require(_milestones.length <= 10, "only 10 new milestones at a time");
+        if (locked) revert Locked();
+        if (block.timestamp >= terminationTime) revert Terminated();
+        if (_msgSender() != client && _msgSender() != provider)
+            revert NotParty();
+        if (_milestones.length == 0) revert NoMilestones();
+        if (_milestones.length > 10) revert ExceedsMilestoneLimit();
 
         uint256 newLength = amounts.length + _milestones.length;
         uint256[] memory baseArray = new uint256[](newLength);
@@ -262,10 +227,8 @@ contract SmartInvoiceEscrow is
      * @dev Internal function to release funds from the contract to the provider.
      */
     function _release() internal virtual {
-        // client transfers locker milestone funds to provider
-
-        require(!locked, "locked");
-        require(_msgSender() == client, "!client");
+        if (locked) revert Locked();
+        if (_msgSender() != client) revert NotClient();
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
@@ -275,14 +238,14 @@ contract SmartInvoiceEscrow is
             if (currentMilestone == amounts.length - 1 && amount < balance) {
                 amount = balance;
             }
-            require(balance >= amount, "insufficient balance");
+            if (balance < amount) revert InsufficientBalance();
 
             milestone = milestone + 1;
             _transferPayment(token, amount);
             released = released + amount;
             emit Release(currentMilestone, amount);
         } else {
-            require(balance > 0, "balance is 0");
+            if (balance == 0) revert BalanceIsZero();
 
             _transferPayment(token, balance);
             released = released + balance;
@@ -298,18 +261,18 @@ contract SmartInvoiceEscrow is
         return _release();
     }
 
-    /** @dev External function to release funds from the contract to the provider.
-     * Uses the internal `_release` function to perform the actual release.
+    /**
+     * @dev External function to release funds from the contract to the provider up to a certain milestone.
      * @param _milestone The milestone to release funds to
      */
     function release(
         uint256 _milestone
     ) external virtual override nonReentrant {
-        // client transfers locker funds upto certain milestone to provider
-        require(!locked, "locked");
-        require(_msgSender() == client, "!client");
-        require(_milestone >= milestone, "milestone passed");
-        require(_milestone < amounts.length, "invalid milestone");
+        if (locked) revert Locked();
+        if (_msgSender() != client) revert NotClient();
+        if (_milestone < milestone) revert InvalidMilestone();
+        if (_milestone >= amounts.length) revert InvalidMilestone();
+
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 amount = 0;
         for (uint256 j = milestone; j <= _milestone; j++) {
@@ -321,7 +284,7 @@ contract SmartInvoiceEscrow is
                 amount = amount + amounts[j];
             }
         }
-        require(balance >= amount, "insufficient balance");
+        if (balance < amount) revert InsufficientBalance();
 
         _transferPayment(token, amount);
         released = released + amount;
@@ -329,9 +292,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to release funds from the contract to the provider.
+     * @dev External function to release tokens from the contract to the provider.
      * Uses the internal `_release` function to perform the actual release.
-     * @param _token The milestones to release funds to
+     * @param _token The token to release funds from
      */
     function releaseTokens(
         address _token
@@ -339,7 +302,7 @@ contract SmartInvoiceEscrow is
         if (_token == token) {
             _release();
         } else {
-            require(_msgSender() == client, "!client");
+            if (_msgSender() != client) revert NotClient();
             uint256 balance = IERC20(_token).balanceOf(address(this));
             _transferPayment(_token, balance);
         }
@@ -349,12 +312,12 @@ contract SmartInvoiceEscrow is
      * @dev Internal function to withdraw funds from the contract to the client.
      */
     function _withdraw() internal {
-        require(!locked, "locked");
-        require(block.timestamp > terminationTime, "!terminated");
+        if (locked) revert Locked();
+        if (block.timestamp <= terminationTime) revert Terminated();
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "balance is 0");
+        if (balance == 0) revert BalanceIsZero();
 
-        IERC20(token).safeTransfer(client, balance);
+        _withdrawDeposit(token, balance);
         milestone = amounts.length;
 
         emit Withdraw(balance);
@@ -369,7 +332,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to withdraw funds from the contract to the client.
+     * @dev External function to withdraw tokens from the contract to the client.
      * Uses the internal `_withdraw` function to perform the actual withdrawal.
      * @param _token The token to withdraw
      */
@@ -377,11 +340,11 @@ contract SmartInvoiceEscrow is
         if (_token == token) {
             _withdraw();
         } else {
-            require(block.timestamp > terminationTime, "!terminated");
+            if (block.timestamp <= terminationTime) revert Terminated();
             uint256 balance = IERC20(_token).balanceOf(address(this));
-            require(balance > 0, "balance is 0");
+            if (balance == 0) revert BalanceIsZero();
 
-            IERC20(_token).safeTransfer(client, balance);
+            _withdrawDeposit(_token, balance);
         }
     }
 
@@ -390,11 +353,12 @@ contract SmartInvoiceEscrow is
      * @param _details Details of the dispute
      */
     function lock(bytes32 _details) external payable override nonReentrant {
-        require(!locked, "locked");
+        if (locked) revert Locked();
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "balance is 0");
-        require(block.timestamp < terminationTime, "terminated");
-        require(_msgSender() == client || _msgSender() == provider, "!party");
+        if (balance == 0) revert BalanceIsZero();
+        if (block.timestamp >= terminationTime) revert Terminated();
+        if (_msgSender() != client && _msgSender() != provider)
+            revert NotParty();
 
         if (resolverType == ADR.ARBITRATOR) {
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
@@ -408,7 +372,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to unlock the contract.
+     * @dev External function to resolve the contract.
      * @param _clientAward The amount to award the client
      * @param _providerAward The amount to award the provider
      * @param _details Details of the dispute
@@ -418,25 +382,22 @@ contract SmartInvoiceEscrow is
         uint256 _providerAward,
         bytes32 _details
     ) external virtual override nonReentrant {
-        // called by individual
-        require(resolverType == ADR.INDIVIDUAL, "!individual resolver");
-        require(locked, "!locked");
+        if (resolverType != ADR.INDIVIDUAL) revert InvalidIndividualResolver();
+        if (!locked) revert Locked();
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "balance is 0");
-        require(_msgSender() == resolver, "!resolver");
+        if (balance == 0) revert BalanceIsZero();
+        if (_msgSender() != resolver) revert NotResolver();
 
-        uint256 resolutionFee = balance / resolutionRate; // calculates dispute resolution fee (div(20) = 5% of remainder)
+        uint256 resolutionFee = balance / resolutionRate;
 
-        require(
-            _clientAward + _providerAward == balance - resolutionFee,
-            "resolution != remainder"
-        );
+        if (_clientAward + _providerAward != balance - resolutionFee)
+            revert ResolutionMismatch();
 
         if (_providerAward > 0) {
             _transferPayment(token, _providerAward);
         }
         if (_clientAward > 0) {
-            IERC20(token).safeTransfer(client, _clientAward);
+            _withdrawDeposit(token, _clientAward);
         }
         if (resolutionFee > 0) {
             IERC20(token).safeTransfer(resolver, resolutionFee);
@@ -455,7 +416,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to unlock the contract.
+     * @dev External function to rule on a dispute.
      * @param _disputeId The ID of the dispute
      * @param _ruling The ruling of the arbitrator
      */
@@ -463,14 +424,13 @@ contract SmartInvoiceEscrow is
         uint256 _disputeId,
         uint256 _ruling
     ) external virtual override nonReentrant {
-        // called by arbitrator
-        require(resolverType == ADR.ARBITRATOR, "!arbitrator resolver");
-        require(locked, "!locked");
-        require(_msgSender() == resolver, "!resolver");
-        require(_disputeId == disputeId, "incorrect disputeId");
-        require(_ruling <= NUM_RULING_OPTIONS, "invalid ruling");
+        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (!locked) revert Locked();
+        if (_msgSender() != resolver) revert NotResolver();
+        if (_disputeId != disputeId) revert IncorrectDisputeId();
+        if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling();
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "balance is 0");
+        if (balance == 0) revert BalanceIsZero();
 
         uint8[2] memory ruling = _getRuling(_ruling);
         uint8 clientShare = ruling[0];
@@ -483,7 +443,7 @@ contract SmartInvoiceEscrow is
             _transferPayment(token, providerAward);
         }
         if (clientAward > 0) {
-            IERC20(token).safeTransfer(client, clientAward);
+            _withdrawDeposit(token, clientAward);
         }
 
         milestone = amounts.length;
@@ -511,6 +471,11 @@ contract SmartInvoiceEscrow is
         ruling = rulings[_ruling];
     }
 
+    /**
+     * @dev Internal function to transfer payment to the provider.
+     * @param _token The token to transfer
+     * @param _amount The amount to transfer
+     */
     function _transferPayment(
         address _token,
         uint256 _amount
@@ -518,10 +483,23 @@ contract SmartInvoiceEscrow is
         IERC20(_token).safeTransfer(provider, _amount);
     }
 
+    /**
+     * @dev Internal function to withdraw deposit to the client.
+     * @param _token The token to withdraw
+     * @param _amount The amount to withdraw
+     */
+    function _withdrawDeposit(
+        address _token,
+        uint256 _amount
+    ) internal virtual {
+        IERC20(_token).safeTransfer(client, _amount);
+    }
+
     // receive eth transfers
+    // solhint-disable-next-line no-complex-fallback
     receive() external payable {
-        require(!locked, "locked");
-        require(token == wrappedNativeToken, "!wrappedNativeToken");
+        if (locked) revert Locked();
+        if (token != wrappedNativeToken) revert InvalidWrappedNativeToken();
         IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
         emit Deposit(_msgSender(), msg.value);
     }

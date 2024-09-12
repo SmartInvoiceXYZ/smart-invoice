@@ -2,10 +2,16 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { getBalance, waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { fetchBalance, waitForTransaction } from 'wagmi/actions';
+import {
+  useChainId,
+  useConfig,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 import { usePollSubgraph } from './usePollSubgraph';
 
@@ -18,6 +24,7 @@ export const useWithdraw = ({
   onTxSuccess: () => void;
   toast: UseToastReturn;
 }) => {
+  const config = useConfig();
   const chainId = useChainId();
   const { address } = _.pick(invoice, ['address']);
   const { token } = _.pick(invoice, ['token', 'tokenBalance']);
@@ -25,7 +32,7 @@ export const useWithdraw = ({
   const waitForIndex = usePollSubgraph({
     label: 'useDeposit',
     fetchHelper: () =>
-      fetchBalance({
+      getBalance(config, {
         address: invoice?.address as Hex,
         chainId,
         token: token as Hex,
@@ -35,34 +42,49 @@ export const useWithdraw = ({
   });
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: address as Hex,
     functionName: 'withdraw',
     abi: SMART_INVOICE_ESCROW_ABI,
     // args: [],
-    enabled: !!invoice?.address,
+    query: {
+      enabled: !!invoice?.address,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useWithdraw.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useWithdraw.waitingForTx);
+        await waitForTransactionReceipt(config, { hash, chainId });
 
-      toast.info(TOASTS.useWithdraw.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useWithdraw.waitingForIndex);
+        await waitForIndex();
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: error => errorToastHandler('useWithdraw', error, toast),
     },
-    onError: error => errorToastHandler('useWithdraw', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useWithdraw', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

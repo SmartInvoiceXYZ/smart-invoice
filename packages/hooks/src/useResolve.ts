@@ -2,12 +2,18 @@ import { SMART_INVOICE_ESCROW_ABI } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
-import { Hex, TransactionReceipt } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { useCallback } from 'react';
+import { Hex, TransactionReceipt, zeroHash } from 'viem';
+import {
+  useChainId,
+  useConfig,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
-// TODO fix pin
+// TODO: fix pin
 
 export const useResolve = ({
   invoice,
@@ -30,8 +36,8 @@ export const useResolve = ({
   onTxSuccess: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
 }) => {
-  const detailsHash =
-    '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const config = useConfig();
+  const detailsHash = zeroHash;
   const chainId = useChainId();
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
@@ -39,35 +45,53 @@ export const useResolve = ({
     tokenBalance?.value === clientAward + providerAward + resolverAward;
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'resolve',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [clientAward, providerAward, detailsHash],
-    enabled:
-      !!invoice?.address &&
-      fullBalance &&
-      // invoice?.isLocked &&
-      // balance.value > BigInt(0) &&
-      !!comments,
+    query: {
+      enabled:
+        !!invoice?.address &&
+        fullBalance &&
+        // invoice?.isLocked &&
+        // balance.value > BigInt(0) &&
+        !!comments,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      const data = await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        const receipt = await waitForTransactionReceipt(config, {
+          hash,
+          chainId,
+        });
 
-      onTxSuccess?.(data);
+        onTxSuccess?.(receipt);
+      },
+      onError: error => errorToastHandler('useResolve', error, toast),
     },
-    onError: error => errorToastHandler('useResolve', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useResolve', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

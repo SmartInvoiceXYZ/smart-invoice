@@ -1,9 +1,10 @@
 import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
+import { useCallback } from 'react';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useTip = ({
   address,
@@ -13,26 +14,45 @@ export const useTip = ({
   onTxSuccess,
   toast,
 }: TipProps) => {
-  const { config } = usePrepareContractWrite({
+  const { data } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_INSTANT_ABI,
     functionName: 'tip',
     args: [token || zeroAddress, amount || BigInt(0)],
-    enabled: !!address && !!chainId && !!token && !!amount,
-  });
-
-  const { writeAsync } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      // eslint-disable-next-line no-console
-      console.log('Tip successful');
-      const data = await waitForTransaction({ hash, chainId });
-
-      onTxSuccess?.(data);
+    query: {
+      enabled: !!address && !!chainId && !!token && !!amount,
     },
-    onError: error => errorToastHandler('useTip', error, toast),
   });
+  const config = useConfig();
+
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        // eslint-disable-next-line no-console
+        console.log('Tip successful');
+        const receipt = await waitForTransactionReceipt(config, {
+          hash,
+          chainId,
+        });
+
+        onTxSuccess?.(receipt);
+      },
+      onError: error => errorToastHandler('useTip', error, toast),
+    },
+  });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useTip', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return { writeAsync };
 };

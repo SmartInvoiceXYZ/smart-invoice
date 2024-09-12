@@ -1,41 +1,41 @@
 {
   "name": "@smartinvoicexyz/ui",
   "description": "Unified source for UI components used across the Smart Invoice protocol.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
-    "@chakra-ui/icons": "2.1.1",
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.1.4",
-    "@emotion/styled": "^11.3.0",
-    "@rainbow-me/rainbowkit": "^1.3.3",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@rainbow-me/rainbowkit": "^2.1.5",
     "@react-pdf/renderer": "^3.1.14",
-    "@smartinvoicexyz/constants": "0.1.1",
-    "@smartinvoicexyz/graphql": "0.1.2",
-    "@smartinvoicexyz/hooks": "0.1.4",
-    "@smartinvoicexyz/types": "0.1.2",
-    "@smartinvoicexyz/utils": "0.1.3",
-    "@tanstack/react-query": "^5.18.1",
-    "@tanstack/react-table": "^8.11.3",
-    "@testing-library/jest-dom": "^6.2.0",
-    "@testing-library/react": "^14.1.2",
+    "@smartinvoicexyz/constants": "workspace:*",
+    "@smartinvoicexyz/graphql": "workspace:*",
+    "@smartinvoicexyz/hooks": "workspace:*",
+    "@smartinvoicexyz/types": "workspace:*",
+    "@smartinvoicexyz/utils": "workspace:*",
+    "@tanstack/react-query": "^5.53.1",
+    "@tanstack/react-table": "^8.20.5",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
     "@vercel/analytics": "^1.1.1",
     "blockies-ts": "^1.0.0",
-    "framer-motion": "^10.17.12",
+    "framer-motion": "^11.3.31",
     "lodash": "^4.17.21",
-    "next": "14.0.1",
+    "next": "^14.2.7",
     "react": "^18.2.0",
     "react-datepicker": "^4.25.0",
-    "react-hook-form": "^7.49.3",
-    "styled-components": "^6.1.8",
-    "viem": "^1.21.4",
-    "wagmi": "^1.4.13"
+    "react-hook-form": "^7.53.0",
+    "styled-components": "^6.1.13",
+    "viem": "^2.21.0",
+    "wagmi": "^2.12.7"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
-    "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.5",
-    "@types/react": "^18.2.47"
+    "@types/lodash": "^4.17.7",
+    "@types/node": "^22.5.1",
+    "@types/react": "^18.3.5"
   },
   "engines": {
     "node": ">=18"
@@ -56,7 +56,8 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   },
   "types": "dist/src/index.d.ts"
 }
