@@ -7,7 +7,7 @@ import React from 'react';
 import { Loader } from '../atoms/Loader';
 
 export type InvoiceStatusLabelProps = {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClick?: () => void;
 };
 

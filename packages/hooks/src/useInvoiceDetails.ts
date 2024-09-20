@@ -14,7 +14,10 @@ import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
-import { useInstantDetails, useIpfsDetails, useToken } from '.';
+// import { useInstantDetails, useIpfsDetails, useTokenBalance, useTokenMetadata } from '.';
+import { useInstantDetails } from './useInstantDetails';
+import { useIpfsDetails } from './useIpfsDetails';
+import { useTokenBalance, useTokenMetadata } from './useToken';
 
 export const useInvoiceDetails = ({
   address,
@@ -22,7 +25,11 @@ export const useInvoiceDetails = ({
 }: {
   address: Hex;
   chainId: number;
-}) => {
+}): {
+  invoiceDetails: Partial<InvoiceDetails>;
+  isLoading: boolean;
+  error: Error | null;
+} => {
   cache.reset();
   const {
     data: invoice,
@@ -37,13 +44,23 @@ export const useInvoiceDetails = ({
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
   // fetch data about the invoice's token
-  const { data: tokenMetadata } = useToken({
+  const { data: tokenMetadata } = useTokenMetadata({
     address: invoice?.token as Hex,
     chainId,
   });
 
+  const { data: tokenBalanceNew } = useTokenBalance({
+    address,
+    tokenAddress: invoice?.token as Hex,
+    chainId,
+  });
+
   // fetch the invoice's balances
-  const { data: nativeBalance } = useBalance({ address });
+  const { data: nativeBalance, ...restNative } = useBalance({
+    address,
+    chainId,
+  });
+
   const { data: tokenBalance } = useBalance({
     address,
     token: invoice?.token as Hex,
@@ -53,12 +70,31 @@ export const useInvoiceDetails = ({
     },
   });
 
+  console.log({
+    nativeBalance,
+    restNative,
+    tokenBalance,
+    tokenBalanceNew,
+    tokenMetadata,
+    invoice,
+    type,
+  });
+
   // fetch the invoice's instant details, if applicable
   const { data: instantDetails } = useInstantDetails({
     address,
     chainId,
     enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
+
+  console.log(
+    'is enabled',
+    !!invoice &&
+      !!tokenMetadata &&
+      !!tokenBalance &&
+      !!nativeBalance &&
+      (type === INVOICE_TYPES.Instant ? !!instantDetails : true),
+  );
 
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
@@ -102,68 +138,42 @@ export const useInvoiceDetails = ({
   });
 
   // if kleros court is set in ipfs details
-
   const klerosResolverInfo = getResolverInfo(
     KLEROS_ARBITRATION_SAFE as Hex,
     chainId,
   );
   // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
 
-  const enhancedInvoiceFromIpfs = ipfsDetails
-    ? ({
-        ...invoice,
-        projectName: ipfsDetails?.projectName,
-        startDate: BigInt(
-          typeof ipfsDetails?.startDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
-            : ipfsDetails?.startDate,
-        ),
-        endDate: BigInt(
-          typeof ipfsDetails?.endDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
-            : ipfsDetails?.endDate,
-        ),
-        klerosCourt: ipfsDetails?.klerosCourt || undefined,
-        resolverInfo: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo
-          : invoiceDetails?.resolverInfo,
-        resolverName: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo?.name
-          : invoiceDetails?.resolverName,
-        projectDescription: ipfsDetails?.projectDescription,
-        tokenMetadata,
-      } as Partial<InvoiceDetails>)
-    : { ...invoice, tokenMetadata };
-
-  const enhancedInvoiceDetailsFromIpfs = ipfsDetails
-    ? ({
-        ...invoiceDetails,
-        projectName: ipfsDetails?.projectName,
-        startDate: BigInt(
-          typeof ipfsDetails?.startDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
-            : ipfsDetails?.startDate,
-        ),
-        endDate: BigInt(
-          typeof ipfsDetails?.endDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
-            : ipfsDetails?.endDate,
-        ),
-        klerosCourt: ipfsDetails?.klerosCourt || undefined,
-        resolverInfo: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo
-          : invoiceDetails?.resolverInfo,
-        resolverName: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo?.name
-          : invoiceDetails?.resolverName,
-        projectAgreement: ipfsDetails?.projectAgreement,
-        projectDescription: ipfsDetails?.projectDescription,
-      } as Partial<InvoiceDetails>)
-    : { ...invoice, tokenMetadata };
+  const enhancedInvoiceFromIpfs = {
+    ...invoice,
+    ...(ipfsDetails
+      ? {
+          projectName: ipfsDetails?.projectName,
+          startDate: BigInt(
+            typeof ipfsDetails?.startDate === 'string'
+              ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
+              : ipfsDetails?.startDate,
+          ),
+          endDate: BigInt(
+            typeof ipfsDetails?.endDate === 'string'
+              ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
+              : ipfsDetails?.endDate,
+          ),
+          klerosCourt: ipfsDetails?.klerosCourt || undefined,
+          resolverInfo: ipfsDetails?.klerosCourt
+            ? klerosResolverInfo
+            : invoiceDetails?.resolverInfo,
+          resolverName: ipfsDetails?.klerosCourt
+            ? klerosResolverInfo?.name
+            : invoiceDetails?.resolverName,
+          projectDescription: ipfsDetails?.projectDescription,
+        }
+      : {}),
+    tokenMetadata,
+  } as Partial<InvoiceDetails>;
 
   return {
-    data: enhancedInvoiceFromIpfs,
-    invoiceDetails: enhancedInvoiceDetailsFromIpfs,
+    invoiceDetails: enhancedInvoiceFromIpfs,
     isLoading: isLoading || isInvoiceDetailsLoading,
     error,
   };

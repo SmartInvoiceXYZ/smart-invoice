@@ -31,7 +31,7 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
-export const sevenDaysFromDate = (date: any) => {
+export const sevenDaysFromDate = (date: string | number | Date) => {
   const result = new Date(date);
   result.setDate(result.getDate() + 7);
   return result;
@@ -117,6 +117,7 @@ const findDepositForAmount = (
  */
 export const assignDeposits = (invoice: Invoice) => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
+  console.log({ deposits });
 
   return _.map(amounts, (a: string, i: number) => {
     // sum of all amounts up to current index
@@ -257,8 +258,16 @@ export const getInvoiceDetails = async (
   nativeBalance: TokenBalance | undefined,
   instantDetails: InstantDetails | undefined,
 ): Promise<InvoiceDetails | null> => {
-  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance)
+  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance) {
+    console.log('missing data in getInvoiceDetails', {
+      invoice,
+      tokenMetadata,
+      tokenBalance,
+      nativeBalance,
+    });
     return null;
+  }
+  console.log('invoice', invoice);
 
   const chainId = chainByName(invoice?.network)?.id;
 
@@ -274,6 +283,10 @@ export const getInvoiceDetails = async (
   // resolver
   const resolverInfo = getResolverInfo(invoice?.resolver as Hex, chainId);
   const resolverFee = getResolverFee(invoice, tokenBalance);
+
+  console.log('testing this', {
+    depositsInGetInvoiceDetails: invoice.deposits,
+  });
 
   try {
     const invoiceDetails = {

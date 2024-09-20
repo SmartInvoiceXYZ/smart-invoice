@@ -1,4 +1,4 @@
-import { Invoice } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { render } from '@testing-library/react';
 import React from 'react';
 
@@ -6,7 +6,7 @@ import { GenerateInvoicePDF } from '../../src/organisms/GenerateInvoicePDF';
 
 describe('GenerateInvoicePDF', function () {
   it('should render without errors', function () {
-    const mockInvoice = jest.mocked<Invoice>({} as Invoice);
+    const mockInvoice = jest.mocked<InvoiceDetails>({} as InvoiceDetails);
 
     const { getByText } = render(
       <GenerateInvoicePDF

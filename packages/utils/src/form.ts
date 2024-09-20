@@ -43,7 +43,7 @@ export const getUpdatedCheckAmount = ({
   e: ChangeEvent<HTMLInputElement>;
   i: number;
   previousChecked: boolean[];
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
 }) => {
   const { amounts, deposited, invoiceType } = _.pick(invoice, [
     'amounts',

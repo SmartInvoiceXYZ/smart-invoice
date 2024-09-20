@@ -26,7 +26,7 @@ export function InvoicePaymentDetails({
   modals,
   setModals,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   modals: Modals;
   setModals: (_m: Partial<Modals>) => void;
 }) {

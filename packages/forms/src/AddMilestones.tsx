@@ -44,7 +44,7 @@ export function AddMilestones({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const chainId = useChainId();
@@ -104,7 +104,9 @@ export function AddMilestones({
 
   const newTotalDue = _.sumBy(milestones, ({ value }) => _.toNumber(value));
   const newDisputeFee =
-    resolutionFeePercentage(resolutionRate.toString()) * newTotalDue;
+    resolutionRate && resolutionRate > BigInt(0)
+      ? resolutionFeePercentage(resolutionRate.toString()) * newTotalDue
+      : 0;
 
   const [totalNew, decimals] = milestones
     ? milestones

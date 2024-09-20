@@ -61,12 +61,13 @@ function InvoiceLink({
   cell,
   chainId,
 }: {
-  cell: CellContext<InvoiceDetails & { ipfsHash: string }, string | undefined>;
+  cell: CellContext<Partial<InvoiceDetails>, string | undefined>;
   chainId?: number;
 }) {
-  const { ipfsHash } = cell.row.original;
+  const { detailsHash } = cell.row.original;
   const address = cell.getValue();
-  const { data, isFetched } = useIpfsDetails({ cid: ipfsHash });
+
+  const { data, isFetched } = useIpfsDetails({ cid: detailsHash ?? '' });
 
   return data && isFetched ? (
     <ChakraNextLink href={`/invoice/${chainId?.toString(16)}/${address}`}>
@@ -93,7 +94,7 @@ export function InvoiceDashboardTable({
 
   const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<InvoiceDetails>();
+    const columnHelper = createColumnHelper<Partial<InvoiceDetails>>();
 
     return [
       columnHelper.accessor('createdAt', {
@@ -102,7 +103,7 @@ export function InvoiceDashboardTable({
       }),
       columnHelper.accessor('address', {
         header: 'Invoice Name/ID',
-        cell: (info: any) => <InvoiceLink cell={info} chainId={chainId} />,
+        cell: info => <InvoiceLink cell={info} chainId={chainId} />,
       }),
       columnHelper.accessor(
         row =>

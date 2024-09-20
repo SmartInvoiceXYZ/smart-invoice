@@ -1,15 +1,20 @@
 import { TokenMetadata } from '@smartinvoicexyz/graphql';
 import _ from 'lodash';
-import { erc20Abi, Hex } from 'viem';
-import { useReadContracts } from 'wagmi';
+import { erc20Abi, Hex, MulticallErrorType, ReadContractErrorType } from 'viem';
+import { useReadContract, useReadContracts } from 'wagmi';
 
-export const useToken = ({
+export const useTokenMetadata = ({
   address,
   chainId,
 }: {
   address: Hex | undefined;
   chainId: number | undefined;
-}) => {
+}): {
+  data: TokenMetadata | undefined;
+  error: MulticallErrorType | ReadContractErrorType | null;
+  isLoading: boolean;
+  isPending: boolean;
+} => {
   const result = useReadContracts({
     allowFailure: false,
     query: {
@@ -55,4 +60,32 @@ export const useToken = ({
         } as TokenMetadata)
       : undefined,
   };
+};
+
+export const useTokenBalance = ({
+  tokenAddress,
+  address,
+  chainId,
+}: {
+  tokenAddress: Hex | undefined;
+  address: Hex;
+  chainId: number | undefined;
+}): {
+  data: bigint | undefined;
+  error: ReadContractErrorType | null;
+  isLoading: boolean;
+  isPending: boolean;
+} => {
+  const result = useReadContract({
+    query: {
+      enabled: !!address && !!chainId && !!tokenAddress,
+    },
+    address: tokenAddress,
+    chainId,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [address],
+  });
+
+  return result;
 };

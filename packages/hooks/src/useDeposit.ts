@@ -2,19 +2,20 @@ import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { getBalance, waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
-  useConfig,
+  usePublicClient,
   useSendTransaction,
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
 
 import { usePollSubgraph } from './usePollSubgraph';
+import { useTokenBalance } from './useToken';
 
 export const useDeposit = ({
   invoice,
@@ -24,30 +25,38 @@ export const useDeposit = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  handleDeposit: () => Promise<Hex | undefined>;
+  isReady: boolean;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
 
   const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
 
-  const config = useConfig();
+  const publicClient = usePublicClient();
+
+  const { data: networkTokenBalance } = useTokenBalance({
+    address: invoice?.address as Hex,
+    tokenAddress: token as Hex,
+    chainId,
+  });
 
   const waitForIndex = usePollSubgraph({
     label: 'useDeposit',
-    fetchHelper: () =>
-      getBalance(config, {
-        address: invoice?.address as Hex,
-        chainId,
-        token: token as Hex,
-      }),
-    checkResult: b =>
-      tokenBalance?.value && b
-        ? b.value === amount + tokenBalance.value
+    fetchHelper: async () => {},
+    checkResult: () =>
+      tokenBalance?.value && networkTokenBalance
+        ? networkTokenBalance === amount + tokenBalance.value
         : false,
     interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
   });
@@ -75,7 +84,7 @@ export const useDeposit = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useDeposit.waitingForTx);
-        await waitForTransactionReceipt(config, { hash, chainId });
+        await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useDeposit.waitingForIndex);
         await waitForIndex();
@@ -89,7 +98,7 @@ export const useDeposit = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useDeposit.waitingForTx);
-        await waitForTransactionReceipt(config, { hash, chainId });
+        await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useDeposit.waitingForIndex);
         await waitForIndex();

@@ -13,7 +13,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
-import { Invoice } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { IToken } from '@smartinvoicexyz/types';
 import { chainByName } from '@smartinvoicexyz/utils';
@@ -23,7 +23,7 @@ import React from 'react';
 import { InvoicePDF } from '../molecules';
 
 interface GenerateInvoicePDFProps {
-  invoice: Invoice;
+  invoice: Partial<InvoiceDetails>;
   buttonText: string;
   buttonProps?: ButtonProps;
 }
@@ -89,7 +89,7 @@ export function GenerateInvoicePDF({
 }
 
 interface GenerateInvoicePDFMenuItemProps extends MenuItemProps {
-  invoice: Invoice;
+  invoice: Partial<InvoiceDetails>;
   symbol: string;
   text: string;
 }

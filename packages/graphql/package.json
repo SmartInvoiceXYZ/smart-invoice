@@ -4,7 +4,7 @@
   "version": "0.1.3",
   "author": "",
   "dependencies": {
-    "@apollo/client": "^3.11.5",
+    "@apollo/client": "^3.11.8",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/shared": "workspace:*",
@@ -12,7 +12,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^5.4.5",
     "lodash": "^4.17.21",
-    "viem": "^2.21.0"
+    "viem": "^2.21.10"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7"

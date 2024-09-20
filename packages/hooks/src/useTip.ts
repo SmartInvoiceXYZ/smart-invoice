@@ -1,10 +1,9 @@
 import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
 import { useCallback } from 'react';
 import { Hex, TransactionReceipt, zeroAddress } from 'viem';
-import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useTip = ({
   address,
@@ -24,17 +23,18 @@ export const useTip = ({
       enabled: !!address && !!chainId && !!token && !!amount,
     },
   });
-  const config = useConfig();
+  const publicClient = usePublicClient();
 
   const { writeContractAsync } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
         // eslint-disable-next-line no-console
         console.log('Tip successful');
-        const receipt = await waitForTransactionReceipt(config, {
+        const receipt = await publicClient?.waitForTransactionReceipt({
           hash,
-          chainId,
         });
+
+        if (!receipt) return;
 
         onTxSuccess?.(receipt);
       },

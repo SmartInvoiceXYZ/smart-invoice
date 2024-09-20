@@ -18,7 +18,7 @@ export function InvoiceButtonManager({
   modals,
   setModals,
 }: {
-  invoice: InvoiceDetails | undefined;
+  invoice: Partial<InvoiceDetails> | undefined;
   modals: Modals;
   setModals: (_m: Partial<Modals>) => void;
 }) {

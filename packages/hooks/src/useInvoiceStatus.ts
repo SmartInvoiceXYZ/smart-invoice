@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
-import { useInstantDetails } from '.';
+import { useInstantDetails } from './useInstantDetails';
 
 interface FetchInvoiceStatus {
   invoice: Partial<InvoiceDetails>;
@@ -103,7 +103,11 @@ const fetchInvoiceStatus = async ({
   return defaultReturn;
 };
 
-export const useInvoiceStatus = ({ invoice }: { invoice: InvoiceDetails }) => {
+export const useInvoiceStatus = ({
+  invoice,
+}: {
+  invoice: Partial<InvoiceDetails>;
+}) => {
   const chainId = useChainId();
 
   const { data: instantInfo } = useInstantDetails({

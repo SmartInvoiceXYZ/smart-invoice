@@ -5,7 +5,7 @@
   "author": "",
   "dependencies": {
     "lodash": "^4.17.21",
-    "viem": "^2.21.0"
+    "viem": "^2.21.10"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7",
@@ -31,6 +31,7 @@
   "private": false,
   "scripts": {
     "build": "tsc",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
   },

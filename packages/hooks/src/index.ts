@@ -11,7 +11,6 @@ export * from './useInvoiceStatus';
 export * from './useIpfsDetails';
 export * from './useIsClient';
 export * from './useLock';
-export * from './usePollSubgraph';
 export * from './useRateForResolver';
 export * from './useRelease';
 export * from './useResolve';

@@ -153,7 +153,10 @@ export function commify(
   return _.toString(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export const resolutionFeePercentage = (resolutionRate: string) => {
+export const resolutionFeePercentage = (resolutionRate: string): number => {
+  if (!resolutionRate || resolutionRate === '0') {
+    return 0;
+  }
   const feePercentage = 1 / parseInt(resolutionRate);
 
   return feePercentage;
