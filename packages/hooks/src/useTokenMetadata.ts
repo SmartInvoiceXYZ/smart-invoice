@@ -1,4 +1,4 @@
-import { TokenMetadata } from '@smartinvoicexyz/graphql';
+import { TokenBalance, TokenMetadata } from '@smartinvoicexyz/graphql';
 import _ from 'lodash';
 import { erc20Abi, Hex, MulticallErrorType, ReadContractErrorType } from 'viem';
 import { useReadContract, useReadContracts } from 'wagmi';
@@ -88,4 +88,82 @@ export const useTokenBalance = ({
   });
 
   return result;
+};
+
+export const useTokenData = ({
+  address,
+  tokenAddress,
+  chainId,
+}: {
+  address: Hex;
+  tokenAddress: Hex | undefined;
+  chainId: number | undefined;
+}): {
+  metadata: TokenMetadata | undefined;
+  balance: TokenBalance | undefined;
+  error: MulticallErrorType | ReadContractErrorType | null;
+  isLoading: boolean;
+  isPending: boolean;
+} => {
+  const result = useReadContracts({
+    allowFailure: false,
+    query: {
+      enabled: !!address && !!chainId && !!tokenAddress,
+    },
+    contracts: [
+      {
+        address: tokenAddress,
+        chainId,
+        abi: erc20Abi,
+        functionName: 'decimals',
+      },
+      {
+        address: tokenAddress,
+        chainId,
+        abi: erc20Abi,
+        functionName: 'name',
+      },
+      {
+        address: tokenAddress,
+        chainId,
+        abi: erc20Abi,
+        functionName: 'symbol',
+      },
+      {
+        address: tokenAddress,
+        chainId,
+        abi: erc20Abi,
+        functionName: 'totalSupply',
+      },
+      {
+        address: tokenAddress,
+        chainId,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [address],
+      },
+    ],
+  });
+
+  return {
+    error: result.error,
+    isPending: result.isPending,
+    isLoading: result.isLoading,
+    metadata: result.data
+      ? ({
+          address: address as Hex,
+          decimals: Number(result.data[0]),
+          name: result.data[1],
+          symbol: result.data[2],
+          totalSupply: result.data[3],
+        } as TokenMetadata)
+      : undefined,
+    balance: result.data
+      ? {
+          decimals: Number(result.data[0]),
+          symbol: result.data[1],
+          value: result.data[4],
+        }
+      : undefined,
+  };
 };

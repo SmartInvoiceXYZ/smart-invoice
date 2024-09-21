@@ -11,6 +11,36 @@ import {
   sepolia,
 } from 'viem/chains';
 
+export type Resolver = {
+  name: string;
+  logoUrl: string;
+  disclaimer?: string;
+  termsUrl: string;
+};
+
+export type NetworkConfig = {
+  SUBGRAPH: string;
+  WRAPPED_NATIVE_TOKEN: Address;
+  INVOICE_FACTORY: Address;
+  RESOLVERS: Record<Address, Resolver>;
+};
+
+export type Config = {
+  INFURA_ID: string;
+  IPFS_ENDPOINT: string;
+  BOX_ENDPOINT: string;
+  NETWORK_CONFIG: Record<number, NetworkConfig>;
+};
+
+export type KlerosCourtData = {
+  id: number;
+  name: string;
+  link: string;
+  jurors_drawn: number;
+  reward: string;
+  safe_address: Address;
+};
+
 const LEXDAO_LOGO = '/assets/lex-dao.png';
 
 const LEXDAO_TERMS_URL =
@@ -31,13 +61,13 @@ export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
 
 export const KLEROS_GOOGLE_FORM = 'https://forms.gle/K3oMAzAb32G5SbpM9';
 
-export const LEXDAO_DATA = {
+export const LEXDAO_DATA: Resolver = {
   name: 'LexDAO',
   logoUrl: LEXDAO_LOGO,
   termsUrl: LEXDAO_TERMS_URL,
 };
 
-export const KLEROS_DATA = {
+export const KLEROS_DATA: Resolver = {
   name: 'Kleros',
   disclaimer:
     'Only choose Kleros if total invoice value is greater than 1000 USD',
@@ -45,7 +75,7 @@ export const KLEROS_DATA = {
   termsUrl: KLEROS_TERMS_URL,
 };
 
-export const SMART_INVOICE_ARBITRATION_DATA = {
+export const SMART_INVOICE_ARBITRATION_DATA: Resolver = {
   name: 'Smart Invoice In-house',
   disclaimer:
     'Only choose Smart Invoice In-house if invoice value is less than 1000 USD',
@@ -54,7 +84,7 @@ export const SMART_INVOICE_ARBITRATION_DATA = {
     'https://docs.smartinvoice.xyz/arbitration/smart-invoice-arbitration',
 };
 
-export const KLEROS_COURTS = [
+export const KLEROS_COURTS: Array<KlerosCourtData> = [
   {
     id: 1,
     name: 'General Court',
@@ -80,27 +110,6 @@ export const KLEROS_COURTS = [
     safe_address: KLEROS_ARBITRATION_SAFE,
   },
 ];
-
-export type Resolver = {
-  name: string;
-  logoUrl: string;
-  disclaimer?: string;
-  termsUrl: string;
-};
-
-export type NetworkConfig = {
-  SUBGRAPH: string;
-  WRAPPED_NATIVE_TOKEN: Address;
-  INVOICE_FACTORY: Address;
-  RESOLVERS: Record<Address, Resolver>;
-};
-
-export type Config = {
-  INFURA_ID: string;
-  IPFS_ENDPOINT: string;
-  BOX_ENDPOINT: string;
-  NETWORK_CONFIG: Record<number, NetworkConfig>;
-};
 
 const STUDIO_ID = '78711';
 const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;

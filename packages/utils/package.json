@@ -4,7 +4,7 @@
   "version": "0.1.4",
   "author": "",
   "dependencies": {
-    "@rainbow-me/rainbowkit": "^2.1.6",
+    "@rainbow-me/rainbowkit": "2.1.6",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
     "@smartinvoicexyz/shared": "workspace:*",
@@ -14,8 +14,8 @@
     "base-58": "^0.0.1",
     "bs58": "^5.0.0",
     "lodash": "^4.17.21",
-    "viem": "^2.21.10",
-    "wagmi": "^2.12.12",
+    "viem": "2.17.0",
+    "wagmi": "2.12.9",
     "yup": "^1.3.3"
   },
   "devDependencies": {

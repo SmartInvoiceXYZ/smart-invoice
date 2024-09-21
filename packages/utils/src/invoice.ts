@@ -1,8 +1,11 @@
 import {
   Deposit,
+  Dispute,
   InstantDetails,
   Invoice,
   InvoiceDetails,
+  Release,
+  Resolution,
   TokenBalance,
   TokenMetadata,
 } from '@smartinvoicexyz/graphql';
@@ -98,15 +101,17 @@ export const depositedMilestonesString = (
 const findDepositForAmount = (
   amount: number, // total amount to with milestones up to the current amount
   deposits: Deposit[] | undefined,
-) => {
+): Deposit | undefined => {
   if (!deposits) return undefined;
 
   let sum = 0;
-  return _.find(deposits, (deposit, i) => {
+  for (let i = deposits.length - 1; i >= 0; i -= 1) {
     sum += _.toNumber(deposits[i].amount.toString());
-
-    return sum >= amount ? deposit : deposits[i - 1] || 0;
-  });
+    if (sum >= amount) {
+      return deposits[i];
+    }
+  }
+  return undefined;
 };
 
 /**
@@ -115,11 +120,10 @@ const findDepositForAmount = (
  * @param tokenBalance
  * @returns array of deposits
  */
-export const assignDeposits = (invoice: Invoice) => {
+export const assignDeposits = (invoice: Invoice): (Deposit | undefined)[] => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
-  console.log({ deposits });
 
-  return _.map(amounts, (a: string, i: number) => {
+  const depositedTxs = _.map(amounts, (a: string, i: number) => {
     // sum of all amounts up to current index
     const localSum = _.sumBy(
       _.concat(_.slice(amounts, 0, i), [a]) as string[],
@@ -129,8 +133,22 @@ export const assignDeposits = (invoice: Invoice) => {
     // get deposit for matching amount
     const deposit = findDepositForAmount(localSum, deposits);
 
-    return deposit as Deposit;
+    return deposit;
   });
+
+  return depositedTxs;
+};
+
+export const assignReleases = (invoice: Invoice): (Release | undefined)[] => {
+  const { amounts, releases } = _.pick(invoice, ['amounts', 'releases']);
+
+  const releasedTxs = _.map(amounts, (_str: string, i: number) => {
+    const release = releases?.find(r => BigInt(r.milestone) === BigInt(i));
+
+    return release;
+  });
+
+  return releasedTxs;
 };
 
 export const totalAmount = (invoice: Invoice) => {
@@ -159,7 +177,7 @@ export const lastDispute = (invoice: Invoice) => {
   const { isLocked, disputes } = _.pick(invoice, ['isLocked', 'disputes']);
 
   if (!isLocked || _.isEmpty(disputes)) return undefined;
-  return disputes?.[_.size(disputes) - 1];
+  return disputes?.[_.size(disputes) - 1] as Dispute;
 };
 
 export const lastResolution = (invoice: Invoice) => {
@@ -169,7 +187,7 @@ export const lastResolution = (invoice: Invoice) => {
   ]);
 
   if (!isLocked || _.isEmpty(resolutions)) return undefined;
-  return resolutions?.[_.size(resolutions) - 1];
+  return resolutions?.[_.size(resolutions) - 1] as Resolution;
 };
 
 export const isInvoiceExpired = (invoice: Invoice) => {
@@ -239,10 +257,13 @@ const getDeadlineLabel = (
     'lateFeeTimeInterval',
     'deadline',
   ]);
+
   if (!lateFee || !deadline || !lateFeeTimeInterval) return undefined;
+
   const daysPerInterval = lateFeeTimeInterval
     ? lateFeeTimeInterval / BigInt(1000 * 60 * 60 * 24)
     : undefined;
+
   return `${formatUnits(
     lateFee,
     tokenBalance?.decimals || 18,
@@ -259,15 +280,8 @@ export const getInvoiceDetails = async (
   instantDetails: InstantDetails | undefined,
 ): Promise<InvoiceDetails | null> => {
   if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance) {
-    console.log('missing data in getInvoiceDetails', {
-      invoice,
-      tokenMetadata,
-      tokenBalance,
-      nativeBalance,
-    });
     return null;
   }
-  console.log('invoice', invoice);
 
   const chainId = chainByName(invoice?.network)?.id;
 
@@ -275,6 +289,7 @@ export const getInvoiceDetails = async (
   const currentMilestoneNumber = _.toNumber(
     _.get(invoice, 'currentMilestone')?.toString(),
   );
+
   const currentMilestoneAmountLabel = currentMilestoneAmount(
     invoice,
     currentMilestoneNumber,
@@ -283,10 +298,6 @@ export const getInvoiceDetails = async (
   // resolver
   const resolverInfo = getResolverInfo(invoice?.resolver as Hex, chainId);
   const resolverFee = getResolverFee(invoice, tokenBalance);
-
-  console.log('testing this', {
-    depositsInGetInvoiceDetails: invoice.deposits,
-  });
 
   try {
     const invoiceDetails = {
@@ -315,6 +326,7 @@ export const getInvoiceDetails = async (
         tokenBalance,
       ),
       depositedTxs: assignDeposits(invoice),
+      releasedTxs: assignReleases(invoice),
       // details
       detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
       // resolver

@@ -15,7 +15,7 @@ import {
 } from 'wagmi';
 
 import { usePollSubgraph } from './usePollSubgraph';
-import { useTokenBalance } from './useToken';
+import { useTokenBalance } from './useTokenMetadata';
 
 export const useDeposit = ({
   invoice,

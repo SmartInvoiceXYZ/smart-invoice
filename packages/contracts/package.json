@@ -7,8 +7,7 @@
     "@nomicfoundation/hardhat-viem": "^2.0.3",
     "@openzeppelin/contracts": "5.0.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
-    "@types/chai": "^4.3.19",
-    "@types/chai-as-promised": "^8.0.0",
+    "@types/chai-as-promised": "7.1.8",
     "@types/mocha": "^10.0.8",
     "chai": "^4.4.1",
     "chai-as-promised": "^7.1.1",
@@ -21,7 +20,7 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-coverage": "^0.8.13",
     "typescript": "^5.5.4",
-    "viem": "^2.21.10"
+    "viem": "2.17.0"
   },
   "license": "MIT",
   "lint-staged": {

@@ -14,10 +14,9 @@ import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
-// import { useInstantDetails, useIpfsDetails, useTokenBalance, useTokenMetadata } from '.';
 import { useInstantDetails } from './useInstantDetails';
 import { useIpfsDetails } from './useIpfsDetails';
-import { useTokenBalance, useTokenMetadata } from './useToken';
+import { useTokenData } from './useTokenMetadata';
 
 export const useInvoiceDetails = ({
   address,
@@ -44,40 +43,16 @@ export const useInvoiceDetails = ({
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
   // fetch data about the invoice's token
-  const { data: tokenMetadata } = useTokenMetadata({
-    address: invoice?.token as Hex,
-    chainId,
-  });
-
-  const { data: tokenBalanceNew } = useTokenBalance({
+  const { metadata: tokenMetadata, balance: tokenBalance } = useTokenData({
     address,
     tokenAddress: invoice?.token as Hex,
     chainId,
   });
 
   // fetch the invoice's balances
-  const { data: nativeBalance, ...restNative } = useBalance({
+  const { data: nativeBalance } = useBalance({
     address,
     chainId,
-  });
-
-  const { data: tokenBalance } = useBalance({
-    address,
-    token: invoice?.token as Hex,
-    chainId,
-    query: {
-      enabled: !!invoice?.token && !!chainId,
-    },
-  });
-
-  console.log({
-    nativeBalance,
-    restNative,
-    tokenBalance,
-    tokenBalanceNew,
-    tokenMetadata,
-    invoice,
-    type,
   });
 
   // fetch the invoice's instant details, if applicable
@@ -87,14 +62,22 @@ export const useInvoiceDetails = ({
     enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
   });
 
-  console.log(
-    'is enabled',
+  const getInvoiceDetailsEnabled =
     !!invoice &&
-      !!tokenMetadata &&
-      !!tokenBalance &&
-      !!nativeBalance &&
-      (type === INVOICE_TYPES.Instant ? !!instantDetails : true),
-  );
+    !!tokenMetadata &&
+    !!tokenBalance &&
+    !!nativeBalance &&
+    (type === INVOICE_TYPES.Instant ? !!instantDetails : true);
+
+  console.log({
+    invoice,
+    tokenMetadata,
+    tokenBalance,
+    nativeBalance,
+    instantDetails,
+    getInvoiceDetailsEnabled,
+    type,
+  });
 
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
@@ -121,14 +104,7 @@ export const useInvoiceDetails = ({
           nativeBalance,
           instantDetails,
         ),
-      enabled:
-        !!invoice &&
-        !!tokenMetadata &&
-        !!tokenBalance &&
-        !!nativeBalance &&
-        type === INVOICE_TYPES.Instant
-          ? !!instantDetails
-          : true,
+      enabled: getInvoiceDetailsEnabled,
     });
 
   // fetch invoice details from Ipfs

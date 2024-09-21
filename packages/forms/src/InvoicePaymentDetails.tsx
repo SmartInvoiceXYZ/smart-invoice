@@ -42,7 +42,7 @@ export function InvoicePaymentDetails({
     tokenBalance,
     amounts,
     currentMilestoneAmount,
-    releases,
+    releasedTxs,
     dispute,
     resolution,
     isReleasable,
@@ -57,7 +57,7 @@ export function InvoicePaymentDetails({
     'due',
     'total',
     'resolver',
-    'releases',
+    'releasedTxs',
     'released',
     'amounts',
     'currentMilestoneAmount',
@@ -119,7 +119,7 @@ export function InvoicePaymentDetails({
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
                   const depositedText = depositedMilestonesDisplay?.[index];
-                  const release = releases?.[index];
+                  const release = releasedTxs?.[index];
                   const deposit = depositedTxs?.[index];
 
                   return (
@@ -277,11 +277,9 @@ export function InvoicePaymentDetails({
                 >
                   <Text>Amount Dispersed</Text>
                   <Text textAlign="right">{`${formatUnits(
-                    BigInt(resolution.clientAward) +
+                    resolution.clientAward +
                       resolution.providerAward +
-                      resolution.resolutionFee
-                      ? resolution.resolutionFee
-                      : 0,
+                      (resolution.resolutionFee ?? 0n),
                     18,
                   )} ${tokenBalance?.symbol}`}</Text>
                 </Flex>
@@ -320,8 +318,8 @@ export function InvoicePaymentDetails({
                         key={detail.distributee}
                       >
                         {`${formatUnits(
-                          BigInt(detail.amount),
-                          tokenMetadata?.decimals || 18,
+                          detail.amount ?? 0n,
+                          tokenMetadata?.decimals ?? 18,
                         )} ${tokenMetadata?.symbol} to `}
                         <AccountLink
                           address={detail.distributee as Hex}

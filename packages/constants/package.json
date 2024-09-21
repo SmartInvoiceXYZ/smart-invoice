@@ -5,7 +5,7 @@
   "author": "",
   "dependencies": {
     "lodash": "^4.17.21",
-    "viem": "^2.21.10"
+    "viem": "2.17.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7",

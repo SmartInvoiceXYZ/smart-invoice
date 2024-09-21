@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { Resolver } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
@@ -6,6 +7,7 @@ import { clients } from './client';
 import { scalars } from './scalars';
 import {
   _SubgraphErrorPolicy_,
+  ADR,
   Agreement_orderBy,
   Deposit_orderBy,
   Dispute_orderBy,
@@ -177,11 +179,46 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
+export interface Release {
+  id: string;
+  txHash: string;
+  milestone: bigint;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export interface Deposit {
   id: string;
   txHash: string;
   sender: string;
   amount: bigint;
+  timestamp: bigint;
+}
+
+export interface Dispute {
+  id: string;
+  txHash: string;
+  sender: string;
+  details: string;
+  ipfsHash: string;
+  disputeToken: string | undefined;
+  disputeFee: bigint | undefined;
+  disputeId: bigint | undefined;
+  timestamp: bigint;
+}
+
+export interface Resolution {
+  id: string;
+  txHash: string;
+  details: string;
+  ipfsHash: string;
+  resolverType: ADR;
+  resolver: string;
+  clientAward: bigint;
+  providerAward: bigint;
+  resolutionDetails: string | undefined;
+  resolutionFee: bigint | undefined;
+  ruling: bigint | undefined;
   timestamp: bigint;
 }
 
@@ -201,18 +238,17 @@ export type InvoiceDetails = Invoice &
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];
     depositedTxs: (Deposit | undefined)[];
+    releasedTxs: (Release | undefined)[];
     detailsHash: string | undefined;
     resolverName: string | undefined;
-    resolverInfo: any | undefined; // ResolverInfo;
+    resolverInfo: Record<Address, Resolver> | undefined; // ResolverInfo;
     resolverFee: string | undefined;
     resolverFeeDisplay: string | undefined;
     klerosCourt?: number | string | undefined;
     deadlineLabel: string | undefined;
     // entities
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispute?: any; // Dispute;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolution?: any; // Resolution;
+    dispute?: Dispute | undefined;
+    resolution?: Resolution | undefined;
     // flags
     isExpired: boolean;
     isReleasable: boolean;
