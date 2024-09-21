@@ -57,7 +57,7 @@
     "dapp:build": "pnpm -r --filter '!@smartinvoicexyz/docs' --filter '!@smartinvoicexyz/subgraph' --filter '!@smartinvoicexyz/contracts' build",
     "dapp:dev": "pnpm --filter '@smartinvoicexyz/dapp' dev",
     "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
-    "lint": "eslint --ignore-path .prettierignore \"./packages/**/*.{ts,tsx,js,jsx}\"",
+    "lint": "pnpm -r lint",
     "preinstall": "only-allow pnpm",
     "prepare": "husky",
     "syncpack": "syncpack list-mismatches",

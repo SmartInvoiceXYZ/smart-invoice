@@ -21,7 +21,7 @@ import {
   cache,
   fetchInvoices,
   Invoice_orderBy,
-  InvoiceDetails,
+  InvoiceMetadata,
 } from '@smartinvoicexyz/graphql';
 import { useIpfsDetails } from '@smartinvoicexyz/hooks';
 import { chainsMap } from '@smartinvoicexyz/utils';
@@ -36,18 +36,21 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
+import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { Address, formatUnits, Hex } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { AccountLink, ChakraNextLink, theme, useMediaStyles } from '..';
+import { AccountLink, ChakraNextLink } from '../atoms';
+import { useMediaStyles } from '../hooks';
 import {
   DoubleLeftArrowIcon,
   LeftArrowIcon,
   RightArrowIcon,
 } from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
+import { theme } from '../theme';
 // TODO use `usePaginatedQuery`
 
 export type SearchInputType = string | Address | undefined;
@@ -61,13 +64,13 @@ function InvoiceLink({
   cell,
   chainId,
 }: {
-  cell: CellContext<Partial<InvoiceDetails>, string | undefined>;
+  cell: CellContext<Partial<InvoiceMetadata>, string | undefined>;
   chainId?: number;
 }) {
-  const { detailsHash } = cell.row.original;
+  const { ipfsHash } = cell.row.original;
   const address = cell.getValue();
 
-  const { data, isFetched } = useIpfsDetails({ cid: detailsHash ?? '' });
+  const { data, isFetched } = useIpfsDetails({ cid: ipfsHash ?? '' });
 
   return data && isFetched ? (
     <ChakraNextLink href={`/invoice/${chainId?.toString(16)}/${address}`}>
@@ -94,7 +97,7 @@ export function InvoiceDashboardTable({
 
   const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Partial<InvoiceDetails>>();
+    const columnHelper = createColumnHelper<Partial<InvoiceMetadata>>();
 
     return [
       columnHelper.accessor('createdAt', {
@@ -162,8 +165,6 @@ export function InvoiceDashboardTable({
     [chainId, pageIndex, pageSize, searchInput, sorting],
   );
 
-  const defaultData = useMemo(() => [], []);
-
   const { data, isLoading } = useQuery({
     queryKey: ['invoices', ...fetchDataOptions],
     queryFn: () => fetchInvoices(...fetchDataOptions),
@@ -180,7 +181,7 @@ export function InvoiceDashboardTable({
   );
 
   const table = useReactTable({
-    data: data ?? (defaultData as any[]),
+    data: data ?? ([] as InvoiceMetadata[]),
     columns,
     pageCount: -1,
     state: {

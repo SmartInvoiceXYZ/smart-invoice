@@ -3,7 +3,7 @@ import { Resolver } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
-import { clients } from './client';
+import { fetchTypedQuery } from './client';
 import { scalars } from './scalars';
 import {
   _SubgraphErrorPolicy_,
@@ -16,13 +16,15 @@ import {
   Resolution_orderBy,
   Verified_orderBy,
 } from './zeus';
-import { typedGql } from './zeus/typedDocumentNode';
 
-const invoiceQuery = (id: string) =>
-  typedGql('query', { scalars })({
+export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
+  const address = isAddress(queryAddress) && queryAddress;
+  if (!address) return null;
+
+  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
     invoice: [
       {
-        id,
+        id: address,
         subgraphError: _SubgraphErrorPolicy_.allow,
       },
       {
@@ -137,23 +139,9 @@ const invoiceQuery = (id: string) =>
     ],
   });
 
-export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
-  const address = isAddress(queryAddress) && queryAddress;
-  if (!address) return null;
+  logDebug({ data, address });
 
-  const query = invoiceQuery(address);
-  const { data, error } = await clients[chainId].query({ query });
-
-  logDebug({ data, error, address });
-
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
-
-  return data.invoice;
+  return data?.invoice ?? null;
 };
 
 export type TokenMetadata = {
@@ -223,6 +211,7 @@ export interface Resolution {
 }
 
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
+
 export type InvoiceDetails = Invoice &
   InstantDetails & {
     // conversions

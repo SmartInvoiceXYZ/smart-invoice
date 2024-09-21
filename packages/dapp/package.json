@@ -10,16 +10,13 @@
     "safari >= 14"
   ],
   "dependencies": {
-    "@apollo/client": "^3.11.8",
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@chakra-ui/theme": "^3.3.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@graphql-typed-document-node/core": "^3.2.0",
     "@rainbow-me/rainbowkit": "2.1.6",
-    "@react-pdf/renderer": "^3.1.14",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/forms": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -33,8 +30,6 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@vercel/analytics": "^1.1.1",
-    "abitype": "^0.10.3",
-    "base-58": "^0.0.1",
     "dotenv": "^16.3.1",
     "focus-visible": "^5.2.1",
     "framer-motion": "^11.5.6",
@@ -43,7 +38,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.53.0",
-    "styled-components": "^6.1.13",
     "viem": "2.17.0",
     "wagmi": "2.12.9"
   },

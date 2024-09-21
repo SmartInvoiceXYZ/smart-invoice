@@ -38,7 +38,7 @@
   "scripts": {
     "build": "tsc",
     "generate": "zeus ./src/schema.graphql ./src/ --apollo --typedDocumentNode",
-    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "lint": "eslint \"**/*.ts\"",
     "prepare": "pnpm generate",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",

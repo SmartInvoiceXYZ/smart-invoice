@@ -273,7 +273,7 @@ const getDeadlineLabel = (
 };
 
 export const getInvoiceDetails = async (
-  invoice: Invoice,
+  invoice: Invoice | undefined,
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
   nativeBalance: TokenBalance | undefined,

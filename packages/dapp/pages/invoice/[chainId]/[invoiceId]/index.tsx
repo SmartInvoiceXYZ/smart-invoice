@@ -32,8 +32,6 @@ function ViewInvoice() {
     address: invoiceId,
   });
 
-  console.log({ invoiceDetails });
-
   if (!isAddress(invoiceId) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }

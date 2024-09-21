@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Flex, Text } from '@chakra-ui/react';
 import { logError } from '@smartinvoicexyz/utils';
 import React from 'react';

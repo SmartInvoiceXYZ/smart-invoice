@@ -69,16 +69,6 @@ export const useInvoiceDetails = ({
     !!nativeBalance &&
     (type === INVOICE_TYPES.Instant ? !!instantDetails : true);
 
-  console.log({
-    invoice,
-    tokenMetadata,
-    tokenBalance,
-    nativeBalance,
-    instantDetails,
-    getInvoiceDetailsEnabled,
-    type,
-  });
-
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
     useQuery<InvoiceDetails | null>({
@@ -121,7 +111,7 @@ export const useInvoiceDetails = ({
   // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
 
   const enhancedInvoiceFromIpfs = {
-    ...invoice,
+    ...invoiceDetails,
     ...(ipfsDetails
       ? {
           projectName: ipfsDetails?.projectName,

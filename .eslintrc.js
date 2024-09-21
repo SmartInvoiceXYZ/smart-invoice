@@ -70,7 +70,8 @@ module.exports = {
     'dist/*',
     'tmp/*',
     '.next',
-    'packages/subgraph/**',
+    'packages/subgraph/*',
+    'packages/graphql/src/zeus/*',
     'packages/subgraph/subgraph.template.yaml',
   ],
   settings: {

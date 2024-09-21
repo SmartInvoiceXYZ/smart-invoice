@@ -1,13 +1,11 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable camelcase */
 
 import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, isAddress } from 'viem';
 
-import { clients } from './client';
+import { fetchTypedQuery } from './client';
 import { scalars } from './scalars';
 import { _SubgraphErrorPolicy_, Invoice_orderBy, OrderDirection } from './zeus';
-import { typedGql } from './zeus/typedDocumentNode';
 
 export type SearchInputType = string | Address | undefined;
 
@@ -26,20 +24,28 @@ const buildInvoicesFilter = (searchInput: SearchInputType) => {
   return { projectName_contains: searchInput };
 };
 
-const invoicesQuery = (
-  first?: number,
-  skip?: number,
-  orderBy?: Invoice_orderBy,
-  orderDirection?: OrderDirection,
-  where?: ReturnType<typeof buildInvoicesFilter>,
-) =>
-  typedGql('query', { scalars })({
+export const fetchInvoices = async (
+  chainId: number,
+  searchInput: SearchInputType,
+  pageIndex: number,
+  pageSize: number,
+  sortBy: Invoice_orderBy,
+  sortDesc: boolean = false,
+) => {
+  if (chainId < 0) return [];
+
+  const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
+  const where = buildInvoicesFilter(searchInput);
+
+  logDebug({ chainId, pageIndex, pageSize, sortBy, sortDirection, where });
+
+  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
     invoices: [
       {
-        first,
-        skip,
-        orderBy,
-        orderDirection,
+        first: pageSize,
+        skip: pageIndex * pageSize,
+        orderBy: sortBy,
+        orderDirection: sortDirection,
         where,
         subgraphError: _SubgraphErrorPolicy_.allow,
       },
@@ -59,33 +65,8 @@ const invoicesQuery = (
     ],
   });
 
-export const fetchInvoices = async (
-  chainId: number,
-  searchInput: SearchInputType,
-  pageIndex: number,
-  pageSize: number,
-  sortBy: Invoice_orderBy,
-  sortDesc: boolean = false,
-) => {
-  if (chainId < 0) return undefined;
-
-  const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
-  const where = buildInvoicesFilter(searchInput);
-
-  logDebug({ chainId, pageIndex, pageSize, sortBy, sortDirection, where });
-
-  const query = invoicesQuery(
-    pageSize,
-    pageIndex * pageSize,
-    sortBy,
-    sortDirection,
-    where,
-  );
-  const { data, error } = await clients[chainId].query({ query });
-
   logDebug({
     data,
-    error,
     chainId,
     searchInput,
     pageIndex,
@@ -94,18 +75,12 @@ export const fetchInvoices = async (
     sortDesc,
   });
 
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
-
-  return data.invoices;
+  return data?.invoices ?? [];
 };
 
-// type GetElementType<T extends any[] | undefined | null> = T extends (infer U)[]
-//   ? U
-//   : never;
-// type Invoices = Awaited<ReturnType<typeof fetchInvoices>>;
-// export type Invoice = GetElementType<Invoices>;
+type ArrayElement<ArrayType extends readonly unknown[]> =
+  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
+
+type InvoicesArray = Awaited<ReturnType<typeof fetchInvoices>>;
+
+export type InvoiceMetadata = ArrayElement<InvoicesArray>;

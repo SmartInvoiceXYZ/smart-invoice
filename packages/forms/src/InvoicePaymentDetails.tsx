@@ -143,7 +143,7 @@ export function InvoicePaymentDetails({
                           >
                             Released{' '}
                             {new Date(
-                              _.toNumber(release.timestamp) * 1000,
+                              Number(release.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -157,7 +157,7 @@ export function InvoicePaymentDetails({
                           >
                             {`${_.capitalize(depositedText)} `}
                             {new Date(
-                              _.toNumber(deposit?.timestamp) * 1000,
+                              Number(deposit?.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -212,18 +212,15 @@ export function InvoicePaymentDetails({
                     </Heading>
                     {!!currentMilestoneAmount && (
                       <Heading size="md">
-                        {`${
-                          tokenBalance?.value &&
-                          commify(
-                            formatUnits(
-                              isReleasable
-                                ? BigInt(currentMilestoneAmount)
-                                : BigInt(currentMilestoneAmount) -
-                                    tokenBalance.value,
-                              tokenBalance?.decimals || 18,
-                            ),
-                          )
-                        } ${tokenBalance?.symbol}`}
+                        {`${commify(
+                          formatUnits(
+                            isReleasable
+                              ? currentMilestoneAmount
+                              : currentMilestoneAmount -
+                                  (tokenBalance?.value ?? 0n),
+                            tokenBalance?.decimals || 18,
+                          ),
+                        )} ${tokenBalance?.symbol}`}
                       </Heading>
                     )}
                   </>
