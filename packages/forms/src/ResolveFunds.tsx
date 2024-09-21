@@ -18,7 +18,7 @@ export function ResolveFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const { resolutionRate, tokenBalance, tokenMetadata } = _.pick(invoice, [
@@ -148,7 +148,9 @@ export function ResolveFunds({
           tokenBalance?.value ?? BigInt(0),
           tokenBalance?.decimals ?? 18,
         )} ${tokenMetadata?.symbol} between the client and provider, excluding the ${
-          resolutionRate === BigInt(0) ? '0' : BigInt(100) / resolutionRate
+          resolutionRate === BigInt(0) || !resolutionRate
+            ? '0'
+            : BigInt(100) / resolutionRate
         }% arbitration fee which you shall receive.`}
       </Text>
 

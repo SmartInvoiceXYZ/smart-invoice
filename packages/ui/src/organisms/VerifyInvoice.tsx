@@ -9,7 +9,7 @@ import { useChainId } from 'wagmi';
 import { useToast } from '../hooks';
 
 type VerifyInvoiceProps = {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   verifiedStatus: boolean;
   isClient: boolean;
 };

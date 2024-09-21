@@ -1,5 +1,5 @@
 export const getKeys = <T extends string | number | symbol>(
-  record: Record<T, any>,
+  record: Record<T, unknown>,
 ) => Object.keys(record) as T[];
 
 export function hashCode(s?: string) {

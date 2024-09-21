@@ -11,12 +11,11 @@ import {
   getInvoiceFactoryAddress,
   parseTxLogs,
 } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
-import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
 import { usePollSubgraph } from './usePollSubgraph';
@@ -160,7 +159,7 @@ export const useInstantCreate = ({
     },
   });
 
-  const config = useConfig();
+  const publicClient = usePublicClient();
 
   const {
     writeContractAsync,
@@ -173,10 +172,12 @@ export const useInstantCreate = ({
         setWaitingForTx(true);
         toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-        const txData = await waitForTransactionReceipt(config, {
-          chainId,
+        const txData = await publicClient?.waitForTransactionReceipt({
           hash,
         });
+
+        if (!txData) return;
+
         // wait for subgraph to index
         const localInvoiceId = parseTxLogs(
           LOG_TYPE.Factory,

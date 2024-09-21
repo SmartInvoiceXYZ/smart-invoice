@@ -64,17 +64,17 @@ function ViewInvoice() {
         px="1rem"
         py="8rem"
       >
-        <InvoiceMetaDetails invoice={invoiceDetails as any} />
+        <InvoiceMetaDetails invoice={invoiceDetails} />
 
         <Stack minW={{ base: '90%', md: '50%' }}>
           <InvoicePaymentDetails
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             modals={modals}
             setModals={setModals}
           />
 
           <InvoiceButtonManager
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             modals={modals}
             setModals={setModals}
           />

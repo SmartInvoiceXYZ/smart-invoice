@@ -32,7 +32,11 @@ import {
   VerifyInvoice,
 } from '..';
 
-export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
+export function InvoiceMetaDetails({
+  invoice,
+}: {
+  invoice: Partial<InvoiceDetails>;
+}) {
   const { address } = useAccount();
 
   const {

@@ -1,11 +1,13 @@
 /* eslint-disable camelcase */
+import { Resolver } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
-import { clients } from './client';
+import { fetchTypedQuery } from './client';
 import { scalars } from './scalars';
 import {
   _SubgraphErrorPolicy_,
+  ADR,
   Agreement_orderBy,
   Deposit_orderBy,
   Dispute_orderBy,
@@ -14,13 +16,15 @@ import {
   Resolution_orderBy,
   Verified_orderBy,
 } from './zeus';
-import { typedGql } from './zeus/typedDocumentNode';
 
-const invoiceQuery = (id: string) =>
-  typedGql('query', { scalars })({
+export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
+  const address = isAddress(queryAddress) && queryAddress;
+  if (!address) return null;
+
+  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
     invoice: [
       {
-        id,
+        id: address,
         subgraphError: _SubgraphErrorPolicy_.allow,
       },
       {
@@ -135,23 +139,9 @@ const invoiceQuery = (id: string) =>
     ],
   });
 
-export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
-  const address = isAddress(queryAddress) && queryAddress;
-  if (!address) return null;
+  logDebug({ data, address });
 
-  const query = invoiceQuery(address);
-  const { data, error } = await clients[chainId].query({ query });
-
-  logDebug({ data, error, address });
-
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
-
-  return data.invoice;
+  return data?.invoice ?? null;
 };
 
 export type TokenMetadata = {
@@ -177,6 +167,14 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
+export interface Release {
+  id: string;
+  txHash: string;
+  milestone: bigint;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export interface Deposit {
   id: string;
   txHash: string;
@@ -185,7 +183,35 @@ export interface Deposit {
   timestamp: bigint;
 }
 
+export interface Dispute {
+  id: string;
+  txHash: string;
+  sender: string;
+  details: string;
+  ipfsHash: string;
+  disputeToken: string | undefined;
+  disputeFee: bigint | undefined;
+  disputeId: bigint | undefined;
+  timestamp: bigint;
+}
+
+export interface Resolution {
+  id: string;
+  txHash: string;
+  details: string;
+  ipfsHash: string;
+  resolverType: ADR;
+  resolver: string;
+  clientAward: bigint;
+  providerAward: bigint;
+  resolutionDetails: string | undefined;
+  resolutionFee: bigint | undefined;
+  ruling: bigint | undefined;
+  timestamp: bigint;
+}
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
+
 export type InvoiceDetails = Invoice &
   InstantDetails & {
     // conversions
@@ -201,18 +227,17 @@ export type InvoiceDetails = Invoice &
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];
     depositedTxs: (Deposit | undefined)[];
+    releasedTxs: (Release | undefined)[];
     detailsHash: string | undefined;
     resolverName: string | undefined;
-    resolverInfo: any | undefined; // ResolverInfo;
+    resolverInfo: Record<Address, Resolver> | undefined; // ResolverInfo;
     resolverFee: string | undefined;
     resolverFeeDisplay: string | undefined;
     klerosCourt?: number | string | undefined;
     deadlineLabel: string | undefined;
     // entities
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispute?: any; // Dispute;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolution?: any; // Resolution;
+    dispute?: Dispute | undefined;
+    resolution?: Resolution | undefined;
     // flags
     isExpired: boolean;
     isReleasable: boolean;

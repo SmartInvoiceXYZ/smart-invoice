@@ -1,5 +1,6 @@
 import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
@@ -34,7 +35,12 @@ export const useEscrowZap = ({
   safetyValveDate,
   enabled = true,
   onSuccess,
-}: UseEscrowZapProps) => {
+}: UseEscrowZapProps): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
 
   const { owners, percentAllocations } =
@@ -209,7 +215,7 @@ interface UseEscrowZapProps {
   daoSplit?: boolean;
   token: { value?: string; label?: string };
   safetyValveDate: Date;
-  detailsData: any; // ProjectDetails;
+  // detailsData: any; // ProjectDetails;
   enabled?: boolean;
   onSuccess?: (hash: Hex) => void;
 }

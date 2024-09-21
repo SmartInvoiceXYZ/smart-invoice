@@ -37,7 +37,7 @@ export function DepositFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const {

@@ -26,7 +26,7 @@ export function InvoicePaymentDetails({
   modals,
   setModals,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   modals: Modals;
   setModals: (_m: Partial<Modals>) => void;
 }) {
@@ -42,7 +42,7 @@ export function InvoicePaymentDetails({
     tokenBalance,
     amounts,
     currentMilestoneAmount,
-    releases,
+    releasedTxs,
     dispute,
     resolution,
     isReleasable,
@@ -57,7 +57,7 @@ export function InvoicePaymentDetails({
     'due',
     'total',
     'resolver',
-    'releases',
+    'releasedTxs',
     'released',
     'amounts',
     'currentMilestoneAmount',
@@ -119,7 +119,7 @@ export function InvoicePaymentDetails({
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
                   const depositedText = depositedMilestonesDisplay?.[index];
-                  const release = releases?.[index];
+                  const release = releasedTxs?.[index];
                   const deposit = depositedTxs?.[index];
 
                   return (
@@ -143,7 +143,7 @@ export function InvoicePaymentDetails({
                           >
                             Released{' '}
                             {new Date(
-                              _.toNumber(release.timestamp) * 1000,
+                              Number(release.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -157,7 +157,7 @@ export function InvoicePaymentDetails({
                           >
                             {`${_.capitalize(depositedText)} `}
                             {new Date(
-                              _.toNumber(deposit?.timestamp) * 1000,
+                              Number(deposit?.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -212,18 +212,15 @@ export function InvoicePaymentDetails({
                     </Heading>
                     {!!currentMilestoneAmount && (
                       <Heading size="md">
-                        {`${
-                          tokenBalance?.value &&
-                          commify(
-                            formatUnits(
-                              isReleasable
-                                ? BigInt(currentMilestoneAmount)
-                                : BigInt(currentMilestoneAmount) -
-                                    tokenBalance.value,
-                              tokenBalance?.decimals || 18,
-                            ),
-                          )
-                        } ${tokenBalance?.symbol}`}
+                        {`${commify(
+                          formatUnits(
+                            isReleasable
+                              ? currentMilestoneAmount
+                              : currentMilestoneAmount -
+                                  (tokenBalance?.value ?? 0n),
+                            tokenBalance?.decimals || 18,
+                          ),
+                        )} ${tokenBalance?.symbol}`}
                       </Heading>
                     )}
                   </>
@@ -277,11 +274,9 @@ export function InvoicePaymentDetails({
                 >
                   <Text>Amount Dispersed</Text>
                   <Text textAlign="right">{`${formatUnits(
-                    BigInt(resolution.clientAward) +
+                    resolution.clientAward +
                       resolution.providerAward +
-                      resolution.resolutionFee
-                      ? resolution.resolutionFee
-                      : 0,
+                      (resolution.resolutionFee ?? 0n),
                     18,
                   )} ${tokenBalance?.symbol}`}</Text>
                 </Flex>
@@ -320,8 +315,8 @@ export function InvoicePaymentDetails({
                         key={detail.distributee}
                       >
                         {`${formatUnits(
-                          BigInt(detail.amount),
-                          tokenMetadata?.decimals || 18,
+                          detail.amount ?? 0n,
+                          tokenMetadata?.decimals ?? 18,
                         )} ${tokenMetadata?.symbol} to `}
                         <AccountLink
                           address={detail.distributee as Hex}

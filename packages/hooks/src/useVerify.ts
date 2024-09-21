@@ -2,12 +2,12 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import { useCallback } from 'react';
 import { Hex } from 'viem';
-import { useConfig, useSimulateContract, useWriteContract } from 'wagmi';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
-import { usePollSubgraph } from '.';
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useVerify = ({
   invoice,
@@ -16,13 +16,18 @@ export const useVerify = ({
   toast,
   onTxSuccess,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   address: Hex | undefined;
   chainId: number;
   toast: UseToastReturn;
   onTxSuccess?: () => void;
-}) => {
-  const config = useConfig();
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
+  const publicClient = usePublicClient();
   const { data, error: prepareError } = useSimulateContract({
     address,
     chainId,
@@ -47,7 +52,7 @@ export const useVerify = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useVerify.waitingForTx);
-        await waitForTransactionReceipt(config, { hash, chainId });
+        await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useVerify.waitingForIndex);
         await waitForIndex();

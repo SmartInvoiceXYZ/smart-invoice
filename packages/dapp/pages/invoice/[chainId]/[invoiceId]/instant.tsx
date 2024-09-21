@@ -142,7 +142,7 @@ function ViewInstantInvoice() {
           align="stretch"
           direction="column"
         >
-          <InvoiceMetaDetails invoice={invoiceDetails as any} />
+          <InvoiceMetaDetails invoice={invoiceDetails} />
         </Stack>
 
         <Stack
@@ -283,18 +283,18 @@ function ViewInstantInvoice() {
 
         <Modal isOpen={modals?.deposit} onClose={() => setModals?.({})}>
           <DepositFunds
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             onClose={() => setModals?.({})}
           />
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
           <WithdrawFunds
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             onClose={() => setModals?.({})}
           />
         </Modal>
         <Modal isOpen={modals?.tip} onClose={() => setModals?.({})}>
-          <TipForm invoice={invoiceDetails as any} />
+          <TipForm invoice={invoiceDetails} />
         </Modal>
       </Stack>
     </Container>

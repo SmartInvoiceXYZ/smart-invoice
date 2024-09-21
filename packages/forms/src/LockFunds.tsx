@@ -29,7 +29,7 @@ export function LockFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const chainId = useChainId();

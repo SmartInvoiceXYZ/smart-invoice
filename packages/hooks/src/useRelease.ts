@@ -2,13 +2,13 @@ import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
-  useConfig,
+  usePublicClient,
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
@@ -21,13 +21,18 @@ export const useRelease = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   milestone?: number;
   onTxSuccess: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
-  const config = useConfig();
+  const publicClient = usePublicClient();
 
   const specifiedMilestone = _.isNumber(milestone);
 
@@ -61,7 +66,7 @@ export const useRelease = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useRelease.waitingForTx);
-        await waitForTransactionReceipt(config, { hash, chainId });
+        await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useRelease.waitingForIndex);
         await waitForIndex();

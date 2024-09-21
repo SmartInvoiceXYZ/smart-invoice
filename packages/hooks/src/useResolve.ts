@@ -2,16 +2,11 @@ import { SMART_INVOICE_ESCROW_ABI } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback } from 'react';
 import { Hex, TransactionReceipt, zeroHash } from 'viem';
-import {
-  useChainId,
-  useConfig,
-  useSimulateContract,
-  useWriteContract,
-} from 'wagmi';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 // TODO: fix pin
 
@@ -26,7 +21,7 @@ export const useResolve = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   awards: {
     client: bigint;
     provider: bigint;
@@ -35,10 +30,14 @@ export const useResolve = ({
   comments: string;
   onTxSuccess: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
-}) => {
-  const config = useConfig();
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
+  const publicClient = usePublicClient();
   const detailsHash = zeroHash;
-  const chainId = useChainId();
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
   const fullBalance =
@@ -70,10 +69,11 @@ export const useResolve = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
-        const receipt = await waitForTransactionReceipt(config, {
+        const receipt = await publicClient?.waitForTransactionReceipt({
           hash,
-          chainId,
         });
+
+        if (!receipt) return;
 
         onTxSuccess?.(receipt);
       },

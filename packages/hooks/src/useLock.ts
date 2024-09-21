@@ -6,18 +6,18 @@ import {
 import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback } from 'react';
 import { Hex, zeroHash } from 'viem';
 import {
   useChainId,
-  useConfig,
+  usePublicClient,
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
 
-import { usePollSubgraph } from '.';
+import { usePollSubgraph } from './usePollSubgraph';
 
 export const useLock = ({
   invoice,
@@ -25,17 +25,23 @@ export const useLock = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   disputeReason: string;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  writeLoading: boolean;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const currentChainId = useChainId();
   const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
 
   const detailsHash = zeroHash;
 
-  const config = useConfig();
+  const publicClient = usePublicClient();
 
   // const detailsHash = await uploadDisputeDetails({
   //   reason: disputeReason,
@@ -75,7 +81,7 @@ export const useLock = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useLock.waitingForTx);
-        await waitForTransactionReceipt(config, { hash });
+        await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useLock.waitingForIndex);
         await waitForIndex();

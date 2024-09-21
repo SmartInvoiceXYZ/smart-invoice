@@ -11,7 +11,7 @@ export function WithdrawFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const toast = useToast();

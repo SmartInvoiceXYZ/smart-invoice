@@ -8,20 +8,21 @@ import {
 import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import {
   useChainId,
-  useConfig,
+  usePublicClient,
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
 
-import { useFetchTokens, usePollSubgraph } from '.';
 import { useDetailsPin } from './useDetailsPin';
+import { useFetchTokens } from './useFetchTokens';
+import { usePollSubgraph } from './usePollSubgraph';
 
 const ESCROW_TYPE = toHex('escrow', { size: 32 });
 
@@ -37,9 +38,14 @@ export const useInvoiceCreate = ({
   invoiceForm,
   toast,
   onTxSuccess,
-}: UseInvoiceCreate) => {
+}: UseInvoiceCreate): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
-  const config = useConfig();
+  const publicClient = usePublicClient();
   const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
   const [waitingForTx, setWaitingForTx] = useState(false);
 
@@ -175,10 +181,11 @@ export const useInvoiceCreate = ({
         setWaitingForTx(true);
         toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-        const txData = await waitForTransactionReceipt(config, {
-          chainId,
+        const txData = await publicClient?.waitForTransactionReceipt({
           hash,
         });
+
+        if (!txData) return;
         // wait for subgraph to index
         const localInvoiceId = parseTxLogs(
           LOG_TYPE.Factory,
