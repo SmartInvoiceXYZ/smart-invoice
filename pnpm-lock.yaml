@@ -439,8 +439,8 @@ importers:
         specifier: ^2.12.6
         version: 2.12.6(graphql@16.9.0)
       graphql-zeus:
-        specifier: ^5.4.5
-        version: 5.4.5(@types/node@22.5.5)(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@6.0.4)
+        specifier: ^6.0.0
+        version: 6.0.0(@types/node@22.5.5)(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@6.0.4)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -7016,6 +7016,14 @@ packages:
       graphql-ws:
         optional: true
 
+  graphql-zeus-core@6.0.0:
+    resolution: {integrity: sha512-Kfl7J8U06WH6LzWvi0HzmI9cKijsHyhGWAKggXgbdcvwoGP/UsXcZ/0UvdPrOi3Z9O3IWb/HfKSG85+2p5u51w==}
+    peerDependencies:
+      graphql-ws: '>=5'
+    peerDependenciesMeta:
+      graphql-ws:
+        optional: true
+
   graphql-zeus-jsonschema@5.4.5:
     resolution: {integrity: sha512-4O26BFFvZILNuc19hfw25nhqZxGw582uRyeIJeQ/R6Xl57r3I39ejoDmS1GHk58NYFDjpYQL8WrT9puoiuI/8w==}
     peerDependencies:
@@ -7024,8 +7032,20 @@ packages:
       graphql-ws:
         optional: true
 
+  graphql-zeus-jsonschema@6.0.0:
+    resolution: {integrity: sha512-ZRQYZ0BHCYWdWgYXbOLK58TxjOP8DYKHO3PLYX6Mk4d7yCIO5EoVDamb3H98LXsp9ALdTQp6JvlYo6AZ87F43g==}
+    peerDependencies:
+      graphql-ws: '>=5'
+    peerDependenciesMeta:
+      graphql-ws:
+        optional: true
+
   graphql-zeus@5.4.5:
     resolution: {integrity: sha512-vg+8kIr7vfEqUt48u7//2Ry7W3v6Uw0hyKaO5kTsEFOoc44iuWCUftV195pnOuaOY6WXHDubw2icDg3eSJRHRA==}
+    hasBin: true
+
+  graphql-zeus@6.0.0:
+    resolution: {integrity: sha512-r31mOBCgJ/PY9fyiF0hYcbO6AzR0ELJlsfcW05sXe73RGlXKfhKvo5z8bdeahK6ohoi4zlnbOU1NCnVytbd8JQ==}
     hasBin: true
 
   graphql@15.4.0:
@@ -21303,7 +21323,18 @@ snapshots:
       graphql: 16.9.0
       graphql-js-tree: 1.0.9
 
+  graphql-zeus-core@6.0.0:
+    dependencies:
+      graphql: 16.9.0
+      graphql-js-tree: 1.0.9
+
   graphql-zeus-jsonschema@5.4.5:
+    dependencies:
+      graphql: 16.9.0
+      graphql-js-tree: 1.0.9
+      json-schema: 0.3.0
+
+  graphql-zeus-jsonschema@6.0.0:
     dependencies:
       graphql: 16.9.0
       graphql-js-tree: 1.0.9
@@ -21327,12 +21358,12 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  graphql-zeus@5.4.5(@types/node@22.5.5)(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@6.0.4):
+  graphql-zeus@6.0.0(@types/node@22.5.5)(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@6.0.4):
     dependencies:
       config-maker: 0.0.6(@types/node@22.5.5)(bufferutil@4.0.8)(typescript@5.6.2)(utf-8-validate@6.0.4)
       cross-fetch: 3.1.8(encoding@0.1.13)
-      graphql-zeus-core: 5.4.5
-      graphql-zeus-jsonschema: 5.4.5
+      graphql-zeus-core: 6.0.0
+      graphql-zeus-jsonschema: 6.0.0
       yargs: 16.2.0
     transitivePeerDependencies:
       - '@swc/core'

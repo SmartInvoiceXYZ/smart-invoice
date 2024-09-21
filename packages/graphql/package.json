@@ -10,7 +10,7 @@
     "@smartinvoicexyz/shared": "workspace:*",
     "graphql-request": "^7.1.0",
     "graphql-tag": "^2.12.6",
-    "graphql-zeus": "^5.4.5",
+    "graphql-zeus": "^6.0.0",
     "lodash": "^4.17.21",
     "viem": "2.17.0"
   },
@@ -37,9 +37,12 @@
   "private": false,
   "scripts": {
     "build": "tsc",
+    "generate": "zeus ./src/schema.graphql ./src/ --apollo --typedDocumentNode",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepare": "pnpm generate",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "zeus:help": "zeus --help"
   },
   "types": "dist/src/index.d.ts"
 }
