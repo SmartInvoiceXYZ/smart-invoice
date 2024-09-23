@@ -48,7 +48,8 @@
       "prettier --write"
     ],
     "*.{json,md,sol}": [
-      "prettier --write"
+      "prettier --write",
+      "syncpack format"
     ]
   },
   "private": false,
@@ -60,6 +61,7 @@
     "lint": "pnpm -r lint",
     "preinstall": "only-allow pnpm",
     "prepare": "husky",
+    "publish:all": "pnpm -r --filter '!@smartinvoicexyz/docs' --filter '!@smartinvoicexyz/subgraph' --filter '!@smartinvoicexyz/contracts' --filter '!@smartinvoicexyz/dapp' --filter '!smartinvoicexyz' publish",
     "syncpack": "syncpack list-mismatches",
     "typecheck": "pnpm -r typecheck",
     "update-deps": "pnpm update -i -r --latest"
