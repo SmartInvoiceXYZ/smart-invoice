@@ -60,7 +60,7 @@
     "help": "hardhat help",
     "lint": "yarn lint:sol && yarn lint:ts",
     "lint:sol": "solhint -f table \"contracts/{*,**/*}.sol\"",
-    "lint:ts": "eslint --ignore-path .gitignore \"./**/*.ts\" --fix",
+    "lint:ts": "eslint --ignore-path .gitignore \"./**/*.ts\"",
     "test": "hardhat test",
     "test-dao-zap": "hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.ts",
