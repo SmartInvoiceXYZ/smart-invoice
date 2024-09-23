@@ -36,7 +36,7 @@
       "solhint --fix"
     ]
   },
-  "private": false,
+  "private": true,
   "scripts": {
     "add-implementation": "hardhat run scripts/add-implementation.ts --network",
     "build": "hardhat compile && yarn flatten-all",
