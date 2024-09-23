@@ -41,11 +41,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
     "generate": "zeus ./src/schema.graphql ./src/ --apollo --typedDocumentNode",
     "lint": "eslint \"**/*.ts\"",
     "prepare": "pnpm generate",
+    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "typecheck": "tsc --noEmit",
-    "zeus:help": "zeus --help"
+    "typecheck": "tsc --noEmit"
   }
 }
