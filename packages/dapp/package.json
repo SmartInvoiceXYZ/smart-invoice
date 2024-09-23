@@ -60,6 +60,7 @@
       "next/core-web-vitals"
     ]
   },
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "next build",

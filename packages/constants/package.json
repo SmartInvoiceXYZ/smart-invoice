@@ -26,14 +26,17 @@
     "smart-invoice",
     "smartinvoicexyz"
   ],
-  "license": "ISC",
-  "main": "dist/src/index.js",
+  "license": "MIT",
+  "main": "src/index.ts",
   "private": false,
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
-  },
-  "types": "dist/src/index.d.ts"
+  }
 }
