@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/forms",
   "description": "Unified source for form components and utilities used across the Smart Invoice protocol.",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "author": "",
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
@@ -41,14 +41,19 @@
     "smart-invoice",
     "smartinvoicexyz"
   ],
-  "license": "ISC",
-  "main": "dist/src/index.js",
+  "license": "MIT",
+  "main": "src/index.ts",
   "private": false,
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
-  },
-  "types": "dist/src/index.d.ts"
+  }
 }

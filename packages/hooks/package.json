@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/hooks",
   "description": "Unified source for React hooks used across the Smart Invoice protocol.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "dependencies": {
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -34,13 +34,18 @@
     "smart-invoice",
     "smartinvoicexyz"
   ],
-  "license": "ISC",
-  "main": "dist/src/index.js",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
-  },
-  "types": "dist/src/index.d.ts"
+  }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/ui",
   "description": "Unified source for UI components used across the Smart Invoice protocol.",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "^2.1.1",
@@ -25,7 +25,7 @@
     "lodash": "^4.17.21",
     "next": "^14.2.13",
     "react": "^18.2.0",
-    "react-datepicker": "^4.25.0",
+    "react-datepicker": "^7.4.0",
     "react-hook-form": "^7.53.0",
     "styled-components": "^6.1.13",
     "viem": "2.17.0",
@@ -52,13 +52,19 @@
     "smartinvoicexyz",
     "ui"
   ],
-  "license": "ISC",
-  "main": "dist/src/index.js",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
   },
-  "types": "dist/src/index.d.ts"
+  "types": "src/index.d.ts"
 }

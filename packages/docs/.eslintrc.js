@@ -1,5 +1,6 @@
 module.exports = {
   extends: '../../.eslintrc.js',
+  ignorePatterns: ['**/node_modules/*', 'dist/*', 'build/*'],
   overrides: [
     {
       // assuming docusaurus application

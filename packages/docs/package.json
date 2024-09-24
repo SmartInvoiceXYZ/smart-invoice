@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/docs",
   "description": "Documentation site for the Smart Invoice protocol, built with Docusaurus to provide comprehensive guides, API references, and user instructions.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "browserslist": {
     "production": [
       ">0.5%",
@@ -31,6 +31,7 @@
     "clear": "docusaurus clear",
     "deploy": "docusaurus deploy",
     "docusaurus": "docusaurus",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
     "serve": "docusaurus serve",
     "start": "docusaurus start",
     "swizzle": "docusaurus swizzle",

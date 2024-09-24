@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/types",
   "description": "Unified source for TypeScript types and interfaces used across the Smart Invoice protocol.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -28,12 +28,18 @@
     "smartinvoicexyz",
     "types"
   ],
-  "license": "ISC",
-  "main": "dist/src/index.js",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
-  },
-  "types": "dist/src/index.d.ts"
+  }
 }

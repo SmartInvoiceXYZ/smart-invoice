@@ -1,13 +1,14 @@
 {
   "name": "@smartinvoicexyz/subgraph",
   "description": "A Graph Protocol subgraph for indexing and querying Smart Invoice events across multiple blockchain networks.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.81.0",
     "@graphprotocol/graph-ts": "^0.35.1",
     "mustache": "^4.2.0"
   },
   "license": "MIT",
+  "private": true,
   "scripts": {
     "auth": "graph auth --studio $GRAPH_ACCESS_TOKEN",
     "build": "graph build",

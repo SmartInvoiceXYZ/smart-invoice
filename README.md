@@ -96,6 +96,50 @@ pnpx syncpack fix-mismatches
 
 This command checks for version mismatches and updates them across the monorepo to maintain alignment.
 
+## Managing Changes and Publishing with Changeset
+
+Smart Invoice uses [Changesets](https://github.com/changesets/changesets) to manage versioning and publishing for the monorepo. Changesets provide a simple way to track changes to the various packages and ensure that proper versioning is applied before publishing updates.
+
+### Creating a Changeset
+
+Whenever you make changes to any of the packages in the monorepo, you need to create a changeset to document those modifications. Use the following command to create a new changeset:
+
+```bash
+pnpm changeset
+```
+
+You will be prompted to select which packages are affected by the change, and what kind of version bump (major, minor, patch) is required.
+
+After completing the prompt, a markdown file will be created in the `.changeset` folder, which details the changes made.
+
+### Committing and Reviewing Changesets
+
+Once you've created a changeset, you can commit it to version control along with your code changes. Review the generated changeset markdown to ensure it correctly reflects the changes and intended version bumps.
+
+### Releasing New Versions
+
+When you're ready to release new versions of your packages, run the following command to bump the versions in `package.json` files based on the changesets:
+
+```bash
+pnpm changeset version
+```
+
+This will update the package versions according to the changes you made in the `.changeset` folder.
+
+### Publishing to npm
+
+Once the versions are bumped, you can publish the updated packages to npm using:
+
+```bash
+pnpm changeset publish
+```
+
+This command will publish all packages in the monorepo that have had changes, using the version bumps defined in the changeset.
+
+### Verifying Version Consistency
+
+To ensure all package versions are synchronized and consistent across the monorepo, you can use `syncpack` as described in the [Versioning](#versioning) section.
+
 ## Metadata Schema Standard
 
 All metadata uploaded to IPFS and saved as details in a Smart Invoice contract must adhere to the following schema:

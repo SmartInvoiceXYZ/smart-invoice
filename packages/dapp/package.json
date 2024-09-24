@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/dapp",
   "description": "A Next.js application that provides a interface for web3 freelancers to manage cryptocurrency invoicing, escrow services, and arbitration.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "browserslist": [
     "chrome >= 67",
     "edge >= 79",
@@ -60,6 +60,7 @@
       "next/core-web-vitals"
     ]
   },
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "next build",
