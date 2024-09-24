@@ -13,7 +13,9 @@ import {
 } from '@chakra-ui/react';
 import { getDateString } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import ReactDatePicker, { ReactDatePickerProps } from 'react-datepicker';
+import ReactDatePicker, {
+  DatePickerProps as ReactDatePickerProps,
+} from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
 
 // TODO handle separate controlled component
@@ -30,7 +32,7 @@ export type DatePickerProps = {
   placeholder?: string;
   variant?: string;
   spacing?: number | string;
-} & Omit<typeof ReactDatePickerProps, 'onChange'>;
+} & Omit<ReactDatePickerProps, 'onChange'>;
 
 export function DatePicker({
   label,
