@@ -4,7 +4,6 @@ import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, isAddress } from 'viem';
 
 import { fetchTypedQuery } from './client';
-import { scalars } from './scalars';
 import { _SubgraphErrorPolicy_, Invoice_orderBy, OrderDirection } from './zeus';
 
 export type SearchInputType = string | Address | undefined;
@@ -39,7 +38,7 @@ export const fetchInvoices = async (
 
   logDebug({ chainId, pageIndex, pageSize, sortBy, sortDirection, where });
 
-  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
+  const data = await fetchTypedQuery(chainId)({
     invoices: [
       {
         first: pageSize,

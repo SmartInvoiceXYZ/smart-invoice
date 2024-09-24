@@ -1,5 +1,4 @@
 import { fetchTypedQuery } from './client';
-import { scalars } from './scalars';
 import { _SubgraphErrorPolicy_ } from './zeus';
 
 const GRAPH_POLL_INTERVAL = 5000;
@@ -12,16 +11,21 @@ export const timeout = (ms: number): Promise<void> => {
 
 const getSubgraphBlockNumber = async (chainId: number) => {
   try {
-    const data = await fetchTypedQuery(chainId, 'query', { scalars })({
-      _meta: [
-        {},
-        {
-          block: {
-            number: true,
+    const data = await fetchTypedQuery(chainId)(
+      {
+        _meta: [
+          {},
+          {
+            block: {
+              number: true,
+            },
           },
-        },
-      ],
-    });
+        ],
+      },
+      {
+        fetchPolicy: 'network-only',
+      },
+    );
 
     // eslint-disable-next-line no-underscore-dangle
     return BigInt(data?._meta?.block?.number ?? 0);

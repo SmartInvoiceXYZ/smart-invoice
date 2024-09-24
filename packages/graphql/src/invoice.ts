@@ -4,7 +4,6 @@ import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
 import { fetchTypedQuery } from './client';
-import { scalars } from './scalars';
 import {
   _SubgraphErrorPolicy_,
   ADR,
@@ -21,7 +20,7 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
   const address = isAddress(queryAddress) && queryAddress;
   if (!address) return null;
 
-  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
+  const data = await fetchTypedQuery(chainId)({
     invoice: [
       {
         id: address,
