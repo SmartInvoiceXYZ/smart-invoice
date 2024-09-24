@@ -1,5 +1,12 @@
 # @smartinvoicexyz/dapp
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @smartinvoicexyz/forms@0.1.10
+
 ## 0.1.4
 
 ### Patch Changes

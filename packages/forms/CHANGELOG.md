@@ -1,5 +1,11 @@
 # @smartinvoicexyz/forms
 
+## 0.1.10
+
+### Patch Changes
+
+- added token name to token dropdown
+
 ## 0.1.9
 
 ### Patch Changes
