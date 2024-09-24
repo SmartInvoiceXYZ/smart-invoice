@@ -273,7 +273,7 @@ export function InvoiceDashboardTable({
                 const url =
                   invoiceType === 'instant'
                     ? `/invoice/${chainId?.toString(16)}/${invoiceAddr}/instant`
-                    : `/invoice/${chainId?.toString(16)}/${invoiceAddr}ddress}`;
+                    : `/invoice/${chainId?.toString(16)}/${invoiceAddr}`;
 
                 return (
                   <Tr
