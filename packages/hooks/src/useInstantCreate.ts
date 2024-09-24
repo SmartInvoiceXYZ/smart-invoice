@@ -4,11 +4,7 @@ import {
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
-import {
-  fetchInvoice,
-  Invoice,
-  waitForSubgraphSync,
-} from '@smartinvoicexyz/graphql';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
@@ -22,6 +18,7 @@ import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
+import { useFetchTokens } from './useFetchTokens';
 
 export const useInstantCreate = ({
   invoiceForm,
@@ -48,7 +45,6 @@ export const useInstantCreate = ({
     client,
     provider,
     token,
-    tokenMetadata,
     projectName,
     projectDescription,
     projectAgreement,
@@ -62,7 +58,6 @@ export const useInstantCreate = ({
     'client',
     'provider',
     'token',
-    'tokenMetadata',
     'projectName',
     'projectDescription',
     'projectAgreement',
@@ -74,15 +69,21 @@ export const useInstantCreate = ({
     'lateFeeTimeInterval',
   ]);
 
-  const detailsData = {
-    projectName,
-    projectDescription,
-    projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
-    startDate,
-    endDate,
-  };
+  const detailsData = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+      startDate,
+      endDate,
+    }),
+    [projectName, projectDescription, projectAgreement, startDate, endDate],
+  );
 
-  const { data: details } = useDetailsPin({ ...detailsData });
+  const { data: tokens } = useFetchTokens();
+  const tokenMetadata = _.filter(tokens, { address: token, chainId })[0];
+
+  const { data: details } = useDetailsPin(detailsData);
 
   const paymentAmount = useMemo(() => {
     if (!tokenMetadata || !paymentDue) {

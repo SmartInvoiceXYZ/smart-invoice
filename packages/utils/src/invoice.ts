@@ -10,7 +10,7 @@ import {
   TokenMetadata,
 } from '@smartinvoicexyz/graphql';
 import _ from 'lodash';
-import { formatUnits, Hex, parseUnits } from 'viem';
+import { formatUnits, Hex } from 'viem';
 
 import { getDateString } from './date';
 import {
@@ -40,49 +40,35 @@ export const sevenDaysFromDate = (date: string | number | Date) => {
   return result;
 };
 
-export const totalDeposited = (
-  invoice: Invoice | undefined,
-  tokenBalance: TokenBalance | undefined,
-) => {
+export const totalDeposited = (invoice: Invoice | undefined) => {
   const { deposits } = _.pick(invoice, ['deposits']);
 
   if (!deposits) return undefined;
-  return parseUnits(
-    _.toString(
-      _.sumBy(deposits, d =>
-        _.toNumber(formatUnits(d.amount, tokenBalance?.decimals || 18)),
-      ),
-    ),
-    tokenBalance?.decimals || 18,
-  );
+  return deposits.reduce((sum, d) => {
+    return sum + BigInt(d.amount.toString());
+  }, BigInt(0));
 };
 
-export const depositedMilestones = (
-  invoice: Invoice,
-  tokenBalance: TokenBalance,
-) => {
+export const depositedMilestones = (invoice: Invoice) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
   return _.map(amounts, (a: string) => {
     sum += BigInt(a);
-    const amount = totalDeposited(invoice, tokenBalance);
+    const amount = totalDeposited(invoice);
     if (!amount) return false;
     return amount >= sum;
   });
 };
 
-export const depositedMilestonesString = (
-  invoice: Invoice,
-  tokenBalance: TokenBalance,
-) => {
+export const depositedMilestonesString = (invoice: Invoice) => {
   const { amounts } = _.pick(invoice, ['amounts']);
 
   let sum = BigInt(0);
-  return _.map(amounts, (a: string, i: number) => {
+  return _.map(amounts, (a: bigint, i: number) => {
     const prevAmount = BigInt(amounts?.[i - 1] || 0) || BigInt(0);
     sum += BigInt(a);
-    const deposited = totalDeposited(invoice, tokenBalance);
+    const deposited = totalDeposited(invoice);
     if (deposited && deposited >= sum) {
       return 'deposited';
     }
@@ -99,19 +85,17 @@ export const depositedMilestonesString = (
 // assuming possibly multiple milestones paid in one deposit,
 // but not catching amounts paid over multiple deposits
 const findDepositForAmount = (
-  amount: number, // total amount to with milestones up to the current amount
+  amount: bigint, // total amount to with milestones up to the current amount
   deposits: Deposit[] | undefined,
 ): Deposit | undefined => {
   if (!deposits) return undefined;
 
-  let sum = 0;
-  for (let i = deposits.length - 1; i >= 0; i -= 1) {
-    sum += _.toNumber(deposits[i].amount.toString());
-    if (sum >= amount) {
-      return deposits[i];
-    }
-  }
-  return undefined;
+  let sum = 0n;
+  return _.reverse(deposits).find((deposit, i) => {
+    sum += BigInt(deposits[i].amount.toString());
+
+    return sum >= amount ? deposit : deposits[i + 1];
+  });
 };
 
 /**
@@ -123,18 +107,23 @@ const findDepositForAmount = (
 export const assignDeposits = (invoice: Invoice): (Deposit | undefined)[] => {
   const { amounts, deposits } = _.pick(invoice, ['amounts', 'deposits']);
 
-  const depositedTxs = _.map(amounts, (a: string, i: number) => {
-    // sum of all amounts up to current index
-    const localSum = _.sumBy(
-      _.concat(_.slice(amounts, 0, i), [a]) as string[],
-      v => _.toNumber(v.toString()),
-    );
+  const depositedTxs =
+    amounts?.map((_a, i) => {
+      // sum of all amounts up to current index
+      const sum =
+        _.reduce(
+          amounts?.slice(0, i + 1),
+          (t, a) => {
+            return t + BigInt(a);
+          },
+          BigInt(0),
+        ) ?? BigInt(0);
 
-    // get deposit for matching amount
-    const deposit = findDepositForAmount(localSum, deposits);
+      // get deposit for matching amount
+      const deposit = findDepositForAmount(sum, deposits);
 
-    return deposit;
-  });
+      return deposit;
+    }) ?? [];
 
   return depositedTxs;
 };
@@ -142,11 +131,12 @@ export const assignDeposits = (invoice: Invoice): (Deposit | undefined)[] => {
 export const assignReleases = (invoice: Invoice): (Release | undefined)[] => {
   const { amounts, releases } = _.pick(invoice, ['amounts', 'releases']);
 
-  const releasedTxs = _.map(amounts, (_str: string, i: number) => {
-    const release = releases?.find(r => BigInt(r.milestone) === BigInt(i));
+  const releasedTxs =
+    amounts?.map((_a, i) => {
+      const release = releases?.find(r => BigInt(r.milestone) === BigInt(i));
 
-    return release;
-  });
+      return release;
+    }) ?? [];
 
   return releasedTxs;
 };
@@ -163,8 +153,8 @@ export const totalAmount = (invoice: Invoice) => {
   );
 };
 
-export const totalDue = (invoice: Invoice, tokenBalance: TokenBalance) => {
-  const localTotalDeposited = totalDeposited(invoice, tokenBalance);
+export const totalDue = (invoice: Invoice) => {
+  const localTotalDeposited = totalDeposited(invoice);
   const total = totalAmount(invoice);
 
   if (!localTotalDeposited || !total) return undefined;
@@ -307,8 +297,8 @@ export const getInvoiceDetails = async (
       chainId,
       // computed values
       total: totalAmount(invoice),
-      deposited: totalDeposited(invoice, tokenBalance),
-      due: totalDue(invoice, tokenBalance),
+      deposited: totalDeposited(invoice),
+      due: totalDue(invoice),
       // milestones
       currentMilestoneAmount: currentMilestoneAmount(
         invoice,
@@ -318,13 +308,9 @@ export const getInvoiceDetails = async (
         currentMilestoneAmountLabel,
         tokenMetadata?.decimals,
       ),
-      bigintAmounts: convertAmountsType(invoice),
       parsedAmounts: parseMilestoneAmounts(invoice, tokenMetadata),
-      depositedMilestones: depositedMilestones(invoice, tokenBalance),
-      depositedMilestonesDisplay: depositedMilestonesString(
-        invoice,
-        tokenBalance,
-      ),
+      depositedMilestones: depositedMilestones(invoice),
+      depositedMilestonesDisplay: depositedMilestonesString(invoice),
       depositedTxs: assignDeposits(invoice),
       releasedTxs: assignReleases(invoice),
       // details

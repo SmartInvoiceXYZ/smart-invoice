@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { useDeposit } from '@smartinvoicexyz/hooks';
+import { useDeposit, useTokenBalance } from '@smartinvoicexyz/hooks';
 import { NumberInput, QuestionIcon, useToast } from '@smartinvoicexyz/ui';
 import {
   commify,
@@ -84,21 +84,30 @@ export function DepositFunds({
   );
   const checked = watch('checked');
 
-  const amountsSum = _.sumBy(amounts, _.toNumber); // number, not parsed
+  const totalAmount =
+    amounts?.reduce((acc, val) => acc + BigInt(val), BigInt(0)) ?? BigInt(0);
+  const amountsSum = Number(
+    formatUnits(totalAmount, tokenMetadata?.decimals || 18),
+  );
 
-  const { data: nativeBalance } = useBalance({ address });
-  const { data: tokenBalance } = useBalance({
-    address,
-    token: tokenMetadata?.address as Hex,
+  const { data: nativeBalance } = useBalance({ address, chainId });
+  const { data: tokenBalance } = useTokenBalance({
+    address: address as Hex,
+    tokenAddress: tokenMetadata?.address as Hex,
+    chainId,
   });
+
   const balance =
     paymentType?.value === PAYMENT_TYPES.NATIVE
       ? nativeBalance?.value
-      : tokenBalance?.value;
+      : tokenBalance;
   const displayBalance =
     paymentType?.value === PAYMENT_TYPES.NATIVE
-      ? nativeBalance?.formatted
-      : tokenBalance?.formatted;
+      ? formatUnits(
+          nativeBalance?.value ?? BigInt(0),
+          nativeBalance?.decimals ?? 18,
+        )
+      : formatUnits(tokenBalance ?? BigInt(0), tokenMetadata?.decimals ?? 18);
   const hasAmount = !!balance && balance > amount; // (+ gasForChain)
 
   const onTxSuccess = () => {

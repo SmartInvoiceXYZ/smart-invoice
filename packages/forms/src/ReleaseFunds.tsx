@@ -39,10 +39,11 @@ export function ReleaseFunds({
   const toast = useToast();
 
   const queryClient = useQueryClient();
-  const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
-    invoice,
-    ['currentMilestoneNumber', 'bigintAmounts', 'tokenBalance'],
-  );
+  const { currentMilestoneNumber, amounts, tokenBalance } = _.pick(invoice, [
+    'currentMilestoneNumber',
+    'amounts',
+    'tokenBalance',
+  ]);
 
   const onTxSuccess = () => {
     toast.success(TOASTS.useRelease.success);
@@ -100,7 +101,7 @@ export function ReleaseFunds({
         >{`${formatUnits(
           getReleaseAmount(
             currentMilestoneNumber,
-            bigintAmounts,
+            amounts,
             tokenBalance?.value,
           ),
           tokenBalance?.decimals || 18,

@@ -58,10 +58,8 @@ export function EscrowDetailsForm({
     handleSubmit,
     setValue: localSetValue,
     watch: localWatch,
-    formState: { isValid, errors },
+    formState: { isValid },
   } = localForm;
-  // eslint-disable-next-line no-console
-  console.log('errors', errors, 'isValid', isValid);
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);

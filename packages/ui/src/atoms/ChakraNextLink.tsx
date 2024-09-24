@@ -1,10 +1,11 @@
-import { Link as ChakraLink, LinkProps } from '@chakra-ui/react';
-import NextLink from 'next/link';
+import {
+  Link as ChakraLink,
+  LinkProps as ChakraLinkProps,
+} from '@chakra-ui/next-js';
 
-export function ChakraNextLink({ href, children, ...props }: LinkProps) {
-  return (
-    <ChakraLink as={NextLink} href={href} {...props} passHref>
-      {children}
-    </ChakraLink>
-  );
+export function ChakraNextLink({
+  href = '',
+  ...props
+}: Omit<ChakraLinkProps, 'href'> & { href?: string | undefined }) {
+  return <ChakraLink href={href} {...props} />;
 }

@@ -14,8 +14,6 @@ import {
   useWriteContract,
 } from 'wagmi';
 
-import { useTokenBalance } from './useTokenMetadata';
-
 export const useDeposit = ({
   invoice,
   amount,
@@ -40,15 +38,9 @@ export const useDeposit = ({
 } => {
   const chainId = useChainId();
 
-  const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
+  const { token } = _.pick(invoice, ['token', 'tokenBalance']);
 
   const publicClient = usePublicClient();
-
-  const { data: networkTokenBalance } = useTokenBalance({
-    address: invoice?.address as Hex,
-    tokenAddress: token as Hex,
-    chainId,
-  });
 
   const {
     data,

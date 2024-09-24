@@ -1,6 +1,7 @@
 import { IToken } from '@smartinvoicexyz/types';
 import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 const DEFAULT_TOKENS: IToken[] = [
   {
@@ -56,9 +57,13 @@ export const useFetchTokens = () => {
     queryKey: ['tokens'],
     queryFn: fetchTokens,
     staleTime: Infinity, // 1000 * 60 * 60 * 24,
+    refetchInterval: false,
   });
 
-  const allTokens = data ? [...DEFAULT_TOKENS, ...data] : DEFAULT_TOKENS;
+  const allTokens = useMemo(
+    () => (data ? [...DEFAULT_TOKENS, ...data] : DEFAULT_TOKENS),
+    [data],
+  );
 
   return { data: allTokens, error, isLoading };
 };

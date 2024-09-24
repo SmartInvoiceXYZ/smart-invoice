@@ -1,9 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import {
-  fetchInvoice,
-  InvoiceDetails,
-  waitForSubgraphSync,
-} from '@smartinvoicexyz/graphql';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -12,13 +8,11 @@ import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useVerify = ({
-  invoice,
   address,
   chainId,
   toast,
   onTxSuccess,
 }: {
-  invoice: Partial<InvoiceDetails>;
   address: Hex | undefined;
   chainId: number;
   toast: UseToastReturn;

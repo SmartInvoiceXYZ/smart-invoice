@@ -5,11 +5,7 @@ import {
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
-import {
-  fetchInvoice,
-  Invoice,
-  waitForSubgraphSync,
-} from '@smartinvoicexyz/graphql';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -88,16 +84,26 @@ export const useInvoiceCreate = ({
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 
-  const detailsData = {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    ...(klerosCourt && { klerosCourt }),
-    startDate,
-    endDate,
-  };
+  const detailsData = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement,
+      startDate,
+      endDate,
+      ...(klerosCourt ? { klerosCourt } : {}),
+    }),
+    [
+      projectName,
+      projectDescription,
+      projectAgreement,
+      klerosCourt,
+      startDate,
+      endDate,
+    ],
+  );
 
-  const { data: details } = useDetailsPin({ ...detailsData });
+  const { data: details } = useDetailsPin(detailsData);
 
   const escrowData = useMemo(() => {
     if (
@@ -209,6 +215,7 @@ export const useInvoiceCreate = ({
       }
       return writeContractAsync(data.request);
     } catch (error) {
+      console.error('useInvoiceCreate', error);
       errorToastHandler('useInvoiceCreate', error as Error, toast);
       return undefined;
     }

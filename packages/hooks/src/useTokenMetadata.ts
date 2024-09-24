@@ -19,6 +19,7 @@ export const useTokenMetadata = ({
     allowFailure: false,
     query: {
       enabled: !!address && !!chainId,
+      refetchInterval: false,
     },
     contracts: [
       {
@@ -76,7 +77,7 @@ export const useTokenBalance = ({
   isLoading: boolean;
   isPending: boolean;
 } => {
-  const result = useReadContract({
+  const { data, error, isLoading, isPending } = useReadContract({
     query: {
       enabled: !!address && !!chainId && !!tokenAddress,
     },
@@ -87,7 +88,12 @@ export const useTokenBalance = ({
     args: [address],
   });
 
-  return result;
+  return {
+    data: _.isNil(data) ? undefined : BigInt(data),
+    error,
+    isLoading,
+    isPending,
+  };
 };
 
 export const useTokenData = ({
@@ -151,7 +157,7 @@ export const useTokenData = ({
     isLoading: result.isLoading,
     metadata: result.data
       ? ({
-          address: address as Hex,
+          address: tokenAddress as Hex,
           decimals: Number(result.data[0]),
           name: result.data[1],
           symbol: result.data[2],
@@ -161,7 +167,7 @@ export const useTokenData = ({
     balance: result.data
       ? {
           decimals: Number(result.data[0]),
-          symbol: result.data[1],
+          symbol: result.data[2],
           value: result.data[4],
         }
       : undefined,

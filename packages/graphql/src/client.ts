@@ -33,6 +33,8 @@ const clients = SUPPORTED_NETWORKS.reduce(
   {} as Record<number, ApolloClient<NormalizedCacheObject>>,
 );
 
+type Scalars = typeof scalars;
+
 export const fetchTypedQuery =
   <
     O extends keyof typeof Ops,
@@ -48,11 +50,8 @@ export const fetchTypedQuery =
         QueryOptions,
         'query' | 'variables'
       >,
-  ): Promise<InputType<GraphQLTypes[R], Z, typeof scalars>> => {
-    const gql = typedGql<O, typeof scalars, R>('query' as O, { scalars })(
-      o,
-      ops,
-    );
+  ): Promise<InputType<GraphQLTypes[R], Z, Scalars>> => {
+    const gql = typedGql<O, Scalars, R>('query' as O, { scalars })(o, ops);
 
     const { data, error } = await clients[chainId].query({
       query: gql,

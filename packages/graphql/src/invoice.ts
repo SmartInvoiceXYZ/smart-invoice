@@ -140,7 +140,14 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
 
   logDebug({ data, address });
 
-  return data?.invoice ?? null;
+  if (!data?.invoice) return null;
+
+  const amounts = data.invoice.amounts.map((amount: string) => BigInt(amount));
+
+  return {
+    ...data.invoice,
+    amounts,
+  };
 };
 
 export type TokenMetadata = {
@@ -221,7 +228,6 @@ export type InvoiceDetails = Invoice &
     due: bigint | undefined;
     total: bigint | undefined;
     currentMilestoneAmount: bigint | undefined;
-    bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];

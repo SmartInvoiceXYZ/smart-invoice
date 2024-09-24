@@ -9,28 +9,43 @@ import {
 import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { Address, Hex, hexToNumber } from 'viem';
+import { Address, Hex, isAddress } from 'viem';
+import { useChainId } from 'wagmi';
 
 function LockedInvoice() {
+  const chainId = useChainId();
+
   const { hexChainId, invoiceId: address } = useParams<{
     hexChainId: Hex;
     invoiceId: Address;
   }>();
-  const invoiceChainId = hexToNumber(hexChainId);
+
+  const invoiceChainId = hexChainId
+    ? parseInt(String(hexChainId), 16)
+    : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     address,
-    chainId: invoiceChainId,
+    chainId,
   });
 
-  if (!isLoading && !invoiceDetails) {
+  if (!isAddress(address) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }
 
-  if (!invoiceDetails) {
+  if (invoiceDetails && chainId !== invoiceChainId) {
+    return (
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+    );
+  }
+
+  if (!invoiceDetails || isLoading) {
     return (
       <Container overlay>
         <Loader size="80" />
+        If the invoice does not load,
+        <br />
+        please refresh the browser.
       </Container>
     );
   }

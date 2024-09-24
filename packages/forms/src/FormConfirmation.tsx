@@ -24,7 +24,7 @@ import {
 } from '@smartinvoicexyz/ui';
 import { getDateString } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
