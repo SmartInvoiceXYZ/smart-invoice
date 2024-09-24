@@ -1,5 +1,16 @@
 # @smartinvoicexyz/hooks
 
+## 0.1.9
+
+### Patch Changes
+
+- bug fixes
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.4
+  - @smartinvoicexyz/graphql@0.1.6
+  - @smartinvoicexyz/types@0.1.6
+  - @smartinvoicexyz/utils@0.1.7
+
 ## 0.1.8
 
 ### Patch Changes
