@@ -4,7 +4,11 @@ import {
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
-import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import {
+  fetchInvoice,
+  Invoice,
+  waitForSubgraphSync,
+} from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
@@ -18,7 +22,6 @@ import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
-import { usePollSubgraph } from './usePollSubgraph';
 
 export const useInstantCreate = ({
   invoiceForm,
@@ -39,7 +42,6 @@ export const useInstantCreate = ({
 } => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
   const [waitingForTx, setWaitingForTx] = useState(false);
-  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
@@ -81,14 +83,6 @@ export const useInstantCreate = ({
   };
 
   const { data: details } = useDetailsPin({ ...detailsData });
-
-  const waitForResult = usePollSubgraph({
-    label: 'Creating escrow invoice',
-    fetchHelper: () =>
-      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
-    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
-    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
-  });
 
   const paymentAmount = useMemo(() => {
     if (!tokenMetadata || !paymentDue) {
@@ -186,10 +180,11 @@ export const useInstantCreate = ({
           'invoice',
         );
         if (!localInvoiceId) return;
-        setNewInvoiceId(localInvoiceId);
         toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
 
-        await waitForResult();
+        if (txData && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
+        }
         setWaitingForTx(false);
 
         // pass back to component for further processing

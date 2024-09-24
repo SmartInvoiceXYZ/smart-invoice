@@ -1,20 +1,12 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback } from 'react';
 import { Hex } from 'viem';
-import {
-  useChainId,
-  usePublicClient,
-  useSimulateContract,
-  useWriteContract,
-} from 'wagmi';
-
-import { usePollSubgraph } from './usePollSubgraph';
-import { useTokenBalance } from './useTokenMetadata';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useWithdraw = ({
   invoice,
@@ -31,22 +23,7 @@ export const useWithdraw = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
-  const chainId = useChainId();
   const { address } = _.pick(invoice, ['address']);
-  const { token } = _.pick(invoice, ['token', 'tokenBalance']);
-
-  const { data: networkTokenBalance } = useTokenBalance({
-    address: invoice?.address as Hex,
-    tokenAddress: token as Hex,
-    chainId,
-  });
-
-  const waitForIndex = usePollSubgraph({
-    label: 'useWithdraw',
-    fetchHelper: async () => {},
-    checkResult: () => networkTokenBalance !== 0n,
-    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
-  });
 
   const {
     data,
@@ -70,10 +47,12 @@ export const useWithdraw = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useWithdraw.waitingForTx);
-        await publicClient?.waitForTransactionReceipt({ hash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useWithdraw.waitingForIndex);
-        await waitForIndex();
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
         onTxSuccess?.();
       },

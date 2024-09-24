@@ -3,7 +3,11 @@ import {
   SMART_INVOICE_ESCROW_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
-import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import {
+  fetchInvoice,
+  InvoiceDetails,
+  waitForSubgraphSync,
+} from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -16,8 +20,6 @@ import {
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
-
-import { usePollSubgraph } from './usePollSubgraph';
 
 export const useLock = ({
   invoice,
@@ -49,13 +51,6 @@ export const useLock = ({
   //   amount: balance.toString(),
   // });
 
-  const waitForIndex = usePollSubgraph({
-    label: 'waiting for useLock tx',
-    fetchHelper: async () =>
-      fetchInvoice(invoiceChainId, _.get(invoice, 'address') as Hex),
-    checkResult: result => !!result?.locked === true,
-  });
-
   const {
     data,
     isLoading: prepareLoading,
@@ -81,10 +76,12 @@ export const useLock = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useLock.waitingForTx);
-        await publicClient?.waitForTransactionReceipt({ hash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useLock.waitingForIndex);
-        await waitForIndex();
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
         onTxSuccess?.();
       },
