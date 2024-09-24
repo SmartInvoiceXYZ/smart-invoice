@@ -14,7 +14,7 @@ import { Modals } from '@smartinvoicexyz/types';
 import { AccountLink, Modal } from '@smartinvoicexyz/ui';
 import { commify, getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { formatUnits, Hex } from 'viem';
+import { formatUnits, Hex, zeroHash } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { AddMilestones } from './AddMilestones';
@@ -245,14 +245,18 @@ export function InvoicePaymentDetails({
                   {`A dispute is in progress with `}
                   <AccountLink address={resolver as Hex} chainId={chainId} />
                   <br />
-                  <Link
-                    href={getIpfsLink(dispute.ipfsHash)}
-                    color="blue.1"
-                    isExternal
-                  >
-                    <u>View details on IPFS</u>
-                  </Link>
-                  <br />
+                  {dispute.details !== zeroHash && (
+                    <>
+                      <Link
+                        href={getIpfsLink(dispute.ipfsHash)}
+                        color="blue.1"
+                        isExternal
+                      >
+                        <u>View details on IPFS</u>
+                      </Link>
+                      <br />
+                    </>
+                  )}
                   <Link
                     href={getTxLink(chainId, dispute.txHash)}
                     color="blue.1"
@@ -295,10 +299,17 @@ export function InvoicePaymentDetails({
                       }
                       <br />
                       <br />
-                      <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
-                        <u>View details on IPFS</u>
-                      </Link>
-                      <br />
+                      {resolution.details !== zeroHash && (
+                        <>
+                          <Link
+                            href={getIpfsLink(resolution.ipfsHash)}
+                            isExternal
+                          >
+                            <u>View details on IPFS</u>
+                          </Link>
+                          <br />
+                        </>
+                      )}
                       <Link
                         href={getTxLink(chainId, resolution.txHash)}
                         isExternal
