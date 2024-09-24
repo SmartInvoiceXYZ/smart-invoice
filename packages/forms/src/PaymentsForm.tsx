@@ -122,7 +122,7 @@ export function PaymentsForm({
             {TOKENS?.map(t => {
               return (
                 <option value={t.address} key={t.address}>
-                  {t.symbol}
+                  {`${t.name} (${t.symbol})`}
                 </option>
               );
             })}

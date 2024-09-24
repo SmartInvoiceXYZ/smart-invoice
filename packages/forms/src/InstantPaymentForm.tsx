@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Stack } from '@chakra-ui/react';
+import { Box, Button, Grid, SimpleGrid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   INSTANT_STEPS,
@@ -18,7 +18,7 @@ import {
   oneMonthFromNow,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
@@ -109,56 +109,52 @@ export function InstantPaymentForm({
         localForm={localForm}
       />
 
-      <NumberInput
-        name="paymentDue"
-        label="Total Payment Due"
-        variant="outline"
-        placeholder="0.00"
-        tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you'll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
-        registerOptions={{ required: true }}
-        w="100%"
-        localForm={localForm}
-        rightElement={
-          <Box minW="150px">
-            <Select
-              name="token"
-              required="required"
-              tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
-              localForm={localForm}
-            >
-              {_.map(TOKENS, t => (
-                <option value={t.address} key={t.address}>
-                  {t.symbol}
-                </option>
-              ))}
-            </Select>
-          </Box>
-        }
-      />
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} alignItems="end">
+        <NumberInput
+          name="paymentDue"
+          label="Total Payment Due"
+          variant="outline"
+          placeholder="0.00"
+          tooltip="This is the total payment for the entire invoice. This number is not based on fiat, but rather the number of tokens you'll receive in your chosen cryptocurrency. (e.g. 7.25 WETH, 100 USDC, etc)."
+          registerOptions={{ required: true }}
+          w="100%"
+          localForm={localForm}
+        />
+        <Select
+          name="token"
+          required="required"
+          tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
+          localForm={localForm}
+        >
+          {_.map(TOKENS, t => (
+            <option value={t.address} key={t.address}>
+              {`${t.name} (${t.symbol})`}
+            </option>
+          ))}
+        </Select>
+      </SimpleGrid>
 
-      <NumberInput
-        name="lateFee"
-        label="Late Fee"
-        placeholder="0.00"
-        tooltip="A fee imposed if the client does not pay by the deadline."
-        localForm={localForm}
-        w="100%"
-        rightElement={
-          <Box minW="150px">
-            <Select
-              name="lateFeeTimeInterval"
-              tooltip="The time interval in which the late fee will be charged past the deadline continuously until paid off."
-              localForm={localForm}
-            >
-              {LATE_FEE_INTERVAL_OPTIONS.map(interval => (
-                <option value={interval.value} key={interval.value}>
-                  {interval.label}
-                </option>
-              ))}
-            </Select>
-          </Box>
-        }
-      />
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} alignItems="end">
+        <NumberInput
+          name="lateFee"
+          label="Late Fee"
+          placeholder="0.00"
+          tooltip="A fee imposed if the client does not pay by the deadline."
+          localForm={localForm}
+          w="100%"
+        />
+        <Select
+          name="lateFeeTimeInterval"
+          tooltip="The time interval in which the late fee will be charged past the deadline continuously until paid off."
+          localForm={localForm}
+        >
+          {LATE_FEE_INTERVAL_OPTIONS.map(interval => (
+            <option value={interval.value} key={interval.value}>
+              {interval.label}
+            </option>
+          ))}
+        </Select>
+      </SimpleGrid>
 
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
