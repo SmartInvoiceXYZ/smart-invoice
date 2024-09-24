@@ -35,7 +35,6 @@ export function VerifyInvoice({
   };
 
   const { writeAsync, isLoading } = useVerify({
-    invoice,
     address: validAddress,
     chainId,
     toast,

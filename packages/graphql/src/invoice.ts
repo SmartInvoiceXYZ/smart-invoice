@@ -4,7 +4,6 @@ import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
 import { fetchTypedQuery } from './client';
-import { scalars } from './scalars';
 import {
   _SubgraphErrorPolicy_,
   ADR,
@@ -21,7 +20,7 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
   const address = isAddress(queryAddress) && queryAddress;
   if (!address) return null;
 
-  const data = await fetchTypedQuery(chainId, 'query', { scalars })({
+  const data = await fetchTypedQuery(chainId)({
     invoice: [
       {
         id: address,
@@ -141,7 +140,14 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
 
   logDebug({ data, address });
 
-  return data?.invoice ?? null;
+  if (!data?.invoice) return null;
+
+  const amounts = data.invoice.amounts.map((amount: string) => BigInt(amount));
+
+  return {
+    ...data.invoice,
+    amounts,
+  };
 };
 
 export type TokenMetadata = {
@@ -222,7 +228,6 @@ export type InvoiceDetails = Invoice &
     due: bigint | undefined;
     total: bigint | undefined;
     currentMilestoneAmount: bigint | undefined;
-    bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];

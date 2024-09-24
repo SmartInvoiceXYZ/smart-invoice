@@ -70,8 +70,7 @@ export const fetchToken = async (count: number = 0) => {
   })
     .then(res => res.text())
     .catch(e => {
-      // eslint-disable-next-line no-console
-      console.log(e);
+      console.error("Couldn't fetch token", e);
       return null;
     });
 

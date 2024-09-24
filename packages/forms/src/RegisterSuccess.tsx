@@ -9,27 +9,34 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
+import { ValueOf } from '@smartinvoicexyz/types';
 import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
 import { getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
+import { useMemo } from 'react';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function RegisterSuccess({
   invoiceId,
   txHash,
+  type,
 }: {
   invoiceId: Address;
   txHash: Address;
+  type: ValueOf<typeof INVOICE_TYPES>;
 }) {
   const chainId = useChainId();
 
   const chainHex = chainId.toString(16);
 
+  const url = useMemo(() => {
+    return `/invoice/${chainHex}/${invoiceId}${type === INVOICE_TYPES.Instant ? '/instant' : ''}`;
+  }, [chainHex, invoiceId, type]);
+
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
-  const { onCopy: copyLink } = useClipboard(
-    `${window.location.origin}/invoice/${chainHex}/${invoiceId}`,
-  );
+  const { onCopy: copyLink } = useClipboard(`${window.location.origin}${url}`);
 
   return (
     <Stack w="100%" spacing="1rem" align="center" justify="center" px="1rem">
@@ -68,8 +75,7 @@ export function RegisterSuccess({
           >
             <Link
               ml="0.5rem"
-              href={`/invoice/${chainHex}/${invoiceId}
-                  }`}
+              href={url}
               color="charcoal"
               overflow="clip"
               w="full"
@@ -102,19 +108,11 @@ export function RegisterSuccess({
           w="100%"
         >
           <HStack bgColor="gray.50" p={3} borderRadius={4} overflow="clip">
-            <Link
-              ml="0.5rem"
-              href={`/invoice/${chainHex}/${invoiceId}`}
-              color="charcoal"
-              overflow="clip"
-            >
-              {_.truncate(
-                `${window.location.origin}/invoice/${chainHex}/${invoiceId}`,
-                {
-                  length: 60,
-                  omission: '...',
-                },
-              )}
+            <Link ml="0.5rem" href={url} color="charcoal" overflow="clip">
+              {_.truncate(`${window.location.origin}${url}`, {
+                length: 60,
+                omission: '...',
+              })}
             </Link>
             <Button
               ml={4}
@@ -137,7 +135,7 @@ export function RegisterSuccess({
             Return Home
           </Button>
         </ChakraNextLink>
-        <ChakraNextLink href={`/invoice/${chainHex}/${invoiceId}`}>
+        <ChakraNextLink href={url}>
           <Button size="lg" fontWeight="medium">
             View Invoice
           </Button>

@@ -157,6 +157,7 @@ export function CreateInvoiceEscrow() {
               <RegisterSuccess
                 invoiceId={invoiceId as Address}
                 txHash={txHash as Address}
+                type={INVOICE_TYPES.Escrow}
               />
             )}
           </Flex>

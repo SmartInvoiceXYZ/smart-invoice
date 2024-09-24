@@ -1,5 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -7,16 +7,12 @@ import { useCallback } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
-import { usePollSubgraph } from './usePollSubgraph';
-
 export const useVerify = ({
-  invoice,
   address,
   chainId,
   toast,
   onTxSuccess,
 }: {
-  invoice: Partial<InvoiceDetails>;
   address: Hex | undefined;
   chainId: number;
   toast: UseToastReturn;
@@ -38,12 +34,6 @@ export const useVerify = ({
     },
   });
 
-  const waitForIndex = usePollSubgraph({
-    label: 'Waiting for non-client deposit to be enabled',
-    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
-    checkResult: result => !!result?.verified === true,
-  });
-
   const {
     writeContractAsync,
     error: writeError,
@@ -52,10 +42,12 @@ export const useVerify = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useVerify.waitingForTx);
-        await publicClient?.waitForTransactionReceipt({ hash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useVerify.waitingForIndex);
-        await waitForIndex();
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
         onTxSuccess?.();
       },

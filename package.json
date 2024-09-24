@@ -57,7 +57,6 @@
   "scripts": {
     "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "clean": "pnpm -r clean",
-    "dapp:build": "pnpm -r --filter '!@smartinvoicexyz/docs' --filter '!@smartinvoicexyz/subgraph' --filter '!@smartinvoicexyz/contracts' build",
     "dapp:dev": "pnpm --filter '@smartinvoicexyz/dapp' dev",
     "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
     "lint": "pnpm -r lint",

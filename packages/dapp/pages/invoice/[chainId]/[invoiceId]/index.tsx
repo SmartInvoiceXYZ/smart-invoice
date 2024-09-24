@@ -42,7 +42,7 @@ function ViewInvoice() {
     );
   }
 
-  if (!invoiceDetails) {
+  if (!invoiceDetails || isLoading) {
     return (
       <Container overlay gap={10}>
         <Loader size="80" />

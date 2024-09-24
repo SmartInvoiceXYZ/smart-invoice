@@ -7,7 +7,6 @@ import {
   Heading,
   HStack,
   IconButton,
-  Spinner,
   Stack,
   Table,
   Tbody,
@@ -24,7 +23,7 @@ import {
   InvoiceMetadata,
 } from '@smartinvoicexyz/graphql';
 import { useIpfsDetails } from '@smartinvoicexyz/hooks';
-import { chainsMap } from '@smartinvoicexyz/utils';
+import { chainsMap, getAccountString } from '@smartinvoicexyz/utils';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   CellContext,
@@ -39,10 +38,10 @@ import {
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits, Hex } from 'viem';
+import { Address, formatUnits } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { AccountLink, ChakraNextLink } from '../atoms';
+import { ChakraNextLink, Loader } from '../atoms';
 import { useMediaStyles } from '../hooks';
 import {
   DoubleLeftArrowIcon,
@@ -60,28 +59,19 @@ export type InvoiceDashboardTableProps = {
   searchInput?: SearchInputType;
 };
 
-function InvoiceLink({
+function InvoiceDisplay({
   cell,
-  chainId,
 }: {
   cell: CellContext<Partial<InvoiceMetadata>, string | undefined>;
-  chainId?: number;
 }) {
   const { ipfsHash } = cell.row.original;
   const address = cell.getValue();
 
-  const { data, isFetched } = useIpfsDetails({ cid: ipfsHash ?? '' });
+  const { data } = useIpfsDetails(ipfsHash ?? '');
 
-  return data && isFetched ? (
-    <ChakraNextLink href={`/invoice/${chainId?.toString(16)}/${address}`}>
-      {data?.projectName}
-    </ChakraNextLink>
-  ) : (
-    <AccountLink
-      address={address as Hex}
-      link={`/invoice/${chainId?.toString(16)}/${address}`}
-    />
-  );
+  const displayString = data?.projectName || getAccountString(address);
+
+  return displayString;
 }
 
 export function InvoiceDashboardTable({
@@ -106,12 +96,16 @@ export function InvoiceDashboardTable({
       }),
       columnHelper.accessor('address', {
         header: 'Invoice Name/ID',
-        cell: info => <InvoiceLink cell={info} chainId={chainId} />,
+        cell: info => <InvoiceDisplay cell={info} />,
       }),
       columnHelper.accessor(
-        row =>
-          row?.total &&
-          formatUnits(row.total, row.tokenMetadata?.decimals || 18),
+        row => {
+          if (row?.total) {
+            return formatUnits(row.total, row.tokenMetadata?.decimals || 18);
+          }
+
+          return '0';
+        },
         {
           id: 'amount',
           header: 'Amount',
@@ -200,10 +194,7 @@ export function InvoiceDashboardTable({
     return (
       <Box paddingY={16}>
         <Stack align="center">
-          <Heading color="gray" as="h1">
-            Invoices Loading
-          </Heading>
-          <Spinner />
+          <Loader size="80" />
         </Stack>
       </Box>
     );
@@ -276,26 +267,31 @@ export function InvoiceDashboardTable({
               ))}
             </Thead>
             <Tbody>
-              {table.getRowModel().rows.map(row => (
-                <Tr
-                  key={row.id}
-                  onClick={() =>
-                    router.push(
-                      `/invoice/${chainId?.toString(16)}/${row.getValue('address')}`,
-                    )
-                  }
-                  _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <Td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </Td>
-                  ))}
-                </Tr>
-              ))}
+              {table.getRowModel().rows.map(row => {
+                const { invoiceType } = row.original;
+                const { address: invoiceAddr } = row.original;
+                const url =
+                  invoiceType === 'instant'
+                    ? `/invoice/${chainId?.toString(16)}/${invoiceAddr}/instant`
+                    : `/invoice/${chainId?.toString(16)}/${invoiceAddr}ddress}`;
+
+                return (
+                  <Tr
+                    key={row.id}
+                    onClick={() => router.push(url)}
+                    _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <Td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </Td>
+                    ))}
+                  </Tr>
+                );
+              })}
             </Tbody>
           </Table>
         </div>

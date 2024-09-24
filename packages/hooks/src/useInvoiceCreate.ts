@@ -5,7 +5,7 @@ import {
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
-import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -22,7 +22,6 @@ import {
 
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
-import { usePollSubgraph } from './usePollSubgraph';
 
 const ESCROW_TYPE = toHex('escrow', { size: 32 });
 
@@ -46,7 +45,6 @@ export const useInvoiceCreate = ({
 } => {
   const chainId = useChainId();
   const publicClient = usePublicClient();
-  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
   const [waitingForTx, setWaitingForTx] = useState(false);
 
   const { getValues } = invoiceForm;
@@ -86,24 +84,26 @@ export const useInvoiceCreate = ({
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 
-  const detailsData = {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    ...(klerosCourt && { klerosCourt }),
-    startDate,
-    endDate,
-  };
+  const detailsData = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement,
+      startDate,
+      endDate,
+      ...(klerosCourt ? { klerosCourt } : {}),
+    }),
+    [
+      projectName,
+      projectDescription,
+      projectAgreement,
+      klerosCourt,
+      startDate,
+      endDate,
+    ],
+  );
 
-  const { data: details } = useDetailsPin({ ...detailsData });
-
-  const waitForResult = usePollSubgraph({
-    label: 'Creating escrow invoice',
-    fetchHelper: () =>
-      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
-    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
-    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
-  });
+  const { data: details } = useDetailsPin(detailsData);
 
   const escrowData = useMemo(() => {
     if (
@@ -194,10 +194,11 @@ export const useInvoiceCreate = ({
           'invoice',
         );
         if (!localInvoiceId) return;
-        setNewInvoiceId(localInvoiceId);
         toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
 
-        await waitForResult();
+        if (txData && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
+        }
         setWaitingForTx(false);
 
         // pass back to component for further processing
@@ -214,6 +215,7 @@ export const useInvoiceCreate = ({
       }
       return writeContractAsync(data.request);
     } catch (error) {
+      console.error('useInvoiceCreate', error);
       errorToastHandler('useInvoiceCreate', error as Error, toast);
       return undefined;
     }

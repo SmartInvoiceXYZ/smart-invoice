@@ -19,8 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const apiKey = await generateApiKey(localRestrictions);
     return res.send(apiKey);
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(e);
+    console.error('Error in /api/upload-start', e);
     return res.status(500).send('Server Error');
   }
 };

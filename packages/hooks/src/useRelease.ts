@@ -1,5 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { fetchInvoice, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -12,8 +12,6 @@ import {
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
-
-import { usePollSubgraph } from './usePollSubgraph';
 
 export const useRelease = ({
   invoice,
@@ -35,13 +33,6 @@ export const useRelease = ({
   const publicClient = usePublicClient();
 
   const specifiedMilestone = _.isNumber(milestone);
-
-  const waitForIndex = usePollSubgraph({
-    label: 'waiting for funds to be released',
-    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
-    checkResult: updatedInvoice =>
-      invoice?.released ? updatedInvoice.released > invoice.released : false,
-  });
 
   const {
     data,
@@ -66,10 +57,12 @@ export const useRelease = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useRelease.waitingForTx);
-        await publicClient?.waitForTransactionReceipt({ hash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useRelease.waitingForIndex);
-        await waitForIndex();
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
         onTxSuccess?.();
       },

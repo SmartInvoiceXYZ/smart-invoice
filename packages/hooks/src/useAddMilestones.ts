@@ -1,5 +1,5 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
@@ -8,8 +8,6 @@ import { useCallback } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
-
-import { usePollSubgraph } from './usePollSubgraph';
 
 export const useAddMilestones = ({
   address,
@@ -26,7 +24,7 @@ export const useAddMilestones = ({
 } => {
   const publicClient = usePublicClient();
 
-  const { tokenMetadata, total } = _.pick(invoice, ['tokenMetadata', 'total']);
+  const { tokenMetadata } = _.pick(invoice, ['tokenMetadata', 'total']);
 
   const { getValues } = localForm;
   const { milestones } = getValues();
@@ -36,16 +34,6 @@ export const useAddMilestones = ({
       ? parseUnits(milestone.value, tokenMetadata?.decimals || 18)
       : BigInt(0),
   );
-
-  const newTotal =
-    _.sum(_.map(parsedMilestones, m => Number(m))) + Number(total);
-
-  const waitForIndex = usePollSubgraph({
-    label: 'useAllMilestones',
-    fetchHelper: async () => {},
-    checkResult: () => newTotal < Number(total),
-    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
-  });
 
   const { error: prepareError, data } = useSimulateContract({
     address,
@@ -66,10 +54,12 @@ export const useAddMilestones = ({
     mutation: {
       onSuccess: async hash => {
         toast.info(TOASTS.useAddMilestone.waitingForTx);
-        await publicClient?.waitForTransactionReceipt({ hash });
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
         toast.info(TOASTS.useAddMilestone.waitingForIndex);
-        await waitForIndex();
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
         onTxSuccess?.();
       },

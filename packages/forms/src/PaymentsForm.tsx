@@ -50,8 +50,7 @@ export function PaymentsForm({
   const { data: tokens } = useFetchTokens();
 
   const TOKENS = useMemo(
-    // eslint-disable-next-line eqeqeq
-    () => (tokens ? _.filter(tokens, t => t.chainId == chainId) : []),
+    () => (tokens ? _.filter(tokens, t => t.chainId === chainId) : []),
     [chainId, tokens],
   ) as IToken[];
 
@@ -94,7 +93,6 @@ export function PaymentsForm({
 
   useEffect(() => {
     localSetValue('token', nativeWrappedToken);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [TOKENS, nativeWrappedToken]);
 
   const [total, decimals] = localMilestones

@@ -7,7 +7,7 @@ import {
 } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export const useDetailsPin = ({
   projectName,
@@ -78,7 +78,7 @@ export const useDetailsPin = ({
     klerosCourt,
   ]);
 
-  const detailsPin = async () => {
+  const detailsPin = useCallback(async () => {
     const token = await fetchToken();
     if (!detailsData || !token) return null;
     const details = await handleDetailsPin({
@@ -88,7 +88,16 @@ export const useDetailsPin = ({
     });
 
     return convertIpfsCidV0ToByte32(details);
-  };
+  }, [detailsData, projectName, startDate]);
+
+  const isEnabled = useMemo(() => {
+    return (
+      !!(projectName || projectAgreement) &&
+      !!startDate &&
+      !!endDate &&
+      !!detailsData
+    );
+  }, [projectName, projectAgreement, startDate, endDate, detailsData]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -99,16 +108,13 @@ export const useDetailsPin = ({
         projectAgreement,
         startDate,
         endDate,
-        ...(klerosCourt && { klerosCourt }),
+        ...(klerosCourt ? { klerosCourt } : {}),
       },
     ],
     queryFn: detailsPin,
-    enabled:
-      !!(projectName || projectAgreement) &&
-      !!startDate &&
-      !!endDate &&
-      !!detailsData,
+    enabled: isEnabled,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    refetchInterval: false,
   });
 
   return { data, isLoading, error };

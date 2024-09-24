@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-export const useIpfsDetails = ({ cid }: { cid: string }) => {
+export const useIpfsDetails = (cid: string) => {
   const fetchIpfDetails = async () => {
     const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
     const data = await response.json();

@@ -24,6 +24,7 @@ import {
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
+const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
 
 const infuraNetworkName: { [key: number]: string } = {
   [mainnet.id]: 'mainnet',
@@ -88,7 +89,7 @@ const transports: _transports = chains.reduce(
 
     return {
       ...acc,
-      [chain.id]: http(`https://${infuraNetwork}.infura.io/v3/${PROJECT_ID}`),
+      [chain.id]: http(`https://${infuraNetwork}.infura.io/v3/${INFURA_ID}`),
     };
   },
   {} as _transports,
