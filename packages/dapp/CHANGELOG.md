@@ -1,5 +1,17 @@
 # @smartinvoicexyz/dapp
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @smartinvoicexyz/graphql@0.1.5
+  - @smartinvoicexyz/ui@0.1.9
+  - @smartinvoicexyz/forms@0.1.8
+  - @smartinvoicexyz/hooks@0.1.8
+  - @smartinvoicexyz/types@0.1.5
+  - @smartinvoicexyz/utils@0.1.6
+
 ## 0.1.2
 
 ### Patch Changes

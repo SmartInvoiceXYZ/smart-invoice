@@ -1,5 +1,11 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.5
+
+### Patch Changes
+
+- fixed types
+
 ## 0.1.4
 
 ### Patch Changes
