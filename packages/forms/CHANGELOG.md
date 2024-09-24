@@ -1,5 +1,12 @@
 # @smartinvoicexyz/forms
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @smartinvoicexyz/ui@0.1.8
+
 ## 0.1.6
 
 ### Patch Changes

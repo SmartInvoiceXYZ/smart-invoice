@@ -62,7 +62,6 @@
     "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,tsx,js,jsx,json,md,sol}\"",
     "lint": "pnpm -r lint",
     "preinstall": "only-allow pnpm",
-    "publish:all": "pnpm -r publish",
     "syncpack": "syncpack list-mismatches",
     "typecheck": "pnpm -r typecheck",
     "update-deps": "pnpm update -i -r --latest"
