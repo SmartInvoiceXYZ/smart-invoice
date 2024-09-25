@@ -116,8 +116,8 @@ export const useInvoiceDetails = ({
     KLEROS_ARBITRATION_SAFE as Hex,
     chainId,
   );
-  // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
 
+  // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
   const enhancedInvoiceFromIpfs = useMemo(
     () =>
       ({

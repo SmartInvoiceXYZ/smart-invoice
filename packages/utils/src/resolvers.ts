@@ -2,8 +2,8 @@ import _ from 'lodash';
 import { isAddress } from 'viem';
 import * as Yup from 'yup';
 
+import { sevenDaysFromDate } from './date';
 import { isKnownResolver } from './helpers';
-import { sevenDaysFromDate } from './invoice';
 
 export const escrowDetailsSchema = (chainId: number) =>
   Yup.object().shape({

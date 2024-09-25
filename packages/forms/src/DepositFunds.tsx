@@ -267,8 +267,8 @@ export function DepositFunds({
         </Flex>
         <Stack gap={4} mt={4}>
           {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
-            <Alert bg="red.500" borderRadius="md" color="white">
-              <AlertIcon color="whiteAlpha.800" />
+            <Alert status="warning" borderRadius="md">
+              <AlertIcon />
               <AlertTitle fontSize="sm">
                 Your deposit is greater than the total amount due!
               </AlertTitle>
@@ -276,8 +276,8 @@ export function DepositFunds({
           )}
 
           {displayBalance && displayBalance < formatEther(amount) && (
-            <Alert bg="red.500" borderRadius="md" color="white">
-              <AlertIcon color="whiteAlpha.800" />
+            <Alert status="error" borderRadius="md">
+              <AlertIcon />
               <AlertTitle fontSize="sm">
                 Your balance is less than the amount you are trying to deposit!
               </AlertTitle>
