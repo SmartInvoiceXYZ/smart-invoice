@@ -8,8 +8,6 @@ import { useCallback } from 'react';
 import { Hex, TransactionReceipt, zeroHash } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
-// TODO: fix pin
-
 export const useResolve = ({
   invoice,
   awards: {
@@ -37,6 +35,8 @@ export const useResolve = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
+  // TODO: fix pin
+
   const detailsHash = zeroHash;
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
@@ -56,8 +56,8 @@ export const useResolve = ({
       enabled:
         !!invoice?.address &&
         fullBalance &&
-        // invoice?.isLocked &&
-        // balance.value > BigInt(0) &&
+        invoice?.isLocked &&
+        tokenBalance.value > BigInt(0) &&
         !!comments,
     },
   });

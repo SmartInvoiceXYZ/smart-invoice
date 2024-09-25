@@ -9,27 +9,28 @@ import {
 import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { Address, Hex, isAddress } from 'viem';
+import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
 function LockedInvoice() {
   const chainId = useChainId();
 
-  const { hexChainId, invoiceId: address } = useParams<{
-    hexChainId: Hex;
-    invoiceId: Address;
+  const { hexChainId, invoiceId: invId } = useParams<{
+    hexChainId: string;
+    invoiceId: string;
   }>();
+  const invoiceId = _.toLower(String(invId)) as Hex;
 
   const invoiceChainId = hexChainId
     ? parseInt(String(hexChainId), 16)
     : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
-    address,
+    address: invoiceId,
     chainId,
   });
 
-  if (!isAddress(address) || (!invoiceDetails === null && !isLoading)) {
+  if (!isAddress(invoiceId) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }
 

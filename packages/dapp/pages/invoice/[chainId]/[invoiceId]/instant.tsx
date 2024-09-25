@@ -19,16 +19,18 @@ import {
 } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { Address, formatUnits, Hex, isAddress } from 'viem';
+import { formatUnits, Hex, isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
 
 function ViewInstantInvoice() {
-  const { chainId: hexChainId, invoiceId } = useParams<{
-    chainId: Hex;
-    invoiceId: Address;
+  const { chainId: hexChainId, invoiceId: invId } = useParams<{
+    chainId: string;
+    invoiceId: string;
   }>();
+  const invoiceId = _.toLower(String(invId)) as Hex;
+
   const invoiceChainId = hexChainId
     ? parseInt(String(hexChainId), 16)
     : undefined;

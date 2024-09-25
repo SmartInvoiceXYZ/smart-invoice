@@ -28,7 +28,6 @@ export type NetworkConfig = {
 export type Config = {
   INFURA_ID: string;
   IPFS_ENDPOINT: string;
-  BOX_ENDPOINT: string;
   NETWORK_CONFIG: Record<number, NetworkConfig>;
 };
 
@@ -226,8 +225,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
 
 export const CONFIG: Config = {
   INFURA_ID: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || '',
-  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
-  BOX_ENDPOINT: 'https://ipfs.3box.io',
+  IPFS_ENDPOINT: 'https://gateway.pinata.cloud',
   NETWORK_CONFIG,
 };
 

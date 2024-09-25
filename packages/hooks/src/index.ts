@@ -1,6 +1,5 @@
 export * from './useAddMilestones';
 export * from './useDeposit';
-export * from './useDetailsPin';
 export * from './useEscrowZap';
 export * from './useFetchTokens';
 export * from './useInstantCreate';

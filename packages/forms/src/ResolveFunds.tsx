@@ -21,13 +21,11 @@ export function ResolveFunds({
   invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
-  const { resolutionRate, tokenBalance, tokenMetadata } = _.pick(invoice, [
-    'resolutionRate',
-    'tokenBalance',
-    'tokenMetadata',
-  ]);
+  const { resolutionRate, tokenBalance, tokenMetadata, isLocked } = _.pick(
+    invoice,
+    ['resolutionRate', 'tokenBalance', 'tokenMetadata', 'isLocked'],
+  );
 
-  const isLocked = true;
   const toast = useToast();
   const localForm = useForm({});
   const { watch, handleSubmit, setValue } = localForm;
