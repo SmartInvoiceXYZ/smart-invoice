@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
 
-type ProjectAgreement = {
+type Document = {
   id: string;
   src: string;
   type: string;
@@ -37,7 +37,7 @@ export const useDetailsPin = ({
       return undefined;
     }
 
-    const projectAgreements: ProjectAgreement[] = [];
+    const projectAgreements: Document[] = [];
     if (projectAgreement && projectAgreement !== '') {
       projectAgreements.push({
         id: createdAt.toString(),
@@ -100,7 +100,7 @@ export const useDetailsPin = ({
     ],
     queryFn: uploadToIpfs,
     enabled: isEnabled,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: Infinity,
     refetchInterval: false,
   });
 

@@ -1,4 +1,4 @@
-import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
+import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useRelease } from '@smartinvoicexyz/hooks';
@@ -120,19 +120,15 @@ export function ReleaseFunds({
           </Link>
         </Text>
       )} */}
-      {isLoading ? (
-        <Spinner size="xl" />
-      ) : (
-        <Button
-          onClick={releaseFunds}
-          isDisabled={!releaseFunds || isLoading}
-          isLoading={isLoading}
-          textTransform="uppercase"
-          variant="solid"
-        >
-          Release
-        </Button>
-      )}
+      <Button
+        onClick={releaseFunds}
+        isDisabled={!releaseFunds || isLoading}
+        isLoading={isLoading}
+        textTransform="uppercase"
+        variant="solid"
+      >
+        Release
+      </Button>
     </Stack>
   );
 }

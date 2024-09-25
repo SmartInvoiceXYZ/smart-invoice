@@ -10,5 +10,7 @@ export const useIpfsDetails = (cid: string) => {
     queryKey: ['ipfsDetails', cid],
     queryFn: fetchIpfDetails,
     enabled: !!cid,
+    staleTime: Infinity,
+    refetchInterval: false,
   });
 };

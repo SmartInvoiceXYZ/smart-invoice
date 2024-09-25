@@ -1,4 +1,4 @@
-import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
+import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useResolve } from '@smartinvoicexyz/hooks';
 import {
@@ -7,6 +7,7 @@ import {
   TokenDescriptor,
   useToast,
 } from '@smartinvoicexyz/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -31,24 +32,30 @@ export function ResolveFunds({
   const { watch, handleSubmit, setValue } = localForm;
 
   const resolverAward = useMemo(() => {
-    if (
-      !resolutionRate ||
-      resolutionRate === BigInt(0) ||
-      tokenBalance?.value === BigInt(0)
-    ) {
+    if (!resolutionRate || resolutionRate === BigInt(0) || !tokenBalance) {
       return 0;
     }
-    const bal = tokenBalance?.value;
-    return bal ? _.toNumber(formatUnits(bal / resolutionRate, 18)) : 0;
-  }, [tokenBalance?.value, resolutionRate]);
-
-  const availableFunds =
-    _.toNumber(
+    if (tokenBalance.value === BigInt(0)) {
+      return 0;
+    }
+    return _.toNumber(
       formatUnits(
-        tokenBalance?.value ?? BigInt(0),
-        tokenBalance?.decimals ?? 18,
+        tokenBalance.value / resolutionRate,
+        tokenBalance.decimals ?? 18,
       ),
-    ) - resolverAward;
+    );
+  }, [tokenBalance, resolutionRate]);
+
+  const availableFunds = useMemo(
+    () =>
+      _.toNumber(
+        formatUnits(
+          tokenBalance?.value ?? BigInt(0),
+          tokenBalance?.decimals ?? 18,
+        ),
+      ) - resolverAward,
+    [tokenBalance?.value, resolverAward],
+  );
 
   const clientAward = watch('clientAward');
   const providerAward = watch('providerAward');
@@ -67,12 +74,21 @@ export function ResolveFunds({
     [clientAward, providerAward, resolverAward],
   );
 
+  const queryClient = useQueryClient();
+
   const onTxSuccess = (_tx: TransactionReceipt) => {
     // TODO: handle tx success
     // console.log(tx);
     // toast
     // invalidate cache
     // close modal
+    //
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    // close modal
+    onClose();
   };
 
   const { writeAsync: resolve, isLoading } = useResolve({
@@ -95,8 +111,7 @@ export function ResolveFunds({
       setValue('providerAward', 0);
       setValue('resolverAward', resolverAward);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [availableFunds, resolverAward]);
 
   if (!isLocked) {
     return (
@@ -167,7 +182,7 @@ export function ResolveFunds({
         localForm={localForm}
         placeholder="Client Award"
         registerOptions={{
-          onChange: value => {
+          onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
               setValue('clientAward', availableFunds);
               setValue('providerAward', 0);
@@ -183,7 +198,7 @@ export function ResolveFunds({
         localForm={localForm}
         placeholder="Provider Award"
         registerOptions={{
-          onChange: value => {
+          onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
               setValue('providerAward', availableFunds);
               setValue('clientAward', 0);
@@ -193,6 +208,7 @@ export function ResolveFunds({
         }}
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
       />
+
       <NumberInput
         name="resolverAward"
         label="Arbitration Fee"
@@ -201,8 +217,6 @@ export function ResolveFunds({
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
       />
 
-      {isLoading && <Spinner size="xl" />}
-
       <Button
         type="submit"
         isDisabled={
@@ -210,6 +224,7 @@ export function ResolveFunds({
         }
         textTransform="uppercase"
         variant="solid"
+        isLoading={isLoading}
       >
         Resolve
       </Button>

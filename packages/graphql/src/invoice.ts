@@ -240,7 +240,7 @@ export type InvoiceDetails = Invoice &
     resolverFeeDisplay: string | undefined;
     klerosCourt?: number | string | undefined;
     deadlineLabel: string | undefined;
-    // entities
+    // disputes
     dispute?: Dispute | undefined;
     resolution?: Resolution | undefined;
     // flags

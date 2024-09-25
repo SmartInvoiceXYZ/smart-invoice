@@ -90,6 +90,9 @@ export const getAddressLink = (
   return `${getExplorerUrl(chainId)}/address/${hash}`;
 };
 
+export const isEmptyIpfsHash = (hash: string) =>
+  hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51';
+
 // bytes58 QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51
 // is the same as
 // bytes64 12200000000000000000000000000000000000000000000000000000000000000000

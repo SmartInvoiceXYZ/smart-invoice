@@ -122,13 +122,13 @@ export const useInvoiceCreate = ({
     return encodeAbiParameters(
       [
         { type: 'address' }, //     _client,
-        { type: 'uint8' }, //       _resolverType,
+        { type: 'uint8' }, //     _resolverType,
         { type: 'address' }, //     _resolver,
         { type: 'address' }, //     _token,
-        { type: 'uint256' }, //     _terminationTime, // exact termination date in seconds since epoch
+        { type: 'uint256' }, //     _terminationTime, seconds since epoch
         { type: 'bytes32' }, //     _details,
         { type: 'address' }, //     _wrappedNativeToken,
-        { type: 'bool' }, //        _requireVerification, // warns the client not to deposit funds until verifying they can release or lock funds
+        { type: 'bool' }, //     _requireVerification, warns the client not to deposit funds until verifying they can release or lock funds
         { type: 'address' }, //     _factory,
       ],
       [
