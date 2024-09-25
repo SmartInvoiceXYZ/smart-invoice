@@ -51,7 +51,7 @@ export const SUPPORTED_NETWORKS: Array<number> = [
   sepolia.id,
 ];
 
-export const INVOICE_VERSION = 'smart-invoice-v0';
+export const INVOICE_VERSION = 'smart-invoice-v1';
 
 export const INFURA_AUTH = `Basic ${Buffer.from(
   `${INFURA_PROJECT_ID}:${INFURA_PROJECT_SECRET}`,

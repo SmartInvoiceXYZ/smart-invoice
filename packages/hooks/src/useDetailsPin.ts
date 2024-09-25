@@ -1,5 +1,4 @@
 import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import {
   convertIpfsCidV0ToByte32,
   fetchToken,
@@ -9,13 +8,19 @@ import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
 
+type ProjectAgreement = {
+  id: string;
+  src: string;
+  type: string;
+  createdAt: string;
+};
+
 export const useDetailsPin = ({
   projectName,
   projectDescription,
   projectAgreement,
   startDate,
   endDate,
-  invoice,
   klerosCourt,
 }: {
   projectName?: string;
@@ -23,35 +28,18 @@ export const useDetailsPin = ({
   projectAgreement: string;
   startDate?: number;
   endDate?: number;
-  invoice?: InvoiceDetails;
   klerosCourt?: number;
 }) => {
   const detailsData = useMemo(() => {
     const createdAt = BigInt(Date.now());
-    const {
-      projectName: invoiceProjectName,
-      projectDescription: invoiceProjectDescription,
-      projectAgreement: invoiceProjectAgreement,
-      startDate: invoiceStartDate,
-      endDate: invoiceEndDate,
-    } = _.pick(invoice, [
-      'projectName',
-      'projectDescription',
-      'projectAgreement',
-      'startDate',
-      'endDate',
-      'klerosCourt',
-    ]);
 
     if (!(projectName || projectAgreement !== '')) {
       return undefined;
     }
 
-    // TODO working around bigint type for createdAt
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newProjectAgreement: any[] = _.concat(invoiceProjectAgreement || []);
+    const projectAgreements: ProjectAgreement[] = [];
     if (projectAgreement && projectAgreement !== '') {
-      newProjectAgreement.push({
+      projectAgreements.push({
         id: createdAt.toString(),
         src: projectAgreement,
         type: projectAgreement?.startsWith('http') ? 'http' : 'ipfs',
@@ -60,11 +48,11 @@ export const useDetailsPin = ({
     }
 
     return {
-      projectName: projectName || invoiceProjectName || '',
-      projectDescription: projectDescription || invoiceProjectDescription || '',
-      projectAgreement: newProjectAgreement,
-      startDate: startDate || invoiceStartDate,
-      endDate: endDate || invoiceEndDate,
+      projectName: projectName || '',
+      projectDescription: projectDescription || '',
+      projectAgreement: projectAgreements,
+      startDate,
+      endDate,
       version: INVOICE_VERSION,
       ...(klerosCourt && { klerosCourt }),
     };
@@ -74,11 +62,10 @@ export const useDetailsPin = ({
     projectAgreement,
     startDate,
     endDate,
-    invoice,
     klerosCourt,
   ]);
 
-  const detailsPin = useCallback(async () => {
+  const uploadToIpfs = useCallback(async () => {
     const token = await fetchToken();
     if (!detailsData || !token) return null;
     const details = await handleDetailsPin({
@@ -111,7 +98,7 @@ export const useDetailsPin = ({
         ...(klerosCourt ? { klerosCourt } : {}),
       },
     ],
-    queryFn: detailsPin,
+    queryFn: uploadToIpfs,
     enabled: isEnabled,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
     refetchInterval: false,

@@ -27,6 +27,8 @@ export const useAddMilestones = ({
   const { tokenMetadata } = _.pick(invoice, ['tokenMetadata', 'total']);
 
   const { getValues } = localForm;
+
+  // TODO: update project agreement link
   const { milestones } = getValues();
 
   const parsedMilestones = _.map(milestones, (milestone: { value: string }) =>

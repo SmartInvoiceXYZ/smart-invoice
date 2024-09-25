@@ -41,6 +41,7 @@ export const useLock = ({
 
   const publicClient = usePublicClient();
 
+  // TODO: upload dispute details
   // const detailsHash = await uploadDisputeDetails({
   //   reason: disputeReason,
   //   invoice: address,
