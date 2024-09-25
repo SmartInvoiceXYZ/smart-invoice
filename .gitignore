@@ -74,3 +74,5 @@ packages/graphql/src/zeus
 # typescript
 dist/
 *.tsbuildinfo
+.vercel
+.env*.local
