@@ -1,12 +1,14 @@
 {
-  "name": "@smart-invoice/subgraph",
-  "version": "0.1.0",
+  "name": "@smartinvoicexyz/subgraph",
+  "description": "A Graph Protocol subgraph for indexing and querying Smart Invoice events across multiple blockchain networks.",
+  "version": "0.1.1",
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.78.0",
+    "@graphprotocol/graph-cli": "^0.81.0",
     "@graphprotocol/graph-ts": "^0.35.1",
     "mustache": "^4.2.0"
   },
   "license": "MIT",
+  "private": true,
   "scripts": {
     "auth": "graph auth --studio $GRAPH_ACCESS_TOKEN",
     "build": "graph build",
@@ -19,9 +21,6 @@
     "deploy-holesky": "yarn prepare-holesky && yarn codegen && yarn build && yarn deploy-only-holesky",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 test/smart-invoices",
     "deploy-mainnet": "yarn prepare-mainnet && yarn codegen && yarn build && yarn deploy-only-mainnet",
-    "deploy-optimism": "yarn prepare-optimism && yarn codegen && yarn build && yarn deploy-only-optimism",
-    "deploy-polygon": "yarn prepare-polygon && yarn codegen && yarn build && yarn deploy-only-polygon",
-    "deploy-sepolia": "yarn prepare-sepolia && yarn codegen && yarn build && yarn deploy-only-sepolia",
     "deploy-only-arbitrum": "graph deploy --studio smart-invoice-arbitrum",
     "deploy-only-base": "graph deploy --studio smart-invoice-base",
     "deploy-only-gnosis": "graph deploy --studio smart-invoice-gnosis",
@@ -30,6 +29,9 @@
     "deploy-only-optimism": "graph deploy --studio smart-invoice-optimism",
     "deploy-only-polygon": "graph deploy --studio smart-invoice-polygon",
     "deploy-only-sepolia": "graph deploy --studio smart-invoice-sepolia",
+    "deploy-optimism": "yarn prepare-optimism && yarn codegen && yarn build && yarn deploy-only-optimism",
+    "deploy-polygon": "yarn prepare-polygon && yarn codegen && yarn build && yarn deploy-only-polygon",
+    "deploy-sepolia": "yarn prepare-sepolia && yarn codegen && yarn build && yarn deploy-only-sepolia",
     "prepare-arbitrum": "mustache src/config/arbitrum.json subgraph.template.yaml > subgraph.yaml",
     "prepare-base": "mustache src/config/base.json subgraph.template.yaml > subgraph.yaml",
     "prepare-gnosis": "mustache src/config/gnosis.json subgraph.template.yaml > subgraph.yaml",

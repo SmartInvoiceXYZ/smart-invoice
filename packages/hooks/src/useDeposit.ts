@@ -1,18 +1,18 @@
-import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils/src';
+import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
-  useContractWrite,
-  usePrepareContractWrite,
+  usePublicClient,
   useSendTransaction,
+  useSimulateContract,
+  useWriteContract,
 } from 'wagmi';
-import { fetchBalance, waitForTransaction } from 'wagmi/actions';
-
-import { usePollSubgraph } from './usePollSubgraph';
 
 export const useDeposit = ({
   invoice,
@@ -22,90 +22,110 @@ export const useDeposit = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  handleDeposit: () => Promise<Hex | undefined>;
+  isReady: boolean;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
 
-  const { token, tokenBalance } = _.pick(invoice, ['token', 'tokenBalance']);
+  const { token } = _.pick(invoice, ['token', 'tokenBalance']);
 
-  const waitForIndex = usePollSubgraph({
-    label: 'useDeposit',
-    fetchHelper: () =>
-      fetchBalance({
-        address: invoice?.address as Hex,
-        chainId,
-        token: token as Hex,
-      }),
-    checkResult: b =>
-      tokenBalance?.value && b
-        ? b.value === amount + tokenBalance.value
-        : false,
-    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
-  });
+  const publicClient = usePublicClient();
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: token as Hex,
     abi: IERC20_ABI,
     functionName: 'transfer',
     args: [invoice?.address as Hex, amount],
-    enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
+    query: {
+      enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useDeposit.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useDeposit.waitingForTx);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.info(TOASTS.useDeposit.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useDeposit.waitingForIndex);
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
     },
   });
 
-  const { isLoading: sendLoading, sendTransactionAsync } = useSendTransaction({
-    to: invoice?.address,
-    value: amount,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useDeposit.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  const { isPending: sendLoading, sendTransactionAsync } = useSendTransaction({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useDeposit.waitingForTx);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.info(TOASTS.useDeposit.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useDeposit.waitingForIndex);
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
     },
   });
 
-  const handleDeposit = async () => {
+  const handleDeposit = async (): Promise<Hex | undefined> => {
     try {
       if (paymentType === PAYMENT_TYPES.NATIVE) {
-        const result = await sendTransactionAsync();
+        const result = await sendTransactionAsync({
+          to: invoice?.address as Hex,
+          value: amount,
+        });
         return result;
       }
 
-      const result = await writeAsync?.();
+      if (!data) {
+        throw new Error('useDeposit: data is undefined');
+      }
+
+      const result = await writeContractAsync(data.request);
       return result;
     } catch (error: unknown) {
       errorToastHandler('useDeposit', error as Error, toast);
       return undefined;
     }
   };
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useDeposit', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

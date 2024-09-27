@@ -1,6 +1,6 @@
-// import { INVOICE_VERSION } from '@smart-invoice/constants';
-// import { logDebug } from '@smart-invoice/shared';
-import { KeyRestrictions } from '@smart-invoice/types/src';
+// import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
+// import { logDebug } from '@smartinvoicexyz/shared';
+import { KeyRestrictions } from '@smartinvoicexyz/types';
 import axios from 'axios';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
@@ -70,8 +70,7 @@ export const fetchToken = async (count: number = 0) => {
   })
     .then(res => res.text())
     .catch(e => {
-      // eslint-disable-next-line no-console
-      console.log(e);
+      console.error("Couldn't fetch token", e);
       return null;
     });
 

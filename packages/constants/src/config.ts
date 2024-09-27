@@ -1,4 +1,4 @@
-import _, { toLower } from 'lodash';
+import { toLower } from 'lodash';
 import { Address } from 'viem';
 import {
   arbitrum,
@@ -11,11 +11,41 @@ import {
   sepolia,
 } from 'viem/chains';
 
-const LexDAOLogo = '/assets/lex-dao.png';
+export type Resolver = {
+  name: string;
+  logoUrl: string;
+  disclaimer?: string;
+  termsUrl: string;
+};
+
+export type NetworkConfig = {
+  SUBGRAPH: string;
+  WRAPPED_NATIVE_TOKEN: Address;
+  INVOICE_FACTORY: Address;
+  RESOLVERS: Record<Address, Resolver>;
+};
+
+export type Config = {
+  INFURA_ID: string;
+  IPFS_ENDPOINT: string;
+  NETWORK_CONFIG: Record<number, NetworkConfig>;
+};
+
+export type KlerosCourtData = {
+  id: number;
+  name: string;
+  link: string;
+  jurors_drawn: number;
+  reward: string;
+  safe_address: Address;
+};
+
+const LEXDAO_LOGO = '/assets/lex-dao.png';
+
 const LEXDAO_TERMS_URL =
   'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver';
 
-export const KLEROS_LOGO = '/assets/kleros.svg';
+const KLEROS_LOGO = '/assets/kleros.svg';
 const KLEROS_TERMS_URL =
   'https://docs.google.com/document/d/1z_l2Wc8YHSspB0Lm5cmMDhu9h0W5G4thvDLqWRtuxbA/';
 
@@ -30,13 +60,13 @@ export const SMART_INVOICE_ARBITRATION_SAFE = toLower(
 
 export const KLEROS_GOOGLE_FORM = 'https://forms.gle/K3oMAzAb32G5SbpM9';
 
-const LEXDAO_DATA = {
+export const LEXDAO_DATA: Resolver = {
   name: 'LexDAO',
-  logoUrl: LexDAOLogo,
+  logoUrl: LEXDAO_LOGO,
   termsUrl: LEXDAO_TERMS_URL,
 };
 
-const KLEROS_DATA = {
+export const KLEROS_DATA: Resolver = {
   name: 'Kleros',
   disclaimer:
     'Only choose Kleros if total invoice value is greater than 1000 USD',
@@ -44,7 +74,7 @@ const KLEROS_DATA = {
   termsUrl: KLEROS_TERMS_URL,
 };
 
-const SMART_INVOICE_ARBITRATION_DATA = {
+export const SMART_INVOICE_ARBITRATION_DATA: Resolver = {
   name: 'Smart Invoice In-house',
   disclaimer:
     'Only choose Smart Invoice In-house if invoice value is less than 1000 USD',
@@ -53,7 +83,7 @@ const SMART_INVOICE_ARBITRATION_DATA = {
     'https://docs.smartinvoice.xyz/arbitration/smart-invoice-arbitration',
 };
 
-export const KLEROS_COURTS = [
+export const KLEROS_COURTS: Array<KlerosCourtData> = [
   {
     id: 1,
     name: 'General Court',
@@ -80,33 +110,12 @@ export const KLEROS_COURTS = [
   },
 ];
 
-export type Resolver = {
-  name: string;
-  logoUrl: string;
-  disclaimer?: string;
-  termsUrl: string;
-};
-
-export type NetworkConfig = {
-  SUBGRAPH: string;
-  WRAPPED_NATIVE_TOKEN: Address;
-  INVOICE_FACTORY: Address;
-  RESOLVERS: Record<Address, Resolver>;
-};
-
-interface Config {
-  INFURA_ID: string;
-  IPFS_ENDPOINT: string;
-  BOX_ENDPOINT: string;
-  NETWORK_CONFIG: Record<number, NetworkConfig>;
-}
-
 const STUDIO_ID = '78711';
 const STUDIO_URL = `https://api.studio.thegraph.com/query/${STUDIO_ID}`;
 
 export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
   [mainnet.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     ) as Address,
@@ -120,7 +129,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [gnosis.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.4`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-gnosis/v0.0.5`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
     ) as Address,
@@ -134,7 +143,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [polygon.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.1`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-polygon/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     ) as Address,
@@ -148,7 +157,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [arbitrum.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-arbitrum/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-arbitrum/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     ) as Address,
@@ -161,7 +170,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [optimism.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-optimism/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-optimism/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -174,7 +183,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-sepolia/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-sepolia/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     ) as Address,
@@ -187,7 +196,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [base.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-base/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-base/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -200,7 +209,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
     },
   },
   [holesky.id]: {
-    SUBGRAPH: `${STUDIO_URL}/smart-invoice-holesky/v0.0.2`,
+    SUBGRAPH: `${STUDIO_URL}/smart-invoice-holesky/v0.0.3`,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
     ) as Address,
@@ -216,8 +225,7 @@ export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
 
 export const CONFIG: Config = {
   INFURA_ID: process.env.NEXT_PUBLIC_INFURA_PROJECT_ID || '',
-  IPFS_ENDPOINT: 'https://smart-invoice.infura-ipfs.io',
-  BOX_ENDPOINT: 'https://ipfs.3box.io',
+  IPFS_ENDPOINT: 'https://gateway.pinata.cloud',
   NETWORK_CONFIG,
 };
 

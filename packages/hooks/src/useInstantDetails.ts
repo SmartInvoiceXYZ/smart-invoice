@@ -1,8 +1,8 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smart-invoice/constants';
+import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { Hex } from 'viem';
-import { useContractReads } from 'wagmi';
+import { useReadContracts } from 'wagmi';
 
 export const useInstantDetails = ({
   address,
@@ -20,7 +20,7 @@ export const useInstantDetails = ({
   };
 
   const { data: contractData, isLoading: contractReadLoading } =
-    useContractReads({
+    useReadContracts({
       contracts: [
         {
           ...instantEscrowContract,
@@ -47,7 +47,9 @@ export const useInstantDetails = ({
           functionName: 'lateFeeTimeInterval',
         },
       ],
-      enabled: enabled && !!address && !!chainId,
+      query: {
+        enabled: enabled && !!address && !!chainId,
+      },
     });
 
   const parsedData = useMemo(() => {
@@ -61,13 +63,14 @@ export const useInstantDetails = ({
       lateFee,
       lateFeeTimeInterval,
     ] = _.map(contractData, 'result');
+
     return {
-      totalDue: BigInt(totalDue as string),
-      amountFulfilled: BigInt(amountFulfilled as string),
+      totalDue: totalDue as bigint,
+      amountFulfilled: amountFulfilled as bigint,
       fulfilled: fulfilled as boolean,
-      deadline: BigInt(deadline as string),
-      lateFee: BigInt(lateFee as string),
-      lateFeeTimeInterval: BigInt(lateFeeTimeInterval as string),
+      deadline: deadline as bigint,
+      lateFee: lateFee as bigint,
+      lateFeeTimeInterval: lateFeeTimeInterval as bigint,
     };
   }, [contractData]);
 

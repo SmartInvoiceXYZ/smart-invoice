@@ -7,8 +7,8 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { DepositFunds, TipForm, WithdrawFunds } from '@smart-invoice/forms';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+import { DepositFunds, TipForm, WithdrawFunds } from '@smartinvoicexyz/forms';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   Container,
   InvoiceMetaDetails,
@@ -16,27 +16,31 @@ import {
   Loader,
   Modal,
   useMediaStyles,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { Address, formatUnits, Hex, hexToNumber, isAddress } from 'viem';
+import { formatUnits, Hex, isAddress } from 'viem';
 import { useAccount, useChainId } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
 
 function ViewInstantInvoice() {
-  const { chainId: hexChainId, invoiceId } = useParams<{
-    chainId: Hex;
-    invoiceId: Address;
+  const { chainId: hexChainId, invoiceId: invId } = useParams<{
+    chainId: string;
+    invoiceId: string;
   }>();
-  const invoiceChainId = hexChainId && hexToNumber(hexChainId);
+  const invoiceId = _.toLower(String(invId)) as Hex;
+
+  const invoiceChainId = hexChainId
+    ? parseInt(String(hexChainId), 16)
+    : undefined;
   const { modals, setModals } = useOverlay();
   const chainId = useChainId();
   const { address } = useAccount();
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     address: invoiceId,
-    chainId: invoiceChainId,
+    chainId,
   });
 
   const {
@@ -79,8 +83,11 @@ function ViewInstantInvoice() {
 
   if (!invoiceDetails || isLoading) {
     return (
-      <Container overlay>
+      <Container overlay gap={10}>
         <Loader size="80" />
+        If the invoice does not load,
+        <br />
+        please refresh the browser.
       </Container>
     );
   }
@@ -142,7 +149,7 @@ function ViewInstantInvoice() {
           align="stretch"
           direction="column"
         >
-          <InvoiceMetaDetails invoice={invoiceDetails as any} />
+          <InvoiceMetaDetails invoice={invoiceDetails} />
         </Stack>
 
         <Stack
@@ -209,10 +216,10 @@ function ViewInstantInvoice() {
             >
               <Text>Deposited</Text>
 
-              <Text>{`(${formatUnits(
+              <Text>{`${formatUnits(
                 amountFulfilled || BigInt(0),
                 tokenBalance?.decimals || 18,
-              )} ${tokenBalance?.symbol})`}</Text>
+              )} ${tokenBalance?.symbol}`}</Text>
             </Flex>
 
             <Divider
@@ -283,18 +290,18 @@ function ViewInstantInvoice() {
 
         <Modal isOpen={modals?.deposit} onClose={() => setModals?.({})}>
           <DepositFunds
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             onClose={() => setModals?.({})}
           />
         </Modal>
         <Modal isOpen={modals?.withdraw} onClose={() => setModals?.({})}>
           <WithdrawFunds
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             onClose={() => setModals?.({})}
           />
         </Modal>
         <Modal isOpen={modals?.tip} onClose={() => setModals?.({})}>
-          <TipForm invoice={invoiceDetails as any} />
+          <TipForm invoice={invoiceDetails} />
         </Modal>
       </Stack>
     </Container>

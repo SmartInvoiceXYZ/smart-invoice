@@ -1,11 +1,12 @@
 /* eslint-disable camelcase */
-import { logDebug } from '@smart-invoice/shared';
+import { Resolver } from '@smartinvoicexyz/constants';
+import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
-import { clients } from './client';
-import { scalars } from './scalars';
+import { fetchTypedQuery } from './client';
 import {
   _SubgraphErrorPolicy_,
+  ADR,
   Agreement_orderBy,
   Deposit_orderBy,
   Dispute_orderBy,
@@ -14,13 +15,15 @@ import {
   Resolution_orderBy,
   Verified_orderBy,
 } from './zeus';
-import { typedGql } from './zeus/typedDocumentNode';
 
-const invoiceQuery = (id: string) =>
-  typedGql('query', { scalars })({
+export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
+  const address = isAddress(queryAddress) && queryAddress;
+  if (!address) return null;
+
+  const data = await fetchTypedQuery(chainId)({
     invoice: [
       {
-        id,
+        id: address,
         subgraphError: _SubgraphErrorPolicy_.allow,
       },
       {
@@ -135,23 +138,16 @@ const invoiceQuery = (id: string) =>
     ],
   });
 
-export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
-  const address = isAddress(queryAddress) && queryAddress;
-  if (!address) return null;
+  logDebug({ data, address });
 
-  const query = invoiceQuery(address);
-  const { data, error } = await clients[chainId].query({ query });
+  if (!data?.invoice) return null;
 
-  logDebug({ data, error, address });
+  const amounts = data.invoice.amounts.map((amount: string) => BigInt(amount));
 
-  if (!data) {
-    if (error) {
-      throw error;
-    }
-    return null;
-  }
-
-  return data.invoice;
+  return {
+    ...data.invoice,
+    amounts,
+  };
 };
 
 export type TokenMetadata = {
@@ -159,14 +155,10 @@ export type TokenMetadata = {
   name: string;
   symbol: string;
   decimals: number;
-  totalSupply: {
-    formatted: string;
-    value: bigint;
-  };
+  totalSupply: bigint;
 };
 
 export type TokenBalance = {
-  formatted: string;
   decimals: number;
   symbol: string;
   value: bigint;
@@ -181,6 +173,14 @@ export interface InstantDetails {
   lateFeeTimeInterval?: bigint;
 }
 
+export interface Release {
+  id: string;
+  txHash: string;
+  milestone: bigint;
+  amount: bigint;
+  timestamp: bigint;
+}
+
 export interface Deposit {
   id: string;
   txHash: string;
@@ -189,7 +189,35 @@ export interface Deposit {
   timestamp: bigint;
 }
 
+export interface Dispute {
+  id: string;
+  txHash: string;
+  sender: string;
+  details: string;
+  ipfsHash: string;
+  disputeToken: string | undefined;
+  disputeFee: bigint | undefined;
+  disputeId: bigint | undefined;
+  timestamp: bigint;
+}
+
+export interface Resolution {
+  id: string;
+  txHash: string;
+  details: string;
+  ipfsHash: string;
+  resolverType: ADR;
+  resolver: string;
+  clientAward: bigint;
+  providerAward: bigint;
+  resolutionDetails: string | undefined;
+  resolutionFee: bigint | undefined;
+  ruling: bigint | undefined;
+  timestamp: bigint;
+}
+
 export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
+
 export type InvoiceDetails = Invoice &
   InstantDetails & {
     // conversions
@@ -200,23 +228,21 @@ export type InvoiceDetails = Invoice &
     due: bigint | undefined;
     total: bigint | undefined;
     currentMilestoneAmount: bigint | undefined;
-    bigintAmounts: bigint[];
     parsedAmounts: number[];
     depositedMilestones: boolean[];
     depositedMilestonesDisplay: (string | undefined)[];
     depositedTxs: (Deposit | undefined)[];
+    releasedTxs: (Release | undefined)[];
     detailsHash: string | undefined;
     resolverName: string | undefined;
-    resolverInfo: any | undefined; // ResolverInfo;
+    resolverInfo: Record<Address, Resolver> | undefined; // ResolverInfo;
     resolverFee: string | undefined;
     resolverFeeDisplay: string | undefined;
     klerosCourt?: number | string | undefined;
     deadlineLabel: string | undefined;
-    // entities
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispute?: any; // Dispute;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolution?: any; // Resolution;
+    // disputes
+    dispute?: Dispute | undefined;
+    resolution?: Resolution | undefined;
     // flags
     isExpired: boolean;
     isReleasable: boolean;

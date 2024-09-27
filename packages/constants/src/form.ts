@@ -1,8 +1,8 @@
-interface EscrowStep {
+export type EscrowStep = {
   step_title: string;
   step_details: string[];
   next: string;
-}
+};
 
 export const INVOICE_TYPES = {
   Escrow: 'escrow',

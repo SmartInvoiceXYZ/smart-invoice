@@ -1,15 +1,15 @@
-import { Box, Stack } from '@chakra-ui/react';
+import { Stack } from '@chakra-ui/react';
 import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
-} from '@smart-invoice/forms';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   Container,
   InvoiceMetaDetails,
   InvoiceNotFound,
   Loader,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { Hex, isAddress } from 'viem';
@@ -42,7 +42,7 @@ function ViewInvoice() {
     );
   }
 
-  if (!invoiceDetails) {
+  if (!invoiceDetails || isLoading) {
     return (
       <Container overlay gap={10}>
         <Loader size="80" />
@@ -64,17 +64,17 @@ function ViewInvoice() {
         px="1rem"
         py="8rem"
       >
-        <InvoiceMetaDetails invoice={invoiceDetails as any} />
+        <InvoiceMetaDetails invoice={invoiceDetails} />
 
         <Stack minW={{ base: '90%', md: '50%' }}>
           <InvoicePaymentDetails
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             modals={modals}
             setModals={setModals}
           />
 
           <InvoiceButtonManager
-            invoice={invoiceDetails as any}
+            invoice={invoiceDetails}
             modals={modals}
             setModals={setModals}
           />

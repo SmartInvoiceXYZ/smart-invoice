@@ -8,9 +8,9 @@ import {
 } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ChakraNextLink } from '@smart-invoice/ui';
 import _ from 'lodash';
 
+import { ChakraNextLink } from '../atoms';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
 import { theme } from '../theme';
 

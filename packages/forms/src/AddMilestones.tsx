@@ -1,5 +1,3 @@
-/* eslint-disable no-plusplus */
-/* eslint-disable radix */
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
   Button,
@@ -14,20 +12,20 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useAddMilestones } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useAddMilestones } from '@smartinvoicexyz/hooks';
 import {
   LinkInput,
   NumberInput,
   QuestionIcon,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import {
   commify,
   // getTxLink,
   resolutionFeePercentage,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';
@@ -44,7 +42,7 @@ export function AddMilestones({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const chainId = useChainId();
@@ -93,15 +91,20 @@ export function AddMilestones({
     onTxSuccess,
   });
 
-  // TODO handle excess funds from previous deposits
+  // TODO: handle excess funds from previous deposits
   const excessFunds = useMemo(() => {
     if (!total || !deposited) return 0;
     return deposited - total; // bigint
   }, [total, deposited, tokenMetadata]);
 
+  // eslint-disable-next-line no-console
+  console.log('excessFunds', excessFunds);
+
   const newTotalDue = _.sumBy(milestones, ({ value }) => _.toNumber(value));
   const newDisputeFee =
-    resolutionFeePercentage(resolutionRate.toString()) * newTotalDue;
+    resolutionRate && resolutionRate > BigInt(0)
+      ? resolutionFeePercentage(resolutionRate.toString()) * newTotalDue
+      : 0;
 
   const [totalNew, decimals] = milestones
     ? milestones
@@ -135,12 +138,13 @@ export function AddMilestones({
         Add New Payment Milestones
       </Heading>
 
+      {/*
       <LinkInput
         name="projectAgreement"
         label="Link to Project Agreement (if updated)"
         tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         localForm={localForm}
-      />
+      /> */}
 
       <FormControl isInvalid={!!errors?.milestones}>
         <Stack w="100%">

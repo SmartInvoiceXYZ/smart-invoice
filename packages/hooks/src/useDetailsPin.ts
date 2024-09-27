@@ -1,13 +1,19 @@
-import { INVOICE_VERSION } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
+import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
 import {
   convertIpfsCidV0ToByte32,
   fetchToken,
   handleDetailsPin,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+
+type Document = {
+  id: string;
+  src: string;
+  type: string;
+  createdAt: string;
+};
 
 export const useDetailsPin = ({
   projectName,
@@ -15,7 +21,6 @@ export const useDetailsPin = ({
   projectAgreement,
   startDate,
   endDate,
-  invoice,
   klerosCourt,
 }: {
   projectName?: string;
@@ -23,35 +28,18 @@ export const useDetailsPin = ({
   projectAgreement: string;
   startDate?: number;
   endDate?: number;
-  invoice?: InvoiceDetails;
   klerosCourt?: number;
 }) => {
   const detailsData = useMemo(() => {
     const createdAt = BigInt(Date.now());
-    const {
-      projectName: invoiceProjectName,
-      projectDescription: invoiceProjectDescription,
-      projectAgreement: invoiceProjectAgreement,
-      startDate: invoiceStartDate,
-      endDate: invoiceEndDate,
-    } = _.pick(invoice, [
-      'projectName',
-      'projectDescription',
-      'projectAgreement',
-      'startDate',
-      'endDate',
-      'klerosCourt',
-    ]);
 
     if (!(projectName || projectAgreement !== '')) {
       return undefined;
     }
 
-    // TODO working around bigint type for createdAt
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newProjectAgreement: any[] = _.concat(invoiceProjectAgreement || []);
+    const projectAgreements: Document[] = [];
     if (projectAgreement && projectAgreement !== '') {
-      newProjectAgreement.push({
+      projectAgreements.push({
         id: createdAt.toString(),
         src: projectAgreement,
         type: projectAgreement?.startsWith('http') ? 'http' : 'ipfs',
@@ -60,11 +48,11 @@ export const useDetailsPin = ({
     }
 
     return {
-      projectName: projectName || invoiceProjectName || '',
-      projectDescription: projectDescription || invoiceProjectDescription || '',
-      projectAgreement: newProjectAgreement,
-      startDate: startDate || invoiceStartDate,
-      endDate: endDate || invoiceEndDate,
+      projectName: projectName || '',
+      projectDescription: projectDescription || '',
+      projectAgreement: projectAgreements,
+      startDate,
+      endDate,
       version: INVOICE_VERSION,
       ...(klerosCourt && { klerosCourt }),
     };
@@ -74,11 +62,10 @@ export const useDetailsPin = ({
     projectAgreement,
     startDate,
     endDate,
-    invoice,
     klerosCourt,
   ]);
 
-  const detailsPin = async () => {
+  const uploadToIpfs = useCallback(async () => {
     const token = await fetchToken();
     if (!detailsData || !token) return null;
     const details = await handleDetailsPin({
@@ -88,7 +75,16 @@ export const useDetailsPin = ({
     });
 
     return convertIpfsCidV0ToByte32(details);
-  };
+  }, [detailsData, projectName, startDate]);
+
+  const isEnabled = useMemo(() => {
+    return (
+      !!(projectName || projectAgreement) &&
+      !!startDate &&
+      !!endDate &&
+      !!detailsData
+    );
+  }, [projectName, projectAgreement, startDate, endDate, detailsData]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
@@ -99,16 +95,13 @@ export const useDetailsPin = ({
         projectAgreement,
         startDate,
         endDate,
-        ...(klerosCourt && { klerosCourt }),
+        ...(klerosCourt ? { klerosCourt } : {}),
       },
     ],
-    queryFn: detailsPin,
-    enabled:
-      !!(projectName || projectAgreement) &&
-      !!startDate &&
-      !!endDate &&
-      !!detailsData,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    queryFn: uploadToIpfs,
+    enabled: isEnabled,
+    staleTime: Infinity,
+    refetchInterval: false,
   });
 
   return { data, isLoading, error };

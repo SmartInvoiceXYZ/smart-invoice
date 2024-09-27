@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ISmartInvoiceInstant} from "./interfaces/ISmartInvoiceInstant.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
+/// @title SmartInvoiceInstant
+/// @notice A contract for handling instant invoices with late fee calculations and token transfers.
 contract SmartInvoiceInstant is
     ISmartInvoiceInstant,
     Initializable,
@@ -36,24 +38,26 @@ contract SmartInvoiceInstant is
     uint256 public override lateFee = 0;
     uint256 public override lateFeeTimeInterval = 0;
 
-    event Deposit(address indexed sender, uint256 amount);
-    event Fulfilled(address indexed sender);
-    event Tip(address indexed sender, uint256 amount);
-    event Withdraw(uint256 balance);
+    constructor() {
+        _disableInitializers();
+    }
 
-    // solhint-disable-next-line no-empty-blocks
-    function initLock() external initializer {}
-
+    /**
+     * @notice Initializes the contract with the provided provider, amounts, and data.
+     * @param _provider The address of the provider
+     * @param _amounts The array of amounts associated with the provider
+     * @param _data The additional data needed for initialization
+     */
     function init(
-        address _recipient,
+        address _provider,
         uint256[] calldata _amounts,
         bytes calldata _data
     ) external override initializer {
-        require(_recipient != address(0), "invalid provider");
+        if (_provider == address(0)) revert InvalidProvider();
 
         _handleData(_data);
 
-        provider = _recipient;
+        provider = _provider;
 
         uint256 _total = 0;
         for (uint256 i = 0; i < _amounts.length; i++) {
@@ -63,7 +67,8 @@ contract SmartInvoiceInstant is
     }
 
     /**
-     * @dev calculates the total amount due. Extensible to include late fees, etc.
+     * @notice Calculates the total amount due, including late fees if applicable.
+     * @return The total amount due
      */
     function getTotalDue() public view override returns (uint256) {
         uint256 totalLateFee = 0;
@@ -90,42 +95,61 @@ contract SmartInvoiceInstant is
         return total + totalLateFee;
     }
 
+    /**
+     * @notice Deposits tokens into the contract.
+     * @param _token The address of the token to deposit
+     * @param _amount The amount of tokens to deposit
+     */
     function depositTokens(
         address _token,
         uint256 _amount
     ) external override nonReentrant {
-        require(_token == token, "!token");
+        if (_token != token) revert TokenMismatch();
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         _deposit(_amount);
     }
 
+    /**
+     * @notice Withdraws the balance of the invoice token to the provider.
+     */
     function withdraw() external override nonReentrant {
         return _withdraw();
     }
 
-    // withdraw non-invoice tokens
+    /**
+     * @notice Withdraws tokens that are not the invoice token.
+     * @param _token The address of the token to withdraw
+     */
     function withdrawTokens(address _token) external override nonReentrant {
         if (_token == token) {
             _withdraw();
         } else {
             uint256 balance = IERC20(_token).balanceOf(address(this));
-            require(balance > 0, "balance is 0");
-
+            if (balance == 0) revert BalanceIsZero();
             IERC20(_token).safeTransfer(provider, balance);
         }
     }
 
+    /**
+     * @notice Tips the provider with additional tokens.
+     * @param _token The address of the token to tip
+     * @param _amount The amount of tokens to tip
+     */
     function tip(
         address _token,
         uint256 _amount
     ) external override nonReentrant {
-        require(fulfilled, "!fulfilled");
-        require(_token == token, "!token");
+        if (!fulfilled) revert AlreadyFulfilled();
+        if (_token != token) revert TokenMismatch();
         totalFulfilled += _amount;
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         emit Tip(_msgSender(), _amount);
     }
 
+    /**
+     * @dev Internal function to handle deposits.
+     * @param _amount The amount to deposit
+     */
     function _deposit(uint256 _amount) internal {
         uint256 totalDue = getTotalDue();
         totalFulfilled += _amount;
@@ -133,24 +157,32 @@ contract SmartInvoiceInstant is
             fulfilled = true;
             fulfillTime = block.timestamp;
             emit Fulfilled(_msgSender());
-            if (totalFulfilled > totalDue)
+            if (totalFulfilled > totalDue) {
                 emit Tip(_msgSender(), totalFulfilled - totalDue);
+            }
         }
         emit Deposit(_msgSender(), _amount);
     }
 
+    /**
+     * @dev Internal function to handle withdrawals.
+     */
     function _withdraw() internal {
         uint256 balance = IERC20(token).balanceOf(address(this));
-        require(balance > 0, "balance is 0");
+        if (balance == 0) revert BalanceIsZero();
         IERC20(token).safeTransfer(provider, balance);
         emit Withdraw(balance);
     }
 
+    /**
+     * @dev Internal function to handle initialization data.
+     * @param _data The data to be handled and decoded
+     */
     function _handleData(bytes calldata _data) internal {
         (
             address _client,
             address _token,
-            uint256 _deadline, // exact termination date in seconds since epoch
+            uint256 _deadline,
             bytes32 _details,
             address _wrappedNativeToken,
             uint256 _lateFee,
@@ -160,20 +192,14 @@ contract SmartInvoiceInstant is
                 (address, address, uint256, bytes32, address, uint256, uint256)
             );
 
-        require(_client != address(0), "invalid client");
-        require(_token != address(0), "invalid token");
-        require(
-            _deadline > block.timestamp || _deadline == 0,
-            "duration ended"
-        );
-        require(
-            _deadline <= block.timestamp + MAX_DEADLINE,
-            "duration too long"
-        );
-        require(
-            _wrappedNativeToken != address(0),
-            "invalid wrappedNativeToken"
-        );
+        if (_client == address(0)) revert InvalidClient();
+        if (_token == address(0)) revert InvalidToken();
+        if (_deadline <= block.timestamp && _deadline != 0)
+            revert DurationEnded();
+        if (_deadline > block.timestamp + MAX_DEADLINE)
+            revert DurationTooLong();
+        if (_wrappedNativeToken == address(0))
+            revert InvalidWrappedNativeToken();
 
         client = _client;
         token = _token;
@@ -184,9 +210,11 @@ contract SmartInvoiceInstant is
         lateFeeTimeInterval = _lateFeeTimeInterval;
     }
 
-    // receive native token transfers
+    /**
+     * @notice Fallback function to receive native token transfers.
+     */
     receive() external payable {
-        require(token == wrappedNativeToken, "!wrappedNativeToken");
+        if (token != wrappedNativeToken) revert TokenNotWrappedNativeToken();
         IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
         _deposit(msg.value);
     }

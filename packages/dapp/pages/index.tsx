@@ -1,5 +1,5 @@
 import { Button, Flex, Heading, Text } from '@chakra-ui/react';
-import { ChakraNextLink, useMediaStyles } from '@smart-invoice/ui';
+import { ChakraNextLink, useMediaStyles } from '@smartinvoicexyz/ui';
 import React from 'react';
 
 function Home() {

@@ -8,7 +8,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-// import { isValidLink, logDebug } from '@smart-invoice/utils';
+// import { isValidLink, logDebug } from '@smartinvoicexyz/utils';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
 import { QuestionIcon } from '../icons/QuestionIcon';

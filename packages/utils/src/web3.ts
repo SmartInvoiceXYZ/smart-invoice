@@ -1,61 +1,77 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   coinbaseWallet,
   injectedWallet,
   ledgerWallet,
   metaMaskWallet,
   rainbowWallet,
+  safeWallet,
   walletConnectWallet,
-  safeWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import _ from 'lodash';
-import { Chain, configureChains, createConfig } from 'wagmi';
+import { Chain, http, Transport } from 'viem';
+import { Config, fallback } from 'wagmi';
 import {
   arbitrum,
   base,
-  gnosis as defaultGnosis,
+  gnosis,
   holesky,
   mainnet,
   optimism,
   polygon,
   sepolia,
 } from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { publicProvider } from 'wagmi/providers/public';
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
+const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
+const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID || '';
 
-const gnosis = {
-  ...defaultGnosis,
-  hasIcon: true,
-  iconUrl: '/chains/gnosis.png',
-  iconBackground: 'none',
+const infuraNetworkName: { [key: number]: string } = {
+  [mainnet.id]: 'mainnet',
+  [polygon.id]: 'polygon-mainnet',
+  [arbitrum.id]: 'arbitrum-mainnet',
+  [optimism.id]: 'optimism-mainnet',
+  [sepolia.id]: 'sepolia',
+  [base.id]: 'base-mainnet',
+  [holesky.id]: 'holesky',
 };
 
-const mainnetChains = [
-  mainnet.id,
-  gnosis.id,
-  polygon.id,
-  arbitrum.id,
-  optimism.id,
-  base.id,
+const alchemyNetworkName: { [key: number]: string } = {
+  [mainnet.id]: 'eth-mainnet',
+  [polygon.id]: 'polygon-mainnet',
+  [arbitrum.id]: 'arb-mainnet',
+  [optimism.id]: 'opt-mainnet',
+  [sepolia.id]: 'eth-sepolia',
+  [base.id]: 'base-mainnet',
+  [holesky.id]: 'eth-holesky',
+};
+
+type _chains = readonly [Chain, ...Chain[]];
+type _transports = Record<_chains[number]['id'], Transport>;
+
+const chains: _chains = [
+  mainnet,
+  gnosis,
+  polygon,
+  arbitrum,
+  optimism,
+  base,
+  holesky,
+  sepolia,
 ];
-const testnetchains = [sepolia.id, holesky.id];
-const orderedChains = [...mainnetChains, ...testnetchains];
 
-export const chainsList: { [key: number]: Chain } = {
-  [mainnet.id]: mainnet,
-  [gnosis.id]: gnosis,
-  [polygon.id]: polygon,
-  [arbitrum.id]: arbitrum,
-  [optimism.id]: optimism,
-  [sepolia.id]: sepolia,
-  [base.id]: base,
-  [holesky.id]: holesky,
-};
+type ChainsList = { [key: number]: Chain };
 
-export const chainsMap = (chainId: number) => {
+export const chainsList: ChainsList = chains.reduce(
+  (acc: ChainsList, chain: Chain) => ({
+    ...acc,
+    [chain.id]: chain,
+  }),
+  {} as ChainsList,
+);
+
+export const chainsMap = (chainId: number): Chain => {
   const chain = chainsList[chainId];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -66,51 +82,57 @@ export const chainsMap = (chainId: number) => {
 export const chainByName = (name?: string): Chain | null => {
   if (!name) return null;
 
-  if (name === 'mainnet') {
-    return mainnet;
-  }
-
-  if (name.startsWith('arbitrum')) {
-    return arbitrum
-  }
-
-  const chain = _.find(_.values(chainsList), { network: name });
+  const chain = chains.find((c: Chain) => c.name.toLowerCase().includes(name));
   if (!chain) throw new Error(`Chain ${name} not found`);
+
   return chain;
 };
 
-const { chains, publicClient } = configureChains(
-  _.compact(_.map(orderedChains, chainId => chainsMap(chainId))),
-  [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-    publicProvider(),
-  ],
+const transports: _transports = chains.reduce(
+  (acc: _transports, chain: Chain) => {
+    const infuraNetwork = infuraNetworkName[chain.id];
+    const infuraUrl =
+      infuraNetwork && INFURA_ID
+        ? `https://${infuraNetwork}.infura.io/v3/${INFURA_ID}`
+        : '';
+    const alchemyNetwork = alchemyNetworkName[chain.id];
+    const alchemyUrl =
+      alchemyNetwork && ALCHEMY_ID
+        ? `https://${alchemyNetwork}.g.alchemy.com/v2/${ALCHEMY_ID}`
+        : '';
+
+    const list = [http()];
+    if (infuraUrl) list.push(http(infuraUrl));
+    if (alchemyUrl) list.push(http(alchemyUrl));
+
+    return {
+      ...acc,
+      [chain.id]: fallback(list.reverse()),
+    };
+  },
+  {} as _transports,
 );
-const options = {
+
+const wagmiConfig: Config<_chains, _transports> = getDefaultConfig({
+  ssr: true,
   appName: APP_NAME,
   projectId: PROJECT_ID,
   chains,
-};
-
-const connectors = connectorsForWallets([
-  {
-    groupName: 'Recommended',
-    wallets: [
-      injectedWallet({ chains, shimDisconnect: true }),
-      rainbowWallet({ chains, projectId: PROJECT_ID }),
-      ledgerWallet({ chains, projectId: PROJECT_ID }),
-      safeWallet({ chains }),
-      metaMaskWallet({ chains, projectId: PROJECT_ID }),
-      coinbaseWallet({ appName: APP_NAME, chains }),
-      walletConnectWallet({ chains, projectId: PROJECT_ID, options }),
-    ],
-  },
-]);
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
+  transports,
+  wallets: [
+    {
+      groupName: 'Recommended',
+      wallets: [
+        injectedWallet,
+        rainbowWallet,
+        ledgerWallet,
+        safeWallet,
+        metaMaskWallet,
+        coinbaseWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
 });
 
 export { chains, wagmiConfig };

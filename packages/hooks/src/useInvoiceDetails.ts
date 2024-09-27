@@ -1,24 +1,23 @@
 import {
   INVOICE_TYPES,
   KLEROS_ARBITRATION_SAFE,
-} from '@smart-invoice/constants';
+} from '@smartinvoicexyz/constants';
 import {
   cache,
   fetchInvoice,
   Invoice,
   InvoiceDetails,
-} from '@smart-invoice/graphql';
-import {
-  getInvoiceDetails,
-  getResolverFee,
-  getResolverInfo,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/graphql';
+import { getInvoiceDetails, getResolverInfo } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useBalance, useToken } from 'wagmi';
+import { useMemo } from 'react';
+import { formatUnits, Hex } from 'viem';
+import { useBalance } from 'wagmi';
 
-import { useInstantDetails, useIpfsDetails } from '.';
+import { useInstantDetails } from './useInstantDetails';
+import { useIpfsDetails } from './useIpfsDetails';
+import { useTokenData } from './useTokenMetadata';
 
 export const useInvoiceDetails = ({
   address,
@@ -26,11 +25,15 @@ export const useInvoiceDetails = ({
 }: {
   address: Hex;
   chainId: number;
-}) => {
+}): {
+  invoiceDetails: Partial<InvoiceDetails>;
+  isLoading: boolean;
+  error: Error | null;
+} => {
   cache.reset();
   const {
     data: invoice,
-    isLoading,
+    isLoading: isFetchingInvoice,
     error,
   } = useQuery<Invoice>({
     queryKey: ['invoiceDetails', { address, chainId }],
@@ -41,27 +44,38 @@ export const useInvoiceDetails = ({
   const { invoiceType: type } = _.pick(invoice, ['invoiceType']);
 
   // fetch data about the invoice's token
-  const { data: tokenMetadata } = useToken({
-    address: invoice?.token as Hex,
+  const {
+    metadata: tokenMetadata,
+    balance: tokenBalance,
+    isLoading: isLoadingTokenData,
+  } = useTokenData({
+    address,
+    tokenAddress: invoice?.token as Hex,
     chainId,
-    enabled: !!address && !!chainId,
   });
 
   // fetch the invoice's balances
-  const { data: nativeBalance } = useBalance({ address });
-  const { data: tokenBalance } = useBalance({
-    address,
-    token: invoice?.token as Hex,
-    chainId,
-    enabled: !!invoice?.token && !!chainId,
-  });
+  const { data: nativeBalance, isLoading: isLoadingNativeBalance } = useBalance(
+    {
+      address,
+      chainId,
+    },
+  );
 
   // fetch the invoice's instant details, if applicable
-  const { data: instantDetails } = useInstantDetails({
-    address,
-    chainId,
-    enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
-  });
+  const { data: instantDetails, isLoading: isLoadingInstantDetails } =
+    useInstantDetails({
+      address,
+      chainId,
+      enabled: !!address && !!chainId && type === INVOICE_TYPES.Instant,
+    });
+
+  const getInvoiceDetailsEnabled =
+    !!invoice &&
+    !!tokenMetadata &&
+    !!tokenBalance &&
+    !!nativeBalance &&
+    (type === INVOICE_TYPES.Instant ? !!instantDetails : true);
 
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
@@ -71,8 +85,12 @@ export const useInvoiceDetails = ({
         {
           invoiceId: _.get(invoice, 'id'),
           token: tokenMetadata?.name,
-          tokenBalance: tokenBalance?.formatted,
-          nativeBalance: nativeBalance?.formatted,
+          tokenBalance: tokenBalance
+            ? formatUnits(tokenBalance.value, tokenBalance.decimals)
+            : undefined,
+          nativeBalance: nativeBalance
+            ? formatUnits(nativeBalance.value, nativeBalance.decimals)
+            : undefined,
           instantDetails: _.mapValues(instantDetails, v => v?.toString()),
         },
       ],
@@ -84,86 +102,75 @@ export const useInvoiceDetails = ({
           nativeBalance,
           instantDetails,
         ),
-      enabled:
-        !!invoice &&
-        !!tokenMetadata &&
-        !!tokenBalance &&
-        !!nativeBalance &&
-        type === INVOICE_TYPES.Instant
-          ? !!instantDetails
-          : true,
+      enabled: getInvoiceDetailsEnabled,
     });
 
   // fetch invoice details from Ipfs
   // TODO: remove after subgraph is fixed
-  const { data: ipfsDetails } = useIpfsDetails({
-    cid: _.get(invoiceDetails, 'detailsHash', ''),
-  });
+  const { data: ipfsDetails } = useIpfsDetails(
+    _.get(invoiceDetails, 'detailsHash', ''),
+  );
 
   // if kleros court is set in ipfs details
-
   const klerosResolverInfo = getResolverInfo(
     KLEROS_ARBITRATION_SAFE as Hex,
     chainId,
   );
+
   // const klerosResolverFee = getResolverFee(invoice, tokenBalance);
-
-  const enhancedInvoiceFromIpfs = ipfsDetails
-    ? ({
-        ...invoice,
-        projectName: ipfsDetails?.projectName,
-        startDate: BigInt(
-          typeof ipfsDetails?.startDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
-            : ipfsDetails?.startDate,
-        ),
-        endDate: BigInt(
-          typeof ipfsDetails?.endDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
-            : ipfsDetails?.endDate,
-        ),
-        klerosCourt: ipfsDetails?.klerosCourt || undefined,
-        resolverInfo: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo
-          : invoiceDetails?.resolverInfo,
-        resolverName: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo?.name
-          : invoiceDetails?.resolverName,
-        projectDescription: ipfsDetails?.projectDescription,
-        tokenMetadata,
-      } as Partial<InvoiceDetails>)
-    : { ...invoice, tokenMetadata };
-
-  const enhancedInvoiceDetailsFromIpfs = ipfsDetails
-    ? ({
+  const enhancedInvoiceFromIpfs = useMemo(
+    () =>
+      ({
         ...invoiceDetails,
-        projectName: ipfsDetails?.projectName,
-        startDate: BigInt(
-          typeof ipfsDetails?.startDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.startDate).getTime() / 1000)
-            : ipfsDetails?.startDate,
-        ),
-        endDate: BigInt(
-          typeof ipfsDetails?.endDate === 'string'
-            ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
-            : ipfsDetails?.endDate,
-        ),
-        klerosCourt: ipfsDetails?.klerosCourt || undefined,
-        resolverInfo: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo
-          : invoiceDetails?.resolverInfo,
-        resolverName: ipfsDetails?.klerosCourt
-          ? klerosResolverInfo?.name
-          : invoiceDetails?.resolverName,
-        projectAgreement: ipfsDetails?.projectAgreement,
-        projectDescription: ipfsDetails?.projectDescription,
-      } as Partial<InvoiceDetails>)
-    : { ...invoice, tokenMetadata };
+        ...(ipfsDetails
+          ? {
+              projectName: ipfsDetails?.projectName,
+              startDate: BigInt(
+                typeof ipfsDetails?.startDate === 'string'
+                  ? Math.floor(
+                      new Date(ipfsDetails?.startDate).getTime() / 1000,
+                    )
+                  : ipfsDetails?.startDate,
+              ),
+              endDate: BigInt(
+                typeof ipfsDetails?.endDate === 'string'
+                  ? Math.floor(new Date(ipfsDetails?.endDate).getTime() / 1000)
+                  : ipfsDetails?.endDate,
+              ),
+              klerosCourt: ipfsDetails?.klerosCourt || undefined,
+              resolverInfo: ipfsDetails?.klerosCourt
+                ? klerosResolverInfo
+                : invoiceDetails?.resolverInfo,
+              resolverName: ipfsDetails?.klerosCourt
+                ? klerosResolverInfo?.name
+                : invoiceDetails?.resolverName,
+              projectDescription: ipfsDetails?.projectDescription,
+            }
+          : {}),
+        tokenMetadata,
+      }) as Partial<InvoiceDetails>,
+    [invoiceDetails, ipfsDetails, klerosResolverInfo, tokenMetadata],
+  );
+
+  const isLoading = useMemo(
+    () =>
+      isFetchingInvoice ||
+      isLoadingTokenData ||
+      isLoadingNativeBalance ||
+      isLoadingInstantDetails ||
+      isInvoiceDetailsLoading,
+    [
+      isFetchingInvoice,
+      isLoadingTokenData,
+      isLoadingNativeBalance,
+      isLoadingInstantDetails,
+      isInvoiceDetailsLoading,
+    ],
+  );
 
   return {
-    data: enhancedInvoiceFromIpfs,
-    invoiceDetails: enhancedInvoiceDetailsFromIpfs,
-    isLoading: isLoading || isInvoiceDetailsLoading,
+    invoiceDetails: enhancedInvoiceFromIpfs,
+    isLoading,
     error,
   };
 };

@@ -1,8 +1,8 @@
-import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useRelease } from '@smart-invoice/hooks';
-import { useToast } from '@smart-invoice/ui';
+import { Button, Heading, Stack, Text } from '@chakra-ui/react';
+import { TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useRelease } from '@smartinvoicexyz/hooks';
+import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { formatUnits } from 'viem';
@@ -33,16 +33,17 @@ export function ReleaseFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const toast = useToast();
 
   const queryClient = useQueryClient();
-  const { currentMilestoneNumber, bigintAmounts, tokenBalance } = _.pick(
-    invoice,
-    ['currentMilestoneNumber', 'bigintAmounts', 'tokenBalance'],
-  );
+  const { currentMilestoneNumber, amounts, tokenBalance } = _.pick(invoice, [
+    'currentMilestoneNumber',
+    'amounts',
+    'tokenBalance',
+  ]);
 
   const onTxSuccess = () => {
     toast.success(TOASTS.useRelease.success);
@@ -100,7 +101,7 @@ export function ReleaseFunds({
         >{`${formatUnits(
           getReleaseAmount(
             currentMilestoneNumber,
-            bigintAmounts,
+            amounts,
             tokenBalance?.value,
           ),
           tokenBalance?.decimals || 18,
@@ -119,19 +120,15 @@ export function ReleaseFunds({
           </Link>
         </Text>
       )} */}
-      {isLoading ? (
-        <Spinner size="xl" />
-      ) : (
-        <Button
-          onClick={releaseFunds}
-          isDisabled={!releaseFunds || isLoading}
-          isLoading={isLoading}
-          textTransform="uppercase"
-          variant="solid"
-        >
-          Release
-        </Button>
-      )}
+      <Button
+        onClick={releaseFunds}
+        isDisabled={!releaseFunds || isLoading}
+        isLoading={isLoading}
+        textTransform="uppercase"
+        variant="solid"
+      >
+        Release
+      </Button>
     </Stack>
   );
 }

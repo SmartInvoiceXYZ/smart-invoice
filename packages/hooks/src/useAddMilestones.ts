@@ -1,15 +1,13 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { Hex, parseUnits, TransactionReceipt } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { fetchBalance, waitForTransaction } from 'wagmi/actions';
-
-import { usePollSubgraph } from './usePollSubgraph';
-// import { useDetailsPin } from './useDetailsPin';
+import { Hex, parseUnits } from 'viem';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useAddMilestones = ({
   address,
@@ -18,16 +16,20 @@ export const useAddMilestones = ({
   invoice,
   toast,
   onTxSuccess,
-}: AddMilestonesProps) => {
+}: AddMilestonesProps): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
+  const publicClient = usePublicClient();
+
+  const { tokenMetadata } = _.pick(invoice, ['tokenMetadata', 'total']);
+
   const { getValues } = localForm;
+
+  // TODO: update project agreement link
   const { milestones } = getValues();
-
-  // const { data: details } = useDetailsPin({
-  //   projectAgreement,
-  //   invoice,
-  // });
-
-  const { tokenMetadata } = _.pick(invoice, ['tokenMetadata']);
 
   const parsedMilestones = _.map(milestones, (milestone: { value: string }) =>
     milestone.value !== '' && _.toNumber(milestone.value) > 0
@@ -35,49 +37,50 @@ export const useAddMilestones = ({
       : BigInt(0),
   );
 
-  const { token, total } = _.pick(invoice, ['token', 'total']);
-
-  const newTotal =
-    _.sum(_.map(parsedMilestones, m => Number(m))) + Number(total);
-
-  const waitForIndex = usePollSubgraph({
-    label: 'useDeposit',
-    fetchHelper: () =>
-      fetchBalance({
-        address: invoice?.address as Hex,
-        chainId,
-        token: token as Hex,
-      }),
-    checkResult: () => newTotal < Number(total),
-    interval: 2000, // 2 seconds, averaging about 20 seconds for index by subgraph
-  });
-
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const { error: prepareError, data } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'addMilestones',
     args: [parsedMilestones],
-    enabled: _.every(parsedMilestones, m => m > BigInt(0)),
+    query: {
+      enabled: _.every(parsedMilestones, m => m > BigInt(0)),
+    },
   });
 
   const {
-    writeAsync,
-    isLoading,
+    writeContractAsync,
+    isPending: isLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }): Promise<void> => {
-      toast.info(TOASTS.useAddMilestone.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useAddMilestone.waitingForTx);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.info(TOASTS.useAddMilestone.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useAddMilestone.waitingForIndex);
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: (error: Error) =>
+        errorToastHandler('useAddMilestones', error, toast),
     },
-    onError: error => errorToastHandler('useAddMilestones', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useAddMilestones', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return { writeAsync, isLoading, prepareError, writeError };
 };
@@ -85,7 +88,7 @@ export const useAddMilestones = ({
 interface AddMilestonesProps {
   address: Hex;
   chainId: number;
-  invoice?: InvoiceDetails;
+  invoice?: Partial<InvoiceDetails>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   toast: UseToastReturn;

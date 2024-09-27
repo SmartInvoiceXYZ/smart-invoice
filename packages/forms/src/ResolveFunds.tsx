@@ -1,12 +1,13 @@
-import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useResolve } from '@smart-invoice/hooks';
+import { Button, Heading, Stack, Text } from '@chakra-ui/react';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useResolve } from '@smartinvoicexyz/hooks';
 import {
   NumberInput,
   Textarea,
   TokenDescriptor,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -18,33 +19,43 @@ export function ResolveFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
-  const { resolutionRate, tokenBalance, tokenMetadata } = _.pick(invoice, [
-    'resolutionRate',
-    'tokenBalance',
-    'tokenMetadata',
-  ]);
+  const { resolutionRate, tokenBalance, tokenMetadata, isLocked } = _.pick(
+    invoice,
+    ['resolutionRate', 'tokenBalance', 'tokenMetadata', 'isLocked'],
+  );
 
-  const isLocked = true;
   const toast = useToast();
   const localForm = useForm({});
   const { watch, handleSubmit, setValue } = localForm;
 
   const resolverAward = useMemo(() => {
-    if (
-      !resolutionRate ||
-      resolutionRate === BigInt(0) ||
-      tokenBalance?.value === BigInt(0)
-    ) {
+    if (!resolutionRate || resolutionRate === BigInt(0) || !tokenBalance) {
       return 0;
     }
-    const bal = tokenBalance?.value;
-    return bal ? _.toNumber(formatUnits(bal / resolutionRate, 18)) : 0;
-  }, [tokenBalance?.value, resolutionRate]);
+    if (tokenBalance.value === BigInt(0)) {
+      return 0;
+    }
+    return _.toNumber(
+      formatUnits(
+        tokenBalance.value / resolutionRate,
+        tokenBalance.decimals ?? 18,
+      ),
+    );
+  }, [tokenBalance, resolutionRate]);
 
-  const availableFunds = _.toNumber(tokenBalance?.formatted) - resolverAward;
+  const availableFunds = useMemo(
+    () =>
+      _.toNumber(
+        formatUnits(
+          tokenBalance?.value ?? BigInt(0),
+          tokenBalance?.decimals ?? 18,
+        ),
+      ) - resolverAward,
+    [tokenBalance?.value, resolverAward],
+  );
 
   const clientAward = watch('clientAward');
   const providerAward = watch('providerAward');
@@ -63,12 +74,21 @@ export function ResolveFunds({
     [clientAward, providerAward, resolverAward],
   );
 
-  const onTxSuccess = (tx: TransactionReceipt) => {
-    // TODO handle tx success
-    console.log(tx);
+  const queryClient = useQueryClient();
+
+  const onTxSuccess = (_tx: TransactionReceipt) => {
+    // TODO: handle tx success
+    // console.log(tx);
     // toast
     // invalidate cache
     // close modal
+    //
+    queryClient.invalidateQueries({
+      queryKey: ['invoiceDetails'],
+    });
+    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
+    // close modal
+    onClose();
   };
 
   const { writeAsync: resolve, isLoading } = useResolve({
@@ -80,7 +100,7 @@ export function ResolveFunds({
   });
 
   const onSubmit = async () => {
-    console.log('submitting', awards, comments);
+    // console.log('submitting', awards, comments);
 
     await resolve?.();
   };
@@ -91,8 +111,7 @@ export function ResolveFunds({
       setValue('providerAward', 0);
       setValue('resolverAward', resolverAward);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [availableFunds, resolverAward]);
 
   if (!isLocked) {
     return (
@@ -138,10 +157,13 @@ export function ResolveFunds({
         Resolve Dispute
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem">
-        {`You'll need to distribute the total balance of ${
-          tokenBalance?.formatted
-        } ${tokenMetadata?.symbol} between the client and provider, excluding the ${
-          resolutionRate === BigInt(0) ? '0' : BigInt(100) / resolutionRate
+        {`You'll need to distribute the total balance of ${formatUnits(
+          tokenBalance?.value ?? BigInt(0),
+          tokenBalance?.decimals ?? 18,
+        )} ${tokenMetadata?.symbol} between the client and provider, excluding the ${
+          resolutionRate === BigInt(0) || !resolutionRate
+            ? '0'
+            : BigInt(100) / resolutionRate
         }% arbitration fee which you shall receive.`}
       </Text>
 
@@ -160,7 +182,7 @@ export function ResolveFunds({
         localForm={localForm}
         placeholder="Client Award"
         registerOptions={{
-          onChange: value => {
+          onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
               setValue('clientAward', availableFunds);
               setValue('providerAward', 0);
@@ -176,7 +198,7 @@ export function ResolveFunds({
         localForm={localForm}
         placeholder="Provider Award"
         registerOptions={{
-          onChange: value => {
+          onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
               setValue('providerAward', availableFunds);
               setValue('clientAward', 0);
@@ -186,6 +208,7 @@ export function ResolveFunds({
         }}
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
       />
+
       <NumberInput
         name="resolverAward"
         label="Arbitration Fee"
@@ -194,8 +217,6 @@ export function ResolveFunds({
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
       />
 
-      {isLoading && <Spinner size="xl" />}
-
       <Button
         type="submit"
         isDisabled={
@@ -203,6 +224,7 @@ export function ResolveFunds({
         }
         textTransform="uppercase"
         variant="solid"
+        isLoading={isLoading}
       >
         Resolve
       </Button>

@@ -10,10 +10,11 @@ import {
   Stack,
   Tooltip,
 } from '@chakra-ui/react';
-import { QuestionIcon } from '@smart-invoice/ui';
 import _ from 'lodash';
 import { ReactElement, ReactNode } from 'react';
 import { Controller, UseFormReturn } from 'react-hook-form';
+
+import { QuestionIcon } from '../icons';
 
 export interface CustomCheckboxProps {
   name: string;

@@ -1,6 +1,6 @@
-import { INVOICE_TYPES } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { ChangeEvent, UseToastReturn } from '@smart-invoice/types';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { ChangeEvent, UseToastReturn } from '@smartinvoicexyz/types';
 import _ from 'lodash';
 
 import { logError } from '.';
@@ -43,7 +43,7 @@ export const getUpdatedCheckAmount = ({
   e: ChangeEvent<HTMLInputElement>;
   i: number;
   previousChecked: boolean[];
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
 }) => {
   const { amounts, deposited, invoiceType } = _.pick(invoice, [
     'amounts',

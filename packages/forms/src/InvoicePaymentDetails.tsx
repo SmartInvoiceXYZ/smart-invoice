@@ -9,10 +9,15 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types';
-import { AccountLink, Modal } from '@smart-invoice/ui';
-import { commify, getIpfsLink, getTxLink } from '@smart-invoice/utils';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { Modals } from '@smartinvoicexyz/types';
+import { AccountLink, Modal } from '@smartinvoicexyz/ui';
+import {
+  commify,
+  getIpfsLink,
+  getTxLink,
+  isEmptyIpfsHash,
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
@@ -26,9 +31,9 @@ export function InvoicePaymentDetails({
   modals,
   setModals,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   modals: Modals;
-  setModals: (m: Partial<Modals>) => void;
+  setModals: (_m: Partial<Modals>) => void;
 }) {
   const chainId = useChainId();
   const {
@@ -42,7 +47,7 @@ export function InvoicePaymentDetails({
     tokenBalance,
     amounts,
     currentMilestoneAmount,
-    releases,
+    releasedTxs,
     dispute,
     resolution,
     isReleasable,
@@ -57,7 +62,7 @@ export function InvoicePaymentDetails({
     'due',
     'total',
     'resolver',
-    'releases',
+    'releasedTxs',
     'released',
     'amounts',
     'currentMilestoneAmount',
@@ -79,13 +84,17 @@ export function InvoicePaymentDetails({
   ];
 
   const resolutionDetails = [
-    resolution?.resolutionFee && {
-      distributee: resolver,
-      amount: resolution.resolutionFee,
-    },
+    { distributee: resolver, amount: resolution?.resolutionFee },
     { distributee: client, amount: resolution?.clientAward },
     { distributee: provider, amount: resolution?.providerAward },
   ];
+
+  let nextAmount = 0n;
+  if (currentMilestoneAmount) {
+    nextAmount = isReleasable
+      ? currentMilestoneAmount
+      : currentMilestoneAmount - (tokenBalance?.value ?? 0n);
+  }
 
   return (
     <>
@@ -119,7 +128,7 @@ export function InvoicePaymentDetails({
               <Stack align="stretch" spacing="0.25rem">
                 {_.map(amounts, (amt, index) => {
                   const depositedText = depositedMilestonesDisplay?.[index];
-                  const release = releases?.[index];
+                  const release = releasedTxs?.[index];
                   const deposit = depositedTxs?.[index];
 
                   return (
@@ -143,7 +152,7 @@ export function InvoicePaymentDetails({
                           >
                             Released{' '}
                             {new Date(
-                              _.toNumber(release.timestamp) * 1000,
+                              Number(release.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -157,7 +166,7 @@ export function InvoicePaymentDetails({
                           >
                             {`${_.capitalize(depositedText)} `}
                             {new Date(
-                              _.toNumber(deposit?.timestamp) * 1000,
+                              Number(deposit?.timestamp) * 1000,
                             ).toLocaleDateString()}
                           </Link>
                         )}
@@ -201,37 +210,27 @@ export function InvoicePaymentDetails({
                   <>
                     <Heading size="md">Remaining Balance</Heading>
                     <Heading size="md">
-                      {`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}{' '}
+                      {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
                     </Heading>
                   </>
                 ) : (
                   <>
                     <Heading size="md">
-                      {isReleasable && 'Next Amount to Release'}
-                      {!isReleasable && 'Total Due Today'}
+                      {isReleasable
+                        ? 'Next Amount to Release'
+                        : 'Total Due Today'}
                     </Heading>
-                    {!!currentMilestoneAmount && (
-                      <Heading size="md">
-                        {`${
-                          tokenBalance?.value &&
-                          commify(
-                            formatUnits(
-                              isReleasable
-                                ? BigInt(currentMilestoneAmount)
-                                : BigInt(currentMilestoneAmount) -
-                                    tokenBalance.value,
-                              tokenBalance?.decimals || 18,
-                            ),
-                          )
-                        } ${tokenBalance?.symbol}`}
-                      </Heading>
-                    )}
+                    <Heading size="md">
+                      {`${commify(
+                        formatUnits(nextAmount, tokenBalance?.decimals ?? 18),
+                      )} ${tokenBalance?.symbol}`}
+                    </Heading>
                   </>
                 )}
               </Flex>
             )}
 
-            {dispute && (
+            {dispute && !resolution && (
               <Stack px={6}>
                 <Flex
                   justify="space-between"
@@ -239,21 +238,27 @@ export function InvoicePaymentDetails({
                   fontWeight="bold"
                   fontSize="lg"
                 >
-                  <Text>Amount Locked</Text>
-                  <Text textAlign="right">{`${tokenBalance?.formatted} ${tokenBalance?.symbol}`}</Text>
+                  <Text>Dispute Raised</Text>
+                  <Text textAlign="right">
+                    {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+                  </Text>
                 </Flex>
                 <Text color="black">
                   {`A dispute is in progress with `}
                   <AccountLink address={resolver as Hex} chainId={chainId} />
                   <br />
-                  <Link
-                    href={getIpfsLink(dispute.ipfsHash)}
-                    color="blue.1"
-                    isExternal
-                  >
-                    <u>View details on IPFS</u>
-                  </Link>
-                  <br />
+                  {!isEmptyIpfsHash(dispute.ipfsHash) && (
+                    <>
+                      <Link
+                        href={getIpfsLink(dispute.ipfsHash)}
+                        color="blue.1"
+                        isExternal
+                      >
+                        <u>View details on IPFS</u>
+                      </Link>
+                      <br />
+                    </>
+                  )}
                   <Link
                     href={getTxLink(chainId, dispute.txHash)}
                     color="blue.1"
@@ -266,20 +271,18 @@ export function InvoicePaymentDetails({
             )}
 
             {resolution && (
-              <Stack align="stretch" spacing="1rem" color="primary.300">
+              <Stack align="stretch" spacing="1rem" color="primary.300" px={6}>
                 <Flex
                   justify="space-between"
                   align="center"
                   fontWeight="bold"
                   fontSize="lg"
                 >
-                  <Text>Amount Dispersed</Text>
+                  <Text>Dispute Resolved</Text>
                   <Text textAlign="right">{`${formatUnits(
-                    BigInt(resolution.clientAward) +
+                    resolution.clientAward +
                       resolution.providerAward +
-                      resolution.resolutionFee
-                      ? resolution.resolutionFee
-                      : 0,
+                      (resolution.resolutionFee ?? 0n),
                     18,
                   )} ${tokenBalance?.symbol}`}</Text>
                 </Flex>
@@ -298,10 +301,17 @@ export function InvoicePaymentDetails({
                       }
                       <br />
                       <br />
-                      <Link href={getIpfsLink(resolution.ipfsHash)} isExternal>
-                        <u>View details on IPFS</u>
-                      </Link>
-                      <br />
+                      {!isEmptyIpfsHash(resolution.ipfsHash) && (
+                        <>
+                          <Link
+                            href={getIpfsLink(resolution.ipfsHash)}
+                            isExternal
+                          >
+                            <u>View details on IPFS</u>
+                          </Link>
+                          <br />
+                        </>
+                      )}
                       <Link
                         href={getTxLink(chainId, resolution.txHash)}
                         isExternal
@@ -318,8 +328,8 @@ export function InvoicePaymentDetails({
                         key={detail.distributee}
                       >
                         {`${formatUnits(
-                          BigInt(detail.amount),
-                          tokenMetadata?.decimals || 18,
+                          detail.amount ?? 0n,
+                          tokenMetadata?.decimals ?? 18,
                         )} ${tokenMetadata?.symbol} to `}
                         <AccountLink
                           address={detail.distributee as Hex}

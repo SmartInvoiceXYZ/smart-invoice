@@ -16,16 +16,16 @@ import {
   ESCROW_STEPS,
   KLEROS_ARBITRATION_SAFE,
   KLEROS_COURTS,
-} from '@smart-invoice/constants';
-import { FormInvoice } from '@smart-invoice/types';
-import { Checkbox, Input, Select } from '@smart-invoice/ui';
+} from '@smartinvoicexyz/constants';
+import { FormInvoice } from '@smartinvoicexyz/types';
+import { Checkbox, Input, Select } from '@smartinvoicexyz/ui';
 import {
   escrowDetailsSchema,
   getResolverInfo,
   getResolvers,
   getResolverString,
   isKnownResolver,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
@@ -37,7 +37,7 @@ export function EscrowDetailsForm({
   updateStep,
 }: {
   invoiceForm: UseFormReturn;
-  updateStep: (i?: number) => void;
+  updateStep: (_i?: number) => void;
 }) {
   const chainId = useChainId();
   const { watch, setValue } = invoiceForm;
@@ -58,10 +58,8 @@ export function EscrowDetailsForm({
     handleSubmit,
     setValue: localSetValue,
     watch: localWatch,
-    formState: { isValid, errors },
+    formState: { isValid },
   } = localForm;
-  // eslint-disable-next-line no-console
-  console.log('errors', errors, 'isValid', isValid);
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);

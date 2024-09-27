@@ -6,13 +6,13 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-import { Invoice } from '@smart-invoice/graphql';
-import { Network } from '@smart-invoice/types';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { Network } from '@smartinvoicexyz/types';
 import {
   chainByName,
   getAccountString,
   unixToDateTime,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React, { Fragment } from 'react';
 import { formatEther } from 'viem';
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
 });
 
 export type InvoicePDFProps = {
-  invoice: Invoice;
+  invoice: Partial<InvoiceDetails>;
   symbol: string;
 };
 
@@ -301,7 +301,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               Description: <Text style={styles.text}>{projectDescription}</Text>
             </Text>
             <Text style={styles.details}>Project Agreement(s):</Text>
-            {projectAgreement.map((agreement: any, index: any) => (
+            {projectAgreement.map((agreement, index) => (
               <View key={agreement.id}>
                 <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
@@ -327,11 +327,11 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 <Text style={styles.amount}>Amount</Text>
               </View>
             </View>
-            {amounts.map((amount: any, index: any) => {
+            {amounts.map((amount, index) => {
               let amountTotal = BigInt(0);
               if (index + 1 === amounts.length) {
                 const sum = amounts.reduce(
-                  (a: any, b: any) => a + BigInt(b),
+                  (a, b) => BigInt(a) + BigInt(b),
                   BigInt(0),
                 );
                 amountTotal = sum;
@@ -369,7 +369,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {_.map(deposits, (deposit: any, index: number) => (
+            {_.map(deposits, (deposit, index) => (
               <Fragment key={deposit.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -415,7 +415,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {_.map(releases, (release: any, index: number) => (
+            {_.map(releases, (release, index) => (
               <Fragment key={release.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -463,7 +463,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             <Text style={styles.secondTitle}>Disputes</Text>
           </View>
 
-          {_.map(disputes, (dispute: any, index: number) => (
+          {_.map(disputes, (dispute, index) => (
             <View style={styles.multiDetailBlock} key={dispute.id}>
               <Text
                 style={[
@@ -517,7 +517,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
             <Text style={styles.secondTitle}>Resolutions</Text>
           </View>
 
-          {_.map(resolutions, (resolution: any, index: number) => (
+          {_.map(resolutions, (resolution, index) => (
             <View style={styles.multiDetailBlock} key={resolution.txHash}>
               <Text
                 style={[

@@ -1,24 +1,28 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { INSTANT_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
+import {
+  INSTANT_STEPS,
+  INVOICE_TYPES,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import {
   FormConfirmation,
   InstantPaymentForm,
   ProjectDetailsForm,
   RegisterSuccess,
-} from '@smart-invoice/forms';
-import { useFetchTokens, useInstantCreate } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useFetchTokens, useInstantCreate } from '@smartinvoicexyz/hooks';
 import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address, useChainId } from 'wagmi';
+import { Address, Hex } from 'viem';
+import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
 
@@ -32,7 +36,7 @@ export function CreateInvoiceInstant() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { headingSize, columnWidth } = useMediaStyles();
   const [invoiceId, setInvoiceId] = useState<Address>();
-  const [txHash, setTxHash] = useState<Address>();
+  const [txHash, setTxHash] = useState<Hex>();
   const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
@@ -61,8 +65,8 @@ export function CreateInvoiceInstant() {
   };
 
   const handleSubmit = async () => {
-    const txData = await writeAsync?.();
-    setTxHash(txData?.hash);
+    const hash = await writeAsync?.();
+    setTxHash(hash);
   };
 
   if (!tokens) {
@@ -153,6 +157,7 @@ export function CreateInvoiceInstant() {
               <RegisterSuccess
                 invoiceId={invoiceId as Address}
                 txHash={txHash as Address}
+                type={INVOICE_TYPES.Instant}
               />
             )}
           </Flex>

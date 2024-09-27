@@ -3,23 +3,22 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
   wrappedNativeToken,
-} from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
+} from '@smartinvoicexyz/constants';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
   getInvoiceFactoryAddress,
   parseTxLogs,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
-import { usePollSubgraph } from './usePollSubgraph';
+import { useFetchTokens } from './useFetchTokens';
 
 export const useInstantCreate = ({
   invoiceForm,
@@ -31,17 +30,21 @@ export const useInstantCreate = ({
   chainId: number;
   toast: UseToastReturn;
   onTxSuccess?: (result: Address) => void;
-}) => {
+}): {
+  waitingForTx: boolean;
+  prepareError: Error | null;
+  writeAsync: () => Promise<Hex | undefined>;
+  writeError: Error | null;
+  isLoading: boolean;
+} => {
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
   const [waitingForTx, setWaitingForTx] = useState(false);
-  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
   const {
     client,
     provider,
     token,
-    tokenMetadata,
     projectName,
     projectDescription,
     projectAgreement,
@@ -55,7 +58,6 @@ export const useInstantCreate = ({
     'client',
     'provider',
     'token',
-    'tokenMetadata',
     'projectName',
     'projectDescription',
     'projectAgreement',
@@ -67,23 +69,21 @@ export const useInstantCreate = ({
     'lateFeeTimeInterval',
   ]);
 
-  const detailsData = {
-    projectName,
-    projectDescription,
-    projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
-    startDate,
-    endDate,
-  };
+  const detailsData = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+      startDate,
+      endDate,
+    }),
+    [projectName, projectDescription, projectAgreement, startDate, endDate],
+  );
 
-  const { data: details } = useDetailsPin({ ...detailsData });
+  const { data: tokens } = useFetchTokens();
+  const tokenMetadata = _.filter(tokens, { address: token, chainId })[0];
 
-  const waitForResult = usePollSubgraph({
-    label: 'Creating escrow invoice',
-    fetchHelper: () =>
-      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
-    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
-    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
-  });
+  const { data: details } = useDetailsPin(detailsData);
 
   const paymentAmount = useMemo(() => {
     if (!tokenMetadata || !paymentDue) {
@@ -105,7 +105,7 @@ export const useInstantCreate = ({
       );
     }
 
-    return encodeAbiParameters(
+    const encodedParams = encodeAbiParameters(
       [
         { type: 'address' }, //     _client,
         { type: 'address' }, //     _token,
@@ -115,7 +115,6 @@ export const useInstantCreate = ({
         { type: 'uint256' }, //     _lateFee,
         { type: 'uint256' }, //     _lateFeeTimeInterval
       ],
-
       [
         client,
         token, // address _token (payment token address)
@@ -126,6 +125,8 @@ export const useInstantCreate = ({
         lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
     );
+
+    return encodedParams;
   }, [
     client,
     token,
@@ -137,7 +138,7 @@ export const useInstantCreate = ({
     lateFeeTimeInterval,
   ]);
 
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const { data, error: prepareError } = useSimulateContract({
     address: invoiceFactory,
     chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
@@ -148,42 +149,67 @@ export const useInstantCreate = ({
       escrowData,
       toHex('instant', { size: 32 }),
     ],
-    enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
+    query: {
+      enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
+    },
   });
+
+  const publicClient = usePublicClient();
 
   const {
-    writeAsync,
+    writeContractAsync,
     error: writeError,
-    isLoading,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      // wait for tx to confirm on chain
-      setWaitingForTx(true);
-      toast.info(TOASTS.useInvoiceCreate.waitingForTx);
+    isPending: isLoading,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        // wait for tx to confirm on chain
+        setWaitingForTx(true);
+        toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-      const txData = await waitForTransaction({ chainId, hash });
-      // wait for subgraph to index
-      const localInvoiceId = parseTxLogs(
-        LOG_TYPE.Factory,
-        txData,
-        'LogNewInvoice',
-        'invoice',
-      );
-      if (!localInvoiceId) return;
-      setNewInvoiceId(localInvoiceId);
-      toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+        const txData = await publicClient?.waitForTransactionReceipt({
+          hash,
+        });
 
-      await waitForResult();
-      setWaitingForTx(false);
+        if (!txData) return;
 
-      // pass back to component for further processing
-      onTxSuccess?.(localInvoiceId);
+        // wait for subgraph to index
+        const localInvoiceId = parseTxLogs(
+          LOG_TYPE.Factory,
+          txData,
+          'LogNewInvoice',
+          'invoice',
+        );
+        if (!localInvoiceId) return;
+        toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+
+        if (txData && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
+        }
+        setWaitingForTx(false);
+
+        // pass back to component for further processing
+        onTxSuccess?.(localInvoiceId);
+      },
+      onError: (error: Error) =>
+        errorToastHandler('useInstantCreate', error, toast),
     },
-    onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
 
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useInstantCreate', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
+
   return {
+    waitingForTx,
     prepareError,
     writeAsync,
     writeError,

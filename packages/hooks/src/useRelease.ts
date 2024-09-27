@@ -1,13 +1,17 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smart-invoice/constants';
-import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils/src';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
+import { useCallback } from 'react';
 import { Hex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
-
-import { usePollSubgraph } from './usePollSubgraph';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 export const useRelease = ({
   invoice,
@@ -15,52 +19,68 @@ export const useRelease = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   milestone?: number;
   onTxSuccess: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
+  const publicClient = usePublicClient();
 
   const specifiedMilestone = _.isNumber(milestone);
 
-  const waitForIndex = usePollSubgraph({
-    label: 'waiting for funds to be released',
-    fetchHelper: () => fetchInvoice(chainId, invoice?.address as Hex),
-    checkResult: updatedInvoice =>
-      invoice?.released ? updatedInvoice.released > invoice.released : false,
-  });
-
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: invoice?.address as Hex,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
-    enabled: !!invoice?.address,
+    query: {
+      enabled: !!invoice?.address,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useRelease.waitingForTx);
-      await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useRelease.waitingForTx);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.info(TOASTS.useRelease.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useRelease.waitingForIndex);
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: (error: Error) => errorToastHandler('useRelease', error, toast),
     },
-    onError: error => errorToastHandler('useRelease', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useRelease', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

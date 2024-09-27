@@ -1,10 +1,10 @@
-import { ESCROW_ZAP_ABI } from '@smart-invoice/constants';
-import { logDebug } from '@smart-invoice/utils/src';
+import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
+import { logDebug } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { WriteContractResult } from 'wagmi/actions';
+import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
 // import useDetailsPin from './useDetailsPin';
 
 type OwnerAndAllocation = { address: string; percent: number };
@@ -32,12 +32,15 @@ export const useEscrowZap = ({
   arbitration = 0,
   projectTeamSplit = false,
   daoSplit = false,
-  token,
   safetyValveDate,
-  detailsData,
   enabled = true,
   onSuccess,
-}: UseEscrowZapProps) => {
+}: UseEscrowZapProps): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
 
   const { owners, percentAllocations } =
@@ -141,32 +144,12 @@ export const useEscrowZap = ({
     compiledData: !!encodedEscrowData,
   });
 
-  console.log(
-    'enabled prepare',
-    {
-      owners,
-      percentAllocations,
-      milestoneAmounts,
-      encodedSafeData,
-      provider,
-      encodedSplitData,
-      encodedEscrowData,
-      enabled,
-    },
-    _.isEqual(_.size(percentAllocations), _.size(owners)) &&
-      !_.isEmpty(milestoneAmounts) &&
-      !!encodedSafeData &&
-      !!provider && // _safeAddress
-      !!encodedSplitData &&
-      !!encodedEscrowData &&
-      enabled,
-  );
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
     status,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     chainId,
     address: '0x', // NETWORK_CONFIG[chainId].ZAP_ADDRESS,
     abi: ESCROW_ZAP_ABI,
@@ -180,28 +163,38 @@ export const useEscrowZap = ({
       encodedSplitData,
       encodedEscrowData,
     ],
-    enabled:
-      _.isEqual(_.size(percentAllocations), _.size(owners)) &&
-      !_.isEmpty(milestoneAmounts) &&
-      !!encodedSafeData &&
-      !!provider && // _safeAddress
-      !!encodedSplitData &&
-      !!encodedEscrowData &&
-      enabled,
+    query: {
+      enabled:
+        _.isEqual(_.size(percentAllocations), _.size(owners)) &&
+        !_.isEmpty(milestoneAmounts) &&
+        !!encodedSafeData &&
+        !!provider && // _safeAddress
+        !!encodedSplitData &&
+        !!encodedEscrowData &&
+        enabled,
+    },
   });
   logDebug('prepareError', prepareError, status);
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async tx => {
-      onSuccess?.(tx);
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        onSuccess?.(hash);
+      },
     },
   });
-  logDebug(writeAsync);
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    if (!data) {
+      logDebug('writeAsync - no data');
+      return undefined;
+    }
+    return writeContractAsync(data.request);
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,
@@ -222,7 +215,7 @@ interface UseEscrowZapProps {
   daoSplit?: boolean;
   token: { value?: string; label?: string };
   safetyValveDate: Date;
-  detailsData: any; // ProjectDetails;
+  // detailsData: any; // ProjectDetails;
   enabled?: boolean;
-  onSuccess?: (tx: WriteContractResult) => void;
+  onSuccess?: (hash: Hex) => void;
 }

@@ -11,7 +11,7 @@
   },
   "spoilsManager": {
     "factory": "0xc3a56196B7864fCe4b27480D62Dc9263A2168190",
-    "implementation": ["0xA817ba0646001EcF56Cc271B7fE7e10269AE54dD"]
+    "implementations": ["0xA817ba0646001EcF56Cc271B7fE7e10269AE54dD"]
   },
   "zap": {
     "dao": "0xf02fd4286917270cb94fbc13a0f4e1ed76f7e986",

@@ -1,36 +1,52 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { useInvoiceDetails } from '@smart-invoice/hooks';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
 import {
   ChakraNextLink,
   Container,
   InvoiceNotFound,
   Loader,
-} from '@smart-invoice/ui';
-import { getIpfsLink, getTxLink } from '@smart-invoice/utils';
+} from '@smartinvoicexyz/ui';
+import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useParams } from 'next/navigation';
-import { Address, Hex, hexToNumber } from 'viem';
+import { Hex, isAddress } from 'viem';
+import { useChainId } from 'wagmi';
 
 function LockedInvoice() {
-  const { hexChainId, invoiceId: address } = useParams<{
-    hexChainId: Hex;
-    invoiceId: Address;
+  const chainId = useChainId();
+
+  const { hexChainId, invoiceId: invId } = useParams<{
+    hexChainId: string;
+    invoiceId: string;
   }>();
-  const invoiceChainId = hexToNumber(hexChainId);
+  const invoiceId = _.toLower(String(invId)) as Hex;
+
+  const invoiceChainId = hexChainId
+    ? parseInt(String(hexChainId), 16)
+    : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
-    address,
-    chainId: invoiceChainId,
+    address: invoiceId,
+    chainId,
   });
 
-  if (!isLoading && !invoiceDetails) {
+  if (!isAddress(invoiceId) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
   }
 
-  if (!invoiceDetails) {
+  if (invoiceDetails && chainId !== invoiceChainId) {
+    return (
+      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
+    );
+  }
+
+  if (!invoiceDetails || isLoading) {
     return (
       <Container overlay>
         <Loader size="80" />
+        If the invoice does not load,
+        <br />
+        please refresh the browser.
       </Container>
     );
   }

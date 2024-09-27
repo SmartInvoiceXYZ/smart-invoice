@@ -9,38 +9,32 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import {
-  KLEROS_ARBITRATION_SAFE,
-  KLEROS_GOOGLE_FORM,
-} from '@smart-invoice/constants/src';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useLock } from '@smart-invoice/hooks';
+import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useLock } from '@smartinvoicexyz/hooks';
 // import LockImage from '../../assets/lock.svg';
-import { AccountLink, Textarea, useToast } from '@smart-invoice/ui';
+import { AccountLink, Textarea, useToast } from '@smartinvoicexyz/ui';
 import {
   getResolverInfo,
-  getResolverString,
   isKnownResolver,
   logDebug,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { Hex } from 'viem';
+import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function LockFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const chainId = useChainId();
   const toast = useToast();
   const queryClient = useQueryClient();
-
-  console.log(invoice);
 
   const { resolver, resolverFee, resolverName, tokenBalance, klerosCourt } =
     _.pick(invoice, [
@@ -55,7 +49,6 @@ export function LockFunds({
   const { watch, handleSubmit } = localForm;
 
   const disputeReason = watch('disputeReason');
-  const amount = tokenBalance?.formatted;
 
   const onTxSuccess = () => {
     // TODO handle tx success
@@ -72,7 +65,6 @@ export function LockFunds({
   const { writeAsync: lockFunds, writeLoading } = useLock({
     invoice,
     disputeReason,
-    amount,
     onTxSuccess,
     toast,
   });
@@ -171,7 +163,7 @@ export function LockFunds({
           textTransform="uppercase"
           variant="solid"
         >
-          {`Lock ${tokenBalance?.formatted} ${tokenBalance?.symbol}`}
+          {`Lock ${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
         </Button>
       )}
       {klerosCourt && (

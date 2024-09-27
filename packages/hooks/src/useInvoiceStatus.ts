@@ -1,12 +1,12 @@
-import { INVOICE_TYPES } from '@smart-invoice/constants/src';
-import { InstantDetails, InvoiceDetails } from '@smart-invoice/graphql';
-import { logError } from '@smart-invoice/utils';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
+import { InstantDetails, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { Hex, isAddress } from 'viem';
 import { useChainId } from 'wagmi';
 
-import { useInstantDetails } from '.';
+import { useInstantDetails } from './useInstantDetails';
 
 interface FetchInvoiceStatus {
   invoice: Partial<InvoiceDetails>;
@@ -103,7 +103,11 @@ const fetchInvoiceStatus = async ({
   return defaultReturn;
 };
 
-export const useInvoiceStatus = ({ invoice }: { invoice: InvoiceDetails }) => {
+export const useInvoiceStatus = ({
+  invoice,
+}: {
+  invoice: Partial<InvoiceDetails>;
+}) => {
   const chainId = useChainId();
 
   const { data: instantInfo } = useInstantDetails({

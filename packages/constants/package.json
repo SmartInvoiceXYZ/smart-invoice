@@ -1,21 +1,44 @@
 {
-  "name": "@smart-invoice/constants",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "name": "@smartinvoicexyz/constants",
+  "description": "Unified source for configs and constants used across the Smart Invoice protocol.",
+  "version": "0.1.4",
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "lodash": "^4.17.21",
-    "viem": "^1.21.4"
+    "viem": "2.17.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.202",
-    "@types/node": "^20.11.5"
+    "@types/lodash": "^4.17.7",
+    "@types/node": "^22.5.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "constants",
+    "escrow",
+    "ethereum",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
+  "license": "MIT",
+  "main": "src/index.ts",
+  "private": false,
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   }
 }

@@ -4,22 +4,24 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
   wrappedNativeToken,
-} from '@smart-invoice/constants';
-import { fetchInvoice, Invoice } from '@smart-invoice/graphql/src';
-import { UseToastReturn } from '@smart-invoice/types';
-import {
-  errorToastHandler,
-  parseTxLogs,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/constants';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler, parseTxLogs } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
-import { useFetchTokens, usePollSubgraph } from '.';
 import { useDetailsPin } from './useDetailsPin';
+import { useFetchTokens } from './useFetchTokens';
 
 const ESCROW_TYPE = toHex('escrow', { size: 32 });
 
@@ -35,9 +37,14 @@ export const useInvoiceCreate = ({
   invoiceForm,
   toast,
   onTxSuccess,
-}: UseInvoiceCreate) => {
+}: UseInvoiceCreate): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const chainId = useChainId();
-  const [newInvoiceId, setNewInvoiceId] = useState<Hex | undefined>();
+  const publicClient = usePublicClient();
   const [waitingForTx, setWaitingForTx] = useState(false);
 
   const { getValues } = invoiceForm;
@@ -73,40 +80,32 @@ export const useInvoiceCreate = ({
   ]);
 
   const localInvoiceFactory = invoiceFactory(chainId);
-  
+
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.filter(tokens, { address: token, chainId })[0];
 
-  const detailsData = {
-    projectName,
-    projectDescription,
-    projectAgreement,
-    ...(klerosCourt && { klerosCourt }),
-    startDate,
-    endDate,
-  };
+  const detailsData = useMemo(
+    () => ({
+      projectName,
+      projectDescription,
+      projectAgreement,
+      startDate,
+      endDate,
+      ...(klerosCourt ? { klerosCourt } : {}),
+    }),
+    [
+      projectName,
+      projectDescription,
+      projectAgreement,
+      klerosCourt,
+      startDate,
+      endDate,
+    ],
+  );
 
-  const { data: details } = useDetailsPin({ ...detailsData });
-
-  const waitForResult = usePollSubgraph({
-    label: 'Creating escrow invoice',
-    fetchHelper: () =>
-      newInvoiceId ? fetchInvoice(chainId, newInvoiceId) : undefined,
-    checkResult: (v: Partial<Invoice>) => !_.isUndefined(v),
-    interval: 2000, // 2 seconds (averaging ~20 seconds for the subgraph to index)
-  });
+  const { data: details } = useDetailsPin(detailsData);
 
   const escrowData = useMemo(() => {
-    console.log(
-      !client,
-      !(resolver || customResolver),
-      !token,
-      !safetyValveDate,
-      !wrappedNativeToken(chainId),
-      !details,
-      !localInvoiceFactory,
-      !provider,
-    );
     if (
       !client ||
       !(resolver || customResolver) ||
@@ -123,13 +122,13 @@ export const useInvoiceCreate = ({
     return encodeAbiParameters(
       [
         { type: 'address' }, //     _client,
-        { type: 'uint8' }, //       _resolverType,
+        { type: 'uint8' }, //     _resolverType,
         { type: 'address' }, //     _resolver,
         { type: 'address' }, //     _token,
-        { type: 'uint256' }, //     _terminationTime, // exact termination date in seconds since epoch
+        { type: 'uint256' }, //     _terminationTime, seconds since epoch
         { type: 'bytes32' }, //     _details,
         { type: 'address' }, //     _wrappedNativeToken,
-        { type: 'bool' }, //        _requireVerification, // warns the client not to deposit funds until verifying they can release or lock funds
+        { type: 'bool' }, //     _requireVerification, warns the client not to deposit funds until verifying they can release or lock funds
         { type: 'address' }, //     _factory,
       ],
       [
@@ -153,9 +152,8 @@ export const useInvoiceCreate = ({
     wrappedNativeToken,
     localInvoiceFactory,
   ]);
-  console.log(escrowData);
 
-  const { config, error: prepareError } = usePrepareContractWrite({
+  const { data, error: prepareError } = useSimulateContract({
     address: localInvoiceFactory,
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
@@ -167,40 +165,61 @@ export const useInvoiceCreate = ({
       escrowData,
       ESCROW_TYPE,
     ],
-    enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
+    query: {
+      enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
+    },
   });
 
   const {
-    writeAsync,
+    writeContractAsync,
     error: writeError,
-    isLoading,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      // wait for tx to confirm on chain
-      setWaitingForTx(true);
-      toast.info(TOASTS.useInvoiceCreate.waitingForTx);
+    isPending: isLoading,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        // wait for tx to confirm on chain
+        setWaitingForTx(true);
+        toast.info(TOASTS.useInvoiceCreate.waitingForTx);
 
-      const txData = await waitForTransaction({ chainId, hash });
-      // wait for subgraph to index
-      const localInvoiceId = parseTxLogs(
-        LOG_TYPE.Factory,
-        txData,
-        'LogNewInvoice',
-        'invoice',
-      );
-      if (!localInvoiceId) return;
-      setNewInvoiceId(localInvoiceId);
-      toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+        const txData = await publicClient?.waitForTransactionReceipt({
+          hash,
+        });
 
-      await waitForResult();
-      setWaitingForTx(false);
+        if (!txData) return;
+        // wait for subgraph to index
+        const localInvoiceId = parseTxLogs(
+          LOG_TYPE.Factory,
+          txData,
+          'LogNewInvoice',
+          'invoice',
+        );
+        if (!localInvoiceId) return;
+        toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
 
-      // pass back to component for further processing
-      onTxSuccess?.(localInvoiceId);
+        if (txData && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
+        }
+        setWaitingForTx(false);
+
+        // pass back to component for further processing
+        onTxSuccess?.(localInvoiceId);
+      },
+      onError: error => errorToastHandler('useInvoiceCreate', error, toast),
     },
-    onError: error => errorToastHandler('useInvoiceCreate', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      console.error('useInvoiceCreate', error);
+      errorToastHandler('useInvoiceCreate', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

@@ -1,13 +1,13 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useInvoiceStatus } from '@smart-invoice/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useInvoiceStatus } from '@smartinvoicexyz/hooks';
 import _ from 'lodash';
 import React from 'react';
 
 import { Loader } from '../atoms/Loader';
 
 export type InvoiceStatusLabelProps = {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClick?: () => void;
 };
 

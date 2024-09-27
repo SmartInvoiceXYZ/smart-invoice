@@ -1,21 +1,42 @@
 {
-  "name": "@smart-invoice/shared",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "name": "@smartinvoicexyz/shared",
+  "description": "Unified source for shared helper functions used across the Smart Invoice protocol.",
+  "version": "0.1.4",
+  "author": "",
   "dependencies": {
-    "@smart-invoice/constants": "workspace:*"
+    "@smartinvoicexyz/constants": "workspace:*"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.11",
-    "@types/lodash": "^4.14.202",
-    "@types/node": "20.11.5"
+    "@types/node": "^22.5.1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "escrow",
+    "ethereum",
+    "shared",
+    "smart-invoice",
+    "smartinvoicexyz"
+  ],
+  "license": "MIT",
+  "main": "src/index.ts",
+  "private": false,
+  "publishConfig": {
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
+    "prepublish": "pnpm clean && pnpm build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
+  }
 }

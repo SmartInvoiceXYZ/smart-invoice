@@ -1,12 +1,9 @@
 import { Button, Flex, Icon, Stack, Text } from '@chakra-ui/react';
-import { chainsMap } from '@smart-invoice/utils';
-import React from 'react';
-import { useChainId, useSwitchNetwork } from 'wagmi';
+import { chainsMap } from '@smartinvoicexyz/utils';
+import { useChainId, useSwitchChain } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
-import { ChakraNextLink } from '.';
 import { Container } from './Container';
-import { useParams } from 'next/navigation';
 
 export function InvoiceNotFound({
   heading,
@@ -16,7 +13,7 @@ export function InvoiceNotFound({
   chainId?: number;
 }) {
   const currentChainId = useChainId();
-  const { switchNetwork } = useSwitchNetwork();
+  const { switchChain } = useSwitchChain();
 
   return (
     <Container>
@@ -53,21 +50,23 @@ export function InvoiceNotFound({
           {heading || 'Invoice Not Found'}
         </Text>
         {chainId && chainId !== currentChainId && (
-          <Text color="greyText">
-            Please switch to <b>{chainsMap(chainId)?.name}</b> to view this
-            invoice.
-          </Text>
-        )}
+          <>
+            <Text color="greyText">
+              Please switch to <b>{chainsMap(chainId)?.name}</b> to view this
+              invoice.
+            </Text>
 
-        <Button
-          colorScheme="red"
-          px={12}
-          fontFamily="mono"
-          fontWeight="normal"
-          onClick={() => switchNetwork?.(chainId)}
-        >
-          Switch Network
-        </Button>
+            <Button
+              colorScheme="red"
+              px={12}
+              fontFamily="mono"
+              fontWeight="normal"
+              onClick={() => switchChain?.({ chainId })}
+            >
+              Switch Network
+            </Button>
+          </>
+        )}
       </Stack>
     </Container>
   );

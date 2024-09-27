@@ -1,7 +1,7 @@
 import { Button, SimpleGrid } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { Modals } from '@smart-invoice/types';
-import { Modal } from '@smart-invoice/ui';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { Modals } from '@smartinvoicexyz/types';
+import { Modal } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useAccount } from 'wagmi';
 
@@ -18,9 +18,9 @@ export function InvoiceButtonManager({
   modals,
   setModals,
 }: {
-  invoice: InvoiceDetails | undefined;
+  invoice: Partial<InvoiceDetails> | undefined;
   modals: Modals;
-  setModals: (m: Partial<Modals>) => void;
+  setModals: (_m: Partial<Modals>) => void;
 }) {
   const { address } = useAccount();
 
@@ -32,6 +32,8 @@ export function InvoiceButtonManager({
     isLockable,
     isWithdrawable,
     tokenBalance,
+    dispute,
+    resolution,
   } = _.pick(invoice, [
     'client',
     'resolver',
@@ -40,11 +42,14 @@ export function InvoiceButtonManager({
     'isLockable',
     'isWithdrawable',
     'tokenBalance',
+    'dispute',
+    'resolution',
   ]);
 
   const isRaidParty = _.toLower(address) === _.toLower(invoice?.provider);
   const isClient = _.toLower(address) === _.toLower(client);
   const isResolver = _.toLower(address) === _.toLower(resolver);
+  const isDisputed = !!dispute || !!resolution;
 
   const onLock = () => {
     setModals({ lock: true });
@@ -111,7 +116,7 @@ export function InvoiceButtonManager({
             Resolve
           </Button>
         )}
-        {isLockable && (isClient || isRaidParty) && (
+        {isLockable && (isClient || isRaidParty) && !isDisputed && (
           <Button
             variant="solid"
             backgroundColor="red.500"
@@ -123,10 +128,12 @@ export function InvoiceButtonManager({
             Lock
           </Button>
         )}
-        <Button variant="solid" textTransform="uppercase" onClick={onDeposit}>
-          Deposit
-        </Button>
-        {isReleasable && (
+        {!isDisputed && (
+          <Button variant="solid" textTransform="uppercase" onClick={onDeposit}>
+            Deposit
+          </Button>
+        )}
+        {isReleasable && !isDisputed && (
           <Button
             variant="solid"
             textTransform="uppercase"

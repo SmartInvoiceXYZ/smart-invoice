@@ -59,6 +59,9 @@ pids
 packages/subgraph/src/types
 packages/subgraph/subgraph.yaml
 
+# zeus
+packages/graphql/src/zeus
+
 # yarn version
 .yarn*
 
@@ -67,3 +70,9 @@ packages/subgraph/subgraph.yaml
 
 **/flat/
 **/.next/
+
+# typescript
+dist/
+*.tsbuildinfo
+.vercel
+.env*.local

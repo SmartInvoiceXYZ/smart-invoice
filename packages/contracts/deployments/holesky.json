@@ -4,18 +4,10 @@
   "txHash": "0x2657abfae0251d83482a0126edf5af3fb479f97979b582a24011793384322c90",
   "blockNumber": "1861812",
   "implementations": {
-    "escrow": [
-      "0x8a837E8D04eF7aEFB677590D192a302D5eD4e11C"
-    ],
-    "instant": [
-      "0xB2cEB1c0b55714Ff13ff330d7c27125d92D72398"
-    ],
-    "split-escrow": [
-      "0xc166B597fB34CBE71fB76C4A502CAcc42d9Bb231"
-    ],
-    "updatable": [
-      "0xe926dF2465aFC491683ade8158363FbFC513A12F"
-    ]
+    "escrow": ["0x8a837E8D04eF7aEFB677590D192a302D5eD4e11C"],
+    "instant": ["0xB2cEB1c0b55714Ff13ff330d7c27125d92D72398"],
+    "split-escrow": ["0xc166B597fB34CBE71fB76C4A502CAcc42d9Bb231"],
+    "updatable": ["0xe926dF2465aFC491683ade8158363FbFC513A12F"]
   },
   "zap": {
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",

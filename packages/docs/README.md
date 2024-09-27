@@ -1,33 +1,67 @@
-# Website
+# Smart Invoice Docs
 
-This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern static website generator.
+The Smart Invoice Docs package is a documentation site built with Docusaurus. It provides detailed guides, API references, and user instructions for the Smart Invoice protocol, helping developers and users understand and interact with the platform effectively.
 
 ## Installation
 
-```console
-yarn install
+To set up the Smart Invoice documentation site locally, follow these steps:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/SmartInvoiceXYZ/smart-invoice.git
+   cd smart-invoice/packages/docs
+   ```
+
+2. Install the dependencies:
+   ```bash
+   pnpm install
+   ```
+
+## Development
+
+To start the documentation site locally, run:
+
+```bash
+pnpm start
 ```
 
-## Local Development
+This command starts the Docusaurus development server on `http://localhost:3000` and watches for file changes.
 
-```console
-yarn start
+## Building for Production
+
+To build the documentation site for production, run:
+
+```bash
+pnpm build
 ```
 
-This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
-
-```console
-yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+This command generates an optimized static site in the `build` directory, ready to be deployed.
 
 ## Deployment
 
-```console
-GIT_USER=<Your GitHub username> USE_SSH=true yarn deploy
+To deploy the documentation site, use the following command:
+
+```bash
+pnpm deploy
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+This command builds the site and deploys it according to the configuration set in Docusaurus.
+
+## Cleaning Up
+
+To clear the Docusaurus cache and artifacts, run:
+
+```bash
+pnpm clear
+```
+
+## Customization
+
+Docusaurus provides a `swizzle` command to customize components and themes. To use it:
+
+```bash
+pnpm swizzle
+```
+
+This command allows you to extend or override the default components to better fit your needs.

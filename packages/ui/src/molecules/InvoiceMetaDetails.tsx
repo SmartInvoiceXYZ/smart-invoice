@@ -11,14 +11,14 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smart-invoice/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import {
   chainByName,
   getAccountString,
   getAddressLink,
   getAgreementLink,
   getDateString,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
 import { isAddress, zeroAddress } from 'viem';
@@ -32,7 +32,11 @@ import {
   VerifyInvoice,
 } from '..';
 
-export function InvoiceMetaDetails({ invoice }: { invoice: InvoiceDetails }) {
+export function InvoiceMetaDetails({
+  invoice,
+}: {
+  invoice: Partial<InvoiceDetails>;
+}) {
   const { address } = useAccount();
 
   const {

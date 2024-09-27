@@ -1,4 +1,4 @@
-import { InvoiceDashboardTable } from '@smart-invoice/ui';
+import { InvoiceDashboardTable } from '@smartinvoicexyz/ui';
 import React from 'react';
 import { useAccount, useChainId } from 'wagmi';
 

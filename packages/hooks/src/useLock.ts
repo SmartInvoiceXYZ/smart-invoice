@@ -2,81 +2,101 @@ import {
   DEFAULT_CHAIN_ID,
   SMART_INVOICE_ESCROW_ABI,
   TOASTS,
-} from '@smart-invoice/constants';
-import { fetchInvoice, InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types/src';
-import { errorToastHandler } from '@smart-invoice/utils/src';
+} from '@smartinvoicexyz/constants';
+import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { Hex } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
-
-import { usePollSubgraph } from '.';
+import { useCallback } from 'react';
+import { Hex, zeroHash } from 'viem';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 export const useLock = ({
   invoice,
   disputeReason,
-  // amount,
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   disputeReason: string;
-  amount: string | undefined;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
-}) => {
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  writeLoading: boolean;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
   const currentChainId = useChainId();
   const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
 
-  const detailsHash =
-    '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const detailsHash = zeroHash;
 
+  const publicClient = usePublicClient();
+
+  // TODO: upload dispute details
   // const detailsHash = await uploadDisputeDetails({
   //   reason: disputeReason,
   //   invoice: address,
   //   amount: balance.toString(),
   // });
 
-  const waitForIndex = usePollSubgraph({
-    label: 'waiting for useLock tx',
-    fetchHelper: async () =>
-      fetchInvoice(invoiceChainId, _.get(invoice, 'address') as Hex),
-    checkResult: result => !!result?.locked === true,
-  });
-
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'lock',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [detailsHash],
-    enabled:
-      !!invoice?.address &&
-      !!disputeReason &&
-      currentChainId === invoiceChainId,
+    query: {
+      enabled:
+        !!invoice?.address &&
+        !!disputeReason &&
+        currentChainId === invoiceChainId,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      toast.info(TOASTS.useLock.waitingForTx);
-      await waitForTransaction({ hash });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        toast.info(TOASTS.useLock.waitingForTx);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-      toast.info(TOASTS.useLock.waitingForIndex);
-      await waitForIndex();
+        toast.info(TOASTS.useLock.waitingForIndex);
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
 
-      onTxSuccess?.();
+        onTxSuccess?.();
+      },
+      onError: error => errorToastHandler('useLock', error, toast),
     },
-    onError: error => errorToastHandler('useLock', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useLock', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

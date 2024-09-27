@@ -1,13 +1,12 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { UseToastReturn } from '@smart-invoice/types';
-import { errorToastHandler } from '@smart-invoice/utils';
+import { SMART_INVOICE_ESCROW_ABI } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { UseToastReturn } from '@smartinvoicexyz/types';
+import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { Hex, TransactionReceipt } from 'viem';
-import { useChainId, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { waitForTransaction } from 'wagmi/actions';
-
-// TODO fix pin
+import { useCallback } from 'react';
+import { Hex, TransactionReceipt, zeroHash } from 'viem';
+import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
 export const useResolve = ({
   invoice,
@@ -20,7 +19,7 @@ export const useResolve = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   awards: {
     client: bigint;
     provider: bigint;
@@ -29,45 +28,70 @@ export const useResolve = ({
   comments: string;
   onTxSuccess: (tx: TransactionReceipt) => void;
   toast: UseToastReturn;
-}) => {
-  const detailsHash =
-    '0x0000000000000000000000000000000000000000000000000000000000000000';
-  const chainId = useChainId();
+}): {
+  writeAsync: () => Promise<Hex | undefined>;
+  isLoading: boolean;
+  prepareError: SimulateContractErrorType | null;
+  writeError: WriteContractErrorType | null;
+} => {
+  const publicClient = usePublicClient();
+  // TODO: fix pin
+
+  const detailsHash = zeroHash;
   const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
 
   const fullBalance =
     tokenBalance?.value === clientAward + providerAward + resolverAward;
 
   const {
-    config,
+    data,
     isLoading: prepareLoading,
     error: prepareError,
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'resolve',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [clientAward, providerAward, detailsHash],
-    enabled:
-      !!invoice?.address &&
-      fullBalance &&
-      // invoice?.isLocked &&
-      // balance.value > BigInt(0) &&
-      !!comments,
+    query: {
+      enabled:
+        !!invoice?.address &&
+        fullBalance &&
+        invoice?.isLocked &&
+        tokenBalance.value > BigInt(0) &&
+        !!comments,
+    },
   });
 
   const {
-    writeAsync,
-    isLoading: writeLoading,
+    writeContractAsync,
+    isPending: writeLoading,
     error: writeError,
-  } = useContractWrite({
-    ...config,
-    onSuccess: async ({ hash }) => {
-      const data = await waitForTransaction({ hash, chainId });
+  } = useWriteContract({
+    mutation: {
+      onSuccess: async hash => {
+        const receipt = await publicClient?.waitForTransactionReceipt({
+          hash,
+        });
 
-      onTxSuccess?.(data);
+        if (!receipt) return;
+
+        onTxSuccess?.(receipt);
+      },
+      onError: error => errorToastHandler('useResolve', error, toast),
     },
-    onError: error => errorToastHandler('useResolve', error, toast),
   });
+
+  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
+    try {
+      if (!data) {
+        throw new Error('simulation data is not available');
+      }
+      return writeContractAsync(data.request);
+    } catch (error) {
+      errorToastHandler('useResolve', error as Error, toast);
+      return undefined;
+    }
+  }, [writeContractAsync, data]);
 
   return {
     writeAsync,

@@ -1,8 +1,7 @@
-import { SMART_INVOICE_FACTORY_ABI } from '@smart-invoice/constants';
-import { getInvoiceFactoryAddress } from '@smart-invoice/utils';
-import _ from 'lodash';
+import { SMART_INVOICE_FACTORY_ABI } from '@smartinvoicexyz/constants';
+import { getInvoiceFactoryAddress } from '@smartinvoicexyz/utils';
 import { Hex } from 'viem';
-import { useContractRead } from 'wagmi';
+import { useReadContract } from 'wagmi';
 
 // Default Resolution Rate pulled from Factory
 export const useRateForResolver = ({
@@ -15,16 +14,22 @@ export const useRateForResolver = ({
   defaultValue?: number;
 }) => {
   const address = chainId ? getInvoiceFactoryAddress(chainId) : undefined;
-  const { data, isLoading, error } = useContractRead({
+  const { data, isLoading, error } = useReadContract({
     abi: SMART_INVOICE_FACTORY_ABI,
     address,
     chainId,
     functionName: 'resolutionRateOf',
     args: [resolver],
-    enabled: !!address && !!resolver && !!chainId,
+    query: {
+      enabled: !!address && !!resolver && !!chainId,
+    },
   });
 
-  const resolutionRate = _.toNumber(data) || defaultValue;
+  const resolutionRate = Number(data) || defaultValue;
 
-  return { resolutionRate, isLoading, error };
+  return { resolutionRate, isLoading, error } as {
+    resolutionRate: number;
+    isLoading: boolean;
+    error: Error | undefined;
+  };
 };

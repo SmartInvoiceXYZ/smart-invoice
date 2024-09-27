@@ -1,4 +1,4 @@
-import { logDebug, logError } from '@smart-invoice/shared';
+import { logDebug, logError } from '@smartinvoicexyz/shared';
 
 export * from './browser';
 export * from './date';

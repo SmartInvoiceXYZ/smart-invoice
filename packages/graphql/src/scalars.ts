@@ -2,11 +2,11 @@ import { ZeusScalars } from './zeus';
 
 export const scalars = ZeusScalars({
   BigDecimal: {
-    encode: (e: unknown) => (e as bigint).toString(16),
+    encode: (e: unknown) => (e as bigint).toString(10),
     decode: (e: unknown) => BigInt(e as string),
   },
   BigInt: {
-    encode: (e: unknown) => (e as bigint).toString(16),
+    encode: (e: unknown) => (e as bigint).toString(10),
     decode: (e: unknown) => BigInt(e as string),
   },
   Bytes: {

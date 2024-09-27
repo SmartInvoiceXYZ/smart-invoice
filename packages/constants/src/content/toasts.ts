@@ -15,7 +15,7 @@ export const TOASTS = {
     },
     success: {
       title: 'Invoice created',
-      description: 'Your invoice has been created. Taking you there now...',
+      description: 'Your invoice has been created!',
     },
   },
   useDeposit: {

@@ -4,64 +4,54 @@ import {
   SMART_INVOICE_FACTORY_ABI,
   SMART_INVOICE_INSTANT_ABI,
   SMART_INVOICE_SPLIT_ESCROW_ABI,
-} from '@smart-invoice/constants';
-import { ValueOf } from '@smart-invoice/types';
+} from '@smartinvoicexyz/constants';
+import { ValueOf } from '@smartinvoicexyz/types';
 import _ from 'lodash';
 import {
   decodeEventLog,
   DecodeEventLogReturnType,
   Log,
   TransactionReceipt,
+  WaitForTransactionReceiptReturnType,
 } from 'viem';
 
-export const logParser: {
-  [key: ValueOf<typeof LOG_TYPE>]: (
-    log: Log,
-  ) => DecodeEventLogReturnType | undefined;
-} = {
-  Factory: (log: Log) => {
-    try {
-      return decodeEventLog({
-        abi: SMART_INVOICE_FACTORY_ABI,
-        data: log?.data,
-        topics: log?.topics,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log('error', e);
-      return undefined;
-    }
-  },
-  Escrow: (log: Log) =>
-    decodeEventLog({
-      abi: SMART_INVOICE_ESCROW_ABI,
-      data: log?.data,
-      topics: log?.topics,
-    }),
+type KnownAbi =
+  | typeof SMART_INVOICE_ESCROW_ABI
+  | typeof SMART_INVOICE_FACTORY_ABI
+  | typeof SMART_INVOICE_INSTANT_ABI
+  | typeof SMART_INVOICE_SPLIT_ESCROW_ABI;
 
-  Instant: (log: Log) =>
-    decodeEventLog({
-      abi: SMART_INVOICE_INSTANT_ABI,
+type LogParserFunction = (
+  _log: Log,
+) => DecodeEventLogReturnType<KnownAbi> | undefined;
+
+const logParserFactory = (abi: KnownAbi) => (log: Log) => {
+  try {
+    return decodeEventLog({
+      abi,
       data: log?.data,
       topics: log?.topics,
-    }),
-  Split: (log: Log) =>
-    decodeEventLog({
-      abi: SMART_INVOICE_SPLIT_ESCROW_ABI,
-      data: log?.data,
-      topics: log?.topics,
-    }),
-  Updatable: (log: Log) =>
-    decodeEventLog({
-      abi: SMART_INVOICE_FACTORY_ABI,
-      data: log?.data,
-      topics: log?.topics,
-    }),
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(`error parsing log:`, e);
+    return undefined;
+  }
+};
+
+export const logParser: {
+  [key: ValueOf<typeof LOG_TYPE>]: LogParserFunction;
+} = {
+  Factory: logParserFactory(SMART_INVOICE_FACTORY_ABI),
+  Escrow: logParserFactory(SMART_INVOICE_ESCROW_ABI),
+  Instant: logParserFactory(SMART_INVOICE_INSTANT_ABI),
+  Split: logParserFactory(SMART_INVOICE_SPLIT_ESCROW_ABI),
+  Updatable: logParserFactory(SMART_INVOICE_ESCROW_ABI),
 };
 
 export const parseTxLogs = (
   type: ValueOf<typeof LOG_TYPE>,
-  txData: TransactionReceipt,
+  txData: TransactionReceipt | WaitForTransactionReceiptReturnType,
   eventName: string,
   key: string, // eventLog.args.key
 ) => {

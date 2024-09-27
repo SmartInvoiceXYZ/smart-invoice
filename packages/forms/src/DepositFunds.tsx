@@ -15,29 +15,29 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { PAYMENT_TYPES, TOASTS } from '@smart-invoice/constants';
-import { InvoiceDetails } from '@smart-invoice/graphql';
-import { useDeposit } from '@smart-invoice/hooks';
-import { NumberInput, QuestionIcon, useToast } from '@smart-invoice/ui';
+import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useDeposit, useTokenBalance } from '@smartinvoicexyz/hooks';
+import { NumberInput, QuestionIcon, useToast } from '@smartinvoicexyz/ui';
 import {
   commify,
   getNativeTokenSymbol,
   getTxLink,
   getUpdatedCheckAmount,
   getWrappedNativeToken,
-} from '@smart-invoice/utils';
+} from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatEther, formatUnits, Hex, parseUnits, zeroAddress } from 'viem';
+import { formatEther, formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
 export function DepositFunds({
   invoice,
   onClose,
 }: {
-  invoice: InvoiceDetails;
+  invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
   const {
@@ -59,7 +59,7 @@ export function DepositFunds({
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const toast = useToast();
-  
+
   const TOKEN_DATA = useMemo(
     () => ({
       nativeSymbol: getNativeTokenSymbol(chainId),
@@ -84,21 +84,30 @@ export function DepositFunds({
   );
   const checked = watch('checked');
 
-  const amountsSum = _.sumBy(amounts, _.toNumber); // number, not parsed
+  const totalAmount =
+    amounts?.reduce((acc, val) => acc + BigInt(val), BigInt(0)) ?? BigInt(0);
+  const amountsSum = Number(
+    formatUnits(totalAmount, tokenMetadata?.decimals || 18),
+  );
 
-  const { data: nativeBalance } = useBalance({ address });
-  const { data: tokenBalance } = useBalance({
-    address,
-    token: tokenMetadata?.address as Hex,
+  const { data: nativeBalance } = useBalance({ address, chainId });
+  const { data: tokenBalance } = useTokenBalance({
+    address: address as Hex,
+    tokenAddress: tokenMetadata?.address as Hex,
+    chainId,
   });
+
   const balance =
     paymentType?.value === PAYMENT_TYPES.NATIVE
       ? nativeBalance?.value
-      : tokenBalance?.value;
+      : tokenBalance;
   const displayBalance =
     paymentType?.value === PAYMENT_TYPES.NATIVE
-      ? nativeBalance?.formatted
-      : tokenBalance?.formatted;
+      ? formatUnits(
+          nativeBalance?.value ?? BigInt(0),
+          nativeBalance?.decimals ?? 18,
+        )
+      : formatUnits(tokenBalance ?? BigInt(0), tokenMetadata?.decimals ?? 18);
   const hasAmount = !!balance && balance > amount; // (+ gasForChain)
 
   const onTxSuccess = () => {
@@ -124,7 +133,7 @@ export function DepositFunds({
   const depositHandler = async () => {
     const result = await handleDeposit();
     if (!result) return;
-    setTransaction(result.hash);
+    setTransaction(result);
   };
   const paymentTypeOptions = [
     {
@@ -258,8 +267,8 @@ export function DepositFunds({
         </Flex>
         <Stack gap={4} mt={4}>
           {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
-            <Alert bg="red.500" borderRadius="md" color="white">
-              <AlertIcon color="whiteAlpha.800" />
+            <Alert status="warning" borderRadius="md">
+              <AlertIcon />
               <AlertTitle fontSize="sm">
                 Your deposit is greater than the total amount due!
               </AlertTitle>
@@ -267,8 +276,8 @@ export function DepositFunds({
           )}
 
           {displayBalance && displayBalance < formatEther(amount) && (
-            <Alert bg="red.500" borderRadius="md" color="white">
-              <AlertIcon color="whiteAlpha.800" />
+            <Alert status="error" borderRadius="md">
+              <AlertIcon />
               <AlertTitle fontSize="sm">
                 Your balance is less than the amount you are trying to deposit!
               </AlertTitle>

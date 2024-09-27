@@ -1,24 +1,28 @@
 import { Flex, Heading, Stack, Text } from '@chakra-ui/react';
-import { ESCROW_STEPS, INVOICE_TYPES, TOASTS } from '@smart-invoice/constants';
+import {
+  ESCROW_STEPS,
+  INVOICE_TYPES,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import {
   EscrowDetailsForm,
   FormConfirmation,
   PaymentsForm,
   ProjectDetailsForm,
   RegisterSuccess,
-} from '@smart-invoice/forms';
-import { useInvoiceCreate } from '@smart-invoice/hooks';
+} from '@smartinvoicexyz/forms';
+import { useInvoiceCreate } from '@smartinvoicexyz/hooks';
 import {
   Container,
   NetworkChangeAlertModal,
   StepInfo,
   useMediaStyles,
   useToast,
-} from '@smart-invoice/ui';
+} from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
@@ -30,7 +34,7 @@ export function CreateInvoiceEscrow() {
   const queryClient = useQueryClient();
   const { modals, setModals } = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [txHash, setTxHash] = useState<Address>();
+  const [txHash, setTxHash] = useState<Hex>();
 
   const [invoiceId, setInvoiceId] = useState<Address>();
   const { headingSize, columnWidth } = useMediaStyles();
@@ -62,8 +66,8 @@ export function CreateInvoiceEscrow() {
   });
 
   const handleSubmit = async () => {
-    const data = await writeAsync?.();
-    setTxHash(data?.hash);
+    const hash = await writeAsync?.();
+    setTxHash(hash);
   };
 
   return (
@@ -153,6 +157,7 @@ export function CreateInvoiceEscrow() {
               <RegisterSuccess
                 invoiceId={invoiceId as Address}
                 txHash={txHash as Address}
+                type={INVOICE_TYPES.Escrow}
               />
             )}
           </Flex>

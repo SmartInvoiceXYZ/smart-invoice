@@ -1,4 +1,4 @@
-import { Invoice } from '@smart-invoice/graphql';
+import { Invoice } from '@smartinvoicexyz/graphql';
 
 export interface ProjectAgreement {
   id: string;

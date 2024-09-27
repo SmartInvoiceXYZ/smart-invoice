@@ -18,9 +18,9 @@ import { CONFIG } from './config';
 const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
 const INFURA_PROJECT_SECRET = process.env.NEXT_PUBLIC_INFURA_PROJECT_SECRET;
 
-const { INFURA_ID, IPFS_ENDPOINT, BOX_ENDPOINT, NETWORK_CONFIG } = CONFIG;
+const { INFURA_ID, IPFS_ENDPOINT, NETWORK_CONFIG } = CONFIG;
 
-export { BOX_ENDPOINT, INFURA_ID, IPFS_ENDPOINT };
+export { INFURA_ID, IPFS_ENDPOINT };
 
 export const DEFAULT_CHAIN_ID = 5;
 
@@ -51,7 +51,7 @@ export const SUPPORTED_NETWORKS: Array<number> = [
   sepolia.id,
 ];
 
-export const INVOICE_VERSION = 'smart-invoice-v0';
+export const INVOICE_VERSION = 'smart-invoice-v1';
 
 export const INFURA_AUTH = `Basic ${Buffer.from(
   `${INFURA_PROJECT_ID}:${INFURA_PROJECT_SECRET}`,

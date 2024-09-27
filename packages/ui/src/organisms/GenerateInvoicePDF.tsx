@@ -13,17 +13,17 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
-import { Invoice } from '@smart-invoice/graphql';
-import { useFetchTokens } from '@smart-invoice/hooks';
-import { chainByName } from '@smart-invoice/utils';
+import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { useFetchTokens } from '@smartinvoicexyz/hooks';
+import { IToken } from '@smartinvoicexyz/types';
+import { chainByName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React from 'react';
 
 import { InvoicePDF } from '../molecules';
-import { IToken } from '@smart-invoice/types/src';
 
 interface GenerateInvoicePDFProps {
-  invoice: Invoice;
+  invoice: Partial<InvoiceDetails>;
   buttonText: string;
   buttonProps?: ButtonProps;
 }
@@ -43,7 +43,10 @@ export function GenerateInvoicePDF({
   const invoiceChainId = chainByName(network)?.id;
 
   const { data: tokens } = useFetchTokens();
-  const invoiceToken = _.filter(tokens, { address: token, chainId: invoiceChainId })[0] as IToken;
+  const invoiceToken = _.filter(tokens, {
+    address: token,
+    chainId: invoiceChainId,
+  })[0] as IToken;
 
   const symbol = invoiceToken?.symbol;
   return (
@@ -86,7 +89,7 @@ export function GenerateInvoicePDF({
 }
 
 interface GenerateInvoicePDFMenuItemProps extends MenuItemProps {
-  invoice: Invoice;
+  invoice: Partial<InvoiceDetails>;
   symbol: string;
   text: string;
 }
