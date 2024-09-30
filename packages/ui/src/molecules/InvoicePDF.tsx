@@ -6,16 +6,15 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { Network } from '@smartinvoicexyz/types';
+import { InvoiceDetails, Network } from '@smartinvoicexyz/types';
 import {
   chainByName,
   getAccountString,
   unixToDateTime,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { Fragment } from 'react';
-import { formatEther } from 'viem';
+import { Fragment } from 'react';
+import { Address, formatEther } from 'viem';
 
 const borderColor = 'black';
 
@@ -183,11 +182,7 @@ export type InvoicePDFProps = {
 export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
   const {
     address,
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
+    metadata,
     terminationTime,
     client,
     provider,
@@ -200,11 +195,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     resolutions,
   } = _.pick(invoice, [
     'address',
-    'projectName',
-    'projectDescription',
-    'projectAgreement',
-    'startDate',
-    'endDate',
+    'metadata',
     'terminationTime',
     'client',
     'provider',
@@ -216,6 +207,11 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     'disputes',
     'resolutions',
   ]);
+
+  const { title, description, documents, startDate, endDate } = _.pick(
+    metadata,
+    ['title', 'description', 'documents', 'startDate', 'endDate'],
+  );
 
   return (
     <Document>
@@ -235,7 +231,8 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               )?.id?.toString(16)}/${address}`}
             >
               <Text style={{ textAlign: 'center' }}>
-                {getAccountString(address)} @ smartinvoice.xyz
+                {getAccountString(address as Address | undefined)} @
+                smartinvoice.xyz
               </Text>
             </Link>
           </View>
@@ -291,26 +288,26 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
         <View style={styles.separatorTwo} />
 
-        {projectAgreement && (
+        {documents && (
           <View style={styles.detailsContainer}>
             <Text style={styles.details}>
-              Project Name: <Text style={styles.text}>{projectName}</Text>
+              Project Name: <Text style={styles.text}>{title}</Text>
             </Text>
 
             <Text style={styles.details}>
-              Description: <Text style={styles.text}>{projectDescription}</Text>
+              Description: <Text style={styles.text}>{description}</Text>
             </Text>
             <Text style={styles.details}>Project Agreement(s):</Text>
-            {projectAgreement.map((agreement, index) => (
-              <View key={agreement.id}>
+            {documents.map((document, index) => (
+              <View key={document.id}>
                 <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
                 <Text style={[styles.text, { textIndent: 20 }]}>
-                  Created At: {unixToDateTime(Number(agreement.createdAt))}
+                  Created At: {unixToDateTime(Number(document.createdAt))}
                 </Text>
 
                 <Text style={[styles.text, { textIndent: 20 }]}>
-                  Agreement Source: {agreement.src}
+                  Agreement Source: {document.src}
                 </Text>
               </View>
             ))}

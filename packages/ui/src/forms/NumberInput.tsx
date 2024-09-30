@@ -25,6 +25,7 @@ export interface CustomNumberInputProps {
   helperText?: string;
   name: string;
   tooltip?: string;
+  required?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   registerOptions?: RegisterOptions;
@@ -55,6 +56,7 @@ export function NumberInput({
   spacing,
   rightElement,
   placeholder,
+  required = false,
   ...props
 }: NumberInputProps) {
   if (!localForm) return null;
@@ -75,7 +77,7 @@ export function NumberInput({
       rules={registerOptions}
       render={({ field: { ref, ...restField } }) => (
         <FormControl
-          isRequired={!!registerOptions?.required || false}
+          isRequired={!!registerOptions?.required || required}
           isInvalid={!!errors[name]}
           m={0}
         >

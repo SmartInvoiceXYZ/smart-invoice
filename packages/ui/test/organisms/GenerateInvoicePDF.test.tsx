@@ -1,6 +1,5 @@
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { render } from '@testing-library/react';
-import React from 'react';
 
 import { GenerateInvoicePDF } from '../../src/organisms/GenerateInvoicePDF';
 

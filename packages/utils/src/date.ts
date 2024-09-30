@@ -62,7 +62,7 @@ export const unixToDateTime = (d: number | string | Date): string => {
 
 export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
 
-export const getDateString = (d: number | string | Date) => {
+export const getDateString = (d: number | string | Date | bigint) => {
   const date = parseToDate(d);
   const ye = new Intl.DateTimeFormat('en', {
     year: 'numeric',

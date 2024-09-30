@@ -16,8 +16,8 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useDeposit, useTokenBalance } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { NumberInput, QuestionIcon, useToast } from '@smartinvoicexyz/ui';
 import {
   commify,

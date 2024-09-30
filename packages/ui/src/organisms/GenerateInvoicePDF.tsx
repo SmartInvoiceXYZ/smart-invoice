@@ -13,9 +13,8 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
-import { IToken } from '@smartinvoicexyz/types';
+import { InvoiceDetails, IToken } from '@smartinvoicexyz/types';
 import { chainByName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React from 'react';

@@ -11,7 +11,7 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { CONFIG } from '@smartinvoicexyz/constants';
+import { NETWORK_CONFIG } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { IToken } from '@smartinvoicexyz/types';
 import { Container } from '@smartinvoicexyz/ui';
@@ -25,7 +25,6 @@ import {
 import _ from 'lodash';
 import React from 'react';
 
-const { NETWORK_CONFIG } = CONFIG;
 const chainIds = getKeys(NETWORK_CONFIG);
 
 function Contracts() {

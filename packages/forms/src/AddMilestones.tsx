@@ -12,8 +12,8 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useAddMilestones } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   LinkInput,
   NumberInput,
@@ -138,13 +138,12 @@ export function AddMilestones({
         Add New Payment Milestones
       </Heading>
 
-      {/*
       <LinkInput
         name="projectAgreement"
         label="Link to Project Agreement (if updated)"
         tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         localForm={localForm}
-      /> */}
+      />
 
       <FormControl isInvalid={!!errors?.milestones}>
         <Stack w="100%">

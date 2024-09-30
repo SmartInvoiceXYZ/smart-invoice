@@ -1,10 +1,10 @@
 import { SMART_INVOICE_ESCROW_ABI } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Hex, TransactionReceipt, zeroHash } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
@@ -35,10 +35,14 @@ export const useResolve = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
-  // TODO: fix pin
 
+  // TODO: fix pin
   const detailsHash = zeroHash;
-  const { tokenBalance } = _.pick(invoice, ['tokenBalance']);
+  const { tokenBalance, address, isLocked } = _.pick(invoice, [
+    'tokenBalance',
+    'address',
+    'isLocked',
+  ]);
 
   const fullBalance =
     tokenBalance?.value === clientAward + providerAward + resolverAward;
@@ -48,19 +52,20 @@ export const useResolve = ({
     isLoading: prepareLoading,
     error: prepareError,
   } = useSimulateContract({
-    address: invoice?.address as Hex,
+    address: address as Hex,
     functionName: 'resolve',
     abi: SMART_INVOICE_ESCROW_ABI,
     args: [clientAward, providerAward, detailsHash],
     query: {
       enabled:
-        !!invoice?.address &&
+        !!address &&
         fullBalance &&
-        invoice?.isLocked &&
+        isLocked &&
         tokenBalance.value > BigInt(0) &&
         !!comments,
     },
   });
+  const [waitingForTx, setWaitingForTx] = useState(false);
 
   const {
     writeContractAsync,
@@ -69,11 +74,16 @@ export const useResolve = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         const receipt = await publicClient?.waitForTransactionReceipt({
           hash,
         });
 
         if (!receipt) return;
+        if (receipt && publicClient) {
+          await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
+        }
+        setWaitingForTx(false);
 
         onTxSuccess?.(receipt);
       },
@@ -95,7 +105,7 @@ export const useResolve = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading,
+    isLoading: prepareLoading || writeLoading || waitingForTx,
     prepareError,
     writeError,
   };

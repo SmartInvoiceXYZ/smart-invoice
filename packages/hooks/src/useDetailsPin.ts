@@ -1,105 +1,64 @@
 import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
 import {
+  BasicMetadata,
+  InvoiceMetadata,
+  validateBasicMetadata,
+  validateInvoiceMetadata,
+} from '@smartinvoicexyz/types';
+import {
   convertIpfsCidV0ToByte32,
   fetchToken,
   handleDetailsPin,
+  logDebug,
 } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
 
-type Document = {
-  id: string;
-  src: string;
-  type: string;
-  createdAt: string;
-};
+const generateName = ({ title, createdAt }: BasicMetadata) =>
+  `${title} - ${createdAt} - ${INVOICE_VERSION}`;
 
-export const useDetailsPin = ({
-  projectName,
-  projectDescription,
-  projectAgreement,
-  startDate,
-  endDate,
-  klerosCourt,
-}: {
-  projectName?: string;
-  projectDescription?: string;
-  projectAgreement: string;
-  startDate?: number;
-  endDate?: number;
-  klerosCourt?: number;
-}) => {
-  const detailsData = useMemo(() => {
-    const createdAt = BigInt(Date.now());
-
-    if (!(projectName || projectAgreement !== '')) {
-      return undefined;
+export const useDetailsPin = (
+  details: InvoiceMetadata | null,
+  isBasic = false,
+) => {
+  const validatedDetails = useMemo((): InvoiceMetadata | null => {
+    if (isBasic) {
+      if (!validateBasicMetadata(details)) {
+        logDebug('Invalid basic metadata: ', details);
+        return null;
+      }
+      return details;
+    }
+    if (!validateInvoiceMetadata(details)) {
+      logDebug('Invalid invoice metadata: ', details);
+      return null;
     }
 
-    const projectAgreements: Document[] = [];
-    if (projectAgreement && projectAgreement !== '') {
-      projectAgreements.push({
-        id: createdAt.toString(),
-        src: projectAgreement,
-        type: projectAgreement?.startsWith('http') ? 'http' : 'ipfs',
-        createdAt: createdAt.toString(),
-      });
-    }
-
-    return {
-      projectName: projectName || '',
-      projectDescription: projectDescription || '',
-      projectAgreement: projectAgreements,
-      startDate,
-      endDate,
-      version: INVOICE_VERSION,
-      ...(klerosCourt && { klerosCourt }),
-    };
-  }, [
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
-    klerosCourt,
-  ]);
+    return details;
+  }, [isBasic, details]);
 
   const uploadToIpfs = useCallback(async () => {
     const token = await fetchToken();
-    if (!detailsData || !token) return null;
-    const details = await handleDetailsPin({
-      details: detailsData,
-      name: `${projectName}-${startDate}`,
+    if (!validatedDetails || !token) return null;
+    const cid = await handleDetailsPin({
+      details: validatedDetails,
+      name: generateName(validatedDetails),
       token,
     });
 
-    return convertIpfsCidV0ToByte32(details);
-  }, [detailsData, projectName, startDate]);
-
-  const isEnabled = useMemo(() => {
-    return (
-      !!(projectName || projectAgreement) &&
-      !!startDate &&
-      !!endDate &&
-      !!detailsData
-    );
-  }, [projectName, projectAgreement, startDate, endDate, detailsData]);
+    return convertIpfsCidV0ToByte32(cid);
+  }, [validatedDetails]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [
       'detailsPin',
       {
-        projectName,
-        projectDescription,
-        projectAgreement,
-        startDate,
-        endDate,
-        ...(klerosCourt ? { klerosCourt } : {}),
+        validatedDetails: JSON.stringify(validatedDetails),
       },
     ],
     queryFn: uploadToIpfs,
-    enabled: isEnabled,
+    enabled: !!validatedDetails,
     staleTime: Infinity,
     refetchInterval: false,
   });

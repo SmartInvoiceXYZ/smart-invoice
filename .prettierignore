@@ -57,6 +57,14 @@ pids
 
 # subgraph
 packages/subgraph/src/types
+packages/subgraph/subgraph.yaml
+packages/subgraph/subgraph.template.yaml
+
+# contracts
+packages/contracts/artifacts
+
+# zeus
+packages/graphql/src/zeus
 
 # yarn version
 .yarn*
@@ -64,9 +72,14 @@ packages/subgraph/src/types
 # firebase tmp
 .firebase/
 
-/packages/contracts/flat/
-/packages/dapp/.next/
+**/flat/
+**/.next/
 
-# next.js
-.next
-packages/subgraph/subgraph.template.yaml
+# typescript
+dist/
+*.tsbuildinfo
+.vercel
+.env*.local
+
+# changelog
+CHANGELOG.md

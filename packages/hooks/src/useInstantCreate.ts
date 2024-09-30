@@ -1,15 +1,21 @@
 import {
+  INVOICE_VERSION,
   LOG_TYPE,
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import {
+  FormInvoice,
+  InvoiceMetadata,
+  UseToastReturn,
+} from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
   getInvoiceFactoryAddress,
   parseTxLogs,
+  uriToDocument,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
@@ -20,18 +26,19 @@ import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
 
+const INSTANT_TYPE = toHex('instant', { size: 32 });
+
 export const useInstantCreate = ({
   invoiceForm,
   chainId,
   toast,
   onTxSuccess,
 }: {
-  invoiceForm: UseFormReturn;
+  invoiceForm: UseFormReturn<Partial<FormInvoice>>;
   chainId: number;
   toast: UseToastReturn;
   onTxSuccess?: (result: Address) => void;
 }): {
-  waitingForTx: boolean;
   prepareError: Error | null;
   writeAsync: () => Promise<Hex | undefined>;
   writeError: Error | null;
@@ -41,13 +48,14 @@ export const useInstantCreate = ({
   const [waitingForTx, setWaitingForTx] = useState(false);
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
+
   const {
     client,
     provider,
     token,
-    projectName,
-    projectDescription,
-    projectAgreement,
+    title,
+    description,
+    document,
     startDate,
     endDate,
     deadline,
@@ -58,9 +66,9 @@ export const useInstantCreate = ({
     'client',
     'provider',
     'token',
-    'projectName',
-    'projectDescription',
-    'projectAgreement',
+    'title',
+    'description',
+    'document',
     'startDate',
     'endDate',
     'deadline',
@@ -69,29 +77,28 @@ export const useInstantCreate = ({
     'lateFeeTimeInterval',
   ]);
 
-  const detailsData = useMemo(
-    () => ({
-      projectName,
-      projectDescription,
-      projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
-      startDate,
-      endDate,
-    }),
-    [projectName, projectDescription, projectAgreement, startDate, endDate],
-  );
-
-  const { data: tokens } = useFetchTokens();
-  const tokenMetadata = _.filter(tokens, { address: token, chainId })[0];
+  const detailsData = useMemo(() => {
+    const now = Math.floor(new Date().getTime() / 1000);
+    return {
+      version: INVOICE_VERSION,
+      id: title ?? `${now}${INVOICE_VERSION}`,
+      title,
+      description,
+      documents: [uriToDocument(document)],
+      startDate: Math.floor(new Date(startDate ?? '').getTime() / 1000),
+      endDate: Math.floor(new Date(endDate ?? '').getTime() / 1000),
+      createdAt: now,
+    } as InvoiceMetadata;
+  }, [title, description, document, startDate, endDate]);
 
   const { data: details } = useDetailsPin(detailsData);
 
-  const paymentAmount = useMemo(() => {
-    if (!tokenMetadata || !paymentDue) {
-      return BigInt(0);
-    }
-
-    return parseUnits(_.toString(paymentDue), tokenMetadata.decimals);
-  }, [tokenMetadata, paymentDue]);
+  const { data: tokens } = useFetchTokens();
+  const tokenMetadata = _.find(
+    tokens,
+    t =>
+      t.address.toLowerCase() === token?.toLowerCase() && t.chainId === chainId,
+  );
 
   const escrowData = useMemo(() => {
     if (!client || !deadline || !wrappedNativeToken(chainId) || !details) {
@@ -101,7 +108,7 @@ export const useInstantCreate = ({
     if (lateFeeTimeInterval) {
       lateFeeTimeIntervalSeconds = BigInt(
         // days to milliseconds
-        lateFeeTimeInterval * 24 * 60 * 60 * 1000,
+        Number(lateFeeTimeInterval) * 24 * 60 * 60 * 1000,
       );
     }
 
@@ -116,9 +123,9 @@ export const useInstantCreate = ({
         { type: 'uint256' }, //     _lateFeeTimeInterval
       ],
       [
-        client,
-        token, // address _token (payment token address)
-        BigInt(new Date(deadline.toString()).getTime() / 1000), // deadline
+        client as Address,
+        token as Address, // address _token (payment token address)
+        BigInt(new Date(deadline).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
         wrappedNativeToken(chainId),
         parseUnits(lateFee || '0', tokenMetadata?.decimals || 18), // late fee in payment token per interval
@@ -138,17 +145,21 @@ export const useInstantCreate = ({
     lateFeeTimeInterval,
   ]);
 
-  const { data, error: prepareError } = useSimulateContract({
+  const paymentAmount = parseUnits(
+    _.toString(paymentDue),
+    tokenMetadata?.decimals ?? 18,
+  );
+
+  const {
+    data,
+    error: prepareError,
+    isLoading: prepareLoading,
+  } = useSimulateContract({
     address: invoiceFactory,
     chainId,
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
-    args: [
-      provider,
-      [paymentAmount],
-      escrowData,
-      toHex('instant', { size: 32 }),
-    ],
+    args: [provider as Address, [paymentAmount], escrowData, INSTANT_TYPE],
     query: {
       enabled: !!invoiceFactory && !!chainId && !!provider && !!escrowData,
     },
@@ -209,10 +220,9 @@ export const useInstantCreate = ({
   }, [writeContractAsync, data]);
 
   return {
-    waitingForTx,
     prepareError,
     writeAsync,
     writeError,
-    isLoading,
+    isLoading: isLoading || waitingForTx || prepareLoading,
   };
 };

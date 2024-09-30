@@ -1,6 +1,6 @@
 import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
@@ -22,7 +22,7 @@ export const useDeposit = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Partial<InvoiceDetails>;
+  invoice: InvoiceDetails;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
@@ -38,7 +38,10 @@ export const useDeposit = ({
 } => {
   const chainId = useChainId();
 
-  const { token } = _.pick(invoice, ['token', 'tokenBalance']);
+  const { tokenMetadata, address } = _.pick(invoice, [
+    'tokenMetadata',
+    'address',
+  ]);
 
   const publicClient = usePublicClient();
 
@@ -48,10 +51,10 @@ export const useDeposit = ({
     error: prepareError,
   } = useSimulateContract({
     chainId,
-    address: token as Hex,
+    address: tokenMetadata?.address as Hex,
     abi: IERC20_ABI,
     functionName: 'transfer',
-    args: [invoice?.address as Hex, amount],
+    args: [address as Hex, amount],
     query: {
       enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
     },
@@ -97,7 +100,7 @@ export const useDeposit = ({
     try {
       if (paymentType === PAYMENT_TYPES.NATIVE) {
         const result = await sendTransactionAsync({
-          to: invoice?.address as Hex,
+          to: address as Hex,
           value: amount,
         });
         return result;

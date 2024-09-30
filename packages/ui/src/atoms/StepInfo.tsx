@@ -37,19 +37,20 @@ export function StepInfo({
 
   return (
     <Stack spacing="1rem" maxW={maxW} align="stretch">
-      <Flex justify="space-between" my={4}>
+      <Flex justify="space-between" my={4} align="center">
         {stepNum !== 1 && stepNum !== 5 ? (
           <IconButton
             icon={
               <Icon
                 as={BackArrowIcon}
                 color="white"
-                width="33px"
-                height="24px"
+                width="2rem"
+                height="1.5rem"
               />
             }
             variant="ghost"
             bg="gray.200"
+            p={2}
             onClick={() => goBack()}
             cursor="pointer"
             aria-label="back"

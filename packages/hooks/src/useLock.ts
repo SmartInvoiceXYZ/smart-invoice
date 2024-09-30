@@ -1,14 +1,10 @@
-import {
-  DEFAULT_CHAIN_ID,
-  SMART_INVOICE_ESCROW_ABI,
-  TOASTS,
-} from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Hex, zeroHash } from 'viem';
 import {
   useChainId,
@@ -23,7 +19,7 @@ export const useLock = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Partial<InvoiceDetails>;
+  invoice: InvoiceDetails;
   disputeReason: string;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
@@ -35,7 +31,7 @@ export const useLock = ({
   writeError: WriteContractErrorType | null;
 } => {
   const currentChainId = useChainId();
-  const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
+  const invoiceChainId = _.get(invoice, 'chainId');
 
   const detailsHash = zeroHash;
 
@@ -65,6 +61,8 @@ export const useLock = ({
     },
   });
 
+  const [waitingForTx, setWaitingForTx] = useState(false);
+
   const {
     writeContractAsync,
     isPending: writeLoading,
@@ -72,6 +70,7 @@ export const useLock = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useLock.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -80,6 +79,7 @@ export const useLock = ({
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
 
+        setWaitingForTx(false);
         onTxSuccess?.();
       },
       onError: error => errorToastHandler('useLock', error, toast),
@@ -100,7 +100,7 @@ export const useLock = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading,
+    isLoading: prepareLoading || writeLoading || waitingForTx,
     writeLoading,
     prepareError,
     writeError,

@@ -1,4 +1,4 @@
-import { Box, Button, Grid, SimpleGrid, Stack } from '@chakra-ui/react';
+import { Button, Grid, SimpleGrid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   INSTANT_STEPS,
@@ -18,7 +18,7 @@ import {
   oneMonthFromNow,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
@@ -44,7 +44,7 @@ export function InstantPaymentForm({
   const nativeWrappedToken = getWrappedNativeToken(chainId) || '';
 
   const { watch, setValue } = invoiceForm;
-  const { client, provider, paymentDue, lateFee, lateFeeTimeInterval } =
+  const { client, provider, paymentDue, lateFee, token, lateFeeTimeInterval } =
     watch();
 
   const localForm = useForm({
@@ -55,11 +55,14 @@ export function InstantPaymentForm({
       paymentDue,
       deadline: oneMonthFromNow(),
       lateFee,
+      token: token || nativeWrappedToken.toLowerCase(),
+      lateFeeTimeInterval:
+        lateFeeTimeInterval ||
+        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
     },
   });
   const {
     handleSubmit,
-    setValue: localSetValue,
     formState: { isValid },
   } = localForm;
 
@@ -76,18 +79,6 @@ export function InstantPaymentForm({
 
     updateStep?.();
   };
-
-  useEffect(() => {
-    // set initial local values for select after options load
-    localSetValue('token', nativeWrappedToken, { shouldDirty: true });
-    localSetValue(
-      'lateFeeTimeInterval',
-      lateFeeTimeInterval ||
-        _.toString(_.first(LATE_FEE_INTERVAL_OPTIONS)?.value),
-      { shouldDirty: true },
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [TOKENS, nativeWrappedToken]);
 
   return (
     <Stack as="form" w="100%" spacing="1rem" onSubmit={handleSubmit(onSubmit)}>
@@ -127,7 +118,7 @@ export function InstantPaymentForm({
           localForm={localForm}
         >
           {_.map(TOKENS, t => (
-            <option value={t.address} key={t.address}>
+            <option value={t.address.toLowerCase()} key={t.address}>
               {`${t.name} (${t.symbol})`}
             </option>
           ))}

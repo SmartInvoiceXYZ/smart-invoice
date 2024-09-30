@@ -1,6 +1,6 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useResolve } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   NumberInput,
   Textarea,

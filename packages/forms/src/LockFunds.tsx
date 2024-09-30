@@ -3,22 +3,16 @@ import {
   Button,
   Flex,
   Heading,
-  // Image,
   Link,
   Spinner,
   Stack,
   Text,
 } from '@chakra-ui/react';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useLock } from '@smartinvoicexyz/hooks';
-// import LockImage from '../../assets/lock.svg';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { AccountLink, Textarea, useToast } from '@smartinvoicexyz/ui';
-import {
-  getResolverInfo,
-  isKnownResolver,
-  logDebug,
-} from '@smartinvoicexyz/utils';
+import { logDebug } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
@@ -36,11 +30,11 @@ export function LockFunds({
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { resolver, resolverFee, resolverName, tokenBalance, klerosCourt } =
+  const { resolver, resolverFee, resolverInfo, tokenBalance, klerosCourt } =
     _.pick(invoice, [
       'resolver',
       'resolverFee',
-      'resolverName',
+      'resolverInfo',
       'tokenBalance',
       'resolutionRate',
       'klerosCourt',
@@ -131,10 +125,9 @@ export function LockFunds({
       <Text textAlign="center" fontSize="sm" mb="1rem">
         Once a dispute has been initiated,{' '}
         <AccountLink
-          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
-          court={klerosCourt}
+          resolverInfo={resolverInfo}
         />{' '}
         will review your case, the project agreement and dispute reasoning
         before making a decision on how to fairly distribute remaining funds.
@@ -149,10 +142,9 @@ export function LockFunds({
       <Text textAlign="center">
         {`Upon resolution, a fee of ${resolverFee} will be deducted from the locked fund amount and sent to `}
         <AccountLink
-          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
-          court={klerosCourt}
+          resolverInfo={resolverInfo}
         />{' '}
         for helping resolve this dispute.
       </Text>
@@ -181,14 +173,14 @@ export function LockFunds({
         </Alert>
       )}
       <Flex justify="center">
-        {isKnownResolver(resolver as Hex, chainId) && (
+        {!!resolverInfo && (
           <Link
-            href={getResolverInfo(resolver as Hex, chainId).termsUrl}
+            href={resolverInfo.termsUrl}
             isExternal
             color="primary.300"
             textDecor="underline"
           >
-            Learn about {resolverName} dispute process & terms
+            Learn about {resolverInfo.name} dispute process & terms
           </Link>
         )}
       </Flex>

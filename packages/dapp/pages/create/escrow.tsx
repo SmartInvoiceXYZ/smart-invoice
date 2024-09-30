@@ -80,7 +80,7 @@ export function CreateInvoiceEscrow() {
         w={columnWidth}
         px="1rem"
         my="2rem"
-        maxW="650px"
+        maxW="45rem"
       >
         <NetworkChangeAlertModal
           modals={modals}

@@ -21,7 +21,7 @@ interface SelectProps extends ChakraProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   infoText?: string;
-  tooltip?: string;
+  tooltip?: string | JSX.Element;
   required?: Required;
   isDisabled?: boolean;
 }
@@ -49,9 +49,7 @@ export function Select({
             {label && (
               <Stack w="100%" align="left" spacing={0}>
                 <HStack align="center" spacing={4}>
-                  <FormLabel fontWeight="700" m={0}>
-                    {label}
-                  </FormLabel>
+                  <FormLabel m={0}>{label}</FormLabel>
 
                   <HStack>
                     {infoText && <Text fontSize="xs">{infoText}</Text>}

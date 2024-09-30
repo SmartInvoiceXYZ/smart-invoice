@@ -3,7 +3,7 @@ import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
@@ -24,7 +24,11 @@ export const useVerify = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
-  const { data, error: prepareError } = useSimulateContract({
+  const {
+    data,
+    error: prepareError,
+    isLoading: prepareLoading,
+  } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
@@ -34,6 +38,8 @@ export const useVerify = ({
     },
   });
 
+  const [waitingForTx, setWaitingForTx] = useState(false);
+
   const {
     writeContractAsync,
     error: writeError,
@@ -41,6 +47,7 @@ export const useVerify = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useVerify.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -48,6 +55,7 @@ export const useVerify = ({
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
+        setWaitingForTx(false);
 
         onTxSuccess?.();
       },
@@ -71,6 +79,6 @@ export const useVerify = ({
     writeAsync,
     prepareError,
     writeError,
-    isLoading,
+    isLoading: prepareLoading || isLoading || waitingForTx,
   };
 };
