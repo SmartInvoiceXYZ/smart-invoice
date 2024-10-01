@@ -79,14 +79,18 @@ export const useInstantCreate = ({
 
   const detailsData = useMemo(() => {
     const now = Math.floor(new Date().getTime() / 1000);
+    const end = endDate ? Math.floor(new Date(endDate).getTime() / 1000) : now;
+    const start = startDate
+      ? Math.floor(new Date(startDate).getTime() / 1000)
+      : now;
     return {
       version: INVOICE_VERSION,
-      id: title ?? `${now}${INVOICE_VERSION}`,
+      id: _.join([title, now, INVOICE_VERSION], '-'),
       title,
       description,
       documents: [uriToDocument(document)],
-      startDate: Math.floor(new Date(startDate ?? '').getTime() / 1000),
-      endDate: Math.floor(new Date(endDate ?? '').getTime() / 1000),
+      startDate: start,
+      endDate: end,
       createdAt: now,
     } as InvoiceMetadata;
   }, [title, description, document, startDate, endDate]);
