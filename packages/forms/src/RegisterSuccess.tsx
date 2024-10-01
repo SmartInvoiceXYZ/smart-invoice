@@ -107,8 +107,20 @@ export function RegisterSuccess({
           borderRadius="0.25rem"
           w="100%"
         >
-          <HStack bgColor="gray.50" p={3} borderRadius={4} overflow="clip">
-            <Link ml="0.5rem" href={url} color="charcoal" overflow="clip">
+          <HStack
+            bgColor="gray.50"
+            p={3}
+            borderRadius={4}
+            overflow="clip"
+            w="100%"
+          >
+            <Link
+              ml="0.5rem"
+              href={url}
+              color="charcoal"
+              overflow="clip"
+              w="100%"
+            >
               {_.truncate(`${window.location.origin}${url}`, {
                 length: 60,
                 omission: '...',

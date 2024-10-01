@@ -112,11 +112,16 @@ export function InvoicePaymentDetails({
     'metadata',
   ]);
 
-  const details = [
-    deposited && { label: 'Total Deposited', value: deposited },
-    released && { label: 'Total Released', value: released },
-    due && { label: 'Remaining Amount Due', value: due },
-  ];
+  const details = [];
+  if (deposited) {
+    details.push({ label: 'Total Deposited', value: deposited });
+  }
+  if (released) {
+    details.push({ label: 'Total Released', value: released });
+  }
+  if (due) {
+    details.push({ label: 'Remaining Amount Due', value: due });
+  }
 
   let nextAmount = 0n;
   if (currentMilestoneAmount) {
@@ -241,24 +246,31 @@ export function InvoicePaymentDetails({
               </Stack>
             </Stack>
             <Divider my="1rem" />
-            <Stack px={6}>
-              {_.map(_.compact(details), (detail, index) => (
-                <HStack
-                  justifyContent="space-between"
-                  key={detail.label + index}
-                >
-                  <Text>{detail.label}</Text>
-                  <Text>
-                    {commify(
-                      formatUnits(detail.value, tokenBalance?.decimals || 18),
-                    )}{' '}
-                    {tokenBalance?.symbol}
-                  </Text>
-                </HStack>
-              ))}
-            </Stack>
+            {details && _.size(details) > 0 && (
+              <>
+                <Stack px={6}>
+                  {_.map(_.compact(details), (detail, index) => (
+                    <HStack
+                      justifyContent="space-between"
+                      key={detail.label + index}
+                    >
+                      <Text>{detail.label}</Text>
+                      <Text>
+                        {commify(
+                          formatUnits(
+                            detail.value,
+                            tokenBalance?.decimals || 18,
+                          ),
+                        )}{' '}
+                        {tokenBalance?.symbol}
+                      </Text>
+                    </HStack>
+                  ))}
+                </Stack>
 
-            <Divider my="1rem" />
+                <Divider my="1rem" />
+              </>
+            )}
 
             {_.size(disputes) === _.size(resolutions) && (
               <>
