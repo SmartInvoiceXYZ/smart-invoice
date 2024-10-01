@@ -81,6 +81,7 @@ export function LinkInput({
       const url = new URL(str);
       const urlProtocol = url.protocol === 'http:' ? 'https://' : url.protocol;
       const parsedProtocol = `${urlProtocol}//`;
+      setValue(`${name}-input`, str.replace(parsedProtocol, ''));
       setValue(`${name}-protocol`, parsedProtocol);
       setValue(name, str, { shouldValidate: true, shouldDirty: true });
       logDebug('LinkInput - validValue', str);
