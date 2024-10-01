@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   FormLabel,
@@ -8,10 +9,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-// import { isValidLink, logDebug } from '@smartinvoicexyz/utils';
 import { Controller, UseFormReturn } from 'react-hook-form';
-
-import { QuestionIcon } from '../icons/QuestionIcon';
 
 type Required = 'required' | 'optional';
 
@@ -21,7 +19,7 @@ interface SelectProps extends ChakraProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   infoText?: string;
-  tooltip?: string;
+  tooltip?: string | JSX.Element;
   required?: Required;
   isDisabled?: boolean;
 }
@@ -49,15 +47,19 @@ export function Select({
             {label && (
               <Stack w="100%" align="left" spacing={0}>
                 <HStack align="center" spacing={4}>
-                  <FormLabel fontWeight="700" m={0}>
-                    {label}
-                  </FormLabel>
+                  <FormLabel m={0}>{label}</FormLabel>
 
                   <HStack>
                     {infoText && <Text fontSize="xs">{infoText}</Text>}
                     {tooltip && (
                       <Tooltip label={tooltip} placement="right" hasArrow>
-                        <Icon as={QuestionIcon} boxSize="0.75rem" />
+                        <Icon
+                          as={InfoOutlineIcon}
+                          boxSize={3}
+                          color="blue.500"
+                          bg="white"
+                          borderRadius="full"
+                        />
                       </Tooltip>
                     )}
                   </HStack>

@@ -20,7 +20,7 @@ import {
   cache,
   fetchInvoices,
   Invoice_orderBy,
-  InvoiceMetadata,
+  InvoiceDisplayData,
 } from '@smartinvoicexyz/graphql';
 import { useIpfsDetails } from '@smartinvoicexyz/hooks';
 import { chainsMap, getAccountString } from '@smartinvoicexyz/utils';
@@ -62,14 +62,15 @@ export type InvoiceDashboardTableProps = {
 function InvoiceDisplay({
   cell,
 }: {
-  cell: CellContext<Partial<InvoiceMetadata>, string | undefined>;
+  cell: CellContext<Partial<InvoiceDisplayData>, string | undefined>;
 }) {
   const { ipfsHash } = cell.row.original;
   const address = cell.getValue();
 
   const { data } = useIpfsDetails(ipfsHash ?? '');
 
-  const displayString = data?.projectName || getAccountString(address);
+  const displayString =
+    data?.projectName || getAccountString(address as Address | undefined);
 
   return displayString;
 }
@@ -87,7 +88,7 @@ export function InvoiceDashboardTable({
 
   const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Partial<InvoiceMetadata>>();
+    const columnHelper = createColumnHelper<Partial<InvoiceDisplayData>>();
 
     return [
       columnHelper.accessor('createdAt', {
@@ -175,7 +176,7 @@ export function InvoiceDashboardTable({
   );
 
   const table = useReactTable({
-    data: data ?? ([] as InvoiceMetadata[]),
+    data: data ?? ([] as InvoiceDisplayData[]),
     columns,
     pageCount: -1,
     state: {

@@ -3,23 +3,27 @@ import {
   Dispute,
   InstantDetails,
   Invoice,
-  InvoiceDetails,
   Release,
   Resolution,
   TokenBalance,
   TokenMetadata,
 } from '@smartinvoicexyz/graphql';
+import {
+  InvoiceDetails,
+  InvoiceMetadata,
+  OldMetadata,
+} from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import { formatUnits, Hex } from 'viem';
+import { logDebug } from 'packages/shared/src';
+import { Address, formatUnits } from 'viem';
 
-import { getDateString } from './date';
+import { getDateString, parseToDate } from './date';
 import {
   getResolverFee,
   getResolverInfo,
-  isKnownResolver,
+  getResolverInfoByAddress,
   resolverFeeLabel,
 } from './helpers';
-import { convertByte32ToIpfsCidV0 } from './ipfs';
 import { chainByName } from './web3';
 
 const totalDeposited = (invoice: Invoice | undefined) => {
@@ -213,7 +217,7 @@ const getDeadlineLabel = (
     tokenBalance?.decimals || 18,
   )} ${tokenBalance?.symbol} every ${daysPerInterval} day${
     daysPerInterval && daysPerInterval > 1 ? 's' : ''
-  } after ${getDateString(_.toNumber(deadline?.toString()))}`;
+  } after ${getDateString(parseToDate(deadline))}`;
 };
 
 const getDisputeAndResolution = (invoice: Invoice) => {
@@ -226,23 +230,64 @@ const getDisputeAndResolution = (invoice: Invoice) => {
   return { dispute, resolution };
 };
 
+const convertOldMetadata = (
+  oldMetadata: OldMetadata | undefined,
+): InvoiceMetadata | undefined => {
+  if (!oldMetadata) return undefined;
+
+  const {
+    projectName,
+    title,
+    projectDescription,
+    description,
+    projectAgreement,
+    documents,
+    startDate,
+    endDate,
+    ...metadata
+  } = oldMetadata;
+
+  const start = parseToDate(startDate);
+  const end = parseToDate(endDate);
+
+  return {
+    ...metadata,
+    title: title ?? projectName,
+    description: description ?? projectDescription,
+    documents: documents ?? projectAgreement,
+    startDate: Math.floor(start.getTime() / 1000),
+    endDate: Math.floor(end.getTime() / 1000),
+  };
+};
+
 export const getInvoiceDetails = async (
-  invoice: Invoice | undefined,
+  invoice: Invoice | null | undefined,
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
   nativeBalance: TokenBalance | undefined,
   instantDetails: InstantDetails | undefined,
+  invoiceMetadata: InvoiceMetadata | undefined,
 ): Promise<InvoiceDetails | null> => {
-  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance) {
+  if (
+    !invoice ||
+    !tokenMetadata ||
+    !tokenBalance ||
+    !nativeBalance ||
+    !invoiceMetadata
+  ) {
     return null;
   }
 
-  const chainId = chainByName(invoice?.network)?.id;
+  const { network, currentMilestone, resolver } = _.pick(invoice, [
+    'resolver',
+    'network',
+    'currentMilestone',
+  ]);
+
+  const chainId = chainByName(network)?.id;
 
   // current milestone
-  const currentMilestoneNumber = _.toNumber(
-    _.get(invoice, 'currentMilestone')?.toString(),
-  );
+  const currentMilestoneNumber = _.toNumber(currentMilestone?.toString());
 
   const currentMilestoneAmountLabel = currentMilestoneAmount(
     invoice,
@@ -250,7 +295,10 @@ export const getInvoiceDetails = async (
   );
 
   // resolver
-  const resolverInfo = getResolverInfo(invoice?.resolver as Hex, chainId);
+  const resolverInfo =
+    getResolverInfo(invoiceMetadata?.resolverType, chainId) ??
+    getResolverInfoByAddress(resolver as Address, chainId);
+
   const resolverFee = getResolverFee(invoice, tokenBalance);
 
   const { dispute, resolution } = getDisputeAndResolution(invoice);
@@ -258,14 +306,13 @@ export const getInvoiceDetails = async (
   try {
     const invoiceDetails = {
       ...invoice,
-      // conversions
-      currentMilestoneNumber,
       chainId,
       // computed values
       total: totalAmount(invoice),
       deposited: totalDeposited(invoice),
       due: totalDue(invoice),
       // milestones
+      currentMilestoneNumber,
       currentMilestoneAmount: currentMilestoneAmount(
         invoice,
         currentMilestoneNumber,
@@ -279,12 +326,7 @@ export const getInvoiceDetails = async (
       depositedMilestonesDisplay: depositedMilestonesString(invoice),
       depositedTxs: assignDeposits(invoice),
       releasedTxs: assignReleases(invoice),
-      // details
-      detailsHash: convertByte32ToIpfsCidV0(invoice?.details as Hex),
       // resolver
-      resolverName: isKnownResolver(invoice?.resolver as Hex, chainId)
-        ? resolverInfo?.name
-        : invoice?.resolver,
       resolverInfo,
       resolverFee,
       resolverFeeDisplay: resolverFeeLabel(resolverFee, tokenMetadata),
@@ -310,7 +352,10 @@ export const getInvoiceDetails = async (
       tokenBalance,
       nativeBalance,
       ...instantDetails,
+      metadata: convertOldMetadata(invoiceMetadata),
     };
+
+    logDebug({ invoiceDetails, address: invoice.address });
 
     return invoiceDetails;
   } catch (e) {

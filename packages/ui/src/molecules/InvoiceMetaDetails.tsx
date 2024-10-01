@@ -11,17 +11,17 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
+  documentToHttp,
   getAccountString,
   getAddressLink,
-  getAgreementLink,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { useMemo } from 'react';
-import { isAddress, zeroAddress } from 'viem';
+import { useMemo } from 'react';
+import { Address, isAddress, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import {
@@ -41,17 +41,14 @@ export function InvoiceMetaDetails({
 
   const {
     id: invoiceId,
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
+    metadata,
     terminationTime,
     deadline,
     client,
     provider,
     resolver,
-    klerosCourt,
+    verified,
+    resolverInfo,
   } = _.pick(invoice, [
     'id',
     'client',
@@ -59,13 +56,15 @@ export function InvoiceMetaDetails({
     'resolver',
     'terminationTime',
     'deadline',
-    'projectName',
-    'projectDescription',
-    'projectAgreement',
-    'startDate',
-    'endDate',
-    'klerosCourt',
+    'metadata',
+    'verified',
+    'resolverInfo',
   ]);
+
+  const { startDate, endDate, title, description, documents } = _.pick(
+    metadata,
+    ['startDate', 'endDate', 'title', 'description', 'documents'],
+  );
 
   const invoiceChainId = chainByName(invoice?.network)?.id;
   const validClient = !!client && isAddress(client) ? client : undefined;
@@ -85,8 +84,7 @@ export function InvoiceMetaDetails({
 
   const verifiedStatus = useMemo(
     () =>
-      !_.isEmpty(invoice?.verified) &&
-      !!_.find(invoice?.verified, { client: invoice?.client }),
+      !_.isEmpty(verified) && !!_.find(verified, { client: invoice?.client }),
     [invoice],
   );
 
@@ -131,7 +129,7 @@ export function InvoiceMetaDetails({
           <AccountLink
             address={validResolver}
             chainId={invoiceChainId}
-            court={klerosCourt}
+            resolverInfo={resolverInfo}
           />
         ),
       },
@@ -147,6 +145,8 @@ export function InvoiceMetaDetails({
     ],
   );
 
+  const lastDocument = _.findLast(documents);
+
   return (
     <Stack
       spacing="1rem"
@@ -158,9 +158,9 @@ export function InvoiceMetaDetails({
       direction="column"
     >
       <Stack align="stretch" justify="center">
-        {projectName && (
+        {title && (
           <Heading fontWeight="normal" fontSize="2xl">
-            {projectName}
+            {title}
           </Heading>
         )}
 
@@ -169,7 +169,7 @@ export function InvoiceMetaDetails({
             href={getAddressLink(invoiceChainId, _.toLower(invoiceId))}
             isExternal
           >
-            {getAccountString(invoiceId)}
+            {getAccountString(invoiceId as Address | undefined)}
           </Link>
           <Button
             onClick={onCopy}
@@ -183,11 +183,11 @@ export function InvoiceMetaDetails({
             <CopyIcon boxSize={4} />
           </Button>
         </HStack>
-        {projectDescription && <Text color="black">{projectDescription}</Text>}
+        {description && <Text color="black">{description}</Text>}
 
-        {!_.isEmpty(projectAgreement) && (
+        {!!lastDocument && (
           <Link
-            href={getAgreementLink(projectAgreement)}
+            href={documentToHttp(lastDocument)}
             isExternal
             textDecor="underline"
             color="black"

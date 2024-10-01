@@ -1,7 +1,7 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useRelease } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';

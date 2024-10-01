@@ -16,9 +16,9 @@
     "outDir": "dist",
     "declaration": true,
     "emitDeclarationOnly": false,
-    "noEmit": false,
+    "noEmit": false
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"],
-  "references": [],
+  "references": []
 }

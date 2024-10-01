@@ -20,6 +20,7 @@ type CustomToastProps = {
   status: ChakraAlertStatus;
   title: string | ReactNode;
   description?: string | ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: any; // IconType;
   iconName?: string;
   iconColor?: string;

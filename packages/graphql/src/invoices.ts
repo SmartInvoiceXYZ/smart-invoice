@@ -82,4 +82,4 @@ type ArrayElement<ArrayType extends readonly unknown[]> =
 
 type InvoicesArray = Awaited<ReturnType<typeof fetchInvoices>>;
 
-export type InvoiceMetadata = ArrayElement<InvoicesArray>;
+export type InvoiceDisplayData = ArrayElement<InvoicesArray>;

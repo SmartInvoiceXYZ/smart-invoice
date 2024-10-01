@@ -1,18 +1,12 @@
-// import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
-// import { logDebug } from '@smartinvoicexyz/shared';
+import { logDebug } from '@smartinvoicexyz/shared';
 import { KeyRestrictions } from '@smartinvoicexyz/types';
-import axios from 'axios';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
 import { Hex } from 'viem';
 
 const { PINATA_JWT } = process.env;
 
-export const pinJson = async (
-  data: object,
-  metadata: object,
-  token: string,
-) => {
+const pinJson = async (data: object, metadata: object, token: string) => {
   const pinataData = JSON.stringify({
     pinataOptions: {
       cidVersion: 0,
@@ -25,22 +19,24 @@ export const pinJson = async (
     },
   });
 
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  // TODO can we replace axios and still pass auth?
-  return axios
-    .post('https://api.pinata.cloud/pinning/pinJSONToIPFS', pinataData, config)
-    .then(res => _.get(res, 'data.IpfsHash'))
-    .catch(e => {
-      // eslint-disable-next-line no-console
-      console.log(e);
-      return null;
+  try {
+    const res = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      method: 'POST',
+      body: pinataData,
     });
+
+    const json = await res.json();
+
+    return _.get(json, 'IpfsHash');
+  } catch (e) {
+    logDebug({ pinataData, token });
+    console.error("Couldn't pin data to pinata: ", e);
+    return null;
+  }
 };
 
 interface handleDetailsPinProps {
@@ -53,11 +49,7 @@ export const handleDetailsPin = async ({
   details,
   name,
   token,
-}: handleDetailsPinProps) => {
-  const cid = await pinJson(details, { name }, token);
-
-  return cid;
-};
+}: handleDetailsPinProps) => pinJson(details, { name }, token);
 
 export const fetchToken = async (count: number = 0) => {
   const token = await fetch('/api/upload-start', {

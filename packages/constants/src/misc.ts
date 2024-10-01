@@ -13,23 +13,17 @@ import {
   sepolia,
 } from 'viem/chains';
 
-import { CONFIG } from './config';
+import { KnownResolverType, NETWORK_CONFIG } from './config';
 
 const INFURA_PROJECT_ID = process.env.NEXT_PUBLIC_INFURA_PROJECT_ID;
 const INFURA_PROJECT_SECRET = process.env.NEXT_PUBLIC_INFURA_PROJECT_SECRET;
 
-const { INFURA_ID, IPFS_ENDPOINT, NETWORK_CONFIG } = CONFIG;
-
-export { INFURA_ID, IPFS_ENDPOINT };
-
 export const DEFAULT_CHAIN_ID = 5;
-
-// TODO use wagmi Chain objects
 
 export const graphUrls = (chainId: number) => NETWORK_CONFIG[chainId].SUBGRAPH;
 
-export const resolvers = (chainId: number) =>
-  Object.keys(NETWORK_CONFIG[chainId].RESOLVERS);
+export const resolvers = (chainId: number): Array<KnownResolverType> =>
+  Object.keys(NETWORK_CONFIG[chainId].RESOLVERS) as Array<KnownResolverType>;
 
 export const resolverInfo = (chainId: number) =>
   NETWORK_CONFIG[chainId].RESOLVERS;
@@ -51,7 +45,7 @@ export const SUPPORTED_NETWORKS: Array<number> = [
   sepolia.id,
 ];
 
-export const INVOICE_VERSION = 'smart-invoice-v1';
+export const INVOICE_VERSION = 'smart-invoice-v0.1.0';
 
 export const INFURA_AUTH = `Basic ${Buffer.from(
   `${INFURA_PROJECT_ID}:${INFURA_PROJECT_SECRET}`,

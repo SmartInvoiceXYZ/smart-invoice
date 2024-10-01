@@ -1,7 +1,7 @@
 import { Button, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useVerify } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { isAddress } from 'viem';
 import { useChainId } from 'wagmi';

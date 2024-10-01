@@ -1,11 +1,6 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { KLEROS_DATA } from '@smartinvoicexyz/constants';
-import {
-  getAccountString,
-  getAddressLink,
-  getResolverInfo,
-  isKnownResolver,
-} from '@smartinvoicexyz/utils';
+import { Resolver } from '@smartinvoicexyz/constants';
+import { getAccountString, getAddressLink } from '@smartinvoicexyz/utils';
 import blockies from 'blockies-ts';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
@@ -17,37 +12,33 @@ export type AccountLinkProps = {
   address?: Address;
   chainId?: number;
   link?: string;
-  court?: number | string | undefined;
+  resolverInfo?: Resolver;
 };
 
 export function AccountLink({
   name,
   address: inputAddress,
   chainId: inputChainId,
-  court,
   link,
+  resolverInfo,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
   const address = inputAddress as Address;
   const chainId = inputChainId || walletChainId;
-  const isResolver = isKnownResolver(address, chainId);
+
   const blockie = blockies
     .create({ seed: address, size: 8, scale: 16 })
     .toDataURL();
 
-  const displayString =
-    name && !name?.startsWith('0x') ? name : getAccountString(address);
+  let displayString = name && !name?.startsWith('0x') ? name : '';
 
-  const imageUrl = isResolver
-    ? getResolverInfo(address, chainId).logoUrl
-    : undefined;
+  if (!displayString) {
+    displayString = resolverInfo?.name || getAccountString(address) || '';
+  }
 
-  // eslint-disable-next-line no-nested-ternary
-  const bgImage = court
-    ? KLEROS_DATA.logoUrl
-    : imageUrl
-      ? `url(${imageUrl})`
-      : blockie;
+  const imageUrl = resolverInfo?.logoUrl;
+
+  const bgImage = imageUrl ? `url(${imageUrl})` : blockie;
 
   return (
     <ChakraNextLink

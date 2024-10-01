@@ -20,7 +20,12 @@ export function handleTransfer(event: TransferEvent): void {
 
       invoice = updateInvoice(event.params.to, invoice);
 
-      let deposit = new Deposit(event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toHexString()));
+      let deposit = new Deposit(
+        event.transaction.hash
+          .toHexString()
+          .concat('-')
+          .concat(event.logIndex.toHexString()),
+      );
       deposit.txHash = event.transaction.hash;
       deposit.invoice = invoice.id;
       deposit.sender = event.params.from;

@@ -1,6 +1,6 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useWithdraw } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
 // import { getTxLink } from '@smartinvoicexyz/utils';

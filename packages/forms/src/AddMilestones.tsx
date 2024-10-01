@@ -1,5 +1,10 @@
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Button,
   Flex,
   FormControl,
@@ -8,22 +13,25 @@ import {
   HStack,
   Icon,
   IconButton,
+  SimpleGrid,
   Stack,
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useAddMilestones } from '@smartinvoicexyz/hooks';
+import { FormInvoice, InvoiceDetails } from '@smartinvoicexyz/types';
 import {
+  Input,
   LinkInput,
   NumberInput,
   QuestionIcon,
+  Textarea,
   useMediaStyles,
   useToast,
 } from '@smartinvoicexyz/ui';
 import {
   commify,
-  // getTxLink,
+  logDebug,
   resolutionFeePercentage,
 } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,7 +39,6 @@ import _ from 'lodash';
 import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Hex } from 'viem';
-import { useChainId } from 'wagmi';
 
 export const getDecimals = (value: string) => {
   const [, decimal] = value.split('.');
@@ -45,22 +52,39 @@ export function AddMilestones({
   invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
-  const chainId = useChainId();
   const toast = useToast();
-  const localForm = useForm({
+  const { address, tokenMetadata, resolutionRate, total, deposited, amounts } =
+    _.pick(invoice, [
+      'address',
+      'tokenMetadata',
+      'resolutionRate',
+      'total',
+      'deposited',
+      'amounts',
+    ]);
+
+  const localForm = useForm<Partial<FormInvoice>>({
     defaultValues: {
-      milestones: [{ value: '' }, { value: '' }],
+      milestones: [
+        {
+          value: '1',
+          title: `Milestone ${(amounts?.length ?? 0) + 1}`,
+          description: '',
+        },
+        {
+          value: '1',
+          title: `Milestone ${(amounts?.length ?? 0) + 2}`,
+          description: '',
+        },
+      ],
     },
   });
+
   const {
     watch,
     formState: { errors },
     control,
   } = localForm;
-  const { address, tokenMetadata, resolutionRate, total, deposited } = _.pick(
-    invoice,
-    ['address', 'tokenMetadata', 'resolutionRate', 'total', 'deposited'],
-  );
 
   const {
     fields: milestonesFields,
@@ -82,9 +106,8 @@ export function AddMilestones({
     onClose();
   };
 
-  const { writeAsync, isLoading } = useAddMilestones({
+  const { writeAsync, isLoading, prepareError } = useAddMilestones({
     address: address as Hex,
-    chainId,
     invoice,
     localForm,
     toast,
@@ -97,8 +120,9 @@ export function AddMilestones({
     return deposited - total; // bigint
   }, [total, deposited, tokenMetadata]);
 
-  // eslint-disable-next-line no-console
-  console.log('excessFunds', excessFunds);
+  if (excessFunds > 0n) {
+    logDebug('excessFunds', excessFunds);
+  }
 
   const newTotalDue = _.sumBy(milestones, ({ value }) => _.toNumber(value));
   const newDisputeFee =
@@ -120,10 +144,7 @@ export function AddMilestones({
 
   const { primaryButtonSize } = useMediaStyles();
 
-  // * add milestones click handler
-  const addNewMilestones = async () => {
-    writeAsync?.();
-  };
+  const isDisabled = !!prepareError || milestones?.some(m => !m.value);
 
   return (
     <Stack w="100%" spacing={4}>
@@ -138,18 +159,17 @@ export function AddMilestones({
         Add New Payment Milestones
       </Heading>
 
-      {/*
       <LinkInput
-        name="projectAgreement"
+        name="document"
         label="Link to Project Agreement (if updated)"
-        tooltip="Link to the original agreement was an IPFS hash. Therefore, if any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
+        tooltip="If any revisions were made to the agreement in correlation to the new milestones, please include the new link to it. This will be referenced in the case of a dispute."
         localForm={localForm}
-      /> */}
+      />
 
       <FormControl isInvalid={!!errors?.milestones}>
         <Stack w="100%">
           <HStack align="center" spacing={1}>
-            <Heading size="sm">Milestone Amounts</Heading>
+            <Heading size="sm">Milestones</Heading>
             <Tooltip
               label="Amounts of each milestone for the escrow. Additional milestones can be added later."
               placement="right"
@@ -158,92 +178,130 @@ export function AddMilestones({
               <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
             </Tooltip>
           </HStack>
-          {_.map(milestonesFields, (field, index) => {
-            const handleRemoveMilestone = () => {
-              removeMilestone(index);
-            };
-
-            return (
-              <HStack key={field.id} spacing={4}>
-                <HStack spacing={1} flexGrow={1}>
-                  <NumberInput
-                    name={`milestones.${index}.value`}
-                    step={1}
-                    min={0}
-                    max={1_000_000}
-                    w="97%"
-                    placeholder="500"
-                    variant="outline"
-                    localForm={localForm}
-                  />
-                  <Text>{tokenMetadata?.symbol}</Text>
-                </HStack>
+          <Accordion w="100%" alignItems="stretch" allowMultiple>
+            {_.map(milestonesFields, (field, index) => (
+              <HStack
+                key={field.id}
+                spacing={4}
+                w="100%"
+                justify="space-between"
+              >
+                <AccordionItem w="100%">
+                  {({ isExpanded }) => (
+                    <>
+                      <AccordionButton
+                        w="100%"
+                        px={2}
+                        justifyContent="space-between"
+                      >
+                        <Text>{milestones?.[index].title ?? ''}</Text>
+                        <HStack>
+                          {!isExpanded && (
+                            <Text fontWeight="bold" fontSize="lg">
+                              {milestones?.[index].value}
+                              {` `}
+                              {tokenMetadata?.symbol}
+                            </Text>
+                          )}
+                          <AccordionIcon
+                            color="blue.1"
+                            w="2rem"
+                            h="2rem"
+                            m={0}
+                          />
+                        </HStack>
+                      </AccordionButton>
+                      <AccordionPanel px={2}>
+                        <SimpleGrid columns={2} spacing={4} w="100%" mb={2}>
+                          <Input
+                            label="Title"
+                            name={`milestones.${index}.title`}
+                            localForm={localForm}
+                          />
+                          <NumberInput
+                            label="Amount"
+                            required
+                            name={`milestones.${index}.value`}
+                            step={50}
+                            min={0}
+                            max={1_000_000}
+                            placeholder="500"
+                            variant="outline"
+                            localForm={localForm}
+                            w="100%"
+                            rightElement={
+                              <Text p={2}>{tokenMetadata?.symbol}</Text>
+                            }
+                          />
+                        </SimpleGrid>
+                        <Textarea
+                          label="Description"
+                          name={`milestones.${index}.description`}
+                          localForm={localForm}
+                        />
+                      </AccordionPanel>
+                    </>
+                  )}
+                </AccordionItem>
                 <IconButton
                   icon={<Icon as={DeleteIcon} />}
                   aria-label="remove milestone"
                   variant="outline"
-                  onClick={handleRemoveMilestone}
+                  onClick={() => removeMilestone(index)}
                 />
               </HStack>
-            );
-          })}
+            ))}
+          </Accordion>
           <Flex>
             <FormErrorMessage mb={4}>
               {errors?.milestones?.message as string}
             </FormErrorMessage>
           </Flex>
 
-          <Flex justify="space-between" align="flex-end">
-            <Button
-              variant="outline"
-              onClick={() => {
-                appendMilestone({ value: '1' });
-              }}
-              rightIcon={<Icon as={AddIcon} boxSize={3} />}
-            >
-              Add
-            </Button>
-
-            <Text>
-              Total: {commify(totalNew.toFixed(decimals), decimals)}{' '}
-              {tokenMetadata?.symbol}
-            </Text>
-          </Flex>
+          <Button
+            variant="outline"
+            onClick={() => {
+              appendMilestone({
+                value: '1',
+                title: `Milestone ${(amounts?.length ?? 0) + milestonesFields.length + 1}`,
+                description: '',
+              });
+            }}
+            rightIcon={<Icon as={AddIcon} boxSize={3} />}
+          >
+            Add a new milestone
+          </Button>
         </Stack>
       </FormControl>
 
       {!!newTotalDue && (
         <Stack>
-          <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-            <HStack>
-              <Text fontWeight="bold" color="black">
-                Potential Dispute Fee:
-              </Text>
-              <Text>
-                {commify(
-                  newDisputeFee.toFixed(
-                    newDisputeFee < 1 ? decimals + 3 : decimals,
-                  ),
+          <HStack>
+            <Text fontWeight="bold" color="black">
+              Total {milestones?.length} milestones:
+            </Text>
+
+            <Text>
+              {commify(totalNew.toFixed(decimals), decimals)}{' '}
+              {tokenMetadata?.symbol}
+            </Text>
+          </HStack>
+
+          <HStack>
+            <Text fontWeight="bold" color="black">
+              Potential dispute fee:
+            </Text>
+            <Text>
+              {commify(
+                newDisputeFee.toFixed(
                   newDisputeFee < 1 ? decimals + 3 : decimals,
-                )}{' '}
-                {tokenMetadata?.symbol}
-              </Text>
-              decimal : {getDecimals(newDisputeFee.toString())}
-            </HStack>
-          </Flex>
-
-          <Flex color="black" justify="space-between" w="100%" fontSize="sm">
-            <HStack>
-              <Text fontWeight="bold" color="black">
-                Expected Total Due:
-              </Text>
-
-              <Text>
-                {commify(totalNew.toFixed(decimals), decimals)}{' '}
-                {tokenMetadata?.symbol}
-              </Text>
-            </HStack>
-          </Flex>
+                ),
+                newDisputeFee < 1 ? decimals + 3 : decimals,
+              )}{' '}
+              {tokenMetadata?.symbol}
+            </Text>
+            decimal : {getDecimals(newDisputeFee.toString())}
+          </HStack>
         </Stack>
       )}
 
@@ -252,28 +310,17 @@ export function AddMilestones({
       </Text>
 
       <Button
-        onClick={addNewMilestones}
+        onClick={() => {
+          writeAsync?.();
+        }}
         isLoading={isLoading}
-        isDisabled={!writeAsync}
+        isDisabled={isDisabled}
         textTransform="uppercase"
         size={primaryButtonSize}
         w="100%"
       >
         Add
       </Button>
-      {/* {walletClient?.chain?.id && txHash && (
-        <Text color="black" textAlign="center" fontSize="sm">
-          Follow your transaction{' '}
-          <Link
-            href={getTxLink(walletClient?.chain?.id, txHash)}
-            isExternal
-            color="blue.1"
-            textDecoration="underline"
-          >
-            here
-          </Link>
-        </Text>
-      )} */}
     </Stack>
   );
 }

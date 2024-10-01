@@ -3,7 +3,7 @@ import { isAddress } from 'viem';
 import * as Yup from 'yup';
 
 import { sevenDaysFromDate } from './date';
-import { isKnownResolver } from './helpers';
+import { isKnownResolver, isValidURL } from './helpers';
 
 export const escrowDetailsSchema = (chainId: number) =>
   Yup.object().shape({
@@ -13,9 +13,6 @@ export const escrowDetailsSchema = (chainId: number) =>
         name: 'clientIsAddress',
         test: (v, { createError }) => {
           if (!!v && isAddress(v)) return true;
-          // console.log('client not address');
-
-          // TODO having trouble surfacing the custom error here
           return createError({
             path: 'client',
             message: 'Client must be a valid address',
@@ -23,16 +20,12 @@ export const escrowDetailsSchema = (chainId: number) =>
         },
       })
       .when('provider', (p, localSchema) => {
-        // console.log('client resolver', p);
         if (!p) return localSchema;
 
         return localSchema.test({
           name: 'clientNotProvider',
           test: (v, { createError }) => {
             if (_.toLower(v) !== _.toLower(_.first(p))) return true;
-
-            // console.log(_.toLower(v), _.toLower(_.first(p)));
-            // TODO having trouble surfacing the custom error here
             return createError({
               path: 'client',
               message: 'Client cannot be same as provider',
@@ -46,29 +39,35 @@ export const escrowDetailsSchema = (chainId: number) =>
         name: 'providerIsAddress',
         test: (v, { createError }) => {
           if (!!v && isAddress(v)) return true;
-          // console.log('provider not address');
-
           return createError({
             path: 'provider',
             message: 'Provider must be a valid address',
           });
         },
       }),
-    resolver: Yup.string().required(),
-    customResolver: Yup.string().when('resolver', (r, localSchema) => {
+    resolverType: Yup.string()
+      .required()
+      .oneOf(['kleros', 'custom', 'lexdao', 'smart-invoice']),
+    resolverAddress: Yup.string().when('resolverType', (r, localSchema) => {
       if (_.first(r) !== 'custom') return localSchema;
       return localSchema
         .required('Custom resolver address is required')
         .test((value: string) => isAddress(value));
     }),
-    klerosCourt: Yup.number(), // TODO: add custom validator
-    resolverTerms: Yup.boolean().when('resolver', (r, localSchema) => {
-      if (!isKnownResolver(_.first(r), chainId)) return localSchema;
-      return localSchema.oneOf(
-        [true],
-        "Must accept resolver's terms of service",
-      );
+    klerosCourt: Yup.number().when('resolverType', (r, localSchema) => {
+      if (_.first(r) !== 'kleros') return localSchema;
+      return localSchema.required('Kleros court is required').oneOf([1, 2, 3]);
     }),
+    isResolverTermsChecked: Yup.boolean().when(
+      'resolverType',
+      (r, localSchema) => {
+        if (!isKnownResolver(_.first(r), chainId)) return localSchema;
+        return localSchema.oneOf(
+          [true],
+          "Must accept resolver's terms of service",
+        );
+      },
+    ),
   });
 
 export const instantPaymentSchema = Yup.object().shape({
@@ -109,15 +108,26 @@ export const escrowPaymentsSchema = Yup.object().shape({
     .of(
       Yup.object().shape({
         value: Yup.string().required('Milestone Amount is required'),
+        title: Yup.string().optional(),
+        description: Yup.string().optional(),
       }),
     ),
   token: Yup.string().required('Token is required'),
 });
 
 export const projectDetailsSchema = Yup.object().shape({
-  projectName: Yup.string().required('Project Name is required'),
-  projectDescription: Yup.string().required('Project Description is required'),
-  projectAgreement: Yup.string().url('Agreement must be a valid URL'),
+  title: Yup.string().required('Project title is required'),
+  description: Yup.string().required('Project description is required'),
+  document: Yup.string().test({
+    name: 'documentIsURL',
+    test: (v, { createError }) => {
+      if (!!v && isValidURL(v)) return true;
+      return createError({
+        path: 'document',
+        message: 'Project document must be a valid URL',
+      });
+    },
+  }),
   startDate: Yup.date().required('Start Date is required'),
   endDate: Yup.date().required('End Date is required'),
   // ideally could dynamically choose these. Setting a default covers this largely

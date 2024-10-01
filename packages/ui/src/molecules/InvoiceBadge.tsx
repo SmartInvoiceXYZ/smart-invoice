@@ -1,7 +1,6 @@
 import { Badge } from '@chakra-ui/react';
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { ValueOf } from '@smartinvoicexyz/types';
-import React from 'react';
 
 type InvoiceType = ValueOf<typeof INVOICE_TYPES> | 'unknown';
 

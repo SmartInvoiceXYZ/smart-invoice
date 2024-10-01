@@ -1,10 +1,10 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
@@ -33,11 +33,13 @@ export const useWithdraw = ({
     address: address as Hex,
     functionName: 'withdraw',
     abi: SMART_INVOICE_ESCROW_ABI,
-    // args: [],
+    args: [],
     query: {
-      enabled: !!invoice?.address,
+      enabled: !!address,
     },
   });
+
+  const [waitingForTx, setWaitingForTx] = useState(false);
 
   const {
     writeContractAsync,
@@ -46,6 +48,7 @@ export const useWithdraw = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useWithdraw.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -54,6 +57,7 @@ export const useWithdraw = ({
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
 
+        setWaitingForTx(false);
         onTxSuccess?.();
       },
       onError: error => errorToastHandler('useWithdraw', error, toast),
@@ -74,7 +78,7 @@ export const useWithdraw = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading,
+    isLoading: prepareLoading || writeLoading || waitingForTx,
     prepareError,
     writeError,
   };

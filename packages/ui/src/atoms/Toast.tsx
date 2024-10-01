@@ -9,7 +9,6 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { ToastProps } from '@smartinvoicexyz/types';
-import React from 'react';
 
 // const icons: {
 //   [name: string]: { icon: IconType; color: ColorProps['color'] };

@@ -1,6 +1,5 @@
 import { Button, SimpleGrid } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { Modals } from '@smartinvoicexyz/types';
+import { InvoiceDetails, Modals } from '@smartinvoicexyz/types';
 import { Modal } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useAccount } from 'wagmi';

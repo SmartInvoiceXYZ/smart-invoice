@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Checkbox as ChakraCheckbox,
   CheckboxProps as ChakraCheckboxProps,
@@ -13,8 +14,6 @@ import {
 import _ from 'lodash';
 import { ReactElement, ReactNode } from 'react';
 import { Controller, UseFormReturn } from 'react-hook-form';
-
-import { QuestionIcon } from '../icons';
 
 export interface CustomCheckboxProps {
   name: string;
@@ -67,7 +66,7 @@ export function Checkbox({
                     placement="end"
                   >
                     <Icon
-                      as={QuestionIcon}
+                      as={InfoOutlineIcon}
                       boxSize={3}
                       color="blue.500"
                       bg="white"
@@ -108,7 +107,7 @@ export function Checkbox({
               placement="end"
             >
               <Icon
-                as={QuestionIcon}
+                as={InfoOutlineIcon}
                 boxSize={3}
                 color="red.500"
                 bg="white"

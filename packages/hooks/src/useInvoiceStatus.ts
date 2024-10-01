@@ -1,5 +1,6 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
-import { InstantDetails, InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { InstantDetails } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { logError } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';

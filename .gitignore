@@ -59,6 +59,9 @@ pids
 packages/subgraph/src/types
 packages/subgraph/subgraph.yaml
 
+# contracts
+packages/contracts/artifacts
+
 # zeus
 packages/graphql/src/zeus
 

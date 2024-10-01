@@ -8,24 +8,57 @@ import {
   Link,
   Stack,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { Modals } from '@smartinvoicexyz/types';
-import { AccountLink, Modal } from '@smartinvoicexyz/ui';
+import { Dispute, Resolution } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, Modals } from '@smartinvoicexyz/types';
+import { AccountLink, Modal, QuestionIcon } from '@smartinvoicexyz/ui';
 import {
   commify,
+  getDateString,
   getIpfsLink,
   getTxLink,
   isEmptyIpfsHash,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
+import { useMemo } from 'react';
 import { formatUnits, Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 import { AddMilestones } from './AddMilestones';
 
-// ! technically not a form
+type DisputeWithResolution = {
+  dispute: Dispute;
+  resolution: Resolution | null;
+  resolutionDetails:
+    | { distributee: string | undefined; amount: bigint | undefined }[]
+    | null;
+};
 
+const getDisputesWithResolution = (
+  disputes: Dispute[] | undefined,
+  resolutions: Resolution[] | undefined,
+  resolver: string | undefined,
+  client: string | undefined,
+  provider: string | undefined,
+): DisputeWithResolution[] => {
+  const parsed = _.map(disputes, (dispute, i) => {
+    const resolution = resolutions?.[i] || null;
+    const resolutionDetails = resolution
+      ? [
+          { distributee: resolver, amount: resolution.resolutionFee },
+          { distributee: client, amount: resolution.clientAward },
+          { distributee: provider, amount: resolution.providerAward },
+        ]
+      : null;
+
+    return { dispute, resolution, resolutionDetails };
+  });
+
+  return _.reverse([...parsed]);
+};
+
+// ! technically not a form
 export function InvoicePaymentDetails({
   invoice,
   modals,
@@ -48,13 +81,14 @@ export function InvoicePaymentDetails({
     amounts,
     currentMilestoneAmount,
     releasedTxs,
-    dispute,
-    resolution,
+    disputes,
+    resolutions,
     isReleasable,
     isExpired,
     tokenMetadata,
     depositedMilestonesDisplay,
     depositedTxs,
+    metadata,
   } = _.pick(invoice, [
     'client',
     'provider',
@@ -68,13 +102,14 @@ export function InvoicePaymentDetails({
     'currentMilestoneAmount',
     'token',
     'tokenBalance',
-    'dispute',
-    'resolution',
+    'disputes',
+    'resolutions',
     'isReleasable',
     'isExpired',
     'tokenMetadata',
     'depositedMilestonesDisplay',
     'depositedTxs',
+    'metadata',
   ]);
 
   const details = [
@@ -83,18 +118,24 @@ export function InvoicePaymentDetails({
     due && { label: 'Remaining Amount Due', value: due },
   ];
 
-  const resolutionDetails = [
-    { distributee: resolver, amount: resolution?.resolutionFee },
-    { distributee: client, amount: resolution?.clientAward },
-    { distributee: provider, amount: resolution?.providerAward },
-  ];
-
   let nextAmount = 0n;
   if (currentMilestoneAmount) {
     nextAmount = isReleasable
       ? currentMilestoneAmount
       : currentMilestoneAmount - (tokenBalance?.value ?? 0n);
   }
+
+  const disputesWithResolution = useMemo(
+    () =>
+      getDisputesWithResolution(
+        disputes,
+        resolutions,
+        resolver,
+        client,
+        provider,
+      ),
+    [disputes, resolutions, resolver, client, provider],
+  );
 
   return (
     <>
@@ -130,16 +171,28 @@ export function InvoicePaymentDetails({
                   const depositedText = depositedMilestonesDisplay?.[index];
                   const release = releasedTxs?.[index];
                   const deposit = depositedTxs?.[index];
+                  const milestoneMetadata = metadata?.milestones?.[index];
+                  const title =
+                    milestoneMetadata?.title ?? `Milestone ${index + 1}`;
 
                   return (
                     <Flex
-                      // eslint-disable-next-line react/no-array-index-key
-                      key={index.toString()}
+                      key={title + index}
                       justify="space-between"
                       align="stretch"
                       direction="row"
                     >
-                      <Text>Milestone #{index + 1}</Text>
+                      <HStack align="center" justify="flex-start">
+                        <Text>{title}</Text>
+                        {milestoneMetadata?.description && (
+                          <Tooltip
+                            label={milestoneMetadata?.description}
+                            placement="auto-start"
+                          >
+                            <QuestionIcon boxSize="0.75rem" color="gray" />
+                          </Tooltip>
+                        )}
+                      </HStack>
 
                       <HStack align="center" justify="flex-end">
                         {release && (
@@ -189,8 +242,11 @@ export function InvoicePaymentDetails({
             </Stack>
             <Divider my="1rem" />
             <Stack px={6}>
-              {_.map(_.compact(details), detail => (
-                <HStack justifyContent="space-between" key={detail.label}>
+              {_.map(_.compact(details), (detail, index) => (
+                <HStack
+                  justifyContent="space-between"
+                  key={detail.label + index}
+                >
                   <Text>{detail.label}</Text>
                   <Text>
                     {commify(
@@ -204,142 +260,185 @@ export function InvoicePaymentDetails({
 
             <Divider my="1rem" />
 
-            {!dispute && !resolution && (
-              <Flex justify="space-between" align="center" px={6}>
-                {isExpired || (due === BigInt(0) && !isReleasable) ? (
-                  <>
-                    <Heading size="md">Remaining Balance</Heading>
-                    <Heading size="md">
-                      {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
-                    </Heading>
-                  </>
-                ) : (
-                  <>
-                    <Heading size="md">
-                      {isReleasable
-                        ? 'Next Amount to Release'
-                        : 'Total Due Today'}
-                    </Heading>
-                    <Heading size="md">
-                      {`${commify(
-                        formatUnits(nextAmount, tokenBalance?.decimals ?? 18),
-                      )} ${tokenBalance?.symbol}`}
-                    </Heading>
-                  </>
-                )}
-              </Flex>
-            )}
-
-            {dispute && !resolution && (
-              <Stack px={6}>
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  fontWeight="bold"
-                  fontSize="lg"
-                >
-                  <Text>Dispute Raised</Text>
-                  <Text textAlign="right">
-                    {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
-                  </Text>
-                </Flex>
-                <Text color="black">
-                  {`A dispute is in progress with `}
-                  <AccountLink address={resolver as Hex} chainId={chainId} />
-                  <br />
-                  {!isEmptyIpfsHash(dispute.ipfsHash) && (
+            {_.size(disputes) === _.size(resolutions) && (
+              <>
+                <Flex justify="space-between" align="center" px={6}>
+                  {isExpired || (due === BigInt(0) && !isReleasable) ? (
                     <>
-                      <Link
-                        href={getIpfsLink(dispute.ipfsHash)}
-                        color="blue.1"
-                        isExternal
-                      >
-                        <u>View details on IPFS</u>
-                      </Link>
-                      <br />
+                      <Heading size="md">Remaining Balance</Heading>
+                      <Heading size="md">
+                        {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+                      </Heading>
+                    </>
+                  ) : (
+                    <>
+                      <Heading size="md">
+                        {isReleasable
+                          ? 'Next Amount to Release'
+                          : 'Total Due Today'}
+                      </Heading>
+                      <Heading size="md">
+                        {`${commify(
+                          formatUnits(nextAmount, tokenBalance?.decimals ?? 18),
+                        )} ${tokenBalance?.symbol}`}
+                      </Heading>
                     </>
                   )}
-                  <Link
-                    href={getTxLink(chainId, dispute.txHash)}
-                    color="blue.1"
-                    isExternal
-                  >
-                    <u>View transaction</u>
-                  </Link>
-                </Text>
-              </Stack>
+                </Flex>
+                {_.size(disputes) > 0 && <Divider my="1rem" />}
+              </>
             )}
 
-            {resolution && (
-              <Stack align="stretch" spacing="1rem" color="primary.300" px={6}>
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  fontWeight="bold"
-                  fontSize="lg"
-                >
-                  <Text>Dispute Resolved</Text>
-                  <Text textAlign="right">{`${formatUnits(
-                    resolution.clientAward +
-                      resolution.providerAward +
-                      (resolution.resolutionFee ?? 0n),
-                    18,
-                  )} ${tokenBalance?.symbol}`}</Text>
-                </Flex>
-                <Flex
-                  justify="space-between"
-                  direction={{ base: 'column', sm: 'row' }}
-                >
-                  <Flex flex={1}>
-                    <Text maxW="300px" color="purple">
-                      <AccountLink
-                        address={resolver as Hex}
-                        chainId={chainId}
-                      />
-                      {
-                        ' has resolved the dispute and dispersed remaining funds'
-                      }
-                      <br />
-                      <br />
-                      {!isEmptyIpfsHash(resolution.ipfsHash) && (
-                        <>
-                          <Link
-                            href={getIpfsLink(resolution.ipfsHash)}
-                            isExternal
-                          >
-                            <u>View details on IPFS</u>
-                          </Link>
-                          <br />
-                        </>
-                      )}
-                      <Link
-                        href={getTxLink(chainId, resolution.txHash)}
-                        isExternal
+            {_.map(
+              disputesWithResolution,
+              ({ dispute, resolution, resolutionDetails }, i) => (
+                <Stack w="100%" px={0} spacing={4} key={dispute.id + i}>
+                  {dispute && !resolution && (
+                    <Stack px={6}>
+                      <Flex
+                        justify="space-between"
+                        align="center"
+                        fontWeight="bold"
+                        fontSize="lg"
                       >
-                        <u>View transaction</u>
-                      </Link>
-                    </Text>
-                  </Flex>
-                  <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
-                    {_.map(_.compact(resolutionDetails), detail => (
-                      <Text
-                        textAlign="right"
-                        color="purpleLight"
-                        key={detail.distributee}
-                      >
-                        {`${formatUnits(
-                          detail.amount ?? 0n,
-                          tokenMetadata?.decimals ?? 18,
-                        )} ${tokenMetadata?.symbol} to `}
+                        <Text>
+                          Dispute Raised on {getDateString(dispute.timestamp)}
+                        </Text>
+                        <Text textAlign="right">
+                          {`${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+                        </Text>
+                      </Flex>
+                      <Text color="black">
+                        {`A dispute is in progress with `}
                         <AccountLink
-                          address={detail.distributee as Hex}
+                          address={resolver as Hex}
                           chainId={chainId}
                         />
+                        <br />
+                        {!isEmptyIpfsHash(dispute.ipfsHash) && (
+                          <>
+                            <Link
+                              href={getIpfsLink(dispute.ipfsHash)}
+                              color="blue.1"
+                              isExternal
+                            >
+                              <u>View dispute details</u>
+                            </Link>
+                            <br />
+                          </>
+                        )}
+                        <Link
+                          href={getTxLink(chainId, dispute.txHash)}
+                          color="blue.1"
+                          isExternal
+                        >
+                          <u>View transaction</u>
+                        </Link>
                       </Text>
-                    ))}
-                  </Stack>
-                </Flex>
-              </Stack>
+                    </Stack>
+                  )}
+
+                  {resolution && (
+                    <Stack
+                      align="stretch"
+                      spacing="1rem"
+                      color="primary.300"
+                      px={6}
+                    >
+                      <Flex
+                        justify="space-between"
+                        align="center"
+                        fontWeight="bold"
+                        fontSize="lg"
+                      >
+                        <Text>
+                          Dispute Resolved on{' '}
+                          {getDateString(resolution.timestamp)}
+                        </Text>
+                        <Text textAlign="right">{`${formatUnits(
+                          resolution.clientAward +
+                            resolution.providerAward +
+                            (resolution.resolutionFee ?? 0n),
+                          18,
+                        )} ${tokenBalance?.symbol}`}</Text>
+                      </Flex>
+                      <Flex
+                        justify="space-between"
+                        direction={{ base: 'column', sm: 'row' }}
+                      >
+                        <Flex flex={1}>
+                          <Text maxW="300px" color="purple">
+                            <AccountLink
+                              address={resolver as Hex}
+                              chainId={chainId}
+                            />
+                            {
+                              ' has resolved the dispute and dispersed remaining funds'
+                            }
+                            <br />
+                            <br />
+                            {!isEmptyIpfsHash(dispute.ipfsHash) && (
+                              <>
+                                <Link
+                                  href={getIpfsLink(dispute.ipfsHash)}
+                                  color="blue.1"
+                                  isExternal
+                                >
+                                  <u>View dispute details</u>
+                                </Link>
+                                <br />
+                              </>
+                            )}
+                            {!isEmptyIpfsHash(resolution.ipfsHash) && (
+                              <>
+                                <Link
+                                  href={getIpfsLink(resolution.ipfsHash)}
+                                  isExternal
+                                >
+                                  <u>View resolution details</u>
+                                </Link>
+                                <br />
+                              </>
+                            )}
+                            <Link
+                              href={getTxLink(chainId, resolution.txHash)}
+                              isExternal
+                            >
+                              <u>View transaction</u>
+                            </Link>
+                          </Text>
+                        </Flex>
+                        <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
+                          {_.map(
+                            _.compact(resolutionDetails),
+                            (detail, index) => (
+                              <Text
+                                textAlign="right"
+                                color="purpleLight"
+                                key={
+                                  (detail.distributee ?? 'distributee') + index
+                                }
+                              >
+                                {`${formatUnits(
+                                  detail.amount ?? 0n,
+                                  tokenMetadata?.decimals ?? 18,
+                                )} ${tokenMetadata?.symbol} to `}
+                                <AccountLink
+                                  address={detail.distributee as Hex}
+                                  chainId={chainId}
+                                />
+                              </Text>
+                            ),
+                          )}
+                        </Stack>
+                      </Flex>
+                    </Stack>
+                  )}
+                  {i !== disputesWithResolution.length - 1 && (
+                    <Divider my="1rem" />
+                  )}
+                </Stack>
+              ),
             )}
           </Stack>
         </Card>
