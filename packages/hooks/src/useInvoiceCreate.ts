@@ -112,7 +112,7 @@ export const useInvoiceCreate = ({
       id: _.join([title, now, INVOICE_VERSION], '-'),
       title,
       description,
-      documents: [uriToDocument(document)],
+      documents: document ? [uriToDocument(document)] : [],
       startDate: start,
       endDate: end,
       createdAt: now,

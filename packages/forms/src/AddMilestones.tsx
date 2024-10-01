@@ -39,7 +39,6 @@ import _ from 'lodash';
 import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Hex } from 'viem';
-import { useChainId } from 'wagmi';
 
 export const getDecimals = (value: string) => {
   const [, decimal] = value.split('.');
@@ -53,7 +52,6 @@ export function AddMilestones({
   invoice: Partial<InvoiceDetails>;
   onClose: () => void;
 }) {
-  const chainId = useChainId();
   const toast = useToast();
   const { address, tokenMetadata, resolutionRate, total, deposited, amounts } =
     _.pick(invoice, [
@@ -110,7 +108,6 @@ export function AddMilestones({
 
   const { writeAsync, isLoading, prepareError } = useAddMilestones({
     address: address as Hex,
-    chainId,
     invoice,
     localForm,
     toast,

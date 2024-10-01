@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   FormLabel,
@@ -8,10 +9,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-// import { isValidLink, logDebug } from '@smartinvoicexyz/utils';
 import { Controller, UseFormReturn } from 'react-hook-form';
-
-import { QuestionIcon } from '../icons/QuestionIcon';
 
 type Required = 'required' | 'optional';
 
@@ -55,7 +53,13 @@ export function Select({
                     {infoText && <Text fontSize="xs">{infoText}</Text>}
                     {tooltip && (
                       <Tooltip label={tooltip} placement="right" hasArrow>
-                        <Icon as={QuestionIcon} boxSize="0.75rem" />
+                        <Icon
+                          as={InfoOutlineIcon}
+                          boxSize={3}
+                          color="blue.500"
+                          bg="white"
+                          borderRadius="full"
+                        />
                       </Tooltip>
                     )}
                   </HStack>

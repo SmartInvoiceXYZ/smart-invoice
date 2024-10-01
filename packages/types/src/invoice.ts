@@ -60,7 +60,6 @@ export type InvoiceDetails = Partial<
       resolverInfo: Resolver; // ResolverInfo;
       resolverFee: string | undefined;
       resolverFeeDisplay: string | undefined;
-      klerosCourt?: number | string | undefined;
       deadlineLabel: string | undefined;
       // disputes
       dispute?: Dispute | undefined;

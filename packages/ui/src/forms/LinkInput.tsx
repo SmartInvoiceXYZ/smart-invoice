@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   Flex,
@@ -18,8 +19,6 @@ import { isValidURL, logDebug, PROTOCOL_OPTIONS } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useCallback, useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
-
-import { QuestionIcon } from '../icons/QuestionIcon';
 
 interface LinkInputProps extends ChakraProps {
   name: string;
@@ -120,11 +119,17 @@ export function LinkInput({
       <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
         <Stack align="left" w="100%" spacing={0}>
           <Flex w="100%">
-            <HStack align="center" spacing={1}>
+            <HStack align="center" spacing={2}>
               <FormLabel m={0}>{label}</FormLabel>
               {tooltip && (
                 <Tooltip label={tooltip} placement="right" hasArrow>
-                  <Icon as={QuestionIcon} boxSize={3} />
+                  <Icon
+                    as={InfoOutlineIcon}
+                    boxSize={3}
+                    color="blue.500"
+                    bg="white"
+                    borderRadius="full"
+                  />
                 </Tooltip>
               )}
             </HStack>

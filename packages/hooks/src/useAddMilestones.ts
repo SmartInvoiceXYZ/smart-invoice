@@ -22,14 +22,18 @@ import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits } from 'viem';
-import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
 
 type AddMilestonesProps = {
   address: Hex;
-  chainId: number;
-  invoice?: Partial<InvoiceDetails>;
+  invoice: Partial<InvoiceDetails>;
   localForm: UseFormReturn<Partial<FormInvoice>>;
   toast: UseToastReturn;
   onTxSuccess?: () => void;
@@ -37,7 +41,6 @@ type AddMilestonesProps = {
 
 export const useAddMilestones = ({
   address,
-  chainId,
   localForm,
   invoice,
   toast,
@@ -49,6 +52,7 @@ export const useAddMilestones = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
+  const chainId = useChainId();
 
   const { tokenMetadata, metadata, amounts, resolver } = _.pick(invoice, [
     'tokenMetadata',
@@ -138,8 +142,6 @@ export const useAddMilestones = ({
       ...(newResolverType === 'kleros' ? { klerosCourt } : {}),
     } as InvoiceMetadata;
   }, [document, JSON.stringify(milestones), metadata, amounts, resolver]);
-
-  console.log('detailsData', detailsData);
 
   const { data: details, isLoading: detailsLoading } =
     useDetailsPin(detailsData);

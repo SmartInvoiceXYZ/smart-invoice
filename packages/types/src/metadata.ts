@@ -59,7 +59,6 @@ const validateTimestamp = (timestamp: unknown): timestamp is number => {
 };
 
 export const validateDocument = (document: unknown): document is Document => {
-  // if (!document || typeof document !== 'object') return false;
   if (!document || typeof document !== 'object') {
     logDebug('Invalid document: ', document);
     return false;

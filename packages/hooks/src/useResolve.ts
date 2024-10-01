@@ -1,32 +1,44 @@
-import { SMART_INVOICE_ESCROW_ABI } from '@smartinvoicexyz/constants';
+import {
+  INVOICE_VERSION,
+  SMART_INVOICE_ESCROW_ABI,
+} from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
-import { errorToastHandler } from '@smartinvoicexyz/utils';
+import {
+  BasicMetadata,
+  InvoiceDetails,
+  UseToastReturn,
+} from '@smartinvoicexyz/types';
+import {
+  errorToastHandler,
+  getDateString,
+  uriToDocument,
+} from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback, useState } from 'react';
-import { Hex, TransactionReceipt, zeroHash } from 'viem';
+import { useCallback, useMemo, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { Hex, parseUnits } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+
+import { useDetailsPin } from './useDetailsPin';
+
+export type FormResolve = {
+  description: string;
+  document: string;
+  clientAward: string;
+  providerAward: string;
+  resolverAward: string;
+};
 
 export const useResolve = ({
   invoice,
-  awards: {
-    client: clientAward,
-    provider: providerAward,
-    resolver: resolverAward,
-  },
-  comments,
+  localForm,
   onTxSuccess,
   toast,
 }: {
   invoice: Partial<InvoiceDetails>;
-  awards: {
-    client: bigint;
-    provider: bigint;
-    resolver: bigint;
-  };
-  comments: string;
-  onTxSuccess: (tx: TransactionReceipt) => void;
+  localForm: UseFormReturn<FormResolve>;
+  onTxSuccess: () => void;
   toast: UseToastReturn;
 }): {
   writeAsync: () => Promise<Hex | undefined>;
@@ -36,13 +48,48 @@ export const useResolve = ({
 } => {
   const publicClient = usePublicClient();
 
-  // TODO: fix pin
-  const detailsHash = zeroHash;
-  const { tokenBalance, address, isLocked } = _.pick(invoice, [
-    'tokenBalance',
-    'address',
-    'isLocked',
-  ]);
+  const {
+    document,
+    description,
+    clientAward: clientAwardForm,
+    providerAward: providerAwardForm,
+    resolverAward: resolverAwardForm,
+  } = localForm.getValues();
+  const { tokenBalance, address, isLocked, tokenMetadata, metadata } = _.pick(
+    invoice,
+    ['tokenBalance', 'tokenMetadata', 'address', 'isLocked', 'metadata'],
+  );
+
+  const detailsData = useMemo(() => {
+    const now = Math.floor(new Date().getTime() / 1000);
+    const title = `Resolve ${metadata?.title} at ${getDateString(now)}`;
+    return {
+      version: INVOICE_VERSION,
+      id: _.join([title, now, INVOICE_VERSION], '-'),
+      title,
+      description,
+      documents: document ? [uriToDocument(document)] : [],
+      createdAt: now,
+    } as BasicMetadata;
+  }, [description, document, metadata]);
+
+  const { data: detailsHash, isLoading: detailsLoading } = useDetailsPin(
+    detailsData,
+    true,
+  );
+
+  const clientAward =
+    clientAwardForm && tokenMetadata?.decimals
+      ? parseUnits(clientAwardForm, tokenMetadata.decimals)
+      : BigInt(0);
+  const providerAward =
+    providerAwardForm && tokenMetadata?.decimals
+      ? parseUnits(providerAwardForm, tokenMetadata.decimals)
+      : BigInt(0);
+  const resolverAward =
+    resolverAwardForm && tokenMetadata?.decimals
+      ? parseUnits(resolverAwardForm, tokenMetadata.decimals)
+      : BigInt(0);
 
   const fullBalance =
     tokenBalance?.value === clientAward + providerAward + resolverAward;
@@ -55,14 +102,15 @@ export const useResolve = ({
     address: address as Hex,
     functionName: 'resolve',
     abi: SMART_INVOICE_ESCROW_ABI,
-    args: [clientAward, providerAward, detailsHash],
+    args: [clientAward, providerAward, detailsHash as Hex],
     query: {
       enabled:
         !!address &&
         fullBalance &&
         isLocked &&
         tokenBalance.value > BigInt(0) &&
-        !!comments,
+        !!detailsHash &&
+        !!description,
     },
   });
   const [waitingForTx, setWaitingForTx] = useState(false);
@@ -85,7 +133,7 @@ export const useResolve = ({
         }
         setWaitingForTx(false);
 
-        onTxSuccess?.(receipt);
+        onTxSuccess?.();
       },
       onError: error => errorToastHandler('useResolve', error, toast),
     },
@@ -105,7 +153,7 @@ export const useResolve = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading || waitingForTx,
+    isLoading: prepareLoading || writeLoading || waitingForTx || detailsLoading,
     prepareError,
     writeError,
   };
