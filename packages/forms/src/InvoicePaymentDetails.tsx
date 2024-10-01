@@ -8,10 +8,11 @@ import {
   Link,
   Stack,
   Text,
+  Tooltip,
 } from '@chakra-ui/react';
 import { Dispute, Resolution } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, Modals } from '@smartinvoicexyz/types';
-import { AccountLink, Modal } from '@smartinvoicexyz/ui';
+import { AccountLink, Modal, QuestionIcon } from '@smartinvoicexyz/ui';
 import {
   commify,
   getDateString,
@@ -87,6 +88,7 @@ export function InvoicePaymentDetails({
     tokenMetadata,
     depositedMilestonesDisplay,
     depositedTxs,
+    metadata,
   } = _.pick(invoice, [
     'client',
     'provider',
@@ -107,6 +109,7 @@ export function InvoicePaymentDetails({
     'tokenMetadata',
     'depositedMilestonesDisplay',
     'depositedTxs',
+    'metadata',
   ]);
 
   const details = [
@@ -168,16 +171,28 @@ export function InvoicePaymentDetails({
                   const depositedText = depositedMilestonesDisplay?.[index];
                   const release = releasedTxs?.[index];
                   const deposit = depositedTxs?.[index];
+                  const milestoneMetadata = metadata?.milestones?.[index];
+                  const title =
+                    milestoneMetadata?.title ?? `Milestone ${index + 1}`;
 
                   return (
                     <Flex
-                      // eslint-disable-next-line react/no-array-index-key
-                      key={index.toString()}
+                      key={title}
                       justify="space-between"
                       align="stretch"
                       direction="row"
                     >
-                      <Text>Milestone #{index + 1}</Text>
+                      <HStack align="center" justify="flex-start">
+                        <Text>{title}</Text>
+                        {milestoneMetadata?.description && (
+                          <Tooltip
+                            label={milestoneMetadata?.description}
+                            placement="auto-start"
+                          >
+                            <QuestionIcon boxSize="0.75rem" color="gray" />
+                          </Tooltip>
+                        )}
+                      </HStack>
 
                       <HStack align="center" justify="flex-end">
                         {release && (
