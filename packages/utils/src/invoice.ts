@@ -9,14 +9,15 @@ import {
   TokenMetadata,
 } from '@smartinvoicexyz/graphql';
 import {
-  convertOldMetadata,
   InvoiceDetails,
   InvoiceMetadata,
+  OldMetadata,
 } from '@smartinvoicexyz/types';
 import _ from 'lodash';
+import { logDebug } from 'packages/shared/src';
 import { Address, formatUnits } from 'viem';
 
-import { getDateString } from './date';
+import { getDateString, parseToDate } from './date';
 import {
   getResolverFee,
   getResolverInfo,
@@ -216,7 +217,7 @@ const getDeadlineLabel = (
     tokenBalance?.decimals || 18,
   )} ${tokenBalance?.symbol} every ${daysPerInterval} day${
     daysPerInterval && daysPerInterval > 1 ? 's' : ''
-  } after ${getDateString(_.toNumber(deadline?.toString()))}`;
+  } after ${getDateString(parseToDate(deadline))}`;
 };
 
 const getDisputeAndResolution = (invoice: Invoice) => {
@@ -229,6 +230,33 @@ const getDisputeAndResolution = (invoice: Invoice) => {
   return { dispute, resolution };
 };
 
+const convertOldMetadata = (
+  oldMetadata: OldMetadata | undefined,
+): InvoiceMetadata | undefined => {
+  if (!oldMetadata) return undefined;
+
+  const {
+    projectName,
+    projectDescription,
+    projectAgreement,
+    startDate,
+    endDate,
+    ...metadata
+  } = oldMetadata;
+
+  const start = parseToDate(startDate);
+  const end = parseToDate(endDate);
+
+  return {
+    ...metadata,
+    title: projectName,
+    description: projectDescription,
+    documents: projectAgreement,
+    startDate: Math.floor(start.getTime() / 1000),
+    endDate: Math.floor(end.getTime() / 1000),
+  };
+};
+
 export const getInvoiceDetails = async (
   invoice: Invoice | null | undefined,
   tokenMetadata: TokenMetadata | undefined,
@@ -237,7 +265,13 @@ export const getInvoiceDetails = async (
   instantDetails: InstantDetails | undefined,
   invoiceMetadata: InvoiceMetadata | undefined,
 ): Promise<InvoiceDetails | null> => {
-  if (!invoice || !tokenMetadata || !tokenBalance || !nativeBalance) {
+  if (
+    !invoice ||
+    !tokenMetadata ||
+    !tokenBalance ||
+    !nativeBalance ||
+    !invoiceMetadata
+  ) {
     return null;
   }
 
@@ -317,6 +351,8 @@ export const getInvoiceDetails = async (
       ...instantDetails,
       metadata: convertOldMetadata(invoiceMetadata),
     };
+
+    logDebug({ invoiceDetails, address: invoice.address });
 
     return invoiceDetails;
   } catch (e) {

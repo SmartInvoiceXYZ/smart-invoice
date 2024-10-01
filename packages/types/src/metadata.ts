@@ -210,19 +210,3 @@ export const validateInvoiceMetadata = (
 
   return true;
 };
-
-export const convertOldMetadata = (
-  oldMetadata: OldMetadata | undefined,
-): InvoiceMetadata | undefined => {
-  if (!oldMetadata) return undefined;
-
-  const { projectName, projectDescription, projectAgreement, ...metadata } =
-    oldMetadata;
-
-  return {
-    ...metadata,
-    title: projectName,
-    description: projectDescription,
-    documents: projectAgreement,
-  };
-};

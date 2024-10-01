@@ -67,16 +67,17 @@ export const useInvoiceDetails = ({
       enabled: !!address && !!chainId && invoiceType === INVOICE_TYPES.Instant,
     });
 
+  // fetch invoice details from Ipfs
+  const { data: ipfsDetails, isLoading: isLoadingIpfs } =
+    useIpfsDetails(ipfsHash);
+
   const getInvoiceDetailsEnabled =
     !!invoice &&
     !!tokenMetadata &&
     !!tokenBalance &&
     !!nativeBalance &&
+    !!ipfsDetails &&
     (invoiceType === INVOICE_TYPES.Instant ? !!instantDetails : true);
-
-  // fetch invoice details from Ipfs
-  const { data: ipfsDetails, isLoading: isLoadingIpfs } =
-    useIpfsDetails(ipfsHash);
 
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
@@ -93,6 +94,7 @@ export const useInvoiceDetails = ({
             ? formatUnits(nativeBalance.value, nativeBalance.decimals)
             : undefined,
           instantDetails: _.mapValues(instantDetails, v => v?.toString()),
+          ipfsDetails: JSON.stringify(ipfsDetails),
         },
       ],
       queryFn: () =>

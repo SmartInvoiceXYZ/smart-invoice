@@ -8,7 +8,13 @@ export function handleEpoch(value: number): Date {
   return new Date(value);
 }
 
-export function parseToDate(input: number | string | Date | bigint): Date {
+export function parseToDate(
+  input: number | string | Date | bigint | undefined,
+): Date {
+  if (input === undefined) {
+    return new Date();
+  }
+
   if (input instanceof Date) {
     return input;
   }
