@@ -161,19 +161,12 @@ export const getResolverString = (
   return info ? info.name : getAccountString(resolverAddress);
 };
 
-const BASE32_REGEX = /^[a-zA-Z2-7]+=*$/;
-const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+=*$/;
+const IPFS_HASH_REGEX =
+  /^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,})([/?#][-a-zA-Z0-9@:%_+.~#?&//=]*)*$/;
 
-const isValidCID = (hash: string) =>
-  (hash.length === 59 &&
-    hash.startsWith('bafy') &&
-    !!BASE32_REGEX.test(hash)) ||
-  (hash.length === 46 &&
-    hash.startsWith('Qm') &&
-    !!BASE58_REGEX.test(hash) &&
-    !isEmptyIpfsHash(hash));
+const isValidCID = (hash: string) => IPFS_HASH_REGEX.test(hash);
 
-const ARWEAVE_TXID_REGEX = /([a-z0-9-_]{43})/i;
+const ARWEAVE_TXID_REGEX = /^([a-z0-9-_]{43})$/i;
 
 const isValidArweaveTxID = (hash: string) => ARWEAVE_TXID_REGEX.test(hash);
 
@@ -286,7 +279,7 @@ export const uriToDocument = (
 
   return {
     id: parsed.hostname + parsed.pathname + now,
-    src: parsed.href as SupportedURL,
+    src: uri as SupportedURL,
     type,
     createdAt: now,
   };
