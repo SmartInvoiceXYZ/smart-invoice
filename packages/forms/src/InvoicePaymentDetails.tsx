@@ -177,7 +177,7 @@ export function InvoicePaymentDetails({
 
                   return (
                     <Flex
-                      key={title}
+                      key={title + index}
                       justify="space-between"
                       align="stretch"
                       direction="row"
@@ -242,8 +242,11 @@ export function InvoicePaymentDetails({
             </Stack>
             <Divider my="1rem" />
             <Stack px={6}>
-              {_.map(_.compact(details), detail => (
-                <HStack justifyContent="space-between" key={detail.label}>
+              {_.map(_.compact(details), (detail, index) => (
+                <HStack
+                  justifyContent="space-between"
+                  key={detail.label + index}
+                >
                   <Text>{detail.label}</Text>
                   <Text>
                     {commify(
@@ -289,7 +292,7 @@ export function InvoicePaymentDetails({
             {_.map(
               disputesWithResolution,
               ({ dispute, resolution, resolutionDetails }, i) => (
-                <>
+                <Stack w="100%" px={0} spacing={4} key={dispute.id + i}>
                   {dispute && !resolution && (
                     <Stack px={6}>
                       <Flex
@@ -406,22 +409,27 @@ export function InvoicePaymentDetails({
                           </Text>
                         </Flex>
                         <Stack spacing="0.5rem" mt={{ base: '1rem', sm: '0' }}>
-                          {_.map(_.compact(resolutionDetails), detail => (
-                            <Text
-                              textAlign="right"
-                              color="purpleLight"
-                              key={detail.distributee}
-                            >
-                              {`${formatUnits(
-                                detail.amount ?? 0n,
-                                tokenMetadata?.decimals ?? 18,
-                              )} ${tokenMetadata?.symbol} to `}
-                              <AccountLink
-                                address={detail.distributee as Hex}
-                                chainId={chainId}
-                              />
-                            </Text>
-                          ))}
+                          {_.map(
+                            _.compact(resolutionDetails),
+                            (detail, index) => (
+                              <Text
+                                textAlign="right"
+                                color="purpleLight"
+                                key={
+                                  (detail.distributee ?? 'distributee') + index
+                                }
+                              >
+                                {`${formatUnits(
+                                  detail.amount ?? 0n,
+                                  tokenMetadata?.decimals ?? 18,
+                                )} ${tokenMetadata?.symbol} to `}
+                                <AccountLink
+                                  address={detail.distributee as Hex}
+                                  chainId={chainId}
+                                />
+                              </Text>
+                            ),
+                          )}
                         </Stack>
                       </Flex>
                     </Stack>
@@ -429,7 +437,7 @@ export function InvoicePaymentDetails({
                   {i !== disputesWithResolution.length - 1 && (
                     <Divider my="1rem" />
                   )}
-                </>
+                </Stack>
               ),
             )}
           </Stack>

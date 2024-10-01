@@ -69,8 +69,8 @@ export function PaymentsForm({
     defaultValues: {
       token: nativeWrappedToken.toLowerCase(),
       milestones: milestones || [
-        { value: '1', title: 'Milestone 1' },
-        { value: '1', title: 'Milestone 2' },
+        { value: '1', title: 'Milestone 1', description: '' },
+        { value: '1', title: 'Milestone 2', description: '' },
       ],
     },
     resolver: yupResolver(escrowPaymentsSchema),
@@ -250,6 +250,7 @@ export function PaymentsForm({
               appendMilestone({
                 value: '1',
                 title: `Milestone ${milestonesFields.length + 1}`,
+                description: '',
               });
             }}
             rightIcon={<Icon as={AddIcon} boxSize={3} />}

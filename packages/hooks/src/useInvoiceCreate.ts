@@ -101,10 +101,12 @@ export const useInvoiceCreate = ({
 
   const detailsData = useMemo(() => {
     const now = Math.floor(new Date().getTime() / 1000);
-    const end = endDate ? Math.floor(new Date(endDate).getTime() / 1000) : now;
     const start = startDate
       ? Math.floor(new Date(startDate).getTime() / 1000)
       : now;
+    const end = endDate
+      ? Math.floor(new Date(endDate).getTime() / 1000)
+      : now + 60 * 60 * 24 * 30;
     return {
       version: INVOICE_VERSION,
       id: _.join([title, now, INVOICE_VERSION], '-'),
@@ -133,10 +135,11 @@ export const useInvoiceCreate = ({
     endDate,
     resolverType,
     klerosCourt,
-    milestones,
+    JSON.stringify(milestones),
   ]);
 
-  const { data: details } = useDetailsPin(detailsData);
+  const { data: details, isLoading: detailsLoading } =
+    useDetailsPin(detailsData);
 
   const resolverAddress = useMemo(() => {
     if (resolverType === 'custom') {
@@ -270,6 +273,6 @@ export const useInvoiceCreate = ({
     writeAsync,
     prepareError,
     writeError,
-    isLoading: isLoading || waitingForTx || prepareLoading,
+    isLoading: isLoading || waitingForTx || prepareLoading || detailsLoading,
   };
 };

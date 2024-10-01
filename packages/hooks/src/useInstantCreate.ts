@@ -95,7 +95,8 @@ export const useInstantCreate = ({
     } as InvoiceMetadata;
   }, [title, description, document, startDate, endDate]);
 
-  const { data: details } = useDetailsPin(detailsData);
+  const { data: details, isLoading: detailsLoading } =
+    useDetailsPin(detailsData);
 
   const { data: tokens } = useFetchTokens();
   const tokenMetadata = _.find(
@@ -227,6 +228,6 @@ export const useInstantCreate = ({
     prepareError,
     writeAsync,
     writeError,
-    isLoading: isLoading || waitingForTx || prepareLoading,
+    isLoading: isLoading || waitingForTx || prepareLoading || detailsLoading,
   };
 };

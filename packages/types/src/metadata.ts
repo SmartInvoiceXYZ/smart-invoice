@@ -180,7 +180,7 @@ export const validateInvoiceMetadata = (
     return false;
   }
 
-  const { startDate, endDate, klerosCourt, milestones } =
+  const { startDate, endDate, klerosCourt, milestones, resolverType } =
     metadata as InvoiceMetadata;
 
   if (!validateTimestamp(startDate)) {
@@ -193,7 +193,7 @@ export const validateInvoiceMetadata = (
     return false;
   }
 
-  if (typeof klerosCourt !== 'number') {
+  if (resolverType === 'kleros' && typeof klerosCourt !== 'number') {
     logDebug('Invalid metadata klerosCourt: ', klerosCourt);
     return false;
   }

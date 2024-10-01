@@ -51,12 +51,7 @@ export const useDetailsPin = (
   }, [validatedDetails]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [
-      'detailsPin',
-      {
-        validatedDetails: JSON.stringify(validatedDetails),
-      },
-    ],
+    queryKey: ['detailsPin', JSON.stringify(validatedDetails)],
     queryFn: uploadToIpfs,
     enabled: !!validatedDetails,
     staleTime: Infinity,

@@ -237,8 +237,11 @@ const convertOldMetadata = (
 
   const {
     projectName,
+    title,
     projectDescription,
+    description,
     projectAgreement,
+    documents,
     startDate,
     endDate,
     ...metadata
@@ -249,9 +252,9 @@ const convertOldMetadata = (
 
   return {
     ...metadata,
-    title: projectName,
-    description: projectDescription,
-    documents: projectAgreement,
+    title: title ?? projectName,
+    description: description ?? projectDescription,
+    documents: documents ?? projectAgreement,
     startDate: Math.floor(start.getTime() / 1000),
     endDate: Math.floor(end.getTime() / 1000),
   };
