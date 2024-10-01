@@ -32,6 +32,7 @@ export const useInvoiceDetails = ({
     queryKey: ['invoiceDetails', { address, chainId }],
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
+    refetchInterval: 20000,
   });
 
   const { invoiceType, token, ipfsHash } = _.pick(invoice, [
@@ -107,6 +108,7 @@ export const useInvoiceDetails = ({
           ipfsDetails as InvoiceMetadata,
         ),
       enabled: getInvoiceDetailsEnabled,
+      refetchInterval: 20000,
     });
 
   const isLoading = useMemo(

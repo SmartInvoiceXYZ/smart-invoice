@@ -18,7 +18,6 @@ import {
   getAccountString,
   getAddressLink,
   getDateString,
-  getResolverInfo,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
@@ -49,6 +48,7 @@ export function InvoiceMetaDetails({
     provider,
     resolver,
     verified,
+    resolverInfo,
   } = _.pick(invoice, [
     'id',
     'client',
@@ -58,6 +58,7 @@ export function InvoiceMetaDetails({
     'deadline',
     'metadata',
     'verified',
+    'resolverInfo',
   ]);
 
   const { startDate, endDate, title, description, documents } = _.pick(
@@ -128,7 +129,7 @@ export function InvoiceMetaDetails({
           <AccountLink
             address={validResolver}
             chainId={invoiceChainId}
-            resolverInfo={getResolverInfo('kleros', invoiceChainId)}
+            resolverInfo={resolverInfo}
           />
         ),
       },

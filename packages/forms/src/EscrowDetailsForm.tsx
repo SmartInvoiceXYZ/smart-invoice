@@ -119,7 +119,7 @@ export function EscrowDetailsForm({
           >
             {knownResolverTypes.map(res => (
               <option key={res} value={res}>
-                {getResolverInfo(res, chainId)?.name ?? 'Custom'}
+                {getResolverInfo(res, chainId).name}
               </option>
             ))}
             <option value="custom">Custom</option>

@@ -31,15 +31,20 @@ export const getResolverTypes = (chainId?: number): Array<KnownResolverType> =>
     ? resolvers(chainId)
     : resolvers(DEFAULT_CHAIN_ID);
 
-export const getResolverInfo = (
-  resolverType: KnownResolverType | undefined,
-  chainId?: number,
-): Resolver | undefined => {
-  if (!resolverType) return undefined;
+export type ResolverInfo<T extends KnownResolverType | undefined> =
+  T extends KnownResolverType ? Resolver : undefined;
 
-  return chainId && isOfTypeChainId(chainId)
-    ? resolverInfo(chainId)[resolverType]
-    : resolverInfo(DEFAULT_CHAIN_ID)[resolverType];
+export const getResolverInfo = <T extends KnownResolverType | undefined>(
+  resolverType: T,
+  chainId?: number,
+): ResolverInfo<T> => {
+  if (!resolverType) return undefined as ResolverInfo<T>;
+
+  return (
+    chainId && isOfTypeChainId(chainId)
+      ? resolverInfo(chainId)[resolverType]
+      : resolverInfo(DEFAULT_CHAIN_ID)[resolverType]
+  ) as ResolverInfo<T>;
 };
 
 export const getResolverInfoByAddress = (
