@@ -1,5 +1,23 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.8
+
+### Patch Changes
+
+- publishing to npm
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.6
+  - @smartinvoicexyz/shared@0.1.6
+
+## 0.1.7
+
+### Patch Changes
+
+- using latest metadata schema
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.5
+  - @smartinvoicexyz/shared@0.1.5
+
 ## 0.1.6
 
 ### Patch Changes

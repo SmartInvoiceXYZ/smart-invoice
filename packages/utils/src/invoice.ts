@@ -8,13 +8,13 @@ import {
   TokenBalance,
   TokenMetadata,
 } from '@smartinvoicexyz/graphql';
+import { logDebug } from '@smartinvoicexyz/shared';
 import {
   InvoiceDetails,
   InvoiceMetadata,
   OldMetadata,
 } from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import { logDebug } from 'packages/shared/src';
 import { Address, formatUnits } from 'viem';
 
 import { getDateString, parseToDate } from './date';

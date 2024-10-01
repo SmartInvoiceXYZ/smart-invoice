@@ -1,5 +1,27 @@
 # @smartinvoicexyz/utils
 
+## 0.1.9
+
+### Patch Changes
+
+- publishing to npm
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.6
+  - @smartinvoicexyz/graphql@0.1.8
+  - @smartinvoicexyz/shared@0.1.6
+  - @smartinvoicexyz/types@0.1.8
+
+## 0.1.8
+
+### Patch Changes
+
+- using latest metadata schema
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.5
+  - @smartinvoicexyz/graphql@0.1.7
+  - @smartinvoicexyz/shared@0.1.5
+  - @smartinvoicexyz/types@0.1.7
+
 ## 0.1.7
 
 ### Patch Changes
