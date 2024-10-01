@@ -10,7 +10,6 @@
     "@smartinvoicexyz/shared": "workspace:*",
     "@smartinvoicexyz/types": "workspace:*",
     "abitype": "^0.10.3",
-    "axios": "^0.21.1",
     "base-58": "^0.0.1",
     "bs58": "^5.0.0",
     "lodash": "^4.17.21",
