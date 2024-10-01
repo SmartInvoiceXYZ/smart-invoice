@@ -312,7 +312,7 @@ importers:
         version: 2.4.3(@docusaurus/types@2.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/preset-classic':
         specifier: ^2.0.0
-        version: 2.4.3(@algolia/client-search@4.24.0)(@types/react@18.3.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.2)(typescript@5.6.2)(utf-8-validate@5.0.10)
+        version: 2.4.3(@algolia/client-search@4.24.0)(@types/react@18.3.8)(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.2)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@mdx-js/react':
         specifier: ^1.6.21
         version: 1.6.22(react@18.3.1)
@@ -644,9 +644,6 @@ importers:
       abitype:
         specifier: ^0.10.3
         version: 0.10.3(typescript@5.6.2)(zod@3.23.8)
-      axios:
-        specifier: ^0.21.1
-        version: 0.21.4(debug@4.3.4)
       base-58:
         specifier: ^0.0.1
         version: 0.0.1
@@ -14314,7 +14311,7 @@ snapshots:
       - vue-template-compiler
       - webpack-cli
 
-  '@docusaurus/plugin-debug@2.4.3(@types/react@18.3.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)':
+  '@docusaurus/plugin-debug@2.4.3(@types/react@18.3.8)(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)':
     dependencies:
       '@docusaurus/core': 2.4.3(@docusaurus/types@2.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/types': 2.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -14322,7 +14319,7 @@ snapshots:
       fs-extra: 10.1.0
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      react-json-view: 1.21.3(@types/react@18.3.8)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-json-view: 1.21.3(@types/react@18.3.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tslib: 2.7.0
     transitivePeerDependencies:
       - '@parcel/css'
@@ -14453,13 +14450,13 @@ snapshots:
       - vue-template-compiler
       - webpack-cli
 
-  '@docusaurus/preset-classic@2.4.3(@algolia/client-search@4.24.0)(@types/react@18.3.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.2)(typescript@5.6.2)(utf-8-validate@5.0.10)':
+  '@docusaurus/preset-classic@2.4.3(@algolia/client-search@4.24.0)(@types/react@18.3.8)(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.2)(typescript@5.6.2)(utf-8-validate@5.0.10)':
     dependencies:
       '@docusaurus/core': 2.4.3(@docusaurus/types@2.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-content-blog': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-content-docs': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-content-pages': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
-      '@docusaurus/plugin-debug': 2.4.3(@types/react@18.3.8)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
+      '@docusaurus/plugin-debug': 2.4.3(@types/react@18.3.8)(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-google-analytics': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-google-gtag': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@docusaurus/plugin-google-tag-manager': 2.4.3(bufferutil@4.0.8)(eslint@8.56.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.2)(utf-8-validate@5.0.10)
@@ -20626,15 +20623,15 @@ snapshots:
     dependencies:
       bser: 2.1.1
 
-  fbemitter@3.0.0(encoding@0.1.13):
+  fbemitter@3.0.0:
     dependencies:
-      fbjs: 3.0.5(encoding@0.1.13)
+      fbjs: 3.0.5
     transitivePeerDependencies:
       - encoding
 
   fbjs-css-vars@1.0.2: {}
 
-  fbjs@3.0.5(encoding@0.1.13):
+  fbjs@3.0.5:
     dependencies:
       cross-fetch: 3.1.8(encoding@0.1.13)
       fbjs-css-vars: 1.0.2
@@ -20754,10 +20751,10 @@ snapshots:
 
   flow-parser@0.246.0: {}
 
-  flux@4.0.4(encoding@0.1.13)(react@18.3.1):
+  flux@4.0.4(react@18.3.1):
     dependencies:
-      fbemitter: 3.0.0(encoding@0.1.13)
-      fbjs: 3.0.5(encoding@0.1.13)
+      fbemitter: 3.0.0
+      fbjs: 3.0.5
       react: 18.3.1
     transitivePeerDependencies:
       - encoding
@@ -24584,9 +24581,9 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-json-view@1.21.3(@types/react@18.3.8)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-json-view@1.21.3(@types/react@18.3.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      flux: 4.0.4(encoding@0.1.13)(react@18.3.1)
+      flux: 4.0.4(react@18.3.1)
       react: 18.3.1
       react-base16-styling: 0.6.0
       react-dom: 18.3.1(react@18.3.1)
