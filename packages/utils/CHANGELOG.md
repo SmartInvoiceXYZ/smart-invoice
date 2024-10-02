@@ -1,5 +1,16 @@
 # @smartinvoicexyz/utils
 
+## 0.1.10
+
+### Patch Changes
+
+- view invoices without wallet
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.7
+  - @smartinvoicexyz/graphql@0.1.9
+  - @smartinvoicexyz/shared@0.1.7
+  - @smartinvoicexyz/types@0.1.9
+
 ## 0.1.9
 
 ### Patch Changes

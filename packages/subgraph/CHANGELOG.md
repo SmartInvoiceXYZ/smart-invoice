@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.4
+
+### Patch Changes
+
+- view invoices without wallet
+
 ## 0.1.3
 
 ### Patch Changes

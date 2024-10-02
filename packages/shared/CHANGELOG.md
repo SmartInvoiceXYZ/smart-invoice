@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.7
+
+### Patch Changes
+
+- view invoices without wallet
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.7
+
 ## 0.1.6
 
 ### Patch Changes

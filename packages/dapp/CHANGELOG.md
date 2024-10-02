@@ -1,5 +1,19 @@
 # @smartinvoicexyz/dapp
 
+## 0.1.8
+
+### Patch Changes
+
+- view invoices without wallet
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.7
+  - @smartinvoicexyz/graphql@0.1.9
+  - @smartinvoicexyz/forms@0.1.13
+  - @smartinvoicexyz/hooks@0.1.12
+  - @smartinvoicexyz/types@0.1.9
+  - @smartinvoicexyz/utils@0.1.10
+  - @smartinvoicexyz/ui@0.1.13
+
 ## 0.1.7
 
 ### Patch Changes

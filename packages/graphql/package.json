@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/graphql",
   "description": "Unified source for helpers and schema used across the GraphQL services within the Smart Invoice protocol.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "",
   "dependencies": {
     "@apollo/client": "^3.11.8",

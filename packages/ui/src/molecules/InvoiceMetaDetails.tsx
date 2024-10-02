@@ -12,16 +12,14 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
   documentToHttp,
-  getAccountString,
-  getAddressLink,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { INVOICE_TYPES } from 'packages/constants/src';
 import { useMemo } from 'react';
 import { Address, isAddress, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
