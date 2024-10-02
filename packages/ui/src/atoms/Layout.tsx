@@ -4,16 +4,15 @@ import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';
 import { PropsWithChildren, useEffect } from 'react';
-import { useWalletClient } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { Footer } from '../molecules/Footer';
 import { Header } from '../molecules/Header';
 import { ConnectWeb3 } from './ConnectWeb3';
 
 export function Layout({ children }: PropsWithChildren) {
-  const { data: walletClient } = useWalletClient();
-  const chainId = walletClient?.chain?.id;
-  const account = walletClient?.account;
+  const chainId = useChainId();
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     track('ChainChanged', { chain: chainId ?? null });
@@ -27,7 +26,8 @@ export function Layout({ children }: PropsWithChildren) {
     router.pathname === '/contracts' ||
     isInvoicePath;
   const isValid =
-    isOpenPath || (account && chainId && SUPPORTED_NETWORKS.includes(chainId));
+    isOpenPath ||
+    (isConnected && chainId && SUPPORTED_NETWORKS.includes(chainId));
 
   return (
     <Flex

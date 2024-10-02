@@ -1,5 +1,5 @@
 import { logDebug } from '@smartinvoicexyz/shared';
-import { InvoiceMetadata, KeyRestrictions } from '@smartinvoicexyz/types';
+import { KeyRestrictions, OldMetadata } from '@smartinvoicexyz/types';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
 import { Cache } from 'memory-cache';
@@ -17,7 +17,7 @@ const cache = new Cache();
 
 export const fetchFromIPFS = async (
   cid: string | undefined,
-): Promise<InvoiceMetadata> => {
+): Promise<OldMetadata> => {
   if (!cid) {
     throw new Error('CID is required');
   }
@@ -49,7 +49,7 @@ export const fetchFromIPFS = async (
       }),
     );
 
-    return response as InvoiceMetadata;
+    return response as OldMetadata;
   } catch (error) {
     console.error(`Failed to fetch from IPFS for CID: ${cid}: `, error);
     throw new Error(`Failed to fetch from IPFS for CID: ${cid}`);

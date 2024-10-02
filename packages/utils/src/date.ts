@@ -88,7 +88,7 @@ export const getDateTimeString = (d: DateInput) => {
     year: 'numeric',
   }).format(date);
   const mo = new Intl.DateTimeFormat('en', {
-    month: 'long',
+    month: 'short',
   }).format(date);
   const da = new Intl.DateTimeFormat('en', {
     day: '2-digit',

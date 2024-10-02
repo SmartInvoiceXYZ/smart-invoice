@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Button,
   Heading,
@@ -20,6 +21,7 @@ import {
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
+import { INVOICE_TYPES } from 'packages/constants/src';
 import { useMemo } from 'react';
 import { Address, isAddress, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
@@ -111,7 +113,7 @@ export function InvoiceMetaDetails({
             Number(terminationTime) * 1000,
           ).toUTCString()}`,
         },
-      deadline && {
+      !!deadline && {
         label: 'Payment Deadline:',
         value: getDateString(_.toNumber(_.toString(deadline))),
         tip: `Late fees start accumulating after ${new Date(
@@ -168,37 +170,37 @@ export function InvoiceMetaDetails({
         )}
 
         <HStack align="center" color="black" spacing={4}>
-          <Link
-            href={getAddressLink(invoiceChainId, _.toLower(invoiceId))}
-            isExternal
-          >
-            {getAccountString(invoiceId as Address | undefined)}
-          </Link>
+          <InvoiceBadge invoiceType={invoiceType} />
+          <AccountLink
+            address={invoiceId as Address}
+            chainId={invoiceChainId}
+          />
           <Button
             onClick={onCopy}
             variant="ghost"
+            bg="none"
             colorScheme="blue"
             h="auto"
             w="auto"
             minW="2"
             p={2}
           >
-            <CopyIcon boxSize={4} />
+            <CopyIcon boxSize={3} />
           </Button>
         </HStack>
         {description && <Text color="black">{description}</Text>}
 
         {!!lastDocument && (
-          <Link
-            href={documentToHttp(lastDocument)}
-            isExternal
-            textDecor="underline"
-            color="black"
-          >
-            Details of Agreement
+          <Link href={documentToHttp(lastDocument)} isExternal _hover={{}}>
+            <Button
+              size="xs"
+              textTransform="uppercase"
+              rightIcon={<ExternalLinkIcon />}
+            >
+              View Details of Agreement
+            </Button>
           </Link>
         )}
-        <InvoiceBadge invoiceType={invoiceType} />
       </Stack>
 
       <Stack fontSize="sm" color="grey" align="stretch" justify="center">
@@ -226,27 +228,29 @@ export function InvoiceMetaDetails({
           </Wrap>
         ))}
 
-        <Wrap>
-          <WrapItem>
-            <Text>{'Non-Client Deposits Enabled: '}</Text>
-          </WrapItem>
+        {invoiceType === INVOICE_TYPES.Escrow && (
+          <Wrap>
+            <WrapItem>
+              <Text>{'Non-Client Deposits Enabled: '}</Text>
+            </WrapItem>
 
-          <WrapItem fontWeight="bold">
-            {invoice && verifiedStatus ? (
-              <Text color="green.500">Enabled!</Text>
-            ) : (
-              <Text color="red.500">Not enabled</Text>
-            )}
-          </WrapItem>
+            <WrapItem fontWeight="bold">
+              {invoice && verifiedStatus ? (
+                <Text color="green.500">Enabled!</Text>
+              ) : (
+                <Text color="red.500">Not enabled</Text>
+              )}
+            </WrapItem>
 
-          <WrapItem fontWeight="bold">
-            <VerifyInvoice
-              invoice={invoice}
-              isClient={isClient}
-              verifiedStatus={verifiedStatus}
-            />
-          </WrapItem>
-        </Wrap>
+            <WrapItem fontWeight="bold">
+              <VerifyInvoice
+                invoice={invoice}
+                isClient={isClient}
+                verifiedStatus={verifiedStatus}
+              />
+            </WrapItem>
+          </Wrap>
+        )}
 
         <Wrap>
           <GenerateInvoicePDF

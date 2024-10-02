@@ -75,7 +75,7 @@ export function Header() {
         gap={8}
         justify="center"
         align="center"
-        display={{ base: 'none', md: 'flex' }}
+        display={{ base: 'none', lg: 'flex' }}
       >
         {_.map(links, ({ label, href }) => (
           <ChakraNextLink
@@ -97,11 +97,11 @@ export function Header() {
         <Flex
           justifyContent="flex-end"
           width="230px"
-          display={{ base: 'none', md: 'flex' }}
+          display={{ base: 'none', lg: 'flex' }}
         >
           <ConnectButton
             accountStatus="address"
-            chainStatus="icon"
+            chainStatus="full"
             showBalance={false}
           />
         </Flex>
@@ -110,13 +110,13 @@ export function Header() {
           variant="link"
           ml={{ base: '0.5rem', sm: '1rem' }}
           zIndex={7}
-          display={{ base: 'flex', md: 'none' }}
+          display={{ base: 'flex', lg: 'none' }}
         >
           <HamburgerIcon
             boxSize={{ base: '2rem', sm: '2.75rem' }}
-            transition="all 1s ease-out"
+            transition="all 0.5s ease-out"
             _hover={{
-              transition: 'all 1s ease-out',
+              transition: 'all 0.5s ease-out',
               transform: 'rotateZ(90deg)',
             }}
             color="blue.1"

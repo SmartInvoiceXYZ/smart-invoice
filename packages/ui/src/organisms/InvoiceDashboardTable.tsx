@@ -24,13 +24,12 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
-import { Address, formatUnits } from 'viem';
+import { useState } from 'react';
+import { formatUnits } from 'viem';
 import { useAccount } from 'wagmi';
 
 import { ChakraNextLink, Loader } from '../atoms';
@@ -43,86 +42,96 @@ function InvoiceDisplay({
 }: {
   cell: CellContext<InvoiceDisplayData, string | undefined>;
 }) {
-  const { ipfsHash } = cell.row.original;
-  const address = cell.getValue();
+  const { ipfsHash, address } = cell.row.original;
 
-  const { data } = useIpfsDetails(ipfsHash ?? '');
+  const { data } = useIpfsDetails(ipfsHash);
 
-  const displayString =
-    data?.title || getAccountString(address as Address | undefined);
-
-  return displayString;
+  return data?.title || data?.projectName || getAccountString(address);
 }
+
+const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
 export function InvoiceDashboardTable() {
   const router = useRouter();
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const { primaryButtonSize } = useMediaStyles();
-  const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
-    return [
-      columnHelper.accessor('createdAt', {
-        header: 'Date Created',
-        cell: info => getDateTimeString(info.getValue()),
-      }),
-      columnHelper.accessor('network', {
-        header: 'Chain',
-        cell: info => {
-          const chain = chainByName(info.getValue());
-          return chain?.name;
-        },
-      }),
+  // TODO: implement pagination
+  const [page] = useState(0);
+
+  const { data, isLoading } = useInvoices({
+    page,
+  });
+
+  const table = useReactTable({
+    data: data || [],
+    columns: [
       columnHelper.accessor('address', {
-        header: 'Invoice Name/ID',
+        header: 'Title',
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: info => <InvoiceDisplay cell={info} />,
       }),
-      columnHelper.accessor(
-        row => {
-          if (row?.total) {
-            return formatUnits(row.total, row.tokenMetadata?.decimals || 18);
-          }
-
-          return '0';
-        },
-        {
-          id: 'amount',
-          header: 'Amount',
-          cell: info => info.getValue(),
-          meta: 'total',
-        },
-      ),
-      columnHelper.accessor(row => row?.tokenMetadata?.symbol, {
-        id: 'currency',
-        header: 'Currency',
-        cell: info => info.getValue(),
+      columnHelper.accessor('invoiceType', {
+        header: 'Type',
+        cell: info => _.capitalize(info.getValue()),
       }),
       columnHelper.accessor(
-        row =>
-          row?.released &&
-          formatUnits(row.released, row.tokenMetadata?.decimals || 18),
+        row => {
+          const { provider, client, resolver } = row;
+          if (_.toLower(address) === _.toLower(client)) {
+            return 'Client';
+          }
+          if (_.toLower(address) === _.toLower(provider)) {
+            return 'Provider';
+          }
+          if (_.toLower(address) === _.toLower(resolver)) {
+            return 'Resolver';
+          }
+          return 'Unknown';
+        },
+        {
+          header: 'Role',
+          cell: info => info.getValue(),
+        },
+      ),
+      columnHelper.accessor(
+        row => {
+          const value = formatUnits(
+            row.total ?? BigInt(0),
+            row.tokenMetadata?.decimals || 18,
+          );
+          const symbol = row.tokenMetadata?.symbol;
+          return `${value} ${symbol}`;
+        },
+        {
+          id: 'total',
+          header: 'Total',
+          cell: info => info.getValue(),
+        },
+      ),
+      columnHelper.accessor(
+        row => {
+          const value = formatUnits(
+            row.released ?? BigInt(0),
+            row.tokenMetadata?.decimals || 18,
+          );
+          const symbol = row.tokenMetadata?.symbol;
+          return `${value} ${symbol}`;
+        },
         {
           id: 'released',
           header: 'Released',
           cell: info => info.getValue(),
         },
       ),
-    ];
-  }, []);
-
-  const { data, isLoading } = useInvoices({
-    page: 0,
-  });
-
-  const table = useReactTable({
-    data: data || [],
-    columns,
+      columnHelper.accessor('createdAt', {
+        header: 'Created',
+        cell: info => getDateTimeString(info.getValue()),
+      }),
+    ],
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    debugTable: true,
   });
 
   if (isLoading) {
@@ -224,6 +233,33 @@ export function InvoiceDashboardTable() {
               );
             })}
           </Tbody>
+          {/*
+          <TableCaption w="100%">
+            <HStack w="100%" justify="center">
+              <IconButton
+                aria-label="First Page"
+                icon={<DoubleLeftArrowIcon />}
+              //onClick={() => setPage(0)}
+              />
+              <IconButton
+                aria-label="Previous Page"
+                icon={<LeftArrowIcon />}
+                disabled={!table.getCanPreviousPage()}
+              //onClick={() => table.previousPage()}
+              />
+              <Text>Page {page + 1}</Text>
+              {data?.length >= table.getState().pagination.pageSize ? (
+                <IconButton
+                  aria-label="Next Page"
+                  disabled={data?.length < table.getState().pagination.pageSize}
+                  icon={<RightArrowIcon />}
+                  onClick={() => table.nextPage()}
+                />
+              ) : null}
+
+            </HStack>
+          </TableCaption>
+          */}
         </Table>
       </Styles>
     </Box>
