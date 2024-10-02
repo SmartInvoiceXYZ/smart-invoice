@@ -8,6 +8,7 @@ module.exports = {
   rules: {
     'no-use-before-define': 'off',
     'import/no-default-export': 'off',
+    'react/jsx-props-no-spreading': 'off',
   },
   overrides: [
     {

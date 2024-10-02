@@ -1,10 +1,60 @@
 import { logDebug } from '@smartinvoicexyz/shared';
-import { KeyRestrictions } from '@smartinvoicexyz/types';
+import { InvoiceMetadata, KeyRestrictions } from '@smartinvoicexyz/types';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
+import { Cache } from 'memory-cache';
 import { Hex } from 'viem';
 
-const { PINATA_JWT } = process.env;
+const IPFS_ENDPOINTS = [
+  `https://ipfs.io/ipfs/`,
+  `https://cloudflare-ipfs.com/ipfs/`,
+  `https://dweb.link/ipfs/`,
+  `https://w3s.link/ipfs/`,
+  `https://flk-ipfs.xyz/ipfs/`,
+];
+
+const cache = new Cache();
+
+export const fetchFromIPFS = async (
+  cid: string | undefined,
+): Promise<InvoiceMetadata> => {
+  if (!cid) {
+    throw new Error('CID is required');
+  }
+
+  const cachedResponse = cache.get(cid);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const controllers = IPFS_ENDPOINTS.map(() => new AbortController());
+
+  try {
+    const response = await Promise.any(
+      IPFS_ENDPOINTS.map(async (endpoint, index) => {
+        const controller = controllers[index];
+        const { signal } = controller;
+
+        const res = await fetch(`${endpoint}${cid}`, { signal });
+        if (res.ok) {
+          // Abort other requests once a successful one is found
+          controllers.forEach((ctrl, i) => {
+            if (i !== index) ctrl.abort();
+          });
+          const data = await res.json();
+          cache.put(cid, data);
+          return data;
+        }
+        throw new Error(`Failed to fetch from ${endpoint}`);
+      }),
+    );
+
+    return response as InvoiceMetadata;
+  } catch (error) {
+    console.error(`Failed to fetch from IPFS for CID: ${cid}: `, error);
+    throw new Error(`Failed to fetch from IPFS for CID: ${cid}`);
+  }
+};
 
 const pinJson = async (data: object, metadata: object, token: string) => {
   const pinataData = JSON.stringify({
@@ -92,12 +142,15 @@ export function convertByte32ToIpfsCidV0(str: Hex) {
 }
 
 export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
+  if (!process.env.PINATA_JWT) {
+    throw new Error('PINATA_JWT env variable is not set');
+  }
   const options = {
     method: 'POST',
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
-      authorization: `Bearer ${PINATA_JWT}`,
+      authorization: `Bearer ${process.env.PINATA_JWT}`,
     },
     body: JSON.stringify(keyRestrictions),
   };

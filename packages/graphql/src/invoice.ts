@@ -81,7 +81,7 @@ export type Resolution = {
 export type Invoice = {
   amounts: bigint[];
   version?: bigint | undefined;
-  address: string;
+  address: Hex;
   invoiceType?: string | undefined;
   resolver: string;
   resolutionRate: bigint;
@@ -90,8 +90,8 @@ export type Invoice = {
   id: string;
   createdAt: bigint;
   network: string;
-  client: string;
-  provider: string;
+  client: Hex;
+  provider: Hex;
   resolverType: ADR;
   isLocked: boolean;
   currentMilestone: bigint;
@@ -109,11 +109,11 @@ export type Invoice = {
 };
 
 export const fetchInvoice = async (
-  chainId: number,
+  chainId: number | undefined,
   queryAddress: Address,
 ): Promise<Invoice | null> => {
   const address = isAddress(queryAddress) && queryAddress;
-  if (!address) return null;
+  if (!address || !chainId) return null;
 
   const data = await fetchTypedQuery(chainId)({
     invoice: [
@@ -221,5 +221,11 @@ export const fetchInvoice = async (
 
   if (!data?.invoice) return null;
 
-  return data.invoice as unknown as Invoice;
+  const invoice = {
+    ...data.invoice,
+    // @ts-expect-error amounts is an array of BigInt
+    amounts: data.invoice.amounts as bigint[],
+  };
+
+  return invoice as Invoice;
 };

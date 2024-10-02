@@ -7,6 +7,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
 import { FormLock, useLock } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
@@ -16,6 +17,7 @@ import {
   Textarea,
   useToast,
 } from '@smartinvoicexyz/ui';
+import { lockFundsSchema } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
@@ -43,7 +45,9 @@ export function LockFunds({
       'resolutionRate',
     ],
   );
-  const localForm = useForm<FormLock>();
+  const localForm = useForm<FormLock>({
+    resolver: yupResolver(lockFundsSchema),
+  });
   const { watch, handleSubmit } = localForm;
 
   const description = watch('description');

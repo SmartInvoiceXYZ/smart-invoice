@@ -1,14 +1,8 @@
-import {
-  Box,
-  Button,
-  Flex,
-  Image,
-  useDisclosure,
-  useMediaQuery,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Image, useDisclosure } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
+import { useAccount } from 'wagmi';
 
 import { ChakraNextLink } from '../atoms';
 import { HamburgerIcon } from '../icons/HamburgerIcon';
@@ -18,7 +12,7 @@ export const StyledButton = styled(Button)`
   &::after {
     box-sizing: inherit;
     transition: all ease-in-out 0.2s;
-    background: none repeat scroll 0 0 ${theme.colors.red[500]};
+    background: none repeat scroll 0 0 ${theme.colors.blue[1]};
     content: '';
     display: block;
     height: 2px;
@@ -35,7 +29,7 @@ export const StyledButton = styled(Button)`
   }
 `;
 
-const links = [
+const LINKS = [
   { label: 'Dashboard', href: '/invoices' },
   { label: 'Documentation', href: 'https://docs.smartinvoice.xyz' },
   {
@@ -46,8 +40,9 @@ const links = [
 
 export function Header() {
   const { isOpen, onToggle } = useDisclosure();
+  const { isConnected } = useAccount();
 
-  const [upTo780] = useMediaQuery('(max-width: 780px)');
+  const links = isConnected ? LINKS : LINKS.slice(1);
 
   return (
     <Flex
@@ -65,7 +60,7 @@ export function Header() {
       zIndex={5}
     >
       <Box width="230px">
-        <ChakraNextLink href="/invoices">
+        <ChakraNextLink href={isConnected ? '/invoices' : '/'}>
           <Flex cursor="pointer">
             <Image
               src="/assets/smart-invoice/normal.svg"
@@ -76,20 +71,22 @@ export function Header() {
         </ChakraNextLink>
       </Box>
 
-      {/* Navigation Links */}
-      {!upTo780 && (
-        <Flex gap={8} justify="center" align="center">
-          {_.map(links, ({ label, href }) => (
-            <ChakraNextLink
-              key={href}
-              href={href}
-              isExternal={!href?.startsWith('/')}
-            >
-              {label}
-            </ChakraNextLink>
-          ))}
-        </Flex>
-      )}
+      <Flex
+        gap={8}
+        justify="center"
+        align="center"
+        display={{ base: 'none', md: 'flex' }}
+      >
+        {_.map(links, ({ label, href }) => (
+          <ChakraNextLink
+            key={href}
+            href={href}
+            isExternal={!href?.startsWith('/')}
+          >
+            {label}
+          </ChakraNextLink>
+        ))}
+      </Flex>
 
       <Flex
         align="center"
@@ -97,33 +94,34 @@ export function Header() {
         transition="width 1s ease-out"
         justify="end"
       >
-        {!upTo780 && (
-          <Flex justifyContent="flex-end" width="230px">
-            <ConnectButton
-              accountStatus="address"
-              chainStatus="icon"
-              showBalance={false}
-            />
-          </Flex>
-        )}
-        {upTo780 && (
-          <Button
-            onClick={onToggle}
-            variant="link"
-            ml={{ base: '0.5rem', sm: '1rem' }}
-            zIndex={7}
-          >
-            <HamburgerIcon
-              boxSize={{ base: '2rem', sm: '2.75rem' }}
-              transition="all 1s ease-out"
-              _hover={{
-                transition: 'all 1s ease-out',
-                transform: 'rotateZ(90deg)',
-              }}
-              color="blue.1"
-            />
-          </Button>
-        )}
+        <Flex
+          justifyContent="flex-end"
+          width="230px"
+          display={{ base: 'none', md: 'flex' }}
+        >
+          <ConnectButton
+            accountStatus="address"
+            chainStatus="icon"
+            showBalance={false}
+          />
+        </Flex>
+        <Button
+          onClick={onToggle}
+          variant="link"
+          ml={{ base: '0.5rem', sm: '1rem' }}
+          zIndex={7}
+          display={{ base: 'flex', md: 'none' }}
+        >
+          <HamburgerIcon
+            boxSize={{ base: '2rem', sm: '2.75rem' }}
+            transition="all 1s ease-out"
+            _hover={{
+              transition: 'all 1s ease-out',
+              transform: 'rotateZ(90deg)',
+            }}
+            color="blue.1"
+          />
+        </Button>
       </Flex>
 
       <Flex
@@ -137,6 +135,7 @@ export function Header() {
         direction="column"
         justify="center"
         align="center"
+        gap={6}
         transition="all 2s ease-out"
         pointerEvents={isOpen ? 'all' : 'none'}
         css={{
@@ -145,13 +144,11 @@ export function Header() {
             : 'circle(100px at 90% -20%)',
         }}
       >
-        <Flex height="60px" alignItems="center">
-          <ConnectButton
-            accountStatus="address"
-            chainStatus="icon"
-            showBalance={false}
-          />
-        </Flex>
+        <ConnectButton
+          accountStatus="address"
+          chainStatus="icon"
+          showBalance={false}
+        />
 
         {_.map(links, ({ label, href }) => (
           <ChakraNextLink
@@ -161,11 +158,10 @@ export function Header() {
           >
             <StyledButton
               transition="all 0.5s ease 0.4s"
-              my="1rem"
               variant="link"
               color="gray"
               fontWeight="normal"
-              fontSize="1.5rem"
+              fontSize="lg"
             >
               {label}
             </StyledButton>

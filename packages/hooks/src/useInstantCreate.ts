@@ -21,7 +21,12 @@ import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Address, encodeAbiParameters, Hex, parseUnits, toHex } from 'viem';
-import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
 
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
@@ -30,12 +35,10 @@ const INSTANT_TYPE = toHex('instant', { size: 32 });
 
 export const useInstantCreate = ({
   invoiceForm,
-  chainId,
   toast,
   onTxSuccess,
 }: {
   invoiceForm: UseFormReturn<Partial<FormInvoice>>;
-  chainId: number;
   toast: UseToastReturn;
   onTxSuccess?: (result: Address) => void;
 }): {
@@ -44,6 +47,7 @@ export const useInstantCreate = ({
   writeError: Error | null;
   isLoading: boolean;
 } => {
+  const chainId = useChainId();
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
   const [waitingForTx, setWaitingForTx] = useState(false);
   const { getValues } = invoiceForm;

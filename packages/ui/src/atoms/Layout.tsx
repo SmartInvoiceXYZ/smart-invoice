@@ -3,7 +3,7 @@ import { SUPPORTED_NETWORKS } from '@smartinvoicexyz/constants';
 import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';
-import React, { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import { useWalletClient } from 'wagmi';
 
 import { Footer } from '../molecules/Footer';
@@ -20,8 +20,12 @@ export function Layout({ children }: PropsWithChildren) {
   }, [chainId]);
 
   const router = useRouter();
+  const isInvoicePath =
+    router.pathname !== '/invoices' && router.pathname.startsWith('/invoice/');
   const isOpenPath =
-    router.pathname === '/' || router.pathname === '/contracts';
+    router.pathname === '/' ||
+    router.pathname === '/contracts' ||
+    isInvoicePath;
   const isValid =
     isOpenPath || (account && chainId && SUPPORTED_NETWORKS.includes(chainId));
 

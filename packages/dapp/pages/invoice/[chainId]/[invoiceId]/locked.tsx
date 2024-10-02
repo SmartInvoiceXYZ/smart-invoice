@@ -8,36 +8,25 @@ import {
 } from '@smartinvoicexyz/ui';
 import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { Hex, isAddress } from 'viem';
-import { useChainId } from 'wagmi';
 
 function LockedInvoice() {
-  const chainId = useChainId();
+  const router = useRouter();
+  const { invoiceId: invId, chainId: hexChainId } = router.query;
 
-  const { hexChainId, invoiceId: invId } = useParams<{
-    hexChainId: string;
-    invoiceId: string;
-  }>();
   const invoiceId = _.toLower(String(invId)) as Hex;
-
   const invoiceChainId = hexChainId
     ? parseInt(String(hexChainId), 16)
     : undefined;
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     address: invoiceId,
-    chainId,
+    chainId: invoiceChainId,
   });
 
   if (!isAddress(invoiceId) || (!invoiceDetails === null && !isLoading)) {
     return <InvoiceNotFound />;
-  }
-
-  if (invoiceDetails && chainId !== invoiceChainId) {
-    return (
-      <InvoiceNotFound chainId={invoiceChainId} heading="Incorrect Network" />
-    );
   }
 
   if (!invoiceDetails || isLoading) {

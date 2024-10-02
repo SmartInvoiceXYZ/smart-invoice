@@ -1,4 +1,5 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormResolve, useResolve } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
@@ -8,6 +9,7 @@ import {
   TokenDescriptor,
   useToast,
 } from '@smartinvoicexyz/ui';
+import { resolveFundsSchema } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
@@ -27,7 +29,9 @@ export function ResolveFunds({
   );
 
   const toast = useToast();
-  const localForm = useForm<FormResolve>();
+  const localForm = useForm<FormResolve>({
+    resolver: yupResolver(resolveFundsSchema),
+  });
   const { watch, handleSubmit, setValue } = localForm;
 
   const resolverAward = useMemo(() => {
@@ -82,9 +86,9 @@ export function ResolveFunds({
 
   useEffect(() => {
     if (availableFunds > 0) {
-      setValue('clientAward', availableFunds.toString());
-      setValue('providerAward', '0');
-      setValue('resolverAward', resolverAward.toString());
+      setValue('clientAward', availableFunds);
+      setValue('providerAward', 0);
+      setValue('resolverAward', resolverAward);
     }
   }, [availableFunds, resolverAward]);
 
@@ -167,10 +171,10 @@ export function ResolveFunds({
         registerOptions={{
           onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
-              setValue('clientAward', availableFunds.toString());
-              setValue('providerAward', '0');
+              setValue('clientAward', availableFunds);
+              setValue('providerAward', 0);
             }
-            setValue('providerAward', (availableFunds - value).toString());
+            setValue('providerAward', availableFunds - value);
           },
         }}
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}
@@ -183,10 +187,10 @@ export function ResolveFunds({
         registerOptions={{
           onChange: ({ target: { value } }) => {
             if (value > availableFunds) {
-              setValue('providerAward', availableFunds.toString());
-              setValue('clientAward', '0');
+              setValue('providerAward', availableFunds);
+              setValue('clientAward', 0);
             }
-            setValue('clientAward', (availableFunds - value).toString());
+            setValue('clientAward', availableFunds - value);
           },
         }}
         rightElement={<TokenDescriptor tokenBalance={tokenBalance} />}

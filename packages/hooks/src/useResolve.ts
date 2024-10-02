@@ -24,10 +24,10 @@ import { useDetailsPin } from './useDetailsPin';
 
 export type FormResolve = {
   description: string;
-  document: string;
-  clientAward: string;
-  providerAward: string;
-  resolverAward: string;
+  document?: string;
+  clientAward: number;
+  providerAward: number;
+  resolverAward: number;
 };
 
 export const useResolve = ({
@@ -80,15 +80,15 @@ export const useResolve = ({
 
   const clientAward =
     clientAwardForm && tokenMetadata?.decimals
-      ? parseUnits(clientAwardForm, tokenMetadata.decimals)
+      ? parseUnits(clientAwardForm.toString(), tokenMetadata.decimals)
       : BigInt(0);
   const providerAward =
     providerAwardForm && tokenMetadata?.decimals
-      ? parseUnits(providerAwardForm, tokenMetadata.decimals)
+      ? parseUnits(providerAwardForm.toString(), tokenMetadata.decimals)
       : BigInt(0);
   const resolverAward =
     resolverAwardForm && tokenMetadata?.decimals
-      ? parseUnits(resolverAwardForm, tokenMetadata.decimals)
+      ? parseUnits(resolverAwardForm.toString(), tokenMetadata.decimals)
       : BigInt(0);
 
   const fullBalance =

@@ -22,14 +22,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Address, Hex } from 'viem';
-import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
 
 export function CreateInvoiceInstant() {
-  const chainId = useChainId();
   const queryClient = useQueryClient();
-  const { modals, setModals } = useOverlay();
+  const overlay = useOverlay();
   const invoiceForm = useForm();
   const { data: tokens } = useFetchTokens();
   const toast = useToast();
@@ -51,7 +49,6 @@ export function CreateInvoiceInstant() {
 
   const { writeAsync, isLoading } = useInstantCreate({
     invoiceForm,
-    chainId,
     toast,
     onTxSuccess,
   });
@@ -89,11 +86,7 @@ export function CreateInvoiceInstant() {
         my="2rem"
         maxW="650px"
       >
-        <NetworkChangeAlertModal
-          modals={modals}
-          setModals={setModals}
-          chainId={chainId}
-        />
+        <NetworkChangeAlertModal {...overlay} />
 
         <Stack
           spacing={{ base: '1.5rem', lg: '1rem' }}
@@ -157,7 +150,6 @@ export function CreateInvoiceInstant() {
               <RegisterSuccess
                 invoiceId={invoiceId as Address}
                 txHash={txHash as Address}
-                type={INVOICE_TYPES.Instant}
               />
             )}
           </Flex>

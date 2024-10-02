@@ -1,68 +1,47 @@
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable camelcase */
 import {
   Box,
   Button,
   Flex,
   Heading,
   HStack,
-  IconButton,
   Stack,
   Table,
   Tbody,
   Td,
-  Text,
   Th,
   Thead,
   Tr,
 } from '@chakra-ui/react';
+import { InvoiceDisplayData } from '@smartinvoicexyz/graphql';
+import { useInvoices, useIpfsDetails } from '@smartinvoicexyz/hooks';
 import {
-  cache,
-  fetchInvoices,
-  Invoice_orderBy,
-  InvoiceDisplayData,
-} from '@smartinvoicexyz/graphql';
-import { useIpfsDetails } from '@smartinvoicexyz/hooks';
-import { chainsMap, getAccountString } from '@smartinvoicexyz/utils';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+  chainByName,
+  getAccountString,
+  getDateTimeString,
+} from '@smartinvoicexyz/utils';
 import {
   CellContext,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  PaginationState,
-  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Address, formatUnits } from 'viem';
 import { useAccount } from 'wagmi';
 
 import { ChakraNextLink, Loader } from '../atoms';
 import { useMediaStyles } from '../hooks';
-import {
-  DoubleLeftArrowIcon,
-  LeftArrowIcon,
-  RightArrowIcon,
-} from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
 import { theme } from '../theme';
-// TODO use `usePaginatedQuery`
-
-export type SearchInputType = string | Address | undefined;
-
-export type InvoiceDashboardTableProps = {
-  chainId?: number;
-  searchInput?: SearchInputType;
-};
 
 function InvoiceDisplay({
   cell,
 }: {
-  cell: CellContext<Partial<InvoiceDisplayData>, string | undefined>;
+  cell: CellContext<InvoiceDisplayData, string | undefined>;
 }) {
   const { ipfsHash } = cell.row.original;
   const address = cell.getValue();
@@ -70,33 +49,34 @@ function InvoiceDisplay({
   const { data } = useIpfsDetails(ipfsHash ?? '');
 
   const displayString =
-    data?.projectName || getAccountString(address as Address | undefined);
+    data?.title || getAccountString(address as Address | undefined);
 
   return displayString;
 }
 
-export function InvoiceDashboardTable({
-  chainId,
-  searchInput,
-}: InvoiceDashboardTableProps) {
+export function InvoiceDashboardTable() {
   const router = useRouter();
-  const { address } = useAccount();
-
-  useEffect(() => {
-    cache.reset();
-  }, [chainId, address]);
+  const { isConnected } = useAccount();
 
   const { primaryButtonSize } = useMediaStyles();
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Partial<InvoiceDisplayData>>();
+    const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
     return [
       columnHelper.accessor('createdAt', {
         header: 'Date Created',
-        cell: info => new Date(Number(info.getValue()) * 1000).toLocaleString(),
+        cell: info => getDateTimeString(info.getValue()),
+      }),
+      columnHelper.accessor('network', {
+        header: 'Chain',
+        cell: info => {
+          const chain = chainByName(info.getValue());
+          return chain?.name;
+        },
       }),
       columnHelper.accessor('address', {
         header: 'Invoice Name/ID',
+        // eslint-disable-next-line react/no-unstable-nested-components
         cell: info => <InvoiceDisplay cell={info} />,
       }),
       columnHelper.accessor(
@@ -132,59 +112,13 @@ export function InvoiceDashboardTable({
     ];
   }, []);
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'createdAt', desc: true },
-  ]);
-
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const { data, isLoading } = useInvoices({
+    page: 0,
   });
-
-  const fetchDataOptions: [
-    number,
-    SearchInputType,
-    number,
-    number,
-    Invoice_orderBy,
-    boolean,
-  ] = useMemo(
-    () => [
-      chainId || -1,
-      searchInput,
-      pageIndex,
-      pageSize,
-      sorting[0].id as Invoice_orderBy,
-      sorting[0].desc,
-    ],
-    [chainId, pageIndex, pageSize, searchInput, sorting],
-  );
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['invoices', ...fetchDataOptions],
-    queryFn: () => fetchInvoices(...fetchDataOptions),
-    enabled: !!chainId && !!searchInput,
-    placeholderData: keepPreviousData,
-  });
-
-  const pagination = useMemo(
-    () => ({
-      pageIndex,
-      pageSize,
-    }),
-    [pageIndex, pageSize],
-  );
 
   const table = useReactTable({
-    data: data ?? ([] as InvoiceDisplayData[]),
+    data: data || [],
     columns,
-    pageCount: -1,
-    state: {
-      pagination,
-      sorting,
-    },
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
@@ -211,9 +145,9 @@ export function InvoiceDashboardTable({
           gap={4}
           width="100%"
         >
-          {chainId ? (
+          {isConnected ? (
             <Heading color="gray" size="lg">
-              No invoices found on {chainsMap(chainId)?.name}.
+              No invoices found!
             </Heading>
           ) : (
             <Heading color="gray" size="lg">
@@ -249,76 +183,48 @@ export function InvoiceDashboardTable({
             Create Invoice
           </Button>
         </HStack>
-        <div className="tableWrap">
-          <Table>
-            <Thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <Tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <Th key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </Th>
+        <Table bg="white">
+          <Thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <Tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <Th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </Th>
+                ))}
+              </Tr>
+            ))}
+          </Thead>
+          <Tbody>
+            {table.getRowModel().rows.map(row => {
+              const { address: invoiceAddr, network } = row.original;
+              const chainId = chainByName(network)?.id;
+              const url = `/invoice/${chainId?.toString(16)}/${invoiceAddr}`;
+
+              return (
+                <Tr
+                  key={row.id}
+                  onClick={() => router.push(url)}
+                  _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <Td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </Td>
                   ))}
                 </Tr>
-              ))}
-            </Thead>
-            <Tbody>
-              {table.getRowModel().rows.map(row => {
-                const { invoiceType } = row.original;
-                const { address: invoiceAddr } = row.original;
-                const url =
-                  invoiceType === 'instant'
-                    ? `/invoice/${chainId?.toString(16)}/${invoiceAddr}/instant`
-                    : `/invoice/${chainId?.toString(16)}/${invoiceAddr}`;
-
-                return (
-                  <Tr
-                    key={row.id}
-                    onClick={() => router.push(url)}
-                    _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <Td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </Td>
-                    ))}
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </div>
-        <div className="pagination">
-          <IconButton
-            aria-label="First Page"
-            icon={<DoubleLeftArrowIcon />}
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.setPageIndex(0)}
-          />
-          <IconButton
-            aria-label="Previous Page"
-            icon={<LeftArrowIcon />}
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}
-          />
-          <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
-          {data?.length >= table.getState().pagination.pageSize ? (
-            <IconButton
-              aria-label="Next Page"
-              disabled={data?.length < table.getState().pagination.pageSize}
-              icon={<RightArrowIcon />}
-              onClick={() => table.nextPage()}
-            />
-          ) : null}
-        </div>
+              );
+            })}
+          </Tbody>
+        </Table>
       </Styles>
     </Box>
   );

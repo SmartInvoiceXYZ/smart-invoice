@@ -9,17 +9,14 @@ import { useChainId } from 'wagmi';
 
 import { useInstantDetails } from './useInstantDetails';
 
-interface FetchInvoiceStatus {
-  invoice: Partial<InvoiceDetails>;
+type InvoiceStatus = {
+  invoice: InvoiceDetails;
   instantInfo: InstantDetails | undefined;
-}
+};
 
 const defaultReturn = { funded: false, label: 'Awaiting Deposit' };
 
-const fetchInvoiceStatus = async ({
-  invoice,
-  instantInfo,
-}: FetchInvoiceStatus) => {
+const fetchInvoiceStatus = async ({ invoice, instantInfo }: InvoiceStatus) => {
   const {
     currentMilestone,
     amounts,
@@ -104,11 +101,7 @@ const fetchInvoiceStatus = async ({
   return defaultReturn;
 };
 
-export const useInvoiceStatus = ({
-  invoice,
-}: {
-  invoice: Partial<InvoiceDetails>;
-}) => {
+export const useInvoiceStatus = ({ invoice }: { invoice: InvoiceDetails }) => {
   const chainId = useChainId();
 
   const { data: instantInfo } = useInstantDetails({

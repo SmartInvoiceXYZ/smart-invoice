@@ -7,22 +7,20 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
-import { Modals } from '@smartinvoicexyz/types';
+import { OverlayContextType } from '@smartinvoicexyz/types';
 import { chainsMap } from '@smartinvoicexyz/utils';
+import { useChainId } from 'wagmi';
 
-type NetworkChangeAlertModalProps = {
-  modals: { networkChange: boolean };
-  setModals: (_modals: Partial<Modals>) => void;
-  chainId?: number;
-};
+type NetworkChangeAlertModalProps = OverlayContextType;
 
 export function NetworkChangeAlertModal({
   modals,
-  setModals,
-  chainId,
+  closeModals,
 }: NetworkChangeAlertModalProps) {
+  const chainId = useChainId();
+
   return (
-    <Modal isOpen={modals.networkChange} onClose={() => setModals({})}>
+    <Modal isOpen={modals.networkChange} onClose={closeModals}>
       <ModalOverlay />
 
       <ModalContent>

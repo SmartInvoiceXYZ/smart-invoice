@@ -20,14 +20,22 @@ import {
 import { Ops, ReturnTypes } from './zeus/const';
 import { typedGql } from './zeus/typedDocumentNode';
 
-export const cache = new InMemoryCache();
+const caches: Record<number, InMemoryCache> = SUPPORTED_NETWORKS.reduce(
+  (o, chainId) => ({
+    ...o,
+    [chainId]: new InMemoryCache(),
+  }),
+  {} as Record<number, InMemoryCache>,
+);
+
+export const getCache = (chainId: number) => caches[chainId];
 
 const clients = SUPPORTED_NETWORKS.reduce(
   (o, chainId) => ({
     ...o,
     [chainId]: new ApolloClient({
       uri: getGraphUrl(chainId),
-      cache,
+      cache: caches[chainId],
     }),
   }),
   {} as Record<number, ApolloClient<NormalizedCacheObject>>,

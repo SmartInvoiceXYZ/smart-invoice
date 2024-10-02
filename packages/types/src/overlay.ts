@@ -1,27 +1,39 @@
 import {
-  AlertStatus as ChakraAlertStatus,
   CreateToastFnReturn,
   ToastProps as ChakraToastProps,
 } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 
-export type Modals = {
-  networkChange: boolean;
-  deposit: boolean;
-  lock: boolean;
-  release: boolean;
-  resolve: boolean;
-  withdraw: boolean;
-  addMilestones: boolean;
-  tip: boolean;
+export type ModalType =
+  | 'networkChange'
+  | 'deposit'
+  | 'lock'
+  | 'release'
+  | 'resolve'
+  | 'withdraw'
+  | 'addMilestones';
+
+export type Modals = Record<ModalType, boolean>;
+
+export const ModalTypes: Record<string, ModalType> = {
+  NETWORK_CHANGE: 'networkChange' as ModalType,
+  DEPOSIT: 'deposit' as ModalType,
+  LOCK: 'lock' as ModalType,
+  RELEASE: 'release' as ModalType,
+  RESOLVE: 'resolve' as ModalType,
+  WITHDRAW: 'withdraw' as ModalType,
+  ADD_MILESTONES: 'addMilestones' as ModalType,
+};
+
+export type OverlayContextType = {
+  modals: Modals;
+  openModal: (type: ModalType) => void;
+  closeModals: () => void;
 };
 
 type CustomToastProps = {
-  status: ChakraAlertStatus;
   title: string | ReactNode;
   description?: string | ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any; // IconType;
   iconName?: string;
   iconColor?: string;
   toast?: CreateToastFnReturn;

@@ -28,6 +28,7 @@ import {
   AccountLink,
   CopyIcon,
   GenerateInvoicePDF,
+  InvoiceBadge,
   QuestionIcon,
   VerifyInvoice,
 } from '..';
@@ -48,6 +49,7 @@ export function InvoiceMetaDetails({
     provider,
     resolver,
     verified,
+    invoiceType,
     resolverInfo,
   } = _.pick(invoice, [
     'id',
@@ -58,6 +60,7 @@ export function InvoiceMetaDetails({
     'deadline',
     'metadata',
     'verified',
+    'invoiceType',
     'resolverInfo',
   ]);
 
@@ -195,6 +198,7 @@ export function InvoiceMetaDetails({
             Details of Agreement
           </Link>
         )}
+        <InvoiceBadge invoiceType={invoiceType} />
       </Stack>
 
       <Stack fontSize="sm" color="grey" align="stretch" justify="center">
