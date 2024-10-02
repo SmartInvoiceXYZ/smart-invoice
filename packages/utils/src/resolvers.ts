@@ -121,7 +121,7 @@ export const projectDetailsSchema = Yup.object().shape({
   document: Yup.string().test({
     name: 'documentIsURL',
     test: (v, { createError }) => {
-      if (!!v && isValidURL(v)) return true;
+      if (!v || isValidURL(v)) return true;
       return createError({
         path: 'document',
         message: 'Project document must be a valid URL',
