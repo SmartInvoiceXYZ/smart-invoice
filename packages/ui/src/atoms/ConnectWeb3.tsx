@@ -1,10 +1,8 @@
 import { Button, Flex, Text } from '@chakra-ui/react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { SUPPORTED_NETWORKS } from '@smartinvoicexyz/constants';
+import { SUPPORTED_CHAINS } from '@smartinvoicexyz/constants';
 import { useIsClient } from '@smartinvoicexyz/hooks';
-import { chainsMap } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React from 'react';
 import { useAccount } from 'wagmi';
 
 import { WalletFilledIcon } from '../icons/WalletFilledIcon';
@@ -13,7 +11,7 @@ import { Loader } from './Loader';
 
 export function ConnectWeb3() {
   const { openConnectModal } = useConnectModal();
-  const { address, isConnecting } = useAccount();
+  const { isConnected, isConnecting } = useAccount();
   const isClient = useIsClient();
 
   if (!isClient || isConnecting) {
@@ -48,15 +46,15 @@ export function ConnectWeb3() {
           <WalletFilledIcon boxSize="1.75rem" />
         </Flex>
 
-        {isClient && address ? (
+        {isClient && isConnected ? (
           <>
             <Text fontSize="2xl" fontFamily="heading" mb={4}>
               Connect Wallet
             </Text>
             <Text color="greyText" mb={4} textAlign="center">
               {`Please switch to ${_.map(
-                SUPPORTED_NETWORKS,
-                network => chainsMap(network)?.name,
+                SUPPORTED_CHAINS,
+                chain => chain.name,
               ).join(' or ')}`}
             </Text>
           </>
@@ -72,7 +70,7 @@ export function ConnectWeb3() {
           </Text>
         )}
 
-        {isClient && !address && (
+        {isClient && !isConnected && (
           <Button onClick={openConnectModal} px={12} isLoading={isConnecting}>
             Connect Wallet
           </Button>

@@ -1,11 +1,9 @@
 import {
   INVOICE_VERSION,
-  invoiceFactory,
   KnownResolverType,
   LOG_TYPE,
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
-  wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import {
@@ -15,7 +13,9 @@ import {
 } from '@smartinvoicexyz/types';
 import {
   errorToastHandler,
+  getInvoiceFactoryAddress,
   getResolverInfo,
+  getWrappedNativeToken,
   parseTxLogs,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
@@ -90,8 +90,6 @@ export const useInvoiceCreate = ({
     'endDate',
   ]);
 
-  const localInvoiceFactory = invoiceFactory(chainId);
-
   const { data: tokens } = useFetchTokens();
   const invoiceToken = _.find(
     tokens,
@@ -153,14 +151,16 @@ export const useInvoiceCreate = ({
   }, [resolverType, customResolverAddress]);
 
   const escrowData = useMemo(() => {
+    const wrappedNativeToken = getWrappedNativeToken(chainId);
+    const invoiceFactory = getInvoiceFactoryAddress(chainId);
     if (
       !client ||
       !resolverAddress ||
       !token ||
       !safetyValveDate ||
-      !wrappedNativeToken(chainId) ||
+      !wrappedNativeToken ||
       !details ||
-      !localInvoiceFactory ||
+      !invoiceFactory ||
       !provider
     ) {
       return '0x';
@@ -185,20 +185,12 @@ export const useInvoiceCreate = ({
         token as Address, // address _token (payment token address)
         BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date
         details, // bytes32 _details detailHash
-        wrappedNativeToken(chainId),
+        wrappedNativeToken,
         REQUIRES_VERIFICATION,
-        localInvoiceFactory,
+        invoiceFactory,
       ],
     );
-  }, [
-    client,
-    resolverType,
-    token,
-    details,
-    safetyValveDate,
-    wrappedNativeToken,
-    localInvoiceFactory,
-  ]);
+  }, [client, resolverType, token, details, safetyValveDate]);
 
   const amounts = _.map(milestones, m =>
     parseUnits(m.value, invoiceToken?.decimals ?? 18),
@@ -209,7 +201,7 @@ export const useInvoiceCreate = ({
     error: prepareError,
     isLoading: prepareLoading,
   } = useSimulateContract({
-    address: localInvoiceFactory,
+    address: getInvoiceFactoryAddress(chainId),
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
     args: [provider as Address, amounts, escrowData, ESCROW_TYPE],

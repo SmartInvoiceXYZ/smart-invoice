@@ -18,6 +18,7 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useAddMilestones } from '@smartinvoicexyz/hooks';
 import { FormInvoice, InvoiceDetails } from '@smartinvoicexyz/types';
 import {
@@ -30,6 +31,7 @@ import {
   useToast,
 } from '@smartinvoicexyz/ui';
 import {
+  addMilestonesSchema,
   commify,
   logDebug,
   resolutionFeePercentage,
@@ -64,6 +66,7 @@ export function AddMilestones({
     ]);
 
   const localForm = useForm<Partial<FormInvoice>>({
+    resolver: yupResolver(addMilestonesSchema),
     defaultValues: {
       milestones: [
         {

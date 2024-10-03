@@ -17,7 +17,6 @@ import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails, IToken } from '@smartinvoicexyz/types';
 import { chainByName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React from 'react';
 
 import { InvoicePDF } from '../molecules';
 
@@ -50,7 +49,16 @@ export function GenerateInvoicePDF({
   const symbol = invoiceToken?.symbol;
   return (
     <Stack align="stretch">
-      <Button onClick={onOpen} variant="link" {...buttonProps}>
+      <Button
+        onClick={onOpen}
+        variant="outline"
+        size="xs"
+        colorScheme="blue"
+        fontWeight="normal"
+        fontFamily="mono"
+        textTransform="uppercase"
+        {...buttonProps}
+      >
         {buttonText}
       </Button>
 

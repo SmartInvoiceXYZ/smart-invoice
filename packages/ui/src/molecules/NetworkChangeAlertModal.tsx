@@ -7,22 +7,20 @@ import {
   ModalHeader,
   ModalOverlay,
 } from '@chakra-ui/react';
-import { Modals } from '@smartinvoicexyz/types';
-import { chainsMap } from '@smartinvoicexyz/utils';
+import { OverlayContextType } from '@smartinvoicexyz/types';
+import { getChainName } from '@smartinvoicexyz/utils';
+import { useChainId } from 'wagmi';
 
-type NetworkChangeAlertModalProps = {
-  modals: { networkChange: boolean };
-  setModals: (_modals: Partial<Modals>) => void;
-  chainId?: number;
-};
+type NetworkChangeAlertModalProps = OverlayContextType;
 
 export function NetworkChangeAlertModal({
   modals,
-  setModals,
-  chainId,
+  closeModals,
 }: NetworkChangeAlertModalProps) {
+  const chainId = useChainId();
+
   return (
-    <Modal isOpen={modals.networkChange} onClose={() => setModals({})}>
+    <Modal isOpen={modals.networkChange} onClose={closeModals}>
       <ModalOverlay />
 
       <ModalContent>
@@ -39,8 +37,7 @@ export function NetworkChangeAlertModal({
           }}
         >
           <div>
-            You are changing the network to{' '}
-            <b>{chainId ? chainsMap(chainId)?.name : '-'}</b>.
+            You are changing the network to <b>{getChainName(chainId)}</b>.
           </div>
           <Divider style={{ borderTop: '1px solid red', margin: '10px 0' }} />
           <div>

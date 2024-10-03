@@ -3,8 +3,9 @@ import { TOASTS } from '@smartinvoicexyz/constants';
 import { useVerify } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useQueryClient } from '@tanstack/react-query';
+import _ from 'lodash';
 import { isAddress } from 'viem';
-import { useChainId } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { useToast } from '../hooks';
 
@@ -21,7 +22,13 @@ export function VerifyInvoice({
 }: VerifyInvoiceProps) {
   const chainId = useChainId();
   const toast = useToast();
-  const { address } = invoice || {};
+  const { isConnected } = useAccount();
+  const {
+    address,
+    chainId: invoiceChainId,
+    dispute,
+    resolution,
+  } = _.pick(invoice, ['address', 'chainId', 'dispute', 'resolution']);
   const queryClient = useQueryClient();
   const validAddress = address && isAddress(address) ? address : undefined;
 
@@ -45,7 +52,17 @@ export function VerifyInvoice({
     writeAsync?.();
   };
 
-  if (verifiedStatus || !isClient) return null;
+  const isInvalidChain = chainId !== invoiceChainId;
+  const isDisputed = (!!dispute || !!resolution) ?? false;
+
+  if (
+    verifiedStatus ||
+    !isClient ||
+    !isConnected ||
+    isInvalidChain ||
+    isDisputed
+  )
+    return null;
 
   return (
     <Stack w="100%" spacing="rem" alignItems="start">

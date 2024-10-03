@@ -11,7 +11,11 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { Dispute, Resolution } from '@smartinvoicexyz/graphql';
-import { InvoiceDetails, Modals } from '@smartinvoicexyz/types';
+import {
+  InvoiceDetails,
+  ModalTypes,
+  OverlayContextType,
+} from '@smartinvoicexyz/types';
 import { AccountLink, Modal, QuestionIcon } from '@smartinvoicexyz/ui';
 import {
   commify,
@@ -23,7 +27,7 @@ import {
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { formatUnits, Hex } from 'viem';
-import { useChainId } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { AddMilestones } from './AddMilestones';
 
@@ -58,17 +62,17 @@ const getDisputesWithResolution = (
   return _.reverse([...parsed]);
 };
 
-// ! technically not a form
 export function InvoicePaymentDetails({
   invoice,
   modals,
-  setModals,
+  openModal,
+  closeModals,
 }: {
   invoice: Partial<InvoiceDetails>;
-  modals: Modals;
-  setModals: (_m: Partial<Modals>) => void;
-}) {
+} & OverlayContextType) {
+  const { address, isConnected } = useAccount();
   const chainId = useChainId();
+
   const {
     client,
     provider,
@@ -89,6 +93,9 @@ export function InvoicePaymentDetails({
     depositedMilestonesDisplay,
     depositedTxs,
     metadata,
+    isLocked,
+    dispute: latestDispute,
+    resolution: latestResolution,
   } = _.pick(invoice, [
     'client',
     'provider',
@@ -100,9 +107,12 @@ export function InvoicePaymentDetails({
     'released',
     'amounts',
     'currentMilestoneAmount',
+    'isLocked',
     'token',
     'tokenBalance',
+    'dispute',
     'disputes',
+    'resolution',
     'resolutions',
     'isReleasable',
     'isExpired',
@@ -142,18 +152,31 @@ export function InvoicePaymentDetails({
     [disputes, resolutions, resolver, client, provider],
   );
 
+  const isValidConnection = isConnected && chainId === invoice?.chainId;
+
+  const isDisputed = (!!latestDispute || !!latestResolution) ?? false;
+
+  const isParty =
+    _.toLower(address) === _.toLower(client) ||
+    _.toLower(address) === _.toLower(provider);
+
+  const canAddMilestones =
+    !isDisputed && !isExpired && !isLocked && isParty && isValidConnection;
+
   return (
     <>
       <Stack w="100%" spacing={6}>
-        <Flex justify="flex-end">
-          <Button
-            textTransform="uppercase"
-            variant="outline"
-            onClick={() => setModals({ addMilestones: true })}
-          >
-            Add Milestone
-          </Button>
-        </Flex>
+        {canAddMilestones && (
+          <Flex justify="flex-end">
+            <Button
+              textTransform="uppercase"
+              variant="outline"
+              onClick={() => openModal(ModalTypes.ADD_MILESTONES)}
+            >
+              Add Milestone
+            </Button>
+          </Flex>
+        )}
         <Card py={6} direction="column" width="100%">
           <Stack width="100%">
             <Stack w="100%" px={6} spacing={4}>
@@ -455,8 +478,8 @@ export function InvoicePaymentDetails({
           </Stack>
         </Card>
       </Stack>
-      <Modal isOpen={modals?.addMilestones} onClose={() => setModals({})}>
-        <AddMilestones invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.addMilestones} onClose={closeModals}>
+        <AddMilestones invoice={invoice} onClose={closeModals} />
       </Modal>
     </>
   );

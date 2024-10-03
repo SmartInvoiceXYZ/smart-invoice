@@ -8,9 +8,9 @@ export function handleEpoch(value: number): Date {
   return new Date(value);
 }
 
-export function parseToDate(
-  input: number | string | Date | bigint | undefined,
-): Date {
+type DateInput = number | string | Date | bigint | undefined;
+
+export function parseToDate(input: DateInput): Date {
   if (input === undefined) {
     return new Date();
   }
@@ -52,13 +52,13 @@ export const oneMonthFromNow = () => {
   return localDate;
 };
 
-export const sevenDaysFromDate = (date: string | number | Date) => {
-  const result = new Date(date);
+export const sevenDaysFromDate = (date: DateInput) => {
+  const result = parseToDate(date);
   result.setDate(result.getDate() + 7);
   return result;
 };
 
-export const unixToDateTime = (d: number | string | Date): string => {
+export const unixToDateTime = (d: DateInput): string => {
   const date = parseToDate(d);
 
   const humanDateFormat = date.toLocaleString();
@@ -68,7 +68,7 @@ export const unixToDateTime = (d: number | string | Date): string => {
 
 export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
 
-export const getDateString = (d: number | string | Date | bigint) => {
+export const getDateString = (d: DateInput) => {
   const date = parseToDate(d);
   const ye = new Intl.DateTimeFormat('en', {
     year: 'numeric',
@@ -82,7 +82,25 @@ export const getDateString = (d: number | string | Date | bigint) => {
   return `${mo} ${da}, ${ye}`;
 };
 
-export const formatDate = (d: number | string | Date) => {
+export const getDateTimeString = (d: DateInput) => {
+  const date = parseToDate(d);
+  const ye = new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+  }).format(date);
+  const mo = new Intl.DateTimeFormat('en', {
+    month: 'short',
+  }).format(date);
+  const da = new Intl.DateTimeFormat('en', {
+    day: '2-digit',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+  return `${mo} ${da}, ${ye} ${time}`;
+};
+
+export const formatDate = (d: DateInput) => {
   const date = parseToDate(d);
 
   let month = `${date.getUTCMonth() + 1}`;

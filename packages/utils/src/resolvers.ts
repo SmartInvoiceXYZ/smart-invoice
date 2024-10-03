@@ -102,6 +102,59 @@ export const instantPaymentSchema = Yup.object().shape({
   lateFeeTimeInterval: Yup.string(),
 });
 
+export const addMilestonesSchema = Yup.object().shape({
+  milestones: Yup.array()
+    .min(1, 'At least one milestone is required!')
+    .of(
+      Yup.object().shape({
+        value: Yup.string().required('Milestone Amount is required'),
+        title: Yup.string().optional(),
+        description: Yup.string().optional(),
+      }),
+    ),
+  document: Yup.string().test({
+    name: 'documentIsURL',
+    test: (v, { createError }) => {
+      if (!v || isValidURL(v)) return true;
+      return createError({
+        path: 'document',
+        message: 'Project document must be a valid URL',
+      });
+    },
+  }),
+});
+
+export const resolveFundsSchema = Yup.object().shape({
+  description: Yup.string().required('Project description is required'),
+  document: Yup.string().test({
+    name: 'documentIsURL',
+    test: (v, { createError }) => {
+      if (!v || isValidURL(v)) return true;
+      return createError({
+        path: 'document',
+        message: 'Project document must be a valid URL',
+      });
+    },
+  }),
+  clientAward: Yup.number().required('Client award is required'),
+  providerAward: Yup.number().required('Provider award is required'),
+  resolverAward: Yup.number().required('Resolver award is required'),
+});
+
+export const lockFundsSchema = Yup.object().shape({
+  description: Yup.string().required('Project description is required'),
+  document: Yup.string().test({
+    name: 'documentIsURL',
+    test: (v, { createError }) => {
+      if (!v || isValidURL(v)) return true;
+      return createError({
+        path: 'document',
+        message: 'Project document must be a valid URL',
+      });
+    },
+  }),
+});
+
 export const escrowPaymentsSchema = Yup.object().shape({
   milestones: Yup.array()
     .min(1, 'At least one milestone is required!')

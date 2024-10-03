@@ -1,5 +1,17 @@
 # @smartinvoicexyz/constants
 
+## 0.1.8
+
+### Patch Changes
+
+- refactored chains
+
+## 0.1.7
+
+### Patch Changes
+
+- view invoices without wallet
+
 ## 0.1.6
 
 ### Patch Changes

@@ -30,7 +30,7 @@ import { useDetailsPin } from './useDetailsPin';
 
 export type FormLock = {
   description: string;
-  document: string;
+  document?: string;
 };
 
 export const useLock = ({

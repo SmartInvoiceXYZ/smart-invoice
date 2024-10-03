@@ -1,5 +1,5 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
-import { cache, fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
 import { getInvoiceDetails } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -17,13 +17,12 @@ export const useInvoiceDetails = ({
   chainId,
 }: {
   address: Hex;
-  chainId: number;
+  chainId: number | undefined;
 }): {
   invoiceDetails: InvoiceDetails;
   isLoading: boolean;
   error: Error | null;
 } => {
-  cache.reset();
   const {
     data: invoice,
     isLoading: isFetchingInvoice,

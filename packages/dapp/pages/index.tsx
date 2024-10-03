@@ -25,7 +25,7 @@ function Home() {
         columnGap={10}
         rowGap={4}
         width="100%"
-        align="stretch"
+        align="center"
         justify="center"
         paddingX={10}
       >
