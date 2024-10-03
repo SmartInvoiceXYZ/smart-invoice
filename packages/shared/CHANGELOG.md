@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.8
+
+### Patch Changes
+
+- refactored chains
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.8
+
 ## 0.1.7
 
 ### Patch Changes

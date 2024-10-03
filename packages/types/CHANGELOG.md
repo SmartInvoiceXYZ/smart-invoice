@@ -1,5 +1,15 @@
 # @smartinvoicexyz/types
 
+## 0.1.10
+
+### Patch Changes
+
+- refactored chains
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.8
+  - @smartinvoicexyz/graphql@0.1.10
+  - @smartinvoicexyz/shared@0.1.8
+
 ## 0.1.9
 
 ### Patch Changes

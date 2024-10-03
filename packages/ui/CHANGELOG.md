@@ -1,5 +1,17 @@
 # @smartinvoicexyz/ui
 
+## 0.1.14
+
+### Patch Changes
+
+- refactored chains
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.8
+  - @smartinvoicexyz/graphql@0.1.10
+  - @smartinvoicexyz/hooks@0.1.13
+  - @smartinvoicexyz/types@0.1.10
+  - @smartinvoicexyz/utils@0.1.11
+
 ## 0.1.13
 
 ### Patch Changes

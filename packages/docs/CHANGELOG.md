@@ -1,5 +1,11 @@
 # @smartinvoicexyz/docs
 
+## 0.1.5
+
+### Patch Changes
+
+- refactored chains
+
 ## 0.1.4
 
 ### Patch Changes

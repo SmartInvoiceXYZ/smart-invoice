@@ -1,5 +1,11 @@
 # @smartinvoicexyz/constants
 
+## 0.1.8
+
+### Patch Changes
+
+- refactored chains
+
 ## 0.1.7
 
 ### Patch Changes
