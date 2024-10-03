@@ -8,13 +8,18 @@ import {
   safeWallet,
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
+import {
+  isSupportedChainId,
+  SUPPORTED_CHAINS,
+  SupportedChain,
+  SupportedChainId,
+} from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { Chain, http, Transport } from 'viem';
-import { Config, fallback } from 'wagmi';
+import { fallback } from 'wagmi';
 import {
   arbitrum,
   base,
-  gnosis,
   holesky,
   mainnet,
   optimism,
@@ -27,7 +32,7 @@ const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
 const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID || '';
 
-const infuraNetworkName: { [key: number]: string } = {
+const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'mainnet',
   [polygon.id]: 'polygon-mainnet',
   [arbitrum.id]: 'arbitrum-mainnet',
@@ -35,9 +40,10 @@ const infuraNetworkName: { [key: number]: string } = {
   [sepolia.id]: 'sepolia',
   [base.id]: 'base-mainnet',
   [holesky.id]: 'holesky',
+  // gnosis is not supported by infura
 };
 
-const alchemyNetworkName: { [key: number]: string } = {
+const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'eth-mainnet',
   [polygon.id]: 'polygon-mainnet',
   [arbitrum.id]: 'arb-mainnet',
@@ -45,61 +51,52 @@ const alchemyNetworkName: { [key: number]: string } = {
   [sepolia.id]: 'eth-sepolia',
   [base.id]: 'base-mainnet',
   [holesky.id]: 'eth-holesky',
+  // gnosis is not supported by alchemy
 };
 
-type _chains = readonly [Chain, ...Chain[]];
-type _transports = Record<_chains[number]['id'], Transport>;
+type ChainsMap = Record<SupportedChainId, SupportedChain>;
 
-const chains: _chains = [
-  mainnet,
-  gnosis,
-  polygon,
-  arbitrum,
-  optimism,
-  base,
-  holesky,
-  sepolia,
-];
-
-type ChainsList = { [key: number]: Chain };
-
-export const chainsList: ChainsList = chains.reduce(
-  (acc: ChainsList, chain: Chain) => ({
+const chainsMap: ChainsMap = SUPPORTED_CHAINS.reduce(
+  (acc: ChainsMap, chain: Chain) => ({
     ...acc,
     [chain.id]: chain,
   }),
-  {} as ChainsList,
+  {} as ChainsMap,
 );
 
-export const chainsMap = (chainId: number): Chain => {
-  const chain = chainsList[chainId];
-  if (!chain) {
-    throw new Error(`Chain ${chainId} not found`);
-  }
+export const chainById = (chainId: SupportedChainId): Chain => {
+  const chain = chainsMap[chainId];
   return chain;
 };
 
-export const chainByName = (name?: string): Chain | null => {
+export const getChainName = (chainId: number | undefined): string => {
+  if (!isSupportedChainId(chainId)) return 'Unknown';
+  return chainById(chainId).name;
+};
+
+export const chainByName = (name?: string): SupportedChain | null => {
   if (!name) return null;
 
-  const chain = chains.find((c: Chain) => c.name.toLowerCase().includes(name));
+  const chain = SUPPORTED_CHAINS.find(c => c.name.toLowerCase().includes(name));
   if (!chain) throw new Error(`Chain ${name} not found`);
 
   return chain;
 };
 
-const transports: _transports = chains.reduce(
-  (acc: _transports, chain: Chain) => {
+type _transports = Record<SupportedChainId, Transport>;
+
+const transports: _transports = SUPPORTED_CHAINS.reduce(
+  (acc: _transports, chain: SupportedChain) => {
     const infuraNetwork = infuraNetworkName[chain.id];
     const infuraUrl =
       infuraNetwork && INFURA_ID
         ? `https://${infuraNetwork}.infura.io/v3/${INFURA_ID}`
-        : '';
+        : undefined;
     const alchemyNetwork = alchemyNetworkName[chain.id];
     const alchemyUrl =
       alchemyNetwork && ALCHEMY_ID
         ? `https://${alchemyNetwork}.g.alchemy.com/v2/${ALCHEMY_ID}`
-        : '';
+        : undefined;
 
     const list = [http()];
     if (infuraUrl) list.push(http(infuraUrl));
@@ -113,11 +110,11 @@ const transports: _transports = chains.reduce(
   {} as _transports,
 );
 
-const wagmiConfig: Config<_chains, _transports> = getDefaultConfig({
+const wagmiConfig = getDefaultConfig({
   ssr: true,
   appName: APP_NAME,
   projectId: PROJECT_ID,
-  chains,
+  chains: SUPPORTED_CHAINS,
   transports,
   wallets: [
     {
@@ -135,4 +132,4 @@ const wagmiConfig: Config<_chains, _transports> = getDefaultConfig({
   ],
 });
 
-export { chains, wagmiConfig };
+export { wagmiConfig };

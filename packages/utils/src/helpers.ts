@@ -1,15 +1,12 @@
-/* eslint-disable radix */
 import {
   ARWEAVE_ENDPOINT,
-  DEFAULT_CHAIN_ID,
   invoiceFactory,
   IPFS_ENDPOINT,
-  isOfTypeChainId,
+  isSupportedChainId,
   KnownResolverType,
   Resolver,
   resolverInfo,
   resolvers,
-  SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
 import { Invoice, TokenBalance, TokenMetadata } from '@smartinvoicexyz/graphql';
@@ -21,36 +18,33 @@ import {
 import _ from 'lodash';
 import { Address, formatUnits } from 'viem';
 
-import { chainsMap } from '.';
+import { chainById } from './web3';
 
-export const unsupportedNetwork = (chainId: number) =>
-  !_.includes(SUPPORTED_NETWORKS, chainId);
-
-export const getResolverTypes = (chainId?: number): Array<KnownResolverType> =>
-  chainId && isOfTypeChainId(chainId)
-    ? resolvers(chainId)
-    : resolvers(DEFAULT_CHAIN_ID);
+export const getResolverTypes = (
+  chainId: number | undefined,
+): Array<KnownResolverType> => {
+  if (!isSupportedChainId(chainId)) return [];
+  return resolvers(chainId);
+};
 
 export type ResolverInfo<T extends KnownResolverType | undefined> =
   T extends KnownResolverType ? Resolver : undefined;
 
 export const getResolverInfo = <T extends KnownResolverType | undefined>(
   resolverType: T,
-  chainId?: number,
+  chainId: number | undefined,
 ): ResolverInfo<T> => {
-  if (!resolverType) return undefined as ResolverInfo<T>;
+  if (!resolverType || !isSupportedChainId(chainId))
+    return undefined as ResolverInfo<T>;
 
-  return (
-    chainId && isOfTypeChainId(chainId)
-      ? resolverInfo(chainId)[resolverType]
-      : resolverInfo(DEFAULT_CHAIN_ID)[resolverType]
-  ) as ResolverInfo<T>;
+  return resolverInfo(chainId)[resolverType] as ResolverInfo<T>;
 };
 
 export const getResolverInfoByAddress = (
   resolverAddress: Address,
-  chainId?: number,
+  chainId: number | undefined,
 ): Resolver | undefined => {
+  if (!isSupportedChainId(chainId)) return undefined;
   const resolverTypes = getResolverTypes(chainId);
   return resolverTypes
     .map(resolverType => getResolverInfo(resolverType, chainId))
@@ -80,23 +74,24 @@ export const resolverFeeLabel = (
   tokenMetadata: TokenMetadata | undefined,
 ) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
-export const getWrappedNativeToken = (chainId: number) => {
-  if (!chainId) return undefined;
+export const getWrappedNativeToken = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
   return wrappedNativeToken(chainId);
 };
 
-export const getNativeTokenSymbol = (chainId: number) => {
-  if (!chainId) return undefined;
-  return chainsMap(chainId).nativeCurrency.symbol;
+export const getNativeTokenSymbol = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
+  return chainById(chainId).nativeCurrency.symbol;
 };
 
-export const getInvoiceFactoryAddress = (chainId: number) =>
-  isOfTypeChainId(chainId)
-    ? invoiceFactory(chainId)
-    : invoiceFactory(DEFAULT_CHAIN_ID);
+export const getInvoiceFactoryAddress = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
+  return invoiceFactory(chainId);
+};
 
-const getExplorerUrl = (chainId: number) => {
-  const chain = chainsMap(chainId);
+const getExplorerUrl = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return '#';
+  const chain = chainById(chainId);
   return _.get(
     chain,
     'blockExplorers.etherscan.url',
@@ -138,12 +133,15 @@ export const getAccountString = (account?: Address) => {
 
 export const isKnownResolver = (
   resolverType: KnownResolverType,
-  chainId?: number,
-) => _.includes(getResolverTypes(chainId), _.toLower(resolverType));
+  chainId: number | undefined,
+) => {
+  if (!isSupportedChainId(chainId)) return false;
+  return _.includes(getResolverTypes(chainId), _.toLower(resolverType));
+};
 
 export const isKnownResolverAddress = (
   resolverAddress: Address,
-  chainId?: number,
+  chainId: number | undefined,
 ) =>
   _.some(
     getResolverTypes(chainId),
@@ -154,7 +152,7 @@ export const isKnownResolverAddress = (
 
 export const getResolverString = (
   resolverType: KnownResolverType,
-  chainId?: number,
+  chainId: number | undefined,
   resolverAddress?: Address,
 ) => {
   const info = getResolverInfo(resolverType, chainId);
@@ -221,7 +219,7 @@ export const resolutionFeePercentage = (resolutionRate: string): number => {
   if (!resolutionRate || resolutionRate === '0') {
     return 0;
   }
-  const feePercentage = 1 / parseInt(resolutionRate);
+  const feePercentage = 1 / parseInt(resolutionRate, 10);
 
   return feePercentage;
 };

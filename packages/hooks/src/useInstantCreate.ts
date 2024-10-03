@@ -3,7 +3,6 @@ import {
   LOG_TYPE,
   SMART_INVOICE_FACTORY_ABI,
   TOASTS,
-  wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import {
@@ -14,6 +13,7 @@ import {
 import {
   errorToastHandler,
   getInvoiceFactoryAddress,
+  getWrappedNativeToken,
   parseTxLogs,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
@@ -110,7 +110,8 @@ export const useInstantCreate = ({
   );
 
   const escrowData = useMemo(() => {
-    if (!client || !deadline || !wrappedNativeToken(chainId) || !details) {
+    const wrappedNativeToken = getWrappedNativeToken(chainId);
+    if (!client || !deadline || !wrappedNativeToken || !details) {
       return '0x';
     }
     let lateFeeTimeIntervalSeconds = BigInt(0);
@@ -127,7 +128,7 @@ export const useInstantCreate = ({
         { type: 'address' }, //     _token,
         { type: 'uint256' }, //     _deadline, // exact time when late fee kicks in
         { type: 'bytes32' }, //     _details,
-        { type: 'address' }, //     _wrappedNativeToken,
+        { type: 'address' }, //     _getWrappedNativeToken,
         { type: 'uint256' }, //     _lateFee,
         { type: 'uint256' }, //     _lateFeeTimeInterval
       ],
@@ -136,7 +137,7 @@ export const useInstantCreate = ({
         token as Address, // address _token (payment token address)
         BigInt(new Date(deadline).getTime() / 1000), // deadline
         details, // bytes32 _details detailHash
-        wrappedNativeToken(chainId),
+        wrappedNativeToken,
         parseUnits(lateFee || '0', tokenMetadata?.decimals || 18), // late fee in payment token per interval
         lateFeeTimeIntervalSeconds, // late fee time interval convert from some days duration to seconds
       ],
@@ -149,7 +150,6 @@ export const useInstantCreate = ({
     tokenMetadata,
     deadline,
     details,
-    wrappedNativeToken,
     lateFee,
     lateFeeTimeInterval,
   ]);

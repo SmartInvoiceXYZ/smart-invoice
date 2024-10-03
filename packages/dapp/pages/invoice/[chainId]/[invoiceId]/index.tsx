@@ -13,7 +13,7 @@ import {
   InvoiceNotFound,
   Loader,
 } from '@smartinvoicexyz/ui';
-import { chainsMap } from '@smartinvoicexyz/utils';
+import { getChainName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { Hex, isAddress } from 'viem';
@@ -106,8 +106,7 @@ function ViewInvoice() {
               <AlertIcon boxSize="2rem" mr={0} />
               <AlertTitle fontWeight="normal">
                 Warning! This invoice is on{' '}
-                <b>{chainsMap(invoiceChainId)?.name}</b>, and you are connected
-                to <b>{chainsMap(chainId)?.name ?? 'Unknown'}</b>.
+                <b>{getChainName(invoiceChainId)}</b>!
               </AlertTitle>
 
               <Button
@@ -115,7 +114,7 @@ function ViewInvoice() {
                 _hover={{ bg: 'orange.700' }}
                 onClick={() => switchChain?.({ chainId: invoiceChainId })}
               >
-                Switch network to {chainsMap(invoiceChainId)?.name}
+                Switch network
               </Button>
             </Alert>
           )}

@@ -17,6 +17,7 @@ import { useInvoices, useIpfsDetails } from '@smartinvoicexyz/hooks';
 import {
   chainByName,
   getAccountString,
+  getChainName,
   getDateTimeString,
 } from '@smartinvoicexyz/utils';
 import {
@@ -30,7 +31,7 @@ import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { formatUnits } from 'viem';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 
 import { ChakraNextLink, Loader } from '../atoms';
 import { useMediaStyles } from '../hooks';
@@ -54,6 +55,7 @@ const columnHelper = createColumnHelper<InvoiceDisplayData>();
 export function InvoiceDashboardTable() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -156,7 +158,7 @@ export function InvoiceDashboardTable() {
         >
           {isConnected ? (
             <Heading color="gray" size="lg">
-              No invoices found!
+              No invoices found for {getChainName(chainId)}!
             </Heading>
           ) : (
             <Heading color="gray" size="lg">
@@ -212,8 +214,7 @@ export function InvoiceDashboardTable() {
           <Tbody>
             {table.getRowModel().rows.map(row => {
               const { address: invoiceAddr, network } = row.original;
-              const chainId = chainByName(network)?.id;
-              const url = `/invoice/${chainId?.toString(16)}/${invoiceAddr}`;
+              const url = `/invoice/${chainByName(network)?.id?.toString(16)}/${invoiceAddr}`;
 
               return (
                 <Tr

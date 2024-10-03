@@ -1,5 +1,5 @@
 import { toLower } from 'lodash';
-import { Address } from 'viem';
+import { Address, Chain } from 'viem';
 import {
   arbitrum,
   base,
@@ -10,6 +10,8 @@ import {
   polygon,
   sepolia,
 } from 'viem/chains';
+
+export const INVOICE_VERSION = 'smart-invoice-v0.1.0';
 
 export type KnownResolverType =
   | 'lexdao'
@@ -126,7 +128,23 @@ const STUDIO_ID = '78711';
 const getSubgraphUrl = (subgraphId: string, versionLabel: string) =>
   `https://api.studio.thegraph.com/query/${STUDIO_ID}/${subgraphId}/${versionLabel}`;
 
-export const NETWORK_CONFIG: Record<number, NetworkConfig> = {
+const chains: readonly [Chain, ...Chain[]] = [
+  mainnet,
+  gnosis,
+  polygon,
+  arbitrum,
+  optimism,
+  sepolia,
+  base,
+  holesky,
+];
+
+export const SUPPORTED_CHAIN_IDS = chains.map(chain => chain.id);
+export type SupportedChainId = (typeof SUPPORTED_CHAIN_IDS)[number];
+export type SupportedChain = (typeof chains)[number];
+export const SUPPORTED_CHAINS = chains as [SupportedChain, ...SupportedChain[]];
+
+export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   [mainnet.id]: {
     SUBGRAPH: getSubgraphUrl('smart-invoice', 'v0.0.3'),
     WRAPPED_NATIVE_TOKEN: toLower(
@@ -301,8 +319,26 @@ export const IPFS_ENDPOINT = 'https://gateway.pinata.cloud';
 
 export const ARWEAVE_ENDPOINT = 'https://arweave.net';
 
-export type ChainId = keyof typeof NETWORK_CONFIG;
-
-export function isOfTypeChainId(chainId: number): chainId is ChainId {
+export function isSupportedChainId(
+  chainId: number | undefined,
+): chainId is SupportedChainId {
+  if (!chainId) return false;
   return chainId in NETWORK_CONFIG;
 }
+
+export const graphUrls = (chainId: SupportedChainId) =>
+  NETWORK_CONFIG[chainId].SUBGRAPH;
+
+export const resolvers = (
+  chainId: SupportedChainId,
+): Array<KnownResolverType> =>
+  Object.keys(NETWORK_CONFIG[chainId].RESOLVERS) as Array<KnownResolverType>;
+
+export const resolverInfo = (chainId: SupportedChainId) =>
+  NETWORK_CONFIG[chainId].RESOLVERS;
+
+export const wrappedNativeToken = (chainId: SupportedChainId) =>
+  NETWORK_CONFIG[chainId].WRAPPED_NATIVE_TOKEN;
+
+export const invoiceFactory = (chainId: SupportedChainId) =>
+  NETWORK_CONFIG[chainId].INVOICE_FACTORY;

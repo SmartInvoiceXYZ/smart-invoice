@@ -4,8 +4,11 @@ import {
   NormalizedCacheObject,
   QueryOptions,
 } from '@apollo/client';
-import { SUPPORTED_NETWORKS } from '@smartinvoicexyz/constants';
-import { getGraphUrl } from '@smartinvoicexyz/shared';
+import {
+  graphUrls,
+  SUPPORTED_CHAIN_IDS,
+  SupportedChainId,
+} from '@smartinvoicexyz/constants';
 
 import { scalars } from './scalars';
 import {
@@ -20,21 +23,22 @@ import {
 import { Ops, ReturnTypes } from './zeus/const';
 import { typedGql } from './zeus/typedDocumentNode';
 
-const caches: Record<number, InMemoryCache> = SUPPORTED_NETWORKS.reduce(
-  (o, chainId) => ({
-    ...o,
-    [chainId]: new InMemoryCache(),
-  }),
-  {} as Record<number, InMemoryCache>,
-);
+const caches: Record<SupportedChainId, InMemoryCache> =
+  SUPPORTED_CHAIN_IDS.reduce(
+    (o, chainId) => ({
+      ...o,
+      [chainId]: new InMemoryCache(),
+    }),
+    {} as Record<number, InMemoryCache>,
+  );
 
-export const getCache = (chainId: number) => caches[chainId];
+export const getCache = (chainId: SupportedChainId) => caches[chainId];
 
-const clients = SUPPORTED_NETWORKS.reduce(
+const clients = SUPPORTED_CHAIN_IDS.reduce(
   (o, chainId) => ({
     ...o,
     [chainId]: new ApolloClient({
-      uri: getGraphUrl(chainId),
+      uri: graphUrls(chainId),
       cache: caches[chainId],
     }),
   }),
