@@ -7,7 +7,6 @@ import {
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
   useClipboard,
   Wrap,
   WrapItem,
@@ -80,9 +79,6 @@ export function InvoiceMetaDetails({
 
   const isClient = _.toLower(address) === client;
 
-  const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
-  const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
-
   const { onCopy } = useClipboard(_.toLower(invoiceId));
 
   const verifiedStatus = useMemo(
@@ -153,9 +149,8 @@ export function InvoiceMetaDetails({
   return (
     <Stack
       spacing="1rem"
-      minW={leftMinW}
       w="100%"
-      maxW={leftMaxW}
+      maxW={{ base: '100%', lg: '25rem' }}
       justify="center"
       align="stretch"
       direction="column"

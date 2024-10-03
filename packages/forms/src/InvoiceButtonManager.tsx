@@ -87,7 +87,7 @@ export function InvoiceButtonManager({
 
   return (
     <>
-      <SimpleGrid columns={numColumns} spacing="1rem" w="100%" mt="1rem">
+      <SimpleGrid columns={numColumns} spacing="1rem" w="100%">
         {buttonEnabled.resolve && (
           <Button
             variant="solid"

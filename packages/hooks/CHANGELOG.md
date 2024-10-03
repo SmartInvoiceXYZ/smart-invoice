@@ -1,5 +1,16 @@
 # @smartinvoicexyz/hooks
 
+## 0.1.14
+
+### Patch Changes
+
+- fixed invoice pdf
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.9
+  - @smartinvoicexyz/graphql@0.1.11
+  - @smartinvoicexyz/types@0.1.11
+  - @smartinvoicexyz/utils@0.1.12
+
 ## 0.1.13
 
 ### Patch Changes

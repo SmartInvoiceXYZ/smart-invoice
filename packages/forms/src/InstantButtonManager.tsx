@@ -4,7 +4,7 @@ import {
   ModalTypes,
   OverlayContextType,
 } from '@smartinvoicexyz/types';
-import { Modal, useMediaStyles } from '@smartinvoicexyz/ui';
+import { Modal } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
 import { useAccount, useChainId } from 'wagmi';
 
@@ -30,8 +30,6 @@ export const InstantButtonManager: React.FC<
     'totalDue',
   ]);
 
-  const { primaryButtonSize } = useMediaStyles();
-
   const isClient = _.toLower(address) === client;
   const isProvider = _.toLower(address) === provider;
   const isTippable = fulfilled;
@@ -43,11 +41,10 @@ export const InstantButtonManager: React.FC<
 
   return (
     <>
-      <Stack>
+      <Stack w="100%">
         {isClient && (
           <SimpleGrid columns={isTippable ? 2 : 1} spacing="1rem" w="100%">
             <Button
-              size={primaryButtonSize}
               textTransform="uppercase"
               onClick={() => openModal(ModalTypes.DEPOSIT)}
               isDisabled={fulfilled}
@@ -56,9 +53,7 @@ export const InstantButtonManager: React.FC<
             </Button>
             {isTippable && (
               <Button
-                size={primaryButtonSize}
                 variant="outline"
-                fontWeight="bold"
                 textTransform="uppercase"
                 onClick={() => openModal(ModalTypes.DEPOSIT)}
               >
@@ -70,7 +65,6 @@ export const InstantButtonManager: React.FC<
         {isProvider && (
           <SimpleGrid columns={1} spacing="1rem" w="100%">
             <Button
-              size={primaryButtonSize}
               textTransform="uppercase"
               onClick={() => openModal(ModalTypes.WITHDRAW)}
               isDisabled={!isWithdrawable}

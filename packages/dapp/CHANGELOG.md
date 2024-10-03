@@ -1,5 +1,19 @@
 # @smartinvoicexyz/dapp
 
+## 0.1.10
+
+### Patch Changes
+
+- fixed invoice pdf
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.9
+  - @smartinvoicexyz/graphql@0.1.11
+  - @smartinvoicexyz/forms@0.1.15
+  - @smartinvoicexyz/hooks@0.1.14
+  - @smartinvoicexyz/types@0.1.11
+  - @smartinvoicexyz/utils@0.1.12
+  - @smartinvoicexyz/ui@0.1.15
+
 ## 0.1.9
 
 ### Patch Changes

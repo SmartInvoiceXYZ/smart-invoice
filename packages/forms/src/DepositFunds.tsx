@@ -121,7 +121,7 @@ export function DepositFunds({
     onClose();
   };
 
-  const { handleDeposit, isLoading, isReady } = useDeposit({
+  const { handleDeposit, isLoading, prepareError } = useDeposit({
     invoice,
     amount,
     hasAmount,
@@ -329,7 +329,7 @@ export function DepositFunds({
 
       <Button
         onClick={depositHandler}
-        isDisabled={amount <= 0 || !isReady || !hasAmount}
+        isDisabled={amount <= 0 || !!prepareError || !hasAmount}
         isLoading={isLoading}
         textTransform="uppercase"
         variant="solid"

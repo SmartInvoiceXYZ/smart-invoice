@@ -20,6 +20,7 @@ import { fallback } from 'wagmi';
 import {
   arbitrum,
   base,
+  gnosis,
   holesky,
   mainnet,
   optimism,
@@ -54,6 +55,17 @@ const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   // gnosis is not supported by alchemy
 };
 
+const subgraphNameToChain: Record<string, SupportedChain> = {
+  mainnet,
+  matic: polygon,
+  'arbitrum-one': arbitrum,
+  optimism,
+  sepolia,
+  base,
+  holesky,
+  gnosis,
+};
+
 type ChainsMap = Record<SupportedChainId, SupportedChain>;
 
 const chainsMap: ChainsMap = SUPPORTED_CHAINS.reduce(
@@ -74,13 +86,15 @@ export const getChainName = (chainId: number | undefined): string => {
   return chainById(chainId).name;
 };
 
-export const chainByName = (name?: string): SupportedChain | null => {
-  if (!name) return null;
+export const chainByName = (name?: string): SupportedChain | undefined => {
+  if (!name) return undefined;
 
-  const chain = SUPPORTED_CHAINS.find(c => c.name.toLowerCase().includes(name));
-  if (!chain) throw new Error(`Chain ${name} not found`);
+  const subgraphChain = subgraphNameToChain[name.toLowerCase()];
+  if (subgraphChain) return subgraphChain;
 
-  return chain;
+  return SUPPORTED_CHAINS.find(chain =>
+    chain.name.toLowerCase().includes(name.toLowerCase()),
+  );
 };
 
 type _transports = Record<SupportedChainId, Transport>;

@@ -1,4 +1,11 @@
-import { Alert, AlertIcon, AlertTitle, Button, Stack } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  Button,
+  HStack,
+  Stack,
+} from '@chakra-ui/react';
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import {
   InstantButtonManager,
@@ -91,23 +98,24 @@ function ViewInvoice() {
       >
         <InvoiceMetaDetails invoice={invoiceDetails} />
 
-        <Stack minW={{ base: '90%', md: '50%' }}>
+        <Stack maxW="60rem" w="100%" spacing={4}>
           {showNetworkError && (
             <Alert
               status="warning"
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center"
-              textAlign="center"
-              py={6}
-              mb={4}
+              flexDirection={{ base: 'column', lg: 'row' }}
+              justifyContent={{ base: 'center', lg: 'space-between' }}
+              p={4}
               gap={4}
+              borderRadius="md"
+              boxShadow="md"
             >
-              <AlertIcon boxSize="2rem" mr={0} />
-              <AlertTitle fontWeight="normal">
-                Warning! This invoice is on{' '}
-                <b>{getChainName(invoiceChainId)}</b>!
-              </AlertTitle>
+              <HStack spacing={4}>
+                <AlertIcon boxSize="2rem" mr={0} />
+                <AlertTitle fontWeight="normal">
+                  Warning! This invoice is on{' '}
+                  <b>{getChainName(invoiceChainId)}</b>!
+                </AlertTitle>
+              </HStack>
 
               <Button
                 bg="orange.600"

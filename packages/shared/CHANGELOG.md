@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.9
+
+### Patch Changes
+
+- fixed invoice pdf
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.9
+
 ## 0.1.8
 
 ### Patch Changes

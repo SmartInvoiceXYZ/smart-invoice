@@ -4,7 +4,6 @@ import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
@@ -29,9 +28,7 @@ export const useDeposit = ({
   onTxSuccess?: () => void;
   toast: UseToastReturn;
 }): {
-  writeAsync: () => Promise<Hex | undefined>;
   handleDeposit: () => Promise<Hex | undefined>;
-  isReady: boolean;
   isLoading: boolean;
   prepareError: SimulateContractErrorType | null;
   writeError: WriteContractErrorType | null;
@@ -107,7 +104,7 @@ export const useDeposit = ({
       }
 
       if (!data) {
-        throw new Error('useDeposit: data is undefined');
+        throw new Error('useDeposit: simulation data is not available');
       }
 
       const result = await writeContractAsync(data.request);
@@ -118,24 +115,10 @@ export const useDeposit = ({
     }
   };
 
-  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
-    try {
-      if (!data) {
-        throw new Error('simulation data is not available');
-      }
-      return writeContractAsync(data.request);
-    } catch (error) {
-      errorToastHandler('useDeposit', error as Error, toast);
-      return undefined;
-    }
-  }, [writeContractAsync, data]);
-
   return {
-    writeAsync,
     handleDeposit,
-    isReady: true, // paymentType === PAYMENT_TYPES.NATIVE ? true : !!writeAsync,
     isLoading: prepareLoading || writeLoading || sendLoading,
     writeError,
-    prepareError,
+    prepareError: paymentType === PAYMENT_TYPES.TOKEN ? prepareError : null,
   };
 };

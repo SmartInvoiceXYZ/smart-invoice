@@ -177,7 +177,7 @@ export function InvoicePaymentDetails({
             </Button>
           </Flex>
         )}
-        <Card py={6} direction="column" width="100%">
+        <Card py={6} direction="column" w="100%">
           <Stack width="100%">
             <Stack w="100%" px={6} spacing={4}>
               <HStack width="100%" justifyContent="space-between">

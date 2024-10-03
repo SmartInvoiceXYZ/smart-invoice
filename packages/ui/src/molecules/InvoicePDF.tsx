@@ -6,15 +6,15 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-import { InvoiceDetails, Network } from '@smartinvoicexyz/types';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
-  chainByName,
   getAccountString,
+  getChainName,
   unixToDateTime,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Fragment } from 'react';
-import { Address, formatEther } from 'viem';
+import { formatEther } from 'viem';
 
 const borderColor = 'black';
 
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     fontSize: 12,
     textAlign: 'center',
-    textTransform: 'uppercase',
   },
   detailsContainer: {
     marginTop: 15,
@@ -50,18 +49,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     color: 'black',
     fontWeight: 'ultrabold',
-    letterSpacing: 2,
+    letterSpacing: 1,
     fontSize: 10,
     textAlign: 'left',
-    textTransform: 'uppercase',
-  },
-  symbol: {
-    fontFamily: 'Helvetica',
-    color: 'black',
-    fontWeight: 'ultrabold',
-    fontSize: 10,
-    textAlign: 'left',
-    textTransform: 'uppercase',
   },
   text: {
     fontFamily: 'Helvetica',
@@ -69,7 +59,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     fontSize: 10,
     textAlign: 'left',
-    textTransform: 'lowercase',
   },
   separator: {
     borderBottomColor: 'black',
@@ -174,12 +163,11 @@ const styles = StyleSheet.create({
 });
 
 export type InvoicePDFProps = {
-  invoice: Partial<InvoiceDetails>;
-  symbol: string;
+  invoice: InvoiceDetails;
 };
 
 // font register for Rubik One
-export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
+export function InvoicePDF({ invoice }: InvoicePDFProps) {
   const {
     address,
     metadata,
@@ -187,12 +175,13 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     client,
     provider,
     amounts,
-    network,
+    chainId,
     createdAt,
     deposits,
     releases,
     disputes,
     resolutions,
+    tokenMetadata,
   } = _.pick(invoice, [
     'address',
     'metadata',
@@ -200,18 +189,21 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
     'client',
     'provider',
     'amounts',
-    'network',
     'createdAt',
     'deposits',
     'releases',
     'disputes',
     'resolutions',
+    'tokenMetadata',
+    'chainId',
   ]);
 
   const { title, description, documents, startDate, endDate } = _.pick(
     metadata,
     ['title', 'description', 'documents', 'startDate', 'endDate'],
   );
+
+  const url = `https://app.smartinvoice.xyz/invoice/${chainId?.toString(16)}/${address}`;
 
   return (
     <Document>
@@ -224,15 +216,9 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           <View>
             <Text style={styles.address}>{address}</Text>
 
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-            <Link
-              src={`https://smartinvoice.xyz/${chainByName(
-                network as Network,
-              )?.id?.toString(16)}/${address}`}
-            >
+            <Link href={url} src={url}>
               <Text style={{ textAlign: 'center' }}>
-                {getAccountString(address as Address | undefined)} @
-                smartinvoice.xyz
+                {getAccountString(address)} @ app.smartinvoice.xyz
               </Text>
             </Link>
           </View>
@@ -250,11 +236,17 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
           </Text>
 
           <Text style={styles.details}>
-            Network: <Text style={styles.text}>{network}</Text>
+            Network:{' '}
+            <Text style={styles.text}>
+              {getChainName(chainId)} ({chainId})
+            </Text>
           </Text>
 
           <Text style={styles.details}>
-            Token: <Text style={styles.symbol}>{symbol}</Text>
+            Token:{' '}
+            <Text style={styles.text}>
+              {tokenMetadata?.address} ({tokenMetadata?.symbol})
+            </Text>
           </Text>
 
           <View style={{ paddingTop: 5 }} />
@@ -288,31 +280,33 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
 
         <View style={styles.separatorTwo} />
 
-        {documents && (
-          <View style={styles.detailsContainer}>
-            <Text style={styles.details}>
-              Project Name: <Text style={styles.text}>{title}</Text>
-            </Text>
+        <View style={styles.detailsContainer}>
+          <Text style={styles.details}>
+            Title: <Text style={styles.text}>{title}</Text>
+          </Text>
 
-            <Text style={styles.details}>
-              Description: <Text style={styles.text}>{description}</Text>
-            </Text>
-            <Text style={styles.details}>Project Agreement(s):</Text>
-            {documents.map((document, index) => (
-              <View key={document.id}>
-                <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
+          <Text style={styles.details}>
+            Description: <Text style={styles.text}>{description}</Text>
+          </Text>
+          {documents && documents.length > 0 && (
+            <>
+              <Text style={styles.details}>Document(s):</Text>
+              {documents.map((document, index) => (
+                <View key={document.id}>
+                  <Text style={[styles.text]}>Agreement #{index + 1}:</Text>
 
-                <Text style={[styles.text, { textIndent: 20 }]}>
-                  Created At: {unixToDateTime(Number(document.createdAt))}
-                </Text>
+                  <Text style={[styles.text, { textIndent: 20 }]}>
+                    Created At: {unixToDateTime(Number(document.createdAt))}
+                  </Text>
 
-                <Text style={[styles.text, { textIndent: 20 }]}>
-                  Agreement Source: {document.src}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+                  <Text style={[styles.text, { textIndent: 20 }]}>
+                    Agreement Source: {document.src}
+                  </Text>
+                </View>
+              ))}
+            </>
+          )}
+        </View>
 
         {/* Payment Milestones */}
         {amounts && (
@@ -340,14 +334,14 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                       Payment Milestone # {index + 1}
                     </Text>
                     <Text style={styles.amount}>
-                      {formatEther(BigInt(amount))} {symbol}
+                      {formatEther(BigInt(amount))} {tokenMetadata?.symbol}
                     </Text>
                   </View>
                   {amountTotal > 0 ? (
                     <View style={styles.row}>
                       <Text style={styles.totalDescription}>TOTAL</Text>
                       <Text style={styles.amount}>
-                        {formatEther(amountTotal)} {symbol}
+                        {formatEther(amountTotal)} {tokenMetadata?.symbol}
                       </Text>
                     </View>
                   ) : null}
@@ -366,7 +360,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {_.map(deposits, (deposit, index) => (
+            {_.map(_.reverse([...(deposits ?? [])]), (deposit, index) => (
               <Fragment key={deposit.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -404,7 +398,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
         )}
 
         {/* Releases */}
-        {releases && (
+        {!_.isEmpty(releases) && (
           <>
             <View style={styles.tableContainer}>
               <View style={styles.container}>
@@ -412,7 +406,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
               </View>
             </View>
 
-            {_.map(releases, (release, index) => (
+            {_.map(_.reverse([...(releases ?? [])]), (release, index) => (
               <Fragment key={release.txHash}>
                 <View style={styles.listContainer}>
                   <View style={styles.innerTitle}>
@@ -429,7 +423,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                     <Text>
                       Amount:{' '}
                       <Text>
-                        {formatEther(release.amount)} {symbol}
+                        {formatEther(release.amount)} {tokenMetadata?.symbol}
                       </Text>
                     </Text>
                   </View>
@@ -541,7 +535,7 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 <Text style={styles.invisibleRow}>Client Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {formatEther(resolution.clientAward)} {symbol}
+                  {formatEther(resolution.clientAward)} {tokenMetadata?.symbol}
                 </Text>
               </View>
 
@@ -549,7 +543,8 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                 <Text style={styles.invisibleRow}>Provider Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {formatEther(resolution.providerAward)} {symbol}
+                  {formatEther(resolution.providerAward)}{' '}
+                  {tokenMetadata?.symbol}
                 </Text>
               </View>
 
@@ -558,7 +553,8 @@ export function InvoicePDF({ invoice, symbol }: InvoicePDFProps) {
                   <Text style={styles.invisibleRow}>Resolution Fee:</Text>
 
                   <Text style={styles.detailRow}>
-                    {formatEther(resolution.resolutionFee)} {symbol}
+                    {formatEther(resolution.resolutionFee)}{' '}
+                    {tokenMetadata?.symbol}
                   </Text>
                 </View>
               ) : null}

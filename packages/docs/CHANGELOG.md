@@ -1,5 +1,11 @@
 # @smartinvoicexyz/docs
 
+## 0.1.6
+
+### Patch Changes
+
+- fixed invoice pdf
+
 ## 0.1.5
 
 ### Patch Changes
