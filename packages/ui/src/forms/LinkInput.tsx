@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   Flex,
@@ -14,12 +15,10 @@ import {
   Text,
   Tooltip,
 } from '@chakra-ui/react';
-import { logDebug } from '@smartinvoicexyz/utils';
+import { isValidURL, logDebug, PROTOCOL_OPTIONS } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
-
-import { QuestionIcon } from '../icons/QuestionIcon';
 
 interface LinkInputProps extends ChakraProps {
   name: string;
@@ -33,7 +32,25 @@ interface LinkInputProps extends ChakraProps {
   placeholder?: string;
 }
 
-const protocolOptions = ['https://', 'ipfs://'];
+const getPath = (url: string | undefined) => {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    return url.slice(urlObj.protocol.length + 2);
+  } catch {
+    return '';
+  }
+};
+
+const getProtocol = (url: string | undefined) => {
+  if (!url) return 'https://';
+  try {
+    const urlObj = new URL(url);
+    return `${urlObj.protocol}//`;
+  } catch {
+    return 'https://';
+  }
+};
 
 export function LinkInput({
   name,
@@ -52,23 +69,47 @@ export function LinkInput({
     formState: { errors },
   } = localForm;
 
-  const protocol = watch(`${name}-protocol`);
-  const inputValue = watch(`${name}-input`);
+  const localProtocol = watch(`${name}-protocol`);
+  const localInput = watch(`${name}-input`);
 
   const error = errors?.[name];
+  const finalValue = watch(name);
 
-  // handle the validation in the form resolver, just set the value here
+  const updateValidatedUrl = useCallback(
+    (str: string) => {
+      const url = new URL(str);
+      const urlProtocol = url.protocol === 'http:' ? 'https://' : url.protocol;
+      const parsedProtocol = `${urlProtocol}//`;
+      setValue(`${name}-input`, str.replace(parsedProtocol, ''));
+      setValue(`${name}-protocol`, parsedProtocol);
+      setValue(name, str, { shouldValidate: true, shouldDirty: true });
+      logDebug('LinkInput - validValue', str);
+    },
+    [name, setValue],
+  );
+
   useEffect(() => {
-    if (!inputValue) return;
-    // update overall field value based on input change
-    const newValue = protocol + inputValue;
-    logDebug('LinkInput - newValue', newValue);
-    setValue(name, newValue, { shouldValidate: true, shouldDirty: true });
-  }, [inputValue]);
+    if (!localInput) return;
+
+    if (isValidURL(localInput)) {
+      updateValidatedUrl(localInput);
+      return;
+    }
+    if (isValidURL(localProtocol + localInput)) {
+      updateValidatedUrl(localProtocol + localInput);
+      return;
+    }
+
+    setValue(name, localProtocol + localInput, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    logDebug('LinkInput - invalidValue', localProtocol + localInput);
+  }, [localInput, localProtocol, updateValidatedUrl]);
 
   useEffect(() => {
     setValue(`${name}-protocol`, 'https://');
-  }, []);
+  }, [name, setValue]);
 
   return (
     <FormControl
@@ -78,13 +119,17 @@ export function LinkInput({
       <Stack w="100%" spacing="0.5rem" justify="space-between" {...props}>
         <Stack align="left" w="100%" spacing={0}>
           <Flex w="100%">
-            <HStack align="center" spacing={1}>
-              <FormLabel fontWeight="700" m={0}>
-                {label}
-              </FormLabel>
+            <HStack align="center" spacing={2}>
+              <FormLabel m={0}>{label}</FormLabel>
               {tooltip && (
                 <Tooltip label={tooltip} placement="right" hasArrow>
-                  <Icon as={QuestionIcon} boxSize={3} />
+                  <Icon
+                    as={InfoOutlineIcon}
+                    boxSize={3}
+                    color="blue.500"
+                    bg="white"
+                    borderRadius="full"
+                  />
                 </Tooltip>
               )}
             </HStack>
@@ -95,34 +140,14 @@ export function LinkInput({
 
         <Flex direction="column" w="100%">
           <InputGroup>
-            <InputLeftAddon
-              px={0}
-              w="6.75rem"
-              overflow="hidden"
-              borderLeftRadius="0.375rem"
-              borderRightColor="white"
-              borderRightWidth="3px"
-              mr="-5px"
-            >
+            <InputLeftAddon px={0}>
               <Select
-                onChange={e => {
-                  setValue(`${name}-protocol`, e.target.value);
-                  const newProtocol = e.target.value;
-                  const newValue = newProtocol + inputValue;
-                  // check validity at the form level
-                  setValue(name, newValue);
-                }}
-                value={protocol}
-                bg="none"
+                {...register(`${name}-protocol`, registerOptions)}
+                defaultValue={getProtocol(finalValue)}
                 color="black"
-                border="1px"
-                w="100%"
-                borderColor="lightgrey"
-                _hover={{ borderColor: 'lightgrey' }}
-                fontWeight="normal"
-                borderRadius="none"
+                border="0"
               >
-                {_.map(protocolOptions, option => (
+                {_.map(PROTOCOL_OPTIONS, option => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -131,10 +156,11 @@ export function LinkInput({
             </InputLeftAddon>
 
             <Input
+              {...register(`${name}-input`, registerOptions)}
               maxLength={240}
               placeholder={placeholder}
-              {...register(`${name}-input`, registerOptions)}
               type="text"
+              defaultValue={getPath(finalValue)}
             />
           </InputGroup>
           <FormErrorMessage>Invalid URL</FormErrorMessage>

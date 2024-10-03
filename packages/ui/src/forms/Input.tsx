@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import _ from 'lodash';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { FieldValues, RegisterOptions, UseFormReturn } from 'react-hook-form';
 // import { Tooltip } from '../../atoms';
 

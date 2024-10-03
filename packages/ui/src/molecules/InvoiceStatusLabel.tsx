@@ -1,8 +1,7 @@
 import { Flex, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useInvoiceStatus } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import React from 'react';
 
 import { Loader } from '../atoms/Loader';
 

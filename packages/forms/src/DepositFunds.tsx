@@ -16,8 +16,8 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
 import { useDeposit, useTokenBalance } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { NumberInput, QuestionIcon, useToast } from '@smartinvoicexyz/ui';
 import {
   commify,
@@ -121,7 +121,7 @@ export function DepositFunds({
     onClose();
   };
 
-  const { handleDeposit, isLoading, isReady } = useDeposit({
+  const { handleDeposit, isLoading, prepareError } = useDeposit({
     invoice,
     amount,
     hasAmount,
@@ -329,7 +329,7 @@ export function DepositFunds({
 
       <Button
         onClick={depositHandler}
-        isDisabled={amount <= 0 || !isReady || !hasAmount}
+        isDisabled={amount <= 0 || !!prepareError || !hasAmount}
         isLoading={isLoading}
         textTransform="uppercase"
         variant="solid"

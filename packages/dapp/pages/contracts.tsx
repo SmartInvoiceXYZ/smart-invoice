@@ -11,22 +11,18 @@ import {
   Text,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { CONFIG } from '@smartinvoicexyz/constants';
+import { SUPPORTED_CHAIN_IDS } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { IToken } from '@smartinvoicexyz/types';
 import { Container } from '@smartinvoicexyz/ui';
 import {
-  chainsMap,
+  chainById,
   getAccountString,
   getAddressLink,
   getInvoiceFactoryAddress,
-  getKeys,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import React from 'react';
-
-const { NETWORK_CONFIG } = CONFIG;
-const chainIds = getKeys(NETWORK_CONFIG);
 
 function Contracts() {
   const isSmallScreen = useBreakpointValue({ base: true, md: false });
@@ -52,12 +48,12 @@ function Contracts() {
 
         <Tabs>
           <TabList>
-            {_.map(chainIds, chainId => (
-              <Tab key={chainId}>{chainsMap(chainId)?.name}</Tab>
+            {_.map(SUPPORTED_CHAIN_IDS, chainId => (
+              <Tab key={chainId}>{chainById(chainId)?.name}</Tab>
             ))}
           </TabList>
           <TabPanels>
-            {_.map(chainIds, chainId => {
+            {_.map(SUPPORTED_CHAIN_IDS, chainId => {
               const INVOICE_FACTORY = getInvoiceFactoryAddress(chainId) || '0x';
               const TOKENS: IToken[] = _.filter(
                 tokens,

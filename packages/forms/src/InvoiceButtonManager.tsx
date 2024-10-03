@@ -1,9 +1,13 @@
 import { Button, SimpleGrid } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { Modals } from '@smartinvoicexyz/types';
+import {
+  InvoiceDetails,
+  ModalTypes,
+  OverlayContextType,
+} from '@smartinvoicexyz/types';
 import { Modal } from '@smartinvoicexyz/ui';
 import _ from 'lodash';
-import { useAccount } from 'wagmi';
+import { useMemo } from 'react';
+import { useAccount, useChainId } from 'wagmi';
 
 import { DepositFunds } from './DepositFunds';
 import { LockFunds } from './LockFunds';
@@ -11,165 +15,143 @@ import { ReleaseFunds } from './ReleaseFunds';
 import { ResolveFunds } from './ResolveFunds';
 import { WithdrawFunds } from './WithdrawFunds';
 
-// this component is here to prevent circular dependency with smart-invoice/ui
+type ButtonEnabled = {
+  deposit: boolean;
+  lock: boolean;
+  release: boolean;
+  resolve: boolean;
+  withdraw: boolean;
+};
 
 export function InvoiceButtonManager({
   invoice,
   modals,
-  setModals,
+  openModal,
+  closeModals,
 }: {
   invoice: Partial<InvoiceDetails> | undefined;
-  modals: Modals;
-  setModals: (_m: Partial<Modals>) => void;
-}) {
-  const { address } = useAccount();
+} & OverlayContextType) {
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
 
-  const {
-    client,
-    resolver,
-    isReleasable,
-    isExpired,
-    isLockable,
-    isWithdrawable,
-    tokenBalance,
-    dispute,
-    resolution,
-  } = _.pick(invoice, [
-    'client',
-    'resolver',
-    'isReleasable',
-    'isExpired',
-    'isLockable',
-    'isWithdrawable',
-    'tokenBalance',
-    'dispute',
-    'resolution',
-  ]);
+  const { buttonEnabled, numColumns } = useMemo(() => {
+    const {
+      client,
+      provider,
+      resolver,
+      isReleasable: isInvoiceReleasable,
+      isExpired: isInvoiceExpired,
+      isLockable: isInvoiceLockable,
+      isLocked: isInvoiceLocked,
+      isWithdrawable: isInvoiceWithdrawable,
+      dispute,
+      resolution,
+    } = _.pick(invoice, [
+      'client',
+      'provider',
+      'resolver',
+      'isReleasable',
+      'isExpired',
+      'isLockable',
+      'isLocked',
+      'isWithdrawable',
+      'tokenBalance',
+      'dispute',
+      'resolution',
+    ]);
 
-  const isRaidParty = _.toLower(address) === _.toLower(invoice?.provider);
-  const isClient = _.toLower(address) === _.toLower(client);
-  const isResolver = _.toLower(address) === _.toLower(resolver);
-  const isDisputed = !!dispute || !!resolution;
+    const isProvider = _.toLower(address) === _.toLower(provider);
+    const isClient = _.toLower(address) === _.toLower(client);
+    const isResolver = _.toLower(address) === _.toLower(resolver);
+    const isDisputed = (!!dispute || !!resolution) ?? false;
+    const isLockable = isInvoiceLockable ?? false;
+    const isLocked = isInvoiceLocked ?? false;
+    const isReleasable = isInvoiceReleasable ?? false;
+    const isWithdrawable = isInvoiceWithdrawable ?? false;
+    const isExpired = isInvoiceExpired ?? false;
 
-  const onLock = () => {
-    setModals({ lock: true });
-  };
+    const bEnabled: ButtonEnabled = {
+      deposit: !isDisputed,
+      lock: (isProvider || isClient) && isLockable && !isDisputed,
+      release: isReleasable && isClient && !isDisputed,
+      resolve: isResolver && isLocked && isDisputed,
+      withdraw: isClient && isWithdrawable && isExpired && !isDisputed,
+    };
 
-  const onDeposit = () => {
-    setModals({ deposit: true });
-  };
+    const nColumns = _.size(_.pickBy(bEnabled, value => value === true));
 
-  const onRelease = async () => {
-    if (!isReleasable || !isClient) {
-      // eslint-disable-next-line no-console
-      console.log('not releasable or client');
-      return;
-    }
+    return { buttonEnabled: bEnabled, numColumns: nColumns };
+  }, [invoice, address]);
 
-    setModals({ release: true });
-  };
-
-  const onResolve = async () => {
-    if (!isResolver) {
-      // eslint-disable-next-line no-console
-      console.log('not resolver');
-      return;
-    }
-
-    setModals({ resolve: true });
-  };
-
-  const onWithdraw = async () => {
-    if (!isExpired || !isClient) {
-      // eslint-disable-next-line no-console
-      console.log('not expired or client');
-      return;
-    }
-
-    setModals({ withdraw: true });
-  };
-
-  const columnsCheck = [
-    isResolver && invoice?.isLocked, // resolve
-    isLockable && (isClient || isRaidParty), // lock
-    isReleasable && isClient, // release
-    true, // deposit
-    isExpired &&
-      !!tokenBalance?.value &&
-      tokenBalance?.value > BigInt(0) &&
-      isClient, // withdraw
-  ];
-  const columns = _.size(_.filter(columnsCheck, v => v === true));
-
-  if (!invoice) return null;
+  if (!invoice || !isConnected || chainId !== invoice?.chainId) return null;
 
   return (
     <>
-      <SimpleGrid columns={columns} spacing="1rem" w="100%" mt="1rem">
-        {isResolver && invoice?.isLocked && (
+      <SimpleGrid columns={numColumns} spacing="1rem" w="100%">
+        {buttonEnabled.resolve && (
           <Button
             variant="solid"
             textTransform="uppercase"
-            onClick={onResolve}
-            isDisabled={!isResolver}
+            onClick={() => openModal(ModalTypes.RESOLVE)}
           >
             Resolve
           </Button>
         )}
-        {isLockable && (isClient || isRaidParty) && !isDisputed && (
+        {buttonEnabled.lock && (
           <Button
             variant="solid"
             backgroundColor="red.500"
             _hover={{ backgroundColor: 'red.400' }}
             textTransform="uppercase"
-            onClick={onLock}
-            isDisabled={!isClient && !isRaidParty}
+            onClick={() => openModal(ModalTypes.LOCK)}
           >
             Lock
           </Button>
         )}
-        {!isDisputed && (
-          <Button variant="solid" textTransform="uppercase" onClick={onDeposit}>
-            Deposit
-          </Button>
-        )}
-        {isReleasable && !isDisputed && (
+        {buttonEnabled.deposit && (
           <Button
             variant="solid"
             textTransform="uppercase"
-            onClick={onRelease}
-            isDisabled={!isClient}
+            onClick={() => openModal(ModalTypes.DEPOSIT)}
+          >
+            Deposit
+          </Button>
+        )}
+        {buttonEnabled.release && (
+          <Button
+            variant="solid"
+            textTransform="uppercase"
+            onClick={() => openModal(ModalTypes.RELEASE)}
           >
             Release
           </Button>
         )}
 
-        {isWithdrawable && isClient && (
+        {buttonEnabled.withdraw && (
           <Button
             variant="solid"
             textTransform="uppercase"
-            isDisabled={!isExpired}
-            onClick={onWithdraw}
+            onClick={() => openModal(ModalTypes.WITHDRAW)}
           >
             Withdraw
           </Button>
         )}
       </SimpleGrid>
 
-      <Modal isOpen={modals?.lock} onClose={() => setModals({})}>
-        <LockFunds invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.lock} onClose={closeModals}>
+        <LockFunds invoice={invoice} onClose={closeModals} />
       </Modal>
-      <Modal isOpen={modals?.deposit} onClose={() => setModals({})}>
-        <DepositFunds invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.deposit} onClose={closeModals}>
+        <DepositFunds invoice={invoice} onClose={closeModals} />
       </Modal>
-      <Modal isOpen={modals?.release} onClose={() => setModals({})}>
-        <ReleaseFunds invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.release} onClose={closeModals}>
+        <ReleaseFunds invoice={invoice} onClose={closeModals} />
       </Modal>
-      <Modal isOpen={modals?.resolve} onClose={() => setModals({})}>
-        <ResolveFunds invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.resolve} onClose={closeModals}>
+        <ResolveFunds invoice={invoice} onClose={closeModals} />
       </Modal>
-      <Modal isOpen={modals?.withdraw} onClose={() => setModals({})}>
-        <WithdrawFunds invoice={invoice} onClose={() => setModals({})} />
+      <Modal isOpen={modals?.withdraw} onClose={closeModals}>
+        <WithdrawFunds invoice={invoice} onClose={closeModals} />
       </Modal>
     </>
   );

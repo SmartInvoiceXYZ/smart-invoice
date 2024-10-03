@@ -1,17 +1,46 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
-import { errorToastHandler } from '@smartinvoicexyz/utils';
+import {
+  INVOICE_VERSION,
+  SMART_INVOICE_ESCROW_ABI,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import {
+  FormInvoice,
+  InvoiceDetails,
+  InvoiceMetadata,
+  Milestone,
+  UseToastReturn,
+} from '@smartinvoicexyz/types';
+import {
+  errorToastHandler,
+  getResolverInfoByAddress,
+  parseToDate,
+  uriToDocument,
+} from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits } from 'viem';
-import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+import {
+  useChainId,
+  usePublicClient,
+  useSimulateContract,
+  useWriteContract,
+} from 'wagmi';
+
+import { useDetailsPin } from './useDetailsPin';
+
+type AddMilestonesProps = {
+  address: Hex;
+  invoice: Partial<InvoiceDetails>;
+  localForm: UseFormReturn<Partial<FormInvoice>>;
+  toast: UseToastReturn;
+  onTxSuccess?: () => void;
+};
 
 export const useAddMilestones = ({
   address,
-  chainId,
   localForm,
   invoice,
   toast,
@@ -23,13 +52,99 @@ export const useAddMilestones = ({
   writeError: WriteContractErrorType | null;
 } => {
   const publicClient = usePublicClient();
+  const chainId = useChainId();
 
-  const { tokenMetadata } = _.pick(invoice, ['tokenMetadata', 'total']);
+  const { tokenMetadata, metadata, amounts, resolver } = _.pick(invoice, [
+    'tokenMetadata',
+    'metadata',
+    'amounts',
+    'resolver',
+  ]);
 
   const { getValues } = localForm;
 
-  // TODO: update project agreement link
-  const { milestones } = getValues();
+  const { milestones, document } = getValues();
+
+  const detailsData = useMemo(() => {
+    const {
+      title,
+      description,
+      startDate,
+      endDate,
+      resolverType,
+      klerosCourt,
+      createdAt,
+      documents,
+      milestones: oldMilestones,
+    } = metadata ?? {};
+
+    const now = createdAt
+      ? Math.floor(parseToDate(createdAt).getTime() / 1000)
+      : Math.floor(new Date().getTime() / 1000);
+    const end = endDate
+      ? Math.floor(parseToDate(endDate).getTime() / 1000)
+      : now + 60 * 60 * 24 * 30;
+    const start = startDate
+      ? Math.floor(parseToDate(startDate).getTime() / 1000)
+      : now;
+
+    const newMilestones: Milestone[] = [];
+
+    amounts?.forEach((_amount, i) => {
+      newMilestones.push({
+        id: _.join([`Milestone ${i + 1}`, now, INVOICE_VERSION], '-'),
+        title: oldMilestones?.[i].title ?? `Milestone ${i + 1}`,
+        description: oldMilestones?.[i].description ?? '',
+        createdAt: oldMilestones?.[i].createdAt ?? now,
+        endDate: oldMilestones?.[i].endDate ?? end,
+      });
+    });
+
+    milestones?.forEach((milestone, i) => {
+      newMilestones.push({
+        id: _.join(
+          [`Milestone ${i + newMilestones.length + 1}`, now, INVOICE_VERSION],
+          '-',
+        ),
+        title: milestone.title ?? `Milestone ${i + newMilestones.length + 1}`,
+        description: milestone.description ?? '',
+        createdAt: now,
+        endDate: end,
+      });
+    });
+
+    const newResolverType =
+      resolverType ??
+      getResolverInfoByAddress(address, chainId)?.id ??
+      'custom';
+
+    return {
+      version: INVOICE_VERSION,
+      id: _.join([title, now, INVOICE_VERSION], '-'),
+      title,
+      description,
+      documents: documents
+        ? [
+            ...documents.map(d => ({
+              ...uriToDocument(d.src),
+              createdAt: createdAt
+                ? Math.floor(parseToDate(createdAt).getTime() / 1000)
+                : Math.floor(new Date().getTime() / 1000),
+            })),
+            uriToDocument(document),
+          ]
+        : [uriToDocument(document)],
+      startDate: start,
+      endDate: end,
+      createdAt: now,
+      milestones: newMilestones,
+      resolverType: newResolverType,
+      ...(newResolverType === 'kleros' ? { klerosCourt } : {}),
+    } as InvoiceMetadata;
+  }, [document, JSON.stringify(milestones), metadata, amounts, resolver]);
+
+  const { data: details, isLoading: detailsLoading } =
+    useDetailsPin(detailsData);
 
   const parsedMilestones = _.map(milestones, (milestone: { value: string }) =>
     milestone.value !== '' && _.toNumber(milestone.value) > 0
@@ -37,16 +152,22 @@ export const useAddMilestones = ({
       : BigInt(0),
   );
 
-  const { error: prepareError, data } = useSimulateContract({
+  const {
+    error: prepareError,
+    isLoading: prepareLoading,
+    data,
+  } = useSimulateContract({
     address,
     chainId,
     abi: SMART_INVOICE_ESCROW_ABI,
     functionName: 'addMilestones',
-    args: [parsedMilestones],
+    args: [parsedMilestones, details as Hex],
     query: {
-      enabled: _.every(parsedMilestones, m => m > BigInt(0)),
+      enabled: _.every(parsedMilestones, m => m > BigInt(0)) && !!details,
     },
   });
+
+  const [waitingForTx, setWaitingForTx] = useState(false);
 
   const {
     writeContractAsync,
@@ -55,6 +176,7 @@ export const useAddMilestones = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useAddMilestone.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -62,6 +184,7 @@ export const useAddMilestones = ({
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
+        setWaitingForTx(false);
 
         onTxSuccess?.();
       },
@@ -82,15 +205,10 @@ export const useAddMilestones = ({
     }
   }, [writeContractAsync, data]);
 
-  return { writeAsync, isLoading, prepareError, writeError };
+  return {
+    writeAsync,
+    isLoading: isLoading || waitingForTx || prepareLoading || detailsLoading,
+    prepareError,
+    writeError,
+  };
 };
-
-interface AddMilestonesProps {
-  address: Hex;
-  chainId: number;
-  invoice?: Partial<InvoiceDetails>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  localForm: UseFormReturn<any>;
-  toast: UseToastReturn;
-  onTxSuccess?: () => void;
-}

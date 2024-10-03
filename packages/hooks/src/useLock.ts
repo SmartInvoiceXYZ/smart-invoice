@@ -1,15 +1,24 @@
 import {
-  DEFAULT_CHAIN_ID,
+  INVOICE_VERSION,
   SMART_INVOICE_ESCROW_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
-import { errorToastHandler } from '@smartinvoicexyz/utils';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import {
+  BasicMetadata,
+  InvoiceDetails,
+  UseToastReturn,
+} from '@smartinvoicexyz/types';
+import {
+  errorToastHandler,
+  getDateString,
+  uriToDocument,
+} from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
-import { Hex, zeroHash } from 'viem';
+import { useCallback, useMemo, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { Hex } from 'viem';
 import {
   useChainId,
   usePublicClient,
@@ -17,36 +26,56 @@ import {
   useWriteContract,
 } from 'wagmi';
 
+import { useDetailsPin } from './useDetailsPin';
+
+export type FormLock = {
+  description: string;
+  document?: string;
+};
+
 export const useLock = ({
   invoice,
-  disputeReason,
+  localForm,
   onTxSuccess,
   toast,
 }: {
-  invoice: Partial<InvoiceDetails>;
-  disputeReason: string;
+  invoice: InvoiceDetails;
+  localForm: UseFormReturn<FormLock>;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
 }): {
   writeAsync: () => Promise<Hex | undefined>;
-  writeLoading: boolean;
   isLoading: boolean;
   prepareError: SimulateContractErrorType | null;
   writeError: WriteContractErrorType | null;
 } => {
   const currentChainId = useChainId();
-  const invoiceChainId = _.get(invoice, 'chainId') || DEFAULT_CHAIN_ID;
+  const { chainId: invoiceChainId, metadata } = _.pick(invoice, [
+    'chainId',
+    'metadata',
+  ]);
 
-  const detailsHash = zeroHash;
+  const { description, document } = localForm.getValues();
 
   const publicClient = usePublicClient();
 
-  // TODO: upload dispute details
-  // const detailsHash = await uploadDisputeDetails({
-  //   reason: disputeReason,
-  //   invoice: address,
-  //   amount: balance.toString(),
-  // });
+  const detailsData = useMemo(() => {
+    const now = Math.floor(new Date().getTime() / 1000);
+    const title = `Dispute ${metadata?.title} at ${getDateString(now)}`;
+    return {
+      version: INVOICE_VERSION,
+      id: _.join([title, now, INVOICE_VERSION], '-'),
+      title,
+      description,
+      documents: document ? [uriToDocument(document)] : [],
+      createdAt: now,
+    } as BasicMetadata;
+  }, [description, document, metadata]);
+
+  const { data: detailsHash, isLoading: detailsLoading } = useDetailsPin(
+    detailsData,
+    true,
+  );
 
   const {
     data,
@@ -56,14 +85,17 @@ export const useLock = ({
     address: invoice?.address as Hex,
     functionName: 'lock',
     abi: SMART_INVOICE_ESCROW_ABI,
-    args: [detailsHash],
+    args: [detailsHash as Hex],
     query: {
       enabled:
         !!invoice?.address &&
-        !!disputeReason &&
+        !!description &&
+        !!detailsHash &&
         currentChainId === invoiceChainId,
     },
   });
+
+  const [waitingForTx, setWaitingForTx] = useState(false);
 
   const {
     writeContractAsync,
@@ -72,6 +104,7 @@ export const useLock = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useLock.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -80,6 +113,7 @@ export const useLock = ({
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
 
+        setWaitingForTx(false);
         onTxSuccess?.();
       },
       onError: error => errorToastHandler('useLock', error, toast),
@@ -100,8 +134,7 @@ export const useLock = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading,
-    writeLoading,
+    isLoading: prepareLoading || writeLoading || waitingForTx || detailsLoading,
     prepareError,
     writeError,
   };

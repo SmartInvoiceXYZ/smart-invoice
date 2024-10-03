@@ -14,22 +14,21 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   ESCROW_STEPS,
-  KLEROS_ARBITRATION_SAFE,
   KLEROS_COURTS,
+  KnownResolverType,
 } from '@smartinvoicexyz/constants';
 import { FormInvoice } from '@smartinvoicexyz/types';
 import { Checkbox, Input, Select } from '@smartinvoicexyz/ui';
 import {
   escrowDetailsSchema,
   getResolverInfo,
-  getResolvers,
   getResolverString,
+  getResolverTypes,
   isKnownResolver,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import { Hex } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function EscrowDetailsForm({
@@ -41,22 +40,29 @@ export function EscrowDetailsForm({
 }) {
   const chainId = useChainId();
   const { watch, setValue } = invoiceForm;
-  const { provider, client, resolver, customResolver, resolverTerms } = watch();
+  const {
+    provider,
+    client,
+    resolverType,
+    resolverAddress,
+    isResolverTermsChecked,
+    klerosCourt,
+  } = watch();
 
   const localForm = useForm({
     resolver: yupResolver(escrowDetailsSchema(chainId)),
     defaultValues: {
       client,
       provider,
-      customResolver,
-      resolver,
-      resolverTerms,
-      klerosCourt: 1,
+      resolverAddress,
+      resolverType: resolverType || ('kleros' as KnownResolverType),
+      isResolverTermsChecked,
+      klerosCourt: klerosCourt || 1,
     },
   });
+
   const {
     handleSubmit,
-    setValue: localSetValue,
     watch: localWatch,
     formState: { isValid },
   } = localForm;
@@ -64,28 +70,21 @@ export function EscrowDetailsForm({
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);
     setValue('provider', values?.provider);
-    setValue('resolver', values?.resolver);
-    setValue('customResolver', values?.customResolver);
-    setValue('resolverTerms', values?.resolverTerms);
-    if (values?.resolver !== KLEROS_ARBITRATION_SAFE) {
-      setValue('klerosCourt', 0);
-    } else {
-      setValue('klerosCourt', values?.klerosCourt);
-    }
+    setValue('resolverType', values?.resolverType);
+    setValue('resolverAddress', values?.resolverAddress);
+    setValue('isResolverTermsChecked', values?.isResolverTermsChecked);
+    setValue('klerosCourt', values?.klerosCourt);
     updateStep();
   };
 
   const buttonSize = useBreakpointValue({ base: 'sm', sm: 'md', md: 'lg' });
 
-  const RESOLVERS = useMemo(() => getResolvers(chainId), [chainId]);
-  const localResolver = localWatch('resolver');
-
-  useEffect(() => {
-    // set initial local values for select
-    localSetValue('resolver', resolver || _.first(RESOLVERS));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+  const knownResolverTypes = useMemo(
+    () => getResolverTypes(chainId),
+    [chainId],
+  );
+  const { resolverType: lResolverType } = localWatch();
+  const localResolverType = lResolverType as KnownResolverType;
 
   return (
     <Box as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -114,29 +113,29 @@ export function EscrowDetailsForm({
 
         <Stack gap={4}>
           <Select
-            name="resolver"
+            name="resolverType"
             label="Arbitration Provider"
             localForm={localForm}
           >
-            {RESOLVERS.map((res: string) => (
+            {knownResolverTypes.map(res => (
               <option key={res} value={res}>
-                {getResolverInfo(res as Hex, chainId).name}
+                {getResolverInfo(res, chainId).name}
               </option>
             ))}
             <option value="custom">Custom</option>
           </Select>
 
-          {localResolver &&
-            getResolverInfo(localResolver as Hex, chainId)?.disclaimer && (
+          {localResolverType &&
+            getResolverInfo(localResolverType, chainId)?.disclaimer && (
               <Alert bg="yellow.500" borderRadius="md" color="white">
                 <AlertIcon color="whiteAlpha.800" />
                 <AlertTitle fontSize="sm">
-                  {getResolverInfo(localResolver as Hex, chainId).disclaimer}
+                  {getResolverInfo(localResolverType, chainId)?.disclaimer}
                 </AlertTitle>
               </Alert>
             )}
 
-          {localResolver === KLEROS_ARBITRATION_SAFE && (
+          {localResolverType === 'kleros' && (
             <Select
               name="klerosCourt"
               tooltip="This kleros court will be used in case of dispute."
@@ -151,10 +150,10 @@ export function EscrowDetailsForm({
             </Select>
           )}
 
-          {localResolver === 'custom' ||
-          !isKnownResolver(localResolver as Hex, chainId) ? (
+          {localResolverType === 'custom' ||
+          !isKnownResolver(localResolverType, chainId) ? (
             <Input
-              name="customResolver"
+              name="resolverAddress"
               tooltip="This arbitrator will be used in case of dispute."
               label="Arbitration Provider Address"
               placeholder="0x..."
@@ -162,16 +161,14 @@ export function EscrowDetailsForm({
             />
           ) : (
             <Checkbox
-              name="resolverTerms"
+              name="isResolverTermsChecked"
               localForm={localForm}
               options={[
                 <Text>
-                  {`I agree to ${getResolverString(localResolver as Hex, chainId)}`}
+                  {`I agree to ${getResolverString(localResolverType, chainId)}`}
                   &apos;s{' '}
                   <Link
-                    href={
-                      getResolverInfo(localResolver as Hex, chainId)?.termsUrl
-                    }
+                    href={getResolverInfo(localResolverType, chainId)?.termsUrl}
                     isExternal
                     textDecor="underline"
                   >

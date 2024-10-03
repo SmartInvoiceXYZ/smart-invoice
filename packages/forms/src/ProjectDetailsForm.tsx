@@ -1,4 +1,4 @@
-import { Box, Button, Grid, HStack, Stack } from '@chakra-ui/react';
+import { Box, Button, Grid, SimpleGrid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { ValueOf } from '@smartinvoicexyz/types';
@@ -18,9 +18,9 @@ import _ from 'lodash';
 import { useForm, UseFormReturn } from 'react-hook-form';
 
 type FormValues = {
-  projectName: string | undefined;
-  projectDescription: string | undefined;
-  projectAgreement: string | undefined;
+  title: string | undefined;
+  description: string | undefined;
+  document: string | undefined;
   startDate: Date | undefined;
   endDate: Date | undefined;
   safetyValveDate: Date | undefined;
@@ -37,27 +37,30 @@ export function ProjectDetailsForm({
   type: ValueOf<typeof INVOICE_TYPES>;
 }) {
   const { setValue, watch } = invoiceForm;
+
   const {
-    projectName,
-    projectDescription,
-    projectAgreement,
+    title,
+    description,
+    document,
     startDate,
     endDate,
     safetyValveDate,
     deadline,
   } = watch();
+
   const localForm = useForm({
     resolver: yupResolver(projectDetailsSchema),
     defaultValues: {
-      projectName,
-      projectDescription,
-      projectAgreement: _.get(_.first(projectAgreement), 'src', ''),
+      title,
+      description,
+      document: document || '',
       startDate: startDate || new Date(),
       endDate: endDate || sevenDaysFromNow(),
       safetyValveDate: safetyValveDate || oneMonthFromNow(),
       deadline: deadline || oneMonthFromNow(),
     },
   });
+
   const {
     handleSubmit,
     formState: { isValid },
@@ -66,20 +69,9 @@ export function ProjectDetailsForm({
   const { primaryButtonSize } = useMediaStyles();
 
   const onSubmit = async (values: Partial<FormValues>) => {
-    // if (values.projectAgreement) {
-    //   // TODO align with AddMilestones handling for projectAgreement
-    //   // TODO handle ipfs agreement link
-    //   localProjectAgreement.push({
-    //     type: 'https',
-    //     src: values.projectAgreement,
-    //     createdAt: Math.floor(Date.now() / 1000),
-    //   });
-    // }
-    // don't handle project agreement here
-
-    setValue('projectName', values.projectName);
-    setValue('projectDescription', values.projectDescription);
-    setValue('projectAgreement', values.projectAgreement);
+    setValue('title', values.title);
+    setValue('description', values.description);
+    setValue('document', values.document);
     setValue('startDate', values.startDate);
     setValue('endDate', values.endDate);
     setValue('safetyValveDate', values.safetyValveDate);
@@ -93,8 +85,8 @@ export function ProjectDetailsForm({
     <Box as="form" onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={6} w="100%">
         <Input
-          label="Project Name"
-          name="projectName"
+          label="Title"
+          name="title"
           tooltip="The name of the project"
           placeholder="An adventure slaying Moloch"
           registerOptions={{ required: true }}
@@ -102,7 +94,7 @@ export function ProjectDetailsForm({
         />
         <Textarea
           label="Description"
-          name="projectDescription"
+          name="description"
           tooltip="A detailed description of the project"
           placeholder="Describe the project in detail. What is the scope? What are the deliverables? What are the milestones? What are the expectations?"
           variant="outline"
@@ -110,49 +102,43 @@ export function ProjectDetailsForm({
           localForm={localForm}
         />
         <LinkInput
-          name="projectAgreement"
+          name="document"
           label="Project Proposal, Agreement or Specification"
           tooltip="A URL to a project proposal, agreement or specification. This could be a RIP or other proposal. This is optional."
-          placeholder="https://github.com/AcmeAcademy/buidler"
+          placeholder="github.com/AcmeAcademy/buidler"
           localForm={localForm}
         />
 
-        <HStack>
-          <Box w="30%">
+        <SimpleGrid columns={3}>
+          <DatePicker
+            label="Start Date"
+            name="startDate"
+            tooltip="The date the project is expected to start"
+            localForm={localForm}
+          />
+          <DatePicker
+            label="Estimated End Date"
+            name="endDate"
+            tooltip="The date the project is expected to end. This value is not formally used in the escrow."
+            localForm={localForm}
+          />
+          {type === INVOICE_TYPES.Instant ? (
             <DatePicker
-              label="Start Date"
-              name="startDate"
-              tooltip="The date the project is expected to start"
+              name="deadline"
+              label="Deadline"
+              placeholder="Select a date"
+              tooltip="A specific date when the total payment is due."
               localForm={localForm}
             />
-          </Box>
-          <Box w="30%">
+          ) : (
             <DatePicker
-              label="Estimated End Date"
-              name="endDate"
-              tooltip="The date the project is expected to end. This value is not formally used in the escrow."
+              label="Safety Valve Date"
+              name="safetyValveDate"
+              tooltip="The date the client can withdraw funds. Should be well in the future generally!"
               localForm={localForm}
             />
-          </Box>
-          <Box>
-            {type === INVOICE_TYPES.Instant ? (
-              <DatePicker
-                name="deadline"
-                label="Deadline"
-                placeholder="Select a date"
-                tooltip="A specific date when the total payment is due."
-                localForm={localForm}
-              />
-            ) : (
-              <DatePicker
-                label="Safety Valve Date"
-                name="safetyValveDate"
-                tooltip="The date the client can withdraw funds. Should be well in the future generally!"
-                localForm={localForm}
-              />
-            )}
-          </Box>
-        </HStack>
+          )}
+        </SimpleGrid>
 
         <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
           <Button

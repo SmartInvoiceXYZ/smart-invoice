@@ -23,16 +23,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Address, Hex } from 'viem';
-import { useChainId } from 'wagmi';
 
 import { useOverlay } from '../../contexts/OverlayContext';
 
 export function CreateInvoiceEscrow() {
-  const chainId = useChainId();
   const invoiceForm = useForm();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const { modals, setModals } = useOverlay();
+  const overlay = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [txHash, setTxHash] = useState<Hex>();
 
@@ -80,13 +78,9 @@ export function CreateInvoiceEscrow() {
         w={columnWidth}
         px="1rem"
         my="2rem"
-        maxW="650px"
+        maxW="45rem"
       >
-        <NetworkChangeAlertModal
-          modals={modals}
-          setModals={setModals}
-          chainId={chainId}
-        />
+        <NetworkChangeAlertModal {...overlay} />
 
         <Stack
           spacing={{ base: '1.5rem', lg: '1rem' }}
@@ -157,7 +151,6 @@ export function CreateInvoiceEscrow() {
               <RegisterSuccess
                 invoiceId={invoiceId as Address}
                 txHash={txHash as Address}
-                type={INVOICE_TYPES.Escrow}
               />
             )}
           </Flex>

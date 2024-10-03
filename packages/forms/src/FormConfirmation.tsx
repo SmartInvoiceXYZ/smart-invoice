@@ -7,11 +7,11 @@ import {
   Link,
   Stack,
   Text,
+  VStack,
 } from '@chakra-ui/react';
 import {
   ESCROW_STEPS,
   INVOICE_TYPES,
-  KLEROS_ARBITRATION_SAFE,
   KLEROS_COURTS,
   LATE_FEE_INTERVAL_OPTIONS,
 } from '@smartinvoicexyz/constants';
@@ -22,7 +22,7 @@ import {
   ChakraNextLink,
   useMediaStyles,
 } from '@smartinvoicexyz/ui';
-import { getDateString } from '@smartinvoicexyz/utils';
+import { getDateString, getResolverInfo } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -47,17 +47,17 @@ export function FormConfirmation({
   const { data: tokens } = useFetchTokens();
   const { watch } = invoiceForm;
   const {
-    projectName,
-    projectDescription,
-    projectAgreement,
+    title,
+    description,
+    document,
     client,
     provider,
     klerosCourt,
     startDate,
     endDate,
     safetyValveDate,
-    resolver,
-    customResolver,
+    resolverType,
+    resolverAddress,
     milestones,
     token,
     deadline,
@@ -73,8 +73,9 @@ export function FormConfirmation({
   const initialPaymentDue = _.get(_.first(milestones), 'value');
   const symbol = _.filter(
     tokens,
-    // eslint-disable-next-line eqeqeq
-    t => t.address == token && t.chainId == chainId,
+    t =>
+      t.address.toLowerCase() === token.toLowerCase() &&
+      Number(t.chainId) === chainId,
   )[0]?.symbol;
 
   const { headingSize, primaryButtonSize, columnWidth } = useMediaStyles();
@@ -124,15 +125,21 @@ export function FormConfirmation({
           ),
         },
       // calculate payment due
-      (customResolver || (resolver && resolver !== 'custom')) && {
+      (resolverAddress || (resolverType && resolverType !== 'custom')) && {
         label: 'Arbitration Provider:',
         value: (
-          <AccountLink address={customResolver || resolver} chainId={chainId} />
+          <AccountLink
+            address={
+              resolverAddress || getResolverInfo(resolverType, chainId)?.address
+            }
+            chainId={chainId}
+            resolverInfo={getResolverInfo(resolverType, chainId)}
+          />
         ),
       },
-      // if kleros resolver, show court
+      // if kleros resolverType, show court
       klerosCourt &&
-        resolver === KLEROS_ARBITRATION_SAFE && {
+        resolverType === 'kleros' && {
           label: 'Kleros Court:',
           value: (
             <ChakraNextLink
@@ -151,7 +158,7 @@ export function FormConfirmation({
     startDate,
     endDate,
     safetyValveDate,
-    resolver,
+    resolverType,
     klerosCourt,
     paymentDue,
     lateFee,
@@ -161,22 +168,24 @@ export function FormConfirmation({
 
   return (
     <Stack w="100%" spacing="1rem" color="#323C47" align="center">
-      <Heading id="project-title" size={headingSize}>
-        {projectName}
-      </Heading>
+      <VStack align="stretch" spacing="1rem" w={columnWidth}>
+        <Heading id="project-title" size={headingSize}>
+          {title}
+        </Heading>
 
-      {projectDescription && <Text align="center">{projectDescription}</Text>}
+        {description && <Text>{description}</Text>}
 
-      {projectAgreement && (
-        <Link
-          href={projectAgreement.src || '#'}
-          isExternal
-          mb="1rem"
-          textDecor="underline"
-        >
-          {projectAgreement.src}
-        </Link>
-      )}
+        {document && (
+          <Link
+            href={document || '#'}
+            isExternal
+            mb="1rem"
+            textDecor="underline"
+          >
+            {document}
+          </Link>
+        )}
+      </VStack>
 
       <Divider />
 

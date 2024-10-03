@@ -1,42 +1,54 @@
 /* eslint-disable camelcase */
-
 import { logDebug } from '@smartinvoicexyz/shared';
-import { Address, isAddress } from 'viem';
+import { Hex } from 'viem';
 
 import { fetchTypedQuery } from './client';
 import { _SubgraphErrorPolicy_, Invoice_orderBy, OrderDirection } from './zeus';
 
-export type SearchInputType = string | Address | undefined;
+export type SearchAddressType = string | Hex | undefined;
 
-const buildInvoicesFilter = (searchInput: SearchInputType) => {
-  if (!searchInput) return undefined;
-  if (isAddress(searchInput)) {
-    return {
-      or: [
-        { address_contains: searchInput },
-        { client_contains: searchInput },
-        { provider_contains: searchInput },
-        { resolver_contains: searchInput },
-      ],
-    };
-  }
-  return { projectName_contains: searchInput };
+const buildInvoicesFilter = (searchAddress: SearchAddressType) => {
+  return {
+    or: [
+      { address: searchAddress?.toLowerCase() },
+      { client: searchAddress?.toLowerCase() },
+      { provider: searchAddress?.toLowerCase() },
+      { resolver: searchAddress?.toLowerCase() },
+    ],
+  };
+};
+
+export type InvoiceDisplayData = {
+  id: string;
+  address: Hex;
+  createdAt: bigint;
+  invoiceType?: string | undefined;
+  network: string;
+  ipfsHash: Hex;
+  released: bigint;
+  token: Hex;
+  total: bigint;
+  tokenMetadata: {
+    id: string;
+    decimals: number;
+    name: string;
+    symbol: string;
+  };
+  provider: Hex;
+  client: Hex;
+  resolver: Hex;
 };
 
 export const fetchInvoices = async (
   chainId: number,
-  searchInput: SearchInputType,
+  searchAddress: SearchAddressType,
   pageIndex: number,
   pageSize: number,
   sortBy: Invoice_orderBy,
   sortDesc: boolean = false,
 ) => {
-  if (chainId < 0) return [];
-
   const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
-  const where = buildInvoicesFilter(searchInput);
-
-  logDebug({ chainId, pageIndex, pageSize, sortBy, sortDirection, where });
+  const where = buildInvoicesFilter(searchAddress);
 
   const data = await fetchTypedQuery(chainId)({
     invoices: [
@@ -54,12 +66,14 @@ export const fetchInvoices = async (
         createdAt: true,
         invoiceType: true,
         network: true,
-        projectName: true,
         ipfsHash: true,
         released: true,
         token: true,
         total: true,
         tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
+        provider: true,
+        client: true,
+        resolver: true,
       },
     ],
   });
@@ -67,19 +81,12 @@ export const fetchInvoices = async (
   logDebug({
     data,
     chainId,
-    searchInput,
+    searchAddress,
     pageIndex,
     pageSize,
     sortBy,
     sortDesc,
   });
 
-  return data?.invoices ?? [];
+  return (data?.invoices ?? []) as Array<InvoiceDisplayData>;
 };
-
-type ArrayElement<ArrayType extends readonly unknown[]> =
-  ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
-
-type InvoicesArray = Awaited<ReturnType<typeof fetchInvoices>>;
-
-export type InvoiceMetadata = ArrayElement<InvoicesArray>;

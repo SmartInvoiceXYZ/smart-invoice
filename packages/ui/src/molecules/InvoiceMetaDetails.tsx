@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Button,
   Heading,
@@ -6,28 +7,27 @@ import {
   Stack,
   Text,
   Tooltip,
-  useBreakpointValue,
   useClipboard,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
+import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
-  getAccountString,
-  getAddressLink,
-  getAgreementLink,
+  documentToHttp,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import React, { useMemo } from 'react';
-import { isAddress, zeroAddress } from 'viem';
+import { useMemo } from 'react';
+import { Address, isAddress, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import {
   AccountLink,
   CopyIcon,
   GenerateInvoicePDF,
+  InvoiceBadge,
   QuestionIcon,
   VerifyInvoice,
 } from '..';
@@ -41,17 +41,15 @@ export function InvoiceMetaDetails({
 
   const {
     id: invoiceId,
-    projectName,
-    projectDescription,
-    projectAgreement,
-    startDate,
-    endDate,
+    metadata,
     terminationTime,
     deadline,
     client,
     provider,
     resolver,
-    klerosCourt,
+    verified,
+    invoiceType,
+    resolverInfo,
   } = _.pick(invoice, [
     'id',
     'client',
@@ -59,13 +57,16 @@ export function InvoiceMetaDetails({
     'resolver',
     'terminationTime',
     'deadline',
-    'projectName',
-    'projectDescription',
-    'projectAgreement',
-    'startDate',
-    'endDate',
-    'klerosCourt',
+    'metadata',
+    'verified',
+    'invoiceType',
+    'resolverInfo',
   ]);
+
+  const { startDate, endDate, title, description, documents } = _.pick(
+    metadata,
+    ['startDate', 'endDate', 'title', 'description', 'documents'],
+  );
 
   const invoiceChainId = chainByName(invoice?.network)?.id;
   const validClient = !!client && isAddress(client) ? client : undefined;
@@ -78,15 +79,11 @@ export function InvoiceMetaDetails({
 
   const isClient = _.toLower(address) === client;
 
-  const leftMinW = useBreakpointValue({ base: '10rem', sm: '20rem' });
-  const leftMaxW = useBreakpointValue({ base: '30rem', lg: '22rem' });
-
   const { onCopy } = useClipboard(_.toLower(invoiceId));
 
   const verifiedStatus = useMemo(
     () =>
-      !_.isEmpty(invoice?.verified) &&
-      !!_.find(invoice?.verified, { client: invoice?.client }),
+      !_.isEmpty(verified) && !!_.find(verified, { client: invoice?.client }),
     [invoice],
   );
 
@@ -110,7 +107,7 @@ export function InvoiceMetaDetails({
             Number(terminationTime) * 1000,
           ).toUTCString()}`,
         },
-      deadline && {
+      !!deadline && {
         label: 'Payment Deadline:',
         value: getDateString(_.toNumber(_.toString(deadline))),
         tip: `Late fees start accumulating after ${new Date(
@@ -131,7 +128,7 @@ export function InvoiceMetaDetails({
           <AccountLink
             address={validResolver}
             chainId={invoiceChainId}
-            court={klerosCourt}
+            resolverInfo={resolverInfo}
           />
         ),
       },
@@ -147,52 +144,54 @@ export function InvoiceMetaDetails({
     ],
   );
 
+  const lastDocument = _.findLast(documents);
+
   return (
     <Stack
       spacing="1rem"
-      minW={leftMinW}
       w="100%"
-      maxW={leftMaxW}
+      maxW={{ base: '100%', lg: '25rem' }}
       justify="center"
       align="stretch"
       direction="column"
     >
       <Stack align="stretch" justify="center">
-        {projectName && (
+        {title && (
           <Heading fontWeight="normal" fontSize="2xl">
-            {projectName}
+            {title}
           </Heading>
         )}
 
         <HStack align="center" color="black" spacing={4}>
-          <Link
-            href={getAddressLink(invoiceChainId, _.toLower(invoiceId))}
-            isExternal
-          >
-            {getAccountString(invoiceId)}
-          </Link>
+          <InvoiceBadge invoiceType={invoiceType} />
+          <AccountLink
+            address={invoiceId as Address}
+            chainId={invoiceChainId}
+          />
           <Button
             onClick={onCopy}
             variant="ghost"
+            bg="none"
             colorScheme="blue"
             h="auto"
             w="auto"
             minW="2"
             p={2}
           >
-            <CopyIcon boxSize={4} />
+            <CopyIcon boxSize={3} />
           </Button>
         </HStack>
-        {projectDescription && <Text color="black">{projectDescription}</Text>}
+        {description && <Text color="black">{description}</Text>}
 
-        {!_.isEmpty(projectAgreement) && (
-          <Link
-            href={getAgreementLink(projectAgreement)}
-            isExternal
-            textDecor="underline"
-            color="black"
-          >
-            Details of Agreement
+        {!!lastDocument && (
+          <Link href={documentToHttp(lastDocument)} isExternal _hover={{}}>
+            <Button
+              size="xs"
+              textTransform="uppercase"
+              rightIcon={<ExternalLinkIcon />}
+            >
+              View Details of Agreement
+            </Button>
           </Link>
         )}
       </Stack>
@@ -222,27 +221,29 @@ export function InvoiceMetaDetails({
           </Wrap>
         ))}
 
-        <Wrap>
-          <WrapItem>
-            <Text>{'Non-Client Deposits Enabled: '}</Text>
-          </WrapItem>
+        {invoiceType === INVOICE_TYPES.Escrow && (
+          <Wrap>
+            <WrapItem>
+              <Text>{'Non-Client Deposits Enabled: '}</Text>
+            </WrapItem>
 
-          <WrapItem fontWeight="bold">
-            {invoice && verifiedStatus ? (
-              <Text color="green.500">Enabled!</Text>
-            ) : (
-              <Text color="red.500">Not enabled</Text>
-            )}
-          </WrapItem>
+            <WrapItem fontWeight="bold">
+              {invoice && verifiedStatus ? (
+                <Text color="green.500">Enabled!</Text>
+              ) : (
+                <Text color="red.500">Not enabled</Text>
+              )}
+            </WrapItem>
 
-          <WrapItem fontWeight="bold">
-            <VerifyInvoice
-              invoice={invoice}
-              isClient={isClient}
-              verifiedStatus={verifiedStatus}
-            />
-          </WrapItem>
-        </Wrap>
+            <WrapItem fontWeight="bold">
+              <VerifyInvoice
+                invoice={invoice}
+                isClient={isClient}
+                verifiedStatus={verifiedStatus}
+              />
+            </WrapItem>
+          </Wrap>
+        )}
 
         <Wrap>
           <GenerateInvoicePDF

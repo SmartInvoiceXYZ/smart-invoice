@@ -1,25 +1,26 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { useResolve } from '@smartinvoicexyz/hooks';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { FormResolve, useResolve } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
+  LinkInput,
   NumberInput,
   Textarea,
   TokenDescriptor,
   useToast,
 } from '@smartinvoicexyz/ui';
+import { resolveFundsSchema } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { formatUnits, parseUnits, TransactionReceipt } from 'viem';
-
-// TODO handle onChange for award amounts
+import { formatUnits } from 'viem';
 
 export function ResolveFunds({
   invoice,
   onClose,
 }: {
-  invoice: Partial<InvoiceDetails>;
+  invoice: InvoiceDetails;
   onClose: () => void;
 }) {
   const { resolutionRate, tokenBalance, tokenMetadata, isLocked } = _.pick(
@@ -28,7 +29,9 @@ export function ResolveFunds({
   );
 
   const toast = useToast();
-  const localForm = useForm({});
+  const localForm = useForm<FormResolve>({
+    resolver: yupResolver(resolveFundsSchema),
+  });
   const { watch, handleSubmit, setValue } = localForm;
 
   const resolverAward = useMemo(() => {
@@ -57,51 +60,27 @@ export function ResolveFunds({
     [tokenBalance?.value, resolverAward],
   );
 
-  const clientAward = watch('clientAward');
-  const providerAward = watch('providerAward');
-  const comments = watch('comments');
-
-  const awards = useMemo(
-    () => ({
-      client: clientAward ? parseUnits(_.toString(clientAward), 18) : BigInt(0),
-      provider: providerAward
-        ? parseUnits(_.toString(providerAward), 18)
-        : BigInt(0),
-      resolver: resolverAward
-        ? parseUnits(_.toString(resolverAward), 18)
-        : BigInt(0),
-    }),
-    [clientAward, providerAward, resolverAward],
-  );
+  const description = watch('description');
 
   const queryClient = useQueryClient();
 
-  const onTxSuccess = (_tx: TransactionReceipt) => {
-    // TODO: handle tx success
-    // console.log(tx);
-    // toast
-    // invalidate cache
-    // close modal
-    //
+  const onTxSuccess = () => {
     queryClient.invalidateQueries({
       queryKey: ['invoiceDetails'],
     });
     queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
-    // close modal
+
     onClose();
   };
 
   const { writeAsync: resolve, isLoading } = useResolve({
     invoice,
-    awards,
-    comments,
+    localForm,
     onTxSuccess,
     toast,
   });
 
   const onSubmit = async () => {
-    // console.log('submitting', awards, comments);
-
     await resolve?.();
   };
 
@@ -168,12 +147,20 @@ export function ResolveFunds({
       </Text>
 
       <Textarea
-        name="comments"
+        name="description"
         tooltip="Here you may explain your reasoning behind the resolution"
         label="Resolution Comments"
         placeholder="Resolution Comments"
         localForm={localForm}
         registerOptions={{ required: true, maxLength: 10000 }}
+      />
+
+      <LinkInput
+        name="document"
+        label="Resolution link"
+        tooltip="A URL linking to more details for this resolution. This is optional."
+        placeholder="github.com/AcmeAcademy/buidler"
+        localForm={localForm}
       />
 
       <NumberInput
@@ -220,7 +207,10 @@ export function ResolveFunds({
       <Button
         type="submit"
         isDisabled={
-          !resolverAward || resolverAward <= BigInt(0) || !comments || !resolve
+          !resolverAward ||
+          resolverAward <= BigInt(0) ||
+          !description ||
+          !resolve
         }
         textTransform="uppercase"
         variant="solid"
@@ -228,20 +218,6 @@ export function ResolveFunds({
       >
         Resolve
       </Button>
-
-      {/* {transaction && (
-            <Text textAlign='center' fontSize='sm'>
-              Follow your transaction{' '}
-              <Link
-                href={getTxLink(chainId, transaction.hash)}
-                isExternal
-                color='primary.300'
-                textDecoration='underline'
-              >
-                here
-              </Link>
-            </Text>
-          )} */}
     </Stack>
   );
 }

@@ -1,33 +1,57 @@
-/* eslint-disable radix */
 import {
-  DEFAULT_CHAIN_ID,
+  ARWEAVE_ENDPOINT,
   invoiceFactory,
   IPFS_ENDPOINT,
-  isOfTypeChainId,
+  isSupportedChainId,
+  KnownResolverType,
+  Resolver,
   resolverInfo,
   resolvers,
-  SUPPORTED_NETWORKS,
   wrappedNativeToken,
 } from '@smartinvoicexyz/constants';
 import { Invoice, TokenBalance, TokenMetadata } from '@smartinvoicexyz/graphql';
-import { ProjectAgreement } from '@smartinvoicexyz/types';
+import {
+  Document,
+  SupportedURL,
+  SupportedURLType,
+} from '@smartinvoicexyz/types';
 import _ from 'lodash';
 import { Address, formatUnits } from 'viem';
 
-import { chainsMap } from '.';
+import { chainById } from './web3';
 
-export const unsupportedNetwork = (chainId: number) =>
-  !_.includes(SUPPORTED_NETWORKS, chainId);
+export const getResolverTypes = (
+  chainId: number | undefined,
+): Array<KnownResolverType> => {
+  if (!isSupportedChainId(chainId)) return [];
+  return resolvers(chainId);
+};
 
-export const getResolvers = (chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? resolvers(chainId)
-    : resolvers(DEFAULT_CHAIN_ID);
+export type ResolverInfo<T extends KnownResolverType | undefined> =
+  T extends KnownResolverType ? Resolver : undefined;
 
-export const getResolverInfo = (resolver: Address, chainId?: number) =>
-  chainId && isOfTypeChainId(chainId)
-    ? resolverInfo(chainId)[resolver]
-    : resolverInfo(DEFAULT_CHAIN_ID)[resolver];
+export const getResolverInfo = <T extends KnownResolverType | undefined>(
+  resolverType: T,
+  chainId: number | undefined,
+): ResolverInfo<T> => {
+  if (!resolverType || !isSupportedChainId(chainId))
+    return undefined as ResolverInfo<T>;
+
+  return resolverInfo(chainId)[resolverType] as ResolverInfo<T>;
+};
+
+export const getResolverInfoByAddress = (
+  resolverAddress: Address,
+  chainId: number | undefined,
+): Resolver | undefined => {
+  if (!isSupportedChainId(chainId)) return undefined;
+  const resolverTypes = getResolverTypes(chainId);
+  return resolverTypes
+    .map(resolverType => getResolverInfo(resolverType, chainId))
+    .find(
+      info => info?.address.toLowerCase() === resolverAddress.toLowerCase(),
+    );
+};
 
 export const getResolverFee = (
   invoice: Invoice,
@@ -50,23 +74,24 @@ export const resolverFeeLabel = (
   tokenMetadata: TokenMetadata | undefined,
 ) => (fee ? `${fee} ${tokenMetadata?.symbol}` : undefined);
 
-export const getWrappedNativeToken = (chainId: number) => {
-  if (!chainId) return undefined;
+export const getWrappedNativeToken = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
   return wrappedNativeToken(chainId);
 };
 
-export const getNativeTokenSymbol = (chainId: number) => {
-  if (!chainId) return undefined;
-  return chainsMap(chainId).nativeCurrency.symbol;
+export const getNativeTokenSymbol = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
+  return chainById(chainId).nativeCurrency.symbol;
 };
 
-export const getInvoiceFactoryAddress = (chainId: number) =>
-  isOfTypeChainId(chainId)
-    ? invoiceFactory(chainId)
-    : invoiceFactory(DEFAULT_CHAIN_ID);
+export const getInvoiceFactoryAddress = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return undefined;
+  return invoiceFactory(chainId);
+};
 
-const getExplorerUrl = (chainId: number) => {
-  const chain = chainsMap(chainId);
+const getExplorerUrl = (chainId: number | undefined) => {
+  if (!isSupportedChainId(chainId)) return '#';
+  const chain = chainById(chainId);
   return _.get(
     chain,
     'blockExplorers.etherscan.url',
@@ -90,19 +115,15 @@ export const getAddressLink = (
   return `${getExplorerUrl(chainId)}/address/${hash}`;
 };
 
-export const isEmptyIpfsHash = (hash: string) =>
-  hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51';
-
 // bytes58 QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51
 // is the same as
 // bytes64 12200000000000000000000000000000000000000000000000000000000000000000
 // which means an all zeros bytes32 was input on the contract
-export const getIpfsLink = (hash: string) =>
-  hash === 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51'
-    ? ''
-    : `${IPFS_ENDPOINT}/ipfs/${hash}`;
+const EMPTY_CID = 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51';
 
-export const getAccountString = (account?: string) => {
+export const isEmptyIpfsHash = (hash: string) => hash === EMPTY_CID;
+
+export const getAccountString = (account?: Address) => {
   if (!account) return undefined;
   const len = account.length;
   return `0x${_.toUpper(account.slice(2, 4))}...${_.toUpper(
@@ -110,34 +131,72 @@ export const getAccountString = (account?: string) => {
   )}`;
 };
 
-export const isKnownResolver = (resolver: Address, chainId?: number) =>
-  _.includes(getResolvers(chainId), _.toLower(resolver));
-
-export const getResolverString = (resolver: Address, chainId?: number) => {
-  const info = getResolverInfo(resolver, chainId);
-  return info ? info.name : getAccountString(resolver);
+export const isKnownResolver = (
+  resolverType: KnownResolverType,
+  chainId: number | undefined,
+) => {
+  if (!isSupportedChainId(chainId)) return false;
+  return _.includes(getResolverTypes(chainId), _.toLower(resolverType));
 };
 
-const URL_REGEX =
-  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
+export const isKnownResolverAddress = (
+  resolverAddress: Address,
+  chainId: number | undefined,
+) =>
+  _.some(
+    getResolverTypes(chainId),
+    resolverType =>
+      getResolverInfo(resolverType, chainId)?.address.toLowerCase() ===
+      resolverAddress.toLowerCase(),
+  );
 
-export const isValidURL = (str: string) => !!URL_REGEX.test(str);
+export const getResolverString = (
+  resolverType: KnownResolverType,
+  chainId: number | undefined,
+  resolverAddress?: Address,
+) => {
+  const info = getResolverInfo(resolverType, chainId);
+  return info ? info.name : getAccountString(resolverAddress);
+};
 
-const BASE32_REGEX = /^[a-zA-Z2-7]+=*$/;
-const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+=*$/;
+const IPFS_HASH_REGEX =
+  /^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,})([/?#][-a-zA-Z0-9@:%_+.~#?&//=]*)*$/;
 
-export const isValidCID = (hash: string) =>
-  (hash.length === 59 &&
-    hash.startsWith('bafy') &&
-    !!BASE32_REGEX.test(hash)) ||
-  (hash.length === 46 && hash.startsWith('Qm') && !!BASE58_REGEX.test(hash));
+const isValidCID = (hash: string) => IPFS_HASH_REGEX.test(hash);
 
-export const isValidLink = (url: string) => {
+const ARWEAVE_TXID_REGEX = /^([a-z0-9-_]{43})$/i;
+
+const isValidArweaveTxID = (hash: string) => ARWEAVE_TXID_REGEX.test(hash);
+
+const ALLOWED_PROTOCOLS = ['http:', 'https:', 'ipfs:', 'ar:'];
+export const PROTOCOL_OPTIONS = ['https://', 'ipfs://', 'ar://'];
+
+export const isValidURL = (url: string | undefined): url is SupportedURL => {
   if (!url) return false;
-  if (url.startsWith('ipfs://')) {
-    return isValidCID(url.slice(7));
+
+  try {
+    // Parse the URL
+    const parsedUrl = new URL(url);
+
+    // Check if the protocol is one of the allowed protocols
+    if (!ALLOWED_PROTOCOLS.includes(parsedUrl.protocol)) {
+      return false;
+    }
+
+    if (parsedUrl.protocol === 'ipfs:') {
+      return isValidCID(parsedUrl.href.slice(7));
+    }
+
+    if (parsedUrl.protocol === 'ar:') {
+      return isValidArweaveTxID(parsedUrl.href.slice(5));
+    }
+
+    // Additional checks for valid formats, etc.
+    return true;
+  } catch {
+    // If URL constructor throws, it's not a valid URL
+    return false;
   }
-  return isValidURL(url);
 };
 
 export const getDecimals = (value: string) => {
@@ -160,28 +219,66 @@ export const resolutionFeePercentage = (resolutionRate: string): number => {
   if (!resolutionRate || resolutionRate === '0') {
     return 0;
   }
-  const feePercentage = 1 / parseInt(resolutionRate);
+  const feePercentage = 1 / parseInt(resolutionRate, 10);
 
   return feePercentage;
 };
 
-export const getAgreementLink = (
-  projectAgreement: ProjectAgreement[] | undefined,
-) => {
-  if (_.isEmpty(projectAgreement)) return '';
-
-  const address = _.get(
-    _.nth(projectAgreement, _.size(projectAgreement) - 1),
-    'src',
-  );
-  if (
-    _.get(_.nth(projectAgreement, _.size(projectAgreement) - 1), 'type') ===
-    'ipfs'
-  ) {
-    // address.substring(7) removes ipfs:// from the beginning of the src string
-    const hash = address?.substring(7);
-    const link = `${IPFS_ENDPOINT}/ipfs/${hash}`;
-    return link;
+export const uriToHttp = (uri: string | undefined): string => {
+  if (!isValidURL(uri)) {
+    return '';
   }
-  return address;
+
+  const parsedUrl = new URL(uri);
+
+  if (parsedUrl.protocol === 'ipfs:') {
+    return `${IPFS_ENDPOINT}/ipfs/${parsedUrl.href.slice(7)}`;
+  }
+
+  if (parsedUrl.protocol === 'ar:') {
+    return `${ARWEAVE_ENDPOINT}/${parsedUrl.href.slice(5)}`;
+  }
+
+  return parsedUrl.href;
+};
+
+export const getIpfsLink = (hash: string) => {
+  if (!isValidCID(hash)) {
+    return '';
+  }
+  return `${IPFS_ENDPOINT}/ipfs/${hash}`;
+};
+
+export const documentToHttp = (document: Document) => uriToHttp(document.src);
+
+const protocolToType = (protocol: string): SupportedURLType => {
+  switch (protocol) {
+    case 'ipfs:':
+      return 'ipfs';
+    case 'ar:':
+      return 'arweave';
+    case 'https:':
+    case 'http:':
+    default:
+      return 'https';
+  }
+};
+
+export const uriToDocument = (
+  uri: string | undefined,
+): Document | undefined => {
+  if (!isValidURL(uri)) {
+    return undefined;
+  }
+
+  const parsed = new URL(uri);
+  const now = Math.floor(new Date().getTime() / 1000);
+  const type = protocolToType(parsed.protocol);
+
+  return {
+    id: parsed.hostname + parsed.pathname + now,
+    src: uri as SupportedURL,
+    type,
+    createdAt: now,
+  };
 };

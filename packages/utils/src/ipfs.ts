@@ -1,18 +1,62 @@
-// import { INVOICE_VERSION } from '@smartinvoicexyz/constants';
-// import { logDebug } from '@smartinvoicexyz/shared';
-import { KeyRestrictions } from '@smartinvoicexyz/types';
-import axios from 'axios';
+import { logDebug } from '@smartinvoicexyz/shared';
+import { KeyRestrictions, OldMetadata } from '@smartinvoicexyz/types';
 import { decode, encode } from 'bs58';
 import _ from 'lodash';
+import { Cache } from 'memory-cache';
 import { Hex } from 'viem';
 
-const { PINATA_JWT } = process.env;
+const IPFS_ENDPOINTS = [
+  `https://ipfs.io/ipfs/`,
+  `https://cloudflare-ipfs.com/ipfs/`,
+  `https://dweb.link/ipfs/`,
+  `https://w3s.link/ipfs/`,
+  `https://flk-ipfs.xyz/ipfs/`,
+];
 
-export const pinJson = async (
-  data: object,
-  metadata: object,
-  token: string,
-) => {
+const cache = new Cache();
+
+export const fetchFromIPFS = async (
+  cid: string | undefined,
+): Promise<OldMetadata> => {
+  if (!cid) {
+    throw new Error('CID is required');
+  }
+
+  const cachedResponse = cache.get(cid);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const controllers = IPFS_ENDPOINTS.map(() => new AbortController());
+
+  try {
+    const response = await Promise.any(
+      IPFS_ENDPOINTS.map(async (endpoint, index) => {
+        const controller = controllers[index];
+        const { signal } = controller;
+
+        const res = await fetch(`${endpoint}${cid}`, { signal });
+        if (res.ok) {
+          // Abort other requests once a successful one is found
+          controllers.forEach((ctrl, i) => {
+            if (i !== index) ctrl.abort();
+          });
+          const data = await res.json();
+          cache.put(cid, data);
+          return data;
+        }
+        throw new Error(`Failed to fetch from ${endpoint}`);
+      }),
+    );
+
+    return response as OldMetadata;
+  } catch (error) {
+    console.error(`Failed to fetch from IPFS for CID: ${cid}: `, error);
+    throw new Error(`Failed to fetch from IPFS for CID: ${cid}`);
+  }
+};
+
+const pinJson = async (data: object, metadata: object, token: string) => {
   const pinataData = JSON.stringify({
     pinataOptions: {
       cidVersion: 0,
@@ -25,22 +69,24 @@ export const pinJson = async (
     },
   });
 
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
-  // TODO can we replace axios and still pass auth?
-  return axios
-    .post('https://api.pinata.cloud/pinning/pinJSONToIPFS', pinataData, config)
-    .then(res => _.get(res, 'data.IpfsHash'))
-    .catch(e => {
-      // eslint-disable-next-line no-console
-      console.log(e);
-      return null;
+  try {
+    const res = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      method: 'POST',
+      body: pinataData,
     });
+
+    const json = await res.json();
+
+    return _.get(json, 'IpfsHash');
+  } catch (e) {
+    logDebug({ pinataData, token });
+    console.error("Couldn't pin data to pinata: ", e);
+    return null;
+  }
 };
 
 interface handleDetailsPinProps {
@@ -53,11 +99,7 @@ export const handleDetailsPin = async ({
   details,
   name,
   token,
-}: handleDetailsPinProps) => {
-  const cid = await pinJson(details, { name }, token);
-
-  return cid;
-};
+}: handleDetailsPinProps) => pinJson(details, { name }, token);
 
 export const fetchToken = async (count: number = 0) => {
   const token = await fetch('/api/upload-start', {
@@ -100,12 +142,15 @@ export function convertByte32ToIpfsCidV0(str: Hex) {
 }
 
 export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
+  if (!process.env.PINATA_JWT) {
+    throw new Error('PINATA_JWT env variable is not set');
+  }
   const options = {
     method: 'POST',
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
-      authorization: `Bearer ${PINATA_JWT}`,
+      authorization: `Bearer ${process.env.PINATA_JWT}`,
     },
     body: JSON.stringify(keyRestrictions),
   };

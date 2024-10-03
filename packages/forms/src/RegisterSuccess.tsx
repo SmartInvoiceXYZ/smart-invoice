@@ -9,31 +9,24 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
-import { ValueOf } from '@smartinvoicexyz/types';
 import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
 import { getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useMemo } from 'react';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
 
 export function RegisterSuccess({
   invoiceId,
   txHash,
-  type,
 }: {
   invoiceId: Address;
   txHash: Address;
-  type: ValueOf<typeof INVOICE_TYPES>;
 }) {
   const chainId = useChainId();
 
   const chainHex = chainId.toString(16);
 
-  const url = useMemo(() => {
-    return `/invoice/${chainHex}/${invoiceId}${type === INVOICE_TYPES.Instant ? '/instant' : ''}`;
-  }, [chainHex, invoiceId, type]);
+  const url = `/invoice/${chainHex}/${invoiceId}`;
 
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
   const { onCopy: copyLink } = useClipboard(`${window.location.origin}${url}`);
@@ -107,8 +100,20 @@ export function RegisterSuccess({
           borderRadius="0.25rem"
           w="100%"
         >
-          <HStack bgColor="gray.50" p={3} borderRadius={4} overflow="clip">
-            <Link ml="0.5rem" href={url} color="charcoal" overflow="clip">
+          <HStack
+            bgColor="gray.50"
+            p={3}
+            borderRadius={4}
+            overflow="clip"
+            w="100%"
+          >
+            <Link
+              ml="0.5rem"
+              href={url}
+              color="charcoal"
+              overflow="clip"
+              w="100%"
+            >
               {_.truncate(`${window.location.origin}${url}`, {
                 length: 60,
                 omission: '...',

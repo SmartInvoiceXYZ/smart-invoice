@@ -56,8 +56,8 @@ export const useInstantDetails = ({
     if (!contractData) return undefined;
 
     const [
-      totalDue,
-      amountFulfilled,
+      getTotalDue,
+      totalFulfilled,
       fulfilled,
       deadline,
       lateFee,
@@ -65,8 +65,8 @@ export const useInstantDetails = ({
     ] = _.map(contractData, 'result');
 
     return {
-      totalDue: totalDue as bigint,
-      amountFulfilled: amountFulfilled as bigint,
+      totalDue: getTotalDue as bigint,
+      amountFulfilled: totalFulfilled as bigint,
       fulfilled: fulfilled as boolean,
       deadline: deadline as bigint,
       lateFee: lateFee as bigint,

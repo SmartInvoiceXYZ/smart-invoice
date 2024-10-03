@@ -1,14 +1,10 @@
+import { fetchFromIPFS } from '@smartinvoicexyz/utils';
 import { useQuery } from '@tanstack/react-query';
 
-export const useIpfsDetails = (cid: string) => {
-  const fetchIpfDetails = async () => {
-    const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
-    const data = await response.json();
-    return data;
-  };
+export const useIpfsDetails = (cid: string | undefined) => {
   return useQuery({
     queryKey: ['ipfsDetails', cid],
-    queryFn: fetchIpfDetails,
+    queryFn: async () => fetchFromIPFS(cid),
     enabled: !!cid,
     staleTime: Infinity,
     refetchInterval: false,

@@ -1,10 +1,10 @@
 import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
@@ -49,6 +49,8 @@ export const useRelease = ({
     },
   });
 
+  const [waitingForTx, setWaitingForTx] = useState(false);
+
   const {
     writeContractAsync,
     isPending: writeLoading,
@@ -56,6 +58,7 @@ export const useRelease = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
+        setWaitingForTx(true);
         toast.info(TOASTS.useRelease.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
@@ -63,7 +66,7 @@ export const useRelease = ({
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
-
+        setWaitingForTx(false);
         onTxSuccess?.();
       },
       onError: (error: Error) => errorToastHandler('useRelease', error, toast),
@@ -84,7 +87,7 @@ export const useRelease = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading,
+    isLoading: prepareLoading || writeLoading || waitingForTx,
     prepareError,
     writeError,
   };

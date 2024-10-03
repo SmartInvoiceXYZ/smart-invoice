@@ -1,14 +1,21 @@
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Button,
+  Divider,
   Flex,
   FormControl,
   FormErrorMessage,
+  FormLabel,
   Grid,
-  Heading,
   HStack,
   Icon,
   IconButton,
+  SimpleGrid,
   Stack,
   Text,
   Tooltip,
@@ -18,9 +25,11 @@ import { ESCROW_STEPS } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { FormInvoice, IToken } from '@smartinvoicexyz/types';
 import {
+  Input,
   NumberInput,
   QuestionIcon,
   Select,
+  Textarea,
   useMediaStyles,
 } from '@smartinvoicexyz/ui';
 import {
@@ -30,7 +39,7 @@ import {
   getWrappedNativeToken,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
@@ -47,23 +56,26 @@ export function PaymentsForm({
   const { watch, setValue } = invoiceForm;
   const { milestones } = watch();
 
-  const { data: tokens } = useFetchTokens();
+  const { data: allTokens } = useFetchTokens();
 
-  const TOKENS = useMemo(
-    () => (tokens ? _.filter(tokens, t => t.chainId === chainId) : []),
-    [chainId, tokens],
+  const tokens = useMemo(
+    () => (allTokens ? _.filter(allTokens, t => t.chainId === chainId) : []),
+    [chainId, allTokens],
   ) as IToken[];
 
   const nativeWrappedToken = getWrappedNativeToken(chainId) || '0x';
 
   const localForm = useForm({
     defaultValues: {
-      milestones: milestones || [{ value: '1' }, { value: '1' }],
+      token: nativeWrappedToken.toLowerCase(),
+      milestones: milestones || [
+        { value: '1', title: 'Milestone 1', description: '' },
+        { value: '1', title: 'Milestone 2', description: '' },
+      ],
     },
     resolver: yupResolver(escrowPaymentsSchema),
   });
   const {
-    setValue: localSetValue,
     handleSubmit,
     watch: localWatch,
     control,
@@ -71,7 +83,10 @@ export function PaymentsForm({
   } = localForm;
   const { milestones: localMilestones, token: localToken } = localWatch();
 
-  const invoiceTokenData = _.filter(TOKENS, t => t.address === localToken)[0];
+  const invoiceTokenData = _.filter(
+    tokens,
+    t => t.address.toLowerCase() === localToken?.toLowerCase(),
+  )[0];
 
   const { primaryButtonSize } = useMediaStyles();
 
@@ -90,10 +105,6 @@ export function PaymentsForm({
     name: 'milestones',
     control,
   });
-
-  useEffect(() => {
-    localSetValue('token', nativeWrappedToken);
-  }, [TOKENS, nativeWrappedToken]);
 
   const [total, decimals] = localMilestones
     ? localMilestones
@@ -114,14 +125,24 @@ export function PaymentsForm({
           <Select
             name="token"
             label="Payment Token"
-            required="required"
-            // _placeholder={defaultTokenData?.symbol}
-            tooltip="This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens display here. (If you change your wallet network now, you'll be forced to start the invoice over)."
+            tooltip={
+              <Text>
+                {`This is the cryptocurrency you'll receive payment in. The
+                network your wallet is connected to determines which allTokens
+                display here.`}
+                <br />
+                {`If you change your wallet network now,
+                you'll be forced to start the invoice over.`}
+              </Text>
+            }
             localForm={localForm}
           >
-            {TOKENS?.map(t => {
+            {tokens?.map(t => {
               return (
-                <option value={t.address} key={t.address}>
+                <option
+                  value={t.address.toLowerCase()}
+                  key={t.address.toLowerCase()}
+                >
                   {`${t.name} (${t.symbol})`}
                 </option>
               );
@@ -129,10 +150,10 @@ export function PaymentsForm({
           </Select>
         </FormControl>
       </Flex>
-      <FormControl isInvalid={!!errors?.milestones}>
+      <FormControl isInvalid={!!errors?.milestones} w="100%" isRequired>
         <Stack w="100%">
-          <HStack>
-            <Heading size="sm">Milestone Amounts</Heading>
+          <HStack spacing={4}>
+            <FormLabel m={0}>Milestones</FormLabel>
             <Tooltip
               label="Amounts of each milestone for the escrow. Additional milestones can be added later."
               placement="right"
@@ -142,60 +163,122 @@ export function PaymentsForm({
               <Icon as={QuestionIcon} boxSize={3} borderRadius="full" />
             </Tooltip>
           </HStack>
-          {_.map(milestonesFields, (field, index) => {
-            const handleRemoveMilestone = () => {
-              removeMilestone(index);
-            };
-
-            return (
-              <HStack key={field.id} spacing={4}>
-                <HStack spacing={1} flexGrow={1}>
-                  <NumberInput
-                    name={`milestones.${index}.value`}
-                    step={50}
-                    min={0}
-                    max={1_000_000}
-                    placeholder="500"
-                    variant="outline"
-                    localForm={localForm}
-                  />
-                </HStack>
+          <Accordion w="100%" alignItems="stretch" allowMultiple>
+            {_.map(milestonesFields, (field, index) => (
+              <HStack
+                key={field.id}
+                spacing={4}
+                w="100%"
+                justify="space-between"
+              >
+                <AccordionItem w="100%">
+                  {({ isExpanded }) => (
+                    <>
+                      <AccordionButton
+                        w="100%"
+                        px={2}
+                        justifyContent="space-between"
+                      >
+                        <Text>{localMilestones?.[index].title ?? ''}</Text>
+                        <HStack>
+                          {!isExpanded && (
+                            <Text fontWeight="bold" fontSize="lg">
+                              {localMilestones?.[index].value}
+                              {` `}
+                              {invoiceTokenData?.symbol}
+                            </Text>
+                          )}
+                          <AccordionIcon
+                            color="blue.1"
+                            w="2rem"
+                            h="2rem"
+                            m={0}
+                          />
+                        </HStack>
+                      </AccordionButton>
+                      <AccordionPanel px={2}>
+                        <SimpleGrid columns={2} spacing={4} w="100%" mb={2}>
+                          <Input
+                            label="Title"
+                            name={`milestones.${index}.title`}
+                            localForm={localForm}
+                          />
+                          <NumberInput
+                            label="Amount"
+                            required
+                            name={`milestones.${index}.value`}
+                            step={50}
+                            min={0}
+                            max={1_000_000}
+                            placeholder="500"
+                            variant="outline"
+                            localForm={localForm}
+                            w="100%"
+                            rightElement={
+                              <Text p={2}>{invoiceTokenData?.symbol}</Text>
+                            }
+                          />
+                        </SimpleGrid>
+                        <Textarea
+                          label="Description"
+                          name={`milestones.${index}.description`}
+                          localForm={localForm}
+                        />
+                      </AccordionPanel>
+                    </>
+                  )}
+                </AccordionItem>
                 <IconButton
                   icon={<Icon as={DeleteIcon} />}
                   aria-label="remove milestone"
                   variant="outline"
-                  onClick={handleRemoveMilestone}
+                  onClick={() => removeMilestone(index)}
                 />
               </HStack>
-            );
-          })}
+            ))}
+          </Accordion>
           <Flex>
             <FormErrorMessage mb={4}>
               {errors?.milestones?.message?.toString()}
             </FormErrorMessage>
           </Flex>
 
-          <Flex justify="space-between" align="flex-end">
-            <Button
-              variant="outline"
-              onClick={() => {
-                appendMilestone({ value: '1' });
-              }}
-              rightIcon={<Icon as={AddIcon} boxSize={3} />}
-            >
-              Add
-            </Button>
-
-            <Text>
-              Total: {commify(total.toFixed(decimals), decimals)}
-              {` `}
-              {invoiceTokenData?.symbol}
-            </Text>
-          </Flex>
+          <Button
+            variant="outline"
+            w="100%"
+            onClick={() => {
+              appendMilestone({
+                value: '1',
+                title: `Milestone ${milestonesFields.length + 1}`,
+                description: '',
+              });
+            }}
+            rightIcon={<Icon as={AddIcon} boxSize={3} />}
+          >
+            Add a new milestone
+          </Button>
         </Stack>
       </FormControl>
+      <Divider />
 
-      <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
+      <HStack
+        w="100%"
+        justify="space-between"
+        pl={2}
+        pr={6}
+        fontSize="xl"
+        fontWeight="bold"
+        my={4}
+      >
+        <Text>
+          Total {milestonesFields.length} Milestones:{' '}
+          {commify(total.toFixed(decimals), decimals)}
+          {` `}
+          {invoiceTokenData?.symbol}
+        </Text>
+      </HStack>
+
+      <Grid templateColumns="1fr" gap="1rem" w="100%">
         <Button
           type="submit"
           isDisabled={!isValid}

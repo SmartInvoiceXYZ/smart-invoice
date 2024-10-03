@@ -13,12 +13,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { PDFViewer } from '@react-pdf/renderer';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { useFetchTokens } from '@smartinvoicexyz/hooks';
-import { IToken } from '@smartinvoicexyz/types';
-import { chainByName } from '@smartinvoicexyz/utils';
-import _ from 'lodash';
-import React from 'react';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 
 import { InvoicePDF } from '../molecules';
 
@@ -34,24 +29,20 @@ export function GenerateInvoicePDF({
   buttonProps,
 }: GenerateInvoicePDFProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { address, network, token } = _.pick(invoice, [
-    'address',
-    'network',
-    'token',
-  ]);
+  const { address } = invoice || {};
 
-  const invoiceChainId = chainByName(network)?.id;
-
-  const { data: tokens } = useFetchTokens();
-  const invoiceToken = _.filter(tokens, {
-    address: token,
-    chainId: invoiceChainId,
-  })[0] as IToken;
-
-  const symbol = invoiceToken?.symbol;
   return (
     <Stack align="stretch">
-      <Button onClick={onOpen} variant="link" {...buttonProps}>
+      <Button
+        onClick={onOpen}
+        variant="outline"
+        size="xs"
+        colorScheme="blue"
+        fontWeight="normal"
+        fontFamily="mono"
+        textTransform="uppercase"
+        {...buttonProps}
+      >
         {buttonText}
       </Button>
 
@@ -79,7 +70,7 @@ export function GenerateInvoicePDF({
                 height: '95%',
               }}
             >
-              <InvoicePDF invoice={invoice} symbol={symbol} />
+              <InvoicePDF invoice={invoice} />
             </PDFViewer>
           </ModalBody>
         </ModalContent>
@@ -90,13 +81,11 @@ export function GenerateInvoicePDF({
 
 interface GenerateInvoicePDFMenuItemProps extends MenuItemProps {
   invoice: Partial<InvoiceDetails>;
-  symbol: string;
   text: string;
 }
 
 export function GenerateInvoicePDFMenuItem({
   invoice,
-  symbol,
   text,
   ...props
 }: GenerateInvoicePDFMenuItemProps) {
@@ -133,7 +122,7 @@ export function GenerateInvoicePDFMenuItem({
                 height: '95%',
               }}
             >
-              <InvoicePDF invoice={invoice} symbol={symbol} />
+              <InvoicePDF invoice={invoice} />
             </PDFViewer>
           </ModalBody>
         </ModalContent>

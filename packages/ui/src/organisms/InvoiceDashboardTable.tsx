@@ -1,193 +1,139 @@
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable camelcase */
 import {
   Box,
   Button,
   Flex,
   Heading,
   HStack,
-  IconButton,
   Stack,
   Table,
   Tbody,
   Td,
-  Text,
   Th,
   Thead,
   Tr,
 } from '@chakra-ui/react';
+import { InvoiceDisplayData } from '@smartinvoicexyz/graphql';
+import { useInvoices, useIpfsDetails } from '@smartinvoicexyz/hooks';
 import {
-  cache,
-  fetchInvoices,
-  Invoice_orderBy,
-  InvoiceMetadata,
-} from '@smartinvoicexyz/graphql';
-import { useIpfsDetails } from '@smartinvoicexyz/hooks';
-import { chainsMap, getAccountString } from '@smartinvoicexyz/utils';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+  chainByName,
+  getAccountString,
+  getChainName,
+  getDateTimeString,
+} from '@smartinvoicexyz/utils';
 import {
   CellContext,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
-  PaginationState,
-  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
-import { Address, formatUnits } from 'viem';
-import { useAccount } from 'wagmi';
+import { useState } from 'react';
+import { formatUnits } from 'viem';
+import { useAccount, useChainId } from 'wagmi';
 
 import { ChakraNextLink, Loader } from '../atoms';
 import { useMediaStyles } from '../hooks';
-import {
-  DoubleLeftArrowIcon,
-  LeftArrowIcon,
-  RightArrowIcon,
-} from '../icons/ArrowIcons';
 import { Styles } from '../molecules/InvoicesStyles';
 import { theme } from '../theme';
-// TODO use `usePaginatedQuery`
-
-export type SearchInputType = string | Address | undefined;
-
-export type InvoiceDashboardTableProps = {
-  chainId?: number;
-  searchInput?: SearchInputType;
-};
 
 function InvoiceDisplay({
   cell,
 }: {
-  cell: CellContext<Partial<InvoiceMetadata>, string | undefined>;
+  cell: CellContext<InvoiceDisplayData, string | undefined>;
 }) {
-  const { ipfsHash } = cell.row.original;
-  const address = cell.getValue();
+  const { ipfsHash, address } = cell.row.original;
 
-  const { data } = useIpfsDetails(ipfsHash ?? '');
+  const { data } = useIpfsDetails(ipfsHash);
 
-  const displayString = data?.projectName || getAccountString(address);
-
-  return displayString;
+  return data?.title || data?.projectName || getAccountString(address);
 }
 
-export function InvoiceDashboardTable({
-  chainId,
-  searchInput,
-}: InvoiceDashboardTableProps) {
-  const router = useRouter();
-  const { address } = useAccount();
+const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
-  useEffect(() => {
-    cache.reset();
-  }, [chainId, address]);
+export function InvoiceDashboardTable() {
+  const router = useRouter();
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
 
   const { primaryButtonSize } = useMediaStyles();
-  const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Partial<InvoiceMetadata>>();
 
-    return [
-      columnHelper.accessor('createdAt', {
-        header: 'Date Created',
-        cell: info => new Date(Number(info.getValue()) * 1000).toLocaleString(),
-      }),
+  // TODO: implement pagination
+  const [page] = useState(0);
+
+  const { data, isLoading } = useInvoices({
+    page,
+  });
+
+  const table = useReactTable({
+    data: data || [],
+    columns: [
       columnHelper.accessor('address', {
-        header: 'Invoice Name/ID',
+        header: 'Title',
+        // eslint-disable-next-line react/no-unstable-nested-components
         cell: info => <InvoiceDisplay cell={info} />,
+      }),
+      columnHelper.accessor('invoiceType', {
+        header: 'Type',
+        cell: info => _.capitalize(info.getValue()),
       }),
       columnHelper.accessor(
         row => {
-          if (row?.total) {
-            return formatUnits(row.total, row.tokenMetadata?.decimals || 18);
+          const { provider, client, resolver } = row;
+          if (_.toLower(address) === _.toLower(client)) {
+            return 'Client';
           }
-
-          return '0';
+          if (_.toLower(address) === _.toLower(provider)) {
+            return 'Provider';
+          }
+          if (_.toLower(address) === _.toLower(resolver)) {
+            return 'Resolver';
+          }
+          return 'Unknown';
         },
         {
-          id: 'amount',
-          header: 'Amount',
+          header: 'Role',
           cell: info => info.getValue(),
-          meta: 'total',
         },
       ),
-      columnHelper.accessor(row => row?.tokenMetadata?.symbol, {
-        id: 'currency',
-        header: 'Currency',
-        cell: info => info.getValue(),
-      }),
       columnHelper.accessor(
-        row =>
-          row?.released &&
-          formatUnits(row.released, row.tokenMetadata?.decimals || 18),
+        row => {
+          const value = formatUnits(
+            row.total ?? BigInt(0),
+            row.tokenMetadata?.decimals || 18,
+          );
+          const symbol = row.tokenMetadata?.symbol;
+          return `${value} ${symbol}`;
+        },
+        {
+          id: 'total',
+          header: 'Total',
+          cell: info => info.getValue(),
+        },
+      ),
+      columnHelper.accessor(
+        row => {
+          const value = formatUnits(
+            row.released ?? BigInt(0),
+            row.tokenMetadata?.decimals || 18,
+          );
+          const symbol = row.tokenMetadata?.symbol;
+          return `${value} ${symbol}`;
+        },
         {
           id: 'released',
           header: 'Released',
           cell: info => info.getValue(),
         },
       ),
-    ];
-  }, []);
-
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'createdAt', desc: true },
-  ]);
-
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
-  const fetchDataOptions: [
-    number,
-    SearchInputType,
-    number,
-    number,
-    Invoice_orderBy,
-    boolean,
-  ] = useMemo(
-    () => [
-      chainId || -1,
-      searchInput,
-      pageIndex,
-      pageSize,
-      sorting[0].id as Invoice_orderBy,
-      sorting[0].desc,
+      columnHelper.accessor('createdAt', {
+        header: 'Created',
+        cell: info => getDateTimeString(info.getValue()),
+      }),
     ],
-    [chainId, pageIndex, pageSize, searchInput, sorting],
-  );
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['invoices', ...fetchDataOptions],
-    queryFn: () => fetchInvoices(...fetchDataOptions),
-    enabled: !!chainId && !!searchInput,
-    placeholderData: keepPreviousData,
-  });
-
-  const pagination = useMemo(
-    () => ({
-      pageIndex,
-      pageSize,
-    }),
-    [pageIndex, pageSize],
-  );
-
-  const table = useReactTable({
-    data: data ?? ([] as InvoiceMetadata[]),
-    columns,
-    pageCount: -1,
-    state: {
-      pagination,
-      sorting,
-    },
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    debugTable: true,
   });
 
   if (isLoading) {
@@ -210,9 +156,9 @@ export function InvoiceDashboardTable({
           gap={4}
           width="100%"
         >
-          {chainId ? (
+          {isConnected ? (
             <Heading color="gray" size="lg">
-              No invoices found on {chainsMap(chainId)?.name}.
+              No invoices found for {getChainName(chainId)}!
             </Heading>
           ) : (
             <Heading color="gray" size="lg">
@@ -248,76 +194,74 @@ export function InvoiceDashboardTable({
             Create Invoice
           </Button>
         </HStack>
-        <div className="tableWrap">
-          <Table>
-            <Thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <Tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <Th key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </Th>
+        <Table bg="white">
+          <Thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <Tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <Th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </Th>
+                ))}
+              </Tr>
+            ))}
+          </Thead>
+          <Tbody>
+            {table.getRowModel().rows.map(row => {
+              const { address: invoiceAddr, network } = row.original;
+              const url = `/invoice/${chainByName(network)?.id?.toString(16)}/${invoiceAddr}`;
+
+              return (
+                <Tr
+                  key={row.id}
+                  onClick={() => router.push(url)}
+                  _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <Td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </Td>
                   ))}
                 </Tr>
-              ))}
-            </Thead>
-            <Tbody>
-              {table.getRowModel().rows.map(row => {
-                const { invoiceType } = row.original;
-                const { address: invoiceAddr } = row.original;
-                const url =
-                  invoiceType === 'instant'
-                    ? `/invoice/${chainId?.toString(16)}/${invoiceAddr}/instant`
-                    : `/invoice/${chainId?.toString(16)}/${invoiceAddr}`;
+              );
+            })}
+          </Tbody>
+          {/*
+          <TableCaption w="100%">
+            <HStack w="100%" justify="center">
+              <IconButton
+                aria-label="First Page"
+                icon={<DoubleLeftArrowIcon />}
+              //onClick={() => setPage(0)}
+              />
+              <IconButton
+                aria-label="Previous Page"
+                icon={<LeftArrowIcon />}
+                disabled={!table.getCanPreviousPage()}
+              //onClick={() => table.previousPage()}
+              />
+              <Text>Page {page + 1}</Text>
+              {data?.length >= table.getState().pagination.pageSize ? (
+                <IconButton
+                  aria-label="Next Page"
+                  disabled={data?.length < table.getState().pagination.pageSize}
+                  icon={<RightArrowIcon />}
+                  onClick={() => table.nextPage()}
+                />
+              ) : null}
 
-                return (
-                  <Tr
-                    key={row.id}
-                    onClick={() => router.push(url)}
-                    _hover={{ backgroundColor: theme.gray, cursor: 'pointer' }}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <Td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </Td>
-                    ))}
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </div>
-        <div className="pagination">
-          <IconButton
-            aria-label="First Page"
-            icon={<DoubleLeftArrowIcon />}
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.setPageIndex(0)}
-          />
-          <IconButton
-            aria-label="Previous Page"
-            icon={<LeftArrowIcon />}
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}
-          />
-          <Text>Page {table.getState().pagination.pageIndex + 1}</Text>
-          {data?.length >= table.getState().pagination.pageSize ? (
-            <IconButton
-              aria-label="Next Page"
-              disabled={data?.length < table.getState().pagination.pageSize}
-              icon={<RightArrowIcon />}
-              onClick={() => table.nextPage()}
-            />
-          ) : null}
-        </div>
+            </HStack>
+          </TableCaption>
+          */}
+        </Table>
       </Styles>
     </Box>
   );

@@ -3,22 +3,21 @@ import {
   Button,
   Flex,
   Heading,
-  // Image,
   Link,
-  Spinner,
   Stack,
   Text,
 } from '@chakra-ui/react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
-import { InvoiceDetails } from '@smartinvoicexyz/graphql';
-import { useLock } from '@smartinvoicexyz/hooks';
-// import LockImage from '../../assets/lock.svg';
-import { AccountLink, Textarea, useToast } from '@smartinvoicexyz/ui';
+import { FormLock, useLock } from '@smartinvoicexyz/hooks';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
-  getResolverInfo,
-  isKnownResolver,
-  logDebug,
-} from '@smartinvoicexyz/utils';
+  AccountLink,
+  LinkInput,
+  Textarea,
+  useToast,
+} from '@smartinvoicexyz/ui';
+import { lockFundsSchema } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
@@ -29,90 +28,49 @@ export function LockFunds({
   invoice,
   onClose,
 }: {
-  invoice: Partial<InvoiceDetails>;
+  invoice: InvoiceDetails;
   onClose: () => void;
 }) {
   const chainId = useChainId();
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { resolver, resolverFee, resolverName, tokenBalance, klerosCourt } =
-    _.pick(invoice, [
+  const { resolver, resolverFee, resolverInfo, tokenBalance } = _.pick(
+    invoice,
+    [
       'resolver',
       'resolverFee',
-      'resolverName',
+      'resolverInfo',
       'tokenBalance',
       'resolutionRate',
-      'klerosCourt',
-    ]);
-  const localForm = useForm();
+    ],
+  );
+  const localForm = useForm<FormLock>({
+    resolver: yupResolver(lockFundsSchema),
+  });
   const { watch, handleSubmit } = localForm;
 
-  const disputeReason = watch('disputeReason');
+  const description = watch('description');
 
   const onTxSuccess = () => {
-    // TODO handle tx success
-
-    // invalidate cache
     queryClient.invalidateQueries({
       queryKey: ['invoiceDetails'],
     });
     queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
-    // close modal
+
     onClose();
   };
 
-  const { writeAsync: lockFunds, writeLoading } = useLock({
+  const { writeAsync: lockFunds, isLoading } = useLock({
     invoice,
-    disputeReason,
+    localForm,
     onTxSuccess,
     toast,
   });
 
-  const onSubmit = async (values: unknown) => {
-    logDebug('LockFunds onSubmit', values);
-
+  const onSubmit = async () => {
     lockFunds?.();
   };
-
-  if (writeLoading) {
-    return (
-      <Stack w="100%" spacing="1rem">
-        <Heading
-          as="h3"
-          fontSize="2xl"
-          transition="all ease-in-out .25s"
-          _hover={{ cursor: 'pointer', color: 'raid' }}
-        >
-          Locking Funds
-        </Heading>
-        {/* {txHash && (
-          <Text textAlign="center" fontSize="sm">
-            Follow your transaction{' '}
-            <Link
-              href={getTxLink(chainId, txHash)}
-              isExternal
-              color="primary.300"
-              textDecoration="underline"
-            >
-              here
-            </Link>
-          </Text>
-        )} */}
-        <Flex
-          w="100%"
-          justify="center"
-          align="center"
-          minH="7rem"
-          my="3rem"
-          position="relative"
-          color="primary.300"
-        >
-          <Spinner size="xl" />
-        </Flex>
-      </Stack>
-    );
-  }
 
   return (
     <Stack w="100%" spacing="1rem" as="form" onSubmit={handleSubmit(onSubmit)}>
@@ -131,42 +89,50 @@ export function LockFunds({
       <Text textAlign="center" fontSize="sm" mb="1rem">
         Once a dispute has been initiated,{' '}
         <AccountLink
-          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
-          court={klerosCourt}
+          resolverInfo={resolverInfo}
         />{' '}
         will review your case, the project agreement and dispute reasoning
         before making a decision on how to fairly distribute remaining funds.
       </Text>
       <Textarea
-        name="disputeReason"
+        name="description"
         tooltip="Why do you want to lock these funds?"
         label="Dispute Reason"
         placeholder="Dispute Reason"
         localForm={localForm}
       />
+
+      <LinkInput
+        name="document"
+        label="Dispute Attachment"
+        tooltip="A URL linking to more details for this dispute. This is optional."
+        placeholder="github.com/AcmeAcademy/buidler"
+        localForm={localForm}
+      />
+
       <Text textAlign="center">
         {`Upon resolution, a fee of ${resolverFee} will be deducted from the locked fund amount and sent to `}
         <AccountLink
-          name={resolverName}
           address={resolver as Hex}
           chainId={chainId}
-          court={klerosCourt}
+          resolverInfo={resolverInfo}
         />{' '}
         for helping resolve this dispute.
       </Text>
-      {!!tokenBalance && (
-        <Button
-          type="submit"
-          isDisabled={!disputeReason || !lockFunds}
-          textTransform="uppercase"
-          variant="solid"
-        >
-          {`Lock ${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
-        </Button>
-      )}
-      {klerosCourt && (
+      <Button
+        type="submit"
+        isDisabled={
+          !description || !lockFunds || tokenBalance?.value === BigInt(0)
+        }
+        isLoading={isLoading}
+        textTransform="uppercase"
+        variant="solid"
+      >
+        {`Lock ${formatUnits(tokenBalance?.value ?? BigInt(0), tokenBalance?.decimals ?? 18)} ${tokenBalance?.symbol}`}
+      </Button>
+      {resolverInfo?.id === 'kleros' && (
         <Alert bg="red.300" borderRadius="md" color="red.600" gap={2}>
           Note: For Kleros Arbitration you also need to fill out
           <Link
@@ -180,18 +146,18 @@ export function LockFunds({
           </Link>
         </Alert>
       )}
-      <Flex justify="center">
-        {isKnownResolver(resolver as Hex, chainId) && (
+      {!!resolverInfo && (
+        <Flex justify="center">
           <Link
-            href={getResolverInfo(resolver as Hex, chainId).termsUrl}
+            href={resolverInfo.termsUrl}
             isExternal
             color="primary.300"
             textDecor="underline"
           >
-            Learn about {resolverName} dispute process & terms
+            Learn about {resolverInfo.name} dispute process & terms
           </Link>
-        )}
-      </Flex>
+        </Flex>
+      )}
     </Stack>
   );
 }

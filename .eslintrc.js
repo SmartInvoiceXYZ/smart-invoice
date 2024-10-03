@@ -51,6 +51,7 @@ module.exports = {
     'react/require-default-props': 'off', // disable require default props
     'react/react-in-jsx-scope': 'off', // react in jsx scope
     'react/jsx-filename-extension': [2, { extensions: ['.ts', '.tsx'] }],
+    'react/function-component-definition': 'off',
 
     // TS
     '@typescript-eslint/no-explicit-any': 'warn', // disable explicit any

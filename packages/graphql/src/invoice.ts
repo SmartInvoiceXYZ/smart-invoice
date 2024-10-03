@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import { Resolver } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/shared';
 import { Address, Hex, isAddress } from 'viem';
 
@@ -7,7 +6,6 @@ import { fetchTypedQuery } from './client';
 import {
   _SubgraphErrorPolicy_,
   ADR,
-  Agreement_orderBy,
   Deposit_orderBy,
   Dispute_orderBy,
   OrderDirection,
@@ -16,9 +14,106 @@ import {
   Verified_orderBy,
 } from './zeus';
 
-export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
+export type TokenMetadata = {
+  address: Hex;
+  name: string;
+  symbol: string;
+  decimals: number;
+  totalSupply: bigint;
+};
+
+export type TokenBalance = {
+  decimals: number;
+  symbol: string;
+  value: bigint;
+};
+
+export type InstantDetails = {
+  totalDue?: bigint;
+  amountFulfilled?: bigint;
+  fulfilled?: boolean;
+  deadline?: bigint;
+  lateFee?: bigint;
+  lateFeeTimeInterval?: bigint;
+};
+
+export type Release = {
+  id: string;
+  txHash: string;
+  milestone: bigint;
+  amount: bigint;
+  timestamp: bigint;
+};
+
+export type Deposit = {
+  id: string;
+  txHash: string;
+  sender: string;
+  amount: bigint;
+  timestamp: bigint;
+};
+
+export type Dispute = {
+  sender: string;
+  details: string;
+  id: string;
+  txHash: string;
+  timestamp: bigint;
+  ipfsHash: string;
+  disputeToken?: string | undefined;
+  disputeFee?: bigint | undefined;
+  disputeId?: bigint | undefined;
+};
+
+export type Resolution = {
+  id: string;
+  txHash: string;
+  ipfsHash: string;
+  resolverType: ADR;
+  resolver: string;
+  clientAward: bigint;
+  providerAward: bigint;
+  resolutionDetails?: string | undefined;
+  resolutionFee?: bigint | undefined;
+  timestamp: bigint;
+};
+
+export type Invoice = {
+  amounts: bigint[];
+  version?: bigint | undefined;
+  address: Hex;
+  invoiceType?: string | undefined;
+  resolver: string;
+  resolutionRate: bigint;
+  ipfsHash: string;
+  token: string;
+  id: string;
+  createdAt: bigint;
+  network: string;
+  client: Hex;
+  provider: Hex;
+  resolverType: ADR;
+  isLocked: boolean;
+  currentMilestone: bigint;
+  total: bigint;
+  released: bigint;
+  terminationTime: bigint;
+  deposits: Deposit[];
+  releases: Release[];
+  disputes: Dispute[];
+  resolutions: Resolution[];
+  verified: {
+    id: string;
+    client: string;
+  }[];
+};
+
+export const fetchInvoice = async (
+  chainId: number | undefined,
+  queryAddress: Address,
+): Promise<Invoice | null> => {
   const address = isAddress(queryAddress) && queryAddress;
-  if (!address) return null;
+  if (!address || !chainId) return null;
 
   const data = await fetchTypedQuery(chainId)({
     invoice: [
@@ -48,7 +143,7 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
             timestamp: true,
           },
         ],
-        details: true,
+        ipfsHash: true,
         disputes: [
           {
             orderBy: Dispute_orderBy.timestamp,
@@ -66,24 +161,9 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
             txHash: true,
           },
         ],
-        endDate: true,
         invoiceType: true,
         isLocked: true,
         network: true,
-        projectName: true,
-        projectDescription: true,
-        projectAgreement: [
-          {
-            orderBy: Agreement_orderBy.createdAt,
-            orderDirection: OrderDirection.desc,
-          },
-          {
-            id: true,
-            type: true,
-            src: true,
-            createdAt: true,
-          },
-        ],
         provider: true,
         releases: [
           {
@@ -120,7 +200,6 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
         ],
         resolver: true,
         resolverType: true,
-        startDate: true,
         terminationTime: true,
         total: true,
         verified: [
@@ -138,118 +217,15 @@ export const fetchInvoice = async (chainId: number, queryAddress: Address) => {
     ],
   });
 
-  logDebug({ data, address });
+  logDebug({ invoice: data?.invoice, address });
 
   if (!data?.invoice) return null;
 
-  const amounts = data.invoice.amounts.map((amount: string) => BigInt(amount));
-
-  return {
+  const invoice = {
     ...data.invoice,
-    amounts,
+    // @ts-expect-error amounts is an array of BigInt
+    amounts: data.invoice.amounts as bigint[],
   };
+
+  return invoice as Invoice;
 };
-
-export type TokenMetadata = {
-  address: Hex;
-  name: string;
-  symbol: string;
-  decimals: number;
-  totalSupply: bigint;
-};
-
-export type TokenBalance = {
-  decimals: number;
-  symbol: string;
-  value: bigint;
-};
-
-export interface InstantDetails {
-  totalDue?: bigint;
-  amountFulfilled?: bigint;
-  fulfilled?: boolean;
-  deadline?: bigint;
-  lateFee?: bigint;
-  lateFeeTimeInterval?: bigint;
-}
-
-export interface Release {
-  id: string;
-  txHash: string;
-  milestone: bigint;
-  amount: bigint;
-  timestamp: bigint;
-}
-
-export interface Deposit {
-  id: string;
-  txHash: string;
-  sender: string;
-  amount: bigint;
-  timestamp: bigint;
-}
-
-export interface Dispute {
-  id: string;
-  txHash: string;
-  sender: string;
-  details: string;
-  ipfsHash: string;
-  disputeToken: string | undefined;
-  disputeFee: bigint | undefined;
-  disputeId: bigint | undefined;
-  timestamp: bigint;
-}
-
-export interface Resolution {
-  id: string;
-  txHash: string;
-  details: string;
-  ipfsHash: string;
-  resolverType: ADR;
-  resolver: string;
-  clientAward: bigint;
-  providerAward: bigint;
-  resolutionDetails: string | undefined;
-  resolutionFee: bigint | undefined;
-  ruling: bigint | undefined;
-  timestamp: bigint;
-}
-
-export type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
-
-export type InvoiceDetails = Invoice &
-  InstantDetails & {
-    // conversions
-    currentMilestoneNumber: number;
-    chainId: number | undefined;
-    // computed values
-    deposited: bigint | undefined;
-    due: bigint | undefined;
-    total: bigint | undefined;
-    currentMilestoneAmount: bigint | undefined;
-    parsedAmounts: number[];
-    depositedMilestones: boolean[];
-    depositedMilestonesDisplay: (string | undefined)[];
-    depositedTxs: (Deposit | undefined)[];
-    releasedTxs: (Release | undefined)[];
-    detailsHash: string | undefined;
-    resolverName: string | undefined;
-    resolverInfo: Record<Address, Resolver> | undefined; // ResolverInfo;
-    resolverFee: string | undefined;
-    resolverFeeDisplay: string | undefined;
-    klerosCourt?: number | string | undefined;
-    deadlineLabel: string | undefined;
-    // disputes
-    dispute?: Dispute | undefined;
-    resolution?: Resolution | undefined;
-    // flags
-    isExpired: boolean;
-    isReleasable: boolean;
-    isLockable: boolean;
-    isWithdrawable: boolean;
-    // token data
-    tokenMetadata: TokenMetadata | undefined;
-    tokenBalance: TokenBalance | undefined;
-    nativeBalance: TokenBalance | undefined;
-  };

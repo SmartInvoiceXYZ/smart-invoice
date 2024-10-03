@@ -6,6 +6,7 @@ export * from './useInstantCreate';
 export * from './useInstantDetails';
 export * from './useInvoiceCreate';
 export * from './useInvoiceDetails';
+export * from './useInvoices';
 export * from './useInvoiceStatus';
 export * from './useIpfsDetails';
 export * from './useIsClient';

@@ -1,10 +1,9 @@
 import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
-import { InvoiceDetails, waitForSubgraphSync } from '@smartinvoicexyz/graphql';
-import { UseToastReturn } from '@smartinvoicexyz/types';
+import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
+import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
 import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
-import { useCallback } from 'react';
 import { Hex } from 'viem';
 import {
   useChainId,
@@ -22,23 +21,24 @@ export const useDeposit = ({
   onTxSuccess,
   toast,
 }: {
-  invoice: Partial<InvoiceDetails>;
+  invoice: InvoiceDetails;
   amount: bigint;
   hasAmount: boolean;
   paymentType: string;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
 }): {
-  writeAsync: () => Promise<Hex | undefined>;
   handleDeposit: () => Promise<Hex | undefined>;
-  isReady: boolean;
   isLoading: boolean;
   prepareError: SimulateContractErrorType | null;
   writeError: WriteContractErrorType | null;
 } => {
   const chainId = useChainId();
 
-  const { token } = _.pick(invoice, ['token', 'tokenBalance']);
+  const { tokenMetadata, address } = _.pick(invoice, [
+    'tokenMetadata',
+    'address',
+  ]);
 
   const publicClient = usePublicClient();
 
@@ -48,10 +48,10 @@ export const useDeposit = ({
     error: prepareError,
   } = useSimulateContract({
     chainId,
-    address: token as Hex,
+    address: tokenMetadata?.address as Hex,
     abi: IERC20_ABI,
     functionName: 'transfer',
-    args: [invoice?.address as Hex, amount],
+    args: [address as Hex, amount],
     query: {
       enabled: hasAmount && paymentType === PAYMENT_TYPES.TOKEN,
     },
@@ -97,14 +97,14 @@ export const useDeposit = ({
     try {
       if (paymentType === PAYMENT_TYPES.NATIVE) {
         const result = await sendTransactionAsync({
-          to: invoice?.address as Hex,
+          to: address as Hex,
           value: amount,
         });
         return result;
       }
 
       if (!data) {
-        throw new Error('useDeposit: data is undefined');
+        throw new Error('useDeposit: simulation data is not available');
       }
 
       const result = await writeContractAsync(data.request);
@@ -115,24 +115,10 @@ export const useDeposit = ({
     }
   };
 
-  const writeAsync = useCallback(async (): Promise<Hex | undefined> => {
-    try {
-      if (!data) {
-        throw new Error('simulation data is not available');
-      }
-      return writeContractAsync(data.request);
-    } catch (error) {
-      errorToastHandler('useDeposit', error as Error, toast);
-      return undefined;
-    }
-  }, [writeContractAsync, data]);
-
   return {
-    writeAsync,
     handleDeposit,
-    isReady: true, // paymentType === PAYMENT_TYPES.NATIVE ? true : !!writeAsync,
     isLoading: prepareLoading || writeLoading || sendLoading,
     writeError,
-    prepareError,
+    prepareError: paymentType === PAYMENT_TYPES.TOKEN ? prepareError : null,
   };
 };
