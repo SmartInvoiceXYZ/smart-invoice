@@ -157,13 +157,13 @@ export function InvoiceMetaDetails({
     >
       <Stack align="stretch" justify="center">
         {title && (
-          <Heading fontWeight="normal" fontSize="2xl">
+          <Heading color="black" fontSize="2xl">
             {title}
           </Heading>
         )}
+        <InvoiceBadge invoiceType={invoiceType} />
 
-        <HStack align="center" color="black" spacing={4}>
-          <InvoiceBadge invoiceType={invoiceType} />
+        <HStack align="center" spacing={4}>
           <AccountLink
             address={invoiceId as Address}
             chainId={invoiceChainId}
@@ -176,12 +176,12 @@ export function InvoiceMetaDetails({
             h="auto"
             w="auto"
             minW="2"
-            p={2}
+            p={1}
           >
-            <CopyIcon boxSize={3} />
+            <CopyIcon boxSize={3.5} />
           </Button>
         </HStack>
-        {description && <Text color="black">{description}</Text>}
+        {description && <Text>{description}</Text>}
 
         {!!lastDocument && (
           <Link href={documentToHttp(lastDocument)} isExternal _hover={{}}>
@@ -196,7 +196,7 @@ export function InvoiceMetaDetails({
         )}
       </Stack>
 
-      <Stack fontSize="sm" color="grey" align="stretch" justify="center">
+      <Stack fontSize="sm" align="stretch" justify="center">
         {_.map(_.compact(details), ({ label, value, tip }) => (
           <Wrap key={label}>
             <WrapItem>

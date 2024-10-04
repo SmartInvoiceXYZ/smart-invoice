@@ -90,7 +90,7 @@ export const getInvoiceFactoryAddress = (chainId: number | undefined) => {
 };
 
 const getExplorerUrl = (chainId: number | undefined) => {
-  if (!isSupportedChainId(chainId)) return '#';
+  if (!isSupportedChainId(chainId)) return undefined;
   const chain = chainById(chainId);
   return _.get(
     chain,
@@ -102,8 +102,8 @@ const getExplorerUrl = (chainId: number | undefined) => {
 export const getTxLink = (
   chainId: number | undefined,
   hash: string | undefined,
-) => {
-  if (!chainId || !hash) return '#';
+): string | undefined => {
+  if (!chainId || !hash) return undefined;
   return `${getExplorerUrl(chainId)}/tx/${hash}`;
 };
 
@@ -111,7 +111,7 @@ export const getAddressLink = (
   chainId: number | undefined,
   hash: string | undefined,
 ) => {
-  if (!chainId || !hash) return '#';
+  if (!chainId || !hash) return undefined;
   return `${getExplorerUrl(chainId)}/address/${hash}`;
 };
 
@@ -224,9 +224,9 @@ export const resolutionFeePercentage = (resolutionRate: string): number => {
   return feePercentage;
 };
 
-export const uriToHttp = (uri: string | undefined): string => {
+export const uriToHttp = (uri: string | undefined): string | undefined => {
   if (!isValidURL(uri)) {
-    return '';
+    return undefined;
   }
 
   const parsedUrl = new URL(uri);

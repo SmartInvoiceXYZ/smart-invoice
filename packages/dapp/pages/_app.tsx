@@ -6,6 +6,7 @@ import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import {
+  AccountAvatar,
   ErrorBoundary,
   globalStyles,
   Layout,
@@ -35,7 +36,7 @@ function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
+        <RainbowKitProvider avatar={AccountAvatar}>
           <ChakraProvider theme={theme}>
             <ColorModeScript initialColorMode={theme.config.initialColorMode} />
             <CSSReset />
