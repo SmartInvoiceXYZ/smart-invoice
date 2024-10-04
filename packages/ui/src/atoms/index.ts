@@ -1,3 +1,4 @@
+export * from './AccountAvatar';
 export * from './AccountLink';
 export * from './ChakraNextLink';
 export * from './ConnectWeb3';

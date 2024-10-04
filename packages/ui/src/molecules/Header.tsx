@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Image, useDisclosure } from '@chakra-ui/react';
+import { Button, Flex, Image, useDisclosure } from '@chakra-ui/react';
 import styled from '@emotion/styled';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import _ from 'lodash';
@@ -58,24 +58,26 @@ export function Header() {
       align="center"
       background="white"
       zIndex={5}
+      position="relative"
     >
-      <Box width="230px">
-        <ChakraNextLink href={isConnected ? '/invoices' : '/'}>
-          <Flex cursor="pointer">
-            <Image
-              src="/assets/smart-invoice/normal.svg"
-              alt="Smart Invoice"
-              height={34.84}
-            />
-          </Flex>
-        </ChakraNextLink>
-      </Box>
+      <ChakraNextLink href={isConnected ? '/invoices' : '/'}>
+        <Flex cursor="pointer">
+          <Image
+            src="/assets/smart-invoice/normal.svg"
+            alt="Smart Invoice"
+            height={34.84}
+          />
+        </Flex>
+      </ChakraNextLink>
 
       <Flex
         gap={8}
         justify="center"
         align="center"
         display={{ base: 'none', lg: 'flex' }}
+        position="absolute"
+        left="50%"
+        transform="translateX(-50%)"
       >
         {_.map(links, ({ label, href }) => (
           <ChakraNextLink
@@ -94,13 +96,9 @@ export function Header() {
         transition="width 1s ease-out"
         justify="end"
       >
-        <Flex
-          justifyContent="flex-end"
-          width="230px"
-          display={{ base: 'none', lg: 'flex' }}
-        >
+        <Flex justifyContent="flex-end" display={{ base: 'none', lg: 'flex' }}>
           <ConnectButton
-            accountStatus="address"
+            accountStatus="full"
             chainStatus="full"
             showBalance={false}
           />

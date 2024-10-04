@@ -1,15 +1,16 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import { Resolver } from '@smartinvoicexyz/constants';
 import { getAccountString, getAddressLink } from '@smartinvoicexyz/utils';
-import blockies from 'blockies-ts';
+import _ from 'lodash';
 import { Address } from 'viem';
-import { useChainId } from 'wagmi';
+import { useChainId, useEnsAvatar, useEnsName } from 'wagmi';
 
+import { AccountAvatar } from './AccountAvatar';
 import { ChakraNextLink } from './ChakraNextLink';
 
 export type AccountLinkProps = {
   name?: string;
-  address?: Address;
+  address: Address;
   chainId?: number;
   link?: string;
   resolverInfo?: Resolver;
@@ -17,64 +18,54 @@ export type AccountLinkProps = {
 
 export function AccountLink({
   name,
-  address: inputAddress,
+  address,
   chainId: inputChainId,
   link,
   resolverInfo,
 }: AccountLinkProps) {
   const walletChainId = useChainId();
-  const address = inputAddress as Address;
   const chainId = inputChainId || walletChainId;
 
-  const blockie = blockies
-    .create({ seed: address, size: 8, scale: 16 })
-    .toDataURL();
+  const { name: resolverName, logoUrl } = _.pick(resolverInfo, [
+    'name',
+    'logoUrl',
+  ]);
 
-  let displayString = name && !name?.startsWith('0x') ? name : '';
+  const { data: ensName } = useEnsName({ address, chainId: 1 });
+  const { data: ensAvatar } = useEnsAvatar({
+    name: ensName ?? undefined,
+    chainId: 1,
+  });
 
-  if (!displayString) {
-    displayString = resolverInfo?.name || getAccountString(address) || '';
-  }
-
-  const imageUrl = resolverInfo?.logoUrl;
-
-  const bgImage = imageUrl ? `url(${imageUrl})` : blockie;
+  const text =
+    name ?? resolverName ?? ensName ?? getAccountString(address) ?? '';
+  const href = link ?? getAddressLink(chainId, address);
 
   return (
     <ChakraNextLink
-      href={link || getAddressLink(chainId, address)}
+      href={href}
       isExternal={!link}
       display="inline-flex"
       textAlign="right"
       bgColor="white"
-      px="0.25rem"
+      px={1}
+      py={0.25}
       _hover={{
         textDecor: 'none',
-        bgColor: '#ECECF3',
+        transform: 'scale(1.05)',
       }}
       borderRadius="5px"
       alignItems="center"
       fontWeight="bold"
     >
-      <Flex
-        as="span"
-        borderRadius="50%"
-        w="1.1rem"
-        h="1.1rem"
-        overflow="hidden"
-        justify="center"
-        align="center"
-        bgColor="black"
-        bgImage={bgImage}
-        border="1px solid"
-        borderColor="whiteAlpha.200"
-        bgSize="cover"
-        bgRepeat="no-repeat"
-        bgPosition="center center"
+      <AccountAvatar
+        address={address}
+        customImage={logoUrl}
+        ensImage={ensAvatar}
+        size={18}
       />
-
       <Text as="span" pl="0.25rem" fontSize="sm">
-        {displayString}
+        {text}
       </Text>
     </ChakraNextLink>
   );
