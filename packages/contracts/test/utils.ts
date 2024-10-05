@@ -26,7 +26,7 @@ export const awaitInvoiceAddress = async (
   const event = logs.find(log => log.eventName === 'LogNewInvoice');
 
   if (event) {
-    return event.args.invoice;
+    return getAddress(event.args.invoice);
   }
   return null;
 };

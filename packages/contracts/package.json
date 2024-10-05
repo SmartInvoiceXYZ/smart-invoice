@@ -46,6 +46,7 @@
     "coverage:report": "python3 -m http.server --directory ./coverage",
     "create-with-zap": "hardhat run scripts/create-safe-split-escrow.ts --network",
     "deploy-factory": "hardhat run scripts/deploy-factory.ts --network",
+    "deploy-bundler": "hardhat run scripts/deploy-bundler.ts --network",
     "deploy-spoils-manager": "hardhat run scripts/deploy-spoils-manager.ts --network",
     "deploy-zap": "hardhat run scripts/deploy-zap.ts --network",
     "flatten-all": "yarn flatten-factory && yarn flatten-instant && yarn flatten-escrow && yarn flatten-updatable && yarn flatten-spoils && yarn flatten-zap && yarn flatten-dao-zap",
