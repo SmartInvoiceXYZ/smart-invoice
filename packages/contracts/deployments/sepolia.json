@@ -14,5 +14,10 @@
     "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
     "splitMain": "0x54E4a6014D36c381fC43b7E24A1492F556139a6F"
+  },
+  "bundler": {
+    "address": "0xe0D0d4927Af5cEed02146e3905bA016301194D43",
+    "txHash": "0xad1d03209e5775e58c25559d582521ea4cf6c7026526c6bdc7d56f1c5b6511aa",
+    "blockNumber": "6823822"
   }
 }
