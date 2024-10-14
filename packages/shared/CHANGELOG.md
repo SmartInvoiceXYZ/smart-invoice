@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.10
+
+### Patch Changes
+
+-
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.10
+
 ## 0.1.9
 
 ### Patch Changes

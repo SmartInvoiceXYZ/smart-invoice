@@ -1,5 +1,11 @@
 # @smartinvoicexyz/contracts
 
+## 0.1.9
+
+### Patch Changes
+
+-
+
 ## 0.1.8
 
 ### Patch Changes

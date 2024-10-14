@@ -12,6 +12,7 @@ export type Document = Partial<{
   id: string;
   src: SupportedURL;
   type: SupportedURLType;
+  mimeType: string; // image/png, application/pdf, etc.
   createdAt: number;
 }>;
 
