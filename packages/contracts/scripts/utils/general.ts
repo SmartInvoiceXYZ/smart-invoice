@@ -55,6 +55,7 @@ export async function deployContract<CN extends string>(
     await viem.getPublicClient()
   ).waitForTransactionReceipt({
     hash: deploymentTransaction.hash,
+    confirmations: 1,
   });
 
   return { contract: contract as unknown as ContractType<CN>, receipt };
