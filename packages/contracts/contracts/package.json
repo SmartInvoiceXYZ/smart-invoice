@@ -1,6 +1,6 @@
 {
   "name": "@smartinvoicexyz/contracts",
-  "version": "0.1.2",
+  "version": "0.1.16",
   "private": false,
   "description": "Solidity smart contracts of the Smart Invoice protocol.",
   "files": [

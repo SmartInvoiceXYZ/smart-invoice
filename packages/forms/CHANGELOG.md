@@ -1,5 +1,18 @@
 # @smartinvoicexyz/forms
 
+## 0.1.16
+
+### Patch Changes
+
+-
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.10
+  - @smartinvoicexyz/graphql@0.1.12
+  - @smartinvoicexyz/hooks@0.1.15
+  - @smartinvoicexyz/types@0.1.12
+  - @smartinvoicexyz/utils@0.1.13
+  - @smartinvoicexyz/ui@0.1.16
+
 ## 0.1.15
 
 ### Patch Changes
