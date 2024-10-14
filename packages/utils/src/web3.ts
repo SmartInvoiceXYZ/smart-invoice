@@ -32,6 +32,7 @@ const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
 const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID || '';
+const PORTERS_ID = process.env.NEXT_PUBLIC_PORTERS_ID || '';
 
 const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'mainnet',
@@ -53,6 +54,17 @@ const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   [base.id]: 'base-mainnet',
   [holesky.id]: 'eth-holesky',
   // gnosis is not supported by alchemy
+};
+
+const portersNetworkName: Partial<Record<SupportedChainId, string>> = {
+  [mainnet.id]: 'eth-mainnet',
+  [polygon.id]: 'poly-mainnet',
+  [arbitrum.id]: 'arbitrum-one',
+  [optimism.id]: 'optimism-mainnet',
+  [sepolia.id]: 'sepolia-testnet',
+  [base.id]: 'base-fullnode-mainnet',
+  [holesky.id]: 'holesky-fullnode-testnet',
+  [gnosis.id]: 'gnosischain-mainnet',
 };
 
 const subgraphNameToChain: Record<string, SupportedChain> = {
@@ -101,20 +113,27 @@ type _transports = Record<SupportedChainId, Transport>;
 
 const transports: _transports = SUPPORTED_CHAINS.reduce(
   (acc: _transports, chain: SupportedChain) => {
+    const list = [http()];
+
     const infuraNetwork = infuraNetworkName[chain.id];
     const infuraUrl =
       infuraNetwork && INFURA_ID
         ? `https://${infuraNetwork}.infura.io/v3/${INFURA_ID}`
         : undefined;
+    if (infuraUrl) list.push(http(infuraUrl));
+
     const alchemyNetwork = alchemyNetworkName[chain.id];
     const alchemyUrl =
       alchemyNetwork && ALCHEMY_ID
         ? `https://${alchemyNetwork}.g.alchemy.com/v2/${ALCHEMY_ID}`
         : undefined;
-
-    const list = [http()];
-    if (infuraUrl) list.push(http(infuraUrl));
     if (alchemyUrl) list.push(http(alchemyUrl));
+
+    const portersNetwork = portersNetworkName[chain.id];
+    const portersUrl = portersNetwork
+      ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
+      : undefined;
+    if (portersUrl) list.push(http(portersUrl));
 
     return {
       ...acc,

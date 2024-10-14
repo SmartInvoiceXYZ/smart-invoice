@@ -1,5 +1,16 @@
 # @smartinvoicexyz/utils
 
+## 0.1.13
+
+### Patch Changes
+
+-
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.10
+  - @smartinvoicexyz/graphql@0.1.12
+  - @smartinvoicexyz/shared@0.1.10
+  - @smartinvoicexyz/types@0.1.12
+
 ## 0.1.12
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.7
+
+### Patch Changes
+
+-
+
 ## 0.1.6
 
 ### Patch Changes

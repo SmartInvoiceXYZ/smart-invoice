@@ -5,6 +5,8 @@ import _ from 'lodash';
 import { Cache } from 'memory-cache';
 import { Hex } from 'viem';
 
+const { PINATA_JWT } = process.env;
+
 const IPFS_ENDPOINTS = [
   `https://ipfs.io/ipfs/`,
   `https://cloudflare-ipfs.com/ipfs/`,
@@ -142,7 +144,7 @@ export function convertByte32ToIpfsCidV0(str: Hex) {
 }
 
 export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
-  if (!process.env.PINATA_JWT) {
+  if (!PINATA_JWT) {
     throw new Error('PINATA_JWT env variable is not set');
   }
   const options = {
@@ -150,7 +152,7 @@ export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
     headers: {
       accept: 'application/json',
       'content-type': 'application/json',
-      authorization: `Bearer ${process.env.PINATA_JWT}`,
+      authorization: `Bearer ${PINATA_JWT}`,
     },
     body: JSON.stringify(keyRestrictions),
   };
@@ -164,8 +166,7 @@ export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
       return JWT;
     })
     .catch(error => {
-      // eslint-disable-next-line no-console
-      console.log(error);
+      console.error(`Failed to generate API key: ${error}`);
       return null;
     });
 };
