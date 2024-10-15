@@ -126,15 +126,15 @@ function ViewInvoice() {
               </Button>
             </Alert>
           )}
-          {invoiceType === INVOICE_TYPES.Escrow ? (
-            <>
-              <InvoicePaymentDetails invoice={invoiceDetails} {...overlay} />
-              <InvoiceButtonManager invoice={invoiceDetails} {...overlay} />
-            </>
-          ) : (
+          {invoiceType === INVOICE_TYPES.Instant ? (
             <>
               <InstantPaymentDetails invoice={invoiceDetails} />
               <InstantButtonManager invoice={invoiceDetails} {...overlay} />
+            </>
+          ) : (
+            <>
+              <InvoicePaymentDetails invoice={invoiceDetails} {...overlay} />
+              <InvoiceButtonManager invoice={invoiceDetails} {...overlay} />
             </>
           )}
         </Stack>
