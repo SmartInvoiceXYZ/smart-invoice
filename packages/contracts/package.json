@@ -72,6 +72,7 @@
     "test-spoils-factory": "hardhat test ./test/SpoilsManagerFactory.ts",
     "test-updatable": "hardhat test ./test/SmartInvoiceUpdatable.ts",
     "test-zap": "hardhat test ./test/SafeSplitsEscrowZap.ts",
+    "test-bundler": "hardhat test ./test/SmartInvoiceFactoryBundler.ts",
     "typecheck": "tsc --noEmit",
     "verify-contract": "hardhat run scripts/verify-contract.ts --network"
   }
