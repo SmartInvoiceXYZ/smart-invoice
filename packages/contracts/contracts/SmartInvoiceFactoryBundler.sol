@@ -21,6 +21,9 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
     /// @notice Error emitted when escrow creation fails
     error EscrowNotCreated();
 
+    /// @notice Error emitted when the fund amount is invalid
+    error InvalidFundAmount();
+
     /// @notice Event emitted when a new escrow is created
     /// @param escrow Address of the newly created escrow
     /// @param token Address of the token used for payment
@@ -90,7 +93,7 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         uint256[] memory _milestoneAmounts,
         bytes calldata _escrowData,
         uint256 _fundAmount
-    ) public nonReentrant returns (address escrow) {
+    ) public payable nonReentrant returns (address escrow) {
         // Decode the provided escrow data
         EscrowData memory escrowData = _decodeEscrowData(_escrowData);
 
@@ -119,13 +122,26 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         // Ensure escrow creation was successful
         if (escrow == address(0)) revert EscrowNotCreated();
 
-        // Transfer the fund amount to the newly created escrow contract
-        // Require the client to approve the fund transfer
-        IERC20(escrowData.token).safeTransferFrom(
-            msg.sender,
-            escrow,
-            _fundAmount
-        );
+        if (escrowData.token == address(wrappedNativeToken) && msg.value > 0) {
+            // Ensure the fund amount is valid
+            if (msg.value != _fundAmount) revert InvalidFundAmount();
+
+            // Transfer the native fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            wrappedNativeToken.deposit{value: _fundAmount}();
+
+            // Transfer the fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            IERC20(escrowData.token).safeTransfer(escrow, _fundAmount);
+        } else {
+            // Transfer the fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            IERC20(escrowData.token).safeTransferFrom(
+                msg.sender,
+                escrow,
+                _fundAmount
+            );
+        }
 
         // Emit an event for the escrow creation
         emit EscrowCreated(escrow, escrowData.token, _fundAmount);

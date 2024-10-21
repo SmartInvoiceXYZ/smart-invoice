@@ -15,8 +15,8 @@
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E"
   },
   "bundler": {
-    "address": "0xc9eF89d939BDbA5540BD87fA7620dD8B6A3D2548",
-    "txHash": "0xdc8df1011d233730f3052e37e11727426ec9e5c62a5264580a984e239c9ceded",
-    "blockNumber": "2471383"
+    "address": "0x49B76dE305933d75fC0eAd6ef090F555bcCD9735",
+    "txHash": "0xcc6e7eed8c5ca39e77c897bb12233be45062ddab216f1cf31744c1a7e876ffc7",
+    "blockNumber": "2577424"
   }
 }
