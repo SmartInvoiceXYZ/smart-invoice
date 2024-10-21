@@ -144,25 +144,67 @@ To ensure all package versions are synchronized and consistent across the monore
 
 All metadata uploaded to IPFS and saved as details in a Smart Invoice contract must adhere to the following schema:
 
-```js
+```json
 {
-  projectName: "Project Name",
-  projectDescription: "Description of the project",
-  projectAgreement: [{
-    type: "https", // or "ipfs"
-    src: "https://urlToAgreement.com",
-    createdAt: "seconds since epoch"
-  }],
-  startDate: UNIX_TIMESTAMP,
-  endDate: UNIX_TIMESTAMP
+  "version": "1.0",
+  "id": "invoice-123",
+  "title": "Web Development Services",
+  "description": "Invoice for web development services provided in September.",
+  "image": {
+    "id": "image-001",
+    "src": "https://example.com/image.png",
+    "type": "https",
+    "mimeType": "image/png",
+    "createdAt": 1696800000
+  },
+  "documents": [
+    {
+      "id": "doc-001",
+      "src": "ipfs://QmSomeHash",
+      "type": "ipfs",
+      "mimeType": "application/pdf",
+      "createdAt": 1696800000
+    },
+    {
+      "id": "doc-002",
+      "src": "ar://arSomeHash",
+      "type": "arweave",
+      "mimeType": "application/pdf",
+      "createdAt": 1696800500
+    }
+  ],
+  "createdAt": 1696799600,
+  "startDate": 1696540800,
+  "endDate": 1699129200,
+  "resolverType": "kleros",
+  "klerosCourt": 1,
+  "milestones": [
+    {
+      "id": "milestone-001",
+      "title": "Phase 1 Completion",
+      "description": "Completion of initial design phase.",
+      "image": {
+        "id": "image-001",
+        "src": "https://example.com/image.png",
+        "type": "https",
+        "mimeType": "image/png",
+        "createdAt": 1696800000
+      },
+      "documents": [
+        {
+          "id": "doc-003",
+          "src": "https://example.com/phase1.pdf",
+          "type": "https",
+          "mimeType": "application/pdf",
+          "createdAt": 1696800700
+        }
+      ],
+      "createdAt": 1696800600,
+      "endDate": 1697055600
+    }
+  ]
 }
 ```
-
-- **projectName:** The name of the project.
-- **projectDescription:** A brief description of the project.
-- **projectAgreement:** An array of agreements related to the project, each with a `type` and `src` that must match exactly.
-- **startDate:** The project start date, represented as a UNIX timestamp.
-- **endDate:** The project end date, represented as a UNIX timestamp.
 
 ## Community
 
