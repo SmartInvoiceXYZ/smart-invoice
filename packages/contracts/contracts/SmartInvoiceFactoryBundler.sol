@@ -38,11 +38,14 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
     struct EscrowData {
         address client;
         address resolver;
+        uint8 resolverType;
         address token;
         uint256 terminationTime;
         bytes32 details;
         address provider;
         address providerReceiver;
+        bool requireVerification;
+        bytes32 escrowType;
     }
 
     /// @notice Constructor to initialize the contract with the factory and wrapped token addresses
@@ -62,25 +65,42 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         (
             address client,
             address resolver,
+            uint8 resolverType,
             address token,
             uint256 terminationTime,
             bytes32 details,
             address provider,
-            address providerReceiver
+            address providerReceiver,
+            bool requireVerification,
+            bytes32 escrowType
         ) = abi.decode(
                 _escrowData,
-                (address, address, address, uint256, bytes32, address, address)
+                (
+                    address,
+                    address,
+                    uint8,
+                    address,
+                    uint256,
+                    bytes32,
+                    address,
+                    address,
+                    bool,
+                    bytes32
+                )
             );
 
         return
             EscrowData({
                 client: client,
                 resolver: resolver,
+                resolverType: resolverType,
                 token: token,
                 terminationTime: terminationTime,
                 details: details,
                 provider: provider,
-                providerReceiver: providerReceiver
+                providerReceiver: providerReceiver,
+                requireVerification: requireVerification,
+                escrowType: escrowType
             });
     }
 
@@ -100,13 +120,13 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         // Prepare the details for the escrow creation
         bytes memory escrowDetails = abi.encode(
             escrowData.client,
-            0, // individual resolver
+            escrowData.resolverType,
             escrowData.resolver,
             escrowData.token,
             escrowData.terminationTime,
             escrowData.details,
             wrappedNativeToken,
-            false, // requireVerification is false
+            escrowData.requireVerification,
             address(escrowFactory),
             escrowData.providerReceiver
         );
@@ -116,7 +136,7 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
             escrowData.provider,
             _milestoneAmounts,
             escrowDetails,
-            bytes32("updatable")
+            escrowData.escrowType
         );
 
         // Ensure escrow creation was successful

@@ -26,6 +26,10 @@ const escrowData = {
   providerReceiver: '' as Hex,
 };
 
+const resolverType = 0;
+const requireVerification = true;
+const escrowType = toHex(toBytes('updatable', { size: 32 }));
+
 describe('SmartInvoiceFactoryBundler', function () {
   let publicClient: PublicClient;
   let deployer: WalletClient;
@@ -54,8 +58,7 @@ describe('SmartInvoiceFactoryBundler', function () {
     ]);
 
     const invoiceImpl = await viem.deployContract('SmartInvoiceUpdatable');
-    const invoiceType = toHex(toBytes('updatable', { size: 32 }));
-    await factory.write.addImplementation([invoiceType, invoiceImpl.address], {
+    await factory.write.addImplementation([escrowType, invoiceImpl.address], {
       account: deployer.account,
     });
 
@@ -102,20 +105,26 @@ describe('SmartInvoiceFactoryBundler', function () {
       [
         'address',
         'address',
+        'uint8',
         'address',
         'uint256',
         'bytes32',
         'address',
         'address',
+        'bool',
+        'bytes32',
       ].map(type => ({ type })),
       [
         escrowData.client,
         escrowData.resolver,
+        resolverType,
         escrowData.token,
         escrowData.terminationTime,
         escrowData.details,
         escrowData.provider,
         escrowData.providerReceiver,
+        requireVerification,
+        escrowType,
       ],
     );
 
@@ -193,20 +202,26 @@ describe('SmartInvoiceFactoryBundler', function () {
       [
         'address',
         'address',
+        'uint8',
         'address',
         'uint256',
         'bytes32',
         'address',
         'address',
+        'bool',
+        'bytes32',
       ].map(type => ({ type })),
       [
         escrowData.client,
         escrowData.resolver,
+        resolverType,
         wrappedNativeToken.address,
         escrowData.terminationTime,
         escrowData.details,
         escrowData.provider,
         escrowData.providerReceiver,
+        requireVerification,
+        escrowType,
       ],
     );
 
