@@ -31,5 +31,10 @@
     "factory": "0xAEE123EF66ebb0dCa4715E8565ae2953854Cf898",
     "implementations": ["0x1cB4BA567F290b2F01f0E60710DdE5fF29bA870d"],
     "instances": ["0x52980A9fe54c9361d7c448A81a268ed7c02C1b86"]
+  },
+  "bundler": {
+    "address": "0xe926df2465afc491683ade8158363fbfc513a12f",
+    "txHash": "0xc6a55e5693b23a7423e335807f274ce014bd51bf75a4a88cce1345ca62197c25",
+    "blockNumber": "36820843"
   }
 }

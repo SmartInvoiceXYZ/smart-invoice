@@ -23,5 +23,10 @@
   "spoilsManager": {
     "factory": "0x2f1068222B28939ABD4Cce3e0fab800b8DDA5AE2",
     "implementations": ["0xF4640751e7363a0572d4Ba93a9b049B956b33c17"]
+  },
+  "bundler": {
+    "address": "0xdafeb89f713e25a02e4ec21a18e3757d7a76d19e",
+    "txHash": "0x2893936d5492b540c9a954dffeac94c06c7f07e08561ad2cd4de70dc8643642e",
+    "blockNumber": "127483219"
   }
 }

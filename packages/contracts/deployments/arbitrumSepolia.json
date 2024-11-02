@@ -1,0 +1,15 @@
+{
+  "network": "arbitrumSepolia",
+  "factory": "0x147d044faaae2b476404115192050babc9ba0e03",
+  "txHash": "0x2f773ce592014f2a346ece17288e4fee953d10c79f9df63e2c14671f0461b107",
+  "blockNumber": "93818421",
+  "implementations": {
+    "updatable": ["0x4cd7beae668ed7c7803b787ba9b84ce17135646b"],
+    "escrow": ["0x0325e1b676c4cf59e0b690a05e0181be862193d4"]
+  },
+  "bundler": {
+    "address": "0x851e59a39571e599954702f0e4996bf838d9c863",
+    "txHash": "0x7b538ebafe01f2ffc6e5a124c95c20a03dbbd88428e613fbd67a74ed29789183",
+    "blockNumber": "93818755"
+  }
+}
