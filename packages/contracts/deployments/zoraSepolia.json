@@ -1,0 +1,15 @@
+{
+  "network": "zoraSepolia",
+  "factory": "0x147d044faaae2b476404115192050babc9ba0e03",
+  "txHash": "0xb3660b9ae08762d9f48103244ba0a309789866d1abd8bd0028a4fda6a40ab10e",
+  "blockNumber": "16242382",
+  "implementations": {
+    "updatable": ["0x4cd7beae668ed7c7803b787ba9b84ce17135646b"],
+    "escrow": ["0x0325e1b676c4cf59e0b690a05e0181be862193d4"]
+  },
+  "bundler": {
+    "address": "0x851e59a39571e599954702f0e4996bf838d9c863",
+    "txHash": "0x64d43d3d8636d4d63978179f54d2913fee9878ca1c65a49bc97982f2c64b7658",
+    "blockNumber": "16242452"
+  }
+}

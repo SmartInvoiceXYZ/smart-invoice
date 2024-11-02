@@ -6,5 +6,10 @@
   "implementations": {
     "escrow": ["0xEfA83c32691e312d8c0c2973b05048fecCfab752"],
     "instant": ["0xb54586d9032728b0d82F64845D3fC51577bB00cd"]
+  },
+  "bundler": {
+    "address": "0xb4cdef4aa610c046864467592fae456a58d3443a",
+    "txHash": "0x83462457bd63407583d49d4fb70e973c4a522e4cd937a36fcd87dd1ceca2736a",
+    "blockNumber": "21101177"
   }
 }

@@ -38,7 +38,7 @@ const ESCROW_TYPES: EscrowTypes = {
 };
 
 // Select the desired escrow type
-const escrowTypeData = ESCROW_TYPES.updatable;
+const escrowTypeData = ESCROW_TYPES.escrow;
 const escrowType = toHex(toBytes(escrowTypeData.invoiceType, { size: 32 }));
 
 async function main(): Promise<void> {

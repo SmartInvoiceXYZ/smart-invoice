@@ -12,5 +12,10 @@
       "0xE8a08E7a310f4C4303E41B111A55481b96dafa28"
     ],
     "updatable": ["0x1E14B18354305421979b3638B23C1ca10B3f4A3a"]
+  },
+  "bundler": {
+    "address": "0xb2404a93bb5e7f3e734ee29443b0c682450d1b38",
+    "txHash": "0x58fc7ab8073b2b89a356585dd037c2b19a12334c3e817edd48550f9ebf580bc7",
+    "blockNumber": "63801064"
   }
 }

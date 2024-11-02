@@ -13,5 +13,10 @@
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
     "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E"
+  },
+  "bundler": {
+    "address": "0xf4640751e7363a0572d4ba93a9b049b956b33c17",
+    "txHash": "0xa901eb1d966ea6ea7e17b7c797b1385d24d21f511b6deb11fb5b7985c224ebb5",
+    "blockNumber": "21887872"
   }
 }
