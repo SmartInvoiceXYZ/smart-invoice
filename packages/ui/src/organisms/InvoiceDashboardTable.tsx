@@ -74,10 +74,11 @@ export function InvoiceDashboardTable() {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: info => <InvoiceDisplay cell={info} />,
       }),
+      /*
       columnHelper.accessor('invoiceType', {
         header: 'Type',
         cell: info => _.capitalize(info.getValue()),
-      }),
+      }),*/
       columnHelper.accessor(
         row => {
           const { provider, client, resolver } = row;
@@ -166,7 +167,7 @@ export function InvoiceDashboardTable() {
             </Heading>
           )}
 
-          <ChakraNextLink href="/create">
+          <ChakraNextLink href="/create/escrow">
             <Button size={primaryButtonSize} minW="250px" paddingY={6}>
               Create Invoice
             </Button>
@@ -189,7 +190,7 @@ export function InvoiceDashboardTable() {
             _hover={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             _active={{ backgroundColor: 'rgba(61, 136, 248, 0.7)' }}
             color="white"
-            onClick={() => router.push('/create')}
+            onClick={() => router.push('/create/escrow')}
           >
             Create Invoice
           </Button>

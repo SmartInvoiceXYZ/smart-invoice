@@ -29,7 +29,7 @@ function Home() {
         justify="center"
         paddingX={10}
       >
-        <ChakraNextLink href="/create">
+        <ChakraNextLink href="/create/escrow">
           <Button size={primaryButtonSize} minW="250px" paddingY={6}>
             Create Invoice
           </Button>
