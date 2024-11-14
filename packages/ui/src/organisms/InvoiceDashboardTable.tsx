@@ -74,10 +74,6 @@ export function InvoiceDashboardTable() {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: info => <InvoiceDisplay cell={info} />,
       }),
-      columnHelper.accessor('invoiceType', {
-        header: 'Type',
-        cell: info => _.capitalize(info.getValue()),
-      }),
       columnHelper.accessor(
         row => {
           const { provider, client, resolver } = row;
