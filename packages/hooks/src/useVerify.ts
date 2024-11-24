@@ -1,5 +1,5 @@
 import {
-  SMART_INVOICE_UPDATEABLE_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -34,7 +34,7 @@ export const useVerify = ({
   } = useSimulateContract({
     address,
     chainId,
-    abi: SMART_INVOICE_UPDATEABLE_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'verify', // no args
     query: {
       enabled: !!address,

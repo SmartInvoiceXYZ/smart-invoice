@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_UPDATEABLE_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import {
@@ -101,7 +101,7 @@ export const useResolve = ({
   } = useSimulateContract({
     address: address as Hex,
     functionName: 'resolve',
-    abi: SMART_INVOICE_UPDATEABLE_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     args: [clientAward, providerAward, detailsHash as Hex],
     query: {
       enabled:

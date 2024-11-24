@@ -1,4 +1,4 @@
-export const SMART_INVOICE_UPDATEABLE_ABI = [
+export const SMART_INVOICE_UPDATABLE_ABI = [
   {
     anonymous: false,
     inputs: [

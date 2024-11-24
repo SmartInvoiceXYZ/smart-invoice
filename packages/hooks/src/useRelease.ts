@@ -1,5 +1,5 @@
 import {
-  SMART_INVOICE_UPDATEABLE_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -44,7 +44,7 @@ export const useRelease = ({
   } = useSimulateContract({
     chainId,
     address: invoice?.address as Hex,
-    abi: SMART_INVOICE_UPDATEABLE_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
     query: {
