@@ -92,6 +92,7 @@ export type Invoice = {
   network: string;
   client: Hex;
   provider: Hex;
+  providerReceiver: Hex;
   resolverType: ADR;
   isLocked: boolean;
   currentMilestone: bigint;
@@ -165,6 +166,7 @@ export const fetchInvoice = async (
         isLocked: true,
         network: true,
         provider: true,
+        providerReceiver: true,
         releases: [
           {
             orderBy: Release_orderBy.timestamp,

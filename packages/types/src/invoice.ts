@@ -32,7 +32,8 @@ export type FormInvoice = {
   token: string;
   client: string;
   provider: string;
-
+  // TODO: make it required when form is updated
+  providerReceiver?: string;
   // instant details
   paymentDue?: string;
   lateFee?: string;

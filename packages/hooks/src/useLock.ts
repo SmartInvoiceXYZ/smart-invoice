@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_UPDATEABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -84,7 +84,7 @@ export const useLock = ({
   } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'lock',
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATEABLE_ABI,
     args: [detailsHash as Hex],
     query: {
       enabled:

@@ -1,9 +1,9 @@
 import {
   LOG_TYPE,
-  SMART_INVOICE_ESCROW_ABI,
   SMART_INVOICE_FACTORY_ABI,
   SMART_INVOICE_INSTANT_ABI,
   SMART_INVOICE_SPLIT_ESCROW_ABI,
+  SMART_INVOICE_UPDATEABLE_ABI,
 } from '@smartinvoicexyz/constants';
 import { ValueOf } from '@smartinvoicexyz/types';
 import _ from 'lodash';
@@ -16,10 +16,10 @@ import {
 } from 'viem';
 
 type KnownAbi =
-  | typeof SMART_INVOICE_ESCROW_ABI
   | typeof SMART_INVOICE_FACTORY_ABI
   | typeof SMART_INVOICE_INSTANT_ABI
-  | typeof SMART_INVOICE_SPLIT_ESCROW_ABI;
+  | typeof SMART_INVOICE_SPLIT_ESCROW_ABI
+  | typeof SMART_INVOICE_UPDATEABLE_ABI;
 
 type LogParserFunction = (
   _log: Log,
@@ -43,10 +43,9 @@ export const logParser: {
   [key: ValueOf<typeof LOG_TYPE>]: LogParserFunction;
 } = {
   Factory: logParserFactory(SMART_INVOICE_FACTORY_ABI),
-  Escrow: logParserFactory(SMART_INVOICE_ESCROW_ABI),
   Instant: logParserFactory(SMART_INVOICE_INSTANT_ABI),
   Split: logParserFactory(SMART_INVOICE_SPLIT_ESCROW_ABI),
-  Updatable: logParserFactory(SMART_INVOICE_ESCROW_ABI),
+  Updatable: logParserFactory(SMART_INVOICE_UPDATEABLE_ABI),
 };
 
 export const parseTxLogs = (
