@@ -130,9 +130,10 @@ const transports: _transports = SUPPORTED_CHAINS.reduce(
     if (alchemyUrl) list.push(http(alchemyUrl));
 
     const portersNetwork = portersNetworkName[chain.id];
-    const portersUrl = portersNetwork
-      ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
-      : undefined;
+    const portersUrl =
+      portersNetwork && PORTERS_ID
+        ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
+        : undefined;
     if (portersUrl) list.push(http(portersUrl));
 
     return {

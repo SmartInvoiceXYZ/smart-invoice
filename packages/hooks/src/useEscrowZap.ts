@@ -1,6 +1,6 @@
 import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
