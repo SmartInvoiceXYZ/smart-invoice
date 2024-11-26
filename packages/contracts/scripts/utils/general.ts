@@ -29,7 +29,7 @@ export async function verifyContract(
   return result;
 }
 
-async function getDeploymentTransactionHash(contractAddress: Hex): Hex | null {
+async function getDeploymentTransactionHash(contractAddress: Hex): Promise<Hex | null> {
   const client = await viem.getPublicClient();
   // Get creation block number using binary search
   const currentBlock = await client.getBlockNumber();

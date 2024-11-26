@@ -17,7 +17,7 @@ import {
   parseToDate,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -125,14 +125,14 @@ export const useAddMilestones = ({
       description,
       documents: documents
         ? [
-            ...documents.map(d => ({
-              ...uriToDocument(d.src),
-              createdAt: createdAt
-                ? Math.floor(parseToDate(createdAt).getTime() / 1000)
-                : Math.floor(new Date().getTime() / 1000),
-            })),
-            uriToDocument(document),
-          ]
+          ...documents.map(d => ({
+            ...uriToDocument(d.src),
+            createdAt: createdAt
+              ? Math.floor(parseToDate(createdAt).getTime() / 1000)
+              : Math.floor(new Date().getTime() / 1000),
+          })),
+          uriToDocument(document),
+        ]
         : [uriToDocument(document)],
       startDate: start,
       endDate: end,

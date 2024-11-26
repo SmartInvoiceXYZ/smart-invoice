@@ -2,7 +2,7 @@ import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import {

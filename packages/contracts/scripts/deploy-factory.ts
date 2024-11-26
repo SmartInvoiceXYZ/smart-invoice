@@ -31,6 +31,10 @@ async function main(): Promise<void> {
     [getWrappedTokenAddress(chainId)],
   );
 
+  if (!receipt) {
+    throw new Error("Deployment failed");
+  }
+
   console.log('Factory Address:', smartInvoiceFactory.address);
 
   const txHash = receipt.transactionHash;
