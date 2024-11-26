@@ -63,6 +63,7 @@
     "lint-staged": "lint-staged",
     "preinstall": "only-allow pnpm",
     "syncpack": "syncpack list-mismatches",
+    "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "update-deps": "pnpm update -i -r --latest"
   },
