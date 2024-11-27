@@ -1,5 +1,5 @@
 import { toLower } from 'lodash';
-import { Address, Chain } from 'viem';
+import { Address, Chain, Hex } from 'viem';
 import {
   arbitrum,
   base,
@@ -27,6 +27,13 @@ type ResolverWithoutAddress = {
   termsUrl: string;
 };
 
+type Tokens = {
+  [key: string]: {
+    decimals: number;
+    address: Hex;
+  };
+};
+
 export type Resolver = {
   address: Address;
 } & ResolverWithoutAddress;
@@ -36,6 +43,11 @@ export type NetworkConfig = {
   WRAPPED_NATIVE_TOKEN: Address;
   INVOICE_FACTORY: Address;
   RESOLVERS: Partial<Record<KnownResolverType, Resolver>>;
+  TOKENS?: Tokens;
+  ZAP_ADDRESS?: Hex;
+  DAO_ADDRESS?: Hex;
+  TREASURY_ADDRESS?: Hex;
+  SPOILS_MANAGER?: Hex;
 };
 
 export type KlerosCourtData = {
