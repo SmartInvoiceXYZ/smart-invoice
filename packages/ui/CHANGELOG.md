@@ -1,5 +1,17 @@
 # @smartinvoicexyz/ui
 
+## 0.1.17
+
+### Patch Changes
+
+- updated useEscrowZap for DM
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.17
+  - @smartinvoicexyz/graphql@0.1.17
+  - @smartinvoicexyz/hooks@0.1.17
+  - @smartinvoicexyz/types@0.1.17
+  - @smartinvoicexyz/utils@0.1.17
+
 ## 0.1.16
 
 ### Patch Changes

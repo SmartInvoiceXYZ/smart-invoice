@@ -1,5 +1,11 @@
 # @smartinvoicexyz/docs
 
+## 0.1.17
+
+### Patch Changes
+
+- updated useEscrowZap for DM
+
 ## 0.1.7
 
 ### Patch Changes

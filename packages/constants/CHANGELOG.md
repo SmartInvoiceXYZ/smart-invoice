@@ -1,5 +1,11 @@
 # @smartinvoicexyz/constants
 
+## 0.1.17
+
+### Patch Changes
+
+- updated useEscrowZap for DM
+
 ## 0.1.10
 
 ### Patch Changes

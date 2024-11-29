@@ -55,6 +55,7 @@
   },
   "private": true,
   "scripts": {
+    "build": "pnpm -r build",
     "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "clean": "pnpm -r clean",
     "dapp:dev": "pnpm --filter '@smartinvoicexyz/dapp' dev",
@@ -63,7 +64,6 @@
     "lint-staged": "lint-staged",
     "preinstall": "only-allow pnpm",
     "syncpack": "syncpack list-mismatches",
-    "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "update-deps": "pnpm update -i -r --latest"
   },
