@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -159,7 +159,7 @@ export const useAddMilestones = ({
   } = useSimulateContract({
     address,
     chainId,
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'addMilestones',
     args: [parsedMilestones, details as Hex],
     query: {

@@ -35,6 +35,7 @@ export type InvoiceDisplayData = {
     symbol: string;
   };
   provider: Hex;
+  providerReceiver: Hex;
   client: Hex;
   resolver: Hex;
 };
@@ -72,6 +73,7 @@ export const fetchInvoices = async (
         total: true,
         tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
         provider: true,
+        providerReceiver: true,
         client: true,
         resolver: true,
       },
