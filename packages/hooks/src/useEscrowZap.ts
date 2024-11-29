@@ -1,13 +1,25 @@
-import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
+import {
+  ESCROW_ZAP_ABI,
+  NETWORK_CONFIG,
+  NetworkConfig,
+} from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
-import { encodeAbiParameters, Hex, isAddress, parseEther } from 'viem';
+import { encodeAbiParameters, Hex, isAddress, parseUnits } from 'viem';
 import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
-// import useDetailsPin from './useDetailsPin';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
+import { useDetailsPin } from './useDetailsPin';
 
 type OwnerAndAllocation = { address: string; percent: number };
+type ProjectDetails = {
+  projectName: string;
+  projectDescription: string;
+  projectAgreement: string;
+  startDate: number;
+  endDate: number;
+};
 
 const separateOwnersAndAllocations = (
   ownersAndAllocations: OwnerAndAllocation[],
@@ -33,7 +45,10 @@ export const useEscrowZap = ({
   projectTeamSplit = false,
   daoSplit = false,
   safetyValveDate,
+  detailsData,
   enabled = true,
+  networkConfig = NETWORK_CONFIG,
+  token,
   onSuccess,
 }: UseEscrowZapProps): {
   writeAsync: () => Promise<Hex | undefined>;
@@ -47,27 +62,25 @@ export const useEscrowZap = ({
     separateOwnersAndAllocations(ownersAndAllocations);
   const saltNonce = Math.floor(new Date().getTime() / 1000);
 
+  const tokenDecimals =
+    _.get(networkConfig[chainId], `TOKENS.${token}.decimals`) ?? 18;
+
   const milestoneAmounts = _.map(
-    milestones,
-    (a: { value: string }) => a.value && parseEther(a.value), // TODO handle token decimals
+    NETWORK_CONFIG[chainId] ? milestones : [],
+    (a: { value: string }) => a.value && parseUnits(a.value, tokenDecimals),
   );
+  const { data: fetchedDetails, isLoading: detailsLoading } = useDetailsPin({
+    ...detailsData,
+  });
 
-  const details = '';
-  // const { data: details, isLoading: detailsLoading } = useDetailsPin({
-  //   ...detailsData,
-  // });
-  logDebug('details', details);
+  logDebug('details', fetchedDetails);
 
-  const tokenAddress = '0x';
-  // const tokenAddress = _.get(
-  //   NETWORK_CONFIG[chainId],
-  //   `TOKENS.${token}.address`,
-  // );
-  // TODO other chains
-  const resolver = '0x';
-  // const resolver = daoSplit
-  //   ? (_.first(_.keys(_.get(NETWORK_CONFIG[chainId], 'RESOLVERS'))) as Hex)
-  //   : NETWORK_CONFIG[chainId].DAO_ADDRESS;
+  const tokenAddress =
+    _.get(networkConfig[chainId], `TOKENS.${token}.address`) ?? '0x0';
+
+  const resolver = daoSplit
+    ? (_.first(_.keys(_.get(networkConfig[chainId], 'RESOLVERS'))) as Hex)
+    : (networkConfig[chainId].DAO_ADDRESS ?? '');
 
   const encodedSafeData = useMemo(() => {
     if (!threshold || !saltNonce)
@@ -102,6 +115,7 @@ export const useEscrowZap = ({
   });
 
   const encodedEscrowData = useMemo(() => {
+    const details = detailsData ? fetchedDetails : '';
     if (
       !isAddress(client) ||
       !(arbitration === 0 || arbitration === 1) ||
@@ -132,7 +146,14 @@ export const useEscrowZap = ({
         details,
       ],
     );
-  }, [tokenAddress, safetyValveDate, details, client, arbitration, resolver]);
+  }, [
+    tokenAddress,
+    safetyValveDate,
+    fetchedDetails,
+    client,
+    arbitration,
+    resolver,
+  ]);
   logDebug('encodeEscrowData - ', {
     client,
     arbitration,
@@ -140,7 +161,8 @@ export const useEscrowZap = ({
     tokenAddress,
     safetyValveDate,
     saltNonce,
-    details,
+    fetchedDetails,
+    milestoneAmounts,
     compiledData: !!encodedEscrowData,
   });
 
@@ -151,7 +173,7 @@ export const useEscrowZap = ({
     status,
   } = useSimulateContract({
     chainId,
-    address: '0x', // NETWORK_CONFIG[chainId].ZAP_ADDRESS,
+    address: networkConfig[chainId].ZAP_ADDRESS ?? '0x0',
     abi: ESCROW_ZAP_ABI,
     functionName: 'createSafeSplitEscrow',
     args: [
@@ -198,7 +220,7 @@ export const useEscrowZap = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading, // || detailsLoading,
+    isLoading: prepareLoading || writeLoading || detailsLoading,
     prepareError,
     writeError,
   };
@@ -215,7 +237,8 @@ interface UseEscrowZapProps {
   daoSplit?: boolean;
   token: { value?: string; label?: string };
   safetyValveDate: Date;
-  // detailsData: any; // ProjectDetails;
+  detailsData?: ProjectDetails;
   enabled?: boolean;
+  networkConfig?: { [key: number]: NetworkConfig }; // to override the default network config
   onSuccess?: (hash: Hex) => void;
 }
