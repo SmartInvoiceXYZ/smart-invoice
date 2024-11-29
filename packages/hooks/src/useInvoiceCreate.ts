@@ -34,7 +34,7 @@ import {
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
 
-const ESCROW_TYPE = toHex('escrow', { size: 32 });
+const UPDATABLE_TYPE = toHex('updatable', { size: 32 });
 
 interface UseInvoiceCreate {
   invoiceForm: UseFormReturn<Partial<FormInvoice>>;
@@ -177,6 +177,7 @@ export const useInvoiceCreate = ({
         { type: 'address' }, //     _wrappedNativeToken,
         { type: 'bool' }, //     _requireVerification, warns the client not to deposit funds until verifying they can release or lock funds
         { type: 'address' }, //     _factory,
+        { type: 'address' }, //     _providerReceiver,
       ],
       [
         client as Address,
@@ -188,6 +189,7 @@ export const useInvoiceCreate = ({
         wrappedNativeToken,
         REQUIRES_VERIFICATION,
         invoiceFactory,
+        provider as Address,
       ],
     );
   }, [client, resolverType, token, details, safetyValveDate]);
@@ -204,7 +206,7 @@ export const useInvoiceCreate = ({
     address: getInvoiceFactoryAddress(chainId),
     abi: SMART_INVOICE_FACTORY_ABI,
     functionName: 'create',
-    args: [provider as Address, amounts, escrowData, ESCROW_TYPE],
+    args: [provider as Address, amounts, escrowData, UPDATABLE_TYPE],
     query: {
       enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
     },

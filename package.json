@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "lodash": "^4.17.21",
-    "next": "^14.2.13"
+    "next": "14.2.13"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.25.1",

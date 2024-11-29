@@ -1,0 +1,12 @@
+{
+  "network": "optimism-sepolia",
+  "startBlock": "19380489",
+  "factories": [
+    {
+      "factoryName": "01",
+      "address": "0x4cd7beae668ed7c7803b787ba9b84ce17135646b",
+      "startBlock": "19380489",
+      "v01": true
+    }
+  ]
+}

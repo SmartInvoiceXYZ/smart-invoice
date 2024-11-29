@@ -1,0 +1,12 @@
+{
+  "startBlock": "16242382",
+  "network": "zora-sepolia",
+  "factories": [
+    {
+      "factoryName": "01",
+      "address": "0x147d044faaae2b476404115192050babc9ba0e03",
+      "startBlock": "16242382",
+      "v01": true
+    }
+  ]
+}

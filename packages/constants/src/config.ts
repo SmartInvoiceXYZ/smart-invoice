@@ -2,11 +2,14 @@ import { toLower } from 'lodash';
 import { Address, Chain } from 'viem';
 import {
   arbitrum,
+  arbitrumSepolia,
   base,
+  baseSepolia,
   gnosis,
   holesky,
   mainnet,
   optimism,
+  optimismSepolia,
   polygon,
   sepolia,
 } from 'viem/chains';
@@ -137,6 +140,9 @@ const chains: readonly [Chain, ...Chain[]] = [
   sepolia,
   base,
   holesky,
+  arbitrumSepolia,
+  optimismSepolia,
+  baseSepolia,
 ];
 
 export const SUPPORTED_CHAIN_IDS = chains.map(chain => chain.id);
@@ -288,6 +294,51 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
         address: SMART_INVOICE_ARBITRATION_SAFE,
         ...KLEROS_DATA,
       },
+      'smart-invoice': {
+        address: SMART_INVOICE_ARBITRATION_SAFE,
+        ...SMART_INVOICE_ARBITRATION_DATA,
+      },
+    },
+  },
+  [baseSepolia.id]: {
+    SUBGRAPH: getSubgraphUrl('smart-invoice-base-sepolia', 'v0.0.1'),
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x4200000000000000000000000000000000000006',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x851e59a39571e599954702f0e4996bf838d9c863',
+    ) as Address,
+    RESOLVERS: {
+      'smart-invoice': {
+        address: SMART_INVOICE_ARBITRATION_SAFE,
+        ...SMART_INVOICE_ARBITRATION_DATA,
+      },
+    },
+  },
+  [arbitrumSepolia.id]: {
+    SUBGRAPH: getSubgraphUrl('smart-invoice-arbitrum-sepolia', 'v0.0.1'),
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x980b62da83eff3d4576c647993b0c1d7faf17c73',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x147d044faaae2b476404115192050babc9ba0e03',
+    ) as Address,
+    RESOLVERS: {
+      'smart-invoice': {
+        address: SMART_INVOICE_ARBITRATION_SAFE,
+        ...SMART_INVOICE_ARBITRATION_DATA,
+      },
+    },
+  },
+  [optimismSepolia.id]: {
+    SUBGRAPH: getSubgraphUrl('smart-invoice-op-sepolia', 'v0.0.1'),
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x4200000000000000000000000000000000000006',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0x4cd7beae668ed7c7803b787ba9b84ce17135646b',
+    ) as Address,
+    RESOLVERS: {
       'smart-invoice': {
         address: SMART_INVOICE_ARBITRATION_SAFE,
         ...SMART_INVOICE_ARBITRATION_DATA,

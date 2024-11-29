@@ -1,0 +1,12 @@
+{
+  "network": "arbitrum-sepolia",
+  "startBlock": "93818421",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "93818421",
+      "address": "0x147d044faaae2b476404115192050babc9ba0e03",
+      "v01": true
+    }
+  ]
+}

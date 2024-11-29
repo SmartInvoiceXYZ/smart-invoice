@@ -2,7 +2,6 @@ import '@nomicfoundation/hardhat-toolbox-viem';
 import 'hardhat-chai-matchers-viem';
 
 import dotenv from 'dotenv';
-import type { HardhatUserConfig } from 'hardhat/config';
 
 dotenv.config();
 
@@ -21,7 +20,7 @@ const {
   ZORAENERGY_API_KEY,
 } = process.env;
 
-let accounts: string[] | { mnemonic: string } | undefined;
+let accounts;
 
 if (MNEMONIC) {
   accounts = { mnemonic: MNEMONIC };
@@ -29,7 +28,7 @@ if (MNEMONIC) {
   accounts = [PRIVATE_KEY.startsWith('0x') ? PRIVATE_KEY : `0x${PRIVATE_KEY}`];
 }
 
-const config: HardhatUserConfig = {
+const config = {
   solidity: {
     version: '0.8.26',
     settings: {
@@ -119,20 +118,20 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      gnosis: GNOSISSCAN_API_KEY!,
-      xdai: GNOSISSCAN_API_KEY!,
-      sepolia: ETHERSCAN_API_KEY!,
-      holesky: ETHERSCAN_API_KEY!,
-      polygon: POLYGONSCAN_API_KEY!,
-      optimisticEthereum: OPTIMISTIC_ETHERSCAN_API_KEY!,
-      optimismSepolia: OPTIMISTIC_ETHERSCAN_API_KEY!,
-      arbitrumOne: ARBISCAN_API_KEY!,
-      arbitrumSepolia: ARBISCAN_API_KEY!,
-      mainnet: ETHERSCAN_API_KEY!,
-      base: BASESCAN_API_KEY!,
-      baseSepolia: BASESCAN_API_KEY!,
-      zora: ZORAENERGY_API_KEY!,
-      zoraSepolia: ZORAENERGY_API_KEY!,
+      gnosis: GNOSISSCAN_API_KEY,
+      xdai: GNOSISSCAN_API_KEY,
+      sepolia: ETHERSCAN_API_KEY,
+      holesky: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
+      optimisticEthereum: OPTIMISTIC_ETHERSCAN_API_KEY,
+      optimismSepolia: OPTIMISTIC_ETHERSCAN_API_KEY,
+      arbitrumOne: ARBISCAN_API_KEY,
+      arbitrumSepolia: ARBISCAN_API_KEY,
+      mainnet: ETHERSCAN_API_KEY,
+      base: BASESCAN_API_KEY,
+      baseSepolia: BASESCAN_API_KEY,
+      zora: ZORAENERGY_API_KEY,
+      zoraSepolia: ZORAENERGY_API_KEY,
     },
     customChains: [
       {

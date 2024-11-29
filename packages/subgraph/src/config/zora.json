@@ -1,0 +1,12 @@
+{
+  "network": "zora",
+  "startBlock": "21935337",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "21935337",
+      "address": "0x59730da9b5f93fe1e1fd7d62f94b787ecc7feef1",
+      "v01": true
+    }
+  ]
+}

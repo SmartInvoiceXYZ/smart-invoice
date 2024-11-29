@@ -13,13 +13,15 @@ import {
 } from '@chakra-ui/react';
 import { getDateString } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import ReactDatePicker from 'react-datepicker';
+import ReactDatePicker, {
+  type DatePickerProps as ReactDatePickerProps,
+} from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
 
 // TODO handle separate controlled component
 // TODO currently only single date is supported, but type shows that it can be a range
 
-export type DatePickerProps = {
+type DatePickerProps = {
   name: string;
   label?: string;
   tip?: string;
@@ -30,9 +32,9 @@ export type DatePickerProps = {
   placeholder?: string;
   variant?: string;
   spacing?: number | string;
-} & Omit<React.ComponentProps<typeof ReactDatePicker>, 'onChange'>;
+} & ReactDatePickerProps;
 
-export function DatePicker({
+export const DatePicker: React.FC<DatePickerProps> = ({
   label,
   name,
   localForm,
@@ -43,7 +45,7 @@ export function DatePicker({
   variant = 'outline',
   spacing,
   ...props
-}: DatePickerProps) {
+}) => {
   const {
     control,
     watch,
@@ -124,4 +126,4 @@ export function DatePicker({
       )}
     />
   );
-}
+};

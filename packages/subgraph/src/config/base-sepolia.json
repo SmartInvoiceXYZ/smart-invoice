@@ -1,0 +1,13 @@
+{
+  "network": "base-sepolia",
+  "factory": "0x851e59a39571e599954702f0e4996bf838d9c863",
+  "startBlock": "17396864",
+  "factories": [
+    {
+      "factoryName": "01",
+      "startBlock": "17396864",
+      "address": "0x851e59a39571e599954702f0e4996bf838d9c863",
+      "v01": true
+    }
+  ]
+}

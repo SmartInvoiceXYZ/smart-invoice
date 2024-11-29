@@ -16,7 +16,7 @@
     "@chakra-ui/theme": "^3.3.1",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@rainbow-me/rainbowkit": "2.1.6",
+    "@rainbow-me/rainbowkit": "2.2.0",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/forms": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
@@ -34,12 +34,12 @@
     "focus-visible": "^5.2.1",
     "framer-motion": "^11.5.6",
     "lodash": "^4.17.21",
-    "next": "^14.2.13",
+    "next": "14.2.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.53.0",
     "viem": "2.17.0",
-    "wagmi": "2.12.9"
+    "wagmi": "2.12.17"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.2.7",

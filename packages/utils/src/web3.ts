@@ -16,17 +16,20 @@ import {
 } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { Chain, http, Transport } from 'viem';
-import { fallback } from 'wagmi';
 import {
   arbitrum,
+  arbitrumSepolia,
   base,
+  baseSepolia,
   gnosis,
   holesky,
   mainnet,
   optimism,
+  optimismSepolia,
   polygon,
   sepolia,
-} from 'wagmi/chains';
+} from 'viem/chains';
+import { fallback } from 'wagmi';
 
 const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
@@ -37,10 +40,13 @@ const PORTERS_ID = process.env.NEXT_PUBLIC_PORTERS_ID || '';
 const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'mainnet',
   [polygon.id]: 'polygon-mainnet',
-  [arbitrum.id]: 'arbitrum-mainnet',
-  [optimism.id]: 'optimism-mainnet',
   [sepolia.id]: 'sepolia',
   [base.id]: 'base-mainnet',
+  [arbitrum.id]: 'arbitrum-mainnet',
+  [optimism.id]: 'optimism-mainnet',
+  [baseSepolia.id]: 'base-sepolia',
+  [arbitrumSepolia.id]: 'arbitrum-sepolia',
+  [optimismSepolia.id]: 'optimism-sepolia',
   [holesky.id]: 'holesky',
   // gnosis is not supported by infura
 };
@@ -48,12 +54,15 @@ const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
 const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'eth-mainnet',
   [polygon.id]: 'polygon-mainnet',
-  [arbitrum.id]: 'arb-mainnet',
-  [optimism.id]: 'opt-mainnet',
   [sepolia.id]: 'eth-sepolia',
   [base.id]: 'base-mainnet',
+  [arbitrum.id]: 'arb-mainnet',
+  [optimism.id]: 'opt-mainnet',
   [holesky.id]: 'eth-holesky',
   // gnosis is not supported by alchemy
+  [baseSepolia.id]: 'base-sepolia',
+  [arbitrumSepolia.id]: 'arb-sepolia',
+  [optimismSepolia.id]: 'opt-sepolia',
 };
 
 const portersNetworkName: Partial<Record<SupportedChainId, string>> = {
@@ -72,8 +81,11 @@ const subgraphNameToChain: Record<string, SupportedChain> = {
   matic: polygon,
   'arbitrum-one': arbitrum,
   optimism,
-  sepolia,
   base,
+  'base-sepolia': baseSepolia,
+  'arbitrum-sepolia': arbitrumSepolia,
+  'optimism-sepolia': optimismSepolia,
+  sepolia,
   holesky,
   gnosis,
 };

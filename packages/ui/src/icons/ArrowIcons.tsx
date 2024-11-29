@@ -1,6 +1,6 @@
-import { createIcon } from '@chakra-ui/icon';
+import { createIcon, IconProps } from '@chakra-ui/icon';
 
-export const RightArrowIcon = createIcon({
+export const RightArrowIcon: React.FC<IconProps> = createIcon({
   displayName: 'RightArrowIcon',
   path: (
     <path
@@ -11,7 +11,7 @@ export const RightArrowIcon = createIcon({
   viewBox: '0 0 18 30',
 });
 
-export const LeftArrowIcon = createIcon({
+export const LeftArrowIcon: React.FC<IconProps> = createIcon({
   displayName: 'LeftArrowIcon',
   path: (
     <path
@@ -22,7 +22,7 @@ export const LeftArrowIcon = createIcon({
   viewBox: '0 0 18 30',
 });
 
-export const DoubleLeftArrowIcon = createIcon({
+export const DoubleLeftArrowIcon: React.FC<IconProps> = createIcon({
   displayName: 'DoubleLeftArrowIcon',
   path: (
     <>
@@ -39,7 +39,7 @@ export const DoubleLeftArrowIcon = createIcon({
   viewBox: '0 0 36 30',
 });
 
-export const BackArrowIcon = createIcon({
+export const BackArrowIcon: React.FC<IconProps> = createIcon({
   displayName: 'BackArrowIcon',
   path: (
     <path

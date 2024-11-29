@@ -10,9 +10,7 @@ const nextConfig = {
     '@smartinvoicexyz/ui',
     '@smartinvoicexyz/utils',
   ],
-  experimental: {
-    optimizePackageImports: ['@rainbow-me/rainbowkit'],
-  },
+  experimental: {},
   webpack: config => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
