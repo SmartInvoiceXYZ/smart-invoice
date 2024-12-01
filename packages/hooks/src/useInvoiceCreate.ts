@@ -19,7 +19,6 @@ import {
   parseTxLogs,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -31,6 +30,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
 

@@ -5,10 +5,11 @@ import {
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useVerify = ({
   address,

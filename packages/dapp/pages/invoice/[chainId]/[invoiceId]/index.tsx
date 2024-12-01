@@ -20,22 +20,31 @@ import {
   InvoiceNotFound,
   Loader,
 } from '@smartinvoicexyz/ui';
-import { getChainName } from '@smartinvoicexyz/utils';
+import { chainLabelFromId, getChainName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
+import { parseChainId } from './locked';
 
 function ViewInvoice() {
   const router = useRouter();
-  const { invoiceId: invId, chainId: hexChainId } = router.query;
+  const { invoiceId: invId, chainId: urlChainId } = router.query;
 
   const invoiceId = _.toLower(String(invId)) as Hex;
-  const invoiceChainId = hexChainId
-    ? parseInt(String(hexChainId), 16)
-    : undefined;
+  const invoiceChainId = parseChainId(urlChainId);
+
+  useEffect(() => {
+    if (invoiceId && invoiceChainId) {
+      router.replace({
+        pathname: `/invoice/${chainLabelFromId(invoiceChainId)}/${invoiceId}`,
+        query: undefined,
+      });
+    }
+  }, [invoiceId, invoiceChainId, router]);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     chainId: invoiceChainId,

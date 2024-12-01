@@ -5,7 +5,6 @@ import {
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import _ from 'lodash';
 import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
@@ -15,6 +14,8 @@ import {
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useRelease = ({
   invoice,
