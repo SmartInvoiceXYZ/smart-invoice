@@ -31,6 +31,7 @@ import {
   InvoiceBadge,
   NetworkBadge,
   QuestionIcon,
+  ShareButton,
   VerifyInvoice,
 } from '..';
 
@@ -148,6 +149,8 @@ export function InvoiceMetaDetails({
 
   const lastDocument = _.findLast(documents);
 
+  const url = `${window.location.origin}/invoice/${invoiceChainId}/${invoiceId}`;
+
   return (
     <Stack
       spacing="1rem"
@@ -163,6 +166,7 @@ export function InvoiceMetaDetails({
             {title}
           </Heading>
         )}
+        <ShareButton title={title ?? ''} url={url} text={description ?? ''} />
         <Stack direction="row" align="center" spacing={2}>
           <InvoiceBadge invoiceType={invoiceType} />
           <Box w="0.25rem" h="0.25rem" bg="black" transform="rotate(45deg)" />

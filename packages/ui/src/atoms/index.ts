@@ -6,6 +6,7 @@ export * from './Container';
 export * from './InvoiceNotFound';
 export * from './Layout';
 export * from './Loader';
+export * from './ShareButton';
 export * from './StepInfo';
 export * from './Toast';
 export * from './TokenDescriptor';
