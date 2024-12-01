@@ -155,9 +155,7 @@ export function InvoiceMetaDetails({
     ? chainLabelFromId(invoiceChainId)
     : 'unknown';
   const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
-  const text = `SmartInvoice of type ${invoiceType} for ${title} on ${getChainName(
-    invoiceChainId,
-  )}`;
+  const text = `Smart Invoice for ${title} on ${getChainName(invoiceChainId)}`;
 
   return (
     <Stack
