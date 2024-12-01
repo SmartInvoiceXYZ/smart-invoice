@@ -21,6 +21,9 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
     /// @notice Error emitted when escrow creation fails
     error EscrowNotCreated();
 
+    /// @notice Error emitted when the fund amount is invalid
+    error InvalidFundAmount();
+
     /// @notice Event emitted when a new escrow is created
     /// @param escrow Address of the newly created escrow
     /// @param token Address of the token used for payment
@@ -35,11 +38,14 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
     struct EscrowData {
         address client;
         address resolver;
+        uint8 resolverType;
         address token;
         uint256 terminationTime;
         bytes32 details;
         address provider;
         address providerReceiver;
+        bool requireVerification;
+        bytes32 escrowType;
     }
 
     /// @notice Constructor to initialize the contract with the factory and wrapped token addresses
@@ -59,25 +65,42 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         (
             address client,
             address resolver,
+            uint8 resolverType,
             address token,
             uint256 terminationTime,
             bytes32 details,
             address provider,
-            address providerReceiver
+            address providerReceiver,
+            bool requireVerification,
+            bytes32 escrowType
         ) = abi.decode(
                 _escrowData,
-                (address, address, address, uint256, bytes32, address, address)
+                (
+                    address,
+                    address,
+                    uint8,
+                    address,
+                    uint256,
+                    bytes32,
+                    address,
+                    address,
+                    bool,
+                    bytes32
+                )
             );
 
         return
             EscrowData({
                 client: client,
                 resolver: resolver,
+                resolverType: resolverType,
                 token: token,
                 terminationTime: terminationTime,
                 details: details,
                 provider: provider,
-                providerReceiver: providerReceiver
+                providerReceiver: providerReceiver,
+                requireVerification: requireVerification,
+                escrowType: escrowType
             });
     }
 
@@ -90,20 +113,20 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         uint256[] memory _milestoneAmounts,
         bytes calldata _escrowData,
         uint256 _fundAmount
-    ) public nonReentrant returns (address escrow) {
+    ) public payable nonReentrant returns (address escrow) {
         // Decode the provided escrow data
         EscrowData memory escrowData = _decodeEscrowData(_escrowData);
 
         // Prepare the details for the escrow creation
         bytes memory escrowDetails = abi.encode(
             escrowData.client,
-            0, // individual resolver
+            escrowData.resolverType,
             escrowData.resolver,
             escrowData.token,
             escrowData.terminationTime,
             escrowData.details,
             wrappedNativeToken,
-            false, // requireVerification is false
+            escrowData.requireVerification,
             address(escrowFactory),
             escrowData.providerReceiver
         );
@@ -113,19 +136,32 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
             escrowData.provider,
             _milestoneAmounts,
             escrowDetails,
-            bytes32("updatable")
+            escrowData.escrowType
         );
 
         // Ensure escrow creation was successful
         if (escrow == address(0)) revert EscrowNotCreated();
 
-        // Transfer the fund amount to the newly created escrow contract
-        // Require the client to approve the fund transfer
-        IERC20(escrowData.token).safeTransferFrom(
-            msg.sender,
-            escrow,
-            _fundAmount
-        );
+        if (escrowData.token == address(wrappedNativeToken) && msg.value > 0) {
+            // Ensure the fund amount is valid
+            if (msg.value != _fundAmount) revert InvalidFundAmount();
+
+            // Transfer the native fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            wrappedNativeToken.deposit{value: _fundAmount}();
+
+            // Transfer the fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            IERC20(escrowData.token).safeTransfer(escrow, _fundAmount);
+        } else {
+            // Transfer the fund amount to the newly created escrow contract
+            // Require the client to approve the fund transfer
+            IERC20(escrowData.token).safeTransferFrom(
+                msg.sender,
+                escrow,
+                _fundAmount
+            );
+        }
 
         // Emit an event for the escrow creation
         emit EscrowCreated(escrow, escrowData.token, _fundAmount);

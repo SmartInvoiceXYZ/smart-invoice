@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.17
+
+### Patch Changes
+
+- updated useEscrowZap for DM
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.17
+
 ## 0.1.10
 
 ### Patch Changes

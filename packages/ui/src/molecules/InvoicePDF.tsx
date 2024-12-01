@@ -8,6 +8,7 @@ import {
 } from '@react-pdf/renderer';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
+  chainLabelFromId,
   getAccountString,
   getChainName,
   unixToDateTime,
@@ -203,7 +204,9 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
     ['title', 'description', 'documents', 'startDate', 'endDate'],
   );
 
-  const url = `https://app.smartinvoice.xyz/invoice/${chainId?.toString(16)}/${address}`;
+  const chainLabel = chainId ? chainLabelFromId(chainId) : 'unknown';
+
+  const url = `https://app.smartinvoice.xyz/invoice/${chainLabel}/${address}`;
 
   return (
     <Document>

@@ -1,11 +1,4 @@
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Button,
-  HStack,
-  Stack,
-} from '@chakra-ui/react';
+import { Button, Stack } from '@chakra-ui/react';
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import {
   InstantButtonManager,
@@ -20,29 +13,41 @@ import {
   InvoiceNotFound,
   Loader,
 } from '@smartinvoicexyz/ui';
-import { getChainName } from '@smartinvoicexyz/utils';
+import { chainLabelFromId, getChainName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
+import { parseChainId } from './locked';
 
 function ViewInvoice() {
   const router = useRouter();
-  const { invoiceId: invId, chainId: hexChainId } = router.query;
+  const { invoiceId: invId, chainId: urlChainId } = router.query;
 
   const invoiceId = _.toLower(String(invId)) as Hex;
-  const invoiceChainId = hexChainId
-    ? parseInt(String(hexChainId), 16)
-    : undefined;
+  const invoiceChainId = parseChainId(urlChainId);
+
+  useEffect(() => {
+    if (invoiceId && invoiceChainId) {
+      const chainLabel = chainLabelFromId(invoiceChainId);
+      if (chainLabel !== urlChainId) {
+        router.replace({
+          pathname: `/invoice/${chainLabelFromId(invoiceChainId)}/${invoiceId}`,
+          query: undefined,
+        });
+      }
+    }
+  }, [invoiceId, urlChainId, invoiceChainId, router]);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     chainId: invoiceChainId,
     address: invoiceId,
   });
 
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const chainId = useChainId();
 
   const { switchChain } = useSwitchChain();
@@ -70,20 +75,10 @@ function ViewInvoice() {
     INVOICE_TYPES.Escrow,
   );
 
-  const { provider, client, resolver } = _.pick(invoiceDetails, [
-    'provider',
-    'client',
-    'resolver',
-  ]);
-
-  const isProvider = _.toLower(address) === _.toLower(provider);
-  const isClient = _.toLower(address) === _.toLower(client);
-  const isResolver = _.toLower(address) === _.toLower(resolver);
-  const isParty = isProvider || isClient || isResolver;
   const isInvalidChainId =
     isConnected && !!invoiceChainId && chainId !== invoiceChainId;
 
-  const showNetworkError = isParty && isInvalidChainId;
+  const showNetworkError = isInvalidChainId;
 
   return (
     <Container overlay>
@@ -99,33 +94,6 @@ function ViewInvoice() {
         <InvoiceMetaDetails invoice={invoiceDetails} />
 
         <Stack maxW="60rem" w="100%" spacing={4}>
-          {showNetworkError && (
-            <Alert
-              status="warning"
-              flexDirection={{ base: 'column', lg: 'row' }}
-              justifyContent={{ base: 'center', lg: 'space-between' }}
-              p={4}
-              gap={4}
-              borderRadius="md"
-              boxShadow="md"
-            >
-              <HStack spacing={4}>
-                <AlertIcon boxSize="2rem" mr={0} />
-                <AlertTitle fontWeight="normal">
-                  Warning! This invoice is on{' '}
-                  <b>{getChainName(invoiceChainId)}</b>!
-                </AlertTitle>
-              </HStack>
-
-              <Button
-                bg="orange.600"
-                _hover={{ bg: 'orange.700' }}
-                onClick={() => switchChain?.({ chainId: invoiceChainId })}
-              >
-                Switch network
-              </Button>
-            </Alert>
-          )}
           {invoiceType === INVOICE_TYPES.Instant ? (
             <>
               <InstantPaymentDetails invoice={invoiceDetails} />
@@ -136,6 +104,17 @@ function ViewInvoice() {
               <InvoicePaymentDetails invoice={invoiceDetails} {...overlay} />
               <InvoiceButtonManager invoice={invoiceDetails} {...overlay} />
             </>
+          )}
+          {showNetworkError && (
+            <Button
+              bg="orange.600"
+              _hover={{ bg: 'orange.700' }}
+              onClick={() => switchChain?.({ chainId: invoiceChainId })}
+              gap={2}
+              w="100%"
+            >
+              Click here to switch network to {getChainName(invoiceChainId)}
+            </Button>
           )}
         </Stack>
       </Stack>

@@ -1,12 +1,16 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import {
+  SMART_INVOICE_UPDATABLE_ABI,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useWithdraw = ({
   invoice,
@@ -32,7 +36,7 @@ export const useWithdraw = ({
   } = useSimulateContract({
     address: address as Hex,
     functionName: 'withdraw',
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     args: [],
     query: {
       enabled: !!address,

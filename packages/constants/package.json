@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/constants",
   "description": "Unified source for configs and constants used across the Smart Invoice protocol.",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "author": "",
   "dependencies": {
     "lodash": "^4.17.21",

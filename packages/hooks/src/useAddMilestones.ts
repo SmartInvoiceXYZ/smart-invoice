@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -17,7 +17,6 @@ import {
   parseToDate,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -29,6 +28,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 
 type AddMilestonesProps = {
@@ -159,7 +159,7 @@ export const useAddMilestones = ({
   } = useSimulateContract({
     address,
     chainId,
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'addMilestones',
     args: [parsedMilestones, details as Hex],
     query: {

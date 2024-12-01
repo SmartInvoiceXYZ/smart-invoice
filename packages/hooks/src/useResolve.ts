@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import {
@@ -13,13 +13,13 @@ import {
   getDateString,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Hex, parseUnits } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
 
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 
 export type FormResolve = {
@@ -101,7 +101,7 @@ export const useResolve = ({
   } = useSimulateContract({
     address: address as Hex,
     functionName: 'resolve',
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     args: [clientAward, providerAward, detailsHash as Hex],
     query: {
       enabled:

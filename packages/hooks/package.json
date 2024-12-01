@@ -1,19 +1,18 @@
 {
   "name": "@smartinvoicexyz/hooks",
   "description": "Unified source for React hooks used across the Smart Invoice protocol.",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "dependencies": {
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
     "@smartinvoicexyz/types": "workspace:*",
     "@smartinvoicexyz/utils": "workspace:*",
     "@tanstack/react-query": "5.55.3",
-    "@wagmi/core": "2.13.4",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-hook-form": "^7.53.0",
     "viem": "2.17.0",
-    "wagmi": "2.12.9"
+    "wagmi": "2.12.17"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7",

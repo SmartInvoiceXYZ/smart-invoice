@@ -1,6 +1,6 @@
 import {
   INVOICE_VERSION,
-  SMART_INVOICE_ESCROW_ABI,
+  SMART_INVOICE_UPDATABLE_ABI,
   TOASTS,
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
@@ -14,7 +14,6 @@ import {
   getDateString,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -26,6 +25,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 
 export type FormLock = {
@@ -84,7 +84,7 @@ export const useLock = ({
   } = useSimulateContract({
     address: invoice?.address as Hex,
     functionName: 'lock',
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     args: [detailsHash as Hex],
     query: {
       enabled:

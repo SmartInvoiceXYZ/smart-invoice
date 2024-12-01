@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.25.1",
-    "@changesets/cli": "^2.27.8",
+    "@changesets/cli": "^2.27.10",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@typescript-eslint/eslint-plugin": "^8.2.0",
@@ -55,6 +55,7 @@
   },
   "private": true,
   "scripts": {
+    "build": "pnpm -r build",
     "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "clean": "pnpm -r clean",
     "dapp:dev": "pnpm --filter '@smartinvoicexyz/dapp' dev",

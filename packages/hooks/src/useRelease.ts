@@ -1,8 +1,10 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import {
+  SMART_INVOICE_UPDATABLE_ABI,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
@@ -12,6 +14,8 @@ import {
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useRelease = ({
   invoice,
@@ -41,7 +45,7 @@ export const useRelease = ({
   } = useSimulateContract({
     chainId,
     address: invoice?.address as Hex,
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'release', // specifyMilestones ? 'release(uint256)' : 'release',
     args: specifiedMilestone ? [BigInt(milestone)] : undefined, // optional args
     query: {

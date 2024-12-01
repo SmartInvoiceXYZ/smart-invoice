@@ -67,6 +67,28 @@ const portersNetworkName: Partial<Record<SupportedChainId, string>> = {
   [gnosis.id]: 'gnosischain-mainnet',
 };
 
+const chainLabelToId: Record<string, SupportedChainId> = {
+  mainnet: mainnet.id,
+  holesky: holesky.id,
+  sepolia: sepolia.id,
+  polygon: polygon.id,
+  base: base.id,
+  arbitrum: arbitrum.id,
+  optimism: optimism.id,
+  gnosis: gnosis.id,
+};
+
+const chainIdToLabel: Record<SupportedChainId, string> = {
+  [mainnet.id]: 'mainnet',
+  [polygon.id]: 'polygon',
+  [arbitrum.id]: 'arbitrum',
+  [optimism.id]: 'optimism',
+  [sepolia.id]: 'sepolia',
+  [base.id]: 'base',
+  [holesky.id]: 'holesky',
+  [gnosis.id]: 'gnosis',
+};
+
 const subgraphNameToChain: Record<string, SupportedChain> = {
   mainnet,
   matic: polygon,
@@ -91,6 +113,18 @@ const chainsMap: ChainsMap = SUPPORTED_CHAINS.reduce(
 export const chainById = (chainId: SupportedChainId): Chain => {
   const chain = chainsMap[chainId];
   return chain;
+};
+
+export const chainIdFromLabel = (
+  label: string,
+): SupportedChainId | undefined => {
+  const chainId = chainLabelToId[label.toLowerCase()];
+  return chainId;
+};
+
+export const chainLabelFromId = (chainId: SupportedChainId): string => {
+  const label = chainIdToLabel[chainId];
+  return label;
 };
 
 export const getChainName = (chainId: number | undefined): string => {
@@ -130,9 +164,10 @@ const transports: _transports = SUPPORTED_CHAINS.reduce(
     if (alchemyUrl) list.push(http(alchemyUrl));
 
     const portersNetwork = portersNetworkName[chain.id];
-    const portersUrl = portersNetwork
-      ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
-      : undefined;
+    const portersUrl =
+      portersNetwork && PORTERS_ID
+        ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
+        : undefined;
     if (portersUrl) list.push(http(portersUrl));
 
     return {

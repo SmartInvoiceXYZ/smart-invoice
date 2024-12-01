@@ -16,8 +16,8 @@
     "splitMain": "0x54E4a6014D36c381fC43b7E24A1492F556139a6F"
   },
   "bundler": {
-    "address": "0xe0D0d4927Af5cEed02146e3905bA016301194D43",
-    "txHash": "0xad1d03209e5775e58c25559d582521ea4cf6c7026526c6bdc7d56f1c5b6511aa",
-    "blockNumber": "6823822"
+    "address": "0x9c1E057B37605B7f6ed6f4c8E2826C3d84ddC08D",
+    "txHash": "0x0a0a906034d5ce1bd93b723bc5c9226bbd6190fceff11a666fbb59f86a052164",
+    "blockNumber": "6970535"
   }
 }

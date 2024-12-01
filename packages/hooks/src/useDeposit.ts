@@ -2,7 +2,6 @@ import { IERC20_ABI, PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import _ from 'lodash';
 import { Hex } from 'viem';
 import {
@@ -12,6 +11,8 @@ import {
   useSimulateContract,
   useWriteContract,
 } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useDeposit = ({
   invoice,

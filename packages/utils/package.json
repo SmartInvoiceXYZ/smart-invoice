@@ -1,10 +1,10 @@
 {
   "name": "@smartinvoicexyz/utils",
   "description": "Unified source for utility functions used across the Smart Invoice protocol.",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "author": "",
   "dependencies": {
-    "@rainbow-me/rainbowkit": "2.1.6",
+    "@rainbow-me/rainbowkit": "2.2.0",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
     "@smartinvoicexyz/shared": "workspace:*",
@@ -16,7 +16,7 @@
     "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",
     "viem": "2.17.0",
-    "wagmi": "2.12.9",
+    "wagmi": "2.12.17",
     "yup": "^1.3.3"
   },
   "devDependencies": {

@@ -1,11 +1,15 @@
-import { SMART_INVOICE_ESCROW_ABI, TOASTS } from '@smartinvoicexyz/constants';
+import {
+  SMART_INVOICE_UPDATABLE_ABI,
+  TOASTS,
+} from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import { UseToastReturn } from '@smartinvoicexyz/types';
 import { errorToastHandler } from '@smartinvoicexyz/utils';
-import { SimulateContractErrorType, WriteContractErrorType } from '@wagmi/core';
 import { useCallback, useState } from 'react';
 import { Hex } from 'viem';
 import { usePublicClient, useSimulateContract, useWriteContract } from 'wagmi';
+
+import { SimulateContractErrorType, WriteContractErrorType } from './types';
 
 export const useVerify = ({
   address,
@@ -31,7 +35,7 @@ export const useVerify = ({
   } = useSimulateContract({
     address,
     chainId,
-    abi: SMART_INVOICE_ESCROW_ABI,
+    abi: SMART_INVOICE_UPDATABLE_ABI,
     functionName: 'verify', // no args
     query: {
       enabled: !!address,

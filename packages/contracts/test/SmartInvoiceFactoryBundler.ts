@@ -26,6 +26,10 @@ const escrowData = {
   providerReceiver: '' as Hex,
 };
 
+const resolverType = 0;
+const requireVerification = true;
+const escrowType = toHex(toBytes('updatable', { size: 32 }));
+
 describe('SmartInvoiceFactoryBundler', function () {
   let publicClient: PublicClient;
   let deployer: WalletClient;
@@ -54,8 +58,7 @@ describe('SmartInvoiceFactoryBundler', function () {
     ]);
 
     const invoiceImpl = await viem.deployContract('SmartInvoiceUpdatable');
-    const invoiceType = toHex(toBytes('updatable', { size: 32 }));
-    await factory.write.addImplementation([invoiceType, invoiceImpl.address], {
+    await factory.write.addImplementation([escrowType, invoiceImpl.address], {
       account: deployer.account,
     });
 
@@ -91,24 +94,37 @@ describe('SmartInvoiceFactoryBundler', function () {
       account: client.account,
     });
 
+    const allowance = await token.read.allowance([
+      client.account.address,
+      bundler.address,
+    ]);
+
+    expect(allowance).to.be.greaterThanOrEqual(fundAmount);
+
     const encodedEscrowData = encodeAbiParameters(
       [
         'address',
         'address',
+        'uint8',
         'address',
         'uint256',
         'bytes32',
         'address',
         'address',
+        'bool',
+        'bytes32',
       ].map(type => ({ type })),
       [
         escrowData.client,
         escrowData.resolver,
+        resolverType,
         escrowData.token,
         escrowData.terminationTime,
         escrowData.details,
         escrowData.provider,
         escrowData.providerReceiver,
+        requireVerification,
+        escrowType,
       ],
     );
 
@@ -152,6 +168,111 @@ describe('SmartInvoiceFactoryBundler', function () {
       getAddress(resolver.account.address),
     );
     expect(await invoice.read.token()).to.equal(getAddress(token.address));
+
+    for (let i = 0; i < milestoneAmounts.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      expect(await invoice.read.amounts([BigInt(i)])).to.equal(
+        milestoneAmounts[i],
+      );
+    }
+    expect(await invoice.read.terminationTime()).to.equal(
+      escrowData.terminationTime,
+    );
+    expect(await invoice.read.details()).to.equal(escrowData.details);
+    expect(await invoice.read.resolutionRate()).to.equal(20n);
+    expect(await invoice.read.milestone()).to.equal(0n);
+    expect(await invoice.read.total()).to.equal(fundAmount);
+    expect(await invoice.read.locked()).to.equal(false);
+    expect(await invoice.read.disputeId()).to.equal(0n);
+    expect(await invoice.read.wrappedNativeToken()).to.equal(
+      getAddress(wrappedNativeToken.address),
+    );
+    expect(await invoice.read.providerReceiver()).to.equal(
+      getAddress(escrowData.providerReceiver),
+    );
+  });
+
+  it('Should deploy an escrow with native ETH', async function () {
+    const fundAmount = milestoneAmounts.reduce(
+      (sum, value) => sum + value,
+      BigInt(0),
+    );
+
+    const encodedEscrowData = encodeAbiParameters(
+      [
+        'address',
+        'address',
+        'uint8',
+        'address',
+        'uint256',
+        'bytes32',
+        'address',
+        'address',
+        'bool',
+        'bytes32',
+      ].map(type => ({ type })),
+      [
+        escrowData.client,
+        escrowData.resolver,
+        resolverType,
+        wrappedNativeToken.address,
+        escrowData.terminationTime,
+        escrowData.details,
+        escrowData.provider,
+        escrowData.providerReceiver,
+        requireVerification,
+        escrowType,
+      ],
+    );
+
+    const txHash = await bundler.write.deployEscrow(
+      [milestoneAmounts, encodedEscrowData, fundAmount],
+      { account: client.account, value: fundAmount },
+    );
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+    const escrowAddress = await awaitInvoiceAddress(receipt);
+
+    expect(escrowAddress).to.not.equal(undefined);
+    expect(escrowAddress).to.not.equal(zeroAddress);
+
+    if (!escrowAddress) {
+      throw new Error('Escrow address is undefined');
+    }
+
+    expect(txHash)
+      .to.emit(bundler, 'EscrowCreated')
+      .withArgs(
+        escrowAddress,
+        getAddress(wrappedNativeToken.address),
+        fundAmount,
+      );
+
+    // Verify escrow contract has the correct token balance
+    const escrowBalance = await wrappedNativeToken.read.balanceOf([
+      escrowAddress,
+    ]);
+    expect(escrowBalance).to.equal(fundAmount);
+
+    const invoice = await viem.getContractAt(
+      'SmartInvoiceUpdatable',
+      escrowAddress,
+    );
+
+    expect(await invoice.read.client()).to.equal(
+      getAddress(client.account.address),
+    );
+    expect(await invoice.read.provider()).to.equal(
+      getAddress(provider.account.address),
+    );
+    expect(await invoice.read.resolverType()).to.equal(0);
+    expect(await invoice.read.resolver()).to.equal(
+      getAddress(resolver.account.address),
+    );
+    expect(await invoice.read.token()).to.equal(
+      getAddress(wrappedNativeToken.address),
+    );
 
     for (let i = 0; i < milestoneAmounts.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop

@@ -23,6 +23,7 @@ export type InvoiceDisplayData = {
   address: Hex;
   createdAt: bigint;
   invoiceType?: string | undefined;
+  chainId: number;
   network: string;
   ipfsHash: Hex;
   released: bigint;
@@ -35,6 +36,7 @@ export type InvoiceDisplayData = {
     symbol: string;
   };
   provider: Hex;
+  providerReceiver: Hex;
   client: Hex;
   resolver: Hex;
 };
@@ -72,6 +74,7 @@ export const fetchInvoices = async (
         total: true,
         tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
         provider: true,
+        providerReceiver: true,
         client: true,
         resolver: true,
       },
@@ -88,5 +91,10 @@ export const fetchInvoices = async (
     sortDesc,
   });
 
-  return (data?.invoices ?? []) as Array<InvoiceDisplayData>;
+  return (data?.invoices ?? []).map(invoice => {
+    return {
+      ...invoice,
+      chainId,
+    };
+  }) as InvoiceDisplayData[];
 };

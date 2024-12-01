@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@smartinvoicexyz/*": ["packages/*"]
+    },
     "rootDir": ".",
     "baseUrl": ".",
     /* Interop Constraints */
