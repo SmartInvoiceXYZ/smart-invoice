@@ -27,6 +27,13 @@ const schemes: { [key: InvoiceType]: { bg: string; color: string } } = {
   },
 };
 
+const invoiceLabels: { [key in InvoiceType]: string } = {
+  escrow: 'Escrow'.toUpperCase(),
+  instant: 'Instant Invoice'.toUpperCase(),
+  updatable: 'Updatable Escrow'.toUpperCase(),
+  unknown: 'Unknown'.toUpperCase(),
+};
+
 export function InvoiceBadge({ invoiceType = 'unknown' }: InvoiceBadgeProps) {
   return (
     <Badge
@@ -35,7 +42,7 @@ export function InvoiceBadge({ invoiceType = 'unknown' }: InvoiceBadgeProps) {
       maxW="fit-content"
       height="fit-content"
     >
-      {invoiceType.toUpperCase()}
+      {invoiceLabels[invoiceType]}
     </Badge>
   );
 }

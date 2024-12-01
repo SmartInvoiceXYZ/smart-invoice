@@ -15,7 +15,6 @@ import {
 import { InvoiceDisplayData } from '@smartinvoicexyz/graphql';
 import { useInvoices, useIpfsDetails } from '@smartinvoicexyz/hooks';
 import {
-  chainByName,
   getAccountString,
   getChainName,
   getDateTimeString,
@@ -209,8 +208,10 @@ export function InvoiceDashboardTable() {
           </Thead>
           <Tbody>
             {table.getRowModel().rows.map(row => {
-              const { address: invoiceAddr, network } = row.original;
-              const url = `/invoice/${chainByName(network)?.id?.toString(16)}/${invoiceAddr}`;
+              const { address: invoiceAddr, chainId: invoiceChainId } =
+                row.original;
+              console.log(row.original);
+              const url = `/invoice/${invoiceChainId}/${invoiceAddr}`;
 
               return (
                 <Tr
