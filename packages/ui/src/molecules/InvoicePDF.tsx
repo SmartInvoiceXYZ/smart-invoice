@@ -15,7 +15,7 @@ import {
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Fragment } from 'react';
-import { formatEther } from 'viem';
+import { formatUnits } from 'viem';
 
 const borderColor = 'black';
 
@@ -337,14 +337,22 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                       Payment Milestone # {index + 1}
                     </Text>
                     <Text style={styles.amount}>
-                      {formatEther(BigInt(amount))} {tokenMetadata?.symbol}
+                      {formatUnits(
+                        BigInt(amount),
+                        tokenMetadata?.decimals ?? 18,
+                      )}{' '}
+                      {tokenMetadata?.symbol}
                     </Text>
                   </View>
                   {amountTotal > 0 ? (
                     <View style={styles.row}>
                       <Text style={styles.totalDescription}>TOTAL</Text>
                       <Text style={styles.amount}>
-                        {formatEther(amountTotal)} {tokenMetadata?.symbol}
+                        {formatUnits(
+                          amountTotal,
+                          tokenMetadata?.decimals ?? 18,
+                        )}{' '}
+                        {tokenMetadata?.symbol}
                       </Text>
                     </View>
                   ) : null}
@@ -378,7 +386,13 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
 
                   <View style={styles.invisibleRow}>
                     <Text>
-                      Amount: <Text>{formatEther(deposit.amount)}</Text>
+                      Amount:{' '}
+                      <Text>
+                        {formatUnits(
+                          deposit.amount,
+                          tokenMetadata?.decimals ?? 18,
+                        )}
+                      </Text>
                     </Text>
                   </View>
 
@@ -426,7 +440,11 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                     <Text>
                       Amount:{' '}
                       <Text>
-                        {formatEther(release.amount)} {tokenMetadata?.symbol}
+                        {formatUnits(
+                          release.amount,
+                          tokenMetadata?.decimals ?? 18,
+                        )}{' '}
+                        {tokenMetadata?.symbol}
                       </Text>
                     </Text>
                   </View>
@@ -538,7 +556,11 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                 <Text style={styles.invisibleRow}>Client Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {formatEther(resolution.clientAward)} {tokenMetadata?.symbol}
+                  {formatUnits(
+                    resolution.clientAward,
+                    tokenMetadata?.decimals ?? 18,
+                  )}{' '}
+                  {tokenMetadata?.symbol}
                 </Text>
               </View>
 
@@ -546,7 +568,10 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                 <Text style={styles.invisibleRow}>Provider Award:</Text>
 
                 <Text style={styles.detailRow}>
-                  {formatEther(resolution.providerAward)}{' '}
+                  {formatUnits(
+                    resolution.providerAward,
+                    tokenMetadata?.decimals ?? 18,
+                  )}{' '}
                   {tokenMetadata?.symbol}
                 </Text>
               </View>
@@ -556,7 +581,10 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                   <Text style={styles.invisibleRow}>Resolution Fee:</Text>
 
                   <Text style={styles.detailRow}>
-                    {formatEther(resolution.resolutionFee)}{' '}
+                    {formatUnits(
+                      resolution.resolutionFee,
+                      tokenMetadata?.decimals ?? 18,
+                    )}{' '}
                     {tokenMetadata?.symbol}
                   </Text>
                 </View>
