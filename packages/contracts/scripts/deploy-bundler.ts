@@ -42,7 +42,7 @@ async function main(): Promise<void> {
     ]);
 
   if (!receipt) {
-    throw new Error("Deployment failed");
+    throw new Error('Deployment failed');
   }
 
   console.log('FactoryBundler Address:', smartInvoiceFactoryBundler.address);

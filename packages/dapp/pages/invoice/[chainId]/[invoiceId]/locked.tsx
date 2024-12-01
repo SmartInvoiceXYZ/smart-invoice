@@ -6,19 +6,51 @@ import {
   InvoiceNotFound,
   Loader,
 } from '@smartinvoicexyz/ui';
-import { getIpfsLink, getTxLink } from '@smartinvoicexyz/utils';
+import {
+  chainIdFromLabel,
+  chainLabelFromId,
+  getIpfsLink,
+  getTxLink,
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
+
+export const parseChainId = (chainIdOrLabel: string | string[] | undefined) => {
+  if (!chainIdOrLabel) return undefined;
+  // eslint-disable-next-line no-param-reassign
+  chainIdOrLabel = chainIdOrLabel.toString();
+  if (chainIdOrLabel.startsWith('0x')) return parseInt(chainIdOrLabel, 16);
+  if (Number.isInteger(Number(chainIdOrLabel))) return Number(chainIdOrLabel);
+  const chainId = chainIdFromLabel(chainIdOrLabel.toLowerCase());
+  if (chainId) return chainId;
+  // eslint-disable-next-line no-param-reassign
+  chainIdOrLabel = `0x${chainIdOrLabel}`;
+  return parseInt(chainIdOrLabel, 16);
+};
 
 function LockedInvoice() {
   const router = useRouter();
-  const { invoiceId: invId, chainId: hexChainId } = router.query;
+  const { invoiceId: invId, chainId: urlChainId } = router.query;
 
   const invoiceId = _.toLower(String(invId)) as Hex;
-  const invoiceChainId = hexChainId
-    ? parseInt(String(hexChainId), 16)
-    : undefined;
+  const invoiceChainId = parseChainId(urlChainId);
+
+  useEffect(() => {
+    if (invoiceId && invoiceChainId) {
+      router.replace({
+        pathname: `/invoice/${chainLabelFromId(invoiceChainId)}/${invoiceId}`,
+        query: undefined,
+      });
+    }
+  }, [invoiceId, invoiceChainId, router]);
+
+  if (!invoiceChainId) {
+    return <InvoiceNotFound heading="Invalid Chain Id" />;
+  }
+
+  const invoiceChainLabel = chainLabelFromId(invoiceChainId);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     address: invoiceId,
@@ -40,7 +72,7 @@ function LockedInvoice() {
     );
   }
 
-  const { id, dispute } = _.pick(invoiceDetails, ['id', 'dispute']);
+  const { dispute } = _.pick(invoiceDetails, ['dispute']);
 
   if (!dispute) {
     return <InvoiceNotFound heading="Invoice Not Locked" />;
@@ -88,7 +120,7 @@ function LockedInvoice() {
           ruling.
           <br />
           Return to the{' '}
-          <ChakraNextLink href={`/invoice/${invoiceChainId}/${id}`}>
+          <ChakraNextLink href={`/invoice/${invoiceChainLabel}/${invoiceId}`}>
             <u>invoice details page</u>
           </ChakraNextLink>{' '}
           to view the results.

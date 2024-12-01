@@ -23,6 +23,7 @@ export type InvoiceDisplayData = {
   address: Hex;
   createdAt: bigint;
   invoiceType?: string | undefined;
+  chainId: number;
   network: string;
   ipfsHash: Hex;
   released: bigint;
@@ -90,5 +91,10 @@ export const fetchInvoices = async (
     sortDesc,
   });
 
-  return (data?.invoices ?? []) as Array<InvoiceDisplayData>;
+  return (data?.invoices ?? []).map(invoice => {
+    return {
+      ...invoice,
+      chainId,
+    };
+  }) as InvoiceDisplayData[];
 };

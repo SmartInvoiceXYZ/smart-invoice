@@ -1,5 +1,6 @@
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
+  Box,
   Button,
   Heading,
   HStack,
@@ -28,6 +29,7 @@ import {
   CopyIcon,
   GenerateInvoicePDF,
   InvoiceBadge,
+  NetworkBadge,
   QuestionIcon,
   VerifyInvoice,
 } from '..';
@@ -161,7 +163,11 @@ export function InvoiceMetaDetails({
             {title}
           </Heading>
         )}
-        <InvoiceBadge invoiceType={invoiceType} />
+        <Stack direction="row" align="center" spacing={2}>
+          <InvoiceBadge invoiceType={invoiceType} />
+          <Box w="0.25rem" h="0.25rem" bg="black" transform="rotate(45deg)" />
+          <NetworkBadge chainId={invoiceChainId} />
+        </Stack>
 
         <HStack align="center" spacing={4}>
           <AccountLink

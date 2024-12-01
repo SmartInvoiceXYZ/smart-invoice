@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   );
 
   if (!receipt) {
-    throw new Error("Deployment failed");
+    throw new Error('Deployment failed');
   }
 
   console.log('Factory Address:', smartInvoiceFactory.address);

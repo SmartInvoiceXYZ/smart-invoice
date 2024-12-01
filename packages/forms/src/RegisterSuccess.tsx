@@ -10,7 +10,7 @@ import {
   useClipboard,
 } from '@chakra-ui/react';
 import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
-import { getTxLink } from '@smartinvoicexyz/utils';
+import { chainLabelFromId, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Address } from 'viem';
 import { useChainId } from 'wagmi';
@@ -24,9 +24,9 @@ export function RegisterSuccess({
 }) {
   const chainId = useChainId();
 
-  const chainHex = chainId.toString(16);
+  const chainLabel = chainLabelFromId(chainId);
 
-  const url = `/invoice/${chainHex}/${invoiceId}`;
+  const url = `/invoice/${chainLabel}/${invoiceId}`;
 
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
   const { onCopy: copyLink } = useClipboard(`${window.location.origin}${url}`);
