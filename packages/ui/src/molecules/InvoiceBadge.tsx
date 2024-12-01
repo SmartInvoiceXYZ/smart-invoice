@@ -27,7 +27,7 @@ const schemes: { [key: InvoiceType]: { bg: string; color: string } } = {
   },
 };
 
-const invoiceLabels: { [key in InvoiceType]: string } = {
+export const invoiceLabels: { [key in InvoiceType]: string } = {
   escrow: 'Escrow'.toUpperCase(),
   instant: 'Instant Invoice'.toUpperCase(),
   updatable: 'Updatable Escrow'.toUpperCase(),

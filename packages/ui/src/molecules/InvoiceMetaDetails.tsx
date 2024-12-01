@@ -16,7 +16,9 @@ import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
+  chainLabelFromId,
   documentToHttp,
+  getChainName,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
@@ -31,6 +33,7 @@ import {
   InvoiceBadge,
   NetworkBadge,
   QuestionIcon,
+  ShareButton,
   VerifyInvoice,
 } from '..';
 
@@ -148,6 +151,14 @@ export function InvoiceMetaDetails({
 
   const lastDocument = _.findLast(documents);
 
+  const chainLabel = invoiceChainId
+    ? chainLabelFromId(invoiceChainId)
+    : 'unknown';
+  const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
+  const text = `SmartInvoice of type ${invoiceType} for ${title} on ${getChainName(
+    invoiceChainId,
+  )}`;
+
   return (
     <Stack
       spacing="1rem"
@@ -159,9 +170,12 @@ export function InvoiceMetaDetails({
     >
       <Stack align="stretch" justify="center">
         {title && (
-          <Heading color="black" fontSize="2xl">
-            {title}
-          </Heading>
+          <Stack direction="row" align="center" spacing={2}>
+            <Heading color="black" fontSize="2xl">
+              {title}
+            </Heading>
+            <ShareButton title={title} url={url} text={text} />
+          </Stack>
         )}
         <Stack direction="row" align="center" spacing={2}>
           <InvoiceBadge invoiceType={invoiceType} />
