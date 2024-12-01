@@ -4,5 +4,6 @@ export * from './FilterIcon';
 export * from './HamburgerIcon';
 export * from './QuestionIcon';
 export * from './SearchIcon';
+export * from './ShareIcon';
 export * from './VerticalDots';
 export * from './WalletFilledIcon';

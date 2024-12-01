@@ -16,7 +16,9 @@ import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
+  chainLabelFromId,
   documentToHttp,
+  getChainName,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
@@ -149,7 +151,13 @@ export function InvoiceMetaDetails({
 
   const lastDocument = _.findLast(documents);
 
-  const url = `${window.location.origin}/invoice/${invoiceChainId}/${invoiceId}`;
+  const chainLabel = invoiceChainId
+    ? chainLabelFromId(invoiceChainId)
+    : 'unknown';
+  const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
+  const text = `SmartInvoice of type ${invoiceType} for ${title} on ${getChainName(
+    invoiceChainId,
+  )}`;
 
   return (
     <Stack
@@ -162,11 +170,13 @@ export function InvoiceMetaDetails({
     >
       <Stack align="stretch" justify="center">
         {title && (
-          <Heading color="black" fontSize="2xl">
-            {title}
-          </Heading>
+          <Stack direction="row" align="center" spacing={2}>
+            <Heading color="black" fontSize="2xl">
+              {title}
+            </Heading>
+            <ShareButton title={title} url={url} text={text} />
+          </Stack>
         )}
-        <ShareButton title={title ?? ''} url={url} text={description ?? ''} />
         <Stack direction="row" align="center" spacing={2}>
           <InvoiceBadge invoiceType={invoiceType} />
           <Box w="0.25rem" h="0.25rem" bg="black" transform="rotate(45deg)" />

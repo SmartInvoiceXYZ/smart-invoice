@@ -1,6 +1,8 @@
 import { Button } from '@chakra-ui/react';
 import { RWebShare } from 'react-web-share';
 
+import { ShareIcon } from '../icons';
+
 export const ShareButton = ({
   title,
   text,
@@ -18,8 +20,16 @@ export const ShareButton = ({
         url,
       }}
     >
-      <Button variant="outline" colorScheme="blue" size="sm">
-        Share
+      <Button
+        variant="ghost"
+        bg="none"
+        colorScheme="blue"
+        h="auto"
+        w="auto"
+        minW="2"
+        p={1}
+      >
+        <ShareIcon boxSize={5} />
       </Button>
     </RWebShare>
   );
