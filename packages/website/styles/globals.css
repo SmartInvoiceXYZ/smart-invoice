@@ -26,3 +26,45 @@ a {
     background: black;
   }
 }
+
+.doc-body ul, ol {
+  margin-bottom: 20px;
+}
+
+.doc-body li {
+  margin-left: 20px;
+  margin-bottom: 8px;
+}
+
+.doc-body pre {
+  background: #f4f4f4;
+  padding: 20px;
+  margin: 20px 0;
+  line-height: 2.3;
+}
+
+.doc-body p {
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.doc-body summary {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.doc-body h3 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.doc-body img {
+  margin-bottom: 10px;
+}
+
+.doc-body a {
+  text-decoration: underline;
+  color: #3D88F8;
+}
