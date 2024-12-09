@@ -1,5 +1,5 @@
 {
-  "name": "smart-invoice-docs",
+  "name": "@smartinvoicexyz/docs",
   "version": "0.3.0",
   "private": true,
   "scripts": {
