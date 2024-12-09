@@ -1,0 +1,28 @@
+{
+  "name": "smart-invoice-docs",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.3.4",
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "framer-motion": "^6",
+    "gray-matter": "^4.0.3",
+    "marked": "^4.1.1",
+    "next": "12.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "remark": "^14.0.2",
+    "remark-html": "^15.0.1"
+  },
+  "devDependencies": {
+    "eslint": "8.24.0",
+    "eslint-config-next": "12.3.1"
+  }
+}
