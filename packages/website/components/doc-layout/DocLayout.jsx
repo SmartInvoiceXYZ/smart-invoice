@@ -17,7 +17,7 @@ import Head from 'next/head';
 import Script from 'next/script';
 import React, { useState, useEffect } from 'react';
 
-import { DocFooter } from './DocFooter';
+import { Footer } from '../layout/Footer';
 import { NavBar } from '../layout/NavBar';
 import NextLink from 'next/link';
 import { docV3Menu } from '../../sidebars';
@@ -187,7 +187,7 @@ export function DocLayout({ children, metatags, title, active }) {
             </Flex>
           ) : (
             <Flex flexGrow={1} paddingY={10}>
-              <VStack align='flex-start' padding={2} width={350} minHeight='100vh' overflowY='auto'>
+              <VStack align='flex-start' padding={2} width={350} overflowY='auto'>
                 {docV3Menu.map((item, i) => (
                   <>
                     <NextLink key={`${item.path}-${i}`} href={`/${item.path}/${item.topics[0].slug}`} passHref>
@@ -231,7 +231,7 @@ export function DocLayout({ children, metatags, title, active }) {
       ) : (
         <Flex flexGrow={1} />
       )}
-      <DocFooter />
+      <Footer />
     </Flex>
   );
 }
