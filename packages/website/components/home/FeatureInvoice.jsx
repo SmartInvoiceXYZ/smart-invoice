@@ -32,7 +32,7 @@ export function FeatureInvoice({ ...props }) {
   }
 
   return (
-    <Flex justify="center" align="center" overflowX='hidden'>
+    <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
       <Flex
         direction={flexDirection}
         paddingY={20}

@@ -15,7 +15,7 @@ export const colors = {
   gray: {
     dark: '#707683',
     light: '#90A0B7',
-    background: 'rgba(245, 246, 248, 1)',
+    background: 'rgba(240, 241, 243, 1)',
   },
 };
 
