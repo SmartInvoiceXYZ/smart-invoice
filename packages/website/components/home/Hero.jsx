@@ -50,7 +50,7 @@ export function HeroSection({ ...props }) {
             fontSize={12}
             fontWeight={400}
             fontStyle="italic"
-            textColor="gray.light"
+            textColor="gray.dark"
           >
             Free to use. No email signup required.
           </Text>

@@ -10,10 +10,10 @@ export function FeatureCrypto({ ...props }) {
   return (
     <Flex justify="center" align="center" width='100%'>
       <Flex direction='column' align='center' paddingY={20} paddingX={8} width="100%" textAlign='center' {...props}>
-        <Heading mb={2}>Accept cryptocurrency payments for your work</Heading>
-        <Text mb={10}>
+        <Heading mb={12}>Accept cryptocurrency payments for your work</Heading>
+        {/* <Text mb={10}>
           Choose from 17 tokens to get paid with, including USDT, USDC, WETH, DAI and more!
-        </Text>
+        </Text> */}
         <Grid
           gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
           width='100%'
@@ -29,7 +29,7 @@ export function FeatureCrypto({ ...props }) {
                 objectFit="cover"
               />
               <Box>
-                <Text fontWeight={700} fontSize={18} mt={6} mb={2}>
+                <Text fontWeight={700} fontSize={18} my={2}>
                   Flexible
                 </Text>
                 <Text>
@@ -49,7 +49,7 @@ export function FeatureCrypto({ ...props }) {
                 objectFit="cover"
               />
               <Box>
-                <Text fontWeight={700} fontSize={18} mt={6} mb={2}>
+                <Text fontWeight={700} fontSize={18} my={2}>
                   Secure
                 </Text>
                 <Text>
@@ -69,7 +69,7 @@ export function FeatureCrypto({ ...props }) {
                 objectFit="cover"
               />
               <Box>
-                <Text fontWeight={700} fontSize={18} mt={6} mb={2}>
+                <Text fontWeight={700} fontSize={18} my={2}>
                   Impartial
                 </Text>
                 <Text>
