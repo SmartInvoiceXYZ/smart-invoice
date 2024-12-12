@@ -5,12 +5,12 @@ export function HeroSection({ ...props }) {
   return (
     <Flex justify="center" align="center" background="gray.background" width='100%'>
       <VStack
-        paddingY={20}
+        paddingY={12}
         paddingX={8}
         width="100%"
         justify='center'
         align='center'
-        minHeight={320}
+        // minHeight={150}
         {...props}
       >
         <Text
