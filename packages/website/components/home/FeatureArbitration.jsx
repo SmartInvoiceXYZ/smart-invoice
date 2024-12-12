@@ -1,19 +1,24 @@
 import {
   Box,
   Flex,
-  Grid,
-  GridItem,
+  List,
+  ListIcon,
+  ListItem,
+  // Grid,
+  // GridItem,
   Heading,
-  Icon,
+  // Icon,
   Text,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
+import NextImage from 'next/image';
 
 import { CustomIcon } from '../icons/CheckSquare';
+import productImg from '../../public/assets/home/invoices-list-screenshot.svg'
 
 export function FeatureArbitration({ ...props }) {
   const [flexDirection, setFlexDirection] = useState('row')
-  const [columns, setColumns] = useState(2)
+  // const [columns, setColumns] = useState(2)
 
   useEffect(() => {
     if (window) {
@@ -24,11 +29,11 @@ export function FeatureArbitration({ ...props }) {
 
   function toggleDirection() {
     if (window.innerWidth < 800) {
-      setFlexDirection('column')
-      setColumns(1)
+      setFlexDirection('column-reverse')
+      // setColumns(1)
     } else {
       setFlexDirection('row')
-      setColumns(2)
+      // setColumns(2)
     }
   }
 
@@ -36,24 +41,64 @@ export function FeatureArbitration({ ...props }) {
     <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
       <Flex
         direction={flexDirection}
-        paddingY={20}
+        paddingTop={flexDirection === 'row' ? 20 : 20}
+        paddingBottom={flexDirection === 'row' ? 4 : 8}
         paddingX={8}
         justify="space-between"
-        align={flexDirection === 'column' && 'center'}
+        // align='center'
+        // align={flexDirection === 'column' ? 'center' : 'end'}
         textAlign={flexDirection === 'column' ? 'center' : 'left'}
-        gap={10}
+        gap={flexDirection === 'row' ? 10 : 2}
         width="100%"
         {...props}
       >
-        <Box>
+        {/* Image */}
+        <Box width={flexDirection === 'row' ? '50%' : '100%'}>
+          {/* <Box background="grey" width='100%' height={451} /> */}
+          <NextImage src={productImg} width={600} height={431.4}/>
+        </Box>
+
+        {/* Text */}
+        <Box width={flexDirection === 'row' ? '50%' : '100%'} textAlign={flexDirection === 'row' ? 'left' : 'center'}>
           <Text fontSize={16} fontWeight={700} textColor="blue.1">
             THIRD PARTY ARBITRATION
           </Text>
           <Heading>Dispute resolution,</Heading>
           <Heading mb={6}>without the stress.</Heading>
+          <List spacing={1} textAlign="left">
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='scale'
+              />
+              <Text>
+              Benefit from impartial decision making in case of conflict
+              </Text>
+            </ListItem>
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='piechart'
+              />
+              <Text>Maximum arbitration service fee of 5%, automatically deducted from escrow</Text>
+            </ListItem>
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='search'
+              />
+              <Text>No need to find a third party arbitrator on your own</Text>
+            </ListItem>
+          </List>
         </Box>
 
-        <Grid gridTemplateColumns={columns === 1 ? `repeat(${columns}, minmax(260px, 360px))` : `repeat(${columns}, 260px)`} gap={8} rowGap={10}>
+        {/* <Grid gridTemplateColumns={columns === 1 ? `repeat(${columns}, minmax(260px, 360px))` : `repeat(${columns}, 260px)`} gap={8} rowGap={10}>
           <GridItem>
             <Icon
               as={CustomIcon}
@@ -88,7 +133,7 @@ export function FeatureArbitration({ ...props }) {
               No need to find a third party arbitrator on your own
             </Text>
           </GridItem>
-        </Grid>
+        </Grid> */}
       </Flex>
     </Flex>
   );

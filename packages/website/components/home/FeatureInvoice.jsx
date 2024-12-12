@@ -35,11 +35,12 @@ export function FeatureInvoice({ ...props }) {
     <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
       <Flex
         direction={flexDirection}
-        paddingTop={flexDirection === 'row' ? 12 : 20}
-        paddingBottom={flexDirection === 'row' ? 12 : 8}
+        paddingTop={flexDirection === 'row' ? 20 : 20}
+        paddingBottom={flexDirection === 'row' ? 6 : 8}
         paddingX={8}
         justify="space-between"
-        align="center"
+        align={flexDirection === 'column' && 'center'}
+        textAlign={flexDirection === 'column' ? 'center' : 'left'}
         gap={flexDirection === 'row' ? 10 : 2}
         width="100%"
         {...props}

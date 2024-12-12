@@ -65,8 +65,8 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={72}
-                height={72}
+                width={30}
+                height={30}
                 type='client'
               />
               <Text>
@@ -76,8 +76,8 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={40}
-                height={40}
+                width={30}
+                height={30}
                 type='trust'
               />
               <Text>Gain the peace of mind that you will get paid if you do the work</Text>
@@ -85,8 +85,8 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={40}
-                height={40}
+                width={30}
+                height={30}
                 type='progress'
               />
               <Text>
@@ -96,8 +96,8 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={40}
-                height={40}
+                width={30}
+                height={30}
                 type='warning'
               />
               <Text>Protect yourself from chargebacks and fraud</Text>
