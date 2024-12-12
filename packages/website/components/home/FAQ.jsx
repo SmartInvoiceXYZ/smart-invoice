@@ -60,11 +60,14 @@ export function FAQSection() {
             <AccordionIcon color="blue.1" />
           </AccordionButton>
           <AccordionPanel>
-            <Text mb={2}>
-              Smart Invoice supports Ethereum Mainnet, Gnosis Chain, Rinkeby Testnet.
+            <Text>
+              Smart Invoice can be used on Ethereum Mainnet, Gnosis, Polygon, Arbitrum, Optimism, Base, Holesky, and Sepolia Testnet networks.
+            </Text>
+            <Text my={2}>
+              Invoices can be paid with any token available on your chosen network. Ensure that you and your and client have agreed on the network and token choice prior to invoice creation.
             </Text>
             <Text>
-              17 tokens are currently available including USDT, USDC, WETH, and DAI. View the full list <Link textColor="blue.1" href='https://help.smartinvoice.xyz/article/30-what-cryptocurrencies-does-smart-invoice-support' target="_blank" isExternal>here</Link>.
+              *  ETH cannot be used for payment on Mainnet.
             </Text>
           </AccordionPanel>
         </AccordionItem>
@@ -283,15 +286,15 @@ export function FAQSection() {
             borderRadius={10}
             textAlign='left'
           >
-            <Text>How does arbitrations work?</Text>
+            <Text>How does arbitration work?</Text>
             <AccordionIcon color="blue.1" />
           </AccordionButton>
           <AccordionPanel>
             <Text mb={2}>
-              If there is a dispute, you or your client can “lock” funds held by that invoice. This lock triggers the arbitration provider (LexDAO, or the custom provider you chose) to review and resolve the dispute. 
+              If there is a dispute, you or your client can “lock” funds held by that invoice. This lock triggers the arbitration provider to review and resolve the dispute. 
             </Text>
             <Text>
-              Based on the arbitrator’s review, they will determine who should receive funds and will send a transaction to Smart Invoice that transfers those funds to you or your client. Our recommended arbitrator, LexDAO, currently charges a 5% fee that is automatically deducted from the funded milestone for their arbitration services.
+              Based on the arbitrator’s review, they will determine who should receive funds and will send a transaction to Smart Invoice that transfers those funds to you or your client. Our recommended arbitrator, Kleros, currently charges a 5% fee that is automatically deducted from the funded milestone for their arbitration services.
             </Text>
           </AccordionPanel>
         </AccordionItem>
@@ -314,7 +317,11 @@ export function FAQSection() {
             <AccordionIcon color="blue.1" />
           </AccordionButton>
           <AccordionPanel>
-            Yes. Please view our FAQ and Documentation here first. If you still need help, you can post a message in the <NextLink href='https://docs.smartinvoice.xyz/'>product support channel</NextLink> in the RaidGuild Discord (RaidGuild is the DAO that operates Smart Invoice). Our team usually responds within a few hours, Monday through Friday.
+            Yes. Please view our FAQ and documentation here first. If you still need help, you can post a message in the  support channel in the 
+            <NextLink href='https://discord.gg/Rws3gEu8W7' target="_blank" passHref>
+              <Link target="_blank"> Smart Invoice Discord</Link>
+            </NextLink>
+            . Our team usually responds within a few hours, Monday through Friday.
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
