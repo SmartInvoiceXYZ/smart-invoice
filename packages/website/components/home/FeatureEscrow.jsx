@@ -1,10 +1,13 @@
 import {
   Box,
   Flex,
-  Grid,
-  GridItem,
+  List,
+  ListIcon,
+  ListItem,
+  // Grid,
+  // GridItem,
   Heading,
-  Icon,
+  // Icon,
   Text,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
@@ -38,22 +41,70 @@ export function FeatureEscrow({ ...props }) {
     <Flex justify="center" overflowX='hidden'>
       <Flex
         direction={flexDirection}
-        paddingY={20}
+        paddingTop={flexDirection === 'row' ? 16 : 20}
+        paddingBottom={flexDirection === 'row' ? 16 : 12}
         paddingX={8}
         justify="space-between"
         align="center"
-        gap={10}
+        gap={flexDirection === 'row' ? 10 : 2}
         width="100%"
         {...props}
       >
         {/* Text */}
-        <Flex direction='column' width={flexDirection === 'row' ? '50%' : '100%'} align={flexDirection === 'column' ? 'center' : 'left'}>
+        <Flex 
+          direction='column' 
+          width={flexDirection === 'row' ? '50%' : '100%'} 
+          alignItems={flexDirection === 'row' ? 'end' : 'center'} 
+        >
           <Text fontSize={16} fontWeight={700} textColor="blue.1">
             CRYPTOCURRENCY ESCROW
           </Text>
           <Heading>Protect your money.</Heading>
           <Heading mb={6}>Protect your time.</Heading>
-          <Grid gridTemplateColumns={`repeat(${columns}, minmax(100px, 360px))`} gap={8} rowGap={10}>
+          <List width={flexDirection === 'row' ? '80%' : '100%'} spacing={3}>
+            <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={72}
+                height={72}
+                type='client'
+              />
+              <Text>
+                Do business with anyone, anywhere, even if you don’t know or trust them yet
+              </Text>          
+            </ListItem>
+            <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='trust'
+              />
+              <Text>Gain the peace of mind that you will get paid if you do the work</Text>
+            </ListItem>
+            <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='progress'
+              />
+              <Text>
+                Get paid as you complete project milestones, instead of at the end of your project
+              </Text>
+            </ListItem>
+            <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+              <ListIcon
+                as={CustomIcon}
+                width={40}
+                height={40}
+                type='warning'
+              />
+              <Text>Protect yourself from chargebacks and fraud</Text>
+            </ListItem>
+          </List>
+
+          {/* <Grid gridTemplateColumns={`repeat(${columns}, minmax(100px, 360px))`} gap={8} rowGap={10}>
             <GridItem
               display="flex"
               flexDir="column"
@@ -118,7 +169,7 @@ export function FeatureEscrow({ ...props }) {
               />
               <Text mt={2}>Protect yourself from chargebacks and fraud</Text>
             </GridItem>
-          </Grid>
+          </Grid> */}
         </Flex>
 
         {/* Image */}
