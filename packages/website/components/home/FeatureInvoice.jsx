@@ -35,18 +35,19 @@ export function FeatureInvoice({ ...props }) {
     <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
       <Flex
         direction={flexDirection}
-        paddingY={20}
+        paddingTop={flexDirection === 'row' ? 12 : 20}
+        paddingBottom={flexDirection === 'row' ? 12 : 8}
         paddingX={8}
         justify="space-between"
         align="center"
-        gap={20}
+        gap={flexDirection === 'row' ? 10 : 2}
         width="100%"
         {...props}
       >
         {/* Image */}
         <Box width={flexDirection === 'row' ? '50%' : '100%'}>
           {/* <Box background="grey" width='100%' height={451} /> */}
-          <NextImage src={productImg} width={600} height={431.4} />
+          <NextImage src={productImg} width={600} height={431.4}/>
         </Box>
 
         {/* Text */}
@@ -57,44 +58,44 @@ export function FeatureInvoice({ ...props }) {
           <Heading mb={6}>
             The smart way to get paid as a web3 freelancer.
           </Heading>
-          <List spacing={6}>
-            <ListItem display="flex" alignItems="center" gap={4} flexDirection={flexDirection === 'row' ? 'row' : 'column'}>
+          <List spacing={1} textAlign="left">
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 type='avoid'
               />
-              <Text maxWidth={flexDirection !== 'row' && '360px'}>
+              <Text>
                 Prevent clients sending funds to the wrong wallet address
               </Text>
             </ListItem>
-            <ListItem display="flex" alignItems="center" gap={4} flexDirection={flexDirection === 'row' ? 'row' : 'column'}>
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 type='menu'
               />
-              <Text maxWidth={flexDirection !== 'row' && '360px'}>Stay organized with all of your invoices in one place</Text>
+              <Text>Stay organized with all of your invoices in one place</Text>
             </ListItem>
-            <ListItem display="flex" alignItems="center" gap={4} flexDirection={flexDirection === 'row' ? 'row' : 'column'}>
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 type='status'
               />
-              <Text maxWidth={flexDirection !== 'row' && '360px'}>Quickly see the status of each invoice</Text>
+              <Text>Quickly check the status of each of your invoices</Text>
             </ListItem>
-            <ListItem display="flex" alignItems="center" gap={4} flexDirection={flexDirection === 'row' ? 'row' : 'column'}>
+            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 type='pdf'
               />
-              <Text maxWidth={flexDirection !== 'row' && '360px'}>Download PDFs of each invoice for your records</Text>
+              <Text>Download PDFs of each invoice for your records</Text>
             </ListItem>
           </List>
         </Box>
