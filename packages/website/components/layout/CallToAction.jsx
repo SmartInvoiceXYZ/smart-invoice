@@ -35,11 +35,11 @@ export function CallToAction({ ...props }) {
         width="100%"
         {...props}
       >
-        <Box>
+        <Box display='flex' flexDirection='column' alignItems={flexDirection === 'column' && 'center'}>
           <Heading fontSize={50} fontWeight={700} textColor="white" textAlign={flexDirection === 'column' && 'center'}>
             Create your first invoice
           </Heading>
-          <Flex direction={flexDirection} align={flexDirection === 'column' && 'center'} gap={8} mt={4}>
+          <Flex direction={flexDirection} gap={flexDirection === 'column' ? 4 : 8} mt={4}>
             <Flex gap={4} align="center">
               <Icon as={CheckSquareIcon} color="white" checkColor="blue.1" />
               <Text textColor="white">Free to use</Text>
