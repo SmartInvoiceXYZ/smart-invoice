@@ -14,7 +14,8 @@ import React, { useEffect, useState } from 'react';
 import NextImage from 'next/image';
 
 import { CustomIcon } from '../icons/CheckSquare';
-import productImg from '../../public/assets/home/invoices-list-screenshot.svg'
+// import productImg from '../../public/assets/home/invoices-list-screenshot.svg'
+import productImg from '../../public/assets/home/lock-funds-screenshot.png'
 
 export function FeatureArbitration({ ...props }) {
   const [flexDirection, setFlexDirection] = useState('row')
@@ -41,21 +42,24 @@ export function FeatureArbitration({ ...props }) {
     <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
       <Flex
         direction={flexDirection}
-        paddingTop={flexDirection === 'row' ? 20 : 20}
-        paddingBottom={flexDirection === 'row' ? 4 : 8}
+        // paddingTop={flexDirection === 'row' ? 20 : 20}
+        // paddingBottom={flexDirection === 'row' ? 20 : 20}
+        paddingY={20}
         paddingX={8}
         justify="space-between"
         // align='center'
-        // align={flexDirection === 'column' ? 'center' : 'end'}
+        align={flexDirection === 'column' && 'center'}
         textAlign={flexDirection === 'column' ? 'center' : 'left'}
-        gap={flexDirection === 'row' ? 10 : 2}
+        gap={flexDirection === 'row' ? 10 : 8}
         width="100%"
         {...props}
       >
         {/* Image */}
-        <Box width={flexDirection === 'row' ? '50%' : '100%'}>
+        <Box width={flexDirection === 'row' ? '50%' : '100%'} display='flex' justifyContent='center'>
           {/* <Box background="grey" width='100%' height={451} /> */}
-          <NextImage src={productImg} width={600} height={431.4}/>
+          <Flex  width={flexDirection === 'row' ? 400 : 250} height={flexDirection === 'row' ? 400 : 250} justify='center' borderRadius='12px' overflow='hidden'>
+            <NextImage src={productImg}/>
+          </Flex>
         </Box>
 
         {/* Text */}
