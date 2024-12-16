@@ -1,9 +1,7 @@
 import { Box, Flex, Heading, Text, VStack, Link } from "@chakra-ui/react";
 import NextImage from 'next/image'
-import NextLink from "next/link";
 import { useEffect, useState } from "react";
 
-import ldLogo from '../../public/logos/lexdao.svg';
 import mdLogo from '../../public/logos/molochdao.svg';
 import rgLogo from '../../public/logos/raidguild.svg';
 
@@ -52,14 +50,6 @@ export function Supporters({ ...props }) {
             </Link>
             <Text>
               In May 2022, the MolochDAO community passed an $82,000 grant proposal to support the continued development of Smart Invoice as a public good.
-            </Text>
-          </VStack>
-          <VStack maxWidth={320}>
-            <Link href="https://www.lexdao.coop/" isExternal>
-              <NextImage src={ldLogo} width={220} height={68.46} />
-            </Link>
-            <Text>
-              The team at LexDAO graciously agreed to act as an unbiased third party to provide arbitration services to the users of Smart Invoice for a low fee of 5%.
             </Text>
           </VStack>
         </Flex>

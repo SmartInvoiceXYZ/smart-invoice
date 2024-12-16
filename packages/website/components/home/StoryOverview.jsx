@@ -3,7 +3,6 @@ import NextImage from 'next/image';
 import NextLink from 'next/link';
 import React, { useEffect, useState } from 'react';
 
-import ldLogo from '../../public/logos/lexdao.svg';
 import mdLogo from '../../public/logos/molochdao.svg';
 import rgLogo from '../../public/logos/raidguild.svg';
 
@@ -56,11 +55,6 @@ export function StoryOverviewSection({ ...props }) {
             <Flex align="center">
               <Link href="https://molochdao.com/" isExternal>
                 <NextImage src={mdLogo} />
-              </Link>
-            </Flex>
-            <Flex align="center">
-              <Link href="https://www.lexdao.coop/" isExternal>
-                <NextImage src={ldLogo} />
               </Link>
             </Flex>
           </Flex>
