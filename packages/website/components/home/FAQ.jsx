@@ -64,10 +64,10 @@ export function FAQSection() {
               Smart Invoice can be used on Ethereum Mainnet, Gnosis, Polygon, Arbitrum, Optimism, Base, Holesky, and Sepolia Testnet networks.
             </Text>
             <Text my={2}>
-              Invoices can be paid with any token available on your chosen network. Ensure that you and your and client have agreed on the network and token choice prior to invoice creation.
+              Invoices can be paid with any ERC-20 token available on your chosen network. Ensure that you and your and client have agreed on the network and token choice prior to invoice creation.
             </Text>
             <Text>
-              *  ETH cannot be used for payment on Mainnet.
+              *  Network-native tokens cannot be used for invoice payment.
             </Text>
           </AccordionPanel>
         </AccordionItem>
