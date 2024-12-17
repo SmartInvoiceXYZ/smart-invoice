@@ -47,7 +47,8 @@ export const TOASTS = {
     },
     success: {
       title: 'Release successful',
-      description: 'Your release has been made. Refreshing balances...',
+      description:
+        'Your release has been sent to provider account. Refreshing balances...',
     },
   },
   useLock: {

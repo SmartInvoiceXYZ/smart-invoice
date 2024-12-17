@@ -33,6 +33,7 @@ type FormConfirmationProps = {
   handleSubmit: () => void;
   canSubmit: boolean;
   isLoading: boolean;
+  isProcessing: boolean;
   type: ValueOf<typeof INVOICE_TYPES>;
 };
 
@@ -41,6 +42,7 @@ export function FormConfirmation({
   handleSubmit,
   canSubmit,
   isLoading,
+  isProcessing,
   type,
 }: FormConfirmationProps) {
   const chainId = useChainId();
@@ -223,6 +225,7 @@ export function FormConfirmation({
           onClick={handleSubmit}
           isDisabled={!canSubmit}
           isLoading={isLoading}
+          loadingText={isProcessing ? 'Processing Transaction...' : ''}
           textTransform="uppercase"
           size={primaryButtonSize}
           fontFamily="mono"

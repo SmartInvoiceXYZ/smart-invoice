@@ -2,15 +2,18 @@ import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
 import { getInvoiceDetails } from '@smartinvoicexyz/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { formatUnits, Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
 import { useInstantDetails } from './useInstantDetails';
 import { useIpfsDetails } from './useIpfsDetails';
 import { useTokenData } from './useTokenMetadata';
+
+export const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
+export const QUERY_KEY_EXTENDED_INVOICE_DETAILS = 'extendedInvoiceDetails';
 
 export const useInvoiceDetails = ({
   address,
@@ -23,16 +26,28 @@ export const useInvoiceDetails = ({
   isLoading: boolean;
   error: Error | null;
 } => {
+  const queryClient = useQueryClient();
+
   const {
     data: invoice,
     isLoading: isFetchingInvoice,
     error,
   } = useQuery<Invoice | null>({
-    queryKey: ['invoiceDetails', { address, chainId }],
+    queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
-    refetchInterval: 20000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
   });
+
+  // Manually trigger refetch of extended invoice details when invoice is fetched
+  useEffect(() => {
+    if (!isFetchingInvoice) {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEY_EXTENDED_INVOICE_DETAILS],
+      });
+    }
+  }, [isFetchingInvoice, queryClient]);
 
   const { invoiceType, token, ipfsHash } = _.pick(invoice, [
     'invoiceType',
@@ -77,13 +92,14 @@ export const useInvoiceDetails = ({
     !!tokenBalance &&
     !!nativeBalance &&
     !!ipfsDetails &&
+    !isFetchingInvoice &&
     (invoiceType === INVOICE_TYPES.Instant ? !!instantDetails : true);
 
   // enhance the invoice with assorted computed values
   const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
     useQuery<InvoiceDetails | null>({
       queryKey: [
-        'extendedInvoiceDetails',
+        QUERY_KEY_EXTENDED_INVOICE_DETAILS,
         {
           invoiceId: _.get(invoice, 'id'),
           token: tokenMetadata?.name,
@@ -107,7 +123,7 @@ export const useInvoiceDetails = ({
           ipfsDetails as InvoiceMetadata,
         ),
       enabled: getInvoiceDetailsEnabled,
-      refetchInterval: 20000,
+      refetchOnWindowFocus: false,
     });
 
   const isLoading = useMemo(

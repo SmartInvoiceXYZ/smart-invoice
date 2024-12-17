@@ -28,6 +28,7 @@
     "react": "^18.2.0",
     "react-datepicker": "^7.4.0",
     "react-hook-form": "^7.53.0",
+    "react-select": "^5.9.0",
     "react-web-share": "^2.0.2",
     "styled-components": "^6.1.13",
     "viem": "2.17.0",

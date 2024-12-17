@@ -19,7 +19,10 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useAddMilestones } from '@smartinvoicexyz/hooks';
+import {
+  QUERY_KEY_INVOICE_DETAILS,
+  useAddMilestones,
+} from '@smartinvoicexyz/hooks';
 import { FormInvoice, InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   Input,
@@ -102,9 +105,8 @@ export function AddMilestones({
   const onTxSuccess = () => {
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: ['invoiceDetails'],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS],
     });
-    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
     onClose();
   };

@@ -182,9 +182,14 @@ export const projectDetailsSchema = Yup.object().shape({
     },
   }),
   startDate: Yup.date().required('Start Date is required'),
-  endDate: Yup.date().required('End Date is required'),
+  endDate: Yup.date()
+    .required('End Date is required')
+    .min(Yup.ref('startDate'), 'End Date must be after Start Date'),
   // ideally could dynamically choose these. Setting a default covers this largely
-  deadline: Yup.date(),
+  deadline: Yup.date().min(
+    Yup.ref('endDate'),
+    'Deadline must be after End Date',
+  ),
   safetyValveDate: Yup.date().when('endDate', (endDate, schema) => {
     return schema.min(
       sevenDaysFromDate(endDate.toString()),

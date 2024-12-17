@@ -32,10 +32,6 @@ export const StyledButton = styled(Button)`
 const LINKS = [
   { label: 'Dashboard', href: '/invoices' },
   { label: 'Documentation', href: 'https://docs.smartinvoice.xyz' },
-  {
-    label: 'Support',
-    href: 'https://docs.smartinvoice.xyz/misc/get-support',
-  },
 ];
 
 export function Header() {

@@ -2,6 +2,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
@@ -100,25 +101,29 @@ export function DatePicker({
                 </Tooltip>
               )}
             </HStack>
-            <ReactDatePicker
-              {...props}
-              {...field}
-              selected={value}
-              customInput={
-                <Button variant={variant}>
-                  {getDateString(dateSeconds) || placeholder || placeholderText}
-                </Button>
-              }
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ref={(ref: any) => {
-                field.ref({
-                  focus: ref?.setFocus,
-                });
-              }}
-            />
-            <FormErrorMessage color="red.500">
-              {errors[name]?.message as string}
-            </FormErrorMessage>
+            <Box>
+              <ReactDatePicker
+                {...props}
+                {...field}
+                selected={value}
+                customInput={
+                  <Button variant={variant}>
+                    {getDateString(dateSeconds) ||
+                      placeholder ||
+                      placeholderText}
+                  </Button>
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ref={(ref: any) => {
+                  field.ref({
+                    focus: ref?.setFocus,
+                  });
+                }}
+              />
+              <FormErrorMessage color="red.500">
+                {errors[name]?.message as string}
+              </FormErrorMessage>
+            </Box>
           </Stack>
         </FormControl>
       )}

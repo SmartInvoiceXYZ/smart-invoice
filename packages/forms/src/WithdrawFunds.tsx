@@ -1,5 +1,5 @@
 import { Button, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { useWithdraw } from '@smartinvoicexyz/hooks';
+import { QUERY_KEY_INVOICE_DETAILS, useWithdraw } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,9 +22,8 @@ export function WithdrawFunds({
   const onTxSuccess = () => {
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: ['invoiceDetails'],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS],
     });
-    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
     onClose();
   };

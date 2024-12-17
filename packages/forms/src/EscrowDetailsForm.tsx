@@ -1,5 +1,6 @@
 import {
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
   Box,
@@ -129,9 +130,18 @@ export function EscrowDetailsForm({
             getResolverInfo(localResolverType, chainId)?.disclaimer && (
               <Alert bg="yellow.500" borderRadius="md" color="white">
                 <AlertIcon color="whiteAlpha.800" />
-                <AlertTitle fontSize="sm">
-                  {getResolverInfo(localResolverType, chainId)?.disclaimer}
-                </AlertTitle>
+                <Box>
+                  <AlertTitle fontSize="sm">
+                    {getResolverInfo(localResolverType, chainId)?.disclaimer}
+                  </AlertTitle>
+                  {localResolverType === 'kleros' && (
+                    <AlertDescription fontSize="sm">
+                      Smart Invoice will only escalate claims to Kleros that are
+                      linked to smart escrows holding tokens with a minimum
+                      value of 1000 USD at the time of locking the funds.
+                    </AlertDescription>
+                  )}
+                </Box>
               </Alert>
             )}
 

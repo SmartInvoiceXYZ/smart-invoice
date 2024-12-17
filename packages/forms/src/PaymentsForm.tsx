@@ -28,10 +28,10 @@ import {
   Input,
   NumberInput,
   QuestionIcon,
-  Select,
   Textarea,
   useMediaStyles,
 } from '@smartinvoicexyz/ui';
+import { ReactSelect } from '@smartinvoicexyz/ui/src/forms/ReactSelect';
 import {
   commify,
   escrowPaymentsSchema,
@@ -59,7 +59,12 @@ export function PaymentsForm({
   const { data: allTokens } = useFetchTokens();
 
   const tokens = useMemo(
-    () => (allTokens ? _.filter(allTokens, t => t.chainId === chainId) : []),
+    () =>
+      allTokens
+        ? _.filter(allTokens, t => t.chainId === chainId).sort((a, b) =>
+            a.name.trim().localeCompare(b.name.trim()),
+          )
+        : [],
     [chainId, allTokens],
   ) as IToken[];
 
@@ -122,9 +127,10 @@ export function PaymentsForm({
     <Stack as="form" onSubmit={handleSubmit(onSubmit)} spacing={4}>
       <Flex w="100%">
         <FormControl isRequired>
-          <Select
+          <ReactSelect
             name="token"
             label="Payment Token"
+            defaultValue={nativeWrappedToken.toLowerCase()}
             tooltip={
               <Text>
                 {`This is the cryptocurrency you'll receive payment in. The
@@ -136,18 +142,11 @@ export function PaymentsForm({
               </Text>
             }
             localForm={localForm}
-          >
-            {tokens?.map(t => {
-              return (
-                <option
-                  value={t.address.toLowerCase()}
-                  key={t.address.toLowerCase()}
-                >
-                  {`${t.name} (${t.symbol})`}
-                </option>
-              );
-            })}
-          </Select>
+            options={_.map(tokens, t => ({
+              value: t.address,
+              label: `${t.name} (${t.symbol})`,
+            }))}
+          />
         </FormControl>
       </Flex>
       <FormControl isInvalid={!!errors?.milestones} w="100%" isRequired>

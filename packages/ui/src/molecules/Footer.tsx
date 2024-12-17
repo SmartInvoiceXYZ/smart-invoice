@@ -4,7 +4,6 @@ import _ from 'lodash';
 const links = [
   { label: 'Website', href: 'https://smartinvoice.xyz' },
   { label: 'Documentation', href: 'https://docs.smartinvoice.xyz' },
-  { label: 'Support', href: 'https://docs.smartinvoice.xyz/misc/get-support' },
   { label: 'Twitter', href: 'https://twitter.com/SmartInvoiceXYZ' },
   { label: 'Discord', href: 'https://discord.gg/Rws3gEu8W7' },
 ];
