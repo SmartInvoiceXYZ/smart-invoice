@@ -58,7 +58,7 @@ export function FeatureArbitration({ ...props }) {
         <Box width={flexDirection === 'row' ? '50%' : '100%'} display='flex' justifyContent='center'>
           {/* <Box background="grey" width='100%' height={451} /> */}
           <Flex  width={flexDirection === 'row' ? 400 : 250} height={flexDirection === 'row' ? 400 : 250} justify='center' borderRadius='12px' overflow='hidden'>
-            <NextImage src={productImg}/>
+            <NextImage src={productImg} alt='screenshot from app'/>
           </Flex>
         </Box>
 
@@ -75,6 +75,7 @@ export function FeatureArbitration({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='scale'
               />
               <Text>
@@ -86,6 +87,7 @@ export function FeatureArbitration({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='piechart'
               />
               <Text>Maximum arbitration service fee of 5%, automatically deducted from escrow</Text>
@@ -95,6 +97,7 @@ export function FeatureArbitration({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='search'
               />
               <Text>No need to find a third party arbitrator on your own</Text>

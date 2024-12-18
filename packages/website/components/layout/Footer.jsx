@@ -6,7 +6,6 @@ import {
   FormControl,
   Heading,
   Input,
-  Link,
   Text,
   useToast,
 } from '@chakra-ui/react';
@@ -140,20 +139,12 @@ export function Footer({ ...props }) {
         width="100%"
         {...props}
       >
-        <NextImage src={logo} width={160} height={25.34} />
+        <NextImage src={logo} alt='Smart Invoice logo' width={160} height={25.34} />
         <Flex gap={8} justify="center" align="center">
-          <NextLink href="/" passHref>
-            <Link>Home</Link>
-          </NextLink>
-          <NextLink href="/getting-started/what-is-smart-invoice" passHref>
-            <Link>Docs</Link>
-          </NextLink>
-          <NextLink href="https://twitter.com/SmartInvoiceXYZ" target="_blank" passHref>
-            <Link target="_blank">Twitter</Link>
-          </NextLink>
-          <NextLink href="https://discord.gg/Rws3gEu8W7" target="_blank" passHref>
-            <Link target="_blank">Discord</Link>
-          </NextLink>
+          <NextLink href="/">Home</NextLink>
+          <NextLink href="/getting-started/what-is-smart-invoice">Docs</NextLink>
+          <NextLink href="https://twitter.com/SmartInvoiceXYZ" target="_blank">Twitter</NextLink>
+          <NextLink href="https://discord.gg/Rws3gEu8W7" target="_blank">Discord</NextLink>
         </Flex>
       </Flex>
     </Flex>

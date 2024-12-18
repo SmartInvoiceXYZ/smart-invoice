@@ -41,37 +41,35 @@ export function CallToAction({ ...props }) {
           </Heading>
           <Flex direction={flexDirection} gap={flexDirection === 'column' ? 4 : 8} mt={4}>
             <Flex gap={4} align="center">
-              <Icon as={CheckSquareIcon} color="white" checkColor="blue.1" />
+              <Icon as={CheckSquareIcon} color="white" checkcolor="blue.1" />
               <Text textColor="white">Free to use</Text>
             </Flex>
             <Flex gap={4} align="center">
-              <Icon as={CheckSquareIcon} color="white" checkColor="blue.1" />
+              <Icon as={CheckSquareIcon} color="white" checkcolor="blue.1" />
               <Text textColor="white">No email sign up needed</Text>
             </Flex>
             <Flex gap={4} align="center">
-              <Icon as={CheckSquareIcon} color="white" checkColor="blue.1" />
+              <Icon as={CheckSquareIcon} color="white" checkcolor="blue.1" />
               <Text textColor="white">Integrated escrow</Text>
             </Flex>
             <Flex gap={4} align="center">
-              <Icon as={CheckSquareIcon} color="white" checkColor="blue.1" />
+              <Icon as={CheckSquareIcon} color="white" checkcolor="blue.1" />
               <Text textColor="white">Arbitration available</Text>
             </Flex>
           </Flex>
         </Box>
-        <NextLink href='https://app.smartinvoice.xyz/' target="_blank" passHref>
-          <a target="_blank">
-            <Button
-              background="white"
-              textColor="gray.dark"
-              fontWeight={700}
-              fontSize={18}
-              paddingY={6}
-              paddingX={8}
-              _hover={{ background: 'rgba(255, 255, 255, 0.7)' }}
-            >
-              Open dApp
-            </Button>
-          </a>
+        <NextLink href='https://app.smartinvoice.xyz/' target="_blank">
+          <Button
+            background="white"
+            textColor="gray.dark"
+            fontWeight={700}
+            fontSize={18}
+            paddingY={6}
+            paddingX={8}
+            _hover={{ background: 'rgba(255, 255, 255, 0.7)' }}
+          >
+            Open dApp
+          </Button>
         </NextLink>
       </Flex>
     </Flex>

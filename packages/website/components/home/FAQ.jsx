@@ -317,10 +317,8 @@ export function FAQSection() {
             <AccordionIcon color="blue.1" />
           </AccordionButton>
           <AccordionPanel>
-            Yes. Please view our FAQ and documentation here first. If you still need help, you can post a message in the  support channel in the 
-            <NextLink href='https://discord.gg/Rws3gEu8W7' target="_blank" passHref>
-              <Link target="_blank"> Smart Invoice Discord</Link>
-            </NextLink>
+            Yes. Please view our FAQ and documentation here first. If you still need help, you can post a message in the support channel in the 
+            <NextLink href='https://discord.gg/Rws3gEu8W7' target="_blank"> Smart Invoice Discord</NextLink>
             . Our team usually responds within a few hours, Monday through Friday.
           </AccordionPanel>
         </AccordionItem>

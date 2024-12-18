@@ -1,4 +1,5 @@
 import { Box, Flex, Heading, Text, VStack, Link } from "@chakra-ui/react";
+import NextLink from 'next/link';
 import NextImage from 'next/image'
 import { useEffect, useState } from "react";
 
@@ -37,17 +38,17 @@ export function Supporters({ ...props }) {
         </Text>
         <Flex direction={flexDirection} justify='space-evenly' align={alignment} gap={20} mt={flexDirection === 'column' ? 20 : 10} {...props}>
           <VStack maxWidth={320} gap={8}>
-            <Link href="https://www.raidguild.org/" isExternal>
+            <NextLink href="https://www.raidguild.org/" target="blank">
               <NextImage src={rgLogo} width={180} height={47.45} />
-            </Link>
+            </NextLink>
             <Text>
               In October 2020, several members of Raid Guild DAO began developing the initial version of Smart Invoice as an internal tool to handle invoicing and escrow for the contract work the DAO provided to clients.
             </Text>
           </VStack>
           <VStack maxWidth={320} gap={4}>
-            <Link href="https://molochdao.com/" isExternal>
+            <NextLink href="https://molochdao.com/" target="blank">
               <NextImage src={mdLogo} width={220} height={55.24} />
-            </Link>
+            </NextLink>
             <Text>
               In May 2022, the MolochDAO community passed an $82,000 grant proposal to support the continued development of Smart Invoice as a public good.
             </Text>

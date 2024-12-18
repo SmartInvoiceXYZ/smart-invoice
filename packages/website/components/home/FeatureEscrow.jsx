@@ -65,8 +65,9 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={30}
-                height={30}
+                width={40}
+                height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='client'
               />
               <Text>
@@ -76,8 +77,9 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={30}
-                height={30}
+                width={40}
+                height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='trust'
               />
               <Text>Gain the peace of mind that you will get paid if you do the work</Text>
@@ -85,8 +87,9 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={30}
-                height={30}
+                width={40}
+                height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='progress'
               />
               <Text>
@@ -96,8 +99,9 @@ export function FeatureEscrow({ ...props }) {
             <ListItem display="flex" gap={2} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
               <ListIcon
                 as={CustomIcon}
-                width={30}
-                height={30}
+                width={40}
+                height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='warning'
               />
               <Text>Protect yourself from chargebacks and fraud</Text>
@@ -174,7 +178,7 @@ export function FeatureEscrow({ ...props }) {
 
         {/* Image */}
         <Box width={flexDirection === 'row' ? '50%' : '100%'}>
-          <NextImage src={productImg} width={600} height={452.47} />
+          <NextImage src={productImg} alt='screenshot from app' width={600} height={452.47} />
         </Box>
       </Flex>
     </Flex>

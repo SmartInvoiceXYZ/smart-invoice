@@ -89,7 +89,7 @@ export function Testimonials() {
             maxWidth={700}
             paddingY={6}
           >
-            <NextImage src={quoteIcon} width={41} height={33} />
+            <NextImage src={quoteIcon} alt='quotation mark icon' width={41} height={33} />
             <Heading textColor="white" size='2xl' fontWeight={700} mt={10}>
               {t.quote}
             </Heading>

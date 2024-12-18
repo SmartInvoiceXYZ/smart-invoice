@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import NextImage from "next/image";
 import NextLink from "next/link";
@@ -39,12 +39,10 @@ export function HeroSection({ ...props }) {
             Smart Invoice is an easy-to-use tool that provides web3 freelancers
             with cryptocurrency invoicing, escrow, and arbitration.
           </Heading>
-          <NextLink href="https://app.smartinvoice.xyz" target="_blank" passHref>
-            <a target="_blank">
-              <Link as={Button} background="blue.1" textColor="white" width={164} paddingY={6} _hover={{ background: 'blue.hover.1' }} target="_blank" isExternal>
-                Open dApp
-              </Link>
-            </a>
+          <NextLink href="https://app.smartinvoice.xyz" target="_blank">
+            <Button background="blue.1" textColor="white" width={164} paddingY={6} _hover={{ background: 'blue.hover.1' }}>
+              Open dApp
+            </Button>
           </NextLink>
           <Text
             fontSize={12}
@@ -57,7 +55,7 @@ export function HeroSection({ ...props }) {
         </VStack>
 
         {/* Image */}
-        <NextImage src={heroImg} width={600} height={453.24} objectFit="cover" />
+        <NextImage src={heroImg} alt='screenshot of app' width={600} height={453.24} style={{objectFit: "cover"}} />
       </Flex>
     </Flex>
   );

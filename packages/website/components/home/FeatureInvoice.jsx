@@ -48,7 +48,7 @@ export function FeatureInvoice({ ...props }) {
         {/* Image */}
         <Box width={flexDirection === 'row' ? '50%' : '100%'}>
           {/* <Box background="grey" width='100%' height={451} /> */}
-          <NextImage src={productImg} width={600} height={431.4}/>
+          <NextImage src={productImg} alt='screenshot from app' width={600} height={431.4}/>
         </Box>
 
         {/* Text */}
@@ -65,6 +65,7 @@ export function FeatureInvoice({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='avoid'
               />
               <Text>
@@ -76,6 +77,7 @@ export function FeatureInvoice({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='menu'
               />
               <Text>Stay organized with all of your invoices in one place</Text>
@@ -85,6 +87,7 @@ export function FeatureInvoice({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='status'
               />
               <Text>Quickly check the status of each of your invoices</Text>
@@ -94,6 +97,7 @@ export function FeatureInvoice({ ...props }) {
                 as={CustomIcon}
                 width={40}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 type='pdf'
               />
               <Text>Download PDFs of each invoice for your records</Text>

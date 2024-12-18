@@ -1,4 +1,4 @@
-import { Button, Flex, Link } from '@chakra-ui/react';
+import { Button, Flex } from '@chakra-ui/react';
 import NextImage from 'next/image';
 import NextLink from 'next/link';
 import React, { useEffect, useState } from 'react';
@@ -39,9 +39,9 @@ export function NavBar({ ...props }) {
       >
         {/* Logo */}
         <Flex width={250}>
-          <NextLink href='/' passHref>
+          <NextLink href='/'>
             <Flex cursor='pointer'>
-              <NextImage src={logo} width={220} height={34.84} />
+              <NextImage src={logo} alt='Smart Invoice logo' width={220} height={34.84} />
             </Flex>
           </NextLink>
         </Flex>
@@ -49,26 +49,18 @@ export function NavBar({ ...props }) {
         {/* Navigation Links */}
         {!mobile && (
           <Flex gap={8} justify="center" align="center">
-            <NextLink href="/getting-started/what-is-smart-invoice" passHref>
-              <Link>Documentation</Link>
-            </NextLink>
-            <NextLink href="/about" passHref>
-              <Link>About</Link>
-            </NextLink>
-            <NextLink href="/misc/get-support" passHref>
-              <Link>Help</Link>
-            </NextLink>
+            <NextLink href="/getting-started/what-is-smart-invoice">Documentation</NextLink>
+            <NextLink href="/about">About</NextLink>
+            <NextLink href="/misc/get-support">Help</NextLink>
           </Flex>
         )}
 
         {/* App Button */}
         <Flex width={250} justify='right'>
-          <NextLink href="https://app.smartinvoice.xyz" target="_blank" passHref>
-            <a target="_blank">
-              <Link as={Button} background="blue.1" textColor="white" borderRadius={8} _hover={{ background: 'blue.hover.1' }} target="_blank" isExternal>
-                Open dApp
-              </Link>
-            </a>
+          <NextLink href="https://app.smartinvoice.xyz" target="_blank">
+            <Button background="blue.1" textColor="white" borderRadius={8} _hover={{ background: 'blue.hover.1' }} target="_blank">
+              Open dApp
+            </Button>
           </NextLink>
         </Flex>
       </Flex>
@@ -76,15 +68,9 @@ export function NavBar({ ...props }) {
       {/* Navigation Links */}
       {mobile && (
         <Flex gap={8} justify="center" align="center" paddingBottom={4}>
-          <NextLink href="/getting-started/what-is-smart-invoice" passHref>
-            <Link>Documentation</Link>
-          </NextLink>
-          <NextLink href="/about" passHref>
-            <Link>About</Link>
-          </NextLink>
-          <NextLink href="/misc/get-support" passHref>
-            <Link>Help</Link>
-          </NextLink>
+          <NextLink href="/getting-started/what-is-smart-invoice">Documentation</NextLink>
+          <NextLink href="/about">About</NextLink>
+          <NextLink href="/misc/get-support">Help</NextLink>
         </Flex>
       )}
     </Flex>

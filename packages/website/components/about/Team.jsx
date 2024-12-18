@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, GridItem, Heading, Link, Text } from "@chakra-ui/react";
+import { Box, Flex, Grid, GridItem, Heading, Text } from "@chakra-ui/react";
 import NextImage from 'next/image'
 import NextLink from 'next/link'
 
@@ -99,7 +99,7 @@ export function TeamSection({...props}) {
               borderRadius={10}
               padding={8}
             >
-              <NextImage src={member.pfp} width={180} height={180} objectFit='cover' />
+              <NextImage src={member.pfp} width={180} height={180} style={{objectFit: 'cover'}} />
               <Heading fontSize={24} textColor='gray.dark' mt={4}>
                 {member.name}
               </Heading>
@@ -108,38 +108,28 @@ export function TeamSection({...props}) {
               </Text>
               <Flex justify='center' align='center' gap={4} mt={6}>
                 {member.facebook && (
-                  <NextLink href={member.facebook} passHref>
-                    <Link cursor='pointer' target='_blank'>
-                      <NextImage src={facebookIcon} width={48} height={48} />
-                    </Link>
+                  <NextLink href={member.facebook} cursor='pointer' target='_blank'>
+                    <NextImage src={facebookIcon} width={48} height={48} />
                   </NextLink>
                 )}
                 {member.twitter && (
-                  <NextLink href={member.twitter} passHref>
-                    <Link cursor='pointer' target='_blank'>
-                      <NextImage src={twitterIcon} width={48} height={48} />
-                    </Link>
+                  <NextLink href={member.twitter} cursor='pointer' target='_blank'>
+                    <NextImage src={twitterIcon} width={48} height={48} />
                   </NextLink>
                 )}
                 {member.linkedin && (
-                  <NextLink href={member.linkedin} passHref>
-                    <Link cursor='pointer' target='_blank'>
-                      <NextImage src={linkedinIcon} width={48} height={48} />
-                    </Link>
+                  <NextLink href={member.linkedin} cursor='pointer' target='_blank'>
+                    <NextImage src={linkedinIcon} width={48} height={48} />
                   </NextLink>
                 )}
                 {member.github && (
-                  <NextLink href={member.github} passHref>
-                    <Link cursor='pointer' target='_blank'>
-                      <NextImage src={githubIcon} width={48} height={48} />
-                    </Link>
+                  <NextLink href={member.github} cursor='pointer' target='_blank'>
+                    <NextImage src={githubIcon} width={48} height={48} />
                   </NextLink>
                 )}
                 {member.website && (
-                  <NextLink href={member.website} passHref>
-                    <Link cursor='pointer' target='_blank'>
-                      <NextImage src={websiteIcon} width={48} height={48} />
-                    </Link>
+                  <NextLink href={member.website} cursor='pointer' target='_blank'>
+                    <NextImage src={websiteIcon} width={48} height={48} />
                   </NextLink>
                 )}
               </Flex>

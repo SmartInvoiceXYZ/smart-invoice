@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Link, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import NextImage from 'next/image';
 import NextLink from 'next/link';
 import React, { useEffect, useState } from 'react';
@@ -48,14 +48,14 @@ export function StoryOverviewSection({ ...props }) {
           </Heading>
           <Flex gap={2}>
             <Flex mr={4} align="center">
-              <Link href="https://www.raidguild.org/" isExternal>
-                <NextImage src={rgLogo} />
-              </Link>
+              <NextLink href="https://www.raidguild.org/">
+                <NextImage src={rgLogo} alt='Raid Guild logo' />
+              </NextLink>
             </Flex>
             <Flex align="center">
-              <Link href="https://molochdao.com/" isExternal>
-                <NextImage src={mdLogo} />
-              </Link>
+              <NextLink href="https://molochdao.com/">
+                <NextImage src={mdLogo} alt='Moloch DAO logo'/>
+              </NextLink>
             </Flex>
           </Flex>
         </Box>
@@ -75,10 +75,10 @@ export function StoryOverviewSection({ ...props }) {
             been able to continue building out Smart Invoice for anyone to use
             regardless of economic status, location, or technical ability.
           </Text>
-          <NextLink href="/about" passHref>
-            <Link textColor="blue.1" fontWeight={700} width="fit-content">
+          <NextLink href="/about">
+            <Button textColor="blue.1" fontWeight={700} width="fit-content">
               Learn more
-            </Link>
+            </Button>
           </NextLink>
         </VStack>
       </Flex>

@@ -126,41 +126,40 @@ export function DocLayout({ children, metatags, title, active }) {
                   <DrawerBody>
                     <VStack align='flex-start' width='100%'>
                       {docV3Menu.map((item, i) => (
-                        <>
-                          <NextLink key={`${item.path}-${i}`} href={`/${item.path}/${item.topics[0].slug}`} passHref>
-                            <Link
-                              _hover={{ color: 'blue.1', background: 'gray.background' }}
-                              paddingY={1}
-                              paddingX={6}
-                              width='100%'
-                              borderRadius={8}
-                              fontWeight='bold'
-                              onClick={onClose}
-                            >
-                              {item.category}
-                            </Link>
-                          </NextLink>
+                        <div key={`${item.path}-${i}`}>
+                          <Link 
+                            href={`/${item.path}/${item.topics[0].slug}`}
+                            _hover={{ color: 'blue.1', background: 'gray.background' }}
+                            paddingY={1}
+                            paddingX={6}
+                            width='100%'
+                            borderRadius={8}
+                            fontWeight='bold'
+                            onClick={onClose}
+                          >
+                            {item.category}
+                          </Link>
                           {router.pathname.includes(item.path) && (
                             <VStack align='flex-start' paddingLeft={4} width='100%'>
                               {item.topics.map(topic => (
-                                <NextLink key={`${topic.slug}`} href={`/${item.path}/${topic.slug}`} passHref>
-                                  <Link
-                                    _hover={{ color: 'blue.1', background: 'gray.background' }}
-                                    paddingY={1}
-                                    paddingX={6}
-                                    width='100%'
-                                    color={(active === topic.slug) && 'blue.1'}
-                                    background={(active === topic.slug) && 'gray.background'}
-                                    borderRadius={8}
-                                    onClick={onClose}
-                                  >
-                                    {topic.title}
-                                  </Link>
-                                </NextLink>
+                                <Link 
+                                  key={`${topic.slug}`} 
+                                  href={`/${item.path}/${topic.slug}`}
+                                  _hover={{ color: 'blue.1', background: 'gray.background' }}
+                                  paddingY={1}
+                                  paddingX={6}
+                                  width='100%'
+                                  color={(active === topic.slug) && 'blue.1'}
+                                  background={(active === topic.slug) && 'gray.background'}
+                                  borderRadius={8}
+                                  onClick={onClose}
+                                >
+                                  {topic.title}
+                                </Link>
                               ))}
                             </VStack>
                           )}
-                        </>
+                        </div>
                       ))}
                     </VStack>
                   </DrawerBody>
@@ -189,39 +188,38 @@ export function DocLayout({ children, metatags, title, active }) {
             <Flex flexGrow={1} paddingY={10}>
               <VStack align='flex-start' padding={2} width={350} overflowY='auto'>
                 {docV3Menu.map((item, i) => (
-                  <>
-                    <NextLink key={`${item.path}-${i}`} href={`/${item.path}/${item.topics[0].slug}`} passHref>
-                      <Link
-                        _hover={{ color: 'blue.1', background: 'gray.background' }}
-                        paddingY={1}
-                        paddingX={6}
-                        width='100%'
-                        borderRadius={8}
-                        fontWeight='bold'
-                      >
-                        {item.category}
-                      </Link>
-                    </NextLink>
+                  <div key={`${item.path}-${i}`}>
+                    <Link  
+                      href={`/${item.path}/${item.topics[0].slug}`}
+                      _hover={{ color: 'blue.1', background: 'gray.background' }}
+                      paddingY={1}
+                      paddingX={6}
+                      width='100%'
+                      borderRadius={8}
+                      fontWeight='bold'
+                    >
+                      {item.category}
+                    </Link>
                     {router.pathname.includes(item.path) && (
                       <VStack align='flex-start' paddingLeft={4} width='100%'>
                         {item.topics.map(topic => (
-                          <NextLink key={`${topic.slug}`} href={`/${item.path}/${topic.slug}`} passHref>
-                            <Link
-                              _hover={{ color: 'blue.1', background: 'gray.background' }}
-                              paddingY={1}
-                              paddingX={6}
-                              width='100%'
-                              color={(active === topic.slug) && 'blue.1'}
-                              background={(active === topic.slug) && 'gray.background'}
-                              borderRadius={8}
-                            >
-                              {topic.title}
-                            </Link>
-                          </NextLink>
+                          <Link 
+                           key={`${topic.slug}`} 
+                            href={`/${item.path}/${topic.slug}`}
+                            _hover={{ color: 'blue.1', background: 'gray.background' }}
+                            paddingY={1}
+                            paddingX={6}
+                            width='100%'
+                            color={(active === topic.slug) && 'blue.1'}
+                            background={(active === topic.slug) && 'gray.background'}
+                            borderRadius={8}
+                          >
+                            {topic.title}
+                          </Link>
                         ))}
                       </VStack>
                     )}
-                  </>
+                  </div>
                 ))}
               </VStack>
               <Flex justify='flex-start' flexGrow={1} paddingX={4}>{children}</Flex>

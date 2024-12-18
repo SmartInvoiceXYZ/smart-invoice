@@ -91,12 +91,10 @@ export function DemoSection({ ...props }) {
               size. You don’t have to be a developer or “technical.”
             </Text>
           </Box>
-          <NextLink href="https://app.smartinvoice.xyz" target="_blank" passHref>
-            <a target="_blank">
-              <Button background="blue.1" minW={'fit-content'} _hover={{ background: 'blue.hover.1' }}>
-                Open dApp
-              </Button>
-            </a>
+          <NextLink href="https://app.smartinvoice.xyz" target="_blank">
+            <Button background="blue.1" minW={'fit-content'} _hover={{ background: 'blue.hover.1' }}>
+              Open dApp
+            </Button>
           </NextLink>
         </Flex>
         <Divider background="blue.1" mt={8} mb={8} />

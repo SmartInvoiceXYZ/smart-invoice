@@ -24,9 +24,10 @@ export function FeatureCrypto({ ...props }) {
               {/* Icon */}
               <NextImage
                 src={flexibleIcon}
+                alt='flexible icon'
                 width={56}
                 height={56}
-                objectFit="cover"
+                style={{objectFit: "cover"}}
               />
               <Box>
                 <Text fontWeight={700} fontSize={18} my={2}>
@@ -44,9 +45,10 @@ export function FeatureCrypto({ ...props }) {
               {/* Icon */}
               <NextImage
                 src={secureIcon}
+                alt='secure icon'
                 width={56}
                 height={56}
-                objectFit="cover"
+                style={{objectFit: "cover"}}
               />
               <Box>
                 <Text fontWeight={700} fontSize={18} my={2}>
@@ -64,9 +66,10 @@ export function FeatureCrypto({ ...props }) {
               {/* Icon */}
               <NextImage
                 src={impartialIcon}
+                alt='impartial icon'
                 width={56}
                 height={56}
-                objectFit="cover"
+                style={{objectFit: "cover"}}
               />
               <Box>
                 <Text fontWeight={700} fontSize={18} my={2}>

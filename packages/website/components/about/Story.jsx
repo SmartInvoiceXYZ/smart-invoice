@@ -59,10 +59,10 @@ export function Story({ ...props }) {
             </Text>
           </GridItem>
           <GridItem order={2}>
-            <NextImage src={asset1} width={580} height={464.8} objectFit="cover" />
+            <NextImage src={asset1} width={580} height={464.8} style={{objectFit: 'cover'}} />
           </GridItem>
           <GridItem order={columns === 1 ? 4 : 3}>
-            <NextImage src={asset2} width={580} height={402.38} objectFit="cover" />
+            <NextImage src={asset2} width={580} height={402.38} style={{objectFit: 'cover'}} />
           </GridItem>
           <GridItem display='flex' flexDir='column' align='left' gap={4} order={columns === 1 ? 3 : 4}>
             <Text fontWeight={700} fontStyle='italic'>
@@ -105,7 +105,7 @@ export function Story({ ...props }) {
             </Text>
           </GridItem>
           <GridItem order={6}>
-            <NextImage src={asset3} width={590} height={339.25} objectFit="cover" />
+            <NextImage src={asset3} width={590} height={339.25} style={{objectFit: 'cover'}} />
           </GridItem>
         </Grid>
       </Flex>
