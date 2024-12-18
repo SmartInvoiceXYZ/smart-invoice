@@ -1,29 +1,29 @@
 import { Box, Button, Flex, Heading, Icon, Text } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
 import NextLink from 'next/link';
+import React, { useEffect, useState } from 'react';
 
 import { CheckSquareIcon } from '../icons/CheckSquare';
 
 export function CallToAction({ ...props }) {
-  const [flexDirection, setFlexDirection] = useState('row')
+  const [flexDirection, setFlexDirection] = useState('row');
 
   useEffect(() => {
     if (window) {
-      toggleDirection()
-      window.addEventListener('resize', toggleDirection)
+      toggleDirection();
+      window.addEventListener('resize', toggleDirection);
     }
-  })
+  });
 
   function toggleDirection() {
     if (window.innerWidth < 800) {
-      setFlexDirection('column')
+      setFlexDirection('column');
     } else {
-      setFlexDirection('row')
+      setFlexDirection('row');
     }
   }
 
   return (
-    <Flex background="blue.1" width='100%' justify='center'>
+    <Flex background="blue.1" width="100%" justify="center">
       <Flex
         direction={flexDirection}
         rowGap={10}
@@ -35,11 +35,24 @@ export function CallToAction({ ...props }) {
         width="100%"
         {...props}
       >
-        <Box display='flex' flexDirection='column' alignItems={flexDirection === 'column' && 'center'}>
-          <Heading fontSize={50} fontWeight={700} textColor="white" textAlign={flexDirection === 'column' && 'center'}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems={flexDirection === 'column' && 'center'}
+        >
+          <Heading
+            fontSize={50}
+            fontWeight={700}
+            textColor="white"
+            textAlign={flexDirection === 'column' && 'center'}
+          >
             Create your first invoice
           </Heading>
-          <Flex direction={flexDirection} gap={flexDirection === 'column' ? 4 : 8} mt={4}>
+          <Flex
+            direction={flexDirection}
+            gap={flexDirection === 'column' ? 4 : 8}
+            mt={4}
+          >
             <Flex gap={4} align="center">
               <Icon as={CheckSquareIcon} color="white" checkcolor="blue.1" />
               <Text textColor="white">Free to use</Text>
@@ -58,7 +71,7 @@ export function CallToAction({ ...props }) {
             </Flex>
           </Flex>
         </Box>
-        <NextLink href='https://app.smartinvoice.xyz/' target="_blank">
+        <NextLink href="https://app.smartinvoice.xyz/" target="_blank">
           <Button
             background="white"
             textColor="gray.dark"

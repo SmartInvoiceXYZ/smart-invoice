@@ -17,15 +17,14 @@ export function Testimonials() {
   const testimonials = [
     {
       id: 1,
-      quote:
-        "Super smooth, great UI. The most straightforward escrow.",
+      quote: 'Super smooth, great UI. The most straightforward escrow.',
       name: 'MadFinance team',
       title: '',
       company: '',
     },
     {
       id: 2,
-      quote: "This changes everything!",
+      quote: 'This changes everything!',
       name: '0xhanvalen',
       title: 'Freelance Developer',
       company: '',
@@ -35,15 +34,15 @@ export function Testimonials() {
       quote: "We're forking this!",
       name: 'Based Ghouls Dev Team',
       title: '',
-      company: ''
+      company: '',
     },
     {
       id: 4,
-      quote: "That time we really got f***ed we forgot to use Smart Invoice.",
+      quote: 'That time we really got f***ed we forgot to use Smart Invoice.',
       name: 'Ξ2T',
       title: '',
       company: '',
-    }
+    },
   ];
 
   useInterval(toggleInterval, 5000);
@@ -89,29 +88,26 @@ export function Testimonials() {
             maxWidth={700}
             paddingY={6}
           >
-            <NextImage src={quoteIcon} alt='quotation mark icon' width={41} height={33} />
-            <Heading textColor="white" size='2xl' fontWeight={700} mt={10}>
+            <NextImage
+              src={quoteIcon}
+              alt="quotation mark icon"
+              width={41}
+              height={33}
+            />
+            <Heading textColor="white" size="2xl" fontWeight={700} mt={10}>
               {t.quote}
             </Heading>
             <Box textAlign="center" mt={10}>
               <Text fontWeight={700} fontSize={18}>
                 {t.name}
               </Text>
-              {(t.title && t.company) && (
+              {t.title && t.company && (
                 <Text fontSize={16}>
                   {t.title}, {t.company}
                 </Text>
               )}
-              {(t.title && !t.company) && (
-                <Text fontSize={16}>
-                  {t.title}
-                </Text>
-              )}
-              {(!t.title && t.company) && (
-                <Text fontSize={16}>
-                  {t.company}
-                </Text>
-              )}
+              {t.title && !t.company && <Text fontSize={16}>{t.title}</Text>}
+              {!t.title && t.company && <Text fontSize={16}>{t.company}</Text>}
             </Box>
           </Flex>
         </Slide>

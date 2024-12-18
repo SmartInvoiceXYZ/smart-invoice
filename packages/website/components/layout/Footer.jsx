@@ -16,29 +16,29 @@ import React, { useEffect, useState } from 'react';
 import logo from '../../public/logos/smart-invoice/white.svg';
 
 export function Footer({ ...props }) {
-  const [email, setEmail] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [flexDirection, setFlexDirection] = useState('row')
-  const toast = useToast()
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [flexDirection, setFlexDirection] = useState('row');
+  const toast = useToast();
 
   useEffect(() => {
     if (window) {
-      toggleDirection()
-      window.addEventListener('resize', toggleDirection)
+      toggleDirection();
+      window.addEventListener('resize', toggleDirection);
     }
-  })
+  });
 
   function toggleDirection() {
     if (window.innerWidth < 800) {
-      setFlexDirection('column')
+      setFlexDirection('column');
     } else {
-      setFlexDirection('row')
+      setFlexDirection('row');
     }
   }
 
   async function submitForm(e) {
-    e.preventDefault()
-    setSubmitting(true)
+    e.preventDefault();
+    setSubmitting(true);
     try {
       await fetch(process.env.GETFORM_URL, {
         method: 'POST',
@@ -46,27 +46,27 @@ export function Footer({ ...props }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
-      })
-      console.log("Submitted")
-      const toastId = "email-submitted"
+      });
+      console.log('Submitted');
+      const toastId = 'email-submitted';
       if (!toast.isActive(toastId)) {
         toast({
           id: toastId,
           duration: 3000,
-          position: "bottom",
-          status: "success",
-          title: "Email submitted!"
-        })
+          position: 'bottom',
+          status: 'success',
+          title: 'Email submitted!',
+        });
       }
-      setEmail('')
+      setEmail('');
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-    setSubmitting(false)
+    setSubmitting(false);
   }
 
   return (
-    <Flex direction='column' background="blue.dark" width='100%' align='center'>
+    <Flex direction="column" background="blue.dark" width="100%" align="center">
       <Flex
         direction={flexDirection}
         justify="space-between"
@@ -78,7 +78,10 @@ export function Footer({ ...props }) {
         maxWidth={1300}
         {...props}
       >
-        <Box textColor="white" textAlign={flexDirection === 'column' ? 'center' : 'left'}>
+        <Box
+          textColor="white"
+          textAlign={flexDirection === 'column' ? 'center' : 'left'}
+        >
           <Heading fontSize={32} fontWeight={700} textColor="white" mb={4}>
             Get the web3 freelancer edge
           </Heading>
@@ -91,7 +94,7 @@ export function Footer({ ...props }) {
             space.
           </Text>
         </Box>
-        <form onSubmit={e => submitForm(e)} method='POST'>
+        <form onSubmit={e => submitForm(e)} method="POST">
           <FormControl
             display="flex"
             alignItems="center"
@@ -100,7 +103,7 @@ export function Footer({ ...props }) {
           >
             <Input
               type="email"
-              name='email'
+              name="email"
               borderRightRadius={0}
               background="white"
               color="gray.dark"
@@ -108,11 +111,11 @@ export function Footer({ ...props }) {
               minWidth={200}
               value={email}
               onChange={e => setEmail(e.currentTarget.value)}
-              placeholder='Email address'
+              placeholder="Email address"
               _placeholder={{ color: 'gray.light' }}
             />
             <Button
-              type='submit'
+              type="submit"
               background="blue.1"
               textColor="white"
               fontWeight={700}
@@ -139,12 +142,23 @@ export function Footer({ ...props }) {
         width="100%"
         {...props}
       >
-        <NextImage src={logo} alt='Smart Invoice logo' width={160} height={25.34} />
+        <NextImage
+          src={logo}
+          alt="Smart Invoice logo"
+          width={160}
+          height={25.34}
+        />
         <Flex gap={8} justify="center" align="center">
           <NextLink href="/">Home</NextLink>
-          <NextLink href="/getting-started/what-is-smart-invoice">Docs</NextLink>
-          <NextLink href="https://twitter.com/SmartInvoiceXYZ" target="_blank">Twitter</NextLink>
-          <NextLink href="https://discord.gg/Rws3gEu8W7" target="_blank">Discord</NextLink>
+          <NextLink href="/getting-started/what-is-smart-invoice">
+            Docs
+          </NextLink>
+          <NextLink href="https://twitter.com/SmartInvoiceXYZ" target="_blank">
+            Twitter
+          </NextLink>
+          <NextLink href="https://discord.gg/Rws3gEu8W7" target="_blank">
+            Discord
+          </NextLink>
         </Flex>
       </Flex>
     </Flex>

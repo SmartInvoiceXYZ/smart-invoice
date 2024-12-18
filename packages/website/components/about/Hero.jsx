@@ -1,15 +1,20 @@
-import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
+import { Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 
 export function HeroSection({ ...props }) {
   return (
-    <Flex justify="center" align="center" background="gray.background" width='100%'>
+    <Flex
+      justify="center"
+      align="center"
+      background="gray.background"
+      width="100%"
+    >
       <VStack
         paddingY={12}
         paddingX={8}
         width="100%"
-        justify='center'
-        align='center'
+        justify="center"
+        align="center"
         // minHeight={150}
         {...props}
       >

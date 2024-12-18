@@ -7,20 +7,20 @@ import mdLogo from '../../public/logos/molochdao.svg';
 import rgLogo from '../../public/logos/raidguild.svg';
 
 export function StoryOverviewSection({ ...props }) {
-  const [flexDirection, setFlexDirection] = useState('row')
+  const [flexDirection, setFlexDirection] = useState('row');
 
   useEffect(() => {
     if (window) {
-      toggleDirection()
-      window.addEventListener('resize', toggleDirection)
+      toggleDirection();
+      window.addEventListener('resize', toggleDirection);
     }
-  })
+  });
 
   function toggleDirection() {
     if (window.innerWidth < 800) {
-      setFlexDirection('column')
+      setFlexDirection('column');
     } else {
-      setFlexDirection('row')
+      setFlexDirection('row');
     }
   }
 
@@ -49,12 +49,12 @@ export function StoryOverviewSection({ ...props }) {
           <Flex gap={2}>
             <Flex mr={4} align="center">
               <NextLink href="https://www.raidguild.org/">
-                <NextImage src={rgLogo} alt='Raid Guild logo' />
+                <NextImage src={rgLogo} alt="Raid Guild logo" />
               </NextLink>
             </Flex>
             <Flex align="center">
               <NextLink href="https://molochdao.com/">
-                <NextImage src={mdLogo} alt='Moloch DAO logo'/>
+                <NextImage src={mdLogo} alt="Moloch DAO logo" />
               </NextLink>
             </Flex>
           </Flex>

@@ -7,32 +7,37 @@ import {
   ListItem,
   Text,
 } from '@chakra-ui/react';
+import NextImage from 'next/image';
 import React, { useEffect, useState } from 'react';
-import NextImage from "next/image";
 
+import productImg from '../../public/assets/home/invoices-list-screenshot.svg';
 import { CustomIcon } from '../icons/CheckSquare';
-import productImg from '../../public/assets/home/invoices-list-screenshot.svg'
 
 export function FeatureInvoice({ ...props }) {
-  const [flexDirection, setFlexDirection] = useState('row')
+  const [flexDirection, setFlexDirection] = useState('row');
 
   useEffect(() => {
     if (window) {
-      toggleDirection()
-      window.addEventListener('resize', toggleDirection)
+      toggleDirection();
+      window.addEventListener('resize', toggleDirection);
     }
-  })
+  });
 
   function toggleDirection() {
     if (window.innerWidth < 800) {
-      setFlexDirection('column-reverse')
+      setFlexDirection('column-reverse');
     } else {
-      setFlexDirection('row')
+      setFlexDirection('row');
     }
   }
 
   return (
-    <Flex justify="center" align="center" overflowX='hidden' background="gray.background">
+    <Flex
+      justify="center"
+      align="center"
+      overflowX="hidden"
+      background="gray.background"
+    >
       <Flex
         direction={flexDirection}
         paddingTop={flexDirection === 'row' ? 20 : 20}
@@ -48,11 +53,19 @@ export function FeatureInvoice({ ...props }) {
         {/* Image */}
         <Box width={flexDirection === 'row' ? '50%' : '100%'}>
           {/* <Box background="grey" width='100%' height={451} /> */}
-          <NextImage src={productImg} alt='screenshot from app' width={600} height={431.4}/>
+          <NextImage
+            src={productImg}
+            alt="screenshot from app"
+            width={600}
+            height={431.4}
+          />
         </Box>
 
         {/* Text */}
-        <Box width={flexDirection === 'row' ? '50%' : '100%'} textAlign={flexDirection === 'row' ? 'left' : 'center'}>
+        <Box
+          width={flexDirection === 'row' ? '50%' : '100%'}
+          textAlign={flexDirection === 'row' ? 'left' : 'center'}
+        >
           <Text fontSize={16} fontWeight={700} textColor="blue.1">
             CRYPTOCURRENCY INVOICING
           </Text>
@@ -60,45 +73,61 @@ export function FeatureInvoice({ ...props }) {
             The smart way to get paid as a web3 freelancer.
           </Heading>
           <List spacing={1} textAlign="left">
-            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+            <ListItem
+              display="flex"
+              gap={1}
+              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+            >
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 style={{ width: 'auto', height: 'auto' }}
-                type='avoid'
+                type="avoid"
               />
               <Text>
                 Prevent clients sending funds to the wrong wallet address
               </Text>
             </ListItem>
-            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+            <ListItem
+              display="flex"
+              gap={1}
+              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+            >
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 style={{ width: 'auto', height: 'auto' }}
-                type='menu'
+                type="menu"
               />
               <Text>Stay organized with all of your invoices in one place</Text>
             </ListItem>
-            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+            <ListItem
+              display="flex"
+              gap={1}
+              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+            >
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 style={{ width: 'auto', height: 'auto' }}
-                type='status'
+                type="status"
               />
               <Text>Quickly check the status of each of your invoices</Text>
             </ListItem>
-            <ListItem display="flex" gap={1} alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}>
+            <ListItem
+              display="flex"
+              gap={1}
+              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+            >
               <ListIcon
                 as={CustomIcon}
                 width={40}
                 height={40}
                 style={{ width: 'auto', height: 'auto' }}
-                type='pdf'
+                type="pdf"
               />
               <Text>Download PDFs of each invoice for your records</Text>
             </ListItem>
