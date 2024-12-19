@@ -1,11 +1,4 @@
-import {
-  Flex,
-  Grid,
-  GridItem,
-  Heading,
-  Link,
-  Text,
-} from '@chakra-ui/layout';
+import { Flex, Grid, GridItem, Heading, Link, Text } from '@chakra-ui/react';
 import NextImage from 'next/image';
 import { useEffect, useState } from 'react';
 

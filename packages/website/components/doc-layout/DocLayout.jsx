@@ -113,173 +113,164 @@ export function DocLayout({ children, metatags, title, active }) {
       />
 
       <NavBar />
-      {isLoaded ? (
-        <>
-          {mobile ? (
-            <Flex
-              direction="column"
-              flexGrow={1}
+      {isLoaded &&
+        (mobile ? (
+          <Flex
+            direction="column"
+            flexGrow={1}
+            paddingY={6}
+            paddingX={4}
+            gap={4}
+          >
+            <Button
+              ref={mobileMenuBtnRef}
+              background="white"
+              textColor="blue.1"
+              borderColor="blue.1"
+              borderWidth={2}
+              borderRadius={8}
               paddingY={6}
-              paddingX={4}
-              gap={4}
+              _hover={{ background: 'gray.background' }}
+              onClick={onOpen}
             >
-              <Button
-                ref={mobileMenuBtnRef}
-                background="white"
-                textColor="blue.1"
-                borderColor="blue.1"
-                borderWidth={2}
-                borderRadius={8}
-                paddingY={6}
-                _hover={{ background: 'gray.background' }}
-                onClick={onOpen}
-              >
-                View All Documentation
-              </Button>
-              <Drawer
-                isOpen={isOpen}
-                placement="left"
-                onClose={onClose}
-                finalFocusRef={mobileMenuBtnRef}
-              >
-                <DrawerOverlay />
-                <DrawerContent background="white">
-                  <DrawerCloseButton />
-                  <DrawerHeader>Documentation</DrawerHeader>
+              View All Documentation
+            </Button>
+            <Drawer
+              isOpen={isOpen}
+              placement="left"
+              onClose={onClose}
+              finalFocusRef={mobileMenuBtnRef}
+            >
+              <DrawerOverlay />
+              <DrawerContent background="white">
+                <DrawerCloseButton />
+                <DrawerHeader>Documentation</DrawerHeader>
 
-                  <DrawerBody>
-                    <VStack align="flex-start" width="100%">
-                      {docV3Menu.map((item, i) => (
-                        <div key={`${item.path}-${i}`}>
-                          <Link
-                            href={`/${item.path}/${item.topics[0].slug}`}
-                            _hover={{
-                              color: 'blue.1',
-                              background: 'gray.background',
-                            }}
-                            paddingY={1}
-                            paddingX={6}
+                <DrawerBody>
+                  <VStack align="flex-start" width="100%">
+                    {docV3Menu.map((item, i) => (
+                      <div key={`${item.path}-${i}`}>
+                        <Link
+                          href={`/${item.path}/${item.topics[0].slug}`}
+                          _hover={{
+                            color: 'blue.1',
+                            background: 'gray.background',
+                          }}
+                          paddingY={1}
+                          paddingX={6}
+                          width="100%"
+                          borderRadius={8}
+                          fontWeight="bold"
+                          onClick={onClose}
+                        >
+                          {item.category}
+                        </Link>
+                        {router.pathname.includes(item.path) && (
+                          <VStack
+                            align="flex-start"
+                            paddingLeft={4}
                             width="100%"
-                            borderRadius={8}
-                            fontWeight="bold"
-                            onClick={onClose}
                           >
-                            {item.category}
-                          </Link>
-                          {router.pathname.includes(item.path) && (
-                            <VStack
-                              align="flex-start"
-                              paddingLeft={4}
-                              width="100%"
-                            >
-                              {item.topics.map(topic => (
-                                <Link
-                                  key={`${topic.slug}`}
-                                  href={`/${item.path}/${topic.slug}`}
-                                  _hover={{
-                                    color: 'blue.1',
-                                    background: 'gray.background',
-                                  }}
-                                  paddingY={1}
-                                  paddingX={6}
-                                  width="100%"
-                                  color={active === topic.slug && 'blue.1'}
-                                  background={
-                                    active === topic.slug && 'gray.background'
-                                  }
-                                  borderRadius={8}
-                                  onClick={onClose}
-                                >
-                                  {topic.title}
-                                </Link>
-                              ))}
-                            </VStack>
-                          )}
-                        </div>
+                            {item.topics.map(topic => (
+                              <Link
+                                key={`${topic.slug}`}
+                                href={`/${item.path}/${topic.slug}`}
+                                _hover={{
+                                  color: 'blue.1',
+                                  background: 'gray.background',
+                                }}
+                                paddingY={1}
+                                paddingX={6}
+                                width="100%"
+                                color={active === topic.slug && 'blue.1'}
+                                background={
+                                  active === topic.slug && 'gray.background'
+                                }
+                                borderRadius={8}
+                                onClick={onClose}
+                              >
+                                {topic.title}
+                              </Link>
+                            ))}
+                          </VStack>
+                        )}
+                      </div>
+                    ))}
+                  </VStack>
+                </DrawerBody>
+
+                <DrawerFooter>
+                  <Button
+                    onClick={onClose}
+                    background="transparent"
+                    borderColor="blue.1"
+                    borderWidth={2}
+                    textColor="blue.1"
+                    borderRadius={6}
+                    _hover={{ background: 'gray.background' }}
+                  >
+                    Close
+                  </Button>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+            <Text fontWeight="bold" textColor="gray.dark">
+              {category}
+            </Text>
+            {children}
+          </Flex>
+        ) : (
+          <Flex flexGrow={1} paddingY={10}>
+            <VStack align="flex-start" padding={2} width={350} overflowY="auto">
+              {docV3Menu.map((item, i) => (
+                <div key={`${item.path}-${i}`}>
+                  <Link
+                    href={`/${item.path}/${item.topics[0].slug}`}
+                    _hover={{
+                      color: 'blue.1',
+                      background: 'gray.background',
+                    }}
+                    paddingY={1}
+                    paddingX={6}
+                    width="100%"
+                    borderRadius={8}
+                    fontWeight="bold"
+                  >
+                    {item.category}
+                  </Link>
+                  {router.pathname.includes(item.path) && (
+                    <VStack align="flex-start" paddingLeft={4} width="100%">
+                      {item.topics.map(topic => (
+                        <Link
+                          key={`${topic.slug}`}
+                          href={`/${item.path}/${topic.slug}`}
+                          _hover={{
+                            color: 'blue.1',
+                            background: 'gray.background',
+                          }}
+                          paddingY={1}
+                          paddingX={6}
+                          width="100%"
+                          color={active === topic.slug && 'blue.1'}
+                          background={
+                            active === topic.slug && 'gray.background'
+                          }
+                          borderRadius={8}
+                        >
+                          {topic.title}
+                        </Link>
                       ))}
                     </VStack>
-                  </DrawerBody>
-
-                  <DrawerFooter>
-                    <Button
-                      onClick={onClose}
-                      background="transparent"
-                      borderColor="blue.1"
-                      borderWidth={2}
-                      textColor="blue.1"
-                      borderRadius={6}
-                      _hover={{ background: 'gray.background' }}
-                    >
-                      Close
-                    </Button>
-                  </DrawerFooter>
-                </DrawerContent>
-              </Drawer>
-              <Text fontWeight="bold" textColor="gray.dark">
-                {category}
-              </Text>
+                  )}
+                </div>
+              ))}
+            </VStack>
+            <Flex justify="flex-start" flexGrow={1} paddingX={4}>
               {children}
             </Flex>
-          ) : (
-            <Flex flexGrow={1} paddingY={10}>
-              <VStack
-                align="flex-start"
-                padding={2}
-                width={350}
-                overflowY="auto"
-              >
-                {docV3Menu.map((item, i) => (
-                  <div key={`${item.path}-${i}`}>
-                    <Link
-                      href={`/${item.path}/${item.topics[0].slug}`}
-                      _hover={{
-                        color: 'blue.1',
-                        background: 'gray.background',
-                      }}
-                      paddingY={1}
-                      paddingX={6}
-                      width="100%"
-                      borderRadius={8}
-                      fontWeight="bold"
-                    >
-                      {item.category}
-                    </Link>
-                    {router.pathname.includes(item.path) && (
-                      <VStack align="flex-start" paddingLeft={4} width="100%">
-                        {item.topics.map(topic => (
-                          <Link
-                            key={`${topic.slug}`}
-                            href={`/${item.path}/${topic.slug}`}
-                            _hover={{
-                              color: 'blue.1',
-                              background: 'gray.background',
-                            }}
-                            paddingY={1}
-                            paddingX={6}
-                            width="100%"
-                            color={active === topic.slug && 'blue.1'}
-                            background={
-                              active === topic.slug && 'gray.background'
-                            }
-                            borderRadius={8}
-                          >
-                            {topic.title}
-                          </Link>
-                        ))}
-                      </VStack>
-                    )}
-                  </div>
-                ))}
-              </VStack>
-              <Flex justify="flex-start" flexGrow={1} paddingX={4}>
-                {children}
-              </Flex>
-            </Flex>
-          )}
-        </>
-      ) : (
-        <Flex flexGrow={1} />
-      )}
+          </Flex>
+        ))}
+      {!isLoaded && <Flex flexGrow={1} />}
       <Footer />
     </Flex>
   );

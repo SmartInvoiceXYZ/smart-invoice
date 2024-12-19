@@ -47,7 +47,6 @@ export function Footer({ ...props }) {
         },
         body: JSON.stringify({ email }),
       });
-      console.log('Submitted');
       const toastId = 'email-submitted';
       if (!toast.isActive(toastId)) {
         toast({
