@@ -6,13 +6,11 @@ Once your wallet is connected to Smart Invoice, click the “Dashboard” link a
 
 This will display a list of all of your invoices.
 
-<img src="/screenshots/smart-invoice-manage-invoice.png" />
+<img src="/screenshots/manage-invoices.png" />
 
-To open an invoice, you can click on the invoice in the list, or you can click the 3 dots next to your invoice in the “Action” column and click “Manage”.
+Click on an invoice in the list to open it.
 
-This will bring up your invoice.
-
-<img src="/screenshots/smart-invoice-deposit-funds-1.png" />
+<img src="/screenshots/client-invoice-view.png" />
 
 Here you can view all the details relevant to your invoice, and the specific actions you can perform. 
 

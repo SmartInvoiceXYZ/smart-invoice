@@ -6,8 +6,10 @@ Once your wallet is connected to Smart Invoice, click the “Dashboard” link a
 
 This will display a list of all of your invoices.
 
-<img src="/screenshots/smart-invoice-download-pdf-from-dashboard.png" />
+<img src="/screenshots/manage-invoices.png" />
 
-Click the 3 dots next to your invoice in the “Action” column. 
+Click on an invoice in the list to open it.
 
-Then click the “Download” option from the prompt. This will begin the download process of your PDF invoice to your computer.
+<img src="/screenshots/client-invoice-view.png" />
+
+Click "Preview and download invoice PDF" at the bottom left of your invoice.

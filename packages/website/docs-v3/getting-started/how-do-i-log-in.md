@@ -10,6 +10,4 @@ To use Smart Invoice, you simply connect your cryptocurrency wallet to the site 
 
 If the prompt doesn't automatically appear, click the "Create Invoice" button to trigger it.
 
-<img src='/screenshots/connect-your-wallet-2.png' />
-
-<img src='/screenshots/connect-your-wallet-1.png' />
+<img src='/screenshots/connect-your-wallet.png' />

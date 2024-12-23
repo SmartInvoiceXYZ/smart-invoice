@@ -4,9 +4,9 @@ title: Custom Arbitration Policy
 
 ## Introduction      
     
-[smartinvoice.xyz](https://smartinvoice.xyz) is determined to provide users with the utmost flexibility when configuring the escrow functionality of their SmartInvoice escrow contract. To this end, SmartInvoice offers users to include their custom contract address for arbitration when creating their invoice. All users are advised to verify that the smart contract acting as arbitrator is deployed on the same network the SmartInvoice escrow contract is going to be created.  
+Smart Invoice is determined to provide users with the utmost flexibility when configuring the escrow functionality of their escrow contract. To this end, Smart Invoice offers users to include their custom contract address for arbitration when creating their invoice. All users are advised to verify that the smart contract acting as arbitrator is deployed on the same network the Smart Invoice escrow contract is going to be created.  
   
-Furthermore, we advise users to agree with their counterparty on the use of a custom arbitrator in writing, as an improper configuration of an arbitrator MAY severely limit the functionality and security of the smart invoice protocol. The escrow functionality is non-custodial, thus, once the SmartInvoice escrow contract is deployed and funded, **we cannot help you** in recovering funds locked in the contract.  
+Furthermore, we advise users to agree with their counterparty on the use of a custom arbitrator in writing, as an improper configuration of an arbitrator MAY severely limit the functionality and security of the smart invoice protocol. The escrow functionality is non-custodial, thus, once the Smart Invoice escrow contract is deployed and funded, **we cannot help you** in recovering funds locked in the contract.  
   
 The platform, however, provides minimal functionality to support any arbitration and independently of the provider chosen, by prompting users to file a claim that is propagated to IPFS when locking the funds.  
     

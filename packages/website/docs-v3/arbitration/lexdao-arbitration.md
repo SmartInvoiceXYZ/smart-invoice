@@ -4,9 +4,9 @@ title: LexDAO Arbitration Policy
 
 ## Introduction  
   
-As part of our commitment to providing secure, transparent, and efficient mechanisms for resolving disputes, [smartinvoice.xyz](https://smartinvoice.xyz) provides an advanced arbitration feature in collaboration with the LexDAO Cooperative. This feature brings trust and reliability in pseudonymous digital transactions, making service agreements in Web3 safe. The arbitration process we have implemented serves is a crucial component in ensuring that all parties engaged in a transaction can resolve their conflicts in a fair and unbiased manner.  
+As part of our commitment to providing secure, transparent, and efficient mechanisms for resolving disputes, Smart Invoice provides an advanced arbitration feature in collaboration with the LexDAO Cooperative. This feature brings trust and reliability in pseudonymous digital transactions, making service agreements in Web3 safe. The arbitration process we have implemented serves is a crucial component in ensuring that all parties engaged in a transaction can resolve their conflicts in a fair and unbiased manner.  
   
-The choice of arbitration as a dispute resolution mechanism is motivated by the necessity to address disagreements swiftly and effectively, without the need for lengthy and often costly court proceedings. By integrating with the *LexDAO Resolver*,  [smartinvoice.xyz](https://smartinvoice.xyz) leverages the expertise of seasoned arbitrators and the robustness of smart contracts to offer a streamlined, secure process for resolving disputes.  
+The choice of arbitration as a dispute resolution mechanism is motivated by the necessity to address disagreements swiftly and effectively, without the need for lengthy and often costly court proceedings. By integrating with the *LexDAO Resolver*,  Smart Invoice leverages the expertise of seasoned arbitrators and the robustness of smart contracts to offer a streamlined, secure process for resolving disputes.  
   
 ## Arbitration Process  
   

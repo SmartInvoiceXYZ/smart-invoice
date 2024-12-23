@@ -41,10 +41,10 @@ export const docV3Menu = [
         title: "How to accept payments to your multisig wallet",
         slug: 'accept-payments-to-multisig-wallet'
       },
-      {
-        title: "How to verify your client’s wallet address",
-        slug: 'verify-client-wallet-address'
-      },
+      // {
+      //   title: "How to verify your client’s wallet address",
+      //   slug: 'verify-client-wallet-address'
+      // },
       {
         title: "How to add a custom arbitrator",
         slug: 'custom-arbitrator'
@@ -61,18 +61,18 @@ export const docV3Menu = [
         title: "How to request milestone payments be released from escrow",
         slug: 'request-milestone-payments-released-from-escrow'
       },
-      {
-        title: "How to add more milestones to an existing invoice",
-        slug: 'add-more-milestones-to-existing-invoice'
-      },
-      {
-        title: "How to download a PDF of your invoice",
-        slug: 'download-invoice-to-pdf'
-      },
-      {
-        title: "How to check the status of an invoice",
-        slug: 'check-invoice-status'
-      },
+      // {
+      //   title: "How to add more milestones to an existing invoice",
+      //   slug: 'add-more-milestones-to-existing-invoice'
+      // },
+      // {
+      //   title: "How to download a PDF of your invoice",
+      //   slug: 'download-invoice-to-pdf'
+      // },
+      // {
+      //   title: "How to check the status of an invoice",
+      //   slug: 'check-invoice-status'
+      // },
       {
         title: "How to lock a milestone and request arbitration if there is a dispute",
         slug: 'lock-milestone-and-request-arbitration'
@@ -132,17 +132,17 @@ export const docV3Menu = [
     path: 'arbitration',
     topics: [
       {
-        title: 'LexDAO Arbitration',
-        slug: 'lexdao-arbitration'
-
-      },
-      {
         title: 'Kleros Arbitration',
         slug: 'kleros-arbitration'
       },
       {
         title: 'Smart Invoice Arbitration',
         slug: 'smart-invoice-arbitration'
+      },
+      {
+        title: 'LexDAO Arbitration',
+        slug: 'lexdao-arbitration'
+
       },
       {
         title: 'Custom Arbitration',

@@ -24,17 +24,7 @@ For very large projects, you can add as many milestones and payments as you like
 
 While differing network fees will change the considerations for a rational minimum invoice amount, invoices can be created with very small amounts and will work exactly the same.
 
-
-### How to sort invoices in your dashboard
-
-Once you’ve connected your wallet to Smart Invoice, you are “logged in”. Click the “Dashboard” link at the top of the page to view all of your invoices.
-
-In the top row you will see titles for each of the columns. Next to each title is a little icon with 2 triangles. Click the icon next to the title to sort that column in another direction.
-
-
 ### I don’t see a specific token listed, why?
-
-Smart Invoice currently supports WETH, WXDAI, WBTC, renBTC, USDT, USDC, USDP, RAI, RAID, HAUS, FRAX, sUSD, GNO, MANA, GRT, BAT, and ROBOT.
 
 If you don’t see a supported token listed in the drop down menu, you may be connected to the wrong Network. 
 
@@ -54,36 +44,20 @@ Smart Invoice is a free tool. We do not charge any fee to use it.
 
 However, you will need to pay gas fees to transact on the blockchain. Your preferred wallet will display the fees to process a transaction. 
 
-If you dispute a payment and it goes to arbitration, there will be a fee that goes to the arbitrator to resolve the dispute. This is currently set at 5% of the disputed funds for LexDAO - however, you can modify this amount if you choose a custom arbitrator.
+If you dispute a payment and it goes to arbitration, there will be a fee that goes to the arbitrator to resolve the dispute. This is currently set at 5% of the disputed funds for Kleros - however, you can modify this amount if you choose a custom arbitrator.
 
 
 ### Can I put my logo on these invoices?
 
 At the moment it is not possible to customize invoices with custom branding. 
 
-This functionality, and much more customization, is on our product roadmap for the end of 2022.
-
-
 ### Can I use non-Ethereum wallet addresses?
 
 No. Smart Invoice only supports ERC-20 tokens. If your wallet address doesn’t support those, don’t use it with Smart Invoice.
 
-
-### What types of wallets does Smart Invoice support?
-
-Smart Invoice currently supports MetaMask and WalletConnect.
-
-
-### What cryptocurrencies does Smart Invoice support?
-
-Smart Invoice currently supports WETH, WXDAI, WBTC, renBTC, USDT, USDC, USDP, RAI, RAID, HAUS, FRAX, sUSD, GNO, MANA, GRT, BAT, and ROBOT.
-
-Invoices can be configured to accept any of these tokens.
-
-
 ### What blockchains does Smart Invoice support?
 
-Smart Invoice supports Ethereum Mainnet, Gnosis Chain, Rinkeby Testnet.
+Smart Invoice supports Ethereum Mainnet, Gnosis, Polygon, Arbitrum, Optimism, Base, Holesky, and Sepolia Testnet.
 
 
 ### Does Smart Invoice work with Bitcoin (BTC)?

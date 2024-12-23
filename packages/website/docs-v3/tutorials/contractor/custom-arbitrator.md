@@ -2,11 +2,11 @@
 title: How to add a custom arbitrator
 ---
 
-Currently Smart Invoice uses LexDAO as a trusted arbitration provider with a history of fairly resolving disputes.
+Currently Smart Invoice uses Kleros as a trusted arbitration provider with a history of fairly resolving disputes.
 
 However you can choose to use your own arbitrator if you wish.  You will be prompted to enter an Arbitration Provider Address while creating your invoice on Step 2: Payment Details.
 
-<img src="/screenshots/smart-invoice-add-custom-arbitrator-1.png" />
+<img src="/screenshots/custom-arbitrator.png" />
 
 You must confirm the arbitrator address is correct, and that your chosen arbitrator has access to this address. Otherwise, if the invoice is in dispute and locked, these funds will be unreachable until after the Safety Valve date.
 

@@ -2,23 +2,15 @@
 title: How to lock a milestone and request arbitration if there is a dispute
 ---
 
-Go to your Dashboard where all invoices are listed.
+Navigate to the invoice you want to lock.
 
-Click the 3 dots next to your invoice in the “Action” column and click “Manage”.
-
-<img src="/screenshots/smart-invoice-manage-invoice.png" />
-
-You will be taken to your invoice page.
-
-Here you can view all the details relevant to your invoice, and the specific actions you can perform. 
-
-<img src="/screenshots/smart-invoice-contractor-view-of-invoice.png" />
+<img src="/screenshots/contractor-invoice-view.png" />
 
 If there are any milestones that have been funded via escrow, but payments have not yet been released to your wallet address, you can click the “lock” button.
 
 This will display a prompt where you can enter the details of your dispute. These details will be sent to the arbitrator you selected during the invoice creation process. 
 
-<img src="/screenshots/smart-invoice-contractor-lock-funds.png" />
+<img src="/screenshots/contractor-lock-funds.png" />
 
 Click the “Lock” button to begin the arbitration process.
 
