@@ -50,8 +50,13 @@ module.exports = {
     'react/prop-types': 'off', // disable prop-types
     'react/require-default-props': 'off', // disable require default props
     'react/react-in-jsx-scope': 'off', // react in jsx scope
-    'react/jsx-filename-extension': [2, { extensions: ['.ts', '.tsx'] }],
+    'react/jsx-filename-extension': [2, { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
     'react/function-component-definition': 'off',
+    "react/no-array-index-key": "off",
+    "react/jsx-props-no-spreading": "off",
+    "no-use-before-define": "off",
+    "import/no-default-export": "off",
+    "import/prefer-named-exports": "off",
 
     // TS
     '@typescript-eslint/no-explicit-any': 'warn', // disable explicit any

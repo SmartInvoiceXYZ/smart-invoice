@@ -1,0 +1,30 @@
+{
+  "name": "@smartinvoicexyz/website",
+  "version": "0.1.0",
+  "dependencies": {
+    "@chakra-ui/react": "^2.8.2",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "framer-motion": "^11.5.6",
+    "gray-matter": "^4.0.3",
+    "marked": "^4.1.1",
+    "next": "^14.2.13",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remark": "^14.0.2",
+    "remark-html": "^15.0.1"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^14.2.7",
+    "eslint": "8.56.0",
+    "eslint-config-next": "^14.2.7"
+  },
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "next lint",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  }
+}
