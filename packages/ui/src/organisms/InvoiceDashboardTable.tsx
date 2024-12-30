@@ -232,7 +232,6 @@ export function InvoiceDashboardTable() {
             {table.getRowModel().rows.map(row => {
               const { address: invoiceAddr, chainId: invoiceChainId } =
                 row.original;
-              console.log(row.original);
               const url = `/invoice/${invoiceChainId}/${invoiceAddr}`;
 
               return (

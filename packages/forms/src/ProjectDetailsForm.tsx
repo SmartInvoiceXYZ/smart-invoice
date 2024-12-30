@@ -1,4 +1,4 @@
-import { Box, Button, Grid, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import { Box, Button, Grid, SimpleGrid, Stack } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ESCROW_STEPS, INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { ValueOf } from '@smartinvoicexyz/types';
