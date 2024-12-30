@@ -158,16 +158,17 @@ export function DepositTip({
         transition="all ease-in-out .25s"
         _hover={{ cursor: 'pointer' }}
       >
-        Tip Provider
+        Add a Tip
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem" color="blackAlpha.700">
-        Deposit a tip to the invoice
+        The invoice is fully paid! Add an optional tip to show your appreciation
+        for great service.
       </Text>
 
       <Stack spacing="0.5rem" align="center">
         <HStack>
           <Text fontWeight="500" color="blackAlpha.700">
-            Enter Deposit Amount
+            Enter Tip Amount
           </Text>
           {paymentType === PAYMENT_TYPES.NATIVE ? (
             <Tooltip
@@ -276,7 +277,7 @@ export function DepositTip({
         textTransform="uppercase"
         variant="solid"
       >
-        Deposit
+        Deposit Tip
       </Button>
       {transaction && (
         <Text textAlign="center" fontSize="sm">
