@@ -29,9 +29,17 @@ export const StyledButton = styled(Button)`
   }
 `;
 
-const LINKS = [
-  { label: 'Dashboard', href: '/invoices' },
-  { label: 'Documentation', href: 'https://docs.smartinvoice.xyz' },
+type Link = {
+  label: string;
+  href: string;
+  isInternal?: boolean;
+};
+
+const LINKS: Link[] = [
+  { label: 'Dashboard', href: '/invoices', isInternal: true },
+  { label: 'Documentation', href: 'https://smartinvoice.xyz' },
+  { label: 'About', href: 'https://smartinvoice.xyz/about' },
+  { label: 'Help', href: 'https://smartinvoice.xyz/misc/get-support' },
 ];
 
 export function Header() {
@@ -144,11 +152,12 @@ export function Header() {
           showBalance={false}
         />
 
-        {_.map(links, ({ label, href }) => (
+        {_.map(links, ({ label, href, isInternal }) => (
           <ChakraNextLink
             href={href}
             key={href}
             isExternal={!href?.startsWith('/')}
+            onClick={isInternal ? onToggle : undefined}
           >
             <StyledButton
               transition="all 0.5s ease 0.4s"
