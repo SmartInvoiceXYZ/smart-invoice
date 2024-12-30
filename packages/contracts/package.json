@@ -50,7 +50,7 @@
     "deploy-factory": "hardhat run scripts/deploy-factory.ts --network",
     "deploy-spoils-manager": "hardhat run scripts/deploy-spoils-manager.ts --network",
     "deploy-zap": "hardhat run scripts/deploy-zap.ts --network",
-    "flatten-all": "yarn flatten-factory && yarn flatten-instant && yarn flatten-escrow && yarn flatten-updatable && yarn flatten-spoils && yarn flatten-zap && yarn flatten-dao-zap",
+    "flatten-all": "mkdir -p flat && yarn flatten-factory && yarn flatten-instant && yarn flatten-escrow && yarn flatten-updatable && yarn flatten-spoils && yarn flatten-zap && yarn flatten-dao-zap",
     "flatten-dao-zap": "hardhat flatten contracts/SafeSplitsDaoEscrowZap.sol > flat/SafeSplitsDaoEscrowZap.sol",
     "flatten-escrow": "hardhat flatten contracts/SmartInvoiceEscrow.sol > flat/SmartInvoiceEscrow.sol",
     "flatten-factory": "hardhat flatten contracts/SmartInvoiceFactory.sol > flat/SmartInvoiceFactory.sol",

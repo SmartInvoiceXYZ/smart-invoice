@@ -10,16 +10,8 @@ import { encodeAbiParameters, Hex, isAddress, parseUnits } from 'viem';
 import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { SimulateContractErrorType, WriteContractErrorType } from './types';
-import { useDetailsPin } from './useDetailsPin';
 
 type OwnerAndAllocation = { address: string; percent: number };
-type ProjectDetails = {
-  projectName: string;
-  projectDescription: string;
-  projectAgreement: string;
-  startDate: number;
-  endDate: number;
-};
 
 const separateOwnersAndAllocations = (
   ownersAndAllocations: OwnerAndAllocation[],
@@ -45,7 +37,7 @@ export const useEscrowZap = ({
   projectTeamSplit = false,
   daoSplit = false,
   safetyValveDate,
-  detailsData,
+  details,
   enabled = true,
   networkConfig = NETWORK_CONFIG,
   token,
@@ -69,11 +61,6 @@ export const useEscrowZap = ({
     NETWORK_CONFIG[chainId] ? milestones : [],
     (a: { value: string }) => a.value && parseUnits(a.value, tokenDecimals),
   );
-  const { data: fetchedDetails, isLoading: detailsLoading } = useDetailsPin({
-    ...detailsData,
-  });
-
-  logDebug('details', fetchedDetails);
 
   const tokenAddress =
     _.get(networkConfig[chainId], `TOKENS.${token}.address`) ?? '0x0';
@@ -115,7 +102,6 @@ export const useEscrowZap = ({
   });
 
   const encodedEscrowData = useMemo(() => {
-    const details = detailsData ? fetchedDetails : '';
     if (
       !isAddress(client) ||
       !(arbitration === 0 || arbitration === 1) ||
@@ -146,14 +132,7 @@ export const useEscrowZap = ({
         details,
       ],
     );
-  }, [
-    tokenAddress,
-    safetyValveDate,
-    fetchedDetails,
-    client,
-    arbitration,
-    resolver,
-  ]);
+  }, [tokenAddress, safetyValveDate, details, client, arbitration, resolver]);
   logDebug('encodeEscrowData - ', {
     client,
     arbitration,
@@ -161,7 +140,7 @@ export const useEscrowZap = ({
     tokenAddress,
     safetyValveDate,
     saltNonce,
-    fetchedDetails,
+    details,
     milestoneAmounts,
     compiledData: !!encodedEscrowData,
   });
@@ -220,7 +199,7 @@ export const useEscrowZap = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading || detailsLoading,
+    isLoading: prepareLoading || writeLoading || !details,
     prepareError,
     writeError,
   };
@@ -237,7 +216,7 @@ interface UseEscrowZapProps {
   daoSplit?: boolean;
   token: { value?: string; label?: string };
   safetyValveDate: Date;
-  detailsData?: ProjectDetails;
+  details?: `0x${string}` | null;
   enabled?: boolean;
   networkConfig?: { [key: number]: NetworkConfig }; // to override the default network config
   onSuccess?: (hash: Hex) => void;
