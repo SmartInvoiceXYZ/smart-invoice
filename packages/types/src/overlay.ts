@@ -11,7 +11,8 @@ export type ModalType =
   | 'release'
   | 'resolve'
   | 'withdraw'
-  | 'addMilestones';
+  | 'addMilestones'
+  | 'depositTip';
 
 export type Modals = Record<ModalType, boolean>;
 
@@ -23,6 +24,7 @@ export const ModalTypes: Record<string, ModalType> = {
   RESOLVE: 'resolve' as ModalType,
   WITHDRAW: 'withdraw' as ModalType,
   ADD_MILESTONES: 'addMilestones' as ModalType,
+  TIP: 'depositTip' as ModalType,
 };
 
 export type OverlayContextType = {

@@ -1,6 +1,6 @@
 {
   "name": "@smartinvoicexyz/website",
-  "version": "0.1.0",
+  "version": "0.1.18",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.3",
@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.2.7",
-    "eslint": "8.56.0",
     "eslint-config-next": "^14.2.7"
   },
   "private": true,

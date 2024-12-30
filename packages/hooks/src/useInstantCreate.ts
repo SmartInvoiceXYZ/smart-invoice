@@ -185,7 +185,7 @@ export const useInstantCreate = ({
       onSuccess: async hash => {
         // wait for tx to confirm on chain
         setWaitingForTx(true);
-        toast.info(TOASTS.useInvoiceCreate.waitingForTx);
+        toast.loading(TOASTS.useInvoiceCreate.waitingForTx);
 
         const txData = await publicClient?.waitForTransactionReceipt({
           hash,
@@ -201,7 +201,7 @@ export const useInstantCreate = ({
           'invoice',
         );
         if (!localInvoiceId) return;
-        toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+        toast.loading(TOASTS.useInvoiceCreate.waitingForIndex);
 
         if (txData && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);

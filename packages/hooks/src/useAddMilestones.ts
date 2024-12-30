@@ -5,6 +5,7 @@ import {
 } from '@smartinvoicexyz/constants';
 import { waitForSubgraphSync } from '@smartinvoicexyz/graphql';
 import {
+  Document,
   FormInvoice,
   InvoiceDetails,
   InvoiceMetadata,
@@ -118,22 +119,28 @@ export const useAddMilestones = ({
       getResolverInfoByAddress(address, chainId)?.id ??
       'custom';
 
+    const newDocuments: Document[] = documents
+      ? [
+          ...documents.map(d => ({
+            ...uriToDocument(d.src),
+            createdAt: createdAt
+              ? Math.floor(parseToDate(createdAt).getTime() / 1000)
+              : Math.floor(new Date().getTime() / 1000),
+          })),
+        ]
+      : [];
+
+    const newDocument = uriToDocument(document);
+    if (newDocument) {
+      newDocuments.push(newDocument);
+    }
+
     return {
       version: INVOICE_VERSION,
       id: _.join([title, now, INVOICE_VERSION], '-'),
       title,
       description,
-      documents: documents
-        ? [
-            ...documents.map(d => ({
-              ...uriToDocument(d.src),
-              createdAt: createdAt
-                ? Math.floor(parseToDate(createdAt).getTime() / 1000)
-                : Math.floor(new Date().getTime() / 1000),
-            })),
-            uriToDocument(document),
-          ]
-        : [uriToDocument(document)],
+      documents: newDocuments,
       startDate: start,
       endDate: end,
       createdAt: now,
@@ -177,10 +184,10 @@ export const useAddMilestones = ({
     mutation: {
       onSuccess: async hash => {
         setWaitingForTx(true);
-        toast.info(TOASTS.useAddMilestone.waitingForTx);
+        toast.loading(TOASTS.useAddMilestone.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useAddMilestone.waitingForIndex);
+        toast.loading(TOASTS.useAddMilestone.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

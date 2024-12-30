@@ -8,11 +8,8 @@ import {
   Icon,
   InputGroup,
   InputProps as ChakraInputProps,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
   NumberInput as ChakraNumberInput,
   NumberInputField,
-  NumberInputStepper,
   Stack,
   Tooltip,
 } from '@chakra-ui/react';
@@ -113,12 +110,8 @@ export function NumberInput({
                   name={restField.name}
                   placeholder={placeholder}
                 />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
               </ChakraNumberInput>
-              {rightElement || null}
+              <HStack>{rightElement || null}</HStack>
             </InputGroup>
             {helperText && <FormHelperText>{helperText}</FormHelperText>}
 

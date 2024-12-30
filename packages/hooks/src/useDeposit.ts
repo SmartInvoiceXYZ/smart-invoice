@@ -65,10 +65,10 @@ export const useDeposit = ({
   } = useWriteContract({
     mutation: {
       onSuccess: async hash => {
-        toast.info(TOASTS.useDeposit.waitingForTx);
+        toast.loading(TOASTS.useDeposit.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useDeposit.waitingForIndex);
+        toast.loading(TOASTS.useDeposit.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
@@ -81,10 +81,10 @@ export const useDeposit = ({
   const { isPending: sendLoading, sendTransactionAsync } = useSendTransaction({
     mutation: {
       onSuccess: async hash => {
-        toast.info(TOASTS.useDeposit.waitingForTx);
+        toast.loading(TOASTS.useDeposit.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useDeposit.waitingForIndex);
+        toast.loading(TOASTS.useDeposit.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

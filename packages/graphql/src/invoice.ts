@@ -115,110 +115,111 @@ export const fetchInvoice = async (
 ): Promise<Invoice | null> => {
   const address = isAddress(queryAddress) && queryAddress;
   if (!address || !chainId) return null;
-
-  const data = await fetchTypedQuery(chainId)({
-    invoice: [
-      {
-        id: address,
-        subgraphError: _SubgraphErrorPolicy_.allow,
-      },
-      {
-        id: true,
-        address: true,
-        token: true,
-        amounts: true,
-        client: true,
-        createdAt: true,
-        currentMilestone: true,
-        deposits: [
-          {
-            // first: 10,
-            orderBy: Deposit_orderBy.timestamp,
-            orderDirection: OrderDirection.desc,
-          },
-          {
-            id: true,
-            txHash: true,
-            sender: true,
-            amount: true,
-            timestamp: true,
-          },
-        ],
-        ipfsHash: true,
-        disputes: [
-          {
-            orderBy: Dispute_orderBy.timestamp,
-            orderDirection: OrderDirection.desc,
-          },
-          {
-            id: true,
-            details: true,
-            disputeFee: true,
-            disputeId: true,
-            disputeToken: true,
-            ipfsHash: true,
-            sender: true,
-            timestamp: true,
-            txHash: true,
-          },
-        ],
-        invoiceType: true,
-        isLocked: true,
-        network: true,
-        provider: true,
-        providerReceiver: true,
-        releases: [
-          {
-            orderBy: Release_orderBy.timestamp,
-            orderDirection: OrderDirection.desc,
-          },
-          {
-            id: true,
-            amount: true,
-            milestone: true,
-            timestamp: true,
-            txHash: true,
-          },
-        ],
-        released: true,
-        resolutionRate: true,
-        resolutions: [
-          {
-            orderBy: Resolution_orderBy.timestamp,
-            orderDirection: OrderDirection.desc,
-          },
-          {
-            id: true,
-            clientAward: true,
-            ipfsHash: true,
-            providerAward: true,
-            resolutionDetails: true,
-            resolutionFee: true,
-            resolver: true,
-            resolverType: true,
-            timestamp: true,
-            txHash: true,
-          },
-        ],
-        resolver: true,
-        resolverType: true,
-        terminationTime: true,
-        total: true,
-        verified: [
-          {
-            orderBy: Verified_orderBy.client,
-            orderDirection: OrderDirection.asc,
-          },
-          {
-            id: true,
-            client: true,
-          },
-        ],
-        version: true,
-      },
-    ],
-  });
-
+  const data = await fetchTypedQuery(chainId)(
+    {
+      invoice: [
+        {
+          id: address,
+          subgraphError: _SubgraphErrorPolicy_.allow,
+        },
+        {
+          id: true,
+          address: true,
+          token: true,
+          amounts: true,
+          client: true,
+          createdAt: true,
+          currentMilestone: true,
+          deposits: [
+            {
+              // first: 10,
+              orderBy: Deposit_orderBy.timestamp,
+              orderDirection: OrderDirection.desc,
+            },
+            {
+              id: true,
+              txHash: true,
+              sender: true,
+              amount: true,
+              timestamp: true,
+            },
+          ],
+          ipfsHash: true,
+          disputes: [
+            {
+              orderBy: Dispute_orderBy.timestamp,
+              orderDirection: OrderDirection.desc,
+            },
+            {
+              id: true,
+              details: true,
+              disputeFee: true,
+              disputeId: true,
+              disputeToken: true,
+              ipfsHash: true,
+              sender: true,
+              timestamp: true,
+              txHash: true,
+            },
+          ],
+          invoiceType: true,
+          isLocked: true,
+          network: true,
+          provider: true,
+          providerReceiver: true,
+          releases: [
+            {
+              orderBy: Release_orderBy.timestamp,
+              orderDirection: OrderDirection.desc,
+            },
+            {
+              id: true,
+              amount: true,
+              milestone: true,
+              timestamp: true,
+              txHash: true,
+            },
+          ],
+          released: true,
+          resolutionRate: true,
+          resolutions: [
+            {
+              orderBy: Resolution_orderBy.timestamp,
+              orderDirection: OrderDirection.desc,
+            },
+            {
+              id: true,
+              clientAward: true,
+              ipfsHash: true,
+              providerAward: true,
+              resolutionDetails: true,
+              resolutionFee: true,
+              resolver: true,
+              resolverType: true,
+              timestamp: true,
+              txHash: true,
+            },
+          ],
+          resolver: true,
+          resolverType: true,
+          terminationTime: true,
+          total: true,
+          verified: [
+            {
+              orderBy: Verified_orderBy.client,
+              orderDirection: OrderDirection.asc,
+            },
+            {
+              id: true,
+              client: true,
+            },
+          ],
+          version: true,
+        },
+      ],
+    },
+    { fetchPolicy: 'network-only' },
+  );
   logDebug({ invoice: data?.invoice, address });
 
   if (!data?.invoice) return null;

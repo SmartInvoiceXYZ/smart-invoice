@@ -21,7 +21,6 @@ const buildInvoicesFilter = (searchAddress: SearchAddressType) => {
 export type InvoiceDisplayData = {
   id: string;
   address: Hex;
-  createdAt: bigint;
   invoiceType?: string | undefined;
   chainId: number;
   network: string;
@@ -29,6 +28,17 @@ export type InvoiceDisplayData = {
   released: bigint;
   token: Hex;
   total: bigint;
+  deposits: { amount: bigint }[];
+  releases: { amount: bigint }[];
+  amounts: bigint[];
+  isLocked: boolean;
+  terminationTime: bigint;
+  status?:
+    | 'Awaiting Funds'
+    | 'In Progress'
+    | 'Locked'
+    | 'Expired'
+    | 'Completed';
   tokenMetadata: {
     id: string;
     decimals: number;
@@ -52,34 +62,42 @@ export const fetchInvoices = async (
   const sortDirection = sortDesc ? OrderDirection.desc : OrderDirection.asc;
   const where = buildInvoicesFilter(searchAddress);
 
-  const data = await fetchTypedQuery(chainId)({
-    invoices: [
-      {
-        first: pageSize,
-        skip: pageIndex * pageSize,
-        orderBy: sortBy,
-        orderDirection: sortDirection,
-        where,
-        subgraphError: _SubgraphErrorPolicy_.allow,
-      },
-      {
-        id: true,
-        address: true,
-        createdAt: true,
-        invoiceType: true,
-        network: true,
-        ipfsHash: true,
-        released: true,
-        token: true,
-        total: true,
-        tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
-        provider: true,
-        providerReceiver: true,
-        client: true,
-        resolver: true,
-      },
-    ],
-  });
+  const data = await fetchTypedQuery(chainId)(
+    {
+      invoices: [
+        {
+          first: pageSize,
+          skip: pageIndex * pageSize,
+          orderBy: sortBy,
+          orderDirection: sortDirection,
+          where,
+          subgraphError: _SubgraphErrorPolicy_.allow,
+        },
+        {
+          id: true,
+          address: true,
+          invoiceType: true,
+          network: true,
+          ipfsHash: true,
+          released: true,
+          token: true,
+          total: true,
+          isLocked: true,
+          deposits: [{}, { amount: true }],
+          releases: [{}, { amount: true }],
+          amounts: true,
+          withdraws: [{}, { amount: true }],
+          tokenMetadata: { id: true, decimals: true, name: true, symbol: true },
+          provider: true,
+          providerReceiver: true,
+          client: true,
+          resolver: true,
+          terminationTime: true,
+        },
+      ],
+    },
+    { fetchPolicy: 'network-only' },
+  );
 
   logDebug({
     data,
@@ -95,6 +113,7 @@ export const fetchInvoices = async (
     return {
       ...invoice,
       chainId,
+      amounts: invoice.amounts.map(amount => BigInt(amount)),
     };
   }) as InvoiceDisplayData[];
 };

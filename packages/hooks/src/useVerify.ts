@@ -52,10 +52,10 @@ export const useVerify = ({
     mutation: {
       onSuccess: async hash => {
         setWaitingForTx(true);
-        toast.info(TOASTS.useVerify.waitingForTx);
+        toast.loading(TOASTS.useVerify.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useVerify.waitingForIndex);
+        toast.loading(TOASTS.useVerify.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

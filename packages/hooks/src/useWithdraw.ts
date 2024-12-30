@@ -53,10 +53,10 @@ export const useWithdraw = ({
     mutation: {
       onSuccess: async hash => {
         setWaitingForTx(true);
-        toast.info(TOASTS.useWithdraw.waitingForTx);
+        toast.loading(TOASTS.useWithdraw.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useWithdraw.waitingForIndex);
+        toast.loading(TOASTS.useWithdraw.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.18
+
+### Patch Changes
+
+- ux audit fixes
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.18
+  - @smartinvoicexyz/shared@0.1.18
+
 ## 0.1.17
 
 ### Patch Changes

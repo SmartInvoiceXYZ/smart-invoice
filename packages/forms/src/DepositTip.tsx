@@ -5,7 +5,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Checkbox,
   Flex,
   Heading,
   HStack,
@@ -27,7 +26,6 @@ import {
   commify,
   getNativeTokenSymbol,
   getTxLink,
-  getUpdatedCheckAmount,
   getWrappedNativeToken,
 } from '@smartinvoicexyz/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,7 +35,7 @@ import { useForm } from 'react-hook-form';
 import { formatEther, formatUnits, Hex, parseUnits } from 'viem';
 import { useAccount, useBalance, useChainId } from 'wagmi';
 
-export function DepositFunds({
+export function DepositTip({
   invoice,
   onClose,
 }: {
@@ -48,7 +46,6 @@ export function DepositFunds({
     tokenMetadata,
     amounts,
     deposited,
-    currentMilestoneNumber,
     currentMilestoneAmount,
     depositedMilestones,
   } = _.pick(invoice, [
@@ -86,7 +83,6 @@ export function DepositFunds({
     watch('amount', '0'),
     tokenMetadata?.decimals || 18,
   );
-  const checked = watch('checked');
 
   const totalAmount =
     amounts?.reduce((acc, val) => acc + BigInt(val), BigInt(0)) ?? BigInt(0);
@@ -116,12 +112,12 @@ export function DepositFunds({
 
   const onTxSuccess = () => {
     toast.success(TOASTS.useDeposit.success);
-    // close modal
-    onClose();
     // invalidate cache
     queryClient.invalidateQueries({
       queryKey: [QUERY_KEY_INVOICE_DETAILS],
     });
+    // close modal
+    onClose();
   };
 
   const { handleDeposit, isLoading, prepareError } = useDeposit({
@@ -162,59 +158,17 @@ export function DepositFunds({
         transition="all ease-in-out .25s"
         _hover={{ cursor: 'pointer' }}
       >
-        Pay Invoice
+        Add a Tip
       </Heading>
       <Text textAlign="center" fontSize="sm" mb="1rem" color="blackAlpha.700">
-        At a minimum, you&apos;ll need to deposit enough to cover the{' '}
-        {currentMilestoneNumber === 0 ? 'first' : 'next'} project payment.
+        The invoice is fully paid! Add an optional tip to show your appreciation
+        for great service.
       </Text>
-      <Text textAlign="center" color="blue.400">
-        How much will you be depositing today?
-      </Text>
-      <Stack spacing="0.5rem" align="center">
-        {_.map(amounts, (localAmount: number, i: number) => (
-          <Checkbox
-            mx="auto"
-            key={i.toString()}
-            isChecked={checked?.[i]}
-            isDisabled={depositedMilestones?.[i]}
-            onChange={e => {
-              const { updateChecked, updateAmount } = getUpdatedCheckAmount({
-                e,
-                i,
-                previousChecked: checked,
-                invoice,
-              });
-
-              // update form values
-              setValue('checked', updateChecked);
-              setValue(
-                'amount',
-                formatUnits(updateAmount, tokenMetadata?.decimals || 18),
-              );
-            }}
-            color="blue.900"
-            border="none"
-            size="lg"
-            fontSize="1rem"
-          >
-            <Text>
-              Payment #{i + 1} -{'  '}
-              {commify(
-                formatUnits(BigInt(localAmount), tokenMetadata?.decimals || 18),
-              )}{' '}
-              {tokenMetadata?.symbol}
-            </Text>
-          </Checkbox>
-        ))}
-      </Stack>
-
-      <Text>OR</Text>
 
       <Stack spacing="0.5rem" align="center">
         <HStack>
           <Text fontWeight="500" color="blackAlpha.700">
-            Enter a Manual Deposit Amount
+            Enter Tip Amount
           </Text>
           {paymentType === PAYMENT_TYPES.NATIVE ? (
             <Tooltip
@@ -268,25 +222,14 @@ export function DepositFunds({
             }
           />
         </Flex>
-        <Stack gap={4} mt={4}>
-          {!!currentMilestoneAmount && amount > currentMilestoneAmount && (
-            <Alert status="warning" borderRadius="md">
-              <AlertIcon />
-              <AlertTitle fontSize="sm">
-                Your deposit is greater than the total amount due!
-              </AlertTitle>
-            </Alert>
-          )}
-
-          {displayBalance && displayBalance < formatEther(amount) && (
-            <Alert status="error" borderRadius="md">
-              <AlertIcon />
-              <AlertTitle fontSize="sm">
-                Your balance is less than the amount you are trying to deposit!
-              </AlertTitle>
-            </Alert>
-          )}
-        </Stack>
+        {displayBalance && displayBalance < formatEther(amount) && (
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <AlertTitle fontSize="sm">
+              Your balance is less than the amount you are trying to deposit!
+            </AlertTitle>
+          </Alert>
+        )}
       </Stack>
       <Flex
         color="blackAlpha.700"
@@ -308,14 +251,6 @@ export function DepositFunds({
             </Text>
           </Stack>
         )}
-        {!!currentMilestoneAmount && (
-          <Stack>
-            <Text fontWeight="bold">Total Due</Text>
-            <Text>
-              {`${_.toNumber(formatUnits(BigInt(currentMilestoneAmount), tokenMetadata?.decimals || 18)).toFixed(4)} ${tokenMetadata?.symbol}`}
-            </Text>
-          </Stack>
-        )}
         {displayBalance && (
           <Stack align="flex-end">
             <Text fontWeight="bold">Your Balance</Text>
@@ -332,12 +267,17 @@ export function DepositFunds({
 
       <Button
         onClick={depositHandler}
-        isDisabled={amount <= 0 || !!prepareError || !hasAmount}
+        isDisabled={
+          Number.isNaN(Number(amount)) ||
+          amount <= 0 ||
+          !!prepareError ||
+          !hasAmount
+        }
         isLoading={isLoading}
         textTransform="uppercase"
         variant="solid"
       >
-        Deposit
+        Deposit Tip
       </Button>
       {transaction && (
         <Text textAlign="center" fontSize="sm">
