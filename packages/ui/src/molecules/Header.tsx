@@ -37,7 +37,10 @@ type Link = {
 
 const LINKS: Link[] = [
   { label: 'Dashboard', href: '/invoices', isInternal: true },
-  { label: 'Documentation', href: 'https://smartinvoice.xyz' },
+  {
+    label: 'Documentation',
+    href: 'https://smartinvoice.xyz/getting-started/what-is-smart-invoice',
+  },
   { label: 'About', href: 'https://smartinvoice.xyz/about' },
   { label: 'Help', href: 'https://smartinvoice.xyz/misc/get-support' },
 ];

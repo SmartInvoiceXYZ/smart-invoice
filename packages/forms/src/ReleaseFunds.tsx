@@ -80,7 +80,7 @@ export function ReleaseFunds({
         color="blackAlpha.800"
       >
         Follow the instructions in your wallet to release funds from the escrow
-        to provider account.
+        to the provider account.
       </Text>
       <Stack
         my="2rem"

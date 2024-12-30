@@ -28,10 +28,10 @@ import {
   Input,
   NumberInput,
   QuestionIcon,
+  ReactSelect,
   Textarea,
   useMediaStyles,
 } from '@smartinvoicexyz/ui';
-import { ReactSelect } from '@smartinvoicexyz/ui/src/forms/ReactSelect';
 import {
   commify,
   escrowPaymentsSchema,

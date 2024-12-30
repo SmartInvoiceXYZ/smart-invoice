@@ -76,12 +76,16 @@ export function InvoiceButtonManager({
     const isFullPaid = due === BigInt(0);
 
     const bEnabled: ButtonEnabled = {
-      deposit: isClient && !isDisputed && !isFullPaid,
+      deposit:
+        (isClient || (!isProvider && !isResolver)) &&
+        !isDisputed &&
+        !isFullPaid,
       lock: (isProvider || isClient) && isLockable && !isDisputed,
       release: isReleasable && isClient && !isDisputed,
       resolve: isResolver && isLocked && isDisputed,
       withdraw: isClient && isWithdrawable && isExpired && !isDisputed,
-      tip: isClient && !isDisputed && isFullPaid,
+      tip:
+        (isClient || (!isProvider && !isResolver)) && !isDisputed && isFullPaid,
     };
 
     const nColumns = _.size(_.pickBy(bEnabled, value => value === true));
