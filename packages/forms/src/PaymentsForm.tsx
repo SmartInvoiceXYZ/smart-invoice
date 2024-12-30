@@ -133,12 +133,9 @@ export function PaymentsForm({
             defaultValue={nativeWrappedToken.toLowerCase()}
             tooltip={
               <Text>
-                {`This is the cryptocurrency you'll receive payment in. The
-                network your wallet is connected to determines which allTokens
-                display here.`}
+                {`This is the cryptocurrency you'll receive payment in. The network your wallet is connected to determines which tokens are displayed here.`}
                 <br />
-                {`If you change your wallet network now,
-                you'll be forced to start the invoice over.`}
+                {`If you change your wallet network now, you'll be sent back to Step 1.`}
               </Text>
             }
             localForm={localForm}
@@ -154,7 +151,7 @@ export function PaymentsForm({
           <HStack spacing={4}>
             <FormLabel m={0}>Milestones</FormLabel>
             <Tooltip
-              label="Amounts of each milestone for the escrow. Additional milestones can be added later."
+              label="Payment amounts for each milestone. Additional milestones can be added later."
               placement="right"
               hasArrow
               shouldWrapChildren
