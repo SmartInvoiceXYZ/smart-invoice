@@ -10,6 +10,7 @@ import {
   Flex,
   Link,
   Text,
+  useBreakpointValue,
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
@@ -22,39 +23,22 @@ import { docV3Menu } from '../../sidebars';
 import { Footer } from '../layout/Footer';
 import { NavBar } from '../layout/NavBar';
 
-export function DocLayout({ children, metatags, title, active }) {
-  const [mobile, setMobile] = useState(true);
+export function DocLayout({ children, title, active }) {
   const [category, setCategory] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const router = useRouter();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const mobile = useBreakpointValue({ base: true, lg: false });
   const mobileMenuBtnRef = React.useRef();
 
   useEffect(() => {
-    if (window) {
-      setIsLoaded(true);
-      toggleMobileMode();
-      window.addEventListener('resize', toggleMobileMode);
-    }
-  });
-
-  useEffect(() => getCategory(), [router.pathname]);
-
-  function toggleMobileMode() {
-    if (window.innerWidth < 900) {
-      setMobile(true);
-    } else {
-      setMobile(false);
-    }
-  }
-
-  function getCategory() {
     const docMenuItem = docV3Menu.find(item =>
       router.pathname.includes(item.path),
     );
     setCategory(docMenuItem.category);
-  }
+    setIsLoaded(true);
+  }, [router.pathname]);
 
   return (
     <Flex direction="column" minHeight="100vh">

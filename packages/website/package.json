@@ -1,13 +1,6 @@
 {
   "name": "@smartinvoicexyz/website",
   "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.3",
@@ -25,5 +18,13 @@
     "@next/eslint-plugin-next": "^14.2.7",
     "eslint": "8.56.0",
     "eslint-config-next": "^14.2.7"
+  },
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "next lint",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   }
 }

@@ -17,7 +17,8 @@ import plorPfp from '../../public/pfp/plor.svg';
 import spengrahPfp from '../../public/pfp/spengrah.svg';
 import tufnelPfp from '../../public/pfp/tufnel.svg';
 
-export function TeamSection({ ...props }) {
+// TODO: update team to 2025
+export function TeamSection() {
   const teamMembers = [
     {
       name: 'launchninja',

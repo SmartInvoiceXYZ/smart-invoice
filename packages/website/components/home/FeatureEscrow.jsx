@@ -8,61 +8,46 @@ import {
   Text,
 } from '@chakra-ui/react';
 import NextImage from 'next/image';
-import React, { useEffect, useState } from 'react';
 
 import productImg from '../../public/assets/home/escrow-release-screenshot.svg';
 import { CustomIcon } from '../icons/CheckSquare';
 
 export function FeatureEscrow({ ...props }) {
-  const [flexDirection, setFlexDirection] = useState('row');
-  const [columns, setColumns] = useState(2);
-
-  useEffect(() => {
-    if (window) {
-      toggleDirection();
-      window.addEventListener('resize', toggleDirection);
-    }
-  });
-
-  function toggleDirection() {
-    if (window.innerWidth < 800) {
-      setFlexDirection('column');
-      setColumns(1);
-    } else {
-      setFlexDirection('row');
-      setColumns(2);
-    }
-  }
-
   return (
     <Flex justify="center" overflowX="hidden">
       <Flex
-        direction={flexDirection}
-        paddingTop={flexDirection === 'row' ? 16 : 20}
-        paddingBottom={flexDirection === 'row' ? 16 : 12}
+        direction={{ base: 'column', lg: 'row' }}
+        pt={{ base: 20, lg: 16 }}
+        pb={{ base: 16, lg: 12 }}
         paddingX={8}
         justify="space-between"
         align="center"
-        gap={flexDirection === 'row' ? 10 : 2}
+        gap={{ base: 2, lg: 10 }}
         width="100%"
         {...props}
       >
         {/* Text */}
         <Flex
           direction="column"
-          width={flexDirection === 'row' ? '50%' : '100%'}
-          alignItems={flexDirection === 'row' ? 'end' : 'center'}
+          w={{ base: '100%', lg: '50%' }}
+          align={{ base: 'center', lg: 'end' }}
         >
           <Text fontSize={16} fontWeight={700} textColor="blue.1">
             CRYPTOCURRENCY ESCROW
           </Text>
           <Heading>Protect your money.</Heading>
           <Heading mb={6}>Protect your time.</Heading>
-          <List width={flexDirection === 'row' ? '80%' : '100%'} spacing={3}>
+          <List
+            width={{
+              base: '100%',
+              lg: '80% ',
+            }}
+            spacing={3}
+          >
             <ListItem
               display="flex"
               gap={2}
-              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+              alignItems={{ base: 'flex-start', lg: 'center' }}
             >
               <ListIcon
                 as={CustomIcon}
@@ -79,7 +64,7 @@ export function FeatureEscrow({ ...props }) {
             <ListItem
               display="flex"
               gap={2}
-              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+              alignItems={{ base: 'flex-start', lg: 'center' }}
             >
               <ListIcon
                 as={CustomIcon}
@@ -95,7 +80,7 @@ export function FeatureEscrow({ ...props }) {
             <ListItem
               display="flex"
               gap={2}
-              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+              alignItems={{ base: 'flex-start', lg: 'center' }}
             >
               <ListIcon
                 as={CustomIcon}
@@ -112,7 +97,7 @@ export function FeatureEscrow({ ...props }) {
             <ListItem
               display="flex"
               gap={2}
-              alignItems={flexDirection === 'row' ? 'center' : 'flex-start'}
+              alignItems={{ base: 'flex-start', lg: 'center' }}
             >
               <ListIcon
                 as={CustomIcon}
@@ -127,7 +112,12 @@ export function FeatureEscrow({ ...props }) {
         </Flex>
 
         {/* Image */}
-        <Box width={flexDirection === 'row' ? '50%' : '100%'}>
+        <Box
+          width={{
+            base: '100%',
+            lg: '80% ',
+          }}
+        >
           <NextImage
             src={productImg}
             alt="screenshot from app"
