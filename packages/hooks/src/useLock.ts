@@ -105,10 +105,10 @@ export const useLock = ({
     mutation: {
       onSuccess: async hash => {
         setWaitingForTx(true);
-        toast.info(TOASTS.useLock.waitingForTx);
+        toast.loading(TOASTS.useLock.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useLock.waitingForIndex);
+        toast.loading(TOASTS.useLock.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

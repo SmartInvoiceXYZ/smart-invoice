@@ -66,7 +66,7 @@ export function CreateInvoiceEscrow() {
     nextStepHandler();
   };
 
-  const { writeAsync, isLoading, isProcessing } = useInvoiceCreate({
+  const { writeAsync, isLoading } = useInvoiceCreate({
     invoiceForm,
     toast,
     onTxSuccess,
@@ -120,7 +120,7 @@ export function CreateInvoiceEscrow() {
             <StepInfo
               stepNum={currentStep}
               stepsDetails={ESCROW_STEPS}
-              goBack={goBackHandler}
+              goBack={isLoading ? undefined : goBackHandler}
             />
             {currentStep === 1 && (
               <ProjectDetailsForm
@@ -151,7 +151,6 @@ export function CreateInvoiceEscrow() {
                 canSubmit={!!writeAsync}
                 isLoading={isLoading}
                 type={INVOICE_TYPES.Escrow}
-                isProcessing={isProcessing}
               />
             )}
 

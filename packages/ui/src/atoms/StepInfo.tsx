@@ -11,7 +11,6 @@ import {
 } from '@chakra-ui/react';
 import { ESCROW_STEPS } from '@smartinvoicexyz/constants';
 import { hashCode } from '@smartinvoicexyz/utils';
-import React from 'react';
 
 import { BackArrowIcon } from '../icons/ArrowIcons';
 
@@ -22,7 +21,7 @@ export function StepInfo({
 }: {
   stepNum: number;
   stepsDetails: typeof ESCROW_STEPS;
-  goBack: () => void;
+  goBack: (() => void) | undefined;
 }) {
   const maxW = useBreakpointValue({ base: '100%' });
 
@@ -38,7 +37,7 @@ export function StepInfo({
   return (
     <Stack spacing="1rem" maxW={maxW} align="stretch">
       <Flex justify="space-between" my={4} align="center">
-        {stepNum !== 1 && stepNum !== 5 ? (
+        {stepNum !== 1 && stepNum !== 5 && !!goBack ? (
           <IconButton
             icon={
               <Icon
