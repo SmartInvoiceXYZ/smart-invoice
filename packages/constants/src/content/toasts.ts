@@ -31,7 +31,8 @@ export const TOASTS = {
     },
     success: {
       title: 'Deposit successful',
-      description: 'Your deposit has been made. Refreshing balances...',
+      description:
+        'Your payment has been deposited into the invoice. Refreshing balances...',
     },
   },
   useRelease: {
@@ -48,7 +49,7 @@ export const TOASTS = {
     success: {
       title: 'Release successful',
       description:
-        'Your release has been sent to provider account. Refreshing balances...',
+        'Your payment has been released to the provider. Refreshing balances...',
     },
   },
   useLock: {
@@ -64,7 +65,8 @@ export const TOASTS = {
     },
     success: {
       title: 'Lock successful',
-      description: 'Your lock has been made. Refreshing balances...',
+      description:
+        'Your invoice has been locked for dispute. Refreshing balances...',
     },
   },
   useWithdraw: {
