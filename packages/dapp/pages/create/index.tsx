@@ -11,31 +11,40 @@ import {
   ProjectDetailsForm,
   RegisterSuccess,
 } from '@smartinvoicexyz/forms';
-import { useInvoiceCreate } from '@smartinvoicexyz/hooks';
+import {
+  QUERY_KEY_INVOICE_DETAILS,
+  useInvoiceCreate,
+} from '@smartinvoicexyz/hooks';
 import {
   Container,
-  NetworkChangeAlertModal,
   StepInfo,
   useMediaStyles,
   useToast,
 } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Address, Hex } from 'viem';
-
-import { useOverlay } from '../../contexts/OverlayContext';
+import { useChainId } from 'wagmi';
 
 export function CreateInvoiceEscrow() {
   const invoiceForm = useForm();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const overlay = useOverlay();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [txHash, setTxHash] = useState<Hex>();
 
   const [invoiceId, setInvoiceId] = useState<Address>();
   const { headingSize, columnWidth } = useMediaStyles();
+  const chainId = useChainId();
+  const [currentChainId, setCurrentChainId] = useState(chainId);
+
+  useEffect(() => {
+    if (chainId !== currentChainId) {
+      setCurrentChainId(chainId);
+      setCurrentStep(1);
+    }
+  }, [chainId, currentChainId]);
 
   const nextStepHandler = () => {
     setCurrentStep(currentStep + 1);
@@ -48,7 +57,7 @@ export function CreateInvoiceEscrow() {
   const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
-    queryClient.invalidateQueries({ queryKey: ['invoiceDetails'] });
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICE_DETAILS] });
     queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
 
     setInvoiceId(result as Address);
@@ -80,8 +89,6 @@ export function CreateInvoiceEscrow() {
         my="2rem"
         maxW="45rem"
       >
-        <NetworkChangeAlertModal {...overlay} />
-
         <Stack
           spacing={{ base: '1.5rem', lg: '1rem' }}
           w={{ base: '100%', md: 'auto' }}
@@ -113,7 +120,7 @@ export function CreateInvoiceEscrow() {
             <StepInfo
               stepNum={currentStep}
               stepsDetails={ESCROW_STEPS}
-              goBack={goBackHandler}
+              goBack={isLoading ? undefined : goBackHandler}
             />
             {currentStep === 1 && (
               <ProjectDetailsForm

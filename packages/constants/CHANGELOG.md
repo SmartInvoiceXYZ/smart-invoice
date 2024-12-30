@@ -1,5 +1,11 @@
 # @smartinvoicexyz/constants
 
+## 0.1.18
+
+### Patch Changes
+
+- ux audit fixes
+
 ## 0.1.17
 
 ### Patch Changes

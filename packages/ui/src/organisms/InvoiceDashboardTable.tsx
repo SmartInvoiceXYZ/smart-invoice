@@ -14,11 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { InvoiceDisplayData } from '@smartinvoicexyz/graphql';
 import { useInvoices, useIpfsDetails } from '@smartinvoicexyz/hooks';
-import {
-  getAccountString,
-  getChainName,
-  getDateTimeString,
-} from '@smartinvoicexyz/utils';
+import { getAccountString, getChainName } from '@smartinvoicexyz/utils';
 import {
   CellContext,
   createColumnHelper,
@@ -37,6 +33,43 @@ import { useMediaStyles } from '../hooks';
 import { Styles } from '../molecules/InvoicesStyles';
 import { theme } from '../theme';
 
+const getStatusColor = (status?: string) => {
+  switch (status) {
+    case 'In Progress':
+      return 'green.400';
+    case 'Completed':
+      return 'blue.400';
+    case 'Locked':
+      return 'red.400';
+    case 'Expired':
+      return 'gray.400';
+    case 'Awaiting Funds':
+      return 'yellow.400';
+    default:
+      return 'green.400';
+  }
+};
+
+function StatusCell({
+  cell,
+}: {
+  cell: CellContext<InvoiceDisplayData, string | undefined>;
+}) {
+  const color = getStatusColor(cell.getValue());
+  return (
+    <Box
+      backgroundColor={color}
+      padding="4px 8px"
+      width="fit-content"
+      borderRadius="4px"
+      textAlign="center"
+      color="white"
+    >
+      {cell.getValue()}
+    </Box>
+  );
+}
+
 function InvoiceDisplay({
   cell,
 }: {
@@ -48,6 +81,9 @@ function InvoiceDisplay({
 
   return data?.title || data?.projectName || getAccountString(address);
 }
+const renderStatusCell = (
+  cell: CellContext<InvoiceDisplayData, string | undefined>,
+) => <StatusCell cell={cell} />;
 
 const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
@@ -107,24 +143,10 @@ export function InvoiceDashboardTable() {
           cell: info => info.getValue(),
         },
       ),
-      columnHelper.accessor(
-        row => {
-          const value = formatUnits(
-            row.released ?? BigInt(0),
-            row.tokenMetadata?.decimals || 18,
-          );
-          const symbol = row.tokenMetadata?.symbol;
-          return `${value} ${symbol}`;
-        },
-        {
-          id: 'released',
-          header: 'Released',
-          cell: info => info.getValue(),
-        },
-      ),
-      columnHelper.accessor('createdAt', {
-        header: 'Created',
-        cell: info => getDateTimeString(info.getValue()),
+      columnHelper.accessor('status', {
+        id: 'status',
+        header: 'Status',
+        cell: renderStatusCell,
       }),
     ],
     getCoreRowModel: getCoreRowModel(),
@@ -210,7 +232,6 @@ export function InvoiceDashboardTable() {
             {table.getRowModel().rows.map(row => {
               const { address: invoiceAddr, chainId: invoiceChainId } =
                 row.original;
-              console.log(row.original);
               const url = `/invoice/${invoiceChainId}/${invoiceAddr}`;
 
               return (

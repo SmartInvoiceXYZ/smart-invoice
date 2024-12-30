@@ -6,11 +6,9 @@ import {
 } from '@chakra-ui/react';
 import { ToastProps, UseToastReturn } from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 
 import { Toast } from '../atoms';
-
-const DEFAULT_TOAST_DURATION = 3000;
 
 const ToastBase = ({
   toast,
@@ -32,7 +30,7 @@ const ToastBase = ({
     description,
     status,
     id,
-    duration: duration ?? DEFAULT_TOAST_DURATION,
+    duration,
     position: 'top-right',
     ...props,
     render: () => (
@@ -62,38 +60,43 @@ export const useToast = (): UseToastReturn => {
 
   return {
     success(props: Omit<ToastProps, 'status'>) {
+      closeToast();
       toastIdRef.current = ToastBase({
+        ...closeProps,
         ...props,
         status: 'success' as ChakraAlertStatus,
-        ...closeProps,
       });
     },
     error(props: Omit<ToastProps, 'status'>) {
+      closeToast();
       toastIdRef.current = ToastBase({
+        ...closeProps,
         ...props,
         status: 'error' as ChakraAlertStatus,
-        ...closeProps,
       });
     },
     warning(props: Omit<ToastProps, 'status'>) {
+      closeToast();
       toastIdRef.current = ToastBase({
+        ...closeProps,
         ...props,
         status: 'warning' as ChakraAlertStatus,
-        ...closeProps,
       });
     },
     loading(props: Omit<ToastProps, 'status'>) {
+      closeToast();
       toastIdRef.current = ToastBase({
+        ...closeProps,
         ...props,
         status: 'loading' as ChakraAlertStatus,
-        ...closeProps,
       });
     },
     info(props: Omit<ToastProps, 'status'>) {
+      closeToast();
       toastIdRef.current = ToastBase({
+        ...closeProps,
         ...props,
         status: 'info' as ChakraAlertStatus,
-        ...closeProps,
       });
     },
   };

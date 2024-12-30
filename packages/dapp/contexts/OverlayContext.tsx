@@ -15,6 +15,7 @@ const defaults: Modals = {
   resolve: false,
   withdraw: false,
   addMilestones: false,
+  depositTip: false,
 };
 
 export const OverlayContext = createContext({} as OverlayContextType);

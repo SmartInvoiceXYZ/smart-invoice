@@ -10,6 +10,7 @@ import { useMemo } from 'react';
 import { useAccount, useChainId } from 'wagmi';
 
 import { DepositFunds } from './DepositFunds';
+import { DepositTip } from './DepositTip';
 import { LockFunds } from './LockFunds';
 import { ReleaseFunds } from './ReleaseFunds';
 import { ResolveFunds } from './ResolveFunds';
@@ -21,6 +22,7 @@ type ButtonEnabled = {
   release: boolean;
   resolve: boolean;
   withdraw: boolean;
+  tip: boolean;
 };
 
 export function InvoiceButtonManager({
@@ -46,6 +48,7 @@ export function InvoiceButtonManager({
       isWithdrawable: isInvoiceWithdrawable,
       dispute,
       resolution,
+      due,
     } = _.pick(invoice, [
       'client',
       'provider',
@@ -58,6 +61,7 @@ export function InvoiceButtonManager({
       'tokenBalance',
       'dispute',
       'resolution',
+      'due',
     ]);
 
     const isProvider = _.toLower(address) === _.toLower(provider);
@@ -69,13 +73,19 @@ export function InvoiceButtonManager({
     const isReleasable = isInvoiceReleasable ?? false;
     const isWithdrawable = isInvoiceWithdrawable ?? false;
     const isExpired = isInvoiceExpired ?? false;
+    const isFullPaid = due === BigInt(0);
 
     const bEnabled: ButtonEnabled = {
-      deposit: !isDisputed,
+      deposit:
+        (isClient || (!isProvider && !isResolver)) &&
+        !isDisputed &&
+        !isFullPaid,
       lock: (isProvider || isClient) && isLockable && !isDisputed,
       release: isReleasable && isClient && !isDisputed,
       resolve: isResolver && isLocked && isDisputed,
       withdraw: isClient && isWithdrawable && isExpired && !isDisputed,
+      tip:
+        (isClient || (!isProvider && !isResolver)) && !isDisputed && isFullPaid,
     };
 
     const nColumns = _.size(_.pickBy(bEnabled, value => value === true));
@@ -117,6 +127,15 @@ export function InvoiceButtonManager({
             Deposit
           </Button>
         )}
+        {buttonEnabled.tip && (
+          <Button
+            variant="solid"
+            textTransform="uppercase"
+            onClick={() => openModal(ModalTypes.TIP)}
+          >
+            Tip
+          </Button>
+        )}
         {buttonEnabled.release && (
           <Button
             variant="solid"
@@ -152,6 +171,9 @@ export function InvoiceButtonManager({
       </Modal>
       <Modal isOpen={modals?.withdraw} onClose={closeModals}>
         <WithdrawFunds invoice={invoice} onClose={closeModals} />
+      </Modal>
+      <Modal isOpen={modals?.depositTip} onClose={closeModals}>
+        <DepositTip invoice={invoice} onClose={closeModals} />
       </Modal>
     </>
   );

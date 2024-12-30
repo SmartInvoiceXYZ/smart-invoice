@@ -9,7 +9,11 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
-import { FormLock, useLock } from '@smartinvoicexyz/hooks';
+import {
+  FormLock,
+  QUERY_KEY_INVOICE_DETAILS,
+  useLock,
+} from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   AccountLink,
@@ -54,9 +58,8 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: ['invoiceDetails'],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS],
     });
-    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
 
     onClose();
   };

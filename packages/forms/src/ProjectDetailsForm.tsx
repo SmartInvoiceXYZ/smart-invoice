@@ -50,6 +50,7 @@ export function ProjectDetailsForm({
 
   const localForm = useForm({
     resolver: yupResolver(projectDetailsSchema),
+    mode: 'onChange',
     defaultValues: {
       title,
       description,
@@ -104,12 +105,12 @@ export function ProjectDetailsForm({
         <LinkInput
           name="document"
           label="Project Proposal, Agreement or Specification"
-          tooltip="A URL to a project proposal, agreement or specification. This could be a RIP or other proposal. This is optional."
+          tooltip="A URL to a project proposal, agreement or specification. This is optional."
           placeholder="github.com/AcmeAcademy/buidler"
           localForm={localForm}
         />
 
-        <SimpleGrid columns={3}>
+        <SimpleGrid columns={3} paddingBottom={4}>
           <DatePicker
             label="Start Date"
             name="startDate"

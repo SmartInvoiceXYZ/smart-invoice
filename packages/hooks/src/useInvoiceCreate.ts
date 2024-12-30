@@ -19,6 +19,7 @@ import {
   parseTxLogs,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -33,6 +34,7 @@ import {
 import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
+import { QUERY_KEY_INVOICES } from './useInvoices';
 
 const ESCROW_TYPE = toHex('updatable', { size: 32 });
 
@@ -57,6 +59,8 @@ export const useInvoiceCreate = ({
   const chainId = useChainId();
   const publicClient = usePublicClient();
   const [waitingForTx, setWaitingForTx] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
@@ -221,7 +225,7 @@ export const useInvoiceCreate = ({
       onSuccess: async hash => {
         // wait for tx to confirm on chain
         setWaitingForTx(true);
-        toast.info(TOASTS.useInvoiceCreate.waitingForTx);
+        toast.loading(TOASTS.useInvoiceCreate.waitingForTx);
 
         const txData = await publicClient?.waitForTransactionReceipt({
           hash,
@@ -236,12 +240,14 @@ export const useInvoiceCreate = ({
           'invoice',
         );
         if (!localInvoiceId) return;
-        toast.info(TOASTS.useInvoiceCreate.waitingForIndex);
+        toast.loading(TOASTS.useInvoiceCreate.waitingForIndex);
 
         if (txData && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
         }
         setWaitingForTx(false);
+
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICES] });
 
         // pass back to component for further processing
         onTxSuccess?.(localInvoiceId);

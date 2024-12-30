@@ -63,10 +63,10 @@ export const useRelease = ({
     mutation: {
       onSuccess: async hash => {
         setWaitingForTx(true);
-        toast.info(TOASTS.useRelease.waitingForTx);
+        toast.loading(TOASTS.useRelease.waitingForTx);
         const receipt = await publicClient?.waitForTransactionReceipt({ hash });
 
-        toast.info(TOASTS.useRelease.waitingForIndex);
+        toast.loading(TOASTS.useRelease.waitingForIndex);
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }

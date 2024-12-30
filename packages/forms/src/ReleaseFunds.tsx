@@ -1,6 +1,6 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
-import { useRelease } from '@smartinvoicexyz/hooks';
+import { QUERY_KEY_INVOICE_DETAILS, useRelease } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useToast } from '@smartinvoicexyz/ui';
 import { useQueryClient } from '@tanstack/react-query';
@@ -49,9 +49,8 @@ export function ReleaseFunds({
     toast.success(TOASTS.useRelease.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: ['invoiceDetails'],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS],
     });
-    queryClient.invalidateQueries({ queryKey: ['extendedInvoiceDetails'] });
     // close modal
     onClose();
   };
@@ -80,8 +79,8 @@ export function ReleaseFunds({
         w="60%"
         color="blackAlpha.800"
       >
-        Follow the instructions in your wallet to release funds from escrow to
-        the raid party.
+        Follow the instructions in your wallet to release funds from the escrow
+        to the provider account.
       </Text>
       <Stack
         my="2rem"
