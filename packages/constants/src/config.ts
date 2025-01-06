@@ -84,8 +84,7 @@ const LEXDAO_DATA: ResolverWithoutAddress = {
   id: 'lexdao',
   name: 'LexDAO',
   logoUrl: '/assets/lex-dao.png',
-  termsUrl:
-    'https://github.com/lexDAO/Arbitration/blob/master/rules/ToU.md#lexdao-resolver',
+  termsUrl: 'https://docs.smartinvoice.xyz/arbitration/lexdao-arbitration',
 };
 
 const KLEROS_DATA: ResolverWithoutAddress = {
@@ -94,8 +93,7 @@ const KLEROS_DATA: ResolverWithoutAddress = {
   disclaimer:
     'Only choose Kleros if total invoice value is greater than 1000 USD',
   logoUrl: '/assets/kleros.svg',
-  termsUrl:
-    'https://docs.google.com/document/d/1z_l2Wc8YHSspB0Lm5cmMDhu9h0W5G4thvDLqWRtuxbA/',
+  termsUrl: 'https://docs.smartinvoice.xyz/arbitration/kleros-arbitration',
 };
 
 const SMART_INVOICE_ARBITRATION_DATA: ResolverWithoutAddress = {

@@ -229,7 +229,7 @@ export function InvoicePaymentDetails({
                             isExternal
                             color="grey"
                             fontStyle="italic"
-                            href={getTxLink(chainId, release.txHash)}
+                            href={getTxLink(invoice?.chainId, release.txHash)}
                           >
                             Released{' '}
                             {new Date(
@@ -243,7 +243,7 @@ export function InvoicePaymentDetails({
                             isExternal
                             color="grey"
                             fontStyle="italic"
-                            href={getTxLink(chainId, deposit?.txHash)}
+                            href={getTxLink(invoice?.chainId, deposit?.txHash)}
                           >
                             {`${_.capitalize(depositedText)} `}
                             {new Date(
@@ -347,7 +347,7 @@ export function InvoicePaymentDetails({
                         {`A dispute is in progress with `}
                         <AccountLink
                           address={resolver as Hex}
-                          chainId={chainId}
+                          chainId={invoice?.chainId}
                         />
                         <br />
                         {!isEmptyIpfsHash(dispute.ipfsHash) && (
@@ -363,7 +363,7 @@ export function InvoicePaymentDetails({
                           </>
                         )}
                         <Link
-                          href={getTxLink(chainId, dispute.txHash)}
+                          href={getTxLink(invoice?.chainId, dispute.txHash)}
                           color="blue.1"
                           isExternal
                         >
@@ -405,7 +405,7 @@ export function InvoicePaymentDetails({
                           <Text maxW="300px" color="purple">
                             <AccountLink
                               address={resolver as Hex}
-                              chainId={chainId}
+                              chainId={invoice?.chainId}
                             />
                             {
                               ' has resolved the dispute and dispersed remaining funds'
@@ -436,7 +436,10 @@ export function InvoicePaymentDetails({
                               </>
                             )}
                             <Link
-                              href={getTxLink(chainId, resolution.txHash)}
+                              href={getTxLink(
+                                invoice?.chainId,
+                                resolution.txHash,
+                              )}
                               isExternal
                             >
                               <u>View transaction</u>
@@ -460,7 +463,7 @@ export function InvoicePaymentDetails({
                                 )} ${tokenMetadata?.symbol} to `}
                                 <AccountLink
                                   address={detail.distributee as Hex}
-                                  chainId={chainId}
+                                  chainId={invoice?.chainId}
                                 />
                               </Text>
                             ),
