@@ -103,8 +103,8 @@ export function DatePicker({
             </HStack>
             <Box>
               <ReactDatePicker
-                {...props}
                 {...field}
+                {...props}
                 selected={value}
                 customInput={
                   <Button variant={variant}>

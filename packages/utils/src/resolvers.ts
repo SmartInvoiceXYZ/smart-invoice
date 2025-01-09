@@ -190,7 +190,7 @@ export const projectDetailsSchema = Yup.object().shape({
     Yup.ref('endDate'),
     'Deadline must be after End Date',
   ),
-  safetyValveDate: Yup.date().when('endDate', (endDate, schema) => {
+  safetyValveDate: Yup.date().when(['endDate'], (endDate, schema) => {
     return schema.min(
       sevenDaysFromDate(endDate.toString()),
       'Safety Valve Date must be at least 7 days after End Date',

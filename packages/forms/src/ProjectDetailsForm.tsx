@@ -12,6 +12,7 @@ import {
 import {
   oneMonthFromNow,
   projectDetailsSchema,
+  sevenDaysFromDate,
   sevenDaysFromNow,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
@@ -64,7 +65,9 @@ export function ProjectDetailsForm({
 
   const {
     handleSubmit,
-    formState: { isValid },
+    setValue: setFormValue,
+    formState: { isValid, errors },
+    trigger,
   } = localForm;
 
   const { primaryButtonSize } = useMediaStyles();
@@ -116,12 +119,21 @@ export function ProjectDetailsForm({
             name="startDate"
             tooltip="The date the project is expected to start"
             localForm={localForm}
+            onChange={(v: Date) => {
+              setFormValue('startDate', v);
+              trigger();
+            }}
           />
           <DatePicker
             label="Estimated End Date"
             name="endDate"
             tooltip="The date the project is expected to end. This value is not formally used in the escrow."
             localForm={localForm}
+            onChange={(v: Date) => {
+              setFormValue('endDate', v);
+              setFormValue('deadline', sevenDaysFromDate(v));
+              trigger();
+            }}
           />
           {type === INVOICE_TYPES.Instant ? (
             <DatePicker
@@ -137,6 +149,10 @@ export function ProjectDetailsForm({
               name="safetyValveDate"
               tooltip="The date the client can withdraw funds. Should be well in the future generally!"
               localForm={localForm}
+              onChange={(v: Date) => {
+                setFormValue('safetyValveDate', v);
+                trigger();
+              }}
             />
           )}
         </SimpleGrid>
