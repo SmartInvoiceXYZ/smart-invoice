@@ -38,11 +38,13 @@ export const useLock = ({
   localForm,
   onTxSuccess,
   toast,
+  details,
 }: {
   invoice: InvoiceDetails;
   localForm: UseFormReturn<FormLock>;
   onTxSuccess?: () => void;
   toast: UseToastReturn;
+  details?: Hex | null;
 }): {
   writeAsync: () => Promise<Hex | undefined>;
   isLoading: boolean;
@@ -60,6 +62,9 @@ export const useLock = ({
   const publicClient = usePublicClient();
 
   const detailsData = useMemo(() => {
+    if (details) {
+      return null;
+    }
     const now = Math.floor(new Date().getTime() / 1000);
     const title = `Dispute ${metadata?.title} at ${getDateString(now)}`;
     return {
@@ -70,7 +75,7 @@ export const useLock = ({
       documents: document ? [uriToDocument(document)] : [],
       createdAt: now,
     } as BasicMetadata;
-  }, [description, document, metadata]);
+  }, [description, document, metadata, details]);
 
   const { data: detailsHash, isLoading: detailsLoading } = useDetailsPin(
     detailsData,
@@ -85,12 +90,12 @@ export const useLock = ({
     address: invoice?.address as Hex,
     functionName: 'lock',
     abi: SMART_INVOICE_UPDATABLE_ABI,
-    args: [detailsHash as Hex],
+    args: [details ?? (detailsHash as Hex)],
     query: {
       enabled:
         !!invoice?.address &&
         !!description &&
-        !!detailsHash &&
+        (!!details || !!detailsHash) &&
         currentChainId === invoiceChainId,
     },
   });
@@ -134,7 +139,11 @@ export const useLock = ({
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading || waitingForTx || detailsLoading,
+    isLoading:
+      prepareLoading ||
+      writeLoading ||
+      waitingForTx ||
+      !(details || !detailsLoading),
     prepareError,
     writeError,
   };

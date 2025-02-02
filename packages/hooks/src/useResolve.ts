@@ -35,11 +35,13 @@ export const useResolve = ({
   localForm,
   onTxSuccess,
   toast,
+  details,
 }: {
   invoice: Partial<InvoiceDetails>;
   localForm: UseFormReturn<FormResolve>;
   onTxSuccess: () => void;
-  toast: UseToastReturn;
+  toast?: UseToastReturn;
+  details?: Hex | null;
 }): {
   writeAsync: () => Promise<Hex | undefined>;
   isLoading: boolean;
@@ -61,6 +63,9 @@ export const useResolve = ({
   );
 
   const detailsData = useMemo(() => {
+    if (details) {
+      return null;
+    }
     const now = Math.floor(new Date().getTime() / 1000);
     const title = `Resolve ${metadata?.title} at ${getDateString(now)}`;
     return {
@@ -71,7 +76,7 @@ export const useResolve = ({
       documents: document ? [uriToDocument(document)] : [],
       createdAt: now,
     } as BasicMetadata;
-  }, [description, document, metadata]);
+  }, [description, document, metadata, details]);
 
   const { data: detailsHash, isLoading: detailsLoading } = useDetailsPin(
     detailsData,
@@ -102,14 +107,14 @@ export const useResolve = ({
     address: address as Hex,
     functionName: 'resolve',
     abi: SMART_INVOICE_UPDATABLE_ABI,
-    args: [clientAward, providerAward, detailsHash as Hex],
+    args: [clientAward, providerAward, details ?? (detailsHash as Hex)],
     query: {
       enabled:
         !!address &&
         fullBalance &&
         isLocked &&
         tokenBalance.value > BigInt(0) &&
-        !!detailsHash &&
+        (!!details || !!detailsHash) &&
         !!description,
     },
   });
@@ -135,7 +140,9 @@ export const useResolve = ({
 
         onTxSuccess?.();
       },
-      onError: error => errorToastHandler('useResolve', error, toast),
+      onError: error => {
+        if (toast) errorToastHandler('useResolve', error, toast);
+      },
     },
   });
 
@@ -146,14 +153,18 @@ export const useResolve = ({
       }
       return writeContractAsync(data.request);
     } catch (error) {
-      errorToastHandler('useResolve', error as Error, toast);
+      if (toast) errorToastHandler('useResolve', error as Error, toast);
       return undefined;
     }
   }, [writeContractAsync, data]);
 
   return {
     writeAsync,
-    isLoading: prepareLoading || writeLoading || waitingForTx || detailsLoading,
+    isLoading:
+      prepareLoading ||
+      writeLoading ||
+      waitingForTx ||
+      !(details || !detailsLoading),
     prepareError,
     writeError,
   };
