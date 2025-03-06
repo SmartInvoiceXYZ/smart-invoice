@@ -42,7 +42,7 @@ async function getDeploymentTransactionHash(
   while (left <= right) {
     const mid = left + (right - left) / 2n;
     // eslint-disable-next-line no-await-in-loop
-    const code = await client.getBytecode({
+    const code = await client.getCode({
       address: contractAddress,
       blockNumber: mid,
     });
