@@ -50,6 +50,7 @@ type Invoice @entity {
   daoFee: BigInt
   # updatable fields
   providerReceiver: Bytes
+  clientReceiver: Bytes
 }
 
 enum ADR @entity {
