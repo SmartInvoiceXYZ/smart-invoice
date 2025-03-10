@@ -6,6 +6,7 @@ import { updateEscrowInfo } from './helpers/escrow';
 import { updateInstantInfo } from './helpers/instant';
 import { updateSplitEscrowInfo } from './helpers/split-escrow';
 import { updateUpdatableInfo } from './helpers/updatable-escrow';
+import { updateUpdatableV2Info } from './helpers/updatable-v2';
 
 let zeroAddress = changetype<Address>(
   Address.fromHexString('0x0000000000000000000000000000000000000000'),
@@ -43,11 +44,13 @@ export class InvoiceObject {
   dao: Address;
   daoFee: BigInt;
   providerReceiver: Address;
+  clientReceiver: Address;
 
   constructor() {
     this.client = zeroAddress;
     this.provider = zeroAddress;
     this.providerReceiver = zeroAddress;
+    this.clientReceiver = zeroAddress;
     this.resolverType = 0;
     this.resolver = zeroAddress;
     this.resolutionRate = BigInt.fromI32(0);
@@ -103,6 +106,8 @@ export function updateInvoice(address: Address, invoice: Invoice): Invoice {
     invoice = updateSplitEscrowInfo(address, invoice);
   } else if (type == 'updatable') {
     invoice = updateUpdatableInfo(address, invoice);
+  } else if (type == 'updatable-v2') {
+    invoice = updateUpdatableV2Info(address, invoice);
   } else {
     invoice = updateInstantInfo(address, invoice);
   }
