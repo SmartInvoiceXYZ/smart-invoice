@@ -66,7 +66,7 @@ export function ProjectDetailsForm({
   const {
     handleSubmit,
     setValue: setFormValue,
-    formState: { isValid, errors },
+    formState: { isValid },
     trigger,
   } = localForm;
 
