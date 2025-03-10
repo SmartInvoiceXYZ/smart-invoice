@@ -52,7 +52,9 @@ const fetchTokens = async () => {
   return [] as IToken[];
 };
 
-export const useFetchTokens = ({ enabled = true }: { enabled: boolean }) => {
+export const useFetchTokens = (
+  { enabled }: { enabled: boolean } = { enabled: true },
+) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tokens'],
     queryFn: fetchTokens,
