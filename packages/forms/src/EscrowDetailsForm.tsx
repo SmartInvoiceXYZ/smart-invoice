@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -5,11 +6,14 @@ import {
   AlertTitle,
   Box,
   Button,
+  Checkbox as ChakraCheckbox,
   Flex,
   Grid,
+  Icon,
   Link,
   Stack,
   Text,
+  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -28,7 +32,7 @@ import {
   isKnownResolver,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { useChainId } from 'wagmi';
 
@@ -39,11 +43,17 @@ export function EscrowDetailsForm({
   invoiceForm: UseFormReturn;
   updateStep: (_i?: number) => void;
 }) {
+  const [isClientReceiverChecked, setIsClientReceiverChecked] = useState(false);
+  const [isProviderReceiverChecked, setIsProviderReceiverChecked] =
+    useState(false);
+
   const chainId = useChainId();
   const { watch, setValue } = invoiceForm;
   const {
     provider,
+    providerReceiver,
     client,
+    clientReceiver,
     resolverType,
     resolverAddress,
     isResolverTermsChecked,
@@ -54,13 +64,26 @@ export function EscrowDetailsForm({
     resolver: yupResolver(escrowDetailsSchema(chainId)),
     defaultValues: {
       client,
+      clientReceiver,
       provider,
+      providerReceiver,
       resolverAddress,
       resolverType: resolverType || ('kleros' as KnownResolverType),
       isResolverTermsChecked,
       klerosCourt: klerosCourt || 1,
     },
   });
+
+  const { setValue: setLocalValue } = localForm;
+
+  useEffect(() => {
+    if (providerReceiver) {
+      setIsProviderReceiverChecked(true);
+    }
+    if (clientReceiver) {
+      setIsClientReceiverChecked(true);
+    }
+  }, [providerReceiver, clientReceiver]);
 
   const {
     handleSubmit,
@@ -70,7 +93,9 @@ export function EscrowDetailsForm({
 
   const onSubmit = (values: Partial<FormInvoice>) => {
     setValue('client', values?.client);
+    setValue('clientReceiver', values?.clientReceiver);
     setValue('provider', values?.provider);
+    setValue('providerReceiver', values?.providerReceiver);
     setValue('resolverType', values?.resolverType);
     setValue('resolverAddress', values?.resolverAddress);
     setValue('isResolverTermsChecked', values?.isResolverTermsChecked);
@@ -93,24 +118,104 @@ export function EscrowDetailsForm({
         <Stack spacing={4}>
           <Input
             label="Client Address"
-            tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds with. It's essential your client has control of this address."
+            tooltip="This is the wallet address your client uses to access the invoice, pay with, & release escrow funds. Ensure your client has full control of this address."
             placeholder="0x..."
             name="client"
             localForm={localForm}
             registerOptions={{ required: true }}
           />
         </Stack>
+        <Stack spacing={4}>
+          <Flex gap={2}>
+            <ChakraCheckbox
+              onChange={e => {
+                setIsClientReceiverChecked(e.target.checked);
+                if (!e.target.checked) {
+                  setLocalValue('clientReceiver', undefined);
+                }
+              }}
+              isChecked={isClientReceiverChecked}
+            >
+              Use a separate receiver address for the client?
+            </ChakraCheckbox>
+            <Tooltip
+              label="(Optional) If the invoice expires or a dispute results in a refund, any returned funds will be sent to this address instead of the client's controlling address."
+              shouldWrapChildren
+              hasArrow
+              placement="end"
+            >
+              <Icon
+                as={InfoOutlineIcon}
+                boxSize={3}
+                color="blue.500"
+                bg="white"
+                borderRadius="full"
+              />
+            </Tooltip>
+          </Flex>
+        </Stack>
+        {isClientReceiverChecked && (
+          <Stack spacing={4}>
+            <Input
+              label="Client Receiver Address"
+              placeholder="0x..."
+              name="clientReceiver"
+              localForm={localForm}
+              registerOptions={{ required: true }}
+            />
+          </Stack>
+        )}
 
-        <Flex>
+        <Stack spacing={4}>
           <Input
             label="Service Provider Address"
-            tooltip="This is the address of the recipient/provider. It's how you access this invoice & where you'll receive funds released from escrow. It's essential you have control of this address."
+            tooltip="This is your controlling address. You use it to access this invoice, manage transactions, and receive funds released from escrow. Ensure you have full control over this address."
             placeholder="0x..."
             name="provider"
             localForm={localForm}
             registerOptions={{ required: true }}
           />
-        </Flex>
+        </Stack>
+        <Stack spacing={4}>
+          <Flex gap={2}>
+            <ChakraCheckbox
+              onChange={e => {
+                setIsProviderReceiverChecked(e.target.checked);
+                if (!e.target.checked) {
+                  setLocalValue('providerReceiver', undefined);
+                }
+              }}
+              isChecked={isProviderReceiverChecked}
+            >
+              Use a separate receiver address for the provider?
+            </ChakraCheckbox>
+            <Tooltip
+              label="(Optional) If you want funds received at a different address than your controlling address, enter it here. This is where released funds will be sent."
+              shouldWrapChildren
+              hasArrow
+              placement="end"
+            >
+              <Icon
+                as={InfoOutlineIcon}
+                boxSize={3}
+                color="blue.500"
+                bg="white"
+                borderRadius="full"
+              />
+            </Tooltip>
+          </Flex>
+        </Stack>
+        {isProviderReceiverChecked && (
+          <Stack spacing={4}>
+            <Input
+              label="Service Provider Receiver Address"
+              placeholder="0x..."
+              name="providerReceiver"
+              localForm={localForm}
+              registerOptions={{ required: true }}
+            />
+          </Stack>
+        )}
 
         <Stack gap={4}>
           <Select
