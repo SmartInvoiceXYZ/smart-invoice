@@ -36,7 +36,7 @@ import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
 import { QUERY_KEY_INVOICES } from './useInvoices';
 
-const ESCROW_TYPE = toHex('updatable', { size: 32 });
+const ESCROW_TYPE = toHex('updatable-v2', { size: 32 });
 
 interface UseInvoiceCreate {
   invoiceForm: UseFormReturn<Partial<FormInvoice>>;
@@ -66,7 +66,9 @@ export const useInvoiceCreate = ({
   const invoiceValues = getValues();
   const {
     client,
+    clientReceiver,
     provider,
+    providerReceiver,
     resolverType,
     klerosCourt,
     resolverAddress: customResolverAddress,
@@ -80,7 +82,9 @@ export const useInvoiceCreate = ({
     endDate,
   } = _.pick(invoiceValues, [
     'client',
+    'clientReceiver',
     'provider',
+    'providerReceiver',
     'resolverType',
     'resolverAddress',
     'token',
@@ -170,9 +174,12 @@ export const useInvoiceCreate = ({
       return '0x';
     }
 
+    const providerReceiverFinal = providerReceiver ?? provider;
+    const clientReceiverFinal = clientReceiver ?? client;
+
     return encodeAbiParameters(
       [
-        { type: 'address' }, //     _client,
+        { type: 'address' }, //     _client, address that controls the invoice for the client
         { type: 'uint8' }, //     _resolverTypeType,
         { type: 'address' }, //     _resolverType,
         { type: 'address' }, //     _token,
@@ -181,7 +188,8 @@ export const useInvoiceCreate = ({
         { type: 'address' }, //     _wrappedNativeToken,
         { type: 'bool' }, //     _requireVerification, warns the client not to deposit funds until verifying they can release or lock funds
         { type: 'address' }, //     _factory,
-        { type: 'address' }, //     _providerReceiver,
+        { type: 'address' }, //     _providerReceiver, address that receives funds for the provider
+        { type: 'address' }, //     _clientReceiver, address that receives funds for the client
       ],
       [
         client as Address,
@@ -193,7 +201,8 @@ export const useInvoiceCreate = ({
         wrappedNativeToken,
         REQUIRES_VERIFICATION,
         invoiceFactory,
-        provider as Address, // TODO: replace with providerReceiver
+        providerReceiverFinal as Address,
+        clientReceiverFinal as Address,
       ],
     );
   }, [client, resolverType, token, details, safetyValveDate, provider]);

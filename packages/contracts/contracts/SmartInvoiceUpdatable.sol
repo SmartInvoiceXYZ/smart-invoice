@@ -102,7 +102,7 @@ contract SmartInvoiceUpdatable is SmartInvoiceEscrow {
      * @notice Handles the provided data, decodes it, and initializes necessary contract state variables.
      * @param _data The data to be handled and decoded.
      */
-    function _handleData(bytes calldata _data) internal override {
+    function _handleData(bytes calldata _data) internal virtual override {
         (
             address _client,
             uint8 _resolverType,

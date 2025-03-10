@@ -33,6 +33,19 @@ export const escrowDetailsSchema = (chainId: number) =>
           },
         });
       }),
+    clientReceiver: Yup.string()
+      .optional()
+      .test({
+        name: 'clientReceiverIsAddress',
+        test: (v, { createError }) => {
+          if (!v || isAddress(v)) return true;
+          return createError({
+            path: 'clientReceiver',
+            message: 'Client receiver must be a valid address',
+          });
+        },
+        message: 'Client receiver must be a valid address',
+      }),
     provider: Yup.string()
       .required()
       .test({
@@ -44,6 +57,19 @@ export const escrowDetailsSchema = (chainId: number) =>
             message: 'Provider must be a valid address',
           });
         },
+      }),
+    providerReceiver: Yup.string()
+      .optional()
+      .test({
+        name: 'providerReceiverIsAddress',
+        test: (v, { createError }) => {
+          if (!v || isAddress(v)) return true;
+          return createError({
+            path: 'providerReceiver',
+            message: 'Provider receiver must be a valid address',
+          });
+        },
+        message: 'Provider receiver must be a valid address',
       }),
     resolverType: Yup.string()
       .required()

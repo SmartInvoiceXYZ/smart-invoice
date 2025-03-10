@@ -91,6 +91,7 @@ export type Invoice = {
   createdAt: bigint;
   network: string;
   client: Hex;
+  clientReceiver: Hex;
   provider: Hex;
   providerReceiver: Hex;
   resolverType: ADR;
@@ -128,6 +129,7 @@ export const fetchInvoice = async (
           token: true,
           amounts: true,
           client: true,
+          clientReceiver: true,
           createdAt: true,
           currentMilestone: true,
           deposits: [

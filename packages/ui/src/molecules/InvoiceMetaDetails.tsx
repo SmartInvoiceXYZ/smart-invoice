@@ -50,7 +50,9 @@ export function InvoiceMetaDetails({
     terminationTime,
     deadline,
     client,
+    clientReceiver,
     provider,
+    providerReceiver,
     resolver,
     verified,
     invoiceType,
@@ -58,7 +60,9 @@ export function InvoiceMetaDetails({
   } = _.pick(invoice, [
     'id',
     'client',
+    'clientReceiver',
     'provider',
+    'providerReceiver',
     'resolver',
     'terminationTime',
     'deadline',
@@ -80,6 +84,22 @@ export function InvoiceMetaDetails({
   const validResolver =
     !!resolver && isAddress(resolver) && resolver !== zeroAddress
       ? resolver
+      : undefined;
+
+  // display receivers if they are different from the client and provider
+  const validClientReceiver =
+    !!clientReceiver &&
+    isAddress(clientReceiver) &&
+    clientReceiver !== zeroAddress &&
+    clientReceiver.toLowerCase() !== client?.toLowerCase()
+      ? clientReceiver
+      : undefined;
+  const validProviderReceiver =
+    !!providerReceiver &&
+    isAddress(providerReceiver) &&
+    providerReceiver !== zeroAddress &&
+    providerReceiver.toLowerCase() !== provider?.toLowerCase()
+      ? providerReceiver
       : undefined;
 
   const isClient = _.toLower(address) === client;
@@ -123,9 +143,24 @@ export function InvoiceMetaDetails({
         label: 'Client Account:',
         value: <AccountLink address={validClient} chainId={invoiceChainId} />,
       },
+      validClientReceiver && {
+        label: 'Client Receiver:',
+        value: (
+          <AccountLink address={validClientReceiver} chainId={invoiceChainId} />
+        ),
+      },
       validProvider && {
         label: 'Provider Account:',
         value: <AccountLink address={validProvider} chainId={invoiceChainId} />,
+      },
+      validProviderReceiver && {
+        label: 'Provider Receiver:',
+        value: (
+          <AccountLink
+            address={validProviderReceiver}
+            chainId={invoiceChainId}
+          />
+        ),
       },
       validResolver && {
         label: 'Arbitration Provider:',
@@ -143,6 +178,8 @@ export function InvoiceMetaDetails({
       endDate,
       terminationTime,
       validClient,
+      validClientReceiver,
+      validProviderReceiver,
       validProvider,
       validResolver,
       invoiceChainId,

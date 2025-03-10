@@ -7,7 +7,8 @@
     "escrow": ["0x8f2CBf3a281092E48e0D79e0466604833E6CFa23"],
     "instant": ["0xb2404a93BB5e7f3e734EE29443B0c682450d1b38"],
     "split-escrow": ["0x06F85C9a4a36E5690B32e73cFDbf280766EFd20B"],
-    "updatable": ["0x39Fb7730FFe2CBEbd65E3135e98E04D16a64252A"]
+    "updatable": ["0x39Fb7730FFe2CBEbd65E3135e98E04D16a64252A"],
+    "updatable-v2": ["0x01a9ea5de8c2ef7b325b97bb69952c51d268d4b9"]
   },
   "zap": {
     "dao": "0xf4f65a5c6590fbc15b3869510e5f1e7114041c53",

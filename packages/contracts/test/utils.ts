@@ -234,6 +234,58 @@ export const createSplitEscrow = async (
   return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });
 };
 
+export const createUpdatableV2Escrow = async (
+  factory: ContractTypesMap['SmartInvoiceFactory'],
+  invoice: GetContractReturnType,
+  type: Hex,
+  client: Hex,
+  provider: Hex,
+  resolverType: number,
+  resolver: Hex,
+  token: Hex,
+  amounts: bigint[],
+  terminationTime: bigint | number,
+  details: Hex,
+  wrappedNativeToken: Hex,
+  requireVerification: boolean,
+  providerReceiver: Hex,
+  clientReceiver: Hex,
+): Promise<GetTransactionReceiptReturnType> => {
+  await factory.write.addImplementation([type, invoice.address]);
+
+  const data = encodeAbiParameters(
+    [
+      'address',
+      'uint8',
+      'address',
+      'address',
+      'uint256',
+      'bytes32',
+      'address',
+      'bool',
+      'address',
+      'address',
+      'address',
+    ].map(x => ({ type: x })),
+    [
+      client,
+      resolverType,
+      resolver,
+      token,
+      BigInt(terminationTime), // exact termination date in seconds since epoch
+      details,
+      wrappedNativeToken,
+      requireVerification,
+      factory.address,
+      providerReceiver,
+      clientReceiver,
+    ],
+  );
+
+  const hash = await factory.write.create([provider, amounts, data, type]);
+  return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });
+};
+
 export const createUpdatableEscrow = async (
   factory: ContractTypesMap['SmartInvoiceFactory'],
   invoice: GetContractReturnType,
@@ -281,6 +333,75 @@ export const createUpdatableEscrow = async (
 
   const hash = await factory.write.create([provider, amounts, data, type]);
   return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });
+};
+
+export const getLockedUpdatableV2Escrow = async (
+  factory: ContractTypesMap['SmartInvoiceFactory'],
+  invoiceType: Hex,
+  client: Hex,
+  provider: Hex,
+  resolverType: number,
+  resolver: Hex,
+  token: Hex,
+  amounts: bigint[],
+  details: Hex,
+  mockWrappedNativeToken: Hex,
+  providerReceiver: Hex,
+  clientReceiver: Hex,
+  value = 0n,
+  requireVerification: boolean = false,
+): Promise<ContractTypesMap['SmartInvoiceUpdatableV2']> => {
+  const currentTime = await currentTimestamp();
+  const newInvoice = await viem.deployContract('SmartInvoiceUpdatableV2');
+
+  const initReceipt = await createUpdatableV2Escrow(
+    factory,
+    newInvoice,
+    invoiceType,
+    client,
+    provider,
+    resolverType,
+    resolver,
+    token,
+    amounts,
+    BigInt(currentTime + 1000),
+    details,
+    mockWrappedNativeToken,
+    requireVerification,
+    providerReceiver,
+    clientReceiver,
+  );
+
+  const newInvoiceAddress = await awaitInvoiceAddress(initReceipt);
+  if (!newInvoiceAddress) {
+    throw new Error('Failed to get invoice address');
+  }
+
+  const lockedInvoice = await viem.getContractAt(
+    'SmartInvoiceUpdatableV2',
+    newInvoiceAddress,
+  );
+
+  expect(await lockedInvoice.read.locked()).to.equal(false);
+
+  await setBalanceOf(token, newInvoiceAddress, 10n);
+
+  const hash = await lockedInvoice.write.lock([zeroHash], { value });
+
+  const receipt = await (
+    await viem.getPublicClient()
+  ).waitForTransactionReceipt({ hash });
+
+  const events = parseEventLogs({
+    abi: parseAbi(['event Lock(address indexed client, bytes32 id)']),
+    logs: receipt.logs,
+  });
+
+  expect(events[0].eventName).to.equal('Lock');
+  expect(events[0].args.client).to.equal(getAddress(client));
+  expect(events[0].args.id).to.equal(zeroHash);
+
+  return lockedInvoice;
 };
 
 export const getLockedUpdatableEscrow = async (

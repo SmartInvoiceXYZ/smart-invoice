@@ -51,7 +51,9 @@ export function FormConfirmation({
     description,
     document,
     client,
+    clientReceiver,
     provider,
+    providerReceiver,
     klerosCourt,
     startDate,
     endDate,
@@ -65,6 +67,17 @@ export function FormConfirmation({
     lateFeeTimeInterval,
     paymentDue,
   } = watch();
+
+  const validClientReceiver =
+    clientReceiver && clientReceiver.toLowerCase() !== client?.toLowerCase()
+      ? clientReceiver
+      : undefined;
+
+  const validProviderReceiver =
+    providerReceiver &&
+    providerReceiver.toLowerCase() !== provider?.toLowerCase()
+      ? providerReceiver
+      : undefined;
 
   const lateFeeIntervalLabel = _.toLower(
     _.find(LATE_FEE_INTERVAL_OPTIONS, { value: lateFeeTimeInterval })?.label,
@@ -86,9 +99,19 @@ export function FormConfirmation({
         label: 'Client Address',
         value: <AccountLink address={client} chainId={chainId} />,
       },
+      validProviderReceiver && {
+        label: 'Client Receiver Address',
+        value: <AccountLink address={validClientReceiver} chainId={chainId} />,
+      },
       {
-        label: 'Payment Address',
+        label: 'Provider Address',
         value: <AccountLink address={provider} chainId={chainId} />,
+      },
+      validClientReceiver && {
+        label: 'Provider Receiver Address',
+        value: (
+          <AccountLink address={validProviderReceiver} chainId={chainId} />
+        ),
       },
       startDate && {
         label: 'Project Start Date:',
