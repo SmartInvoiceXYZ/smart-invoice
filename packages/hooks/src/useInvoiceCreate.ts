@@ -104,7 +104,7 @@ export const useInvoiceCreate = ({
     'endDate',
   ]);
 
-  const { data: tokens } = useFetchTokens({ enabled: !!networkConfig });
+  const { data: tokens } = useFetchTokens({ enabled: !networkConfig });
   const invoiceToken = _.find(
     tokens,
     t =>
