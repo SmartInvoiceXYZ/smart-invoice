@@ -41,7 +41,14 @@ const ESCROW_TYPE = toHex('updatable', { size: 32 });
 interface UseInvoiceCreate {
   invoiceForm: UseFormReturn<Partial<FormInvoice>>;
   toast: UseToastReturn;
+  networkConfig?: {
+    resolver: Hex;
+    token: Hex;
+    tokenDecimals: number;
+  };
   onTxSuccess?: (result: Hex) => void;
+  enabled?: boolean;
+  details?: `0x${string}` | null;
 }
 
 const REQUIRES_VERIFICATION = true;
@@ -50,6 +57,9 @@ export const useInvoiceCreate = ({
   invoiceForm,
   toast,
   onTxSuccess,
+  networkConfig,
+  details,
+  enabled = true,
 }: UseInvoiceCreate): {
   writeAsync: () => Promise<Hex | undefined>;
   isLoading: boolean;
@@ -94,7 +104,7 @@ export const useInvoiceCreate = ({
     'endDate',
   ]);
 
-  const { data: tokens } = useFetchTokens();
+  const { data: tokens } = useFetchTokens({ enabled: !!networkConfig });
   const invoiceToken = _.find(
     tokens,
     t =>
@@ -102,6 +112,9 @@ export const useInvoiceCreate = ({
   );
 
   const detailsData = useMemo(() => {
+    if (details) {
+      return null;
+    }
     const now = Math.floor(new Date().getTime() / 1000);
     const start = startDate
       ? Math.floor(new Date(startDate).getTime() / 1000)
@@ -140,10 +153,13 @@ export const useInvoiceCreate = ({
     JSON.stringify(milestones),
   ]);
 
-  const { data: details, isLoading: detailsLoading } =
+  const { data: detailsPin, isLoading: detailsLoading } =
     useDetailsPin(detailsData);
 
   const resolverAddress = useMemo(() => {
+    if (networkConfig?.resolver) {
+      return networkConfig.resolver;
+    }
     if (resolverType === 'custom') {
       return customResolverAddress;
     }
@@ -154,6 +170,8 @@ export const useInvoiceCreate = ({
     return resolverInfo?.address;
   }, [resolverType, customResolverAddress]);
 
+  const detailHash = details ?? detailsPin;
+
   const escrowData = useMemo(() => {
     const wrappedNativeToken = getWrappedNativeToken(chainId);
     const invoiceFactory = getInvoiceFactoryAddress(chainId);
@@ -163,7 +181,7 @@ export const useInvoiceCreate = ({
       !token ||
       !safetyValveDate ||
       !wrappedNativeToken ||
-      !details ||
+      !detailHash ||
       !invoiceFactory ||
       !provider
     ) {
@@ -187,19 +205,22 @@ export const useInvoiceCreate = ({
         client as Address,
         0, // all are individual resolvers
         resolverAddress as Address,
-        token as Address, // address _token (payment token address)
+        networkConfig?.token ?? (token as Address), // address _token (payment token address)
         BigInt(new Date(safetyValveDate.toString()).getTime() / 1000), // safety valve date
-        details, // bytes32 _details detailHash
+        detailHash ?? '0x', // bytes32 _details detailHash
         wrappedNativeToken,
         REQUIRES_VERIFICATION,
         invoiceFactory,
         provider as Address, // TODO: replace with providerReceiver
       ],
     );
-  }, [client, resolverType, token, details, safetyValveDate, provider]);
+  }, [client, resolverType, token, detailHash, safetyValveDate, provider]);
 
   const amounts = _.map(milestones, m =>
-    parseUnits(m.value, invoiceToken?.decimals ?? 18),
+    parseUnits(
+      m.value,
+      networkConfig?.tokenDecimals ?? invoiceToken?.decimals ?? 18,
+    ),
   );
 
   const {
@@ -212,7 +233,8 @@ export const useInvoiceCreate = ({
     functionName: 'create',
     args: [provider as Address, amounts, escrowData, ESCROW_TYPE],
     query: {
-      enabled: escrowData !== '0x' && !!provider && !_.isEmpty(milestones),
+      enabled:
+        escrowData !== '0x' && !!provider && !_.isEmpty(milestones) && enabled,
     },
   });
 
@@ -273,6 +295,10 @@ export const useInvoiceCreate = ({
     writeAsync,
     prepareError,
     writeError,
-    isLoading: isLoading || waitingForTx || prepareLoading || detailsLoading,
+    isLoading:
+      isLoading ||
+      waitingForTx ||
+      prepareLoading ||
+      !(details || !detailsLoading),
   };
 };
