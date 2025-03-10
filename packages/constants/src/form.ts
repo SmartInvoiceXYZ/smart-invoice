@@ -5,6 +5,8 @@ export type EscrowStep = {
 };
 
 export const INVOICE_TYPES = {
+  Updatable: 'updatable',
+  UpdatableV2: 'updatable-v2',
   Escrow: 'escrow',
   Instant: 'instant',
 };
