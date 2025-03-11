@@ -1,12 +1,14 @@
-import {
-  ESCROW_ZAP_ABI,
-  NETWORK_CONFIG,
-  NetworkConfig,
-} from '@smartinvoicexyz/constants';
+import { ESCROW_ZAP_ABI, NETWORK_CONFIG } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
-import { encodeAbiParameters, Hex, isAddress, parseUnits } from 'viem';
+import {
+  encodeAbiParameters,
+  Hex,
+  isAddress,
+  parseEther,
+  parseUnits,
+} from 'viem';
 import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { SimulateContractErrorType, WriteContractErrorType } from './types';
@@ -39,8 +41,7 @@ export const useEscrowZap = ({
   safetyValveDate,
   details,
   enabled = true,
-  networkConfig = NETWORK_CONFIG,
-  token,
+  networkConfig,
   onSuccess,
 }: UseEscrowZapProps): {
   writeAsync: () => Promise<Hex | undefined>;
@@ -53,21 +54,24 @@ export const useEscrowZap = ({
   const { owners, percentAllocations } =
     separateOwnersAndAllocations(ownersAndAllocations);
   const saltNonce = Math.floor(new Date().getTime() / 1000);
+  const milestoneAmounts = networkConfig?.tokenDecimals
+    ? _.map(
+        milestones,
+        (a: { value: string }) =>
+          a.value && parseUnits(a.value, networkConfig.tokenDecimals),
+      )
+    : _.map(
+        milestones,
+        (a: { value: string }) => a.value && parseEther(a.value),
+      );
 
-  const tokenDecimals =
-    _.get(networkConfig[chainId], `TOKENS.${token}.decimals`) ?? 18;
-
-  const milestoneAmounts = _.map(
-    NETWORK_CONFIG[chainId] ? milestones : [],
-    (a: { value: string }) => a.value && parseUnits(a.value, tokenDecimals),
-  );
-
-  const tokenAddress =
-    _.get(networkConfig[chainId], `TOKENS.${token}.address`) ?? '0x0';
+  const tokenAddress = networkConfig?.tokenAddress
+    ? networkConfig?.tokenAddress
+    : '0x0';
 
   const resolver = daoSplit
-    ? (_.first(_.keys(_.get(networkConfig[chainId], 'RESOLVERS'))) as Hex)
-    : (networkConfig[chainId].DAO_ADDRESS ?? '');
+    ? (_.first(_.keys(_.get(NETWORK_CONFIG[chainId], 'RESOLVERS'))) as Hex)
+    : (NETWORK_CONFIG[chainId].DAO_ADDRESS ?? '');
 
   const encodedSafeData = useMemo(() => {
     if (!threshold || !saltNonce)
@@ -152,7 +156,7 @@ export const useEscrowZap = ({
     status,
   } = useSimulateContract({
     chainId,
-    address: networkConfig[chainId].ZAP_ADDRESS ?? '0x0',
+    address: networkConfig?.ZAP_ADDRESS ?? '0x0',
     abi: ESCROW_ZAP_ABI,
     functionName: 'createSafeSplitEscrow',
     args: [
@@ -218,6 +222,10 @@ interface UseEscrowZapProps {
   safetyValveDate: Date;
   details?: `0x${string}` | null;
   enabled?: boolean;
-  networkConfig?: { [key: number]: NetworkConfig }; // to override the default network config
+  networkConfig?: {
+    tokenAddress: Hex;
+    tokenDecimals: number;
+    ZAP_ADDRESS: Hex;
+  };
   onSuccess?: (hash: Hex) => void;
 }

@@ -23,6 +23,9 @@ export const useDetailsPin = (
   isBasic = false,
 ) => {
   const validatedDetails = useMemo((): InvoiceMetadata | null => {
+    if (details === null) {
+      return null;
+    }
     if (isBasic) {
       if (!validateBasicMetadata(details)) {
         logDebug('Invalid basic metadata: ', details);

@@ -267,7 +267,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-sepolia', 'v0.0.3'),
+    SUBGRAPH: getSubgraphUrl('smart-invoice-sepolia', 'v0.0.6'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     ) as Address,
@@ -305,7 +305,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [holesky.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-holesky', 'v0.0.3'),
+    SUBGRAPH: getSubgraphUrl('smart-invoice-holesky', 'v0.0.6'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
     ) as Address,
