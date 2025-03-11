@@ -1,5 +1,11 @@
 # @smartinvoicexyz/constants
 
+## 0.1.19
+
+### Patch Changes
+
+- added new hooks for DM
+
 ## 0.1.18
 
 ### Patch Changes

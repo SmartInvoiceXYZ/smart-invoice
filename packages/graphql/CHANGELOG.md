@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.19
+
+### Patch Changes
+
+- added new hooks for DM
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.19
+  - @smartinvoicexyz/shared@0.1.19
+
 ## 0.1.18
 
 ### Patch Changes
