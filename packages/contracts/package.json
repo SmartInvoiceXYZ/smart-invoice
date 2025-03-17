@@ -4,7 +4,7 @@
   "version": "0.1.19",
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
-    "@nomicfoundation/hardhat-viem": "^2.0.3",
+    "@nomicfoundation/hardhat-viem": "^2.0.6",
     "@openzeppelin/contracts": "^5.1.0",
     "@openzeppelin/contracts-upgradeable": "^5.1.0",
     "@types/chai": "4.3.16",
@@ -13,7 +13,7 @@
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
     "dotenv": "^16.3.1",
-    "hardhat": "^2.22.15",
+    "hardhat": "^2.22.18",
     "hardhat-chai-matchers-viem": "^2.0.8",
     "hardhat-gas-reporter": "^2.2.1",
     "prettier-plugin-solidity": "^1.4.1",
@@ -57,6 +57,7 @@
     "flatten-instant": "hardhat flatten contracts/SmartInvoiceInstant.sol > flat/SmartInvoiceInstant.sol",
     "flatten-spoils": "hardhat flatten contracts/SpoilsManager.sol > flat/SpoilsManager.sol",
     "flatten-updatable": "hardhat flatten contracts/SmartInvoiceUpdatable.sol > flat/SmartInvoiceUpdatable.sol",
+    "flatten-updatable-v2": "hardhat flatten contracts/SmartInvoiceUpdatableV2.sol > flat/SmartInvoiceUpdatableV2.sol",
     "flatten-zap": "hardhat flatten contracts/SafeSplitsEscrowZap.sol > flat/SafeSplitsEscrowZap.sol",
     "format": "prettier --ignore-path .gitignore --write --plugin=prettier-plugin-solidity \"{*,**/*}.{ts,json,md,sol}\"",
     "help": "hardhat help",
@@ -73,6 +74,7 @@
     "test-spoils": "hardhat test ./test/SpoilsManager.ts",
     "test-spoils-factory": "hardhat test ./test/SpoilsManagerFactory.ts",
     "test-updatable": "hardhat test ./test/SmartInvoiceUpdatable.ts",
+    "test-updatable-v2": "hardhat test ./test/SmartInvoiceUpdatableV2.ts",
     "test-zap": "hardhat test ./test/SafeSplitsEscrowZap.ts",
     "typecheck": "tsc --noEmit",
     "verify-contract": "hardhat run scripts/verify-contract.ts --network"

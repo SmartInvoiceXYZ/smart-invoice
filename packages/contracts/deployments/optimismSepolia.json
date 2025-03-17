@@ -5,7 +5,8 @@
   "blockNumber": "19380489",
   "implementations": {
     "escrow": ["0x415e67d2e2710b246b99492cec89cc90af81931a"],
-    "updatable": ["0xb4cdef4aa610c046864467592fae456a58d3443a"]
+    "updatable": ["0xb4cdef4aa610c046864467592fae456a58d3443a"],
+    "updatable-v2": ["0x8a837e8d04ef7aefb677590d192a302d5ed4e11c"]
   },
   "bundler": {
     "address": "0xe0986c3bdab537fbeb7c94d0c5ef961d6d8bf63a",
