@@ -339,6 +339,8 @@ templates:
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         - name: SmartInvoiceUpdatable{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
+        - name: SmartInvoiceUpdatableV2{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatableV2{{factoryName}}.json
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
         {{/v01}}
