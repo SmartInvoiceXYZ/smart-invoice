@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.20
+
+### Patch Changes
+
+- added support for client receiver
+
 ## 0.1.19
 
 ### Patch Changes

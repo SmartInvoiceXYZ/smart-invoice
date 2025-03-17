@@ -1,5 +1,16 @@
 # @smartinvoicexyz/utils
 
+## 0.1.20
+
+### Patch Changes
+
+- added support for client receiver
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.20
+  - @smartinvoicexyz/graphql@0.1.20
+  - @smartinvoicexyz/shared@0.1.20
+  - @smartinvoicexyz/types@0.1.20
+
 ## 0.1.19
 
 ### Patch Changes

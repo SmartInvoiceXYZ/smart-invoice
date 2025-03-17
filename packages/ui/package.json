@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/ui",
   "description": "Unified source for UI components used across the Smart Invoice protocol.",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "dependencies": {
     "@chakra-ui/icon": "^3.2.0",
     "@chakra-ui/icons": "^2.1.1",
@@ -65,7 +65,6 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
-    "prepublish": "pnpm clean && pnpm build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"
   },

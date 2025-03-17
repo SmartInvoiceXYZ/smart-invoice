@@ -135,7 +135,7 @@ export const KLEROS_COURTS: Array<KlerosCourtData> = [
 
 const STUDIO_ID = '78711';
 
-const LATEST_SUBGRAPH_VERSION = 'v0.0.6';
+const LATEST_SUBGRAPH_VERSION = 'v0.0.7';
 
 const getSubgraphUrl = (
   subgraphId: string,
