@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.21
+
+### Patch Changes
+
+- fixed useDebounce export
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.21
+  - @smartinvoicexyz/shared@0.1.21
+
 ## 0.1.20
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @smartinvoicexyz/hooks
 
+## 0.1.21
+
+### Patch Changes
+
+- fixed useDebounce export
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.21
+  - @smartinvoicexyz/graphql@0.1.21
+  - @smartinvoicexyz/types@0.1.21
+  - @smartinvoicexyz/utils@0.1.21
+
 ## 0.1.20
 
 ### Patch Changes

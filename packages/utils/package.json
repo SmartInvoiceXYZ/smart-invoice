@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/utils",
   "description": "Unified source for utility functions used across the Smart Invoice protocol.",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "author": "",
   "dependencies": {
     "@rainbow-me/rainbowkit": "2.2.0",

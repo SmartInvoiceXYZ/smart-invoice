@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.21
+
+### Patch Changes
+
+- fixed useDebounce export
+
 ## 0.1.20
 
 ### Patch Changes
