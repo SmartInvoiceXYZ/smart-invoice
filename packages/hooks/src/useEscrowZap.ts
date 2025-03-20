@@ -2,13 +2,7 @@ import { ESCROW_ZAP_ABI } from '@smartinvoicexyz/constants';
 import { logDebug } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useCallback, useMemo } from 'react';
-import {
-  encodeAbiParameters,
-  Hex,
-  isAddress,
-  parseEther,
-  parseUnits,
-} from 'viem';
+import { encodeAbiParameters, Hex, isAddress, parseUnits } from 'viem';
 import { useChainId, useSimulateContract, useWriteContract } from 'wagmi';
 
 import { SimulateContractErrorType, WriteContractErrorType } from './types';
@@ -62,9 +56,7 @@ export const useEscrowZap = ({
 
   const { tokenAddress } = networkConfig;
 
-  const resolver = daoSplit
-    ? networkConfig?.resolver
-    : networkConfig.daoAddress;
+  const resolver = daoSplit ? networkConfig.resolver : networkConfig.daoAddress;
 
   const encodedSafeData = useMemo(() => {
     if (!threshold || !saltNonce)
