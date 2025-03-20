@@ -50,15 +50,12 @@ export const useLock = ({
   isLoading: boolean;
   prepareError: SimulateContractErrorType | null;
   writeError: WriteContractErrorType | null;
-  txHash: Hex | undefined;
 } => {
   const currentChainId = useChainId();
   const { chainId: invoiceChainId, metadata } = _.pick(invoice, [
     'chainId',
     'metadata',
   ]);
-
-  const [txHash, setTxHash] = useState<Hex | undefined>(undefined);
 
   const { description, document } = localForm.getValues();
 
@@ -120,7 +117,7 @@ export const useLock = ({
         if (receipt && publicClient) {
           await waitForSubgraphSync(publicClient.chain.id, receipt.blockNumber);
         }
-        setTxHash(hash);
+
         setWaitingForTx(false);
         onTxSuccess?.();
       },
@@ -149,6 +146,5 @@ export const useLock = ({
       !(details || !detailsLoading),
     prepareError,
     writeError,
-    txHash,
   };
 };
