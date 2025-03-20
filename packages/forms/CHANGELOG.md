@@ -1,5 +1,31 @@
 # @smartinvoicexyz/forms
 
+## 0.1.23
+
+### Patch Changes
+
+- fixed subgraph
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.23
+  - @smartinvoicexyz/graphql@0.1.23
+  - @smartinvoicexyz/hooks@0.1.23
+  - @smartinvoicexyz/types@0.1.23
+  - @smartinvoicexyz/utils@0.1.23
+  - @smartinvoicexyz/ui@0.1.23
+
+## 0.1.22
+
+### Patch Changes
+
+- added support for latest subgraph + fixed useEscrowZap
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.22
+  - @smartinvoicexyz/graphql@0.1.22
+  - @smartinvoicexyz/hooks@0.1.22
+  - @smartinvoicexyz/types@0.1.22
+  - @smartinvoicexyz/utils@0.1.22
+  - @smartinvoicexyz/ui@0.1.22
+
 ## 0.1.21
 
 ### Patch Changes

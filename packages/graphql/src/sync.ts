@@ -9,29 +9,52 @@ export const timeout = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+export type SubgraphStatus = {
+  syncedBlockNumber: number;
+  hasIndexingErrors: boolean;
+};
+
+export const getSubgraphStatus = async (
+  chainId: number,
+): Promise<SubgraphStatus> => {
+  const data = await fetchTypedQuery(chainId)(
+    {
+      _meta: [
+        {},
+        {
+          block: {
+            number: true,
+          },
+          hasIndexingErrors: true,
+        },
+      ],
+    },
+    {
+      fetchPolicy: 'network-only',
+    },
+  );
+
+  const status = {
+    // eslint-disable-next-line no-underscore-dangle
+    syncedBlockNumber: data?._meta?.block?.number ?? 0,
+    // eslint-disable-next-line no-underscore-dangle
+    hasIndexingErrors: data?._meta?.hasIndexingErrors ?? false,
+  };
+
+  setCachedSubgraphStatus(chainId, status);
+
+  return status;
+};
+
 const getSubgraphBlockNumber = async (chainId: number) => {
   try {
-    const data = await fetchTypedQuery(chainId)(
-      {
-        _meta: [
-          {},
-          {
-            block: {
-              number: true,
-            },
-          },
-        ],
-      },
-      {
-        fetchPolicy: 'network-only',
-      },
-    );
-
-    // eslint-disable-next-line no-underscore-dangle
-    return BigInt(data?._meta?.block?.number ?? 0);
+    const status = getCachedSubgraphStatus(chainId);
+    if (status) return status.syncedBlockNumber;
+    const { syncedBlockNumber } = await getSubgraphStatus(chainId);
+    return syncedBlockNumber;
   } catch (e) {
     console.error(
-      `Failed to get subgraph block number for chain ${chainId}`,
+      `Failed to get subgraph block number for chain ${chainId}: `,
       e,
     );
     return BigInt(0);
@@ -57,3 +80,23 @@ export const waitForSubgraphSync = async (
   }
   return subgraphBlockNumber >= transactionBlockNumber;
 };
+
+const createStorageKey = (chainId: number) =>
+  `smart-invoice-subgraph-health-${chainId}`;
+
+export const getCachedSubgraphStatus = (
+  chainId: number,
+): SubgraphStatus | null => {
+  const value = window.localStorage.getItem(createStorageKey(chainId));
+  if (value) return JSON.parse(value) as SubgraphStatus;
+  return null;
+};
+
+export const setCachedSubgraphStatus = (
+  chainId: number,
+  health: SubgraphStatus,
+): void =>
+  window.localStorage.setItem(
+    createStorageKey(chainId),
+    JSON.stringify(health),
+  );

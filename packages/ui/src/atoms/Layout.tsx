@@ -8,6 +8,7 @@ import { useAccount, useChainId } from 'wagmi';
 
 import { Footer } from '../molecules/Footer';
 import { Header } from '../molecules/Header';
+import { SubgraphHealthAlert } from '../molecules/SubgraphHealthAlert';
 import { ConnectWeb3 } from './ConnectWeb3';
 
 export function Layout({ children }: PropsWithChildren) {
@@ -53,6 +54,7 @@ export function Layout({ children }: PropsWithChildren) {
         align="center"
         h="100%"
       >
+        <SubgraphHealthAlert />
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
       <Analytics />

@@ -133,15 +133,13 @@ export const KLEROS_COURTS: Array<KlerosCourtData> = [
   },
 ];
 
-const STUDIO_ID = '78711';
+const GOLDSKY_PROJECT_ID = 'project_cm2itwou5aapv01we2n0q698q';
+const GRAPH_STUDIO_ID = '78711';
 
-const LATEST_SUBGRAPH_VERSION = 'v0.0.7';
-
-const getSubgraphUrl = (
-  subgraphId: string,
-  versionLabel: string = LATEST_SUBGRAPH_VERSION,
-) =>
-  `https://api.studio.thegraph.com/query/${STUDIO_ID}/${subgraphId}/${versionLabel}`;
+export const getGoldskySubgraphUrl = (subgraph: string) =>
+  `https://api.goldsky.com/api/public/${GOLDSKY_PROJECT_ID}/subgraphs/${subgraph}/latest/gn`;
+export const getGraphStudioSubgraphUrl = (subgraph: string) =>
+  `https://api.studio.thegraph.com/query/${GRAPH_STUDIO_ID}/${subgraph}/version/latest`;
 
 const chains: readonly [Chain, ...Chain[]] = [
   mainnet,
@@ -161,7 +159,7 @@ export const SUPPORTED_CHAINS = chains as [SupportedChain, ...SupportedChain[]];
 
 export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   [mainnet.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     ) as Address,
@@ -184,7 +182,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [gnosis.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-gnosis'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-gnosis'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
     ) as Address,
@@ -206,8 +204,27 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
       },
     },
   },
+  [optimism.id]: {
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-optimism'),
+    WRAPPED_NATIVE_TOKEN: toLower(
+      '0x4200000000000000000000000000000000000006',
+    ) as Address,
+    INVOICE_FACTORY: toLower(
+      '0xF9822818143948237A60A1a1CEFC85D6F1b929Df',
+    ) as Address,
+    RESOLVERS: {
+      kleros: {
+        address: SMART_INVOICE_ARBITRATION_SAFE,
+        ...KLEROS_DATA,
+      },
+      'smart-invoice': {
+        address: SMART_INVOICE_ARBITRATION_SAFE,
+        ...SMART_INVOICE_ARBITRATION_DATA,
+      },
+    },
+  },
   [polygon.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-polygon'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-polygon'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     ) as Address,
@@ -230,7 +247,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [arbitrum.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-arbitrum'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-arbitrum'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     ) as Address,
@@ -252,8 +269,8 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
       },
     },
   },
-  [optimism.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-optimism'),
+  [base.id]: {
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-base'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -272,7 +289,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-sepolia'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-sepolia'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     ) as Address,
@@ -290,27 +307,8 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
       },
     },
   },
-  [base.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-base'),
-    WRAPPED_NATIVE_TOKEN: toLower(
-      '0x4200000000000000000000000000000000000006',
-    ) as Address,
-    INVOICE_FACTORY: toLower(
-      '0xF9822818143948237A60A1a1CEFC85D6F1b929Df',
-    ) as Address,
-    RESOLVERS: {
-      kleros: {
-        address: SMART_INVOICE_ARBITRATION_SAFE,
-        ...KLEROS_DATA,
-      },
-      'smart-invoice': {
-        address: SMART_INVOICE_ARBITRATION_SAFE,
-        ...SMART_INVOICE_ARBITRATION_DATA,
-      },
-    },
-  },
   [holesky.id]: {
-    SUBGRAPH: getSubgraphUrl('smart-invoice-holesky'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-holesky'),
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
     ) as Address,

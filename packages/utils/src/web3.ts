@@ -15,7 +15,7 @@ import {
   SupportedChainId,
 } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
-import { Chain, http, Transport } from 'viem';
+import { Chain, createPublicClient, http, PublicClient, Transport } from 'viem';
 import { fallback } from 'wagmi';
 import {
   arbitrum,
@@ -177,6 +177,19 @@ const transports: _transports = SUPPORTED_CHAINS.reduce(
   },
   {} as _transports,
 );
+
+export const publicClients: Record<SupportedChainId, PublicClient> =
+  SUPPORTED_CHAINS.reduce(
+    (acc: Record<SupportedChainId, PublicClient>, chain: SupportedChain) => {
+      const transport = transports[chain.id];
+      const client = createPublicClient({ chain, transport });
+      return {
+        ...acc,
+        [chain.id]: client,
+      };
+    },
+    {} as Record<SupportedChainId, PublicClient>,
+  );
 
 const wagmiConfig = getDefaultConfig({
   ssr: true,

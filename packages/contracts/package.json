@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/contracts",
   "description": "Solidity smart contracts of the Smart Invoice protocol.",
-  "version": "0.1.21",
+  "version": "0.1.23",
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@nomicfoundation/hardhat-viem": "^2.0.6",
