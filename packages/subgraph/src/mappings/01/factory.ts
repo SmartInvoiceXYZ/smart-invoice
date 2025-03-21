@@ -1,5 +1,5 @@
-import { log, dataSource, Address, Bytes } from '@graphprotocol/graph-ts';
-import { Invoice, Agreement } from '../../types/schema';
+import { log, dataSource, Address } from '@graphprotocol/graph-ts';
+import { Invoice } from '../../types/schema';
 
 import { LogNewInvoice as LogNewInvoiceEvent } from '../../types/SmartInvoiceFactory01/SmartInvoiceFactory01';
 import {
@@ -8,6 +8,7 @@ import {
   SmartInvoiceInstant01,
   SmartInvoiceSplitEscrow01,
   SmartInvoiceUpdatable01,
+  SmartInvoiceUpdatableV201,
 } from '../../types/templates';
 import { getToken } from './helpers/token';
 import { updateInvoice } from './utils';
@@ -53,6 +54,8 @@ export function handleLogNewInvoice(event: LogNewInvoiceEvent): void {
     SmartInvoiceSplitEscrow01.create(event.params.invoice);
   } else if (invoice.invoiceType == 'updatable') {
     SmartInvoiceUpdatable01.create(event.params.invoice);
+  } else if (invoice.invoiceType == 'updatable-v2') {
+    SmartInvoiceUpdatableV201.create(event.params.invoice);
   } else if (invoice.invoiceType == 'instant') {
     SmartInvoiceInstant01.create(event.params.invoice);
   }

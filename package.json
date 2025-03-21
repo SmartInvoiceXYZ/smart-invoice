@@ -13,7 +13,6 @@
     "@typescript-eslint/eslint-plugin": "^8.2.0",
     "@typescript-eslint/parser": "^8.2.0",
     "async-prompt": "^1.0.1",
-    "conventional-changelog-cli": "^5.0.0",
     "dotenv": "^16.3.1",
     "eslint": "8.57.0",
     "eslint-config-airbnb": "^19.0.4",
@@ -56,8 +55,8 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "changelog": "echo 'generate master changelog' && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "clean": "pnpm -r clean",
+    "dapp:build": "pnpm --filter '!@smartinvoicexyz/contracts' --filter '!@smartinvoicexyz/subgraph' --filter '!@smartinvoicexyz/website' -r build",
     "dapp:dev": "pnpm --filter '@smartinvoicexyz/dapp' dev",
     "format": "prettier --ignore-path .prettierignore --write --plugin=prettier-plugin-solidity \"{*,**/*}.{js,jsx,ts,tsx,json,md,sol}\"",
     "lint": "pnpm -r lint",

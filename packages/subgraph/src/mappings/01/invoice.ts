@@ -12,6 +12,13 @@ import {
 } from '../../types/schema';
 
 import {
+  UpdatedClient as UpdatedClientEvent,
+  UpdatedProvider as UpdatedProviderEvent,
+  UpdatedClientReceiver as UpdatedClientReceiverEvent,
+  UpdatedProviderReceiver as UpdatedProviderReceiverEvent,
+} from '../../types/templates/SmartInvoiceUpdatableV201/SmartInvoiceUpdatableV201';
+
+import {
   Release as ReleaseEvent,
   Withdraw as WithdrawEvent,
   Lock as LockEvent,
@@ -299,6 +306,46 @@ export function handleFulfilled(event: FulfilledEvent): void {
     let completed = invoice.fulfilled;
     completed = true;
     invoice.fulfilled = completed;
+    invoice.save();
+  }
+}
+
+export function handleUpdatedClient(event: UpdatedClientEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleUpdatedClient {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+    invoice.save();
+  }
+}
+
+export function handleUpdatedProvider(event: UpdatedProviderEvent): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleUpdatedProvider {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+    invoice.save();
+  }
+}
+
+export function handleUpdatedClientReceiver(
+  event: UpdatedClientReceiverEvent,
+): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleUpdatedClientReceiver {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
+    invoice.save();
+  }
+}
+
+export function handleUpdatedProviderReceiver(
+  event: UpdatedProviderReceiverEvent,
+): void {
+  let invoice = Invoice.load(event.address.toHexString());
+  if (invoice != null) {
+    log.info('handleUpdatedProviderReceiver {}', [event.address.toHexString()]);
+    invoice = updateInvoice(event.address, invoice);
     invoice.save();
   }
 }

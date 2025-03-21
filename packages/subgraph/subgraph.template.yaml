@@ -36,6 +36,8 @@ dataSources:
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         - name: SmartInvoiceUpdatable{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
+        - name: SmartInvoiceUpdatableV2{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatableV2{{factoryName}}.json
         {{/v01}}
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
@@ -245,12 +247,62 @@ templates:
           handler: handleVerified
         - event: MilestonesAdded(indexed address,indexed address,uint256[])
           handler: handleMilestonesAdded
-        # - event: UpdateClient(indexed address)
-        #   handler: handleUpdateClient
-        # - event: UpdateProvider(indexed address)
-        #   handler: handleUpdateProvider
-        # - event: UpdateProviderReceiver(indexed address)
-        #   handler: handleUpdateProviderReceiver
+        - event: UpdatedClient(indexed address)
+          handler: handleUpdateClient
+        - event: UpdatedProvider(indexed address)
+          handler: handleUpdateProvider
+        - event: UpdatedProviderReceiver(indexed address)
+          handler: handleUpdateProviderReceiver
+      file: ./src/mappings/{{factoryName}}/invoice.ts
+  - kind: ethereum/contract
+    name: SmartInvoiceUpdatableV2{{factoryName}}
+    network: {{network}}
+    source:
+      abi: SmartInvoiceUpdatableV2{{factoryName}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Invoice
+        - Release
+        - Deposit
+        - Resolution
+        - Token
+      abis:
+        - name: ERC20
+          file: ./src/abis/ERC20.json
+        - name: SmartInvoiceUpdatable{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
+        - name: SmartInvoiceUpdatableV2{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatableV2{{factoryName}}.json
+        - name: SmartInvoiceFactory{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
+      eventHandlers:
+        - event: Release(uint256,uint256)
+          handler: handleRelease
+        - event: Withdraw(uint256)
+          handler: handleWithdraw
+        - event: Lock(indexed address,bytes32)
+          handler: handleLock
+        - event: Rule(indexed address,uint256,uint256,uint256)
+          handler: handleRule
+        - event: Resolve(indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleResolve
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Verified(indexed address,indexed address)
+          handler: handleVerified
+        - event: MilestonesAdded(indexed address,indexed address,uint256[])
+          handler: handleMilestonesAdded
+        - event: UpdatedClient(indexed address)
+          handler: handleUpdateClient
+        - event: UpdatedProvider(indexed address)
+          handler: handleUpdateProvider
+        - event: UpdatedProviderReceiver(indexed address)
+          handler: handleUpdateProviderReceiver
+        - event: UpdatedClientReceiver(indexed address)
+          handler: handleUpdateClientReceiver
       file: ./src/mappings/{{factoryName}}/invoice.ts
 {{/v01}}
 {{/factories}}
@@ -287,6 +339,8 @@ templates:
           file: ./src/abis/{{factoryName}}/SmartInvoiceSplitEscrow{{factoryName}}.json
         - name: SmartInvoiceUpdatable{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatable{{factoryName}}.json
+        - name: SmartInvoiceUpdatableV2{{factoryName}}
+          file: ./src/abis/{{factoryName}}/SmartInvoiceUpdatableV2{{factoryName}}.json
         - name: SmartInvoiceFactory{{factoryName}}
           file: ./src/abis/{{factoryName}}/SmartInvoiceFactory{{factoryName}}.json
         {{/v01}}

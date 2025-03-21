@@ -1,6 +1,11 @@
 import { Hex } from 'viem';
 
-export type InvoiceType = 'escrow' | 'instant' | 'split-escrow' | 'updatable';
+export type InvoiceType =
+  | 'escrow'
+  | 'instant'
+  | 'split-escrow'
+  | 'updatable'
+  | 'updatable-v2';
 
 export type SpoilsManager = {
   factory?: Hex;

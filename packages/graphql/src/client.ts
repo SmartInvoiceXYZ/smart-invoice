@@ -6,6 +6,7 @@ import {
 } from '@apollo/client';
 import {
   graphUrls,
+  isSupportedChainId,
   SUPPORTED_CHAIN_IDS,
   SupportedChainId,
 } from '@smartinvoicexyz/constants';
@@ -63,6 +64,9 @@ export const fetchTypedQuery =
         'query' | 'variables'
       >,
   ): Promise<InputType<GraphQLTypes[R], Z, Scalars>> => {
+    if (!isSupportedChainId(chainId)) {
+      throw new Error(`Chain ${chainId} is not supported`);
+    }
     const gql = typedGql<O, Scalars, R>('query' as O, { scalars })(o, ops);
 
     const { data, error } = await clients[chainId].query({
