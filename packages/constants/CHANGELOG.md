@@ -1,5 +1,11 @@
 # @smartinvoicexyz/constants
 
+## 0.1.24
+
+### Patch Changes
+
+- fixed useEscrowZap
+
 ## 0.1.23
 
 ### Patch Changes
