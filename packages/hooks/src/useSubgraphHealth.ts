@@ -7,7 +7,7 @@ import { publicClients } from '@smartinvoicexyz/utils';
 import useSWR from 'swr';
 
 const SUBGRAPH_STATUS_UPDATE_INTERVAL = 10000;
-const SUBGRAPH_BLOCKS_THRESHOLD = 10;
+const SUBGRAPH_BLOCKS_THRESHOLD = 32;
 
 const getLatestBlockNumber = async (
   chainId: SupportedChainId,
