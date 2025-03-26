@@ -22,7 +22,7 @@ async function main(): Promise<void> {
     | null = null;
 
   // Handle unsupported networks
-  if (![5, 31337, 100, 10].includes(chainId)) {
+  if (![5, 31337, 11155111, 100, 10].includes(chainId)) {
     console.log('Unsupported Network: ', chainId);
     return;
   }

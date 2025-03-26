@@ -14,11 +14,20 @@
     "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
     "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
     "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E",
-    "splitMain": "0x54E4a6014D36c381fC43b7E24A1492F556139a6F"
+    "splitMain": "0x54E4a6014D36c381fC43b7E24A1492F556139a6F",
+    "dao": "0x67e428101F4c688f228fb453659c5d7952075919",
+    "spoilsManager": "0xaa46efbe01df0fc8a73a9f95fd9dcad920ca1273",
+    "implementations": ["0xeff094b08b237cef952c12aac45230acc6b6380a"],
+    "factory": "0x6e603a21d9fa10d37446900439bb7d1838ba4f78",
+    "instances": ["0x1b12589bf3a11294eeef22020d8003e07686dc23"]
   },
   "bundler": {
     "address": "0x9c1E057B37605B7f6ed6f4c8E2826C3d84ddC08D",
     "txHash": "0x0a0a906034d5ce1bd93b723bc5c9226bbd6190fceff11a666fbb59f86a052164",
     "blockNumber": "6970535"
+  },
+  "spoilsManager": {
+    "factory": "0x989f1551850fd73f77feebcd789708e829951f44",
+    "implementations": ["0x5cfa1a7f94c2f5b1d572983c1cd1080d017d76e6"]
   }
 }
