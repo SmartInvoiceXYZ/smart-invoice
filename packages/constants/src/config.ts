@@ -40,6 +40,7 @@ export type Resolver = {
 
 export type NetworkConfig = {
   SUBGRAPH: string;
+  SUBGRAPH_HEALTH_THRESHOLD: number;
   WRAPPED_NATIVE_TOKEN: Address;
   INVOICE_FACTORY: Address;
   RESOLVERS: Partial<Record<KnownResolverType, Resolver>>;
@@ -160,6 +161,7 @@ export const SUPPORTED_CHAINS = chains as [SupportedChain, ...SupportedChain[]];
 export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   [mainnet.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice'),
+    SUBGRAPH_HEALTH_THRESHOLD: 10,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     ) as Address,
@@ -183,6 +185,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [gnosis.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-gnosis'),
+    SUBGRAPH_HEALTH_THRESHOLD: 20,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
     ) as Address,
@@ -206,6 +209,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [optimism.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-optimism'),
+    SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -224,7 +228,8 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [polygon.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-polygon'),
+    SUBGRAPH: getGoldskySubgraphUrl('smart-invoice-polygon'),
+    SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     ) as Address,
@@ -248,6 +253,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [arbitrum.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-arbitrum'),
+    SUBGRAPH_HEALTH_THRESHOLD: 120,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     ) as Address,
@@ -271,6 +277,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [base.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-base'),
+    SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
     ) as Address,
@@ -290,6 +297,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [sepolia.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-sepolia'),
+    SUBGRAPH_HEALTH_THRESHOLD: 10,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     ) as Address,
@@ -309,6 +317,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
   },
   [holesky.id]: {
     SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-holesky'),
+    SUBGRAPH_HEALTH_THRESHOLD: 10,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
     ) as Address,
