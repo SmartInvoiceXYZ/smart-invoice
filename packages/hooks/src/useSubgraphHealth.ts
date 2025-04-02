@@ -1,4 +1,5 @@
 import {
+  NETWORK_CONFIG,
   SUPPORTED_CHAIN_IDS,
   SupportedChainId,
 } from '@smartinvoicexyz/constants';
@@ -7,7 +8,6 @@ import { publicClients } from '@smartinvoicexyz/utils';
 import useSWR from 'swr';
 
 const SUBGRAPH_STATUS_UPDATE_INTERVAL = 10000;
-const SUBGRAPH_BLOCKS_THRESHOLD = 10;
 
 const getLatestBlockNumber = async (
   chainId: SupportedChainId,
@@ -25,10 +25,10 @@ const getSubgraphHealth = async (
     getSubgraphStatus(chainId),
     getLatestBlockNumber(chainId),
   ]);
+  const threshold = NETWORK_CONFIG[chainId].SUBGRAPH_HEALTH_THRESHOLD;
   return {
     hasIndexingErrors: status.hasIndexingErrors,
-    hasSynced:
-      status.syncedBlockNumber >= latestBlockNumber - SUBGRAPH_BLOCKS_THRESHOLD,
+    hasSynced: status.syncedBlockNumber >= latestBlockNumber - threshold,
   };
 };
 
