@@ -34,8 +34,8 @@
     "instances": ["0x52980A9fe54c9361d7c448A81a268ed7c02C1b86"]
   },
   "bundler": {
-    "address": "0xe926df2465afc491683ade8158363fbfc513a12f",
-    "txHash": "0xc6a55e5693b23a7423e335807f274ce014bd51bf75a4a88cce1345ca62197c25",
-    "blockNumber": "36820843"
+    "address": "0x06f85c9a4a36e5690b32e73cfdbf280766efd20b",
+    "txHash": "0x1ab0a2ccdc89347c689364de71e4214b4beb0a8d2b3407b34a08f47662694c29",
+    "blockNumber": "39589441"
   }
 }

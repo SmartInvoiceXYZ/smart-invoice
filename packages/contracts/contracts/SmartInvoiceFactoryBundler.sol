@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -34,20 +35,6 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         uint256 amount
     );
 
-    /// @notice Struct representing the details of an escrow
-    struct EscrowData {
-        address client;
-        address resolver;
-        uint8 resolverType;
-        address token;
-        uint256 terminationTime;
-        bytes32 details;
-        address provider;
-        address providerReceiver;
-        bool requireVerification;
-        bytes32 escrowType;
-    }
-
     /// @notice Constructor to initialize the contract with the factory and wrapped token addresses
     /// @param _escrowFactory Address of the SmartInvoiceFactory
     /// @param _wrappedNativeToken Address of the wrapped native token (e.g., WETH)
@@ -56,93 +43,32 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
         wrappedNativeToken = IWRAPPED(_wrappedNativeToken);
     }
 
-    /// @notice Internal function to decode and process escrow data
-    /// @param _escrowData Encoded data required for escrow setup
-    /// @return Returns the decoded EscrowData struct
-    function _decodeEscrowData(
-        bytes calldata _escrowData
-    ) internal pure returns (EscrowData memory) {
-        (
-            address client,
-            address resolver,
-            uint8 resolverType,
-            address token,
-            uint256 terminationTime,
-            bytes32 details,
-            address provider,
-            address providerReceiver,
-            bool requireVerification,
-            bytes32 escrowType
-        ) = abi.decode(
-                _escrowData,
-                (
-                    address,
-                    address,
-                    uint8,
-                    address,
-                    uint256,
-                    bytes32,
-                    address,
-                    address,
-                    bool,
-                    bytes32
-                )
-            );
-
-        return
-            EscrowData({
-                client: client,
-                resolver: resolver,
-                resolverType: resolverType,
-                token: token,
-                terminationTime: terminationTime,
-                details: details,
-                provider: provider,
-                providerReceiver: providerReceiver,
-                requireVerification: requireVerification,
-                escrowType: escrowType
-            });
-    }
-
     /// @notice Internal function to deploy a new escrow contract with provided details and milestone amounts
     /// @param _milestoneAmounts Array representing the milestone payment amounts
     /// @param _escrowData Encoded escrow data
     /// @param _fundAmount Total amount to be funded into the escrow
     /// @return escrow Address of the newly deployed escrow
     function deployEscrow(
+        address _provider,
         uint256[] memory _milestoneAmounts,
         bytes calldata _escrowData,
+        bytes32 _escrowType,
         uint256 _fundAmount
     ) public payable nonReentrant returns (address escrow) {
-        // Decode the provided escrow data
-        EscrowData memory escrowData = _decodeEscrowData(_escrowData);
-
-        // Prepare the details for the escrow creation
-        bytes memory escrowDetails = abi.encode(
-            escrowData.client,
-            escrowData.resolverType,
-            escrowData.resolver,
-            escrowData.token,
-            escrowData.terminationTime,
-            escrowData.details,
-            wrappedNativeToken,
-            escrowData.requireVerification,
-            address(escrowFactory),
-            escrowData.providerReceiver
-        );
-
         // Deploy the new escrow contract using the factory
         escrow = escrowFactory.create(
-            escrowData.provider,
+            _provider,
             _milestoneAmounts,
-            escrowDetails,
-            escrowData.escrowType
+            _escrowData,
+            _escrowType
         );
 
         // Ensure escrow creation was successful
         if (escrow == address(0)) revert EscrowNotCreated();
 
-        if (escrowData.token == address(wrappedNativeToken) && msg.value > 0) {
+        address token = ISmartInvoiceEscrow(escrow).token();
+
+        if (token == address(wrappedNativeToken) && msg.value > 0) {
             // Ensure the fund amount is valid
             if (msg.value != _fundAmount) revert InvalidFundAmount();
 
@@ -152,18 +78,14 @@ contract SmartInvoiceFactoryBundler is ReentrancyGuard {
 
             // Transfer the fund amount to the newly created escrow contract
             // Require the client to approve the fund transfer
-            IERC20(escrowData.token).safeTransfer(escrow, _fundAmount);
+            IERC20(token).safeTransfer(escrow, _fundAmount);
         } else {
             // Transfer the fund amount to the newly created escrow contract
             // Require the client to approve the fund transfer
-            IERC20(escrowData.token).safeTransferFrom(
-                msg.sender,
-                escrow,
-                _fundAmount
-            );
+            IERC20(token).safeTransferFrom(msg.sender, escrow, _fundAmount);
         }
 
         // Emit an event for the escrow creation
-        emit EscrowCreated(escrow, escrowData.token, _fundAmount);
+        emit EscrowCreated(escrow, token, _fundAmount);
     }
 }

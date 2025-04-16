@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
   networks: {
     gnosis: {
       chainId: 100,
-      url: `https://rpc.ankr.com/gnosis`,
+      url: `https://1rpc.io/gnosis`,
       accounts,
     },
     sepolia: {

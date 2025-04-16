@@ -10,8 +10,8 @@
     "updatable-v2": ["0x3add1d027116a5406ced10411945cf2d4d9ed68e"]
   },
   "bundler": {
-    "address": "0xb4cdef4aa610c046864467592fae456a58d3443a",
-    "txHash": "0x83462457bd63407583d49d4fb70e973c4a522e4cd937a36fcd87dd1ceca2736a",
-    "blockNumber": "21101177"
+    "address": "0x8f2cbf3a281092e48e0d79e0466604833e6cfa23",
+    "txHash": "0xdb715ca8369de049dcc024737b5187bc4b6bb72a965fabdffc7bba88d5fb47f6",
+    "blockNumber": "22281679"
   }
 }

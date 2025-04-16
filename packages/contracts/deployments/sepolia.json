@@ -22,9 +22,9 @@
     "instances": ["0x1b12589bf3a11294eeef22020d8003e07686dc23"]
   },
   "bundler": {
-    "address": "0x9c1E057B37605B7f6ed6f4c8E2826C3d84ddC08D",
-    "txHash": "0x0a0a906034d5ce1bd93b723bc5c9226bbd6190fceff11a666fbb59f86a052164",
-    "blockNumber": "6970535"
+    "address": "0xcf933e48b5677e15b49ab69821bb7b7b8ad109bb",
+    "txHash": "0xa8ec828f633c1cbb9cdc49bd5a4af01ebb606dd72c84864a2e72641e8d3afd39",
+    "blockNumber": "8130242"
   },
   "spoilsManager": {
     "factory": "0x989f1551850fd73f77feebcd789708e829951f44",

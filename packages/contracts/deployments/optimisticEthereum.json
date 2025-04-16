@@ -26,8 +26,8 @@
     "implementations": ["0xF4640751e7363a0572d4Ba93a9b049B956b33c17"]
   },
   "bundler": {
-    "address": "0xdafeb89f713e25a02e4ec21a18e3757d7a76d19e",
-    "txHash": "0x2893936d5492b540c9a954dffeac94c06c7f07e08561ad2cd4de70dc8643642e",
-    "blockNumber": "127483219"
+    "address": "0x52c04330c9d38638b5d38e685f13ca744b84155b",
+    "txHash": "0xb3ca051a86e5f42ed021f495ae08997a670c456fafb192e6b92e7b6f4c2bf113",
+    "blockNumber": "134604496"
   }
 }

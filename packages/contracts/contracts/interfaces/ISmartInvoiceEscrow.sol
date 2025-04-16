@@ -8,6 +8,12 @@ import {ISmartInvoice} from "./ISmartInvoice.sol";
 /// @notice Interface for Smart Invoice Escrow functionality with customizable milestones, releases, and dispute resolution.
 interface ISmartInvoiceEscrow is ISmartInvoice {
     /**
+        @notice Returns the address of the token used for payment.
+        @return token The address of the token used for payment.
+    */
+    function token() external view returns (address token);
+
+    /**
      * @notice Adds new milestones to the invoice.
      * @param _milestones An array of milestone amounts to be added.
      */
