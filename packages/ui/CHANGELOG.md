@@ -1,5 +1,17 @@
 # @smartinvoicexyz/ui
 
+## 0.1.25
+
+### Patch Changes
+
+- exported useDetailsPin
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.25
+  - @smartinvoicexyz/graphql@0.1.25
+  - @smartinvoicexyz/hooks@0.1.25
+  - @smartinvoicexyz/types@0.1.25
+  - @smartinvoicexyz/utils@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes

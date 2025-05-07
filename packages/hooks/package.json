@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/hooks",
   "description": "Unified source for React hooks used across the Smart Invoice protocol.",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "dependencies": {
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",

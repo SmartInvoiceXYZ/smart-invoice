@@ -1,6 +1,6 @@
 {
   "name": "@smartinvoicexyz/website",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.3",

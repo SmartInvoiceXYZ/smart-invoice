@@ -1,5 +1,13 @@
 # @smartinvoicexyz/shared
 
+## 0.1.25
+
+### Patch Changes
+
+- exported useDetailsPin
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes

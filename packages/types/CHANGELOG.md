@@ -1,5 +1,15 @@
 # @smartinvoicexyz/types
 
+## 0.1.25
+
+### Patch Changes
+
+- exported useDetailsPin
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.25
+  - @smartinvoicexyz/graphql@0.1.25
+  - @smartinvoicexyz/shared@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes
