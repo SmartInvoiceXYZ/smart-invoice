@@ -228,7 +228,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [polygon.id]: {
-    SUBGRAPH: getGoldskySubgraphUrl('smart-invoice-polygon'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-polygon'),
     SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
