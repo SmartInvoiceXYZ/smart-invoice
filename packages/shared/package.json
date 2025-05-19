@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/shared",
   "description": "Unified source for shared helper functions used across the Smart Invoice protocol.",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "author": "",
   "dependencies": {
     "@smartinvoicexyz/constants": "workspace:*"

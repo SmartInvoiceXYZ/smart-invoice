@@ -1,5 +1,11 @@
 # @smartinvoicexyz/contracts
 
+## 0.1.26
+
+### Patch Changes
+
+- updated polygon subgraph to studio
+
 ## 0.1.25
 
 ### Patch Changes

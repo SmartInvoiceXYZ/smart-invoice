@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.26
+
+### Patch Changes
+
+- updated polygon subgraph to studio
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.26
+  - @smartinvoicexyz/shared@0.1.26
+
 ## 0.1.25
 
 ### Patch Changes
