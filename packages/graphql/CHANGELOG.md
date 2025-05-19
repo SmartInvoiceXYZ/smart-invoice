@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.27
+
+### Patch Changes
+
+- removed lodash from constants
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.27
+  - @smartinvoicexyz/shared@0.1.27
+
 ## 0.1.26
 
 ### Patch Changes

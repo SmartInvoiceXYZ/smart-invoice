@@ -1,4 +1,3 @@
-import { toLower } from 'lodash';
 import { Address, Chain, Hex } from 'viem';
 import {
   arbitrum,
@@ -10,6 +9,9 @@ import {
   polygon,
   sepolia,
 } from 'viem/chains';
+
+const toLower = (address: string | undefined | null) =>
+  address?.toLowerCase() ?? '' as string;
 
 export const INVOICE_VERSION = 'smart-invoice-v0.1.0';
 

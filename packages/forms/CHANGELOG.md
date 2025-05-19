@@ -1,5 +1,18 @@
 # @smartinvoicexyz/forms
 
+## 0.1.27
+
+### Patch Changes
+
+- removed lodash from constants
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.27
+  - @smartinvoicexyz/graphql@0.1.27
+  - @smartinvoicexyz/hooks@0.1.27
+  - @smartinvoicexyz/types@0.1.27
+  - @smartinvoicexyz/ui@0.1.27
+  - @smartinvoicexyz/utils@0.1.27
+
 ## 0.1.26
 
 ### Patch Changes

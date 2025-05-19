@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.27
+
+### Patch Changes
+
+- removed lodash from constants
+
 ## 0.1.26
 
 ### Patch Changes
