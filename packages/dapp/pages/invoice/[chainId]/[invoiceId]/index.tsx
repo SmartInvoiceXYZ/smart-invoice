@@ -13,7 +13,11 @@ import {
   InvoiceNotFound,
   Loader,
 } from '@smartinvoicexyz/ui';
-import { chainLabelFromId, getChainName } from '@smartinvoicexyz/utils';
+import {
+  chainLabelFromId,
+  getChainName,
+  parseChainId,
+} from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -21,7 +25,6 @@ import { Hex, isAddress } from 'viem';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
-import { parseChainId } from './locked';
 
 function ViewInvoice() {
   const router = useRouter();

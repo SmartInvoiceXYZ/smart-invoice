@@ -11,7 +11,7 @@ import {
 } from 'viem/chains';
 
 const toLower = (address: string | undefined | null) =>
-  address?.toLowerCase() ?? '' as string;
+  address?.toLowerCase() ?? ('' as string);
 
 export const INVOICE_VERSION = 'smart-invoice-v0.1.0';
 

@@ -191,7 +191,7 @@ export const publicClients: Record<SupportedChainId, PublicClient> =
     {} as Record<SupportedChainId, PublicClient>,
   );
 
-const wagmiConfig = getDefaultConfig({
+export const wagmiConfig = getDefaultConfig({
   ssr: true,
   appName: APP_NAME,
   projectId: PROJECT_ID,
@@ -213,4 +213,15 @@ const wagmiConfig = getDefaultConfig({
   ],
 });
 
-export { wagmiConfig };
+export const parseChainId = (chainIdOrLabel: string | string[] | undefined) => {
+  if (!chainIdOrLabel) return undefined;
+  // eslint-disable-next-line no-param-reassign
+  chainIdOrLabel = chainIdOrLabel.toString();
+  if (chainIdOrLabel.startsWith('0x')) return parseInt(chainIdOrLabel, 16);
+  if (Number.isInteger(Number(chainIdOrLabel))) return Number(chainIdOrLabel);
+  const chainId = chainIdFromLabel(chainIdOrLabel.toLowerCase());
+  if (chainId) return chainId;
+  // eslint-disable-next-line no-param-reassign
+  chainIdOrLabel = `0x${chainIdOrLabel}`;
+  return parseInt(chainIdOrLabel, 16);
+};

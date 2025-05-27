@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { isSupportedChainId } from '@smartinvoicexyz/constants';
+import { parseChainId } from '@smartinvoicexyz/utils';
 import { track } from '@vercel/analytics';
 import { Analytics } from '@vercel/analytics/react';
 import { useRouter } from 'next/router';
@@ -19,7 +20,12 @@ export function Layout({ children }: PropsWithChildren) {
     track('ChainChanged', { chain: chainId ?? null });
   }, [chainId]);
 
-  const { pathname } = useRouter();
+  const {
+    pathname,
+    query: { chainId: _queryChainId },
+  } = useRouter();
+
+  const queryChainId = parseChainId(_queryChainId);
 
   const isOpenPath =
     pathname === '/' ||
@@ -54,7 +60,7 @@ export function Layout({ children }: PropsWithChildren) {
         align="center"
         h="100%"
       >
-        <SubgraphHealthAlert />
+        <SubgraphHealthAlert chainId={queryChainId ?? chainId} />
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
       <Analytics />
