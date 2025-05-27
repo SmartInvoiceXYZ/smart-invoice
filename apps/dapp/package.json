@@ -1,5 +1,5 @@
 {
-  "name": "@smartinvoicexyz/dapp",
+  "name": "smartinvoicexyz-dapp",
   "description": "A Next.js application that provides a interface for web3 freelancers to manage cryptocurrency invoicing, escrow services, and arbitration.",
   "version": "0.1.27",
   "browserslist": [

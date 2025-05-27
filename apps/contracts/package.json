@@ -1,5 +1,5 @@
 {
-  "name": "@smartinvoicexyz/contracts",
+  "name": "smartinvoicexyz-contracts",
   "description": "Solidity smart contracts of the Smart Invoice protocol.",
   "version": "0.1.27",
   "dependencies": {

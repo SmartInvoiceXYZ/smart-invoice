@@ -56,11 +56,11 @@ pids
 .DS_Store
 
 # subgraph
-packages/subgraph/src/types
-packages/subgraph/subgraph.yaml
+apps/subgraph/src/types
+apps/subgraph/subgraph.yaml
 
 # contracts
-packages/contracts/artifacts
+apps/contracts/artifacts
 
 # zeus
 packages/graphql/src/zeus
