@@ -1,6 +1,6 @@
 import { logDebug } from '@smartinvoicexyz/shared';
 import { KeyRestrictions, OldMetadata } from '@smartinvoicexyz/types';
-import { decode, encode } from 'bs58';
+import bs58 from 'bs58';
 import _ from 'lodash';
 import { Cache } from 'memory-cache';
 import { Hex } from 'viem';
@@ -127,7 +127,7 @@ export const fetchToken = async (count: number = 0) => {
  * @returns string
  */
 export function convertIpfsCidV0ToByte32(cid: string): Hex {
-  return `0x${Buffer.from(decode(cid).slice(2)).toString('hex')}`;
+  return `0x${Buffer.from(bs58.decode(cid).slice(2)).toString('hex')}`;
 }
 
 /**
@@ -140,7 +140,7 @@ export function convertByte32ToIpfsCidV0(str: Hex) {
   if (str.indexOf('0x') === 0) {
     newStr = str.slice(2);
   }
-  return encode(Buffer.from(`1220${newStr}`, 'hex'));
+  return bs58.encode(Buffer.from(`1220${newStr}`, 'hex'));
 }
 
 export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {

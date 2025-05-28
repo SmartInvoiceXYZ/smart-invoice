@@ -1,0 +1,23 @@
+{
+  "network": "holesky",
+  "factory": "0xE0986c3bdAB537fBeb7c94D0C5EF961d6d8bf63a",
+  "txHash": "0x2657abfae0251d83482a0126edf5af3fb479f97979b582a24011793384322c90",
+  "blockNumber": "1861812",
+  "implementations": {
+    "escrow": ["0x8a837E8D04eF7aEFB677590D192a302D5eD4e11C"],
+    "instant": ["0xB2cEB1c0b55714Ff13ff330d7c27125d92D72398"],
+    "split-escrow": ["0xc166B597fB34CBE71fB76C4A502CAcc42d9Bb231"],
+    "updatable": ["0xe926dF2465aFC491683ade8158363FbFC513A12F"],
+    "updatable-v2": ["0xbdff101eaef10ad563a60c8d060053e5c8343b8d"]
+  },
+  "zap": {
+    "safeFactory": "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2",
+    "fallbackHandler": "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4",
+    "safeSingleton": "0x3E5c63644E683549055b9Be8653de26E0B4CD36E"
+  },
+  "bundler": {
+    "address": "0x349400ed9db1495380384fb9612bed68bfc0a9a8",
+    "txHash": "0x0909ce7d27c1608659822b3812a4edf5aac1619c14479119aac1c1449bcf2966",
+    "blockNumber": "3682469"
+  }
+}

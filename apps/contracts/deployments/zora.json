@@ -1,0 +1,16 @@
+{
+  "network": "zora",
+  "factory": "0x59730da9b5f93fe1e1fd7d62f94b787ecc7feef1",
+  "txHash": "0x4147942446739192cf299b91419471939954ae612601df808eab28d6d70ca3c0",
+  "blockNumber": "21935337",
+  "implementations": {
+    "escrow": ["0x258fb6c990cad5b6c685372061fddca7892564ea"],
+    "updatable": ["0x4cd7beae668ed7c7803b787ba9b84ce17135646b"],
+    "updatable-v2": ["0xb4cdef4aa610c046864467592fae456a58d3443a"]
+  },
+  "bundler": {
+    "address": "0xe0986c3bdab537fbeb7c94d0c5ef961d6d8bf63a",
+    "txHash": "0x15f8a7f1c5bc8753d0a4c9f9e885f6bdad4d2e50246c3e57c3733789dffec4cc",
+    "blockNumber": "29057022"
+  }
+}

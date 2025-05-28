@@ -11,7 +11,8 @@ import { Loader } from './Loader';
 
 export function ConnectWeb3() {
   const { openConnectModal } = useConnectModal();
-  const { isConnected, isConnecting } = useAccount();
+  const { address, isConnecting } = useAccount();
+  const isConnected = !!address;
   const isClient = useIsClient();
 
   if (!isClient || isConnecting) {

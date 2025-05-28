@@ -89,7 +89,8 @@ const columnHelper = createColumnHelper<InvoiceDisplayData>();
 
 export function InvoiceDashboardTable() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
   const chainId = useChainId();
 
   const { primaryButtonSize } = useMediaStyles();

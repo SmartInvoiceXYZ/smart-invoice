@@ -1,0 +1,31 @@
+{
+  "name": "smartinvoice-website",
+  "version": "0.1.28",
+  "dependencies": {
+    "@chakra-ui/icon": "^2.0.5",
+    "@chakra-ui/next-js": "^2.4.2",
+    "@chakra-ui/react": "^2.10.9",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "framer-motion": "^12.15.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^4.1.1",
+    "next": "^15.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remark": "^14.0.2",
+    "remark-html": "^15.0.1"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^14.2.7",
+    "eslint-config-next": "^14.2.7"
+  },
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "next lint",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  }
+}

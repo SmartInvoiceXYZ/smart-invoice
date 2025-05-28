@@ -1,4 +1,3 @@
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FormControl,
   FormErrorMessage,
@@ -14,6 +13,8 @@ import {
 import _ from 'lodash';
 import React from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
+
+import { InfoOutlineIcon } from '../icons';
 
 export type CustomTextareaProps = {
   label: string | React.ReactNode;

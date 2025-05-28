@@ -1,6 +1,5 @@
 import { Flex, FlexProps } from '@chakra-ui/react';
 import { isBackdropFilterSupported } from '@smartinvoicexyz/utils';
-import React from 'react';
 
 interface ContainerProps extends FlexProps {
   overlay?: boolean;

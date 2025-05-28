@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/graphql",
   "description": "Unified source for helpers and schema used across the GraphQL services within the Smart Invoice protocol.",
-  "version": "0.1.24",
+  "version": "0.1.28",
   "author": "",
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -12,11 +12,11 @@
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^6.0.0",
     "lodash": "^4.17.21",
-    "viem": "2.17.0"
+    "viem": "^2.30.2"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.7",
-    "@types/node": "^22.5.1"
+    "@types/lodash": "^4.17.17",
+    "@types/node": "^22.15.23"
   },
   "engines": {
     "node": ">=18"

@@ -3,15 +3,11 @@ import { RWebShare } from 'react-web-share';
 
 import { ShareIcon } from '../icons';
 
-export const ShareButton = ({
-  title,
-  text,
-  url,
-}: {
+export const ShareButton: React.FC<{
   title: string;
   text: string;
   url: string;
-}): JSX.Element => {
+}> = ({ title, text, url }) => {
   return (
     <RWebShare
       data={{

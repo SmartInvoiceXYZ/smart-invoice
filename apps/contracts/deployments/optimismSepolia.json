@@ -1,0 +1,16 @@
+{
+  "network": "optimismSepolia",
+  "factory": "0x4cd7beae668ed7c7803b787ba9b84ce17135646b",
+  "txHash": "0x5cf715e64989f15a1e78e4bbb34c622fe55efc6daae0fb40cb9edf67826cf801",
+  "blockNumber": "19380489",
+  "implementations": {
+    "escrow": ["0x415e67d2e2710b246b99492cec89cc90af81931a"],
+    "updatable": ["0xb4cdef4aa610c046864467592fae456a58d3443a"],
+    "updatable-v2": ["0x8a837e8d04ef7aefb677590d192a302d5ed4e11c"]
+  },
+  "bundler": {
+    "address": "0xd8e1f218021550fadda4b1e353578b80a1ce1a94",
+    "txHash": "0x48bbeb42e8fc5b264848a087dcd7fe8a977c391a3b955daed5a01db9595298d8",
+    "blockNumber": "26502707"
+  }
+}

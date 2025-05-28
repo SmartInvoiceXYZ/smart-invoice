@@ -1,5 +1,29 @@
 # @smartinvoicexyz/constants
 
+## 0.1.28
+
+### Patch Changes
+
+- upgrade web3 deps
+
+## 0.1.27
+
+### Patch Changes
+
+- removed lodash from constants
+
+## 0.1.26
+
+### Patch Changes
+
+- updated polygon subgraph to studio
+
+## 0.1.25
+
+### Patch Changes
+
+- exported useDetailsPin
+
 ## 0.1.24
 
 ### Patch Changes

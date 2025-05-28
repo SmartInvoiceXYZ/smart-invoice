@@ -1,10 +1,13 @@
 import { Box } from '@chakra-ui/react';
-import { AvatarComponent } from '@rainbow-me/rainbowkit';
 import blockies from 'blockies-ts';
 import _ from 'lodash';
 import { getAddress, isAddress } from 'viem';
 
-type AvatarComponentProps = React.ComponentProps<AvatarComponent>;
+export type AvatarComponentProps = {
+  address: string;
+  ensImage?: string | null;
+  size: number;
+};
 
 export const AccountAvatar: React.FC<
   AvatarComponentProps & { customImage?: string | undefined }

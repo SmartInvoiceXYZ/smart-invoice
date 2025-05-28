@@ -1,5 +1,57 @@
 # @smartinvoicexyz/forms
 
+## 0.1.28
+
+### Patch Changes
+
+- upgrade web3 deps
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.28
+  - @smartinvoicexyz/graphql@0.1.28
+  - @smartinvoicexyz/hooks@0.1.28
+  - @smartinvoicexyz/types@0.1.28
+  - @smartinvoicexyz/utils@0.1.28
+  - @smartinvoicexyz/ui@0.1.28
+
+## 0.1.27
+
+### Patch Changes
+
+- removed lodash from constants
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.27
+  - @smartinvoicexyz/graphql@0.1.27
+  - @smartinvoicexyz/hooks@0.1.27
+  - @smartinvoicexyz/types@0.1.27
+  - @smartinvoicexyz/ui@0.1.27
+  - @smartinvoicexyz/utils@0.1.27
+
+## 0.1.26
+
+### Patch Changes
+
+- updated polygon subgraph to studio
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.26
+  - @smartinvoicexyz/graphql@0.1.26
+  - @smartinvoicexyz/hooks@0.1.26
+  - @smartinvoicexyz/types@0.1.26
+  - @smartinvoicexyz/utils@0.1.26
+  - @smartinvoicexyz/ui@0.1.26
+
+## 0.1.25
+
+### Patch Changes
+
+- exported useDetailsPin
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.25
+  - @smartinvoicexyz/graphql@0.1.25
+  - @smartinvoicexyz/hooks@0.1.25
+  - @smartinvoicexyz/types@0.1.25
+  - @smartinvoicexyz/utils@0.1.25
+  - @smartinvoicexyz/ui@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes

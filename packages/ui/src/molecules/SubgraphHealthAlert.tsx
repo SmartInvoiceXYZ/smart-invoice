@@ -10,7 +10,9 @@ import { useSubgraphHealth } from '@smartinvoicexyz/hooks';
 import { getChainName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 
-export function SubgraphHealthAlert() {
+export const SubgraphHealthAlert: React.FC<{ chainId?: number }> = ({
+  chainId,
+}) => {
   const { health, error, isLoading } = useSubgraphHealth();
 
   if (error) {
@@ -24,12 +26,12 @@ export function SubgraphHealthAlert() {
 
   const { erroredChainIds, notSyncedChainIds } = _.reduce(
     _.entries(health),
-    (acc, [chainId, h]) => {
+    (acc, [c, h]) => {
       if (h.hasIndexingErrors) {
-        acc.erroredChainIds.push(Number(chainId));
+        acc.erroredChainIds.push(Number(c));
       }
       if (!h.hasSynced) {
-        acc.notSyncedChainIds.push(Number(chainId));
+        acc.notSyncedChainIds.push(Number(c));
       }
       return acc;
     },
@@ -49,6 +51,12 @@ export function SubgraphHealthAlert() {
   const chainIds = _.uniq([...erroredChainIds, ...notSyncedChainIds]);
   const chains = _.map(chainIds, id => getChainName(id));
 
+  if (!!chainId && !chainIds.includes(chainId)) {
+    return null;
+  }
+
+  const chainName = chainId ? getChainName(chainId) : chains.join(', ');
+
   return (
     <Flex
       position="absolute"
@@ -66,10 +74,10 @@ export function SubgraphHealthAlert() {
           <AlertTitle>Data Sync Issue Detected!</AlertTitle>
         </HStack>
         <AlertDescription>
-          The subgraph is behind on: {chains.join(', ')}. Some data may be
-          outdated or incomplete. Please try again later.
+          The subgraph is behind on: {chainName}. Some data may be outdated or
+          incomplete. Please try again later.
         </AlertDescription>
       </Alert>
     </Flex>
   );
-}
+};

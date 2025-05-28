@@ -70,7 +70,8 @@ export function InvoicePaymentDetails({
 }: {
   invoice: Partial<InvoiceDetails>;
 } & OverlayContextType) {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
   const chainId = useChainId();
 
   const {

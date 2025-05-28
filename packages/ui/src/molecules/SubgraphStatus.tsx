@@ -1,4 +1,3 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
@@ -36,6 +35,7 @@ import {
   ShareButton,
   VerifyInvoice,
 } from '..';
+import { ExternalLinkIcon } from '../icons';
 
 export function InvoiceMetaDetails({
   invoice,
