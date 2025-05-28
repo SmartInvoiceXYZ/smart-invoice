@@ -3,7 +3,9 @@
 pragma solidity ^0.8.20;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {
+    Initializable
+} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";

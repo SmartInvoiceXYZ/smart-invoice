@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.20;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {
+    OwnableUpgradeable
+} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title Spoils Manager Contract
 /// @notice Manages the distribution of spoils, allowing an owner to set a receiver and adjust the spoils percentage distributed to that receiver.

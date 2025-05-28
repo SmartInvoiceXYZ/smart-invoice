@@ -25,9 +25,11 @@ module.exports = {
       },
     ],
     'no-unused-vars': 'off',
-    // Prefer non-default exports
-    'import/no-default-export': 'error',
+
+    // exports
+    'import/no-default-export': 'off',
     'import/prefer-default-export': 'off',
+    'import/prefer-named-exports': 'off',
 
     // Auto-sort imports
     'sort-imports': 'off',
@@ -58,8 +60,6 @@ module.exports = {
     'react/no-array-index-key': 'off',
     'react/jsx-props-no-spreading': 'off',
     'no-use-before-define': 'off',
-    'import/no-default-export': 'off',
-    'import/prefer-named-exports': 'off',
 
     // TS
     '@typescript-eslint/no-explicit-any': 'warn', // disable explicit any
