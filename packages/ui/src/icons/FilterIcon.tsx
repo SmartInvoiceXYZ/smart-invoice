@@ -1,6 +1,6 @@
-import { createIcon } from '@chakra-ui/icon';
+import { createIcon, IconProps } from '@chakra-ui/react';
 
-export const FilterIcon = createIcon({
+export const FilterIcon: React.FC<IconProps> = createIcon({
   displayName: 'FilterIcon',
   path: (
     <>

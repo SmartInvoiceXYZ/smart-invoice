@@ -1,4 +1,3 @@
-import { CloseIcon } from '@chakra-ui/icons';
 import {
   AlertStatus,
   Box,
@@ -9,6 +8,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { ToastProps } from '@smartinvoicexyz/types';
+
+import { CloseIcon } from '../icons';
 
 // const icons: {
 //   [name: string]: { icon: IconType; color: ColorProps['color'] };

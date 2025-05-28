@@ -22,7 +22,7 @@ const borderColor = 'black';
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontStyle: 'bold',
+    fontWeight: 'bold',
     fontSize: 11,
     paddingTop: 30,
     paddingLeft: 60,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 24,
     textAlign: 'center',
-    fontStyle: 'bold',
+    fontWeight: 'bold',
     flexGrow: 1,
   },
   row: {
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     alignItems: 'center',
     height: 24,
-    fontStyle: 'bold',
+    fontWeight: 'bold',
   },
   listTitle: {
     paddingLeft: 8,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 20,
-    fontStyle: 'bold',
+    fontWeight: 'bold',
   },
   description: {
     width: '50%',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     alignItems: 'center',
     height: 24,
-    fontStyle: 'bold',
+    fontWeight: 'bold',
   },
 });
 

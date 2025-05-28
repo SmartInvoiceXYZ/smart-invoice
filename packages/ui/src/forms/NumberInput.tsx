@@ -1,4 +1,3 @@
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   FormControl,
   FormErrorMessage,
@@ -16,6 +15,8 @@ import {
 import _ from 'lodash';
 import React, { ReactNode } from 'react';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
+
+import { InfoOutlineIcon } from '../icons';
 
 export interface CustomNumberInputProps {
   label?: string | React.ReactNode;

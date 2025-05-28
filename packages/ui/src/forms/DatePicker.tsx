@@ -1,6 +1,5 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
@@ -17,6 +16,8 @@ import _ from 'lodash';
 import ReactDatePicker from 'react-datepicker';
 import { Controller, RegisterOptions, UseFormReturn } from 'react-hook-form';
 
+import { InfoOutlineIcon } from '../icons';
+
 // TODO handle separate controlled component
 // TODO currently only single date is supported, but type shows that it can be a range
 
@@ -31,7 +32,8 @@ export type DatePickerProps = {
   placeholder?: string;
   variant?: string;
   spacing?: number | string;
-} & Omit<React.ComponentProps<typeof ReactDatePicker>, 'onChange'>;
+  onChange?: (date: Date) => void;
+};
 
 export function DatePicker({
   label,
@@ -39,10 +41,10 @@ export function DatePicker({
   localForm,
   registerOptions,
   tooltip,
-  placeholderText, // default prop from react-datepicker
   placeholder, // match rest of inputs for consistency, takes priority
   variant = 'outline',
   spacing,
+  onChange,
   ...props
 }: DatePickerProps) {
   const {
@@ -108,9 +110,7 @@ export function DatePicker({
                 selected={value}
                 customInput={
                   <Button variant={variant}>
-                    {getDateString(dateSeconds) ||
-                      placeholder ||
-                      placeholderText}
+                    {getDateString(dateSeconds) || placeholder}
                   </Button>
                 }
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,6 +118,12 @@ export function DatePicker({
                   field.ref({
                     focus: ref?.setFocus,
                   });
+                }}
+                onChange={(date: Date | null) => {
+                  if (onChange && !!date) {
+                    onChange(date);
+                  }
+                  field.onChange(date);
                 }}
               />
               <FormErrorMessage color="red.500">

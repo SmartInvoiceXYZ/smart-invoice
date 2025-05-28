@@ -1,4 +1,3 @@
-import { CheckCircleIcon } from '@chakra-ui/icons';
 import {
   Button,
   Flex,
@@ -9,7 +8,7 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
-import { ChakraNextLink, CopyIcon } from '@smartinvoicexyz/ui';
+import { ChakraNextLink, CheckCircleIcon, CopyIcon } from '@smartinvoicexyz/ui';
 import { chainLabelFromId, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { Address } from 'viem';
@@ -32,7 +31,7 @@ export function RegisterSuccess({
   const { onCopy: copyLink } = useClipboard(`${window.location.origin}${url}`);
 
   return (
-    <Stack w="100%" spacing="1rem" align="center" justify="center" px="1rem">
+    <Stack w="100%" gap="1rem" align="center" justify="center" px="1rem">
       <Icon as={CheckCircleIcon} w={28} h={28} color="blue.500" />
 
       <Text color="black" textAlign="center" fontSize="lg">

@@ -36,11 +36,15 @@ async function getDeploymentTransactionHash(
   // Get creation block number using binary search
   const currentBlock = await client.getBlockNumber();
   let left = currentBlock - 10n;
+  if (left < 0n) {
+    left = 0n;
+  }
   let right = currentBlock;
   let deploymentBlock = null;
 
   while (left <= right) {
     const mid = left + (right - left) / 2n;
+
     // eslint-disable-next-line no-await-in-loop
     const code = await client.getCode({
       address: contractAddress,
@@ -100,6 +104,9 @@ export async function deployContract<CN extends string>(
   );
 
   const hash = await getDeploymentTransactionHash(contract.address);
+
+  console.log(`Deployed contract ${contractName} at ${contract.address}`);
+  console.log(`Deployment transaction hash: ${hash}`);
 
   if (!hash) {
     return {

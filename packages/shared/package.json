@@ -7,7 +7,7 @@
     "@smartinvoicexyz/constants": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.5.1"
+    "@types/node": "^22.15.23"
   },
   "engines": {
     "node": ">=18"

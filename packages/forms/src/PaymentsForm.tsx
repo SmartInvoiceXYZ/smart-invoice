@@ -1,4 +1,3 @@
-import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
   Accordion,
   AccordionButton,
@@ -25,6 +24,8 @@ import { ESCROW_STEPS } from '@smartinvoicexyz/constants';
 import { useFetchTokens } from '@smartinvoicexyz/hooks';
 import { FormInvoice, IToken } from '@smartinvoicexyz/types';
 import {
+  AddIcon,
+  DeleteIcon,
   Input,
   NumberInput,
   QuestionIcon,
