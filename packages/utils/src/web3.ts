@@ -32,7 +32,6 @@ const APP_NAME = 'Smart Invoice';
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
 const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID || '';
-const PORTERS_ID = process.env.NEXT_PUBLIC_PORTERS_ID || '';
 
 const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
   [mainnet.id]: 'mainnet',
@@ -54,17 +53,6 @@ const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   [base.id]: 'base-mainnet',
   [holesky.id]: 'eth-holesky',
   // gnosis is not supported by alchemy
-};
-
-const portersNetworkName: Partial<Record<SupportedChainId, string>> = {
-  [mainnet.id]: 'eth-mainnet',
-  [polygon.id]: 'poly-mainnet',
-  [arbitrum.id]: 'arbitrum-one',
-  [optimism.id]: 'optimism-mainnet',
-  [sepolia.id]: 'sepolia-testnet',
-  [base.id]: 'base-fullnode-mainnet',
-  [holesky.id]: 'holesky-fullnode-testnet',
-  [gnosis.id]: 'gnosischain-mainnet',
 };
 
 const chainLabelToId: Record<string, SupportedChainId> = {
@@ -162,13 +150,6 @@ const transports: _transports = SUPPORTED_CHAINS.reduce(
         ? `https://${alchemyNetwork}.g.alchemy.com/v2/${ALCHEMY_ID}`
         : undefined;
     if (alchemyUrl) list.push(http(alchemyUrl));
-
-    const portersNetwork = portersNetworkName[chain.id];
-    const portersUrl =
-      portersNetwork && PORTERS_ID
-        ? `https://${portersNetwork}.rpc.porters.xyz/${PORTERS_ID}`
-        : undefined;
-    if (portersUrl) list.push(http(portersUrl));
 
     return {
       ...acc,
