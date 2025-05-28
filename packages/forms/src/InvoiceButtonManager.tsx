@@ -33,7 +33,8 @@ export function InvoiceButtonManager({
 }: {
   invoice: Partial<InvoiceDetails> | undefined;
 } & OverlayContextType) {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
   const chainId = useChainId();
 
   const { buttonEnabled, numColumns } = useMemo(() => {

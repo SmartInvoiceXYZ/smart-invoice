@@ -4,10 +4,10 @@
   "version": "0.1.27",
   "author": "",
   "dependencies": {
-    "viem": "2.17.0"
+    "viem": "^2.30.2"
   },
   "devDependencies": {
-    "@types/node": "^22.5.1"
+    "@types/node": "^22.15.23"
   },
   "engines": {
     "node": ">=18"

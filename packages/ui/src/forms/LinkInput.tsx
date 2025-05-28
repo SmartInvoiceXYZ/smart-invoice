@@ -1,4 +1,3 @@
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   Flex,
@@ -19,6 +18,8 @@ import { isValidURL, logDebug, PROTOCOL_OPTIONS } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useCallback, useEffect } from 'react';
 import { RegisterOptions, UseFormReturn } from 'react-hook-form';
+
+import { InfoOutlineIcon } from '../icons';
 
 interface LinkInputProps extends ChakraProps {
   name: string;

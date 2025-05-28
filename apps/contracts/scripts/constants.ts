@@ -6,6 +6,7 @@ import baseDeployment from '../deployments/base.json';
 import baseSepoliaDeployment from '../deployments/baseSepolia.json';
 import gnosisDeployment from '../deployments/gnosis.json';
 import holeskyDeployment from '../deployments/holesky.json';
+import localhostDeployment from '../deployments/localhost.json';
 import mainnetDeployment from '../deployments/mainnet.json';
 import optimismSepoliaDeployment from '../deployments/optimismSepolia.json';
 import optimisticEthereumDeployment from '../deployments/optimisticEthereum.json';

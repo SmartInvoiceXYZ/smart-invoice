@@ -1,6 +1,6 @@
-import { createIcon } from '@chakra-ui/icon';
+import { createIcon, IconProps } from '@chakra-ui/react';
 
-export const ShareIcon = createIcon({
+export const ShareIcon: React.FC<IconProps> = createIcon({
   displayName: 'ShareIcon',
   path: (
     <g>

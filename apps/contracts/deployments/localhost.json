@@ -1,0 +1,7 @@
+{
+  "network": "localhost",
+  "factory": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "txHash": "0xf57d98e4184ba41e9b6ba50a6ebb6400bf5a2c48784b71c9913e04f0ad8cefd5",
+  "blockNumber": "6",
+  "implementations": {}
+}

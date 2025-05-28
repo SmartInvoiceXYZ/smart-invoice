@@ -1,4 +1,3 @@
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   ChakraProps,
   FormLabel,
@@ -11,6 +10,8 @@ import {
 } from '@chakra-ui/react';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
+import { InfoOutlineIcon } from '../icons';
+
 type Required = 'required' | 'optional';
 
 interface SelectProps extends ChakraProps {
@@ -19,7 +20,7 @@ interface SelectProps extends ChakraProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   localForm: UseFormReturn<any>;
   infoText?: string;
-  tooltip?: string | JSX.Element;
+  tooltip?: string | React.ReactElement;
   required?: Required;
   isDisabled?: boolean;
 }

@@ -9,15 +9,15 @@
     "@smartinvoicexyz/utils": "workspace:*",
     "@tanstack/react-query": "5.55.3",
     "lodash": "^4.17.21",
-    "react": "^18.2.0",
-    "react-hook-form": "^7.53.0",
+    "react": "^19.1.0",
+    "react-hook-form": "^7.56.4",
     "swr": "^2.3.3",
-    "viem": "2.17.0",
-    "wagmi": "2.12.17"
+    "viem": "^2.30.2",
+    "wagmi": "^2.15.4"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.7",
-    "@types/react": "^18.3.5"
+    "@types/lodash": "^4.17.17",
+    "@types/react": "^19.1.6"
   },
   "engines": {
     "node": ">=18"

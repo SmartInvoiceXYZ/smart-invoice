@@ -1,6 +1,6 @@
-import { createIcon } from '@chakra-ui/icon';
+import { createIcon, IconProps } from '@chakra-ui/react';
 
-export const HamburgerIcon = createIcon({
+export const HamburgerIcon: React.FC<IconProps> = createIcon({
   displayName: 'HamburgerIcon',
   path: (
     <path

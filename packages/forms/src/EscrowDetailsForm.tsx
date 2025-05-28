@@ -1,4 +1,3 @@
-import { InfoOutlineIcon } from '@chakra-ui/icons';
 import {
   Alert,
   AlertDescription,
@@ -23,7 +22,7 @@ import {
   KnownResolverType,
 } from '@smartinvoicexyz/constants';
 import { FormInvoice } from '@smartinvoicexyz/types';
-import { Checkbox, Input, Select } from '@smartinvoicexyz/ui';
+import { Checkbox, InfoOutlineIcon, Input, Select } from '@smartinvoicexyz/ui';
 import {
   escrowDetailsSchema,
   getResolverInfo,

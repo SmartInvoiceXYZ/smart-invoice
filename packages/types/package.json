@@ -3,17 +3,17 @@
   "description": "Unified source for TypeScript types and interfaces used across the Smart Invoice protocol.",
   "version": "0.1.27",
   "dependencies": {
-    "@chakra-ui/react": "^2.8.2",
+    "@chakra-ui/react": "^2.10.9",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",
     "@smartinvoicexyz/shared": "workspace:*",
-    "react": "^18.2.0",
-    "viem": "2.17.0"
+    "react": "^19.1.0",
+    "viem": "^2.30.2"
   },
   "devDependencies": {
-    "@types/node": "^22.5.1",
-    "@types/react": "^18.3.5",
-    "typescript": "^5.5.4"
+    "@types/node": "^22.15.23",
+    "@types/react": "^19.1.6",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=18"

@@ -14,7 +14,8 @@ import { WithdrawFunds } from './WithdrawFunds';
 export const InstantButtonManager: React.FC<
   { invoice: InvoiceDetails } & OverlayContextType
 > = ({ invoice, modals, closeModals, openModal }) => {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
   const chainId = useChainId();
 
   const { client, provider, tokenBalance, fulfilled } = _.pick(invoice, [

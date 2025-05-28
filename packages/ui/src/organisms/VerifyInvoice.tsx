@@ -22,7 +22,8 @@ export function VerifyInvoice({
 }: VerifyInvoiceProps) {
   const chainId = useChainId();
   const toast = useToast();
-  const { isConnected } = useAccount();
+  const { address: account } = useAccount();
+  const isConnected = !!account;
   const {
     address,
     chainId: invoiceChainId,

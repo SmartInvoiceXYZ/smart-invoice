@@ -1,5 +1,5 @@
 {
-  "name": "@smartinvoicexyz/subgraph",
+  "name": "smartinvoicexyz-subgraph",
   "description": "A Graph Protocol subgraph for indexing and querying Smart Invoice events across multiple blockchain networks.",
   "version": "0.1.27",
   "dependencies": {
