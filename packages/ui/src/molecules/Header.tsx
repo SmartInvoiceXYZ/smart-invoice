@@ -47,7 +47,8 @@ const LINKS: Link[] = [
 
 export function Header() {
   const { isOpen, onToggle } = useDisclosure();
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
 
   const links = isConnected ? LINKS : LINKS.slice(1);
 

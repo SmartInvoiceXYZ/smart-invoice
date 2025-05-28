@@ -50,7 +50,7 @@ function ViewInvoice() {
     address: invoiceId,
   });
 
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
   const chainId = useChainId();
 
   const { switchChain } = useSwitchChain();
@@ -79,7 +79,7 @@ function ViewInvoice() {
   );
 
   const isInvalidChainId =
-    isConnected && !!invoiceChainId && chainId !== invoiceChainId;
+    !!address && !!invoiceChainId && chainId !== invoiceChainId;
 
   const showNetworkError = isInvalidChainId;
 

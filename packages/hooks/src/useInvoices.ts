@@ -100,12 +100,12 @@ const fetchInvoicesForPage = async (
 // };
 //
 // export const useInvoices = ({ page }: { page: number }) => {
-//  const { address, isConnected } = useAccount();
+//  const { address } = useAccount();
 //  const queries = useQueries({
 //    queries: SUPPORTED_NETWORKS.map(chainId => ({
 //      queryKey: ['invoices', address?.toLowerCase(), chainId, page],
 //      queryFn: () => fetchInvoicesForPage(chainId, address, page),
-//      enabled: !!address && isConnected,
+//      enabled: !!address,
 //      refetchInterval: 60000,
 //    })),
 //  });
@@ -121,12 +121,12 @@ const fetchInvoicesForPage = async (
 export const QUERY_KEY_INVOICES = 'invoices';
 
 export const useInvoices = ({ page }: { page: number }) => {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const chainId = useChainId();
   const result = useQuery({
     queryKey: [QUERY_KEY_INVOICES, address?.toLowerCase(), chainId, page],
     queryFn: () => fetchInvoicesForPage(chainId, address, page),
-    enabled: !!address && !!chainId && isConnected,
+    enabled: !!address && !!chainId,
     refetchOnWindowFocus: false,
     refetchInterval: 60000,
   });

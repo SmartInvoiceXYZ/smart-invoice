@@ -14,7 +14,8 @@ import { ConnectWeb3 } from './ConnectWeb3';
 
 export function Layout({ children }: PropsWithChildren) {
   const chainId = useChainId();
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
+  const isConnected = !!address;
 
   useEffect(() => {
     track('ChainChanged', { chain: chainId ?? null });
