@@ -1,5 +1,14 @@
 # @smartinvoicexyz/graphql
 
+## 0.1.28
+
+### Patch Changes
+
+- upgrade web3 deps
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.28
+  - @smartinvoicexyz/shared@0.1.28
+
 ## 0.1.27
 
 ### Patch Changes

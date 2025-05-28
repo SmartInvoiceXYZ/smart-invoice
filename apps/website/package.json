@@ -1,6 +1,6 @@
 {
   "name": "smartinvoice-website",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "dependencies": {
     "@chakra-ui/icon": "^2.0.5",
     "@chakra-ui/next-js": "^2.4.2",

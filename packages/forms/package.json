@@ -1,7 +1,7 @@
 {
   "name": "@smartinvoicexyz/forms",
   "description": "Unified source for form components and utilities used across the Smart Invoice protocol.",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "author": "",
   "dependencies": {
     "@chakra-ui/react": "^2.10.9",

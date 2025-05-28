@@ -1,5 +1,11 @@
 # @smartinvoicexyz/subgraph
 
+## 0.1.28
+
+### Patch Changes
+
+- upgrade web3 deps
+
 ## 0.1.27
 
 ### Patch Changes

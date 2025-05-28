@@ -1,5 +1,17 @@
 # @smartinvoicexyz/ui
 
+## 0.1.28
+
+### Patch Changes
+
+- upgrade web3 deps
+- Updated dependencies
+  - @smartinvoicexyz/constants@0.1.28
+  - @smartinvoicexyz/graphql@0.1.28
+  - @smartinvoicexyz/hooks@0.1.28
+  - @smartinvoicexyz/types@0.1.28
+  - @smartinvoicexyz/utils@0.1.28
+
 ## 0.1.27
 
 ### Patch Changes
