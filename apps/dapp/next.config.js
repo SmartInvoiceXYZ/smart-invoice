@@ -1,17 +1,24 @@
 const {
   VERCEL_ENV = 'development',
   VERCEL_URL,
+  VERCEL_GIT_COMMIT_REF,
   VERCEL_PROJECT_PRODUCTION_URL,
 } = process.env;
 
 const protocol = VERCEL_ENV === 'development' ? 'http' : 'https';
-const url = VERCEL_URL ?? 'localhost:3000';
-const productionUrl = VERCEL_PROJECT_PRODUCTION_URL ?? url;
+let url = VERCEL_URL ?? 'localhost:3000';
 
-const baseUrl =
-  VERCEL_ENV === 'production'
-    ? `${protocol}://${productionUrl}`
-    : `${protocol}://${url}`;
+if (VERCEL_GIT_COMMIT_REF === 'main') {
+  url = `app.smartinvoice.xyz`;
+} else if (VERCEL_GIT_COMMIT_REF === 'develop') {
+  url = `dev.smartinvoice.xyz`;
+}
+
+if (VERCEL_ENV === 'production') {
+  url = VERCEL_PROJECT_PRODUCTION_URL ?? url;
+}
+
+const baseUrl = `${protocol}://${url}`;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
