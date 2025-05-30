@@ -589,6 +589,9 @@ importers:
       next:
         specifier: ^15.3.2
         version: 15.3.2(@babel/core@7.25.2)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -623,6 +626,9 @@ importers:
       '@types/node':
         specifier: ^22.15.23
         version: 22.15.23
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.5
       '@types/react':
         specifier: ^19.1.6
         version: 19.1.6
@@ -2596,6 +2602,9 @@ packages:
 
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
+
+  '@types/qrcode@1.5.5':
+    resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
   '@types/qs@6.9.16':
     resolution: {integrity: sha512-7i+zxXdPD0T4cKDuxCUXJ4wHcsJLwENa6Z3dCu8cfCK743OGy5Nu1RmAGqDPsoTDINVEcdXKRvR/zre+P2Ku1A==}
@@ -12150,6 +12159,10 @@ snapshots:
 
   '@types/prop-types@15.7.14':
     optional: true
+
+  '@types/qrcode@1.5.5':
+    dependencies:
+      '@types/node': 22.15.23
 
   '@types/qs@6.9.16': {}
 

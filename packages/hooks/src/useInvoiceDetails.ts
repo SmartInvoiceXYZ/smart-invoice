@@ -123,6 +123,7 @@ export const useInvoiceDetails = ({
           ipfsDetails as InvoiceMetadata,
         ),
       enabled: getInvoiceDetailsEnabled,
+      refetchInterval: 60000,
       refetchOnWindowFocus: false,
     });
 

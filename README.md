@@ -10,20 +10,26 @@ Smart Invoice is an easy-to-use tool that empowers web3 freelancers with secure 
 
 ## Repository Structure
 
-This project is organized as a pnpm monorepo, containing several packages to handle different aspects of the Smart Invoice protocol. Below is an overview of the key packages:
+This project is organized as a pnpm monorepo, containing several packages and apps to handle different aspects of the Smart Invoice protocol. Below is an overview:
+
+### Packages
 
 - **constants:** Unified source for configs and constants used across the Smart Invoice protocol. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/constants)
-- **contracts:** Contains the smart contracts and contract interaction utilities that power Smart Invoice.
-- **dapp:** The decentralized application that provides the user interface for interacting with Smart Invoice.
 - **docs:** Documentation for the Smart Invoice protocol, including guides, API references, and usage instructions.
 - **forms:** Reusable form components for collecting and validating user input in the Smart Invoice dapp. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/forms)
 - **graphql:** GraphQL helpers and schema for querying and interacting with Smart Invoice data. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/graphql)
 - **hooks:** A collection of React hooks for accessing and manipulating Smart Invoice states and effects. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/hooks)
 - **shared:** Common utilities and components shared across multiple packages in the Smart Invoice ecosystem. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/shared)
-- **subgraph:** Subgraph for indexing and querying Smart Invoice events and data from the blockchain.
 - **types:** TypeScript types and interfaces used across the Smart Invoice monorepo for type safety and consistency. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/types)
 - **ui:** Reusable UI components for integrating Smart Invoice functionalities into web applications. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/ui)
 - **utils:** A set of utility functions and helpers used throughout the Smart Invoice codebase. [npm package](https://www.npmjs.com/package/@smartinvoicexyz/utils)
+
+### Apps
+
+- **contracts:** Contains the smart contracts and contract interaction utilities that power Smart Invoice.
+- **dapp:** The decentralized application that provides the user interface for interacting with Smart Invoice protocol.
+- **website:** The website for the Smart Invoice protocol.
+- **subgraph:** Subgraph for indexing and querying Smart Invoice events and data from the blockchain.
 
 ## Installation
 

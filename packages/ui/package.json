@@ -24,6 +24,7 @@
     "framer-motion": "^12.15.0",
     "lodash": "^4.17.21",
     "next": "^15.3.2",
+    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-datepicker": "^8.4.0",
     "react-hook-form": "^7.56.4",
@@ -37,6 +38,7 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.15.23",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.6"
   },
   "engines": {

@@ -76,6 +76,7 @@ export function InvoiceMetaDetails({
     metadata,
     ['startDate', 'endDate', 'title', 'description', 'documents'],
   );
+  const lastDocument = _.findLast(documents);
 
   const invoiceChainId = chainByName(invoice?.network)?.id;
   const validClient = !!client && isAddress(client) ? client : undefined;
@@ -185,8 +186,6 @@ export function InvoiceMetaDetails({
       invoiceChainId,
     ],
   );
-
-  const lastDocument = _.findLast(documents);
 
   const chainLabel = invoiceChainId
     ? chainLabelFromId(invoiceChainId)
