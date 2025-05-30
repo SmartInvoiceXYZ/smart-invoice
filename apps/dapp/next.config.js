@@ -5,13 +5,9 @@ const {
 } = process.env;
 
 const protocol = VERCEL_ENV === 'development' ? 'http' : 'https';
-const url = VERCEL_URL ?? 'localhost:3000';
-const productionUrl = VERCEL_PROJECT_PRODUCTION_URL ?? url;
+const url = VERCEL_PROJECT_PRODUCTION_URL ?? VERCEL_URL ?? 'localhost:3000';
 
-const baseUrl =
-  VERCEL_ENV === 'production'
-    ? `${protocol}://${productionUrl}`
-    : `${protocol}://${url}`;
+const baseUrl = `${protocol}://${url}`;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -26,7 +22,7 @@ const nextConfig = {
     '@smartinvoicexyz/utils',
   ],
   env: {
-    BASE_URL: baseUrl,
+    NEXT_PUBLIC_BASE_URL: baseUrl,
   },
   experimental: {
     optimizePackageImports: ['@rainbow-me/rainbowkit'],
