@@ -1,11 +1,22 @@
 const {
   VERCEL_ENV = 'development',
   VERCEL_URL,
+  VERCEL_GIT_COMMIT_REF,
   VERCEL_PROJECT_PRODUCTION_URL,
 } = process.env;
 
 const protocol = VERCEL_ENV === 'development' ? 'http' : 'https';
-const url = VERCEL_PROJECT_PRODUCTION_URL ?? VERCEL_URL ?? 'localhost:3000';
+let url = VERCEL_URL ?? 'localhost:3000';
+
+if (VERCEL_GIT_COMMIT_REF === 'main') {
+  url = `app.smartinvoice.xyz`;
+} else if (VERCEL_GIT_COMMIT_REF === 'develop') {
+  url = `dev.smartinvoice.xyz`;
+}
+
+if (VERCEL_ENV === 'production') {
+  url = VERCEL_PROJECT_PRODUCTION_URL ?? url;
+}
 
 const baseUrl = `${protocol}://${url}`;
 
@@ -22,7 +33,7 @@ const nextConfig = {
     '@smartinvoicexyz/utils',
   ],
   env: {
-    NEXT_PUBLIC_BASE_URL: baseUrl,
+    BASE_URL: baseUrl,
   },
   experimental: {
     optimizePackageImports: ['@rainbow-me/rainbowkit'],
