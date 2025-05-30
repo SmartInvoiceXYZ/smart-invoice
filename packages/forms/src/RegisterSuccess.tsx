@@ -28,7 +28,7 @@ export function RegisterSuccess({
   const url = `/invoice/${chainLabel}/${invoiceId}`;
 
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
-  const { onCopy: copyLink } = useClipboard(`${window.location.origin}${url}`);
+  const { onCopy: copyLink } = useClipboard(`${process.env.BASE_URL}${url}`);
 
   return (
     <Stack w="100%" gap="1rem" align="center" justify="center" px="1rem">

@@ -114,8 +114,6 @@ const formatAmount = (amount: bigint, decimals: number) => {
   return formatted.toFixed(2);
 };
 
-const { BASE_URL } = process.env;
-
 export const InvoicePDF = memo(InvoicePDFInner);
 
 function InvoicePDFInner({ invoice }: InvoicePDFProps) {
@@ -153,7 +151,7 @@ function InvoicePDFInner({ invoice }: InvoicePDFProps) {
 
   const url = useMemo(() => {
     const chainLabel = chainId ? chainLabelFromId(chainId) : 'unknown';
-    return `${BASE_URL}/invoice/${chainLabel}/${address}`;
+    return `${process.env.BASE_URL}/invoice/${chainLabel}/${address}`;
   }, [chainId, address]);
 
   const totalAmount = amounts
@@ -176,7 +174,7 @@ function InvoicePDFInner({ invoice }: InvoicePDFProps) {
         {/* Header */}
         <View style={styles.header}>
           <Image
-            src={`${BASE_URL}/assets/smart-invoice/normal.png`}
+            src={`${process.env.BASE_URL}/assets/smart-invoice/normal.png`}
             style={{ height: 34.84, width: 220 }}
           />
         </View>
