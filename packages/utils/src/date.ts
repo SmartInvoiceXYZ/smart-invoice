@@ -53,7 +53,7 @@ export const oneMonthFromNow = () => {
 };
 
 export const sevenDaysFromDate = (date: DateInput) => {
-  const result = parseToDate(date);
+  const result = new Date(parseToDate(date));
   result.setDate(result.getDate() + 7);
   return result;
 };
