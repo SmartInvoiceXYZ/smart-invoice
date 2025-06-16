@@ -13,6 +13,7 @@ import {
 } from '@smartinvoicexyz/forms';
 import {
   QUERY_KEY_INVOICE_DETAILS,
+  QUERY_KEY_INVOICES,
   useInvoiceCreate,
 } from '@smartinvoicexyz/hooks';
 import {
@@ -58,7 +59,7 @@ export function CreateInvoiceEscrow() {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
     queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICE_DETAILS] });
-    queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICES] });
 
     setInvoiceId(result as Address);
 

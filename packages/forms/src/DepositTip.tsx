@@ -17,6 +17,7 @@ import {
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import {
   QUERY_KEY_INVOICE_DETAILS,
+  QUERY_KEY_INVOICES,
   useDeposit,
   useTokenBalance,
 } from '@smartinvoicexyz/hooks';
@@ -114,7 +115,10 @@ export function DepositTip({
     toast.success(TOASTS.useDeposit.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
+    });
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEY_INVOICES],
     });
     // close modal
     onClose();
