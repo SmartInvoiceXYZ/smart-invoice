@@ -1,19 +1,194 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
-import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
+import {
+  fetchInvoice,
+  Invoice,
+  TokenBalance,
+  TokenMetadata,
+} from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
-import { getInvoiceDetails } from '@smartinvoicexyz/utils';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchFromIPFS, getInvoiceDetails } from '@smartinvoicexyz/utils';
+import {
+  QueryClient,
+  QueryKey,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import _ from 'lodash';
 import { useEffect, useMemo } from 'react';
-import { formatUnits, Hex } from 'viem';
+import { Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
+import {
+  fetchInstantInvoice,
+  fetchNativeBalance,
+  fetchTokenData,
+} from './server/invoice';
 import { useInstantDetails } from './useInstantDetails';
 import { useIpfsDetails } from './useIpfsDetails';
 import { useTokenData } from './useTokenMetadata';
 
 export const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
 export const QUERY_KEY_EXTENDED_INVOICE_DETAILS = 'extendedInvoiceDetails';
+
+// Helper function to convert bigint values to strings for serialization
+const serializeBigInts = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return null; // Convert undefined to null for JSON serialization
+  }
+
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(serializeBigInts);
+  }
+
+  if (typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .map(([key, value]) => [key, serializeBigInts(value)])
+        .filter(([, value]) => value !== undefined),
+    );
+  }
+
+  return obj;
+};
+
+type SerializedQuery = {
+  queryKey: QueryKey;
+  state: {
+    data: unknown;
+    dataUpdateCount: number;
+    dataUpdatedAt: number;
+    error: Error | null;
+    errorUpdateCount: number;
+    errorUpdatedAt: number;
+    fetchFailureCount: number;
+    fetchFailureReason: Error | null;
+    fetchMeta: unknown;
+    isInvalidated: boolean;
+    status: string;
+    fetchStatus: string;
+  };
+};
+
+// Server-side prefetch function
+export const prefetchInvoiceDetails = async (
+  queryClient: QueryClient,
+  address: Hex,
+  chainId: number,
+): Promise<SerializedQuery[] | null> => {
+  // Prefetch the raw invoice
+  await queryClient.prefetchQuery({
+    queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
+    queryFn: () => fetchInvoice(chainId, address),
+  });
+
+  // Get the invoice data from the cache
+  const invoice = queryClient.getQueryData<Invoice>([
+    QUERY_KEY_INVOICE_DETAILS,
+    { address, chainId },
+  ]);
+
+  if (!invoice) {
+    return null;
+  }
+
+  const { invoiceType, token, ipfsHash } = _.pick(invoice, [
+    'address',
+    'invoiceType',
+    'token',
+    'ipfsHash',
+  ]);
+
+  // Prefetch token metadata and balance
+  if (token) {
+    await queryClient.prefetchQuery({
+      queryKey: ['tokenMetadata', { address, tokenAddress: token, chainId }],
+      queryFn: () => fetchTokenData(address, token as Hex, chainId),
+    });
+  }
+
+  // Prefetch IPFS details
+  if (ipfsHash) {
+    await queryClient.prefetchQuery({
+      queryKey: ['ipfsDetails', ipfsHash],
+      queryFn: () => fetchFromIPFS(ipfsHash),
+    });
+  }
+
+  if (invoiceType && invoiceType === INVOICE_TYPES.Instant) {
+    await queryClient.prefetchQuery({
+      queryKey: ['instantDetails', { address, chainId }],
+      queryFn: () => fetchInstantInvoice(address, chainId),
+    });
+  }
+
+  // Prefetch native balance
+  await queryClient.prefetchQuery({
+    queryKey: ['balance', { address, chainId }],
+    queryFn: () => fetchNativeBalance(address, chainId),
+  });
+
+  // Prefetch extended invoice details
+  const cachedTokenData = queryClient.getQueryData<{
+    metadata: TokenMetadata;
+    balance: TokenBalance;
+  }>(['tokenMetadata', { address, tokenAddress: token, chainId }]);
+
+  const cachedIpfsDetails = queryClient.getQueryData<InvoiceMetadata>([
+    'ipfsDetails',
+    ipfsHash,
+  ]);
+
+  const cachedInstantDetails = queryClient.getQueryData<{
+    totalDue: bigint;
+    amountFulfilled: bigint;
+    fulfilled: boolean;
+    deadline: bigint;
+    lateFee: bigint;
+    lateFeeTimeInterval: bigint;
+  }>(['instantDetails', { address, chainId }]);
+
+  const cachedNativeBalance = queryClient.getQueryData<TokenBalance>([
+    'balance',
+    { address, chainId },
+  ]);
+
+  if (
+    cachedTokenData &&
+    cachedIpfsDetails &&
+    cachedNativeBalance &&
+    (invoiceType !== INVOICE_TYPES.Instant || cachedInstantDetails)
+  ) {
+    await queryClient.prefetchQuery({
+      queryKey: [QUERY_KEY_EXTENDED_INVOICE_DETAILS, { invoiceId: invoice.id }],
+      queryFn: () =>
+        getInvoiceDetails(
+          invoice,
+          cachedTokenData.metadata,
+          cachedTokenData.balance,
+          cachedNativeBalance,
+          cachedInstantDetails,
+          cachedIpfsDetails,
+        ),
+    });
+  }
+
+  // Get all queries from the cache and serialize bigint values
+  const queries = queryClient.getQueryCache().getAll();
+  const serializedQueries = queries.map(query => ({
+    queryKey: query.queryKey,
+    state: {
+      ...query.state,
+      data: serializeBigInts(query.state.data),
+      error: query.state.error ? serializeBigInts(query.state.error) : null,
+    },
+  }));
+
+  return serializedQueries;
+};
 
 export const useInvoiceDetails = ({
   address,
@@ -100,15 +275,6 @@ export const useInvoiceDetails = ({
         QUERY_KEY_EXTENDED_INVOICE_DETAILS,
         {
           invoiceId: _.get(invoice, 'id'),
-          token: tokenMetadata?.name,
-          tokenBalance: tokenBalance
-            ? formatUnits(tokenBalance.value, tokenBalance.decimals)
-            : undefined,
-          nativeBalance: nativeBalance
-            ? formatUnits(nativeBalance.value, nativeBalance.decimals)
-            : undefined,
-          instantDetails: _.mapValues(instantDetails, v => v?.toString()),
-          ipfsDetails: JSON.stringify(ipfsDetails),
         },
       ],
       queryFn: () =>
@@ -140,7 +306,6 @@ export const useInvoiceDetails = ({
       isInvoiceDetailsLoading,
     ],
   );
-
   return {
     invoiceDetails: invoiceDetails ?? {},
     isLoading,

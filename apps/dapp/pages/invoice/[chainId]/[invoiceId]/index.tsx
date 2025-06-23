@@ -6,7 +6,11 @@ import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
 } from '@smartinvoicexyz/forms';
-import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
+import {
+  prefetchInvoiceDetails,
+  QUERY_KEY_EXTENDED_INVOICE_DETAILS,
+  useInvoiceDetails,
+} from '@smartinvoicexyz/hooks';
 import {
   Container,
   InvoiceMetaDetails,
@@ -18,13 +22,69 @@ import {
   getChainName,
   parseChainId,
 } from '@smartinvoicexyz/utils';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
+import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const queryClient = new QueryClient();
+  const { invoiceId: invId, chainId: urlChainId } = context.params as {
+    invoiceId: string;
+    chainId: string;
+  };
+
+  const invoiceId = _.toLower(String(invId)) as Hex;
+  const chainId = parseChainId(urlChainId);
+
+  // If chainId is undefined, return 404
+  if (!chainId) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const chainLabel = chainLabelFromId(chainId);
+
+  // If the chain label doesn't match the URL chain ID, redirect to the correct URL
+  if (chainLabel !== urlChainId) {
+    return {
+      redirect: {
+        destination: `/invoice/${chainLabel}/${invoiceId}`,
+        permanent: false,
+      },
+    };
+  }
+
+  // Prefetch all invoice details
+  const serializedQueries = await prefetchInvoiceDetails(
+    queryClient,
+    invoiceId,
+    chainId,
+  );
+
+  if (!serializedQueries) {
+    return {
+      notFound: true,
+    };
+  }
+
+  // Create a new QueryClient with the serialized queries
+  const dehydratedClient = new QueryClient();
+  serializedQueries.forEach(query => {
+    dehydratedClient.setQueryData(query.queryKey, query.state.data);
+  });
+
+  return {
+    props: {
+      dehydratedState: dehydrate(dehydratedClient),
+    },
+  };
+}
 
 function ViewInvoice() {
   const router = useRouter();
@@ -32,18 +92,6 @@ function ViewInvoice() {
 
   const invoiceId = _.toLower(String(invId)) as Hex;
   const invoiceChainId = parseChainId(urlChainId);
-
-  useEffect(() => {
-    if (invoiceId && invoiceChainId) {
-      const chainLabel = chainLabelFromId(invoiceChainId);
-      if (chainLabel !== urlChainId) {
-        router.replace({
-          pathname: `/invoice/${chainLabelFromId(invoiceChainId)}/${invoiceId}`,
-          query: undefined,
-        });
-      }
-    }
-  }, [invoiceId, urlChainId, invoiceChainId, router]);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     chainId: invoiceChainId,
