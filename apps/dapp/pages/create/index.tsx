@@ -58,7 +58,6 @@ export function CreateInvoiceEscrow() {
   const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
-    queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICE_DETAILS] });
     queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICES] });
 
     setInvoiceId(result as Address);
