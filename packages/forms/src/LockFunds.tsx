@@ -39,16 +39,22 @@ export function LockFunds({
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { resolver, resolverFee, resolverInfo, tokenBalance } = _.pick(
-    invoice,
-    [
-      'resolver',
-      'resolverFee',
-      'resolverInfo',
-      'tokenBalance',
-      'resolutionRate',
-    ],
-  );
+  const {
+    resolver,
+    resolverFee,
+    resolverInfo,
+    tokenBalance,
+    address,
+    chainId: invoiceChainId,
+  } = _.pick(invoice, [
+    'resolver',
+    'resolverFee',
+    'resolverInfo',
+    'tokenBalance',
+    'resolutionRate',
+    'address',
+    'chainId',
+  ]);
   const localForm = useForm<FormLock>({
     resolver: yupResolver(lockFundsSchema),
   });
@@ -58,7 +64,10 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: [
+        QUERY_KEY_INVOICE_DETAILS,
+        { address, chainId: invoiceChainId },
+      ],
     });
 
     onClose();

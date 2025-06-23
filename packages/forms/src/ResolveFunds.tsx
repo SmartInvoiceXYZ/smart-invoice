@@ -70,7 +70,10 @@ export function ResolveFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: [
+        QUERY_KEY_INVOICE_DETAILS,
+        { address: invoice.address, chainId: invoice.chainId },
+      ],
     });
     onClose();
   };

@@ -37,7 +37,7 @@ export function VerifyInvoice({
     toast.success(TOASTS.useVerify.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
     });
   };
 
