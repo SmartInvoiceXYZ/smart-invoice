@@ -36,8 +36,6 @@ export const useInvoiceDetails = ({
     queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
   });
 
   // Manually trigger refetch of extended invoice details when invoice is fetched
@@ -123,8 +121,6 @@ export const useInvoiceDetails = ({
           ipfsDetails as InvoiceMetadata,
         ),
       enabled: getInvoiceDetailsEnabled,
-      refetchInterval: 60000,
-      refetchOnWindowFocus: false,
     });
 
   const isLoading = useMemo(

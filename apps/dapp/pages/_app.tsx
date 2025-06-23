@@ -24,7 +24,11 @@ import { OverlayContextProvider } from '../contexts/OverlayContext';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60000,
+      staleTime: 300000,
+      refetchInterval: false,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });

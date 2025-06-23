@@ -127,12 +127,6 @@ export const useInvoices = ({ page }: { page: number }) => {
     queryKey: [QUERY_KEY_INVOICES, address?.toLowerCase(), chainId, page],
     queryFn: () => fetchInvoicesForPage(chainId, address, page),
     enabled: !!address && !!chainId,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchInterval: false,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 
   return result;
