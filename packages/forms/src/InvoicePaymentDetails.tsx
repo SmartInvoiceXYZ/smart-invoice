@@ -59,7 +59,7 @@ const getDisputesWithResolution = (
     return { dispute, resolution, resolutionDetails };
   });
 
-  return _.reverse([...parsed]);
+  return [...parsed].reverse();
 };
 
 export function InvoicePaymentDetails({

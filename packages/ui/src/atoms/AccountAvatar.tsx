@@ -1,6 +1,7 @@
 import { Box } from '@chakra-ui/react';
-import blockies from 'blockies-ts';
+import { create } from 'blockies-ts';
 import _ from 'lodash';
+import { useMemo } from 'react';
 import { getAddress, isAddress } from 'viem';
 
 export type AvatarComponentProps = {
@@ -12,13 +13,14 @@ export type AvatarComponentProps = {
 export const AccountAvatar: React.FC<
   AvatarComponentProps & { customImage?: string | undefined }
 > = ({ address, customImage, ensImage, size }) => {
-  const blockie = isAddress(address)
-    ? blockies
-        .create({ seed: getAddress(address), size: 8, scale: 16 })
-        .toDataURL()
-    : '';
+  const image = useMemo(() => {
+    const blockie =
+      isAddress(address) && typeof document !== 'undefined'
+        ? create({ seed: getAddress(address), size: 8, scale: 16 }).toDataURL()
+        : '';
 
-  const image = customImage ?? ensImage ?? blockie;
+    return customImage ?? ensImage ?? blockie;
+  }, [address, customImage, ensImage]);
 
   return (
     <Box

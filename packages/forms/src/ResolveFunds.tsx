@@ -1,8 +1,8 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  createInvoiceDetailsQueryKey,
   FormResolve,
-  QUERY_KEY_INVOICE_DETAILS,
   useResolve,
 } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
@@ -70,10 +70,7 @@ export function ResolveFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: [
-        QUERY_KEY_INVOICE_DETAILS,
-        { address: invoice.address, chainId: invoice.chainId },
-      ],
+      queryKey: createInvoiceDetailsQueryKey(invoice.chainId, invoice.address),
     });
     onClose();
   };

@@ -19,7 +19,6 @@ import {
   parseTxLogs,
   uriToDocument,
 } from '@smartinvoicexyz/utils';
-import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -34,7 +33,6 @@ import {
 import { SimulateContractErrorType, WriteContractErrorType } from './types';
 import { useDetailsPin } from './useDetailsPin';
 import { useFetchTokens } from './useFetchTokens';
-import { QUERY_KEY_INVOICES } from './useInvoices';
 
 const ESCROW_TYPE = toHex('updatable-v2', { size: 32 });
 
@@ -69,8 +67,6 @@ export const useInvoiceCreate = ({
   const chainId = useChainId();
   const publicClient = usePublicClient();
   const [waitingForTx, setWaitingForTx] = useState(false);
-
-  const queryClient = useQueryClient();
 
   const { getValues } = invoiceForm;
   const invoiceValues = getValues();
@@ -277,8 +273,6 @@ export const useInvoiceCreate = ({
           await waitForSubgraphSync(publicClient.chain.id, txData.blockNumber);
         }
         setWaitingForTx(false);
-
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICES] });
 
         // pass back to component for further processing
         onTxSuccess?.(localInvoiceId);

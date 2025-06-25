@@ -190,7 +190,13 @@ export function InvoiceMetaDetails({
   const chainLabel = invoiceChainId
     ? chainLabelFromId(invoiceChainId)
     : 'unknown';
-  const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
+  const url = useMemo(
+    () =>
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`
+        : '',
+    [chainLabel, invoiceId],
+  );
   const text = `Smart Invoice for ${title} on ${getChainName(invoiceChainId)}`;
 
   return (

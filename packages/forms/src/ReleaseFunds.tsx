@@ -1,8 +1,7 @@
 import { Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
 import {
-  QUERY_KEY_INVOICE_DETAILS,
-  QUERY_KEY_INVOICES,
+  createInvoiceDetailsQueryKey,
   useRelease,
 } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
@@ -53,13 +52,7 @@ export function ReleaseFunds({
     toast.success(TOASTS.useRelease.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [
-        QUERY_KEY_INVOICE_DETAILS,
-        { address: invoice.address, chainId: invoice.chainId },
-      ],
-    });
-    queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICES],
+      queryKey: createInvoiceDetailsQueryKey(invoice.chainId, invoice.address),
     });
     // close modal
     onClose();
