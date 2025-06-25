@@ -1,13 +1,22 @@
 import { Button } from '@chakra-ui/react';
+import { InvoiceDetails } from '@smartinvoicexyz/types';
+import { chainLabelFromId, getChainName } from '@smartinvoicexyz/utils';
 import { RWebShare } from 'react-web-share';
 
 import { ShareIcon } from '../icons';
 
-export const ShareButton: React.FC<{
-  title: string;
-  text: string;
-  url: string;
-}> = ({ title, text, url }) => {
+export function ShareButton({ invoice }: { invoice: Partial<InvoiceDetails> }) {
+  const { chainId, id: invoiceId, metadata } = invoice;
+  const { title } = metadata || {};
+
+  const chainLabel = invoice.chainId
+    ? chainLabelFromId(invoice.chainId)
+    : 'unknown';
+
+  const url = `${process.env.BASE_URL}/invoice/${chainLabel}/${invoiceId}`;
+
+  const text = `Smart Invoice for ${title} on ${getChainName(chainId)}`;
+
   return (
     <RWebShare
       data={{
@@ -29,4 +38,4 @@ export const ShareButton: React.FC<{
       </Button>
     </RWebShare>
   );
-};
+}

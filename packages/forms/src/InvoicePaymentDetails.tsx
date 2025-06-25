@@ -233,9 +233,10 @@ export function InvoicePaymentDetails({
                             href={getTxLink(invoice?.chainId, release.txHash)}
                           >
                             Released{' '}
-                            {new Date(
+                            {getDateString(
                               Number(release.timestamp) * 1000,
-                            ).toLocaleDateString()}
+                              'short',
+                            )}
                           </Link>
                         )}
                         {deposit && !release && (
@@ -247,9 +248,10 @@ export function InvoicePaymentDetails({
                             href={getTxLink(invoice?.chainId, deposit?.txHash)}
                           >
                             {`${_.capitalize(depositedText)} `}
-                            {new Date(
+                            {getDateString(
                               Number(deposit?.timestamp) * 1000,
-                            ).toLocaleDateString()}
+                              'short',
+                            )}
                           </Link>
                         )}
 
