@@ -70,13 +70,13 @@ const serializeBigInts = (obj: any): any => {
 export const prefetchInvoiceDetails = async (
   address: Hex,
   chainId: number,
-): Promise<undefined | DehydratedState> => {
+): Promise<DehydratedState | null> => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         queryKeyHashFn: hashFn,
         staleTime: 5 * 60 * 1000, // 5 minutes
-        retry: 1, // Reduce retries in serverless
+        retry: 0, // No retries in serverless to prevent file handle buildup
       },
     },
   });
@@ -84,7 +84,7 @@ export const prefetchInvoiceDetails = async (
   try {
     const invoice = await fetchInvoice(chainId, address);
     if (!invoice) {
-      return undefined;
+      return null;
     }
 
     // Prefetch the raw invoice
@@ -102,76 +102,101 @@ export const prefetchInvoiceDetails = async (
 
     const tokenAddress = token as Hex;
 
-    // Fetch token metadata and balance
-    if (tokenAddress) {
-      const tokenMetadata = await fetchTokenMetadata(
-        serverConfig,
-        tokenAddress,
-        chainId,
-      );
-      await queryClient.prefetchQuery({
-        queryKey: createTokenMetadataQueryKey({ tokenAddress, chainId }),
-        queryFn: () => tokenMetadata,
-      });
+    // Sequential prefetching to avoid too many open connections
+    try {
+      // Fetch token metadata and balance
+      if (tokenAddress) {
+        try {
+          const tokenMetadata = await fetchTokenMetadata(
+            serverConfig,
+            tokenAddress,
+            chainId,
+          );
+          await queryClient.prefetchQuery({
+            queryKey: createTokenMetadataQueryKey({ tokenAddress, chainId }),
+            queryFn: () => tokenMetadata,
+          });
+        } catch (tokenMetadataError) {
+          console.error('Token metadata prefetch failed:', tokenMetadataError);
+        }
 
-      const tokenBalance = await fetchTokenBalance(
-        serverConfig,
-        address,
-        tokenAddress,
-        chainId,
-      );
-      await queryClient.prefetchQuery({
-        queryKey: createTokenBalanceQueryKey({
+        try {
+          const tokenBalance = await fetchTokenBalance(
+            serverConfig,
+            address,
+            tokenAddress,
+            chainId,
+          );
+          await queryClient.prefetchQuery({
+            queryKey: createTokenBalanceQueryKey({
+              address,
+              tokenAddress,
+              chainId,
+            }),
+            queryFn: () => tokenBalance,
+          });
+        } catch (tokenBalanceError) {
+          console.error('Token balance prefetch failed:', tokenBalanceError);
+        }
+      }
+
+      // Fetch IPFS details
+      if (ipfsHash) {
+        try {
+          const ipfsDetails = await fetchFromIPFS(ipfsHash, true); // Use sequential fetching for server-side
+          await queryClient.prefetchQuery({
+            queryKey: createIpfsDetailsQueryKey(ipfsHash),
+            queryFn: () => ipfsDetails,
+          });
+        } catch (ipfsError) {
+          console.error('IPFS prefetch failed:', ipfsError);
+        }
+      }
+
+      // Fetch instant details
+      if (invoiceType && invoiceType === INVOICE_TYPES.Instant) {
+        try {
+          const instantDetails = await fetchInstantInvoice(
+            serverConfig,
+            address,
+            chainId,
+          );
+          await queryClient.prefetchQuery({
+            queryKey: createInstantDetailsQueryKey({ address, chainId }),
+            queryFn: () => instantDetails,
+          });
+        } catch (instantError) {
+          console.error('Instant details prefetch failed:', instantError);
+        }
+      }
+
+      // Fetch native balance
+      try {
+        const nativeBalance = await getBalance(serverConfig, {
           address,
-          tokenAddress,
           chainId,
-        }),
-        queryFn: () => tokenBalance,
-      });
+        });
+        await queryClient.prefetchQuery({
+          queryKey: getBalanceQueryKey({ address, chainId }),
+          queryFn: () => nativeBalance,
+        });
+      } catch (balanceError) {
+        console.error('Native balance prefetch failed:', balanceError);
+      }
+    } catch (prefetchError) {
+      console.error('Some prefetch operations failed:', prefetchError);
     }
-
-    // Fetch IPFS details
-    if (ipfsHash) {
-      const ipfsDetails = await fetchFromIPFS(ipfsHash, true); // Use sequential fetching for server-side
-      await queryClient.prefetchQuery({
-        queryKey: createIpfsDetailsQueryKey(ipfsHash),
-        queryFn: () => ipfsDetails,
-      });
-    }
-
-    // Fetch instant details
-    if (invoiceType && invoiceType === INVOICE_TYPES.Instant) {
-      const instantDetails = await fetchInstantInvoice(
-        serverConfig,
-        address,
-        chainId,
-      );
-      await queryClient.prefetchQuery({
-        queryKey: createInstantDetailsQueryKey({ address, chainId }),
-        queryFn: () => instantDetails,
-      });
-    }
-
-    // Fetch native balance
-    const nativeBalance = await getBalance(serverConfig, {
-      address,
-      chainId,
-    });
-    await queryClient.prefetchQuery({
-      queryKey: getBalanceQueryKey({ address, chainId }),
-      queryFn: () => nativeBalance,
-    });
 
     return dehydrate(queryClient, {
       serializeData: serializeBigInts,
     });
   } catch (error) {
-    // In case of any error, return undefined to fall back to client-side fetching
+    // In case of any error, return null to fall back to client-side fetching
     console.error(
       'Prefetch Invoice Details failed, falling back to client-side:',
       error,
     );
-    return undefined;
+    return null;
   }
 };
 

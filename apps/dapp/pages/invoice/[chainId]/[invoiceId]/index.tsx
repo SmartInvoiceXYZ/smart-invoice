@@ -57,12 +57,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  // Prefetch all invoice details
-  const dehydratedState = await prefetchInvoiceDetails(invoiceId, chainId);
+  // Prefetch all invoice details with extra error handling
+  let dehydratedState = null;
+  try {
+    dehydratedState = await prefetchInvoiceDetails(invoiceId, chainId);
+  } catch (error) {
+    console.error('Server-side prefetch failed:', error);
+    // Continue without prefetched data - client will fetch on mount
+  }
 
   return {
     props: {
-      dehydratedState: dehydratedState || null,
+      dehydratedState,
     },
   };
 }
