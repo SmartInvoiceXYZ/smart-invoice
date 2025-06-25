@@ -62,7 +62,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      dehydratedState,
+      dehydratedState: dehydratedState || null,
     },
   };
 }

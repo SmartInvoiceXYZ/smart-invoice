@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const createBundleAnalyzerPlugin = require('@next/bundle-analyzer');
+
 const {
   VERCEL_ENV = 'development',
   VERCEL_URL,
@@ -44,4 +47,8 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const withBundleAnalyzer = createBundleAnalyzerPlugin({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer(nextConfig);

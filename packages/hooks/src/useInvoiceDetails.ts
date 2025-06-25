@@ -75,65 +75,104 @@ export const prefetchInvoiceDetails = async (
     defaultOptions: {
       queries: {
         queryKeyHashFn: hashFn,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: 1, // Reduce retries in serverless
       },
     },
   });
-  const invoice = await fetchInvoice(chainId, address);
-  if (!invoice) {
+
+  try {
+    const invoice = await fetchInvoice(chainId, address);
+    if (!invoice) {
+      return undefined;
+    }
+
+    // Prefetch the raw invoice
+    await queryClient.prefetchQuery({
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
+      queryFn: () => invoice,
+    });
+
+    const { invoiceType, token, ipfsHash } = _.pick(invoice, [
+      'address',
+      'invoiceType',
+      'token',
+      'ipfsHash',
+    ]);
+
+    const tokenAddress = token as Hex;
+
+    // Fetch token metadata and balance
+    if (tokenAddress) {
+      const tokenMetadata = await fetchTokenMetadata(
+        serverConfig,
+        tokenAddress,
+        chainId,
+      );
+      await queryClient.prefetchQuery({
+        queryKey: createTokenMetadataQueryKey({ tokenAddress, chainId }),
+        queryFn: () => tokenMetadata,
+      });
+
+      const tokenBalance = await fetchTokenBalance(
+        serverConfig,
+        address,
+        tokenAddress,
+        chainId,
+      );
+      await queryClient.prefetchQuery({
+        queryKey: createTokenBalanceQueryKey({
+          address,
+          tokenAddress,
+          chainId,
+        }),
+        queryFn: () => tokenBalance,
+      });
+    }
+
+    // Fetch IPFS details
+    if (ipfsHash) {
+      const ipfsDetails = await fetchFromIPFS(ipfsHash, true); // Use sequential fetching for server-side
+      await queryClient.prefetchQuery({
+        queryKey: createIpfsDetailsQueryKey(ipfsHash),
+        queryFn: () => ipfsDetails,
+      });
+    }
+
+    // Fetch instant details
+    if (invoiceType && invoiceType === INVOICE_TYPES.Instant) {
+      const instantDetails = await fetchInstantInvoice(
+        serverConfig,
+        address,
+        chainId,
+      );
+      await queryClient.prefetchQuery({
+        queryKey: createInstantDetailsQueryKey({ address, chainId }),
+        queryFn: () => instantDetails,
+      });
+    }
+
+    // Fetch native balance
+    const nativeBalance = await getBalance(serverConfig, {
+      address,
+      chainId,
+    });
+    await queryClient.prefetchQuery({
+      queryKey: getBalanceQueryKey({ address, chainId }),
+      queryFn: () => nativeBalance,
+    });
+
+    return dehydrate(queryClient, {
+      serializeData: serializeBigInts,
+    });
+  } catch (error) {
+    // In case of any error, return undefined to fall back to client-side fetching
+    console.error(
+      'Prefetch Invoice Details failed, falling back to client-side:',
+      error,
+    );
     return undefined;
   }
-  // Prefetch the raw invoice
-  await queryClient.prefetchQuery({
-    queryKey: createInvoiceDetailsQueryKey(chainId, address),
-    queryFn: () => invoice,
-  });
-
-  const { invoiceType, token, ipfsHash } = _.pick(invoice, [
-    'address',
-    'invoiceType',
-    'token',
-    'ipfsHash',
-  ]);
-
-  const tokenAddress = token as Hex;
-
-  // Prefetch token metadata and balance
-  if (tokenAddress) {
-    await queryClient.prefetchQuery({
-      queryKey: createTokenMetadataQueryKey({ tokenAddress, chainId }),
-      queryFn: () => fetchTokenMetadata(serverConfig, tokenAddress, chainId),
-    });
-    await queryClient.prefetchQuery({
-      queryKey: createTokenBalanceQueryKey({ address, tokenAddress, chainId }),
-      queryFn: () =>
-        fetchTokenBalance(serverConfig, address, tokenAddress, chainId),
-    });
-  }
-
-  // Prefetch IPFS details
-  if (ipfsHash) {
-    await queryClient.prefetchQuery({
-      queryKey: createIpfsDetailsQueryKey(ipfsHash),
-      queryFn: () => fetchFromIPFS(ipfsHash),
-    });
-  }
-
-  if (invoiceType && invoiceType === INVOICE_TYPES.Instant) {
-    await queryClient.prefetchQuery({
-      queryKey: createInstantDetailsQueryKey({ address, chainId }),
-      queryFn: () => fetchInstantInvoice(serverConfig, address, chainId),
-    });
-  }
-
-  // Prefetch native balance
-  await queryClient.prefetchQuery({
-    queryKey: getBalanceQueryKey({ address, chainId }),
-    queryFn: () => getBalance(serverConfig, { address, chainId }),
-  });
-
-  return dehydrate(queryClient, {
-    serializeData: serializeBigInts,
-  });
 };
 
 export const useInvoiceDetails = ({
