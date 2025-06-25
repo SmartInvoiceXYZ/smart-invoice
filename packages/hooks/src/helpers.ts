@@ -1,4 +1,4 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
+import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants/src/abi/ISmartInvoiceInstantAbi';
 import { Config, readContract, readContracts } from '@wagmi/core';
 import { erc20Abi, Hex } from 'viem';
 

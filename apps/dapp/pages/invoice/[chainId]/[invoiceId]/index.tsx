@@ -6,10 +6,8 @@ import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
 } from '@smartinvoicexyz/forms';
-import {
-  prefetchInvoiceDetails,
-  useInvoiceDetails,
-} from '@smartinvoicexyz/hooks';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
+import { prefetchInvoiceDetails } from '@smartinvoicexyz/hooks/src/prefetchInvoiceDetails';
 import {
   Container,
   InvoiceMetaDetails,
