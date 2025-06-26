@@ -15,9 +15,7 @@ import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import {
   chainByName,
-  chainLabelFromId,
   documentToHttp,
-  getChainName,
   getDateString,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
@@ -188,12 +186,6 @@ export function InvoiceMetaDetails({
 
   const lastDocument = _.findLast(documents);
 
-  const chainLabel = invoiceChainId
-    ? chainLabelFromId(invoiceChainId)
-    : 'unknown';
-  const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
-  const text = `Smart Invoice for ${title} on ${getChainName(invoiceChainId)}`;
-
   return (
     <Stack
       spacing="1rem"
@@ -209,7 +201,7 @@ export function InvoiceMetaDetails({
             <Heading color="black" fontSize="2xl">
               {title}
             </Heading>
-            <ShareButton title={title} url={url} text={text} />
+            <ShareButton invoice={invoice} />
           </Stack>
         )}
         <Stack direction="row" align="center" spacing={2}>

@@ -13,13 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
-import {
-  chainByName,
-  chainLabelFromId,
-  documentToHttp,
-  getChainName,
-  getDateString,
-} from '@smartinvoicexyz/utils';
+import { documentToHttp, getDateString } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { Address, isAddress, zeroAddress } from 'viem';
@@ -57,6 +51,7 @@ export function InvoiceMetaDetails({
     verified,
     invoiceType,
     resolverInfo,
+    chainId: invoiceChainId,
   } = _.pick(invoice, [
     'id',
     'client',
@@ -70,6 +65,7 @@ export function InvoiceMetaDetails({
     'verified',
     'invoiceType',
     'resolverInfo',
+    'chainId',
   ]);
 
   const { startDate, endDate, title, description, documents } = _.pick(
@@ -78,7 +74,6 @@ export function InvoiceMetaDetails({
   );
   const lastDocument = _.findLast(documents);
 
-  const invoiceChainId = chainByName(invoice?.network)?.id;
   const validClient = !!client && isAddress(client) ? client : undefined;
   const validProvider =
     !!provider && isAddress(provider) ? provider : undefined;
@@ -187,12 +182,6 @@ export function InvoiceMetaDetails({
     ],
   );
 
-  const chainLabel = invoiceChainId
-    ? chainLabelFromId(invoiceChainId)
-    : 'unknown';
-  const url = `${window.location.origin}/invoice/${chainLabel}/${invoiceId}`;
-  const text = `Smart Invoice for ${title} on ${getChainName(invoiceChainId)}`;
-
   return (
     <Stack
       spacing="1rem"
@@ -208,7 +197,7 @@ export function InvoiceMetaDetails({
             <Heading color="black" fontSize="2xl">
               {title}
             </Heading>
-            <ShareButton title={title} url={url} text={text} />
+            <ShareButton invoice={invoice} />
           </Stack>
         )}
         <Stack direction="row" align="center" spacing={2}>

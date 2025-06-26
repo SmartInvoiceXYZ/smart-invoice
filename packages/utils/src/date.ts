@@ -53,7 +53,7 @@ export const oneMonthFromNow = () => {
 };
 
 export const sevenDaysFromDate = (date: DateInput) => {
-  const result = parseToDate(date);
+  const result = new Date(parseToDate(date));
   result.setDate(result.getDate() + 7);
   return result;
 };
@@ -61,7 +61,7 @@ export const sevenDaysFromDate = (date: DateInput) => {
 export const unixToDateTime = (d: DateInput): string => {
   const date = new Date(Number(d));
 
-  const humanDateFormat = date.toLocaleString(undefined, {
+  const humanDateFormat = date.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -80,15 +80,18 @@ export const unixToDateTime = (d: DateInput): string => {
 
 export const dateTimeToDate = (dateTime: string) => dateTime.split(',')[0];
 
-export const getDateString = (d: DateInput) => {
+export const getDateString = (
+  d: DateInput,
+  type: 'long' | 'short' = 'long',
+) => {
   const date = parseToDate(d);
-  const ye = new Intl.DateTimeFormat('en', {
+  const ye = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
   }).format(date);
-  const mo = new Intl.DateTimeFormat('en', {
-    month: 'long',
+  const mo = new Intl.DateTimeFormat('en-US', {
+    month: type,
   }).format(date);
-  const da = new Intl.DateTimeFormat('en', {
+  const da = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
   }).format(date);
   return `${mo} ${da}, ${ye}`;
@@ -96,16 +99,16 @@ export const getDateString = (d: DateInput) => {
 
 export const getDateTimeString = (d: DateInput) => {
   const date = parseToDate(d);
-  const ye = new Intl.DateTimeFormat('en', {
+  const ye = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
   }).format(date);
-  const mo = new Intl.DateTimeFormat('en', {
+  const mo = new Intl.DateTimeFormat('en-US', {
     month: 'short',
   }).format(date);
-  const da = new Intl.DateTimeFormat('en', {
+  const da = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
   }).format(date);
-  const time = new Intl.DateTimeFormat('en', {
+  const time = new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);

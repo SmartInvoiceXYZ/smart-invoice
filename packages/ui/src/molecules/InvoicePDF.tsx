@@ -143,10 +143,15 @@ function InvoicePDFInner({ invoice }: InvoicePDFProps) {
     'depositedTxs',
   ]);
 
-  const { startDate, endDate, title, description, documents } = _.pick(
-    metadata,
-    ['startDate', 'endDate', 'title', 'description', 'documents'],
-  );
+  const { startDate, endDate, title, description, documents, milestones } =
+    _.pick(metadata, [
+      'startDate',
+      'endDate',
+      'title',
+      'description',
+      'documents',
+      'milestones',
+    ]);
   const lastDocument = _.findLast(documents);
 
   const url = useMemo(() => {
@@ -251,11 +256,13 @@ function InvoicePDFInner({ invoice }: InvoicePDFProps) {
               label = `Released`;
             }
 
+            const milestone = milestones?.[index];
+
             return (
               <View style={styles.tableRow} key={index}>
                 <Text style={styles.tableCol0}>{index + 1}</Text>
                 <Text style={styles.tableCol1}>
-                  Payment Milestone #{index + 1}
+                  {milestone?.title ?? `Payment Milestone #${index + 1}`}
                 </Text>
                 <Text style={styles.tableCol2}>
                   {formatAmount(BigInt(amount), tokenMetadata?.decimals ?? 18)}{' '}

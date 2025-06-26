@@ -13,44 +13,57 @@ import {
   theme,
 } from '@smartinvoicexyz/ui';
 import { wagmiConfig } from '@smartinvoicexyz/utils';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  HydrationBoundary,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { hashFn } from '@wagmi/core/query';
 import { AppProps } from 'next/app';
-import React from 'react';
+import React, { useState } from 'react';
 import { WagmiProvider } from 'wagmi';
 
 import { OverlayContextProvider } from '../contexts/OverlayContext';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // With SSR, we usually want to set some default staleTime
-      // above 0 to avoid refetching immediately on the client
-      staleTime: 5000,
-      refetchInterval: 5000,
-    },
-  },
-});
-
 function App({ Component, pageProps }: AppProps) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            queryKeyHashFn: hashFn,
+            staleTime: 300000,
+            refetchOnMount: false,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+          },
+        },
+      }),
+  );
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider avatar={AccountAvatar}>
-          <ChakraProvider theme={theme}>
-            <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-            <CSSReset />
-            <Global styles={globalStyles} />
-            <ErrorBoundary>
-              <OverlayContextProvider>
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
-              </OverlayContextProvider>
-            </ErrorBoundary>
-          </ChakraProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </RainbowKitProvider>
+        <HydrationBoundary state={pageProps.dehydratedState}>
+          <RainbowKitProvider avatar={AccountAvatar}>
+            <ChakraProvider theme={theme}>
+              <ColorModeScript
+                initialColorMode={theme.config.initialColorMode}
+              />
+              <CSSReset />
+              <Global styles={globalStyles} />
+              <ErrorBoundary>
+                <OverlayContextProvider>
+                  <Layout>
+                    <Component {...pageProps} />
+                  </Layout>
+                </OverlayContextProvider>
+              </ErrorBoundary>
+            </ChakraProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </RainbowKitProvider>
+        </HydrationBoundary>
       </QueryClientProvider>
     </WagmiProvider>
   );

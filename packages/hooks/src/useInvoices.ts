@@ -85,50 +85,22 @@ const fetchInvoicesForPage = async (
     };
   });
 };
-// const removeDuplicates = (
-//  acc: InvoiceDisplayData[],
-//  invoice: InvoiceDisplayData,
-// ) => {
-//  if (
-//    !acc.find(
-//      i => i.network === invoice.network && i.address === invoice.address,
-//    )
-//  ) {
-//    acc.push(invoice);
-//  }
-//  return acc;
-// };
-//
-// export const useInvoices = ({ page }: { page: number }) => {
-//  const { address } = useAccount();
-//  const queries = useQueries({
-//    queries: SUPPORTED_NETWORKS.map(chainId => ({
-//      queryKey: ['invoices', address?.toLowerCase(), chainId, page],
-//      queryFn: () => fetchInvoicesForPage(chainId, address, page),
-//      enabled: !!address,
-//      refetchInterval: 60000,
-//    })),
-//  });
-//
-//  const data = _.flatMap(queries, query => query.data ?? []).reduce(removeDuplicates, []).sort((a, b) => Number(b.createdAt - a.createdAt));
-//  const isLoading = queries.some(query => query.isLoading);
-//  const isFetching = queries.some(query => query.isFetching);
-//  const isError = queries.some(query => query.isError);
-//  const error = queries.find(query => query.isError)?.error;
-//
-//  return { data, isLoading, isFetching, isError, error };
-// };
-export const QUERY_KEY_INVOICES = 'invoices';
+
+const QUERY_KEY_INVOICES = 'invoices';
+
+export const createInvoicesQueryKey = (
+  chainId: number | undefined,
+  address: Address | undefined,
+  page: number,
+) => [QUERY_KEY_INVOICES, address?.toLowerCase(), chainId, page];
 
 export const useInvoices = ({ page }: { page: number }) => {
   const { address } = useAccount();
   const chainId = useChainId();
   const result = useQuery({
-    queryKey: [QUERY_KEY_INVOICES, address?.toLowerCase(), chainId, page],
+    queryKey: createInvoicesQueryKey(chainId, address, page),
     queryFn: () => fetchInvoicesForPage(chainId, address, page),
     enabled: !!address && !!chainId,
-    refetchOnWindowFocus: false,
-    refetchInterval: 60000,
   });
 
   return result;

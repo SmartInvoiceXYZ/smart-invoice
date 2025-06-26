@@ -1,62 +1,8 @@
 import { logDebug } from '@smartinvoicexyz/shared';
-import { KeyRestrictions, OldMetadata } from '@smartinvoicexyz/types';
-import bs58 from 'bs58';
+import { KeyRestrictions } from '@smartinvoicexyz/types';
 import _ from 'lodash';
-import { Cache } from 'memory-cache';
-import { Hex } from 'viem';
 
 const { PINATA_JWT } = process.env;
-
-const IPFS_ENDPOINTS = [
-  `https://ipfs.io/ipfs/`,
-  `https://cloudflare-ipfs.com/ipfs/`,
-  `https://dweb.link/ipfs/`,
-  `https://w3s.link/ipfs/`,
-  `https://flk-ipfs.xyz/ipfs/`,
-];
-
-const cache = new Cache();
-
-export const fetchFromIPFS = async (
-  cid: string | undefined,
-): Promise<OldMetadata> => {
-  if (!cid) {
-    throw new Error('CID is required');
-  }
-
-  const cachedResponse = cache.get(cid);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
-  const controllers = IPFS_ENDPOINTS.map(() => new AbortController());
-
-  try {
-    const response = await Promise.any(
-      IPFS_ENDPOINTS.map(async (endpoint, index) => {
-        const controller = controllers[index];
-        const { signal } = controller;
-
-        const res = await fetch(`${endpoint}${cid}`, { signal });
-        if (res.ok) {
-          // Abort other requests once a successful one is found
-          controllers.forEach((ctrl, i) => {
-            if (i !== index) ctrl.abort();
-          });
-          const data = await res.json();
-          cache.put(cid, data);
-          return data;
-        }
-        throw new Error(`Failed to fetch from ${endpoint}`);
-      }),
-    );
-
-    return response as OldMetadata;
-  } catch (error) {
-    console.error(`Failed to fetch from IPFS for CID: ${cid}: `, error);
-    throw new Error(`Failed to fetch from IPFS for CID: ${cid}`);
-  }
-};
 
 const pinJson = async (data: object, metadata: object, token: string) => {
   const pinataData = JSON.stringify({
@@ -120,28 +66,6 @@ export const fetchToken = async (count: number = 0) => {
 
   return token;
 };
-
-/**
- * Converts IPFS CID version 0 (Base58) to a 32 bytes hex string and adds initial 0x.
- * @param cid - The 46 character long IPFS CID V0 string (starts with Qm).
- * @returns string
- */
-export function convertIpfsCidV0ToByte32(cid: string): Hex {
-  return `0x${Buffer.from(bs58.decode(cid).slice(2)).toString('hex')}`;
-}
-
-/**
- * Converts 32 byte hex string (initial 0x is removed) to Base58 IPFS content identifier version 0 address string (starts with Qm)
- * @param str - The 32 byte long hex string to encode to IPFS CID V0 (without initial 0x).
- * @returns string
- */
-export function convertByte32ToIpfsCidV0(str: Hex) {
-  let newStr: string = str;
-  if (str.indexOf('0x') === 0) {
-    newStr = str.slice(2);
-  }
-  return bs58.encode(Buffer.from(`1220${newStr}`, 'hex'));
-}
 
 export const generateApiKey = async (keyRestrictions: KeyRestrictions) => {
   if (!PINATA_JWT) {

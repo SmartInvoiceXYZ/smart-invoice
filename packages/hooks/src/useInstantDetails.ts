@@ -1,8 +1,32 @@
-import { SMART_INVOICE_INSTANT_ABI } from '@smartinvoicexyz/constants';
+import { useQuery } from '@tanstack/react-query';
+import { type QueryKey } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { Hex } from 'viem';
-import { useReadContracts } from 'wagmi';
+import { useConfig } from 'wagmi';
+
+import { fetchInstantInvoice } from './helpers';
+
+export const createInstantDetailsQueryKey = ({
+  address,
+  chainId,
+}: {
+  address: Hex | undefined;
+  chainId: number | undefined;
+}) => ['instantDetails', { address, chainId }] as QueryKey;
+
+export type UseInstantDetailsReturnType = {
+  data?: {
+    totalDue: bigint;
+    amountFulfilled: bigint;
+    fulfilled: boolean;
+    deadline: bigint;
+    lateFee: bigint;
+    lateFeeTimeInterval: bigint;
+  };
+  isLoading: boolean;
+  error?: Error | null;
+};
 
 export const useInstantDetails = ({
   address,
@@ -12,67 +36,39 @@ export const useInstantDetails = ({
   address: Hex | undefined;
   chainId: number | undefined;
   enabled?: boolean;
-}) => {
-  const instantEscrowContract = {
-    address,
-    chainId,
-    abi: SMART_INVOICE_INSTANT_ABI,
-  };
-
-  const { data: contractData, isLoading: contractReadLoading } =
-    useReadContracts({
-      contracts: [
-        {
-          ...instantEscrowContract,
-          functionName: 'getTotalDue',
-        },
-        {
-          ...instantEscrowContract,
-          functionName: 'totalFulfilled',
-        },
-        {
-          ...instantEscrowContract,
-          functionName: 'fulfilled',
-        },
-        {
-          ...instantEscrowContract,
-          functionName: 'deadline',
-        },
-        {
-          ...instantEscrowContract,
-          functionName: 'lateFee',
-        },
-        {
-          ...instantEscrowContract,
-          functionName: 'lateFeeTimeInterval',
-        },
-      ],
-      query: {
-        enabled: enabled && !!address && !!chainId,
-      },
-    });
+}): UseInstantDetailsReturnType => {
+  const config = useConfig();
+  const {
+    data: contractData,
+    isLoading: contractReadLoading,
+    error,
+  } = useQuery({
+    enabled: enabled && !!address && !!chainId,
+    queryKey: createInstantDetailsQueryKey({ address, chainId }),
+    queryFn: () => fetchInstantInvoice(config, address, chainId),
+  });
 
   const parsedData = useMemo(() => {
     if (!contractData) return undefined;
 
     const [
-      getTotalDue,
-      totalFulfilled,
+      totalDue,
+      amountFulfilled,
       fulfilled,
       deadline,
       lateFee,
       lateFeeTimeInterval,
-    ] = _.map(contractData, 'result');
+    ] = contractData;
 
     return {
-      totalDue: getTotalDue as bigint,
-      amountFulfilled: totalFulfilled as bigint,
-      fulfilled: fulfilled as boolean,
-      deadline: deadline as bigint,
-      lateFee: lateFee as bigint,
-      lateFeeTimeInterval: lateFeeTimeInterval as bigint,
+      totalDue,
+      amountFulfilled,
+      fulfilled,
+      deadline,
+      lateFee,
+      lateFeeTimeInterval,
     };
   }, [contractData]);
 
-  return { data: parsedData, isLoading: contractReadLoading };
+  return { data: parsedData, isLoading: contractReadLoading, error };
 };

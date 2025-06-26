@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import {
-  QUERY_KEY_INVOICE_DETAILS,
+  createInvoiceDetailsQueryKey,
   useDeposit,
   useTokenBalance,
 } from '@smartinvoicexyz/hooks';
@@ -114,7 +114,7 @@ export function DepositTip({
     toast.success(TOASTS.useDeposit.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
     });
     // close modal
     onClose();

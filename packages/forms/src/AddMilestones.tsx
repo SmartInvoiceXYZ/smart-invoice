@@ -19,7 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  QUERY_KEY_INVOICE_DETAILS,
+  createInvoiceDetailsQueryKey,
   useAddMilestones,
 } from '@smartinvoicexyz/hooks';
 import { FormInvoice, InvoiceDetails } from '@smartinvoicexyz/types';
@@ -59,15 +59,23 @@ export function AddMilestones({
   onClose: () => void;
 }) {
   const toast = useToast();
-  const { address, tokenMetadata, resolutionRate, total, deposited, amounts } =
-    _.pick(invoice, [
-      'address',
-      'tokenMetadata',
-      'resolutionRate',
-      'total',
-      'deposited',
-      'amounts',
-    ]);
+  const {
+    address,
+    tokenMetadata,
+    resolutionRate,
+    total,
+    deposited,
+    amounts,
+    chainId,
+  } = _.pick(invoice, [
+    'address',
+    'tokenMetadata',
+    'resolutionRate',
+    'total',
+    'deposited',
+    'amounts',
+    'chainId',
+  ]);
 
   const localForm = useForm<Partial<FormInvoice>>({
     resolver: yupResolver(addMilestonesSchema),
@@ -106,7 +114,7 @@ export function AddMilestones({
   const onTxSuccess = () => {
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
     });
     // close modal
     onClose();
