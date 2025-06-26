@@ -65,9 +65,6 @@ const depositedMilestonesString = (invoice: Invoice) => {
   });
 };
 
-// [2, 2, 2]
-// [4, 2]
-
 // assuming possibly multiple milestones paid in one deposit,
 // but not catching amounts paid over multiple deposits
 const findDepositForAmount = (
@@ -76,7 +73,7 @@ const findDepositForAmount = (
 ): Deposit | undefined => {
   if (!deposits) return undefined;
 
-  const depositsReversed = _.reverse([...deposits]);
+  const depositsReversed = [...deposits].reverse();
 
   let sum = 0n;
   return depositsReversed.find((deposit, i) => {
@@ -260,14 +257,14 @@ const convertOldMetadata = (
   };
 };
 
-export const getInvoiceDetails = async (
+export const prepareExtendedInvoiceDetails = (
   invoice: Invoice | null | undefined,
   tokenMetadata: TokenMetadata | undefined,
   tokenBalance: TokenBalance | undefined,
   nativeBalance: TokenBalance | undefined,
   instantDetails: InstantDetails | undefined,
   invoiceMetadata: InvoiceMetadata | undefined,
-): Promise<InvoiceDetails | null> => {
+): InvoiceDetails | null => {
   if (
     !invoice ||
     !tokenMetadata ||

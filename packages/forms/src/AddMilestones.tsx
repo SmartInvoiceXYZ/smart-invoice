@@ -19,8 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  QUERY_KEY_INVOICE_DETAILS,
-  QUERY_KEY_INVOICES,
+  createInvoiceDetailsQueryKey,
   useAddMilestones,
 } from '@smartinvoicexyz/hooks';
 import { FormInvoice, InvoiceDetails } from '@smartinvoicexyz/types';
@@ -115,10 +114,7 @@ export function AddMilestones({
   const onTxSuccess = () => {
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
-    });
-    queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICES],
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
     });
     // close modal
     onClose();

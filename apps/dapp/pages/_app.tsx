@@ -5,7 +5,6 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { ChakraProvider, ColorModeScript, CSSReset } from '@chakra-ui/react';
 import { Global } from '@emotion/react';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { QUERY_KEY_INVOICE_DETAILS } from '@smartinvoicexyz/hooks';
 import {
   AccountAvatar,
   ErrorBoundary,
@@ -15,14 +14,14 @@ import {
 } from '@smartinvoicexyz/ui';
 import { wagmiConfig } from '@smartinvoicexyz/utils';
 import {
-  hydrate,
   HydrationBoundary,
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { hashFn } from '@wagmi/core/query';
 import { AppProps } from 'next/app';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { WagmiProvider } from 'wagmi';
 
 import { OverlayContextProvider } from '../contexts/OverlayContext';
@@ -33,6 +32,7 @@ function App({ Component, pageProps }: AppProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
+            queryKeyHashFn: hashFn,
             staleTime: 300000,
             refetchOnMount: false,
             refetchOnWindowFocus: false,

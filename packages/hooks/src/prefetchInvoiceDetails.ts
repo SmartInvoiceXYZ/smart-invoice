@@ -1,37 +1,20 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
-import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
-import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
-import {
-  fetchFromIPFS,
-  prepareExtendedInvoiceDetails,
-  serverConfig,
-} from '@smartinvoicexyz/utils';
-import {
-  dehydrate,
-  DehydratedState,
-  QueryClient,
-  QueryKey,
-  useQuery,
-} from '@tanstack/react-query';
+import { fetchInvoice } from '@smartinvoicexyz/graphql';
+import { serverConfig } from '@smartinvoicexyz/utils';
+import { fetchFromIPFS } from '@smartinvoicexyz/utils/src/ipfs/fetchFromIPFS';
+import { dehydrate, DehydratedState, QueryClient } from '@tanstack/react-query';
 import { getBalance } from '@wagmi/core';
 import { getBalanceQueryKey, hashFn } from '@wagmi/core/query';
-import _ from 'lodash';
-import { useMemo } from 'react';
 import { Hex } from 'viem';
-import { useBalance } from 'wagmi';
 
 import {
   fetchInstantInvoice,
   fetchTokenBalance,
   fetchTokenMetadata,
 } from './helpers';
-import {
-  createInstantDetailsQueryKey,
-  useInstantDetails,
-} from './useInstantDetails';
-import { createIpfsDetailsQueryKey, useIpfsDetails } from './useIpfsDetails';
+import { createInstantDetailsQueryKey } from './useInstantDetails';
+import { createIpfsDetailsQueryKey } from './useIpfsDetails';
 import { createTokenBalanceQueryKey } from './useTokenBalance';
-import { useTokenData } from './useTokenData';
 import { createTokenMetadataQueryKey } from './useTokenMetadata';
 
 const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
@@ -39,12 +22,12 @@ const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
 export const createInvoiceDetailsQueryKey = (
   chainId: number | undefined,
   address: Hex | undefined,
-): QueryKey => [QUERY_KEY_INVOICE_DETAILS, { chainId, address }];
+) => [QUERY_KEY_INVOICE_DETAILS, { chainId, address }];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serializeBigInts = (obj: any): any => {
   if (obj === null || obj === undefined) {
-    return null; // Convert undefined to null for JSON serialization
+    return null;
   }
 
   if (typeof obj === 'bigint') {
@@ -66,7 +49,7 @@ const serializeBigInts = (obj: any): any => {
   return obj;
 };
 
-// Server-side prefetch function
+// Server-side prefetch function with minimal imports
 export const prefetchInvoiceDetails = async (
   address: Hex,
   chainId: number,
@@ -93,13 +76,7 @@ export const prefetchInvoiceDetails = async (
       queryFn: () => invoice,
     });
 
-    const { invoiceType, token, ipfsHash } = _.pick(invoice, [
-      'address',
-      'invoiceType',
-      'token',
-      'ipfsHash',
-    ]);
-
+    const { invoiceType, token, ipfsHash } = invoice;
     const tokenAddress = token as Hex;
 
     // Sequential prefetching to avoid too many open connections
@@ -143,7 +120,7 @@ export const prefetchInvoiceDetails = async (
       // Fetch IPFS details
       if (ipfsHash) {
         try {
-          const ipfsDetails = await fetchFromIPFS(ipfsHash, true); // Use sequential fetching for server-side
+          const ipfsDetails = await fetchFromIPFS(ipfsHash, true);
           await queryClient.prefetchQuery({
             queryKey: createIpfsDetailsQueryKey(ipfsHash),
             queryFn: () => ipfsDetails,
@@ -191,113 +168,10 @@ export const prefetchInvoiceDetails = async (
       serializeData: serializeBigInts,
     });
   } catch (error) {
-    // In case of any error, return null to fall back to client-side fetching
     console.error(
       'Prefetch Invoice Details failed, falling back to client-side:',
       error,
     );
     return null;
   }
-};
-
-export const useInvoiceDetails = ({
-  address,
-  chainId,
-}: {
-  address: Hex;
-  chainId: number | undefined;
-}): {
-  invoiceDetails: InvoiceDetails;
-  isLoading: boolean;
-  error: Error | null;
-} => {
-  const {
-    data: invoice,
-    isLoading: isFetchingInvoice,
-    error,
-  } = useQuery<Invoice | null>({
-    queryKey: createInvoiceDetailsQueryKey(chainId, address),
-    queryFn: () => fetchInvoice(chainId, address),
-    enabled: !!address && !!chainId,
-  });
-
-  const { invoiceType, token, ipfsHash } = _.pick(invoice, [
-    'invoiceType',
-    'token',
-    'ipfsHash',
-  ]);
-
-  // fetch data about the invoice's token
-  const {
-    metadata: tokenMetadata,
-    balance: tokenBalance,
-    isLoading: isLoadingTokenData,
-  } = useTokenData({
-    address,
-    tokenAddress: token as Hex | undefined,
-    chainId,
-  });
-
-  // fetch the invoice's balances
-  const { data: nativeBalance, isLoading: isLoadingNativeBalance } = useBalance(
-    {
-      address,
-      chainId,
-    },
-  );
-
-  // fetch the invoice's instant details, if applicable
-  const { data: instantDetails, isLoading: isLoadingInstantDetails } =
-    useInstantDetails({
-      address,
-      chainId,
-      enabled: !!address && !!chainId && invoiceType === INVOICE_TYPES.Instant,
-    });
-
-  // fetch invoice details from Ipfs
-  const { data: ipfsDetails, isLoading: isLoadingIpfs } =
-    useIpfsDetails(ipfsHash);
-
-  // enhance the invoice with assorted computed values
-  const invoiceDetails = useMemo(
-    () =>
-      prepareExtendedInvoiceDetails(
-        invoice,
-        tokenMetadata,
-        tokenBalance,
-        nativeBalance,
-        instantDetails,
-        ipfsDetails as InvoiceMetadata,
-      ),
-    [
-      invoice,
-      tokenMetadata,
-      tokenBalance,
-      nativeBalance,
-      instantDetails,
-      ipfsDetails,
-    ],
-  );
-
-  const isLoading = useMemo(
-    () =>
-      isFetchingInvoice ||
-      isLoadingTokenData ||
-      isLoadingNativeBalance ||
-      isLoadingInstantDetails ||
-      isLoadingIpfs,
-    [
-      isFetchingInvoice,
-      isLoadingTokenData,
-      isLoadingNativeBalance,
-      isLoadingInstantDetails,
-      isLoadingIpfs,
-    ],
-  );
-
-  return {
-    invoiceDetails: invoiceDetails ?? {},
-    isLoading,
-    error,
-  };
 };

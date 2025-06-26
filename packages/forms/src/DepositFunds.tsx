@@ -17,8 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { PAYMENT_TYPES, TOASTS } from '@smartinvoicexyz/constants';
 import {
-  QUERY_KEY_INVOICE_DETAILS,
-  QUERY_KEY_INVOICES,
+  createInvoiceDetailsQueryKey,
   useDeposit,
   useTokenBalance,
 } from '@smartinvoicexyz/hooks';
@@ -121,10 +120,7 @@ export function DepositFunds({
     onClose();
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
-    });
-    queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICES],
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
     });
   };
 

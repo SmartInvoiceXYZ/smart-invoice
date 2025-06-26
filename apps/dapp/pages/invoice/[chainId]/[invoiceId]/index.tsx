@@ -6,11 +6,8 @@ import {
   InvoiceButtonManager,
   InvoicePaymentDetails,
 } from '@smartinvoicexyz/forms';
-import {
-  prefetchInvoiceDetails,
-  QUERY_KEY_EXTENDED_INVOICE_DETAILS,
-  useInvoiceDetails,
-} from '@smartinvoicexyz/hooks';
+import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
+import { prefetchInvoiceDetails } from '@smartinvoicexyz/hooks/src/prefetchInvoiceDetails';
 import {
   Container,
   InvoiceMetaDetails,
@@ -22,7 +19,6 @@ import {
   getChainName,
   parseChainId,
 } from '@smartinvoicexyz/utils';
-import { dehydrate, QueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
@@ -32,7 +28,6 @@ import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import { useOverlay } from '../../../../contexts/OverlayContext';
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const queryClient = new QueryClient();
   const { invoiceId: invId, chainId: urlChainId } = context.params as {
     invoiceId: string;
     chainId: string;
@@ -60,28 +55,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  // Prefetch all invoice details
-  const serializedQueries = await prefetchInvoiceDetails(
-    queryClient,
-    invoiceId,
-    chainId,
-  );
-
-  if (!serializedQueries) {
-    return {
-      notFound: true,
-    };
+  // Prefetch all invoice details with extra error handling
+  let dehydratedState = null;
+  try {
+    dehydratedState = await prefetchInvoiceDetails(invoiceId, chainId);
+  } catch (error) {
+    console.error('Server-side prefetch failed:', error);
+    // Continue without prefetched data - client will fetch on mount
   }
-
-  // Create a new QueryClient with the serialized queries
-  const dehydratedClient = new QueryClient();
-  serializedQueries.forEach(query => {
-    dehydratedClient.setQueryData(query.queryKey, query.state.data);
-  });
 
   return {
     props: {
-      dehydratedState: dehydrate(dehydratedClient),
+      dehydratedState,
     },
   };
 }

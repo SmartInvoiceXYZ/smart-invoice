@@ -10,8 +10,8 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
 import {
+  createInvoiceDetailsQueryKey,
   FormLock,
-  QUERY_KEY_INVOICE_DETAILS,
   useLock,
 } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
@@ -64,10 +64,7 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: [
-        QUERY_KEY_INVOICE_DETAILS,
-        { address, chainId: invoiceChainId },
-      ],
+      queryKey: createInvoiceDetailsQueryKey(invoiceChainId, address),
     });
 
     onClose();
