@@ -30,12 +30,12 @@
   ],
   "exclude": ["node_modules", "dist"],
   "references": [
-    { "path": "../types" },
-    { "path": "../constants" },
-    { "path": "../utils" },
-    { "path": "../ui" },
-    { "path": "../forms" },
-    { "path": "../hooks" },
-    { "path": "../graphql" }
+    { "path": "../../packages/types" },
+    { "path": "../../packages/constants" },
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/ui" },
+    { "path": "../../packages/forms" },
+    { "path": "../../packages/hooks" },
+    { "path": "../../packages/graphql" }
   ]
 }

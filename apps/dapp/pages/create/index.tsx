@@ -11,17 +11,13 @@ import {
   ProjectDetailsForm,
   RegisterSuccess,
 } from '@smartinvoicexyz/forms';
-import {
-  QUERY_KEY_INVOICE_DETAILS,
-  useInvoiceCreate,
-} from '@smartinvoicexyz/hooks';
+import { useInvoiceCreate } from '@smartinvoicexyz/hooks';
 import {
   Container,
   StepInfo,
   useMediaStyles,
   useToast,
 } from '@smartinvoicexyz/ui';
-import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Address, Hex } from 'viem';
@@ -30,7 +26,6 @@ import { useChainId } from 'wagmi';
 export function CreateInvoiceEscrow() {
   const invoiceForm = useForm();
   const toast = useToast();
-  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [txHash, setTxHash] = useState<Hex>();
 
@@ -57,8 +52,6 @@ export function CreateInvoiceEscrow() {
   const onTxSuccess = (result: Address) => {
     toast.success(TOASTS.useInvoiceCreate.success);
     // invalidate cache
-    queryClient.invalidateQueries({ queryKey: [QUERY_KEY_INVOICE_DETAILS] });
-    queryClient.invalidateQueries({ queryKey: ['invoiceList'] });
 
     setInvoiceId(result as Address);
 

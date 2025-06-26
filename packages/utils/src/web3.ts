@@ -16,7 +16,7 @@ import {
 } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { Chain, createPublicClient, http, PublicClient, Transport } from 'viem';
-import { fallback } from 'wagmi';
+import { createConfig, fallback } from 'wagmi';
 import {
   arbitrum,
   base,
@@ -171,6 +171,11 @@ export const publicClients: Record<SupportedChainId, PublicClient> =
     },
     {} as Record<SupportedChainId, PublicClient>,
   );
+
+export const serverConfig = createConfig({
+  chains: SUPPORTED_CHAINS,
+  transports,
+});
 
 export const wagmiConfig = getDefaultConfig({
   ssr: true,

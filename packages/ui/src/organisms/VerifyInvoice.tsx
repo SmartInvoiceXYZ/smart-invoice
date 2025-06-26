@@ -1,6 +1,9 @@
 import { Button, Stack, Text } from '@chakra-ui/react';
 import { TOASTS } from '@smartinvoicexyz/constants';
-import { QUERY_KEY_INVOICE_DETAILS, useVerify } from '@smartinvoicexyz/hooks';
+import {
+  createInvoiceDetailsQueryKey,
+  useVerify,
+} from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
@@ -37,7 +40,7 @@ export function VerifyInvoice({
     toast.success(TOASTS.useVerify.success);
     // invalidate cache
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: createInvoiceDetailsQueryKey(chainId, address),
     });
   };
 

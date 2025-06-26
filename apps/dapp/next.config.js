@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const createBundleAnalyzerPlugin = require('@next/bundle-analyzer');
+
 const {
   VERCEL_ENV = 'development',
   VERCEL_URL,
@@ -36,7 +39,11 @@ const nextConfig = {
     BASE_URL: baseUrl,
   },
   experimental: {
-    optimizePackageImports: ['@rainbow-me/rainbowkit'],
+    optimizePackageImports: [
+      '@rainbow-me/rainbowkit',
+      '@smartinvoicexyz/ui',
+      '@chakra-ui/react',
+    ],
   },
   webpack: config => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
@@ -44,4 +51,8 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const withBundleAnalyzer = createBundleAnalyzerPlugin({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer(nextConfig);

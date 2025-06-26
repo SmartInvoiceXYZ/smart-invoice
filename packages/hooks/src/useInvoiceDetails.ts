@@ -1,19 +1,23 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
-import { getInvoiceDetails } from '@smartinvoicexyz/utils';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { prepareExtendedInvoiceDetails } from '@smartinvoicexyz/utils';
+import { QueryKey, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
-import { useEffect, useMemo } from 'react';
-import { formatUnits, Hex } from 'viem';
+import { useMemo } from 'react';
+import { Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
 import { useInstantDetails } from './useInstantDetails';
 import { useIpfsDetails } from './useIpfsDetails';
-import { useTokenData } from './useTokenMetadata';
+import { useTokenData } from './useTokenData';
 
-export const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
-export const QUERY_KEY_EXTENDED_INVOICE_DETAILS = 'extendedInvoiceDetails';
+const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
+
+export const createInvoiceDetailsQueryKey = (
+  chainId: number | undefined,
+  address: Hex | undefined,
+): QueryKey => [QUERY_KEY_INVOICE_DETAILS, { chainId, address }];
 
 export const useInvoiceDetails = ({
   address,
@@ -26,28 +30,15 @@ export const useInvoiceDetails = ({
   isLoading: boolean;
   error: Error | null;
 } => {
-  const queryClient = useQueryClient();
-
   const {
     data: invoice,
     isLoading: isFetchingInvoice,
     error,
   } = useQuery<Invoice | null>({
-    queryKey: [QUERY_KEY_INVOICE_DETAILS, { address, chainId }],
+    queryKey: createInvoiceDetailsQueryKey(chainId, address),
     queryFn: () => fetchInvoice(chainId, address),
     enabled: !!address && !!chainId,
-    refetchInterval: 60000,
-    refetchOnWindowFocus: false,
   });
-
-  // Manually trigger refetch of extended invoice details when invoice is fetched
-  useEffect(() => {
-    if (!isFetchingInvoice) {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEY_EXTENDED_INVOICE_DETAILS],
-      });
-    }
-  }, [isFetchingInvoice, queryClient]);
 
   const { invoiceType, token, ipfsHash } = _.pick(invoice, [
     'invoiceType',
@@ -62,7 +53,7 @@ export const useInvoiceDetails = ({
     isLoading: isLoadingTokenData,
   } = useTokenData({
     address,
-    tokenAddress: token as Hex,
+    tokenAddress: token as Hex | undefined,
     chainId,
   });
 
@@ -86,46 +77,26 @@ export const useInvoiceDetails = ({
   const { data: ipfsDetails, isLoading: isLoadingIpfs } =
     useIpfsDetails(ipfsHash);
 
-  const getInvoiceDetailsEnabled =
-    !!invoice &&
-    !!tokenMetadata &&
-    !!tokenBalance &&
-    !!nativeBalance &&
-    !!ipfsDetails &&
-    !isFetchingInvoice &&
-    (invoiceType === INVOICE_TYPES.Instant ? !!instantDetails : true);
-
   // enhance the invoice with assorted computed values
-  const { data: invoiceDetails, isLoading: isInvoiceDetailsLoading } =
-    useQuery<InvoiceDetails | null>({
-      queryKey: [
-        QUERY_KEY_EXTENDED_INVOICE_DETAILS,
-        {
-          invoiceId: _.get(invoice, 'id'),
-          token: tokenMetadata?.name,
-          tokenBalance: tokenBalance
-            ? formatUnits(tokenBalance.value, tokenBalance.decimals)
-            : undefined,
-          nativeBalance: nativeBalance
-            ? formatUnits(nativeBalance.value, nativeBalance.decimals)
-            : undefined,
-          instantDetails: _.mapValues(instantDetails, v => v?.toString()),
-          ipfsDetails: JSON.stringify(ipfsDetails),
-        },
-      ],
-      queryFn: () =>
-        getInvoiceDetails(
-          invoice,
-          tokenMetadata,
-          tokenBalance,
-          nativeBalance,
-          instantDetails,
-          ipfsDetails as InvoiceMetadata,
-        ),
-      enabled: getInvoiceDetailsEnabled,
-      refetchInterval: 60000,
-      refetchOnWindowFocus: false,
-    });
+  const invoiceDetails = useMemo(
+    () =>
+      prepareExtendedInvoiceDetails(
+        invoice,
+        tokenMetadata,
+        tokenBalance,
+        nativeBalance,
+        instantDetails,
+        ipfsDetails as InvoiceMetadata,
+      ),
+    [
+      invoice,
+      tokenMetadata,
+      tokenBalance,
+      nativeBalance,
+      instantDetails,
+      ipfsDetails,
+    ],
+  );
 
   const isLoading = useMemo(
     () =>
@@ -133,15 +104,13 @@ export const useInvoiceDetails = ({
       isLoadingTokenData ||
       isLoadingNativeBalance ||
       isLoadingInstantDetails ||
-      isLoadingIpfs ||
-      isInvoiceDetailsLoading,
+      isLoadingIpfs,
     [
       isFetchingInvoice,
       isLoadingTokenData,
       isLoadingNativeBalance,
       isLoadingInstantDetails,
       isLoadingIpfs,
-      isInvoiceDetailsLoading,
     ],
   );
 

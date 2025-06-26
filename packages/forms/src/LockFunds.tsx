@@ -10,8 +10,8 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { KLEROS_GOOGLE_FORM } from '@smartinvoicexyz/constants';
 import {
+  createInvoiceDetailsQueryKey,
   FormLock,
-  QUERY_KEY_INVOICE_DETAILS,
   useLock,
 } from '@smartinvoicexyz/hooks';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
@@ -39,16 +39,22 @@ export function LockFunds({
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { resolver, resolverFee, resolverInfo, tokenBalance } = _.pick(
-    invoice,
-    [
-      'resolver',
-      'resolverFee',
-      'resolverInfo',
-      'tokenBalance',
-      'resolutionRate',
-    ],
-  );
+  const {
+    resolver,
+    resolverFee,
+    resolverInfo,
+    tokenBalance,
+    address,
+    chainId: invoiceChainId,
+  } = _.pick(invoice, [
+    'resolver',
+    'resolverFee',
+    'resolverInfo',
+    'tokenBalance',
+    'resolutionRate',
+    'address',
+    'chainId',
+  ]);
   const localForm = useForm<FormLock>({
     resolver: yupResolver(lockFundsSchema),
   });
@@ -58,7 +64,7 @@ export function LockFunds({
 
   const onTxSuccess = () => {
     queryClient.invalidateQueries({
-      queryKey: [QUERY_KEY_INVOICE_DETAILS],
+      queryKey: createInvoiceDetailsQueryKey(invoiceChainId, address),
     });
 
     onClose();

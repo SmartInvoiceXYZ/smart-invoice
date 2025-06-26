@@ -17,6 +17,8 @@ export * from './useRateForResolver';
 export * from './useRelease';
 export * from './useResolve';
 export * from './useSubgraphHealth';
+export * from './useTokenBalance';
+export * from './useTokenData';
 export * from './useTokenMetadata';
 export * from './useVerify';
 export * from './useWithdraw';

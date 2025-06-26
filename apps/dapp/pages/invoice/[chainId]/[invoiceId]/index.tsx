@@ -7,6 +7,7 @@ import {
   InvoicePaymentDetails,
 } from '@smartinvoicexyz/forms';
 import { useInvoiceDetails } from '@smartinvoicexyz/hooks';
+import { prefetchInvoiceDetails } from '@smartinvoicexyz/hooks/src/prefetchInvoiceDetails';
 import {
   Container,
   InvoiceMetaDetails,
@@ -19,12 +20,56 @@ import {
   parseChainId,
 } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
+import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import { Hex, isAddress } from 'viem';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 
 import { useOverlay } from '../../../../contexts/OverlayContext';
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { invoiceId: invId, chainId: urlChainId } = context.params as {
+    invoiceId: string;
+    chainId: string;
+  };
+
+  const invoiceId = _.toLower(String(invId)) as Hex;
+  const chainId = parseChainId(urlChainId);
+
+  // If chainId is undefined, return 404
+  if (!chainId) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const chainLabel = chainLabelFromId(chainId);
+
+  // If the chain label doesn't match the URL chain ID, redirect to the correct URL
+  if (chainLabel !== urlChainId) {
+    return {
+      redirect: {
+        destination: `/invoice/${chainLabel}/${invoiceId}`,
+        permanent: false,
+      },
+    };
+  }
+
+  // Prefetch all invoice details with extra error handling
+  let dehydratedState = null;
+  try {
+    dehydratedState = await prefetchInvoiceDetails(invoiceId, chainId);
+  } catch (error) {
+    console.error('Server-side prefetch failed:', error);
+    // Continue without prefetched data - client will fetch on mount
+  }
+
+  return {
+    props: {
+      dehydratedState,
+    },
+  };
+}
 
 function ViewInvoice() {
   const router = useRouter();
@@ -32,18 +77,6 @@ function ViewInvoice() {
 
   const invoiceId = _.toLower(String(invId)) as Hex;
   const invoiceChainId = parseChainId(urlChainId);
-
-  useEffect(() => {
-    if (invoiceId && invoiceChainId) {
-      const chainLabel = chainLabelFromId(invoiceChainId);
-      if (chainLabel !== urlChainId) {
-        router.replace({
-          pathname: `/invoice/${chainLabelFromId(invoiceChainId)}/${invoiceId}`,
-          query: undefined,
-        });
-      }
-    }
-  }, [invoiceId, urlChainId, invoiceChainId, router]);
 
   const { invoiceDetails, isLoading } = useInvoiceDetails({
     chainId: invoiceChainId,
