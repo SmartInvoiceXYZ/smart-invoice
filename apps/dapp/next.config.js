@@ -39,7 +39,11 @@ const nextConfig = {
     BASE_URL: baseUrl,
   },
   experimental: {
-    optimizePackageImports: ['@rainbow-me/rainbowkit'],
+    optimizePackageImports: [
+      '@rainbow-me/rainbowkit',
+      '@smartinvoicexyz/ui',
+      '@chakra-ui/react',
+    ],
   },
   webpack: config => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
