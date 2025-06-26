@@ -15,6 +15,19 @@ export const createInstantDetailsQueryKey = ({
   chainId: number | undefined;
 }) => ['instantDetails', { address, chainId }] as QueryKey;
 
+export type UseInstantDetailsReturnType = {
+  data?: {
+    totalDue: bigint;
+    amountFulfilled: bigint;
+    fulfilled: boolean;
+    deadline: bigint;
+    lateFee: bigint;
+    lateFeeTimeInterval: bigint;
+  };
+  isLoading: boolean;
+  error?: Error | null;
+};
+
 export const useInstantDetails = ({
   address,
   chainId,
@@ -23,9 +36,13 @@ export const useInstantDetails = ({
   address: Hex | undefined;
   chainId: number | undefined;
   enabled?: boolean;
-}) => {
+}): UseInstantDetailsReturnType => {
   const config = useConfig();
-  const { data: contractData, isLoading: contractReadLoading } = useQuery({
+  const {
+    data: contractData,
+    isLoading: contractReadLoading,
+    error,
+  } = useQuery({
     enabled: enabled && !!address && !!chainId,
     queryKey: createInstantDetailsQueryKey({ address, chainId }),
     queryFn: () => fetchInstantInvoice(config, address, chainId),
@@ -35,23 +52,23 @@ export const useInstantDetails = ({
     if (!contractData) return undefined;
 
     const [
-      getTotalDue,
-      totalFulfilled,
+      totalDue,
+      amountFulfilled,
       fulfilled,
       deadline,
       lateFee,
       lateFeeTimeInterval,
-    ] = _.map(contractData, 'result');
+    ] = contractData;
 
     return {
-      totalDue: getTotalDue as bigint,
-      amountFulfilled: totalFulfilled as bigint,
-      fulfilled: fulfilled as boolean,
-      deadline: deadline as bigint,
-      lateFee: lateFee as bigint,
-      lateFeeTimeInterval: lateFeeTimeInterval as bigint,
+      totalDue,
+      amountFulfilled,
+      fulfilled,
+      deadline,
+      lateFee,
+      lateFeeTimeInterval,
     };
   }, [contractData]);
 
-  return { data: parsedData, isLoading: contractReadLoading };
+  return { data: parsedData, isLoading: contractReadLoading, error };
 };

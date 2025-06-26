@@ -26,6 +26,7 @@ export const fetchTokenMetadata = async (
   }
 
   const results = await readContracts(config, {
+    allowFailure: false,
     contracts: [
       {
         address: tokenAddress,
@@ -48,11 +49,7 @@ export const fetchTokenMetadata = async (
     ],
   });
 
-  return results.map(({ result }) => result) as unknown as [
-    number,
-    string,
-    string,
-  ];
+  return results;
 };
 
 type InstantInvoiceContractData = [
@@ -60,8 +57,8 @@ type InstantInvoiceContractData = [
   bigint,
   boolean,
   bigint,
-  number,
-  number,
+  bigint,
+  bigint,
 ];
 
 export const fetchInstantInvoice = async (
@@ -79,6 +76,7 @@ export const fetchInstantInvoice = async (
   };
 
   const results = await readContracts(config, {
+    allowFailure: false,
     contracts: [
       {
         ...instantEscrowContract,
@@ -107,7 +105,5 @@ export const fetchInstantInvoice = async (
     ],
   });
 
-  return results.map(
-    ({ result }) => result,
-  ) as unknown as InstantInvoiceContractData;
+  return results;
 };

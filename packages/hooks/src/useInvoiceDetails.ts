@@ -1,22 +1,15 @@
 import { INVOICE_TYPES } from '@smartinvoicexyz/constants';
 import { fetchInvoice, Invoice } from '@smartinvoicexyz/graphql';
 import { InvoiceDetails, InvoiceMetadata } from '@smartinvoicexyz/types';
-import {
-  prepareExtendedInvoiceDetails,
-} from '@smartinvoicexyz/utils';
-import {
-  QueryKey,
-  useQuery,
-} from '@tanstack/react-query';
+import { prepareExtendedInvoiceDetails } from '@smartinvoicexyz/utils';
+import { QueryKey, useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { Hex } from 'viem';
 import { useBalance } from 'wagmi';
 
-import {
-  useInstantDetails,
-} from './useInstantDetails';
-import {  useIpfsDetails } from './useIpfsDetails';
+import { useInstantDetails } from './useInstantDetails';
+import { useIpfsDetails } from './useIpfsDetails';
 import { useTokenData } from './useTokenData';
 
 const QUERY_KEY_INVOICE_DETAILS = 'invoiceDetails';
@@ -25,32 +18,6 @@ export const createInvoiceDetailsQueryKey = (
   chainId: number | undefined,
   address: Hex | undefined,
 ): QueryKey => [QUERY_KEY_INVOICE_DETAILS, { chainId, address }];
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const serializeBigInts = (obj: any): any => {
-  if (obj === null || obj === undefined) {
-    return null; // Convert undefined to null for JSON serialization
-  }
-
-  if (typeof obj === 'bigint') {
-    return obj.toString();
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(serializeBigInts);
-  }
-
-  if (typeof obj === 'object') {
-    return Object.fromEntries(
-      Object.entries(obj)
-        .map(([key, value]) => [key, serializeBigInts(value)])
-        .filter(([, value]) => value !== undefined),
-    );
-  }
-
-  return obj;
-};
-
 
 export const useInvoiceDetails = ({
   address,
