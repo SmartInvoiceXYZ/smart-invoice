@@ -13,7 +13,7 @@ export const createInstantDetailsQueryKey = ({
 }: {
   address: Hex | undefined;
   chainId: number | undefined;
-}) => ['tokenBalance', { address, chainId }] as QueryKey;
+}) => ['instantDetails', { address, chainId }] as QueryKey;
 
 export const useInstantDetails = ({
   address,
