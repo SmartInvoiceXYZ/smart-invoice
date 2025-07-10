@@ -19,30 +19,18 @@ type EscrowTypes = {
 };
 
 const ESCROW_TYPES: EscrowTypes = {
-  escrow: {
-    invoiceType: 'escrow',
+  'escrow-v3': {
+    invoiceType: 'escrow-v3',
     contractName: 'SmartInvoiceEscrow',
-  },
-  instant: {
-    invoiceType: 'instant',
-    contractName: 'SmartInvoiceInstant',
   },
   'split-escrow': {
     invoiceType: 'split-escrow',
     contractName: 'SmartInvoiceSplitEscrow',
   },
-  updatable: {
-    invoiceType: 'updatable',
-    contractName: 'SmartInvoiceUpdatable',
-  },
-  'updatable-v2': {
-    invoiceType: 'updatable-v2',
-    contractName: 'SmartInvoiceUpdatableV2',
-  },
 };
 
 // Select the desired escrow type
-const escrowTypeData = ESCROW_TYPES['updatable-v2'];
+const escrowTypeData = ESCROW_TYPES['escrow-v3'];
 const escrowType = toHex(toBytes(escrowTypeData.invoiceType, { size: 32 }));
 
 async function main(): Promise<void> {

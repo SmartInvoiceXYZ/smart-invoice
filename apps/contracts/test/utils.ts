@@ -65,6 +65,8 @@ export const createEscrow = async (
       'address',
       'bool',
       'address',
+      'address',
+      'address',
     ].map(x => ({ type: x })),
     [
       client,
@@ -76,6 +78,8 @@ export const createEscrow = async (
       wrappedNativeToken,
       requireVerification,
       factory.address,
+      '0x0000000000000000000000000000000000000000', // no providerReceiver
+      '0x0000000000000000000000000000000000000000', // no clientReceiver
     ],
   );
 
@@ -196,6 +200,8 @@ export const createSplitEscrow = async (
   details: Hex,
   wrappedNativeToken: Hex,
   requireVerification: boolean,
+  providerReceiver: Hex,
+  clientReceiver: Hex,
   dao: Hex,
   daoFee: bigint,
 ): Promise<GetTransactionReceiptReturnType> => {
@@ -213,6 +219,8 @@ export const createSplitEscrow = async (
       'bool',
       'address',
       'address',
+      'address',
+      'address',
       'uint256',
     ].map(x => ({ type: x })),
     [
@@ -225,6 +233,8 @@ export const createSplitEscrow = async (
       wrappedNativeToken,
       requireVerification,
       factory.address,
+      providerReceiver,
+      clientReceiver,
       dao,
       daoFee,
     ],
@@ -482,6 +492,8 @@ export const getLockedSplitEscrow = async (
   amounts: bigint[],
   details: Hex,
   mockWrappedNativeToken: Hex,
+  providerReceiver: Hex,
+  clientReceiver: Hex,
   dao: Hex,
   daoFee: bigint,
   value = 0n,
@@ -504,6 +516,8 @@ export const getLockedSplitEscrow = async (
     details,
     mockWrappedNativeToken,
     requireVerification,
+    providerReceiver,
+    clientReceiver,
     dao,
     daoFee,
   );

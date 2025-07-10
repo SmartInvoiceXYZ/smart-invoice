@@ -26,20 +26,19 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
      * @param _data The data to be handled and decoded
      */
     function _handleData(bytes calldata _data) internal override {
+        // Decode the first part of data
         (
             address _client,
             uint8 _resolverType,
             address _resolver,
             address _token,
-            uint256 _terminationTime, // exact termination date in seconds since epoch
+            uint256 _terminationTime,
             bytes32 _details,
             address _wrappedNativeToken,
             bool _requireVerification,
-            address _factory,
-            address _dao,
-            uint256 _daoFee
+            address _factory
         ) = abi.decode(
-                _data,
+                _data[0:288], // 9 * 32 bytes
                 (
                     address,
                     uint8,
@@ -49,11 +48,66 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
                     bytes32,
                     address,
                     bool,
+                    address
+                )
+            );
+
+        // Decode the second part of data
+        (
+            address _providerReceiver,
+            address _clientReceiver,
+            address _dao,
+            uint256 _daoFee
+        ) = abi.decode(
+                _data[288:], // Remaining bytes
+                (
+                    address,
                     address,
                     address,
                     uint256
                 )
             );
+
+        _validateAndSetData(
+            _client,
+            _resolverType,
+            _resolver,
+            _token,
+            _terminationTime,
+            _details,
+            _wrappedNativeToken,
+            _requireVerification,
+            _factory,
+            _providerReceiver,
+            _clientReceiver,
+            _dao,
+            _daoFee
+        );
+    }
+
+    /**
+     * @dev Internal function to validate and set contract data to avoid stack too deep
+     */
+    function _validateAndSetData(
+        address _client,
+        uint8 _resolverType,
+        address _resolver,
+        address _token,
+        uint256 _terminationTime,
+        bytes32 _details,
+        address _wrappedNativeToken,
+        bool _requireVerification,
+        address _factory,
+        address _providerReceiver,
+        address _clientReceiver,
+        address _dao,
+        uint256 _daoFee
+    ) internal {
+        uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
+            .resolutionRateOf(_resolver);
+        if (_resolutionRate == 0) {
+            _resolutionRate = 20;
+        }
 
         if (_daoFee > 0 && _dao == address(0)) revert InvalidDAO();
         if (_client == address(0)) revert InvalidClient();
@@ -63,14 +117,9 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         if (_terminationTime <= block.timestamp) revert DurationEnded();
         if (_terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
+        if (_resolutionRate == 0) revert InvalidResolutionRate();
         if (_wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
-
-        uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
-            .resolutionRateOf(_resolver);
-        if (_resolutionRate == 0) {
-            _resolutionRate = 20; // Default resolution rate if not specified
-        }
 
         client = _client;
         resolverType = ADR(_resolverType);
@@ -80,6 +129,8 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         resolutionRate = _resolutionRate;
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
+        providerReceiver = _providerReceiver;
+        clientReceiver = _clientReceiver;
         dao = _dao;
         daoFee = _daoFee;
 
@@ -98,7 +149,13 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         uint256 daoAmount = (_amount * daoFee) / 10000;
         uint256 providerAmount = _amount - daoAmount;
 
-        IERC20(_token).safeTransfer(dao, daoAmount);
-        IERC20(_token).safeTransfer(provider, providerAmount);
+        if (daoAmount > 0) {
+            IERC20(_token).safeTransfer(dao, daoAmount);
+        }
+        if (providerAmount > 0) {
+            // Use the same receiver logic as base contract - respect providerReceiver if set
+            address recipient = providerReceiver != address(0) ? providerReceiver : provider;
+            IERC20(_token).safeTransfer(recipient, providerAmount);
+        }
     }
 }

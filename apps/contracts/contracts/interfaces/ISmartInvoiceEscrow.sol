@@ -107,6 +107,8 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error InvalidArbitratorResolver();
     error NotResolver();
     error ResolutionMismatch();
+    error InvalidProviderReceiver();
+    error InvalidClientReceiver();
 
     /// @notice Emitted when new milestones are added to the invoice.
     /// @param sender The address that added the milestones.
@@ -172,4 +174,20 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @param client The address of the client.
     /// @param invoice The address of the invoice.
     event Verified(address indexed client, address indexed invoice);
+
+    /// @notice Emitted when the client address is updated.
+    /// @param client The new client address.
+    event UpdatedClient(address indexed client);
+
+    /// @notice Emitted when the provider address is updated.
+    /// @param provider The new provider address.
+    event UpdatedProvider(address indexed provider);
+
+    /// @notice Emitted when the provider receiver address is updated.
+    /// @param providerReceiver The new provider receiver address.
+    event UpdatedProviderReceiver(address indexed providerReceiver);
+
+    /// @notice Emitted when the client receiver address is updated.
+    /// @param clientReceiver The new client receiver address.
+    event UpdatedClientReceiver(address indexed clientReceiver);
 }

@@ -21,7 +21,7 @@ import {IArbitrator} from "./interfaces/IArbitrator.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceEscrow
-/// @notice A contract that acts as a digital escrow for split payments with embedded arbitration, designed for use in guild or collaborative work settings.
+/// @notice A comprehensive escrow contract with milestone payments, arbitration, and updatable addresses
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
@@ -36,8 +36,11 @@ contract SmartInvoiceEscrow is
         ARBITRATOR
     }
 
+    string public constant VERSION = "3.0.0";
+
     uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
 
+    // solhint-disable-next-line var-name-mixedcase
     uint8[2][6] public RULINGS = [
         [1, 1], // 0 = refused to arbitrate
         [1, 0], // 1 = 100% to client
@@ -53,6 +56,8 @@ contract SmartInvoiceEscrow is
 
     address public client;
     address public provider;
+    address public providerReceiver;
+    address public clientReceiver;
     ADR public resolverType;
     address public resolver;
     address public token;
@@ -66,6 +71,16 @@ contract SmartInvoiceEscrow is
     uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
     uint256 public released = 0;
     uint256 public disputeId;
+
+    modifier onlyProvider() {
+        if (msg.sender != provider) revert NotProvider();
+        _;
+    }
+
+    modifier onlyClient() {
+        if (msg.sender != client) revert NotClient();
+        _;
+    }
 
     constructor() {
         _disableInitializers();
@@ -109,7 +124,9 @@ contract SmartInvoiceEscrow is
             bytes32 _details,
             address _wrappedNativeToken,
             bool _requireVerification,
-            address _factory
+            address _factory,
+            address _providerReceiver,
+            address _clientReceiver
         ) = abi.decode(
                 _data,
                 (
@@ -121,6 +138,8 @@ contract SmartInvoiceEscrow is
                     bytes32,
                     address,
                     bool,
+                    address,
+                    address,
                     address
                 )
             );
@@ -150,6 +169,8 @@ contract SmartInvoiceEscrow is
         resolutionRate = _resolutionRate;
         details = _details;
         wrappedNativeToken = _wrappedNativeToken;
+        providerReceiver = _providerReceiver;
+        clientReceiver = _clientReceiver;
 
         if (!_requireVerification) emit Verified(client, address(this));
     }
@@ -160,6 +181,48 @@ contract SmartInvoiceEscrow is
     function verify() external override {
         if (msg.sender != client) revert NotClient();
         emit Verified(client, address(this));
+    }
+
+    /**
+     * @notice Updates the client address.
+     * @param _client The updated client address.
+     */
+    function updateClient(address _client) external onlyClient {
+        if (_client == address(0)) revert InvalidClient();
+        client = _client;
+        emit UpdatedClient(_client);
+    }
+
+    /**
+     * @notice Updates the provider address.
+     * @param _provider The updated provider address.
+     */
+    function updateProvider(address _provider) external onlyProvider {
+        if (_provider == address(0)) revert InvalidProvider();
+        provider = _provider;
+        emit UpdatedProvider(_provider);
+    }
+
+    /**
+     * @notice Updates the provider's receiver address.
+     * @param _providerReceiver The updated provider receiver address.
+     */
+    function updateProviderReceiver(
+        address _providerReceiver
+    ) external onlyProvider {
+        if (_providerReceiver == address(0)) revert InvalidProviderReceiver();
+        providerReceiver = _providerReceiver;
+        emit UpdatedProviderReceiver(_providerReceiver);
+    }
+
+    /**
+     * @notice Updates the client's receiver address.
+     * @param _clientReceiver The updated client receiver address.
+     */
+    function updateClientReceiver(address _clientReceiver) external onlyClient {
+        if (_clientReceiver == address(0)) revert InvalidClientReceiver();
+        clientReceiver = _clientReceiver;
+        emit UpdatedClientReceiver(_clientReceiver);
     }
 
     /**
@@ -478,7 +541,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to transfer payment to the provider.
+     * @dev Internal function to transfer payment to the provider or provider receiver.
      * @param _token The token to transfer
      * @param _amount The amount to transfer
      */
@@ -486,11 +549,14 @@ contract SmartInvoiceEscrow is
         address _token,
         uint256 _amount
     ) internal virtual {
-        IERC20(_token).safeTransfer(provider, _amount);
+        address recipient = providerReceiver != address(0)
+            ? providerReceiver
+            : provider;
+        IERC20(_token).safeTransfer(recipient, _amount);
     }
 
     /**
-     * @dev Internal function to withdraw deposit to the client.
+     * @dev Internal function to withdraw deposit to the client or client receiver.
      * @param _token The token to withdraw
      * @param _amount The amount to withdraw
      */
@@ -498,7 +564,10 @@ contract SmartInvoiceEscrow is
         address _token,
         uint256 _amount
     ) internal virtual {
-        IERC20(_token).safeTransfer(client, _amount);
+        address recipient = clientReceiver != address(0)
+            ? clientReceiver
+            : client;
+        IERC20(_token).safeTransfer(recipient, _amount);
     }
 
     // receive eth transfers

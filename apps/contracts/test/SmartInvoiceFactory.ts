@@ -25,7 +25,7 @@ const terminationTime =
 const requireVerification = true;
 const escrowType = toHex(toBytes('escrow', { size: 32 }));
 
-describe('SmartInvoiceFactory', function () {
+describe('SmartInvoiceFactory', function() {
   let escrow: ContractTypesMap['SmartInvoiceEscrow'];
   let invoiceFactory: ContractTypesMap['SmartInvoiceFactory'];
   let publicClient: PublicClient;
@@ -41,9 +41,9 @@ describe('SmartInvoiceFactory', function () {
   let resolver: Hex;
 
   let data: Hex;
-  let escrowData: [Hex, number, Hex, Hex, bigint, Hex, Hex, boolean, Hex];
+  let escrowData: [Hex, number, Hex, Hex, bigint, Hex, Hex, boolean, Hex, Hex, Hex];
 
-  beforeEach(async function () {
+  beforeEach(async function() {
     const walletClients = await viem.getWalletClients();
     [owner, addr1, addr2] = walletClients;
     publicClient = await viem.getPublicClient();
@@ -74,15 +74,17 @@ describe('SmartInvoiceFactory', function () {
       wrappedNativeToken,
       requireVerification,
       invoiceFactory.address,
+      zeroAddress, // no providerReceiver
+      zeroAddress, // no clientReceiver
     ];
   });
 
-  it('Should deploy with 0 invoiceCount', async function () {
+  it('Should deploy with 0 invoiceCount', async function() {
     const invoiceCount = await invoiceFactory.read.invoiceCount();
     expect(invoiceCount).to.equal(0n);
   });
 
-  it('Should revert deploy if zero wrappedNativeToken', async function () {
+  it('Should revert deploy if zero wrappedNativeToken', async function() {
     const hash = viem.deployContract('SmartInvoiceFactory', [zeroAddress]);
     await expect(hash).to.be.revertedWithCustomError(
       invoiceFactory,
@@ -90,7 +92,7 @@ describe('SmartInvoiceFactory', function () {
     );
   });
 
-  it('Should deploy and set DEFAULT_ADMIN and ADMIN roles as msg.sender', async function () {
+  it('Should deploy and set DEFAULT_ADMIN and ADMIN roles as msg.sender', async function() {
     const deployer = client;
     const adminRole = await invoiceFactory.read.hasRole([
       await invoiceFactory.read.ADMIN(),
@@ -104,13 +106,13 @@ describe('SmartInvoiceFactory', function () {
     expect(defaultAdminRole).to.equal(true);
   });
 
-  it('Should addImplementation as an admin', async function () {
+  it('Should addImplementation as an admin', async function() {
     await expect(
       invoiceFactory.write.addImplementation([escrowType, escrow.address]),
     ).not.to.be.reverted;
   });
 
-  it('Should addImplementation and emit AddImplementation event', async function () {
+  it('Should addImplementation and emit AddImplementation event', async function() {
     const implementation = getAddress(escrow.address);
     const version = 0;
     const receipt = invoiceFactory.write.addImplementation([
@@ -122,7 +124,7 @@ describe('SmartInvoiceFactory', function () {
       .withArgs(escrowType, version, implementation);
   });
 
-  it('Implementation getter should return correct implementation', async function () {
+  it('Implementation getter should return correct implementation', async function() {
     const implementation = getAddress(escrow.address);
     await invoiceFactory.write.addImplementation([escrowType, implementation]);
     expect(
@@ -130,7 +132,7 @@ describe('SmartInvoiceFactory', function () {
     ).to.be.equal(implementation);
   });
 
-  it('Should revert addImplementation if non-admin', async function () {
+  it('Should revert addImplementation if non-admin', async function() {
     const implementation = escrow.address;
     const receipt = invoiceFactory.write.addImplementation(
       [escrowType, implementation],
@@ -141,7 +143,7 @@ describe('SmartInvoiceFactory', function () {
     await expect(receipt).to.be.reverted;
   });
 
-  it('Should deploy a SmartInvoiceEscrow', async function () {
+  it('Should deploy a SmartInvoiceEscrow', async function() {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = await invoiceFactory.read.currentVersions([escrowType]);
     data = encodeAbiParameters(
@@ -154,6 +156,8 @@ describe('SmartInvoiceFactory', function () {
         'bytes32',
         'address',
         'bool',
+        'address',
+        'address',
         'address',
       ].map(v => ({ type: v })),
       escrowData,
@@ -205,7 +209,7 @@ describe('SmartInvoiceFactory', function () {
     );
   });
 
-  it('Should revert create if no implementation of _type', async function () {
+  it('Should revert create if no implementation of _type', async function() {
     const fakeType = toHex(toBytes('fake', { size: 32 }));
     data = encodeAbiParameters([{ type: 'string' }], ['']);
     const txHash = invoiceFactory.write.create([
@@ -220,7 +224,7 @@ describe('SmartInvoiceFactory', function () {
     );
   });
 
-  it('Should predict SmartInvoice address', async function () {
+  it('Should predict SmartInvoice address', async function() {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = await invoiceFactory.read.currentVersions([escrowType]);
     data = encodeAbiParameters(
@@ -233,6 +237,8 @@ describe('SmartInvoiceFactory', function () {
         'bytes32',
         'address',
         'bool',
+        'address',
+        'address',
         'address',
       ].map(v => ({ type: v })),
       escrowData,
@@ -265,7 +271,7 @@ describe('SmartInvoiceFactory', function () {
     );
   });
 
-  it('Should update resolutionRate', async function () {
+  it('Should update resolutionRate', async function() {
     let resolutionRate = await invoiceFactory.read.resolutionRates([
       addr2.account.address,
     ]);
@@ -285,7 +291,7 @@ describe('SmartInvoiceFactory', function () {
     expect(resolutionRate).to.equal(10n);
   });
 
-  it('Should deploy with new resolutionRate', async function () {
+  it('Should deploy with new resolutionRate', async function() {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = 0;
 
@@ -299,6 +305,8 @@ describe('SmartInvoiceFactory', function () {
         'bytes32',
         'address',
         'bool',
+        'address',
+        'address',
         'address',
       ].map(v => ({ type: v })),
       escrowData,
@@ -332,7 +340,7 @@ describe('SmartInvoiceFactory', function () {
     );
   });
 
-  it('Should update invoiceCount', async function () {
+  it('Should update invoiceCount', async function() {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
 
     data = encodeAbiParameters(
@@ -345,6 +353,8 @@ describe('SmartInvoiceFactory', function () {
         'bytes32',
         'address',
         'bool',
+        'address',
+        'address',
         'address',
       ].map(v => ({ type: v })),
       escrowData,
