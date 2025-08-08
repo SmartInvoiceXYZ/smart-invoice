@@ -11,17 +11,14 @@ import {
   getContract,
   GetContractReturnType,
   Hex,
+  keccak256,
   parseEventLogs,
   toBytes,
   toHex,
   zeroAddress,
 } from 'viem';
 
-import {
-  getFactory,
-  getWrappedTokenAddress,
-  getZapData,
-} from '../scripts/constants';
+import { getWrappedTokenAddress, getZapData } from '../scripts/constants';
 import safeAbi from './contracts/Safe.json';
 import splitMainAbi from './contracts/SplitMain.json';
 import wethAbi from './contracts/WETH9.json';
@@ -45,7 +42,7 @@ const ZAP_DATA = {
     BigInt(10) * BigInt(10) ** BigInt(18),
   ], // escrow milestone amounts
   threshold: 2, // threshold
-  saltNonce: Math.floor(new Date().getTime() / 1000), // salt nonce
+  saltNonce: Math.floor(Math.random() * 1000), // salt nonce
   arbitration: 1,
   isDaoSplit: false, // isDaoSplit
   isProjectSplit: true, // isProjectSplit
@@ -54,15 +51,20 @@ const ZAP_DATA = {
   details: formatBytes32String('ipfs://'), // details
   owners: [] as Array<Hex>,
   client: '' as Hex,
+  clientReceiver: '' as Hex,
   resolver: '' as Hex,
 };
+
+const invoiceType = keccak256(toBytes('escrow-v3'));
 
 describe('SafeSplitsEscrowZap', function () {
   let publicClient: PublicClient;
   let deployer: WalletClient;
   let alternate: WalletClient;
   let client: WalletClient;
+  let clientReceiver: WalletClient;
   let resolver: WalletClient;
+  let escrowFactory: ContractTypesMap['SmartInvoiceFactory'];
   let factory: ContractTypesMap['SafeSplitsEscrowZapFactory'];
   let implementation: ContractTypesMap['SafeSplitsEscrowZap'];
   let zap: ContractTypesMap['SafeSplitsEscrowZap'];
@@ -75,7 +77,7 @@ describe('SafeSplitsEscrowZap', function () {
     { public: PublicClient; wallet: WalletClient }
   >;
   let split: Hex;
-  let escrow: ContractTypesMap['SmartInvoiceUpdatable'];
+  let escrow: ContractTypesMap['SmartInvoiceEscrow'];
   let token: GetContractReturnType<
     typeof wethAbi,
     { public: PublicClient; wallet: WalletClient }
@@ -84,7 +86,12 @@ describe('SafeSplitsEscrowZap', function () {
 
   before(async function () {
     publicClient = await viem.getPublicClient();
-    [deployer, alternate, client, resolver] = await viem.getWalletClients();
+    [deployer, alternate, client, resolver, clientReceiver] =
+      await viem.getWalletClients();
+
+    if (process.env.FORK !== 'true') {
+      throw new Error(`This test requires a forked network`);
+    }
     token = getContract({
       address: ZAP_DATA.token,
       abi: wethAbi,
@@ -99,6 +106,7 @@ describe('SafeSplitsEscrowZap', function () {
       getAddress(alternate.account.address),
     ].sort();
     ZAP_DATA.client = getAddress(client.account.address);
+    ZAP_DATA.clientReceiver = getAddress(clientReceiver.account.address);
     ZAP_DATA.resolver = getAddress(resolver.account.address);
 
     // Deploy zap implementation
@@ -111,13 +119,23 @@ describe('SafeSplitsEscrowZap', function () {
     ]);
     expect(factory.address).to.not.equal(zeroAddress);
 
+    escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
+      getWrappedTokenAddress(TEST_CHAIN_ID), // wrapped token
+    ]);
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow');
+
+    await escrowFactory.write.addImplementation([
+      invoiceType,
+      invoiceImpl.address,
+    ]);
+
     // Deploy zap instance
     const zapDeployData = [
       zapData.safeSingleton, // singleton
       zapData.fallbackHandler, // fallback handler
       zapData.safeFactory, // safe factory
       zapData.splitMain, // split main
-      getFactory(TEST_CHAIN_ID), // escrow factory
+      escrowFactory.address, // escrow factory
       getWrappedTokenAddress(TEST_CHAIN_ID), // wrapped token
     ];
     const encodedData = encodeAbiParameters(
@@ -150,6 +168,8 @@ describe('SafeSplitsEscrowZap', function () {
     const encodedEscrowData = encodeAbiParameters(
       [
         'address',
+        'address',
+        'bool',
         'uint32',
         'address',
         'address',
@@ -159,6 +179,8 @@ describe('SafeSplitsEscrowZap', function () {
       ].map(t => ({ type: t })),
       [
         ZAP_DATA.client,
+        ZAP_DATA.clientReceiver,
+        false,
         ZAP_DATA.arbitration,
         ZAP_DATA.resolver,
         ZAP_DATA.token,
@@ -191,8 +213,8 @@ describe('SafeSplitsEscrowZap', function () {
     if (!zapCreatedEvent) {
       throw new Error('SafeSplitsEscrowCreated event not found');
     }
-    const safeAddress = zapCreatedEvent.args.safe;
-    const splitAddress = zapCreatedEvent.args.projectTeamSplit;
+    const safeAddress = zapCreatedEvent.args.providerSafe;
+    const splitAddress = zapCreatedEvent.args.providerSplit;
     const escrowAddress = zapCreatedEvent.args.escrow;
 
     safe = getContract({
@@ -208,7 +230,7 @@ describe('SafeSplitsEscrowZap', function () {
       abi: splitMainAbi,
       client: { public: publicClient, wallet: deployer },
     });
-    escrow = await viem.getContractAt('SmartInvoiceUpdatable', escrowAddress);
+    escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress);
     split = splitAddress;
   });
 
@@ -217,7 +239,9 @@ describe('SafeSplitsEscrowZap', function () {
     expect(await zap.read.safeSingleton()).to.equal(zapData.safeSingleton);
     expect(await zap.read.safeFactory()).to.equal(zapData.safeFactory);
     expect(await zap.read.splitMain()).to.equal(zapData.splitMain);
-    expect(await zap.read.escrowFactory()).to.equal(getFactory(TEST_CHAIN_ID));
+    expect(await zap.read.escrowFactory()).to.equal(
+      getAddress(escrowFactory.address),
+    );
     expect(await zap.read.wrappedNativeToken()).to.equal(
       getWrappedTokenAddress(TEST_CHAIN_ID),
     );
@@ -238,6 +262,9 @@ describe('SafeSplitsEscrowZap', function () {
     expect(escrow.address).to.not.equal(zeroAddress);
     expect(await escrow.read.locked()).to.equal(false);
     expect(await escrow.read.client()).to.equal(ZAP_DATA.client);
+    expect(await escrow.read.clientReceiver()).to.equal(
+      ZAP_DATA.clientReceiver,
+    );
     expect(await escrow.read.resolverType()).to.equal(ZAP_DATA.arbitration);
     expect(await escrow.read.resolver()).to.equal(ZAP_DATA.resolver);
     expect(await escrow.read.token()).to.equal(ZAP_DATA.token);

@@ -71,12 +71,12 @@ interface ISafeSplitsEscrowZap {
     error NotAuthorized();
 
     /// @notice Emitted when a new Safe splits escrow is created.
-    /// @param safe The address of the created Safe.
-    /// @param projectTeamSplit The address of the created project team split.
+    /// @param providerSafe The address of the created Safe.
+    /// @param providerSplit The address of the created project team split.
     /// @param escrow The address of the created escrow.
     event SafeSplitsEscrowCreated(
-        address safe,
-        address projectTeamSplit,
+        address providerSafe,
+        address providerSplit,
         address escrow
     );
 

@@ -11,21 +11,17 @@ import {
   getContract,
   GetContractReturnType,
   Hex,
+  keccak256,
   parseEventLogs,
   toBytes,
   toHex,
   zeroAddress,
 } from 'viem';
 
-import {
-  getFactory,
-  getWrappedTokenAddress,
-  getZapData,
-} from '../scripts/constants';
+import { getWrappedTokenAddress, getZapData } from '../scripts/constants';
 import safeAbi from './contracts/Safe.json';
 import splitMainAbi from './contracts/SplitMain.json';
 import wethAbi from './contracts/WETH9.json';
-import { currentTimestamp } from './utils';
 
 const formatBytes32String = (str: string) => toHex(toBytes(str, { size: 32 }));
 
@@ -46,7 +42,7 @@ const ZAP_DATA = {
     BigInt(10) * BigInt(10) ** BigInt(18),
   ], // escrow milestone amounts
   threshold: 2, // threshold
-  saltNonce: Math.floor(new Date().getTime() / 1000), // salt nonce
+  saltNonce: Math.floor(Math.random() * 1000), // salt nonce
   arbitration: 1,
   isDaoSplit: true,
   isProjectSplit: true,
@@ -56,17 +52,22 @@ const ZAP_DATA = {
   fallbackHandler: '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
   owners: [] as Array<Hex>,
   client: '' as Hex,
+  clientReceiver: '' as Hex,
   resolver: '' as Hex,
 };
+
+const invoiceType = keccak256(toBytes('escrow-v3'));
 
 describe('SafeSplitsDaoEscrowZap', function () {
   let publicClient: PublicClient;
   let deployer: WalletClient;
   let alternate: WalletClient;
   let client: WalletClient;
+  let clientReceiver: WalletClient;
   let resolver: WalletClient;
   let receiver: WalletClient;
   let dao: WalletClient;
+  let escrowFactory: ContractTypesMap['SmartInvoiceFactory'];
   let factory: ContractTypesMap['SafeSplitsEscrowZapFactory'];
   let implementation: ContractTypesMap['SafeSplitsDaoEscrowZap'];
   let zap: ContractTypesMap['SafeSplitsDaoEscrowZap'];
@@ -82,7 +83,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
   let teamSplit: Hex;
   let daoSplit: Hex;
   let daoReceiver: Hex;
-  let escrow: ContractTypesMap['SmartInvoiceUpdatable'];
+  let escrow: ContractTypesMap['SmartInvoiceEscrow'];
   let token: GetContractReturnType<
     typeof wethAbi,
     { public: PublicClient; wallet: WalletClient }
@@ -93,7 +94,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
 
   before(async function () {
     publicClient = await viem.getPublicClient();
-    [deployer, alternate, client, resolver, receiver, dao] =
+    [deployer, alternate, client, clientReceiver, resolver, receiver, dao] =
       await viem.getWalletClients();
     token = getContract({
       address: ZAP_DATA.token,
@@ -109,6 +110,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
       getAddress(alternate.account.address),
     ].sort();
     ZAP_DATA.client = getAddress(client.account.address);
+    ZAP_DATA.clientReceiver = getAddress(clientReceiver.account.address);
     ZAP_DATA.resolver = getAddress(resolver.account.address);
 
     zapData.dao = getAddress(dao.account.address);
@@ -140,7 +142,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
         spoilsValues.percentageScale,
         spoilsValues.receiver,
         spoilsValues.newOwner,
-        formatBytes32String(String(currentTimestamp())),
+        formatBytes32String(String(ZAP_DATA.saltNonce)),
       ]);
     const spoilsManagerDeploy = await publicClient.waitForTransactionReceipt({
       hash: spoilsManagerReceipt,
@@ -164,6 +166,16 @@ describe('SafeSplitsDaoEscrowZap', function () {
     ])) as ContractTypesMap['SafeSplitsEscrowZapFactory'];
     expect(factory.address).to.not.equal(zeroAddress);
 
+    escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
+      getWrappedTokenAddress(TEST_CHAIN_ID), // wrapped token
+    ]);
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow');
+
+    await escrowFactory.write.addImplementation([
+      invoiceType,
+      invoiceImpl.address,
+    ]);
+
     // Deploy Zap Instance
     const zapDeployData = [
       zapData.safeSingleton, // singleton
@@ -171,7 +183,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
       zapData.safeFactory, // safe factory
       zapData.splitMain, // split main
       spoilsManager.address, // spoils manager
-      getFactory(TEST_CHAIN_ID), // escrow factory
+      escrowFactory.address, // escrow factory
       getWrappedTokenAddress(TEST_CHAIN_ID), // wrapped token
       zapData.dao, // dao
     ];
@@ -215,6 +227,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
     const encodedEscrowData = encodeAbiParameters(
       [
         'address',
+        'address',
+        'bool',
         'uint32',
         'address',
         'address',
@@ -224,6 +238,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
       ].map(t => ({ type: t })),
       [
         ZAP_DATA.client,
+        ZAP_DATA.clientReceiver,
+        false,
         ZAP_DATA.arbitration,
         ZAP_DATA.resolver,
         ZAP_DATA.token,
@@ -256,8 +272,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
     if (!zapCreatedEvent) {
       throw new Error('SafeSplitsDaoEscrowCreated event not found');
     }
-    const safeAddress = zapCreatedEvent.args.safe;
-    const teamSplitAddress = zapCreatedEvent.args.projectTeamSplit;
+    const safeAddress = zapCreatedEvent.args.providerSafe;
+    const teamSplitAddress = zapCreatedEvent.args.providerSplit;
     const daoSplitAddress = zapCreatedEvent.args.daoSplit;
     const escrowAddress = zapCreatedEvent.args.escrow;
 
@@ -275,9 +291,9 @@ describe('SafeSplitsDaoEscrowZap', function () {
       client: { public: publicClient, wallet: deployer },
     });
     escrow = (await viem.getContractAt(
-      'SmartInvoiceUpdatable',
+      'SmartInvoiceEscrow',
       escrowAddress,
-    )) as ContractTypesMap['SmartInvoiceUpdatable'];
+    )) as ContractTypesMap['SmartInvoiceEscrow'];
     daoReceiver = await spoilsManager.read.receiver();
     teamSplit = teamSplitAddress;
     daoSplit = daoSplitAddress;
@@ -308,7 +324,9 @@ describe('SafeSplitsDaoEscrowZap', function () {
     expect(await zap.read.spoilsManager()).to.equal(
       getAddress(spoilsManager.address),
     );
-    expect(await zap.read.escrowFactory()).to.equal(getFactory(TEST_CHAIN_ID));
+    expect(await zap.read.escrowFactory()).to.equal(
+      getAddress(escrowFactory.address),
+    );
     expect(await zap.read.wrappedNativeToken()).to.equal(
       getWrappedTokenAddress(TEST_CHAIN_ID),
     );
@@ -338,6 +356,9 @@ describe('SafeSplitsDaoEscrowZap', function () {
     expect(escrow.address).to.not.equal(zeroAddress);
     expect(await escrow.read.locked()).to.equal(false);
     expect(await escrow.read.client()).to.equal(ZAP_DATA.client);
+    expect(await escrow.read.clientReceiver()).to.equal(
+      ZAP_DATA.clientReceiver,
+    );
     expect(await escrow.read.resolverType()).to.equal(ZAP_DATA.arbitration);
     expect(await escrow.read.resolver()).to.equal(ZAP_DATA.resolver);
     expect(await escrow.read.token()).to.equal(ZAP_DATA.token);
@@ -461,6 +482,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
     const localEncodedEscrowData = encodeAbiParameters(
       [
         'address',
+        'address',
+        'bool',
         'uint32',
         'address',
         'address',
@@ -470,6 +493,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
       ].map(t => ({ type: t })),
       [
         ZAP_DATA.client,
+        ZAP_DATA.clientReceiver,
+        false,
         ZAP_DATA.arbitration,
         ZAP_DATA.resolver,
         ZAP_DATA.token,
@@ -503,7 +528,7 @@ describe('SafeSplitsDaoEscrowZap', function () {
       throw new Error('SafeSplitsDaoEscrowCreated event not found');
     }
 
-    const safeAddress = zapCreatedEvent.args.safe;
+    const safeAddress = zapCreatedEvent.args.providerSafe;
     expect(safeAddress).to.equal(getAddress(deployer.account.address));
   });
 
@@ -519,6 +544,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
     const localEncodedEscrowData = encodeAbiParameters(
       [
         'address',
+        'address',
+        'bool',
         'uint32',
         'address',
         'address',
@@ -528,6 +555,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
       ].map(t => ({ type: t })),
       [
         ZAP_DATA.client,
+        ZAP_DATA.clientReceiver,
+        false,
         ZAP_DATA.arbitration,
         ZAP_DATA.resolver,
         ZAP_DATA.token,
@@ -561,8 +590,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
       throw new Error('SafeSplitsDaoEscrowCreated event not found');
     }
 
-    const teamSplitAddress = zapCreatedEvent.args.projectTeamSplit;
-    const safeAddress = zapCreatedEvent.args.safe;
+    const teamSplitAddress = zapCreatedEvent.args.providerSplit;
+    const safeAddress = zapCreatedEvent.args.providerSafe;
     expect(teamSplitAddress).to.equal(safeAddress);
   });
 
@@ -578,6 +607,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
     const localEncodedEscrowData = encodeAbiParameters(
       [
         'address',
+        'address',
+        'bool',
         'uint32',
         'address',
         'address',
@@ -587,6 +618,8 @@ describe('SafeSplitsDaoEscrowZap', function () {
       ].map(t => ({ type: t })),
       [
         ZAP_DATA.client,
+        ZAP_DATA.clientReceiver,
+        false,
         ZAP_DATA.arbitration,
         ZAP_DATA.resolver,
         ZAP_DATA.token,

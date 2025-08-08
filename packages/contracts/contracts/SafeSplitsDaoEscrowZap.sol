@@ -22,12 +22,12 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     error DaoSplitCreationFailed();
 
     /// @notice Emitted when a new Safe splits DAO escrow is created.
-    /// @param safe The address of the created Safe.
+    /// @param providerSafe The address of the created Safe.
     /// @param providerSplit The address of the created project team split.
     /// @param daoSplit The address of the created DAO split.
     /// @param escrow The address of the created escrow.
     event SafeSplitsDaoEscrowCreated(
-        address safe,
+        address providerSafe,
         address providerSplit,
         address daoSplit,
         address escrow

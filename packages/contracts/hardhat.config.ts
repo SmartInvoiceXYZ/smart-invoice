@@ -108,7 +108,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
       forking: {
-        enabled: process.env.FORK ? process.env.FORK === 'true' : false,
+        enabled: process.env.FORK === 'true',
         url: `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
       },
     },

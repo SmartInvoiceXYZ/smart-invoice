@@ -10,7 +10,6 @@ import {
   encodeAbiParameters,
   getAddress,
   Hex,
-  parseEventLogs,
   toBytes,
   toHex,
   zeroAddress,
@@ -34,13 +33,12 @@ const terminationTime =
   Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60;
 const resolutionRate = 20n;
 const requireVerification = true;
-const invoiceType = toHex(toBytes('escrow', { size: 32 }));
+const invoiceType = toHex(toBytes('escrow-v3', { size: 32 }));
 
 describe('SmartInvoiceEscrow', function () {
   let factory: ContractTypesMap['SmartInvoiceFactory'];
   let invoice: ContractTypesMap['SmartInvoiceEscrow'];
   let mockToken: Hex;
-  let otherMockToken: Hex;
   let mockWrappedNativeTokenContract: ContractTypesMap['MockWETH'];
   let mockWrappedNativeToken: Hex;
   let mockArbitrator: Hex;
@@ -78,9 +76,6 @@ describe('SmartInvoiceEscrow', function () {
 
     const mockTokenContract = await viem.deployContract('MockToken');
     mockToken = getAddress(mockTokenContract.address);
-
-    const otherMockTokenContract = await viem.deployContract('MockToken');
-    otherMockToken = getAddress(otherMockTokenContract.address);
 
     mockWrappedNativeTokenContract = await viem.deployContract('MockWETH');
     mockWrappedNativeToken = getAddress(mockWrappedNativeTokenContract.address);
