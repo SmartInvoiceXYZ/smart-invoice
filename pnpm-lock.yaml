@@ -100,71 +100,6 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  apps/contracts:
-    dependencies:
-      '@kleros/erc-792':
-        specifier: ^8.0.0
-        version: 8.0.0
-      '@nomicfoundation/hardhat-toolbox-viem':
-        specifier: ^3.0.0
-        version: 3.0.0(282f4a10f85977c789b3fbcd50c617b2)
-      '@nomicfoundation/hardhat-viem':
-        specifier: ^2.0.6
-        version: 2.0.6(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))(zod@3.22.4)
-      '@openzeppelin/contracts':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@openzeppelin/contracts-upgradeable':
-        specifier: ^5.3.0
-        version: 5.3.0(@openzeppelin/contracts@5.3.0)
-      '@types/chai':
-        specifier: 4.3.16
-        version: 4.3.16
-      '@types/chai-as-promised':
-        specifier: 7.1.8
-        version: 7.1.8
-      '@types/mocha':
-        specifier: ^10.0.9
-        version: 10.0.10
-      chai:
-        specifier: ^4.5.0
-        version: 4.5.0
-      chai-as-promised:
-        specifier: ^7.1.2
-        version: 7.1.2(chai@4.5.0)
-      dotenv:
-        specifier: ^16.5.0
-        version: 16.5.0
-      hardhat:
-        specifier: ^2.24.1
-        version: 2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10)
-      hardhat-chai-matchers-viem:
-        specifier: ^2.0.8
-        version: 2.0.8(@nomicfoundation/hardhat-viem@2.0.6(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))(zod@3.22.4))(chai@4.5.0)(ethers@6.14.4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))
-      hardhat-gas-reporter:
-        specifier: ^2.2.3
-        version: 2.3.0(bufferutil@4.0.9)(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
-      prettier-plugin-solidity:
-        specifier: ^2.0.0
-        version: 2.0.0(prettier@3.6.1)
-      solhint-community:
-        specifier: ^4.0.1
-        version: 4.0.1(typescript@5.8.3)
-      solhint-plugin-prettier:
-        specifier: ^0.1.0
-        version: 0.1.0(prettier-plugin-solidity@2.0.0(prettier@3.6.1))(prettier@3.6.1)
-      solidity-coverage:
-        specifier: ^0.8.16
-        version: 0.8.16(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-      viem:
-        specifier: ^2.30.2
-        version: 2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
-
-  apps/contracts/contracts: {}
-
   apps/dapp:
     dependencies:
       '@chakra-ui/react':
@@ -220,7 +155,7 @@ importers:
         version: 1.5.0(next@15.3.4(@babel/core@7.27.4)(babel-plugin-macros@3.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
       '@wagmi/core':
         specifier: 2.17.2
-        version: 2.17.2(@tanstack/query-core@5.55.3)(@types/react@19.1.8)(immer@10.0.2)(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@19.1.0))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))
+        version: 2.17.2(@tanstack/query-core@5.55.3)(@types/react@19.1.8)(immer@10.0.2)(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
@@ -353,6 +288,71 @@ importers:
       '@types/node':
         specifier: ^22.15.23
         version: 22.15.33
+
+  packages/contracts:
+    dependencies:
+      '@kleros/erc-792':
+        specifier: ^8.0.0
+        version: 8.0.0
+      '@nomicfoundation/hardhat-toolbox-viem':
+        specifier: ^3.0.0
+        version: 3.0.0(282f4a10f85977c789b3fbcd50c617b2)
+      '@nomicfoundation/hardhat-viem':
+        specifier: ^2.0.6
+        version: 2.0.6(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))(zod@3.22.4)
+      '@openzeppelin/contracts':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@openzeppelin/contracts-upgradeable':
+        specifier: ^5.3.0
+        version: 5.3.0(@openzeppelin/contracts@5.3.0)
+      '@types/chai':
+        specifier: 4.3.16
+        version: 4.3.16
+      '@types/chai-as-promised':
+        specifier: 7.1.8
+        version: 7.1.8
+      '@types/mocha':
+        specifier: ^10.0.9
+        version: 10.0.10
+      chai:
+        specifier: ^4.5.0
+        version: 4.5.0
+      chai-as-promised:
+        specifier: ^7.1.2
+        version: 7.1.2(chai@4.5.0)
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.5.0
+      hardhat:
+        specifier: ^2.24.1
+        version: 2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10)
+      hardhat-chai-matchers-viem:
+        specifier: ^2.0.8
+        version: 2.0.8(@nomicfoundation/hardhat-viem@2.0.6(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))(zod@3.22.4))(chai@4.5.0)(ethers@6.14.4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))
+      hardhat-gas-reporter:
+        specifier: ^2.2.3
+        version: 2.3.0(bufferutil@4.0.9)(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      prettier-plugin-solidity:
+        specifier: ^2.0.0
+        version: 2.0.0(prettier@3.6.1)
+      solhint-community:
+        specifier: ^4.0.1
+        version: 4.0.1(typescript@5.8.3)
+      solhint-plugin-prettier:
+        specifier: ^0.1.0
+        version: 0.1.0(prettier-plugin-solidity@2.0.0(prettier@3.6.1))(prettier@3.6.1)
+      solidity-coverage:
+        specifier: ^0.8.16
+        version: 0.8.16(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      viem:
+        specifier: ^2.30.2
+        version: 2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+
+  packages/contracts/contracts: {}
 
   packages/forms:
     dependencies:
@@ -11073,8 +11073,8 @@ snapshots:
 
   '@scure/bip32@1.6.2':
     dependencies:
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
+      '@noble/curves': 1.8.2
+      '@noble/hashes': 1.7.2
       '@scure/base': 1.2.6
 
   '@scure/bip32@1.7.0':
@@ -11095,7 +11095,7 @@ snapshots:
 
   '@scure/bip39@1.5.4':
     dependencies:
-      '@noble/hashes': 1.7.1
+      '@noble/hashes': 1.7.2
       '@scure/base': 1.2.6
 
   '@scure/bip39@1.6.0':
@@ -11673,6 +11673,21 @@ snapshots:
       - uploadthing
       - utf-8-validate
       - zod
+
+  '@wagmi/core@2.17.2(@tanstack/query-core@5.55.3)(@types/react@19.1.8)(immer@10.0.2)(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.1.0))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))':
+    dependencies:
+      eventemitter3: 5.0.1
+      mipd: 0.0.7(typescript@5.8.3)
+      viem: 2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
+      zustand: 5.0.0(@types/react@19.1.8)(immer@10.0.2)(react@19.1.0)(use-sync-external-store@1.4.0(react@19.1.0))
+    optionalDependencies:
+      '@tanstack/query-core': 5.55.3
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - immer
+      - react
+      - use-sync-external-store
 
   '@wagmi/core@2.17.2(@tanstack/query-core@5.55.3)(@types/react@19.1.8)(immer@10.0.2)(react@19.1.0)(typescript@5.8.3)(use-sync-external-store@1.5.0(react@19.1.0))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))':
     dependencies:
@@ -12600,7 +12615,7 @@ snapshots:
 
   axios@1.10.0:
     dependencies:
-      follow-redirects: 1.15.9(debug@4.3.4)
+      follow-redirects: 1.15.9(debug@4.4.1)
       form-data: 4.0.3
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -17007,10 +17022,10 @@ snapshots:
   ox@0.6.7(typescript@5.8.3)(zod@3.22.4):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
+      '@noble/curves': 1.9.2
+      '@noble/hashes': 1.8.0
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
       abitype: 1.0.8(typescript@5.8.3)(zod@3.22.4)
       eventemitter3: 5.0.1
     optionalDependencies:

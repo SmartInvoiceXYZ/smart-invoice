@@ -60,12 +60,7 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
             uint256 _daoFee
         ) = abi.decode(
                 _data[288:], // Remaining bytes
-                (
-                    address,
-                    address,
-                    address,
-                    uint256
-                )
+                (address, address, address, uint256)
             );
 
         _validateAndSetData(
@@ -154,7 +149,9 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
         }
         if (providerAmount > 0) {
             // Use the same receiver logic as base contract - respect providerReceiver if set
-            address recipient = providerReceiver != address(0) ? providerReceiver : provider;
+            address recipient = providerReceiver != address(0)
+                ? providerReceiver
+                : provider;
             IERC20(_token).safeTransfer(recipient, providerAmount);
         }
     }

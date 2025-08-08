@@ -145,7 +145,9 @@ describe('SmartInvoiceEscrow', function () {
       expect(await invoice.read.provider()).to.equal(
         getAddress(provider.account.address),
       );
-      expect(await invoice.read.resolverType()).to.equal(individualResolverType);
+      expect(await invoice.read.resolverType()).to.equal(
+        individualResolverType,
+      );
       expect(await invoice.read.resolver()).to.equal(
         getAddress(resolver.account.address),
       );
@@ -775,8 +777,8 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should not emit Verified if caller !client', async function () {
-      await expect(invoice.write.verify({ account: randomSigner.account })).to.be
-        .reverted;
+      await expect(invoice.write.verify({ account: randomSigner.account })).to
+        .be.reverted;
     });
   });
 
@@ -859,7 +861,10 @@ describe('SmartInvoiceEscrow', function () {
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
-      updatableInvoice = await viem.getContractAt('SmartInvoiceEscrow', address!);
+      updatableInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
     });
 
     it('Should deploy with receiver addresses', async function () {
@@ -972,7 +977,10 @@ describe('SmartInvoiceEscrow', function () {
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
-      const tempInvoice = await viem.getContractAt('SmartInvoiceEscrow', address!);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
 
       await testClient.increaseTime({ seconds: 1000 });
       await setBalanceOf(mockToken, tempInvoice.address, 10);
@@ -997,7 +1005,7 @@ describe('SmartInvoiceEscrow', function () {
       );
 
       await setBalanceOf(mockToken, updatableInvoice.address, 10);
-      
+
       const beforeBalance = await getBalanceOf(
         mockToken,
         providerReceiver2.account.address,
@@ -1006,9 +1014,9 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         providerReceiver.account.address,
       );
-      
+
       await updatableInvoice.write.release({ account: client.account });
-      
+
       const afterBalance = await getBalanceOf(
         mockToken,
         providerReceiver2.account.address,
@@ -1017,7 +1025,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         providerReceiver.account.address,
       );
-      
+
       // Payment should go to the NEW receiver
       expect(afterBalance).to.equal(beforeBalance + 10n);
       // Original receiver should not receive anything
@@ -1026,7 +1034,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should send withdrawals to updated clientReceiver after address change', async function () {
       const currentTime = await currentTimestamp();
-      
+
       // Create a new invoice with short termination time for withdrawal testing
       const data = encodeAbiParameters(
         [
@@ -1065,7 +1073,10 @@ describe('SmartInvoiceEscrow', function () {
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
-      const tempInvoice = await viem.getContractAt('SmartInvoiceEscrow', address!);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
 
       // Update client receiver to clientReceiver2
       await tempInvoice.write.updateClientReceiver(
@@ -1084,9 +1095,9 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         clientReceiver.account.address,
       );
-      
+
       await tempInvoice.write.withdraw({ account: client.account });
-      
+
       const afterBalance = await getBalanceOf(
         mockToken,
         clientReceiver2.account.address,
@@ -1095,7 +1106,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         clientReceiver.account.address,
       );
-      
+
       // Withdrawal should go to the NEW receiver
       expect(afterBalance).to.equal(beforeBalance + 10n);
       // Original receiver should not receive anything
