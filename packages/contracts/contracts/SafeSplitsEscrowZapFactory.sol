@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {SafeSplitsEscrowZap} from "./SafeSplitsEscrowZap.sol";
+import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
 
 /// @title SafeSplitsEscrowZapFactory
 /// @notice Factory contract for creating SafeSplitsEscrowZap instances using the Clones library.
@@ -38,7 +38,7 @@ contract SafeSplitsEscrowZapFactory {
         bytes32 _salt
     ) external returns (address safeSplitsEscrowZap) {
         safeSplitsEscrowZap = Clones.cloneDeterministic(implementation, _salt);
-        SafeSplitsEscrowZap(safeSplitsEscrowZap).init(_data);
+        ISafeSplitsEscrowZap(safeSplitsEscrowZap).init(_data);
 
         emit SafeSplitsEscrowZapCreated(
             safeSplitsEscrowZap,

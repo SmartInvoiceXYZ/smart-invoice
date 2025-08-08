@@ -5,6 +5,26 @@ pragma solidity ^0.8.20;
 /// @title ISafeSplitsEscrowZap
 /// @notice Interface for creating and managing safe split escrow contracts with customizable settings.
 interface ISafeSplitsEscrowZap {
+    /// @dev Struct for storing zap data.
+    struct ZapData {
+        address providerSafe;
+        address providerSplit;
+        address escrow;
+    }
+
+    /// @dev Struct for storing escrow data.
+    struct EscrowData {
+        address client;
+        address clientReceiver;
+        bool requireVerification;
+        uint8 resolverType;
+        address resolver;
+        address token;
+        uint256 terminationTime;
+        bytes32 saltNonce;
+        bytes32 details;
+    }
+
     /**
      * @notice Creates a new safe split escrow contract.
      * @param _owners The array of addresses that will be the owners of the safe.

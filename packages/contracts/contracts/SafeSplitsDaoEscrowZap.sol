@@ -23,12 +23,12 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
 
     /// @notice Emitted when a new Safe splits DAO escrow is created.
     /// @param safe The address of the created Safe.
-    /// @param projectTeamSplit The address of the created project team split.
+    /// @param providerSplit The address of the created project team split.
     /// @param daoSplit The address of the created DAO split.
     /// @param escrow The address of the created escrow.
     event SafeSplitsDaoEscrowCreated(
         address safe,
-        address projectTeamSplit,
+        address providerSplit,
         address daoSplit,
         address escrow
     );
@@ -46,38 +46,40 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
      * @param _daoZapData The data struct for storing deployment results.
      * @return The updated `DaoZapData` with the deployed split addresses.
      */
-    function _createSplit(
+    function _deploySplit(
         address[] memory _owners,
         uint32[] memory _percentAllocations,
         bytes calldata _splitsData,
         DaoZapData memory _daoZapData
     ) internal returns (DaoZapData memory) {
-        (bool projectSplit, bool daoSplit) = abi.decode(
+        (bool createProjectSplit, bool createDaoSplit) = abi.decode(
             _splitsData,
             (bool, bool)
         );
 
         // Create project team split if required
-        if (projectSplit) {
-            _daoZapData.zapData.projectTeamSplit = splitMain.createSplit(
+        if (createProjectSplit) {
+            _daoZapData.zapData.providerSplit = splitMain.createSplit(
                 _owners,
                 _percentAllocations,
                 distributorFee,
-                _daoZapData.zapData.safe
+                _daoZapData.zapData.providerSafe
             );
         }
 
         // Handle the case when project team split is not created
-        if (_daoZapData.zapData.projectTeamSplit == address(0)) {
-            if (_daoZapData.zapData.safe != address(0)) {
-                _daoZapData.zapData.projectTeamSplit = _daoZapData.zapData.safe;
+        if (_daoZapData.zapData.providerSplit == address(0)) {
+            if (_daoZapData.zapData.providerSafe != address(0)) {
+                _daoZapData.zapData.providerSplit = _daoZapData
+                    .zapData
+                    .providerSafe;
             } else {
                 revert ProjectTeamSplitNotCreated();
             }
         }
 
         // Create DAO split if required
-        if (!daoSplit) return _daoZapData;
+        if (!createDaoSplit) return _daoZapData;
 
         // Prepare arrays for DAO split
         address[] memory daoSplitRecipients = new address[](2);
@@ -90,15 +92,13 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             spoilsManager.SPLIT_PERCENTAGE_SCALE()) - daoSplitAmount;
 
         // Sort the addresses and amounts in the correct order
-        if (
-            uint160(daoReceiver) < uint160(_daoZapData.zapData.projectTeamSplit)
-        ) {
+        if (uint160(daoReceiver) < uint160(_daoZapData.zapData.providerSplit)) {
             daoSplitRecipients[0] = daoReceiver;
-            daoSplitRecipients[1] = _daoZapData.zapData.projectTeamSplit;
+            daoSplitRecipients[1] = _daoZapData.zapData.providerSplit;
             daoSplitPercentAllocations[0] = daoSplitAmount;
             daoSplitPercentAllocations[1] = projectSplitAmount;
         } else {
-            daoSplitRecipients[0] = _daoZapData.zapData.projectTeamSplit;
+            daoSplitRecipients[0] = _daoZapData.zapData.providerSplit;
             daoSplitRecipients[1] = daoReceiver;
             daoSplitPercentAllocations[0] = projectSplitAmount;
             daoSplitPercentAllocations[1] = daoSplitAmount;
@@ -128,8 +128,8 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         DaoZapData memory _daoZapData
     ) internal view returns (address[] memory) {
         address[] memory escrowParams = new address[](2);
-        escrowParams[0] = _daoZapData.zapData.safe;
-        escrowParams[1] = _daoZapData.zapData.projectTeamSplit;
+        escrowParams[0] = _daoZapData.zapData.providerSafe;
+        escrowParams[1] = _daoZapData.zapData.providerSplit;
 
         if (_daoZapData.daoSplit != address(0)) {
             escrowParams[0] = dao;
@@ -161,24 +161,20 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         // Initialize DaoZapData
         DaoZapData memory daoZapData = DaoZapData({
             zapData: ZapData({
-                safe: _safeAddress,
-                projectTeamSplit: address(0),
+                providerSafe: _safeAddress,
+                providerSplit: address(0),
                 escrow: address(0)
             }),
             daoSplit: address(0)
         });
 
         // Deploy Safe if not already provided
-        if (daoZapData.zapData.safe == address(0)) {
-            daoZapData.zapData = _deploySafe(
-                _owners,
-                _safeData,
-                daoZapData.zapData
-            );
+        if (daoZapData.zapData.providerSafe == address(0)) {
+            daoZapData.zapData.providerSafe = _deploySafe(_owners, _safeData);
         }
 
         // Create Split(s)
-        daoZapData = _createSplit(
+        daoZapData = _deploySplit(
             _owners,
             _percentAllocations,
             _splitsData,
@@ -187,51 +183,19 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
 
         // Handle escrow parameters and deploy escrow
         address[] memory escrowParams = _handleEscrowParams(daoZapData);
-        daoZapData.zapData = _deployEscrow(
+
+        daoZapData.zapData.escrow = _deployEscrow(
             _milestoneAmounts,
             _escrowData,
-            escrowParams,
-            daoZapData.zapData
+            escrowParams
         );
 
         // Emit event for the created Safe splits DAO escrow
         emit SafeSplitsDaoEscrowCreated(
-            daoZapData.zapData.safe,
-            daoZapData.zapData.projectTeamSplit,
+            daoZapData.zapData.providerSafe,
+            daoZapData.zapData.providerSplit,
             daoZapData.daoSplit,
             daoZapData.zapData.escrow
-        );
-    }
-
-    /**
-     * @notice Deploys a new Safe, Project Team Split, DAO Split, and Escrow with the provided details.
-     * @param _owners The Safe owners and raid party split participants.
-     * @param _percentAllocations The percent allocations for the raid party split.
-     * @param _milestoneAmounts The milestone amounts for the escrow.
-     * @param _safeData The encoded data for Safe setup.
-     * @param _safeAddress The address of an existing Safe.
-     * @param _splitsData The encoded data for Split setup.
-     * @param _escrowData The encoded data for escrow deployment.
-     */
-    function createSafeSplitEscrow(
-        address[] memory _owners,
-        uint32[] memory _percentAllocations,
-        uint256[] memory _milestoneAmounts,
-        bytes calldata _safeData,
-        address _safeAddress,
-        bytes calldata _splitsData,
-        bytes calldata _escrowData
-    ) public override {
-        if (_percentAllocations.length != _owners.length)
-            revert InvalidAllocationsOwnersData();
-        _createSafeSplitEscrow(
-            _owners,
-            _percentAllocations,
-            _milestoneAmounts,
-            _safeData,
-            _safeAddress,
-            _splitsData,
-            _escrowData
         );
     }
 

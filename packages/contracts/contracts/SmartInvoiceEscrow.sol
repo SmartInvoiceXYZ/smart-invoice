@@ -177,6 +177,7 @@ contract SmartInvoiceEscrow is
 
     /**
      * @dev Verifies the client and contract are paired
+     * @dev This ensures that client indeed controls this address and can release funds from this escrow
      */
     function verify() external override {
         if (msg.sender != client) revert NotClient();
