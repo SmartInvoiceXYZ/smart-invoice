@@ -102,7 +102,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error BalanceIsZero();
     error InvalidMilestone();
     error IncorrectDisputeId();
-    error InvalidRuling();
+    error InvalidRuling(uint256 ruling);
     error InvalidIndividualResolver();
     error InvalidArbitratorResolver();
     error NotResolver();
@@ -143,6 +143,11 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @param sender The address that locked the contract.
     /// @param details The details of the lock.
     event Lock(address indexed sender, bytes32 details);
+
+    /// @notice Emitted when the dispute is appealed.
+    /// @param sender The address that appealed the dispute.
+    /// @param details The details of the appeal.
+    event DisputeAppealed(address indexed sender, string details);
 
     /// @notice Emitted when a dispute is resolved.
     /// @param resolver The address that resolved the dispute.

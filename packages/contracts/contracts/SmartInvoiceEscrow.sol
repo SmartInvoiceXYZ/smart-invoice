@@ -16,8 +16,9 @@ import {
 } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {IArbitrable} from "./interfaces/IArbitrable.sol";
-import {IArbitrator} from "./interfaces/IArbitrator.sol";
+import {IArbitrable} from "@kleros/erc-792/contracts/IArbitrable.sol";
+import {IArbitrator} from "@kleros/erc-792/contracts/IArbitrator.sol";
+import {IEvidence} from "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceEscrow
@@ -25,6 +26,7 @@ import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
+    IEvidence,
     Initializable,
     Context,
     ReentrancyGuard
@@ -38,17 +40,7 @@ contract SmartInvoiceEscrow is
 
     string public constant VERSION = "3.0.0";
 
-    uint256 public constant NUM_RULING_OPTIONS = 5; // excludes options 0, 1 and 2
-
-    // solhint-disable-next-line var-name-mixedcase
-    uint8[2][6] public RULINGS = [
-        [1, 1], // 0 = refused to arbitrate
-        [1, 0], // 1 = 100% to client
-        [3, 1], // 2 = 75% to client
-        [1, 1], // 3 = 50% to client
-        [1, 3], // 4 = 25% to client
-        [0, 1] // 5 = 0% to client
-    ];
+    uint256 public constant NUM_RULING_OPTIONS = 2;
 
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
 
@@ -173,6 +165,8 @@ contract SmartInvoiceEscrow is
         clientReceiver = _clientReceiver;
 
         if (!_requireVerification) emit Verified(client, address(this));
+
+        emit MetaEvidence(0, string(abi.encodePacked(details)));
     }
 
     /**
@@ -280,6 +274,7 @@ contract SmartInvoiceEscrow is
         if (_details != bytes32(0)) {
             details = _details;
             emit DetailsUpdated(msg.sender, _details);
+            emit MetaEvidence(0, string(abi.encodePacked(details)));
         }
 
         emit MilestonesAdded(msg.sender, address(this), _milestones);
@@ -419,6 +414,16 @@ contract SmartInvoiceEscrow is
     }
 
     /**
+     * @dev External function to get the arbitrator cost
+     * @param _details Extra data for the arbitrator
+     */
+    function arbitrationCost(
+        bytes memory _details
+    ) external view returns (uint256) {
+        return IArbitrator(resolver).arbitrationCost(_details);
+    }
+
+    /**
      * @dev External function to lock the contract.
      * @param _details Details of the dispute
      */
@@ -431,14 +436,50 @@ contract SmartInvoiceEscrow is
             revert NotParty();
 
         if (resolverType == ADR.ARBITRATOR) {
+            // user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
                 NUM_RULING_OPTIONS,
                 abi.encodePacked(details)
             );
+
+            emit Dispute(IArbitrator(resolver), disputeId, 0, 0);
         }
         locked = true;
 
         emit Lock(_msgSender(), _details);
+    }
+
+    /**
+     * @dev External function to appeal a dispute.
+     * @param _details Extra data for the arbitrator
+     */
+    function appeal(string memory _details) external payable nonReentrant {
+        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (!locked) revert Locked();
+        if (_msgSender() != client && _msgSender() != provider)
+            revert NotParty();
+
+        IArbitrator(resolver).appeal{value: msg.value}(
+            disputeId,
+            abi.encodePacked(_details)
+        );
+
+        emit DisputeAppealed(_msgSender(), _details);
+    }
+
+    /**
+     * @dev External function to submit evidence for a dispute.
+     * @param _evidenceURI The URI of the evidence
+     */
+    function submitEvidence(
+        string calldata _evidenceURI
+    ) external nonReentrant {
+        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (!locked) revert Locked();
+        if (_msgSender() != client && _msgSender() != provider)
+            revert NotParty();
+
+        emit Evidence(IArbitrator(resolver), 0, _msgSender(), _evidenceURI);
     }
 
     /**
@@ -498,7 +539,7 @@ contract SmartInvoiceEscrow is
         if (!locked) revert Locked();
         if (_msgSender() != resolver) revert NotResolver();
         if (_disputeId != disputeId) revert IncorrectDisputeId();
-        if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling();
+        if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling(_ruling);
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
 
@@ -516,11 +557,14 @@ contract SmartInvoiceEscrow is
             _withdrawDeposit(token, clientAward);
         }
 
+        // complete all milestones
         milestone = amounts.length;
+
+        // reset locked state
         locked = false;
 
         emit Rule(resolver, clientAward, providerAward, _ruling);
-        emit Ruling(resolver, _disputeId, _ruling);
+        emit Ruling(IArbitrator(resolver), _disputeId, _ruling);
     }
 
     /**
@@ -530,13 +574,10 @@ contract SmartInvoiceEscrow is
     function _getRuling(
         uint256 _ruling
     ) internal pure returns (uint8[2] memory ruling) {
-        uint8[2][6] memory rulings = [
-            [1, 1], // 0 = refused to arbitrate
-            [1, 0], // 1 = 100% to client
-            [3, 1], // 2 = 75% to client
-            [1, 1], // 3 = 50% to client
-            [1, 3], // 4 = 25% to client
-            [0, 1] // 5 = 0% to client
+        uint8[2][3] memory rulings = [
+            [1, 1], // 0 = refused to arbitrate => 50% to client, 50% to provider
+            [1, 0], // 1 = 100% to client, 0% to provider
+            [0, 1] // 2 = 0% to client, 100% to provider
         ];
         ruling = rulings[_ruling];
     }

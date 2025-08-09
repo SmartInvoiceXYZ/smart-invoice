@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.20;
 
-import {IArbitrable} from "../interfaces/IArbitrable.sol";
+import {IArbitrable} from "@kleros/erc-792/contracts/IArbitrable.sol";
 
 /// @title Mock Arbitrator Contract
 /// @notice This contract simulates the behavior of an arbitrator for testing purposes. It allows the creation and resolution of disputes.
