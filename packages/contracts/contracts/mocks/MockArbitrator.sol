@@ -65,7 +65,6 @@ contract MockArbitrator {
     /**
      * @notice Creates a new dispute with a specified number of choices.
      * @param _choices The number of choices for the dispute
-     * @dev Additional data for the dispute is not used
      * @return disputeID The ID of the newly created dispute
      */
     function createDispute(
@@ -84,7 +83,6 @@ contract MockArbitrator {
 
     /**
      * @notice Returns the cost required to create a dispute.
-     * @dev Additional data for the dispute is not used
      * @return The cost required to create a dispute
      */
     function arbitrationCost(bytes calldata) external view returns (uint256) {

@@ -42,7 +42,7 @@ contract SmartInvoiceEscrow is
 
     uint256 public constant NUM_RULING_OPTIONS = 2;
 
-    uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on locker
+    uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on termination time
 
     address public wrappedNativeToken;
 
@@ -170,7 +170,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Verifies the client and contract are paired
+     * @notice Verifies the client and contract are paired
      * @dev This ensures that client indeed controls this address and can release funds from this escrow
      */
     function verify() external override {
@@ -221,7 +221,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Adds milestones without extra details.
+     * @notice Adds milestones without extra details.
      * @param _milestones The array of new milestones to be added
      */
     function addMilestones(uint256[] calldata _milestones) external override {
@@ -229,7 +229,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Adds milestones with extra details.
+     * @notice Adds milestones with extra details.
      * @param _milestones The array of new milestones to be added
      * @param _details Additional details for the milestones
      */
@@ -281,7 +281,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Returns the amounts associated with the milestones.
+     * @notice Returns the amounts associated with the milestones.
      * @return An array of amounts for each milestone
      */
     function getAmounts() public view returns (uint256[] memory) {
@@ -319,7 +319,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to release funds from the contract to the provider.
+     * @notice External function to release funds from the contract to the provider.
      * Uses the internal `_release` function to perform the actual release.
      */
     function release() external virtual override nonReentrant {
@@ -327,7 +327,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to release funds from the contract to the provider up to a certain milestone.
+     * @notice External function to release funds from the contract to the provider up to a certain milestone.
      * @param _milestone The milestone to release funds to
      */
     function release(
@@ -357,7 +357,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to release tokens from the contract to the provider.
+     * @notice External function to release tokens from the contract to the provider.
      * Uses the internal `_release` function to perform the actual release.
      * @param _token The token to release funds from
      */
@@ -389,7 +389,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to withdraw funds from the contract to the client.
+     * @notice External function to withdraw funds from the contract to the client.
      * Uses the internal `_withdraw` function to perform the actual withdrawal.
      */
     function withdraw() external override nonReentrant {
@@ -397,7 +397,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to withdraw tokens from the contract to the client.
+     * @notice External function to withdraw tokens from the contract to the client.
      * Uses the internal `_withdraw` function to perform the actual withdrawal.
      * @param _token The token to withdraw
      */
@@ -414,17 +414,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to get the arbitrator cost
-     * @param _details Extra data for the arbitrator
-     */
-    function arbitrationCost(
-        bytes memory _details
-    ) external view returns (uint256) {
-        return IArbitrator(resolver).arbitrationCost(_details);
-    }
-
-    /**
-     * @dev External function to lock the contract.
+     * @notice External function to lock the contract.
      * @param _details Details of the dispute
      */
     function lock(bytes32 _details) external payable override nonReentrant {
@@ -450,7 +440,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to appeal a dispute.
+     * @notice External function to appeal a dispute.
      * @param _details Extra data for the arbitrator
      */
     function appeal(string memory _details) external payable nonReentrant {
@@ -468,7 +458,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to submit evidence for a dispute.
+     * @notice External function to submit evidence for a dispute.
      * @param _evidenceURI The URI of the evidence
      */
     function submitEvidence(
@@ -483,7 +473,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to resolve the contract.
+     * @notice External function to resolve the contract.
      * @param _clientAward The amount to award the client
      * @param _providerAward The amount to award the provider
      * @param _details Details of the dispute
@@ -527,7 +517,7 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev External function to rule on a dispute.
+     * @notice External function to rule on a dispute.
      * @param _disputeId The ID of the dispute
      * @param _ruling The ruling of the arbitrator
      */
@@ -570,6 +560,7 @@ contract SmartInvoiceEscrow is
     /**
      * @dev Internal function to get the ruling of the arbitrator.
      * @param _ruling The ruling of the arbitrator
+     * @return ruling Array containing [clientShare, providerShare] percentages
      */
     function _getRuling(
         uint256 _ruling

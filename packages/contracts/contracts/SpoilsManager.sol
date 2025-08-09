@@ -23,7 +23,7 @@ contract SpoilsManager is OwnableUpgradeable {
     }
 
     /**
-     * @dev Initialize the SpoilsManager contract
+     * @notice Initialize the SpoilsManager contract
      * @param _spoils The percentage of spoils to be sent to the owner's receiver
      * @param _percentageScale The scale used to calculate the spoils percentage
      * @param _receiver The address of the owner's receiver
@@ -42,7 +42,7 @@ contract SpoilsManager is OwnableUpgradeable {
     }
 
     /**
-     * @dev Set the spoils amount to be sent to the owner's receiver
+     * @notice Set the spoils amount to be sent to the owner's receiver
      * @param _spoils The percentage of spoils to be sent to the owner's receiver
      */
     function setSpoils(uint32 _spoils) external onlyOwner {
@@ -50,7 +50,7 @@ contract SpoilsManager is OwnableUpgradeable {
     }
 
     /**
-     * @dev Set the owner's receiver address
+     * @notice Set the owner's receiver address
      * @param _receiver The address of the owner's receiver
      */
     function setReceiver(address _receiver) external onlyOwner {
@@ -58,7 +58,7 @@ contract SpoilsManager is OwnableUpgradeable {
     }
 
     /**
-     * @dev Get the spoils amount to be sent to the owner's receiver
+     * @notice Get the spoils amount to be sent to the owner's receiver
      * @return The percentage of spoils to be sent to the owner's receiver
      */
     function getSpoils() external view returns (uint32) {

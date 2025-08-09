@@ -46,7 +46,7 @@ interface ISmartInvoiceFactory {
     function predictDeterministicAddress(
         bytes32 _type,
         bytes32 _salt
-    ) external returns (address);
+    ) external view returns (address);
 
     /**
      * @notice Returns the resolution rate for a specific resolver address.

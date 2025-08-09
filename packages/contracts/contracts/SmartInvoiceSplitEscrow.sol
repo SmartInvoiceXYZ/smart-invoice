@@ -22,7 +22,7 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
     error InvalidDAO();
 
     /**
-     * @notice Handles the provided data, decodes it, and initializes necessary contract state variables.
+     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
      * @param _data The data to be handled and decoded
      */
     function _handleData(bytes calldata _data) internal override {
@@ -82,6 +82,19 @@ contract SmartInvoiceSplitEscrow is SmartInvoiceEscrow {
 
     /**
      * @dev Internal function to validate and set contract data to avoid stack too deep
+     * @param _client Client address
+     * @param _resolverType Type of resolver (individual or arbitrator)
+     * @param _resolver Resolver address
+     * @param _token Token address for payments
+     * @param _terminationTime Timestamp when contract expires
+     * @param _details Additional details about the contract
+     * @param _wrappedNativeToken Wrapped native token address
+     * @param _requireVerification Whether client verification is required
+     * @param _factory Factory contract address
+     * @param _providerReceiver Provider's receiver address
+     * @param _clientReceiver Client's receiver address
+     * @param _dao DAO address for fee collection
+     * @param _daoFee DAO fee percentage (in basis points)
      */
     function _validateAndSetData(
         address _client,

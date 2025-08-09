@@ -503,7 +503,7 @@ describe('SmartInvoiceSplitEscrow - DAO Fee Functionality', function () {
       // Rule in favor of provider (ruling 5 = 0% to client, 100% to provider)
       await mockArbitratorContract.write.executeRuling([
         lockedInvoice.address,
-        5n,
+        2n,
       ]);
 
       const afterDaoBalance = await getBalanceOf(
