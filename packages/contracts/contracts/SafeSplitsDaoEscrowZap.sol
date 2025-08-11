@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {SafeSplitsEscrowZap} from "./SafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";

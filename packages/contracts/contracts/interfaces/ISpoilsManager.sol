@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+
+pragma solidity 0.8.30;
 
 /// @title ISpoilsManager
 /// @notice Interface for the Spoils Manager contract that manages spoils and ownership functionalities.

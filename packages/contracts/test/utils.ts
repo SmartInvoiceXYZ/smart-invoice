@@ -19,9 +19,7 @@ export type InitData = {
   resolver: Hex;
   token: Hex;
   terminationTime: bigint;
-  wrappedNativeToken: Hex;
   requireVerification: boolean;
-  factory: Hex;
   providerReceiver: Hex;
   clientReceiver: Hex;
   feeBPS: bigint;
@@ -42,9 +40,7 @@ export const encodeInitData = (initData: InitData) => {
           { name: 'resolver', type: 'address' },
           { name: 'token', type: 'address' },
           { name: 'terminationTime', type: 'uint256' },
-          { name: 'wrappedNativeToken', type: 'address' },
           { name: 'requireVerification', type: 'bool' },
-          { name: 'factory', type: 'address' },
           { name: 'providerReceiver', type: 'address' },
           { name: 'clientReceiver', type: 'address' },
           { name: 'feeBPS', type: 'uint256' },
@@ -63,11 +59,11 @@ export const awaitInvoiceAddress = async (
   if (!receipt || !receipt.logs) return null;
 
   const abi = parseAbi([
-    'event LogNewInvoice(uint256 indexed id, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
+    'event InvoiceCreated(uint256 indexed id, address indexed invoice, uint256[] amounts, bytes32 invoiceType, uint256 version)',
   ]);
 
   const logs = parseEventLogs({ abi, logs: receipt.logs });
-  const event = logs.find(log => log.eventName === 'LogNewInvoice');
+  const event = logs.find(log => log.eventName === 'InvoiceCreated');
 
   if (event) {
     return getAddress(event.args.invoice);
@@ -112,9 +108,7 @@ export const createEscrow = async (
           { name: 'resolver', type: 'address' },
           { name: 'token', type: 'address' },
           { name: 'terminationTime', type: 'uint256' },
-          { name: 'wrappedNativeToken', type: 'address' },
           { name: 'requireVerification', type: 'bool' },
-          { name: 'factory', type: 'address' },
           { name: 'providerReceiver', type: 'address' },
           { name: 'clientReceiver', type: 'address' },
           { name: 'feeBPS', type: 'uint256' },
@@ -130,9 +124,7 @@ export const createEscrow = async (
         resolver,
         token,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: zeroAddress, // no providerReceiver
         clientReceiver: zeroAddress, // no clientReceiver
         feeBPS,
@@ -196,7 +188,10 @@ export const getLockedEscrow = async (
   requireVerification: boolean = false,
 ): Promise<ContractTypesMap['SmartInvoiceEscrow']> => {
   const currentTime = await currentTimestamp();
-  const newInvoice = await viem.deployContract('SmartInvoiceEscrow');
+  const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+    mockWrappedNativeToken,
+    factory.address,
+  ]);
 
   const initReceipt = await createEscrow(
     factory,

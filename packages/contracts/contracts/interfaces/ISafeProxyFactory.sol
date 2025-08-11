@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 /// @title ISafeProxyFactory
 /// @notice Interface for a Safe proxy factory that provides functions to create and manage proxy contracts.

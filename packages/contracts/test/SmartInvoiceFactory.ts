@@ -52,9 +52,7 @@ describe('SmartInvoiceFactory', function () {
     resolver: Hex;
     token: Hex;
     terminationTime: bigint;
-    wrappedNativeToken: Hex;
     requireVerification: boolean;
-    factory: Hex;
     providerReceiver: Hex;
     clientReceiver: Hex;
     feeBPS: bigint;
@@ -75,9 +73,12 @@ describe('SmartInvoiceFactory', function () {
     wrappedNativeToken = getAddress(mockWrappedToken.address);
     wrappedNativeTokenContract = mockWrappedToken;
 
-    escrow = await viem.deployContract('SmartInvoiceEscrow');
     invoiceFactory = await viem.deployContract('SmartInvoiceFactory', [
       wrappedNativeToken,
+    ]);
+    escrow = await viem.deployContract('SmartInvoiceEscrow', [
+      wrappedNativeToken,
+      invoiceFactory.address,
     ]);
 
     terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
@@ -88,9 +89,7 @@ describe('SmartInvoiceFactory', function () {
       resolver: getAddress(resolver.account.address),
       token,
       terminationTime: BigInt(terminationTime),
-      wrappedNativeToken,
       requireVerification,
-      factory: invoiceFactory.address,
       providerReceiver: getAddress(providerReceiver.account.address),
       clientReceiver: getAddress(clientReceiver.account.address),
       feeBPS: 0n, // no fees
@@ -184,7 +183,7 @@ describe('SmartInvoiceFactory', function () {
     invoiceAddress = address!;
 
     await expect(hash)
-      .to.emit(invoiceFactory, 'LogNewInvoice')
+      .to.emit(invoiceFactory, 'InvoiceCreated')
       .withArgs(0, invoiceAddress, amounts, escrowType, version);
 
     const invoice = await viem.getContractAt(
@@ -221,7 +220,7 @@ describe('SmartInvoiceFactory', function () {
     expect(await invoice.read.total()).to.equal(total);
     expect(await invoice.read.locked()).to.equal(false);
     expect(await invoice.read.disputeId()).to.equal(0);
-    expect(await invoice.read.wrappedNativeToken()).to.equal(
+    expect(await invoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
       wrappedNativeToken,
     );
     expect(await invoiceFactory.read.getInvoiceAddress([0n])).to.equal(
@@ -267,7 +266,7 @@ describe('SmartInvoiceFactory', function () {
     invoiceAddress = address!;
 
     await expect(hash)
-      .to.emit(invoiceFactory, 'LogNewInvoice')
+      .to.emit(invoiceFactory, 'InvoiceCreated')
       .withArgs(0, invoiceAddress, amounts, escrowType, version);
 
     expect(invoiceAddress).to.equal(predictedAddress);
@@ -317,7 +316,7 @@ describe('SmartInvoiceFactory', function () {
     invoiceAddress = address!;
 
     await expect(hash)
-      .to.emit(invoiceFactory, 'LogNewInvoice')
+      .to.emit(invoiceFactory, 'InvoiceCreated')
       .withArgs(0, invoiceAddress, amounts, escrowType, version);
 
     const invoice = await viem.getContractAt(
@@ -416,7 +415,7 @@ describe('SmartInvoiceFactory', function () {
     }
 
     expect(txHash)
-      .to.emit(invoiceFactory, 'EscrowCreated')
+      .to.emit(invoiceFactory, 'EscrowFunded')
       .withArgs(escrowAddress, getAddress(escrowInitData.token), fundAmount);
 
     // Verify escrow contract has the correct token balance
@@ -456,7 +455,7 @@ describe('SmartInvoiceFactory', function () {
     expect(await invoice.read.total()).to.equal(fundAmount);
     expect(await invoice.read.locked()).to.equal(false);
     expect(await invoice.read.disputeId()).to.equal(0n);
-    expect(await invoice.read.wrappedNativeToken()).to.equal(
+    expect(await invoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
       getAddress(wrappedNativeTokenContract.address),
     );
     expect(await invoice.read.providerReceiver()).to.equal(
@@ -501,7 +500,7 @@ describe('SmartInvoiceFactory', function () {
     }
 
     expect(txHash)
-      .to.emit(invoiceFactory, 'EscrowCreated')
+      .to.emit(invoiceFactory, 'EscrowFunded')
       .withArgs(
         escrowAddress,
         getAddress(wrappedNativeTokenContract.address),
@@ -547,7 +546,7 @@ describe('SmartInvoiceFactory', function () {
     expect(await invoice.read.total()).to.equal(fundAmount);
     expect(await invoice.read.locked()).to.equal(false);
     expect(await invoice.read.disputeId()).to.equal(0n);
-    expect(await invoice.read.wrappedNativeToken()).to.equal(
+    expect(await invoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
       getAddress(wrappedNativeTokenContract.address),
     );
     expect(await invoice.read.providerReceiver()).to.equal(

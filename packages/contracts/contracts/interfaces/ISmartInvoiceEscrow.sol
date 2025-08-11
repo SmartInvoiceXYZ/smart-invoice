@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {ISmartInvoice} from "./ISmartInvoice.sol";
 
@@ -14,9 +14,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
         address resolver;
         address token;
         uint256 terminationTime;
-        address wrappedNativeToken;
         bool requireVerification;
-        address factory;
         address providerReceiver;
         address clientReceiver;
         uint256 feeBPS;
@@ -107,11 +105,15 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error DurationTooLong();
     error InvalidResolutionRate();
     error InvalidWrappedNativeToken();
+    error OnlyFactory();
+    error InvalidFactory();
     error NotClient(address caller);
     error NotProvider(address caller);
     error NotParty(address caller);
     error Locked();
+    error NotLocked();
     error Terminated();
+    error NotTerminated();
     error NoMilestones();
     error ExceedsMilestoneLimit();
     error InsufficientBalance();
@@ -127,6 +129,18 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error InvalidClientReceiver();
     error InvalidFeeBPS();
     error InvalidTreasury();
+
+    /// @notice Emitted when a the invoice is initialized.
+    /// @param provider The address of the provider.
+    /// @param client The address of the client.
+    /// @param amounts The amounts of the invoice.
+    /// @param details The details of the invoice.
+    event InvoiceInit(
+        address indexed provider,
+        address indexed client,
+        uint256[] amounts,
+        string details
+    );
 
     /// @notice Emitted when new milestones are added to the invoice.
     /// @param sender The address that added the milestones.
@@ -146,7 +160,12 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @notice Emitted when a deposit is made into the invoice.
     /// @param sender The address that made the deposit.
     /// @param amount The amount of the deposit.
-    event Deposit(address indexed sender, uint256 amount);
+    /// @param token The token that was deposited.
+    event Deposit(address indexed sender, uint256 amount, address token);
+
+    /// @notice Emitted when stray eth is wrapped.
+    /// @param amount The amount of eth wrapped.
+    event WrappedStrayETH(uint256 amount);
 
     /// @notice Emitted when a milestone is released.
     /// @param milestone The milestone number that was released.

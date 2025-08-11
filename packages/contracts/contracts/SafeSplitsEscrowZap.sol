@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {
@@ -205,9 +205,7 @@ contract SafeSplitsEscrowZap is
                 resolver: escrowData.resolver,
                 token: escrowData.token,
                 terminationTime: escrowData.terminationTime,
-                wrappedNativeToken: address(wrappedNativeToken),
                 requireVerification: escrowData.requireVerification,
-                factory: address(escrowFactory),
                 providerReceiver: _escrowParams[1], // providerReceiver
                 clientReceiver: escrowData.clientReceiver,
                 feeBPS: escrowData.feeBPS,

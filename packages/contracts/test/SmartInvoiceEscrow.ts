@@ -87,7 +87,10 @@ describe('SmartInvoiceEscrow', function () {
     factory = await viem.deployContract('SmartInvoiceFactory', [
       mockWrappedNativeToken,
     ]);
-    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow');
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
+      mockWrappedNativeToken,
+      factory.address,
+    ]);
 
     await factory.write.addImplementation([invoiceType, invoiceImpl.address]);
 
@@ -105,9 +108,7 @@ describe('SmartInvoiceEscrow', function () {
             { name: 'resolver', type: 'address' },
             { name: 'token', type: 'address' },
             { name: 'terminationTime', type: 'uint256' },
-            { name: 'wrappedNativeToken', type: 'address' },
             { name: 'requireVerification', type: 'bool' },
-            { name: 'factory', type: 'address' },
             { name: 'providerReceiver', type: 'address' },
             { name: 'clientReceiver', type: 'address' },
             { name: 'feeBPS', type: 'uint256' },
@@ -123,9 +124,7 @@ describe('SmartInvoiceEscrow', function () {
           resolver: getAddress(resolver.account.address),
           token: mockToken,
           terminationTime: BigInt(terminationTime),
-          wrappedNativeToken: mockWrappedNativeToken,
           requireVerification,
-          factory: factory.address,
           providerReceiver: zeroAddress, // no providerReceiver
           clientReceiver: zeroAddress, // no clientReceiver
           feeBPS: 0n, // no fees
@@ -173,16 +172,19 @@ describe('SmartInvoiceEscrow', function () {
       expect(await invoice.read.total()).to.equal(total);
       expect(await invoice.read.locked()).to.equal(false);
       expect(await invoice.read.disputeId()).to.equal(0n);
-      expect(await invoice.read.wrappedNativeToken()).to.equal(
+      expect(await invoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
         mockWrappedNativeToken,
       );
       expect(await invoice.read.providerReceiver()).to.equal(zeroAddress);
       expect(await invoice.read.clientReceiver()).to.equal(zeroAddress);
     });
 
-    it('Should revert init if initLocked', async function () {
+    it('Should revert init if invalid params', async function () {
       const currentTime = await currentTimestamp();
-      const newInvoice = await viem.deployContract('SmartInvoiceEscrow');
+      const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+        mockWrappedNativeToken,
+        factory.address,
+      ]);
 
       const data = encodeAbiParameters(
         [
@@ -307,28 +309,6 @@ describe('SmartInvoiceEscrow', function () {
       await expect(receipt).to.be.revertedWithCustomError(
         invoice,
         'InvalidToken',
-      );
-    });
-
-    it('Should revert init if invalid wrappedNativeToken', async function () {
-      const receipt = createEscrow(
-        factory,
-        invoice,
-        invoiceType,
-        getAddress(client.account.address),
-        getAddress(provider.account.address),
-        individualResolverType,
-        getAddress(resolver.account.address),
-        mockToken,
-        amounts,
-        terminationTime,
-        zeroHash,
-        zeroAddress,
-        requireVerification,
-      );
-      await expect(receipt).to.be.revertedWithCustomError(
-        invoice,
-        'InvalidWrappedNativeToken',
       );
     });
 
@@ -533,7 +513,10 @@ describe('SmartInvoiceEscrow', function () {
       invoice = await viem.getContractAt('SmartInvoiceEscrow', invoiceAddress!);
 
       const receipt = invoice.write.withdraw();
-      await expect(receipt).to.revertedWithCustomError(invoice, 'Terminated');
+      await expect(receipt).to.revertedWithCustomError(
+        invoice,
+        'NotTerminated',
+      );
     });
 
     it('Should withdraw after terminationTime', async function () {
@@ -771,7 +754,11 @@ describe('SmartInvoiceEscrow', function () {
       });
       await expect(receipt)
         .to.emit(invoice, 'Deposit')
-        .withArgs(getAddress(client.account.address), 10);
+        .withArgs(
+          getAddress(client.account.address),
+          10,
+          getAddress(mockWrappedNativeToken),
+        );
       expect(
         await mockWrappedNativeTokenContract.read.balanceOf([invoice.address]),
       ).to.equal(10);
@@ -844,9 +831,7 @@ describe('SmartInvoiceEscrow', function () {
               { name: 'resolver', type: 'address' },
               { name: 'token', type: 'address' },
               { name: 'terminationTime', type: 'uint256' },
-              { name: 'wrappedNativeToken', type: 'address' },
               { name: 'requireVerification', type: 'bool' },
-              { name: 'factory', type: 'address' },
               { name: 'providerReceiver', type: 'address' },
               { name: 'clientReceiver', type: 'address' },
               { name: 'feeBPS', type: 'uint256' },
@@ -862,9 +847,7 @@ describe('SmartInvoiceEscrow', function () {
             resolver: getAddress(resolver.account.address),
             token: mockToken,
             terminationTime: BigInt(terminationTime),
-            wrappedNativeToken: mockWrappedNativeToken,
             requireVerification,
-            factory: factory.address,
             providerReceiver: getAddress(providerReceiver.account.address),
             clientReceiver: getAddress(clientReceiver.account.address),
             feeBPS: 0n, // no fees for this test
@@ -972,9 +955,7 @@ describe('SmartInvoiceEscrow', function () {
               { name: 'resolver', type: 'address' },
               { name: 'token', type: 'address' },
               { name: 'terminationTime', type: 'uint256' },
-              { name: 'wrappedNativeToken', type: 'address' },
               { name: 'requireVerification', type: 'bool' },
-              { name: 'factory', type: 'address' },
               { name: 'providerReceiver', type: 'address' },
               { name: 'clientReceiver', type: 'address' },
               { name: 'feeBPS', type: 'uint256' },
@@ -990,9 +971,7 @@ describe('SmartInvoiceEscrow', function () {
             resolver: getAddress(resolver.account.address),
             token: mockToken,
             terminationTime: BigInt(currentTime + 1000),
-            wrappedNativeToken: mockWrappedNativeToken,
             requireVerification: false,
-            factory: factory.address,
             providerReceiver: getAddress(providerReceiver.account.address),
             clientReceiver: getAddress(clientReceiver.account.address),
             feeBPS: 0n,
@@ -1080,9 +1059,7 @@ describe('SmartInvoiceEscrow', function () {
               { name: 'resolver', type: 'address' },
               { name: 'token', type: 'address' },
               { name: 'terminationTime', type: 'uint256' },
-              { name: 'wrappedNativeToken', type: 'address' },
               { name: 'requireVerification', type: 'bool' },
-              { name: 'factory', type: 'address' },
               { name: 'providerReceiver', type: 'address' },
               { name: 'clientReceiver', type: 'address' },
               { name: 'feeBPS', type: 'uint256' },
@@ -1098,9 +1075,7 @@ describe('SmartInvoiceEscrow', function () {
             resolver: getAddress(resolver.account.address),
             token: mockToken,
             terminationTime: BigInt(currentTime + 1000),
-            wrappedNativeToken: mockWrappedNativeToken,
             requireVerification: false,
-            factory: factory.address,
             providerReceiver: getAddress(providerReceiver.account.address),
             clientReceiver: getAddress(clientReceiver.account.address),
             feeBPS: 0n,
@@ -1170,9 +1145,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -1198,7 +1171,7 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should revert initialization with invalid feeBPS', async function () {
-      const invalidFeeBPS = 10001n; // > 10000 (100%)
+      const invalidFeeBPS = 1001n; // > 1000 (10%)
       const treasury = randomSigner.account.address;
 
       const data = encodeInitData({
@@ -1207,9 +1180,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS: invalidFeeBPS,
@@ -1240,9 +1211,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -1273,9 +1242,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -1341,9 +1308,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -1400,8 +1365,8 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should handle different fee percentages correctly', async function () {
-      // Test 15% fee
-      const feeBPS = 1500n; // 15%
+      // Test 1.5% fee
+      const feeBPS = 150n; // 1.5%
       const treasury = randomSigner.account.address;
       const futureTerminationTime =
         (await currentTimestamp()) + 30 * 24 * 60 * 60;
@@ -1412,9 +1377,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -1453,72 +1416,6 @@ describe('SmartInvoiceEscrow', function () {
       );
     });
 
-    it('Should handle 100% fee correctly', async function () {
-      const feeBPS = 10000n; // 100%
-      const treasury = randomSigner.account.address;
-      const futureTerminationTime =
-        (await currentTimestamp()) + 30 * 24 * 60 * 60;
-
-      const data = encodeInitData({
-        client: client.account.address,
-        resolverType: individualResolverType,
-        resolver: resolver.account.address,
-        token: mockToken,
-        terminationTime: BigInt(futureTerminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
-        requireVerification,
-        factory: factory.address,
-        providerReceiver: providerReceiver.account.address,
-        clientReceiver: clientReceiver.account.address,
-        feeBPS,
-        treasury,
-        details: '',
-      });
-
-      const hash = await factory.write.create([
-        getAddress(provider.account.address),
-        amounts,
-        data,
-        invoiceType,
-      ]);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      const address = await awaitInvoiceAddress(receipt);
-      const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
-        address!,
-      );
-
-      await setBalanceOf(mockToken, tempInvoice.address, total);
-
-      const beforeProviderBalance = await getBalanceOf(
-        mockToken,
-        providerReceiver.account.address,
-      );
-      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
-
-      await tempInvoice.write.release([0n], {
-        account: client.account,
-      });
-
-      const milestoneAmount = amounts[0];
-      // With 100% fee, all funds go to treasury, none to provider
-      const expectedFee = milestoneAmount;
-      const expectedProviderAmount = 0n;
-
-      const afterProviderBalance = await getBalanceOf(
-        mockToken,
-        providerReceiver.account.address,
-      );
-      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
-
-      expect(afterProviderBalance).to.equal(
-        beforeProviderBalance + expectedProviderAmount,
-      );
-      expect(afterTreasuryBalance).to.equal(
-        beforeTreasuryBalance + expectedFee,
-      );
-    });
-
     it('Should work with custom receiver addresses and fees', async function () {
       const feeBPS = 750n; // 7.5%
       const treasury = randomSigner.account.address;
@@ -1531,9 +1428,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver2.account.address, // Different receiver
         clientReceiver: clientReceiver2.account.address, // Different receiver
         feeBPS,
@@ -1596,9 +1491,7 @@ describe('SmartInvoiceEscrow', function () {
         resolver: resolver.account.address,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        wrappedNativeToken: mockWrappedNativeToken,
         requireVerification,
-        factory: factory.address,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,

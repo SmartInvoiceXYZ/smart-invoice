@@ -123,7 +123,10 @@ describe('SafeSplitsEscrowZap', function () {
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
       getWrappedTokenAddress(TEST_CHAIN_ID), // wrapped token
     ]);
-    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow');
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
+      getWrappedTokenAddress(TEST_CHAIN_ID),
+      escrowFactory.address,
+    ]);
 
     await escrowFactory.write.addImplementation([
       invoiceType,

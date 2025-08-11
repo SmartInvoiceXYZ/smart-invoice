@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -35,15 +35,14 @@ contract SmartInvoiceFactory is
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
     mapping(bytes32 => uint256) public currentVersions;
 
-    // solhint-disable-next-line immutable-vars-naming
-    IWRAPPED public immutable wrappedNativeToken;
+    IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
 
     /// @notice Constructor to initialize the factory with a wrapped native token.
     /// @param _wrappedNativeToken The address of the wrapped native token.
     constructor(address _wrappedNativeToken) {
         if (_wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
-        wrappedNativeToken = IWRAPPED(_wrappedNativeToken);
+        WRAPPED_NATIVE_TOKEN = IWRAPPED(_wrappedNativeToken);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN, msg.sender);
@@ -72,7 +71,7 @@ contract SmartInvoiceFactory is
 
         ISmartInvoice(_invoiceAddress).init(_recipient, _amounts, _data);
 
-        emit LogNewInvoice(
+        emit InvoiceCreated(
             invoiceId,
             _invoiceAddress,
             _amounts,
@@ -231,14 +230,14 @@ contract SmartInvoiceFactory is
 
         address token = ISmartInvoiceEscrow(escrow).token();
 
-        if (token == address(wrappedNativeToken) && msg.value > 0) {
+        if (token == address(WRAPPED_NATIVE_TOKEN) && msg.value > 0) {
             // Ensure the fund amount is valid
             if (msg.value != _fundAmount) revert InvalidFundAmount();
 
             // Transfer the native fund amount to the newly created escrow contract
-            wrappedNativeToken.deposit{value: _fundAmount}();
+            WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
 
-            // Transfer the fund amount to the newly created escrow contract
+            // Transfer the fgnd amount to the newly created escrow contract
             IERC20(token).safeTransfer(escrow, _fundAmount);
         } else {
             // Transfer the fund amount to the newly created escrow contract
@@ -246,7 +245,7 @@ contract SmartInvoiceFactory is
         }
 
         // Emit an event for the escrow creation
-        emit EscrowCreated(escrow, token, _fundAmount);
+        emit InvoiceFunded(escrow, token, _fundAmount);
     }
 
     /**
@@ -296,20 +295,4 @@ contract SmartInvoiceFactory is
         );
         _fundEscrow(escrow, _fundAmount);
     }
-
-    /// @notice Error emitted when escrow creation fails
-    error EscrowNotCreated();
-
-    /// @notice Error emitted when the fund amount is invalid
-    error InvalidFundAmount();
-
-    /// @notice Event emitted when a new escrow is created
-    /// @param escrow Address of the newly created escrow
-    /// @param token Address of the token used for payment
-    /// @param amount The total fund amount transferred to the escrow
-    event EscrowCreated(
-        address indexed escrow,
-        address indexed token,
-        uint256 amount
-    );
 }

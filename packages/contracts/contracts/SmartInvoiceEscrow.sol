@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable not-rely-on-time, max-states-count
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
@@ -42,7 +42,11 @@ contract SmartInvoiceEscrow is
 
     uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on termination time
 
-    address public wrappedNativeToken;
+    uint256 public constant MAX_MILESTONE_LIMIT = 50;
+
+    IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
+
+    ISmartInvoiceFactory public immutable FACTORY;
 
     address public client;
     address public provider;
@@ -64,6 +68,15 @@ contract SmartInvoiceEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
+    // @dev metaEvidenceId: latest MetaEvidence identifier for this escrow (ERC-1497).
+    // It advances when off-chain details change (e.g., via _addMilestones),
+    // and the current value is referenced by new Disputes.
+    uint256 public metaEvidenceId;
+    // @dev" evidenceGroupId: per-dispute Evidence group identifier (ERC-1497).
+    // Incremented *before* opening a new dispute so both Dispute and
+    // subsequent Evidence events for that dispute share the same group.
+    uint256 public evidenceGroupId;
+
     modifier onlyProvider() {
         if (msg.sender != provider) revert NotProvider(msg.sender);
         _;
@@ -74,7 +87,12 @@ contract SmartInvoiceEscrow is
         _;
     }
 
-    constructor() {
+    constructor(address _wrappedNativeToken, address _factory) {
+        if (_wrappedNativeToken == address(0))
+            revert InvalidWrappedNativeToken();
+        if (_factory == address(0)) revert InvalidFactory();
+        WRAPPED_NATIVE_TOKEN = IWRAPPED(_wrappedNativeToken);
+        FACTORY = ISmartInvoiceFactory(_factory);
         _disableInitializers();
     }
 
@@ -89,32 +107,38 @@ contract SmartInvoiceEscrow is
         uint256[] calldata _amounts,
         bytes calldata _data
     ) external virtual override initializer {
-        if (_provider == address(0)) revert InvalidProvider();
+        if (msg.sender != address(FACTORY)) revert OnlyFactory();
 
-        _handleData(_data);
-
-        provider = _provider;
-        amounts = _amounts;
-        uint256 _total = 0;
-        uint256 amountsLength = amounts.length;
-        for (uint256 i = 0; i < amountsLength; i++) {
-            _total += amounts[i];
-        }
-        total = _total;
+        _handleData(_provider, _amounts, _data);
     }
 
     /**
      * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
      * @param _data The data to be handled and decoded
      */
-    function _handleData(bytes calldata _data) internal virtual {
+    function _handleData(
+        address _provider,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) internal virtual {
+        if (_provider == address(0)) revert InvalidProvider();
+        provider = _provider;
+        amounts = _amounts;
+        uint256 _total = 0;
+        uint256 amountsLength = amounts.length;
+        if (amountsLength == 0) revert NoMilestones();
+        if (amountsLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
+        for (uint256 i = 0; i < amountsLength; i++) {
+            _total += amounts[i];
+        }
+        total = _total;
+
         InitData memory initData = abi.decode(_data, (InitData));
 
-        uint256 _resolutionRate = ISmartInvoiceFactory(initData.factory)
-            .resolutionRateOf(initData.resolver);
-        if (_resolutionRate == 0) {
-            _resolutionRate = 20;
-        }
+        uint256 _resolutionRate = FACTORY.resolutionRateOf(initData.resolver);
+        if (_resolutionRate == 0) _resolutionRate = 20; // default ~5%
+        if (_resolutionRate < 2 || _resolutionRate > 1000)
+            revert InvalidResolutionRate();
 
         if (initData.client == address(0)) revert InvalidClient();
         if (initData.resolverType > uint8(ADR.ARBITRATOR))
@@ -124,12 +148,13 @@ contract SmartInvoiceEscrow is
         if (initData.terminationTime <= block.timestamp) revert DurationEnded();
         if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
-        if (_resolutionRate == 0) revert InvalidResolutionRate();
-        if (initData.wrappedNativeToken == address(0))
-            revert InvalidWrappedNativeToken();
-        if (initData.feeBPS > 10000) revert InvalidFeeBPS(); // max 100%
+        if (initData.feeBPS > 1000) revert InvalidFeeBPS(); // max 10%
         if (initData.feeBPS > 0 && initData.treasury == address(0))
             revert InvalidTreasury();
+        if (initData.providerReceiver == address(this))
+            revert InvalidProviderReceiver();
+        if (initData.clientReceiver == address(this))
+            revert InvalidClientReceiver();
 
         client = initData.client;
         resolverType = ADR(initData.resolverType);
@@ -137,7 +162,6 @@ contract SmartInvoiceEscrow is
         token = initData.token;
         terminationTime = initData.terminationTime;
         resolutionRate = _resolutionRate;
-        wrappedNativeToken = initData.wrappedNativeToken;
         providerReceiver = initData.providerReceiver;
         clientReceiver = initData.clientReceiver;
         feeBPS = initData.feeBPS;
@@ -145,7 +169,8 @@ contract SmartInvoiceEscrow is
 
         if (!initData.requireVerification) emit Verified(client, address(this));
 
-        emit MetaEvidence(0, initData.details);
+        emit InvoiceInit(provider, client, amounts, initData.details);
+        emit MetaEvidence(metaEvidenceId, initData.details);
     }
 
     /**
@@ -184,7 +209,10 @@ contract SmartInvoiceEscrow is
     function updateProviderReceiver(
         address _providerReceiver
     ) external onlyProvider {
-        if (_providerReceiver == address(0)) revert InvalidProviderReceiver();
+        if (
+            _providerReceiver == address(0) ||
+            _providerReceiver == address(this)
+        ) revert InvalidProviderReceiver();
         providerReceiver = _providerReceiver;
         emit UpdatedProviderReceiver(_providerReceiver);
     }
@@ -194,7 +222,8 @@ contract SmartInvoiceEscrow is
      * @param _clientReceiver The updated client receiver address.
      */
     function updateClientReceiver(address _clientReceiver) external onlyClient {
-        if (_clientReceiver == address(0)) revert InvalidClientReceiver();
+        if (_clientReceiver == address(0) || _clientReceiver == address(this))
+            revert InvalidClientReceiver();
         clientReceiver = _clientReceiver;
         emit UpdatedClientReceiver(_clientReceiver);
     }
@@ -233,9 +262,10 @@ contract SmartInvoiceEscrow is
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
         if (_milestones.length == 0) revert NoMilestones();
-        if (_milestones.length > 10) revert ExceedsMilestoneLimit();
 
         uint256 newLength = amounts.length + _milestones.length;
+        if (newLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
+
         uint256[] memory baseArray = new uint256[](newLength);
         uint256 newTotal = total;
 
@@ -253,7 +283,8 @@ contract SmartInvoiceEscrow is
 
         if (bytes(_details).length > 0) {
             emit DetailsUpdated(msg.sender, _details);
-            emit MetaEvidence(0, _details);
+            metaEvidenceId = metaEvidenceId + 1;
+            emit MetaEvidence(metaEvidenceId, _details);
         }
 
         emit MilestonesAdded(msg.sender, address(this), _milestones);
@@ -346,6 +377,7 @@ contract SmartInvoiceEscrow is
         if (_token == token) {
             _release();
         } else {
+            if (locked) revert Locked();
             if (msg.sender != client) revert NotClient(msg.sender);
             uint256 balance = IERC20(_token).balanceOf(address(this));
             _transferPayment(_token, balance);
@@ -357,7 +389,7 @@ contract SmartInvoiceEscrow is
      */
     function _withdraw() internal {
         if (locked) revert Locked();
-        if (block.timestamp <= terminationTime) revert Terminated();
+        if (block.timestamp <= terminationTime) revert NotTerminated();
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
 
@@ -384,7 +416,8 @@ contract SmartInvoiceEscrow is
         if (_token == token) {
             _withdraw();
         } else {
-            if (block.timestamp <= terminationTime) revert Terminated();
+            if (locked) revert Locked();
+            if (block.timestamp <= terminationTime) revert NotTerminated();
             uint256 balance = IERC20(_token).balanceOf(address(this));
             if (balance == 0) revert BalanceIsZero();
 
@@ -410,12 +443,21 @@ contract SmartInvoiceEscrow is
 
         if (resolverType == ADR.ARBITRATOR) {
             // user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
+
+            // ensure each dispute has its own evidence group id
+            evidenceGroupId = evidenceGroupId + 1;
+
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
                 NUM_RULING_OPTIONS,
                 abi.encodePacked(_details)
             );
 
-            emit Dispute(IArbitrator(resolver), disputeId, 0, 0);
+            emit Dispute(
+                IArbitrator(resolver),
+                disputeId,
+                metaEvidenceId,
+                evidenceGroupId
+            );
         }
 
         emit Lock(msg.sender, _details);
@@ -428,7 +470,7 @@ contract SmartInvoiceEscrow is
     function appeal(string memory _details) external payable nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
-        if (!locked) revert Locked();
+        if (!locked) revert NotLocked();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 
@@ -449,11 +491,18 @@ contract SmartInvoiceEscrow is
     ) external nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
-        if (!locked) revert Locked();
+        if (!locked) revert NotLocked();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 
-        emit Evidence(IArbitrator(resolver), 0, msg.sender, _evidenceURI);
+        // Evidence submitted here is associated with the most recently opened dispute,
+        // via the current evidenceGroupId (incremented in lock()).
+        emit Evidence(
+            IArbitrator(resolver),
+            evidenceGroupId,
+            msg.sender,
+            _evidenceURI
+        );
     }
 
     /**
@@ -469,7 +518,7 @@ contract SmartInvoiceEscrow is
     ) external virtual override nonReentrant {
         if (resolverType != ADR.INDIVIDUAL)
             revert InvalidIndividualResolver(resolver);
-        if (!locked) revert Locked();
+        if (!locked) revert NotLocked();
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
@@ -512,7 +561,7 @@ contract SmartInvoiceEscrow is
     ) external virtual override nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
-        if (!locked) revert Locked();
+        if (!locked) revert NotLocked();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
         if (_disputeId != disputeId) revert IncorrectDisputeId();
         if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling(_ruling);
@@ -615,8 +664,23 @@ contract SmartInvoiceEscrow is
     // solhint-disable-next-line no-complex-fallback
     receive() external payable {
         if (locked) revert Locked();
-        if (token != wrappedNativeToken) revert InvalidWrappedNativeToken();
-        IWRAPPED(wrappedNativeToken).deposit{value: msg.value}();
-        emit Deposit(msg.sender, msg.value);
+        if (token != address(WRAPPED_NATIVE_TOKEN))
+            revert InvalidWrappedNativeToken();
+        WRAPPED_NATIVE_TOKEN.deposit{value: msg.value}();
+        emit Deposit(msg.sender, msg.value, token);
+    }
+
+    // wrap eth for edge cases when eth was sent via self-destruct
+    function wrapETH() external nonReentrant {
+        if (locked) revert Locked();
+        uint256 bal = address(this).balance;
+        if (bal == 0) revert BalanceIsZero();
+        WRAPPED_NATIVE_TOKEN.deposit{value: bal}();
+        emit WrappedStrayETH(bal);
+        if (token == address(WRAPPED_NATIVE_TOKEN)) {
+            // log address(this) as depositor since it was obtained via self-destruct
+            emit Deposit(address(this), bal, token);
+        }
+        // handle release of wETH as per `releaseTokens` or `withdrawTokens` as needed
     }
 }

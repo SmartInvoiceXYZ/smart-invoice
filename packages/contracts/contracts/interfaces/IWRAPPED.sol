@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 /// @title IWRAPPED
 /// @notice Interface for a canonical native token wrapper contract, typically used to wrap native blockchain tokens into ERC20 tokens.

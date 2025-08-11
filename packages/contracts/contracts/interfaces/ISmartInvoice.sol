@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 /// @title ISmartInvoice
 /// @notice Interface for the Smart Invoice contract, allowing initialization with recipient details, amounts, and data.

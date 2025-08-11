@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity 0.8.30;
 
 /// @title ISmartInvoiceFactory
 /// @notice Interface for the Smart Invoice Factory contract that facilitates creating and managing Smart Invoices.
@@ -68,13 +68,19 @@ interface ISmartInvoiceFactory {
     /// @notice Reverts when the implementation address provided is the zero address.
     error ZeroAddressImplementation();
 
+    /// @notice Error emitted when escrow creation fails
+    error EscrowNotCreated();
+
+    /// @notice Error emitted when the fund amount is invalid
+    error InvalidFundAmount();
+
     /// @notice Emitted when a new invoice is created.
     /// @param invoiceId The ID of the created invoice.
     /// @param invoiceAddress The address of the created invoice.
     /// @param amounts The amounts associated with the invoice.
     /// @param invoiceType The type of the invoice.
     /// @param version The version of the invoice implementation.
-    event LogNewInvoice(
+    event InvoiceCreated(
         uint256 indexed invoiceId,
         address indexed invoiceAddress,
         uint256[] amounts,
@@ -100,5 +106,15 @@ interface ISmartInvoiceFactory {
         address indexed resolver,
         uint256 resolutionRate,
         bytes32 details
+    );
+
+    /// @notice Event emitted when a new escrow is funded
+    /// @param escrow Address of the newly created escrow
+    /// @param token Address of the token used for payment
+    /// @param amount The total fund amount transferred to the escrow
+    event InvoiceFunded(
+        address indexed escrow,
+        address indexed token,
+        uint256 amount
     );
 }
