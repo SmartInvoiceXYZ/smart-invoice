@@ -165,7 +165,7 @@ describe('SmartInvoiceFactory', function () {
         'address',
         'address',
         'uint256',
-        'bytes32',
+        'string',
         'address',
         'bool',
         'address',
@@ -207,7 +207,6 @@ describe('SmartInvoiceFactory', function () {
     }
 
     expect(await invoice.read.terminationTime()).to.equal(terminationTime);
-    expect(await invoice.read.details()).to.equal(zeroHash);
     expect(await invoice.read.resolutionRate()).to.equal(20);
     expect(await invoice.read.milestone()).to.equal(0);
     expect(await invoice.read.total()).to.equal(total);
@@ -246,7 +245,7 @@ describe('SmartInvoiceFactory', function () {
         'address',
         'address',
         'uint256',
-        'bytes32',
+        'string',
         'address',
         'bool',
         'address',
@@ -314,7 +313,7 @@ describe('SmartInvoiceFactory', function () {
         'address',
         'address',
         'uint256',
-        'bytes32',
+        'string',
         'address',
         'bool',
         'address',
@@ -362,7 +361,7 @@ describe('SmartInvoiceFactory', function () {
         'address',
         'address',
         'uint256',
-        'bytes32',
+        'string',
         'address',
         'bool',
         'address',

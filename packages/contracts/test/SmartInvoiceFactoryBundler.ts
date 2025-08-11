@@ -195,7 +195,6 @@ describe('SmartInvoiceFactoryBundler', function () {
     expect(await invoice.read.terminationTime()).to.equal(
       escrowData.terminationTime,
     );
-    expect(await invoice.read.details()).to.equal(escrowData.details);
     expect(await invoice.read.resolutionRate()).to.equal(20n);
     expect(await invoice.read.milestone()).to.equal(0n);
     expect(await invoice.read.total()).to.equal(fundAmount);
@@ -312,7 +311,6 @@ describe('SmartInvoiceFactoryBundler', function () {
     expect(await invoice.read.terminationTime()).to.equal(
       escrowData.terminationTime,
     );
-    expect(await invoice.read.details()).to.equal(escrowData.details);
     expect(await invoice.read.resolutionRate()).to.equal(20n);
     expect(await invoice.read.milestone()).to.equal(0n);
     expect(await invoice.read.total()).to.equal(fundAmount);

@@ -26,7 +26,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
      */
     function addMilestones(
         uint256[] calldata _milestones,
-        bytes32 _details
+        string calldata _details
     ) external;
 
     /**
@@ -66,7 +66,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
      * @notice Locks the contract to prevent further actions until resolved.
      * @param _details The details of the dispute or reason for locking.
      */
-    function lock(bytes32 _details) external payable;
+    function lock(string calldata _details) external payable;
 
     /**
      * @notice Resolves a dispute by awarding funds to the client and provider.
@@ -77,7 +77,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     function resolve(
         uint256 _clientAward,
         uint256 _providerAward,
-        bytes32 _details
+        string calldata _details
     ) external;
 
     /// @dev Custom errors for more efficient gas usage
@@ -123,7 +123,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @notice Emitted when the details of the invoice are updated.
     /// @param sender The address that updated the details.
     /// @param details The new details of the invoice.
-    event DetailsUpdated(address indexed sender, bytes32 details);
+    event DetailsUpdated(address indexed sender, string details);
 
     /// @notice Emitted when a deposit is made into the invoice.
     /// @param sender The address that made the deposit.
@@ -142,7 +142,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @notice Emitted when the contract is locked.
     /// @param sender The address that locked the contract.
     /// @param details The details of the lock.
-    event Lock(address indexed sender, bytes32 details);
+    event Lock(address indexed sender, string details);
 
     /// @notice Emitted when the dispute is appealed.
     /// @param sender The address that appealed the dispute.
@@ -160,7 +160,7 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
         uint256 clientAward,
         uint256 providerAward,
         uint256 resolutionFee,
-        bytes32 details
+        string details
     );
 
     /// @notice Emitted when a ruling is made on a dispute.

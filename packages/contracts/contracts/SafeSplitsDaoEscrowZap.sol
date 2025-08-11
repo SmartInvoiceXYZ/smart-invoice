@@ -124,7 +124,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
      * @param _daoZapData The data struct for storing deployment results.
      * @return The escrow parameters for the deployment.
      */
-    function _handleEscrowParams(
+    function _decodeEscrowParams(
         DaoZapData memory _daoZapData
     ) internal view returns (address[] memory) {
         address[] memory escrowParams = new address[](2);
@@ -182,7 +182,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         );
 
         // Handle escrow parameters and deploy escrow
-        address[] memory escrowParams = _handleEscrowParams(daoZapData);
+        address[] memory escrowParams = _decodeEscrowParams(daoZapData);
 
         daoZapData.zapData.escrow = _deployEscrow(
             _milestoneAmounts,

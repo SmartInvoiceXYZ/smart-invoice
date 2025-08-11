@@ -12,6 +12,7 @@ import {
   GetContractReturnType,
   Hex,
   keccak256,
+  parseAbiParameters,
   parseEventLogs,
   toBytes,
   toHex,
@@ -165,30 +166,24 @@ describe('SafeSplitsEscrowZap', function () {
       [{ type: 'bool' }],
       [ZAP_DATA.isProjectSplit],
     );
-    const encodedEscrowData = encodeAbiParameters(
-      [
-        'address',
-        'address',
-        'bool',
-        'uint32',
-        'address',
-        'address',
-        'uint256',
-        'uint256',
-        'bytes32',
-      ].map(t => ({ type: t })),
-      [
-        ZAP_DATA.client,
-        ZAP_DATA.clientReceiver,
-        false,
-        ZAP_DATA.arbitration,
-        ZAP_DATA.resolver,
-        ZAP_DATA.token,
-        ZAP_DATA.escrowDeadline,
-        ZAP_DATA.saltNonce + i,
-        ZAP_DATA.details,
-      ],
-    );
+
+    const escrowStructAbi = parseAbiParameters([
+      '(address client, address clientReceiver, bool requireVerification, uint8 resolverType, address resolver, address token, uint256 terminationTime, bytes32 saltNonce, string details)',
+    ]);
+
+    const encodedEscrowData = encodeAbiParameters(escrowStructAbi, [
+      {
+        client: ZAP_DATA.client,
+        clientReceiver: ZAP_DATA.clientReceiver,
+        requireVerification: false,
+        resolverType: ZAP_DATA.arbitration,
+        resolver: ZAP_DATA.resolver,
+        token: ZAP_DATA.token,
+        terminationTime: BigInt(ZAP_DATA.escrowDeadline),
+        saltNonce: toHex(BigInt(ZAP_DATA.saltNonce + i), { size: 32 }),
+        details: ZAP_DATA.details,
+      },
+    ]);
 
     const txHash = await zap.write.createSafeSplitEscrow([
       ZAP_DATA.owners,
@@ -271,7 +266,6 @@ describe('SafeSplitsEscrowZap', function () {
     expect(await escrow.read.terminationTime()).to.equal(
       ZAP_DATA.escrowDeadline,
     );
-    expect(await escrow.read.details()).to.equal(ZAP_DATA.details);
     expect(await escrow.read.providerReceiver()).to.equal(split);
     expect(await escrow.read.provider()).to.equal(safe.address);
   });

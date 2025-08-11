@@ -22,7 +22,7 @@ interface ISafeSplitsEscrowZap {
         address token;
         uint256 terminationTime;
         bytes32 saltNonce;
-        bytes32 details;
+        string details;
     }
 
     /**

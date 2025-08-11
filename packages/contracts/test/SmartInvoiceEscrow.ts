@@ -98,7 +98,7 @@ describe('SmartInvoiceEscrow', function () {
         'address',
         'address',
         'uint256',
-        'bytes32',
+        'string',
         'address',
         'bool',
         'address',
@@ -111,7 +111,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(resolver.account.address),
         mockToken,
         BigInt(terminationTime),
-        zeroHash,
+        '',
         mockWrappedNativeToken,
         requireVerification,
         factory.address,
@@ -153,7 +153,6 @@ describe('SmartInvoiceEscrow', function () {
         expect(await invoice.read.amounts([BigInt(i)])).to.equal(amounts[i]);
       }
       expect(await invoice.read.terminationTime()).to.equal(terminationTime);
-      expect(await invoice.read.details()).to.equal(zeroHash);
       expect(await invoice.read.resolutionRate()).to.equal(resolutionRate);
       expect(await invoice.read.milestone()).to.equal(0n);
       expect(await invoice.read.total()).to.equal(total);
@@ -826,7 +825,7 @@ describe('SmartInvoiceEscrow', function () {
           'address',
           'address',
           'uint256',
-          'bytes32',
+          'string',
           'address',
           'bool',
           'address',
@@ -839,7 +838,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(resolver.account.address),
           mockToken,
           BigInt(terminationTime),
-          zeroHash,
+          '',
           mockWrappedNativeToken,
           requireVerification,
           factory.address,
@@ -942,7 +941,7 @@ describe('SmartInvoiceEscrow', function () {
           'address',
           'address',
           'uint256',
-          'bytes32',
+          'string',
           'address',
           'bool',
           'address',
@@ -955,7 +954,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(resolver.account.address),
           mockToken,
           BigInt(currentTime + 1000),
-          zeroHash,
+          '',
           mockWrappedNativeToken,
           false,
           factory.address,
@@ -1038,7 +1037,7 @@ describe('SmartInvoiceEscrow', function () {
           'address',
           'address',
           'uint256',
-          'bytes32',
+          'string',
           'address',
           'bool',
           'address',
@@ -1051,7 +1050,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(resolver.account.address),
           mockToken,
           BigInt(currentTime + 1000),
-          zeroHash,
+          '',
           mockWrappedNativeToken,
           false,
           factory.address,

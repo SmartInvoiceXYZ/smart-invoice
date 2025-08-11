@@ -158,46 +158,12 @@ contract SafeSplitsEscrowZap is
      * @dev Internal function to handle escrow data.
      * @param _escrowData The encoded data for escrow setup.
      */
-    function _handleEscrowData(
+    function _decodeEscrowData(
         bytes calldata _escrowData
-    ) internal pure returns (EscrowData memory) {
-        (
-            address client,
-            address clientReceiver,
-            bool requireVerification,
-            uint32 resolverType,
-            address resolver,
-            address token,
-            uint256 terminationTime,
-            uint256 saltNonce,
-            bytes32 details
-        ) = abi.decode(
-                _escrowData,
-                (
-                    address,
-                    address,
-                    bool,
-                    uint32,
-                    address,
-                    address,
-                    uint256,
-                    uint256,
-                    bytes32
-                )
-            );
+    ) internal pure returns (EscrowData memory escrowData) {
+        escrowData = abi.decode(_escrowData, (EscrowData));
 
-        return
-            EscrowData({
-                client: client,
-                clientReceiver: clientReceiver,
-                requireVerification: requireVerification,
-                resolverType: uint8(resolverType),
-                resolver: resolver,
-                token: token,
-                terminationTime: terminationTime,
-                saltNonce: bytes32(saltNonce),
-                details: details
-            });
+        return escrowData;
     }
 
     /**
@@ -205,7 +171,7 @@ contract SafeSplitsEscrowZap is
      * @param _zapData The data struct for storing deployment results.
      * @return The escrow parameters for the deployment.
      */
-    function _handleEscrowParams(
+    function _decodeEscrowParams(
         ZapData memory _zapData
     ) internal pure returns (address[] memory) {
         address[] memory escrowParams = new address[](2);
@@ -228,7 +194,7 @@ contract SafeSplitsEscrowZap is
         bytes calldata _escrowData,
         address[] memory _escrowParams
     ) internal returns (address escrow) {
-        EscrowData memory escrowData = _handleEscrowData(_escrowData);
+        EscrowData memory escrowData = _decodeEscrowData(_escrowData);
 
         // Encode data for escrow setup
         bytes memory escrowDetails = abi.encode(
@@ -294,7 +260,7 @@ contract SafeSplitsEscrowZap is
             zapData.providerSafe
         );
 
-        address[] memory escrowParams = _handleEscrowParams(zapData);
+        address[] memory escrowParams = _decodeEscrowParams(zapData);
 
         zapData.escrow = _deployEscrow(
             _milestoneAmounts,
@@ -374,7 +340,7 @@ contract SafeSplitsEscrowZap is
      * @param _data The encoded data for updating addresses.
      */
     function updateAddresses(bytes calldata _data) external {
-        if (!hasRole(ADMIN, _msgSender())) revert NotAuthorized();
+        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
         _updateAddresses(_data);
     }
 
@@ -383,7 +349,7 @@ contract SafeSplitsEscrowZap is
      * @param _distributorFee The new distributor fee.
      */
     function updateDistributorFee(uint32 _distributorFee) external {
-        if (!hasRole(ADMIN, _msgSender())) revert NotAuthorized();
+        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
         distributorFee = _distributorFee;
         emit UpdatedDistributorFee(_distributorFee);
     }

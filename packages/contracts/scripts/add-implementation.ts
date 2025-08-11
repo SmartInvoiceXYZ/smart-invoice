@@ -1,6 +1,6 @@
 import { network, viem } from 'hardhat';
 import { ContractTypesMap } from 'hardhat/types/artifacts';
-import { formatEther, Hex, toBytes, toHex } from 'viem';
+import { formatEther, Hex, keccak256, toBytes } from 'viem';
 
 import { getFactory, getNetworkCurrency, getNetworkName } from './constants';
 import {
@@ -23,15 +23,11 @@ const ESCROW_TYPES: EscrowTypes = {
     invoiceType: 'escrow-v3',
     contractName: 'SmartInvoiceEscrow',
   },
-  'split-escrow': {
-    invoiceType: 'split-escrow',
-    contractName: 'SmartInvoiceSplitEscrow',
-  },
 };
 
 // Select the desired escrow type
 const escrowTypeData = ESCROW_TYPES['escrow-v3'];
-const escrowType = toHex(toBytes(escrowTypeData.invoiceType, { size: 32 }));
+const escrowType = keccak256(toBytes(escrowTypeData.invoiceType));
 
 async function main(): Promise<void> {
   if (!escrowType) return;

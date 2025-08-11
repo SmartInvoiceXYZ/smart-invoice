@@ -67,7 +67,6 @@
     "test-dao-zap": "hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.ts",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.ts",
-    "test-split": "hardhat test ./test/SmartInvoiceSplitEscrow.ts",
     "test-spoils": "hardhat test ./test/SpoilsManager.ts",
     "test-spoils-factory": "hardhat test ./test/SpoilsManagerFactory.ts",
     "test-zap": "hardhat test ./test/SafeSplitsEscrowZap.ts",
