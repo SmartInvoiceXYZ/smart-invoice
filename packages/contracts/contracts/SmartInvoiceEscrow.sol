@@ -54,6 +54,9 @@ contract SmartInvoiceEscrow is
     uint256 public terminationTime;
     uint256 public resolutionRate;
 
+    uint256 public feeBPS; // fee in basis points (100 = 1%)
+    address public treasury; // treasury address to receive fees
+
     uint256[] public amounts; // milestones split into amounts
     uint256 public total = 0;
     bool public locked;
@@ -105,65 +108,44 @@ contract SmartInvoiceEscrow is
      * @param _data The data to be handled and decoded
      */
     function _handleData(bytes calldata _data) internal virtual {
-        (
-            address _client,
-            uint8 _resolverType,
-            address _resolver,
-            address _token,
-            uint256 _terminationTime,
-            string memory _details,
-            address _wrappedNativeToken,
-            bool _requireVerification,
-            address _factory,
-            address _providerReceiver,
-            address _clientReceiver
-        ) = abi.decode(
-                _data,
-                (
-                    address,
-                    uint8,
-                    address,
-                    address,
-                    uint256,
-                    string,
-                    address,
-                    bool,
-                    address,
-                    address,
-                    address
-                )
-            );
+        InitData memory initData = abi.decode(_data, (InitData));
 
-        uint256 _resolutionRate = ISmartInvoiceFactory(_factory)
-            .resolutionRateOf(_resolver);
+        uint256 _resolutionRate = ISmartInvoiceFactory(initData.factory)
+            .resolutionRateOf(initData.resolver);
         if (_resolutionRate == 0) {
             _resolutionRate = 20;
         }
 
-        if (_client == address(0)) revert InvalidClient();
-        if (_resolverType > uint8(ADR.ARBITRATOR)) revert InvalidResolverType();
-        if (_resolver == address(0)) revert InvalidResolver();
-        if (_token == address(0)) revert InvalidToken();
-        if (_terminationTime <= block.timestamp) revert DurationEnded();
-        if (_terminationTime > block.timestamp + MAX_TERMINATION_TIME)
+        if (initData.client == address(0)) revert InvalidClient();
+        if (initData.resolverType > uint8(ADR.ARBITRATOR))
+            revert InvalidResolverType();
+        if (initData.resolver == address(0)) revert InvalidResolver();
+        if (initData.token == address(0)) revert InvalidToken();
+        if (initData.terminationTime <= block.timestamp) revert DurationEnded();
+        if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
         if (_resolutionRate == 0) revert InvalidResolutionRate();
-        if (_wrappedNativeToken == address(0))
+        if (initData.wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
+        if (initData.feeBPS > 10000) revert InvalidFeeBPS(); // max 100%
+        if (initData.feeBPS > 0 && initData.treasury == address(0))
+            revert InvalidTreasury();
 
-        client = _client;
-        resolverType = ADR(_resolverType);
-        resolver = _resolver;
-        token = _token;
-        terminationTime = _terminationTime;
+        client = initData.client;
+        resolverType = ADR(initData.resolverType);
+        resolver = initData.resolver;
+        token = initData.token;
+        terminationTime = initData.terminationTime;
         resolutionRate = _resolutionRate;
-        wrappedNativeToken = _wrappedNativeToken;
-        providerReceiver = _providerReceiver;
-        clientReceiver = _clientReceiver;
+        wrappedNativeToken = initData.wrappedNativeToken;
+        providerReceiver = initData.providerReceiver;
+        clientReceiver = initData.clientReceiver;
+        feeBPS = initData.feeBPS;
+        treasury = initData.treasury;
 
-        if (!_requireVerification) emit Verified(client, address(this));
+        if (!initData.requireVerification) emit Verified(client, address(this));
 
-        emit MetaEvidence(0, _details);
+        emit MetaEvidence(0, initData.details);
     }
 
     /**
@@ -589,7 +571,18 @@ contract SmartInvoiceEscrow is
         address recipient = providerReceiver != address(0)
             ? providerReceiver
             : provider;
-        IERC20(_token).safeTransfer(recipient, _amount);
+
+        if (feeBPS > 0 && treasury != address(0)) {
+            uint256 feeAmount = (_amount * feeBPS) / 10000;
+            uint256 netAmount = _amount - feeAmount;
+
+            IERC20(_token).safeTransfer(treasury, feeAmount);
+            IERC20(_token).safeTransfer(recipient, netAmount);
+
+            emit FeeTransferred(_token, feeAmount, treasury);
+        } else {
+            IERC20(_token).safeTransfer(recipient, _amount);
+        }
     }
 
     /**
@@ -604,7 +597,18 @@ contract SmartInvoiceEscrow is
         address recipient = clientReceiver != address(0)
             ? clientReceiver
             : client;
-        IERC20(_token).safeTransfer(recipient, _amount);
+
+        if (feeBPS > 0 && treasury != address(0)) {
+            uint256 feeAmount = (_amount * feeBPS) / 10000;
+            uint256 netAmount = _amount - feeAmount;
+
+            IERC20(_token).safeTransfer(treasury, feeAmount);
+            IERC20(_token).safeTransfer(recipient, netAmount);
+
+            emit FeeTransferred(_token, feeAmount, treasury);
+        } else {
+            IERC20(_token).safeTransfer(recipient, _amount);
+        }
     }
 
     // receive eth transfers

@@ -10,7 +10,52 @@ import {
   Hex,
   parseAbi,
   parseEventLogs,
+  zeroAddress,
 } from 'viem';
+
+export type InitData = {
+  client: Hex;
+  resolverType: number;
+  resolver: Hex;
+  token: Hex;
+  terminationTime: bigint;
+  wrappedNativeToken: Hex;
+  requireVerification: boolean;
+  factory: Hex;
+  providerReceiver: Hex;
+  clientReceiver: Hex;
+  feeBPS: bigint;
+  treasury: Hex;
+  details: string;
+};
+
+// Helper function to encode InitData struct
+export const encodeInitData = (initData: InitData) => {
+  return encodeAbiParameters(
+    [
+      {
+        type: 'tuple',
+        name: 'initData',
+        components: [
+          { name: 'client', type: 'address' },
+          { name: 'resolverType', type: 'uint8' },
+          { name: 'resolver', type: 'address' },
+          { name: 'token', type: 'address' },
+          { name: 'terminationTime', type: 'uint256' },
+          { name: 'wrappedNativeToken', type: 'address' },
+          { name: 'requireVerification', type: 'bool' },
+          { name: 'factory', type: 'address' },
+          { name: 'providerReceiver', type: 'address' },
+          { name: 'clientReceiver', type: 'address' },
+          { name: 'feeBPS', type: 'uint256' },
+          { name: 'treasury', type: 'address' },
+          { name: 'details', type: 'string' },
+        ],
+      },
+    ],
+    [initData],
+  );
+};
 
 export const awaitInvoiceAddress = async (
   receipt: GetTransactionReceiptReturnType,
@@ -50,35 +95,50 @@ export const createEscrow = async (
   details: string,
   wrappedNativeToken: Hex,
   requireVerification: boolean,
+  feeBPS: bigint = 0n,
+  treasury: Hex = zeroAddress,
 ): Promise<GetTransactionReceiptReturnType> => {
   await factory.write.addImplementation([type, invoice.address]);
 
+  // Create InitData struct for escrow setup
   const data = encodeAbiParameters(
     [
-      'address',
-      'uint8',
-      'address',
-      'address',
-      'uint256',
-      'string',
-      'address',
-      'bool',
-      'address',
-      'address',
-      'address',
-    ].map(x => ({ type: x })),
+      {
+        type: 'tuple',
+        name: 'initData',
+        components: [
+          { name: 'client', type: 'address' },
+          { name: 'resolverType', type: 'uint8' },
+          { name: 'resolver', type: 'address' },
+          { name: 'token', type: 'address' },
+          { name: 'terminationTime', type: 'uint256' },
+          { name: 'wrappedNativeToken', type: 'address' },
+          { name: 'requireVerification', type: 'bool' },
+          { name: 'factory', type: 'address' },
+          { name: 'providerReceiver', type: 'address' },
+          { name: 'clientReceiver', type: 'address' },
+          { name: 'feeBPS', type: 'uint256' },
+          { name: 'treasury', type: 'address' },
+          { name: 'details', type: 'string' },
+        ],
+      },
+    ],
     [
-      client,
-      resolverType,
-      resolver,
-      token,
-      BigInt(terminationTime), // exact termination date in seconds since epoch
-      details,
-      wrappedNativeToken,
-      requireVerification,
-      factory.address,
-      '0x0000000000000000000000000000000000000000', // no providerReceiver
-      '0x0000000000000000000000000000000000000000', // no clientReceiver
+      {
+        client,
+        resolverType,
+        resolver,
+        token,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: zeroAddress, // no providerReceiver
+        clientReceiver: zeroAddress, // no clientReceiver
+        feeBPS,
+        treasury,
+        details,
+      },
     ],
   );
 

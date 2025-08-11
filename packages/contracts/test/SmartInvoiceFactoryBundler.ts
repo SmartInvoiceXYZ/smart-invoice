@@ -5,16 +5,9 @@ import {
 import { expect } from 'chai';
 import { viem } from 'hardhat';
 import { ContractTypesMap } from 'hardhat/types';
-import {
-  encodeAbiParameters,
-  getAddress,
-  Hex,
-  toBytes,
-  toHex,
-  zeroAddress,
-} from 'viem';
+import { getAddress, Hex, toBytes, toHex, zeroAddress } from 'viem';
 
-import { awaitInvoiceAddress } from './utils';
+import { awaitInvoiceAddress, currentTimestamp, encodeInitData } from './utils';
 
 const escrowData = {
   client: '' as Hex,
@@ -88,6 +81,10 @@ describe('SmartInvoiceFactoryBundler', function () {
     ];
   });
 
+  beforeEach(async function () {
+    escrowData.terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
+  });
+
   it('Should deploy an escrow v2 successfully', async function () {
     const fundAmount = milestoneAmounts.reduce(
       (sum, value) => sum + value,
@@ -109,34 +106,21 @@ describe('SmartInvoiceFactoryBundler', function () {
 
     expect(allowance).to.be.greaterThanOrEqual(fundAmount);
 
-    const encodedEscrowData = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'bytes32',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      [
-        escrowData.client,
-        resolverType,
-        escrowData.resolver,
-        escrowData.token,
-        escrowData.terminationTime,
-        escrowData.details,
-        wrappedNativeToken.address,
-        requireVerification,
-        factory.address,
-        escrowData.providerReceiver,
-        escrowData.clientReceiver,
-      ],
-    );
+    const encodedEscrowData = encodeInitData({
+      client: escrowData.client,
+      resolverType,
+      resolver: escrowData.resolver,
+      token: escrowData.token,
+      terminationTime: BigInt(escrowData.terminationTime),
+      wrappedNativeToken: wrappedNativeToken.address,
+      requireVerification,
+      factory: factory.address,
+      providerReceiver: escrowData.providerReceiver,
+      clientReceiver: escrowData.clientReceiver,
+      feeBPS: 0n, // no fees
+      treasury: zeroAddress, // no treasury needed when feeBPS is 0
+      details: '',
+    });
 
     const txHash = await bundler.write.deployEscrow(
       [
@@ -217,34 +201,21 @@ describe('SmartInvoiceFactoryBundler', function () {
       BigInt(0),
     );
 
-    const encodedEscrowData = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'bytes32',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      [
-        escrowData.client,
-        resolverType,
-        escrowData.resolver,
-        wrappedNativeToken.address,
-        escrowData.terminationTime,
-        escrowData.details,
-        wrappedNativeToken.address,
-        requireVerification,
-        factory.address,
-        escrowData.providerReceiver,
-        escrowData.clientReceiver,
-      ],
-    );
+    const encodedEscrowData = encodeInitData({
+      client: escrowData.client,
+      resolverType,
+      resolver: escrowData.resolver,
+      token: wrappedNativeToken.address,
+      terminationTime: BigInt(escrowData.terminationTime),
+      wrappedNativeToken: wrappedNativeToken.address,
+      requireVerification,
+      factory: factory.address,
+      providerReceiver: escrowData.providerReceiver,
+      clientReceiver: escrowData.clientReceiver,
+      feeBPS: 0n, // no fees
+      treasury: zeroAddress, // no treasury needed when feeBPS is 0
+      details: '',
+    });
 
     const txHash = await bundler.write.deployEscrow(
       [

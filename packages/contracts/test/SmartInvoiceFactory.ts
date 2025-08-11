@@ -15,12 +15,12 @@ import {
   zeroHash,
 } from 'viem';
 
-import { awaitInvoiceAddress } from './utils';
+import { awaitInvoiceAddress, currentTimestamp, encodeInitData } from './utils';
 
 const resolverType = 0;
 const amounts = [BigInt(10), BigInt(10)];
 const total = amounts.reduce((t, v) => t + v, BigInt(0));
-const terminationTime =
+let terminationTime =
   Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60;
 const requireVerification = true;
 const escrowType = toHex(toBytes('escrow', { size: 32 }));
@@ -41,19 +41,21 @@ describe('SmartInvoiceFactory', function () {
   let resolver: Hex;
 
   let data: Hex;
-  let escrowData: [
-    Hex,
-    number,
-    Hex,
-    Hex,
-    bigint,
-    Hex,
-    Hex,
-    boolean,
-    Hex,
-    Hex,
-    Hex,
-  ];
+  let escrowInitData: {
+    client: Hex;
+    resolverType: number;
+    resolver: Hex;
+    token: Hex;
+    terminationTime: bigint;
+    wrappedNativeToken: Hex;
+    requireVerification: boolean;
+    factory: Hex;
+    providerReceiver: Hex;
+    clientReceiver: Hex;
+    feeBPS: bigint;
+    treasury: Hex;
+    details: string;
+  };
 
   beforeEach(async function () {
     const walletClients = await viem.getWalletClients();
@@ -69,26 +71,28 @@ describe('SmartInvoiceFactory', function () {
     const mockWrappedToken = await viem.deployContract('MockWETH');
     wrappedNativeToken = getAddress(mockWrappedToken.address);
 
-    const details = zeroHash;
-
     escrow = await viem.deployContract('SmartInvoiceEscrow');
     invoiceFactory = await viem.deployContract('SmartInvoiceFactory', [
       wrappedNativeToken,
     ]);
 
-    escrowData = [
+    terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+    escrowInitData = {
       client,
       resolverType,
       resolver,
       token,
-      BigInt(terminationTime), // exact termination date in seconds since epoch
-      details,
+      terminationTime: BigInt(terminationTime),
       wrappedNativeToken,
       requireVerification,
-      invoiceFactory.address,
-      zeroAddress, // no providerReceiver
-      zeroAddress, // no clientReceiver
-    ];
+      factory: invoiceFactory.address,
+      providerReceiver: zeroAddress,
+      clientReceiver: zeroAddress,
+      feeBPS: 0n, // no fees
+      treasury: zeroAddress, // no treasury needed when feeBPS is 0
+      details: '',
+    };
   });
 
   it('Should deploy with 0 invoiceCount', async function () {
@@ -158,22 +162,7 @@ describe('SmartInvoiceFactory', function () {
   it('Should deploy a SmartInvoiceEscrow', async function () {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = await invoiceFactory.read.currentVersions([escrowType]);
-    data = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'string',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      escrowData,
-    );
+    data = encodeInitData(escrowInitData);
 
     const hash = await invoiceFactory.write.create([
       provider,
@@ -238,22 +227,7 @@ describe('SmartInvoiceFactory', function () {
   it('Should predict SmartInvoice address', async function () {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = await invoiceFactory.read.currentVersions([escrowType]);
-    data = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'string',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      escrowData,
-    );
+    data = encodeInitData(escrowInitData);
 
     const predictedAddress =
       await invoiceFactory.read.predictDeterministicAddress([
@@ -306,22 +280,7 @@ describe('SmartInvoiceFactory', function () {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
     const version = 0;
 
-    data = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'string',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      escrowData,
-    );
+    data = encodeInitData(escrowInitData);
 
     await invoiceFactory.write.updateResolutionRate([10n, zeroHash], {
       account: addr2.account,
@@ -354,22 +313,7 @@ describe('SmartInvoiceFactory', function () {
   it('Should update invoiceCount', async function () {
     await invoiceFactory.write.addImplementation([escrowType, escrow.address]);
 
-    data = encodeAbiParameters(
-      [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'string',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
-      escrowData,
-    );
+    data = encodeInitData(escrowInitData);
 
     expect(await invoiceFactory.read.invoiceCount()).to.equal(0n);
     let hash = await invoiceFactory.write.create([

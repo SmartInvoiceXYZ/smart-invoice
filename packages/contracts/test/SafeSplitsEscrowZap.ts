@@ -168,7 +168,7 @@ describe('SafeSplitsEscrowZap', function () {
     );
 
     const escrowStructAbi = parseAbiParameters([
-      '(address client, address clientReceiver, bool requireVerification, uint8 resolverType, address resolver, address token, uint256 terminationTime, bytes32 saltNonce, string details)',
+      '(address client, address clientReceiver, bool requireVerification, uint8 resolverType, address resolver, address token, uint256 terminationTime, bytes32 saltNonce, uint256 feeBPS, address treasury, string details)',
     ]);
 
     const encodedEscrowData = encodeAbiParameters(escrowStructAbi, [
@@ -181,6 +181,8 @@ describe('SafeSplitsEscrowZap', function () {
         token: ZAP_DATA.token,
         terminationTime: BigInt(ZAP_DATA.escrowDeadline),
         saltNonce: toHex(BigInt(ZAP_DATA.saltNonce + i), { size: 32 }),
+        feeBPS: BigInt(0), // no fees
+        treasury: zeroAddress, // no treasury needed when feeBPS is 0
         details: ZAP_DATA.details,
       },
     ]);

@@ -20,6 +20,7 @@ import {
   awaitInvoiceAddress,
   createEscrow,
   currentTimestamp,
+  encodeInitData,
   getBalanceOf,
   getLockedEscrow,
   setBalanceOf,
@@ -29,7 +30,7 @@ const individualResolverType = 0;
 const arbitratorResolverType = 1;
 const amounts = [BigInt(10), BigInt(10)];
 const total = amounts.reduce((t, v) => t + v, BigInt(0));
-const terminationTime =
+let terminationTime =
   Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60;
 const resolutionRate = 20n;
 const requireVerification = true;
@@ -90,33 +91,47 @@ describe('SmartInvoiceEscrow', function () {
 
     await factory.write.addImplementation([invoiceType, invoiceImpl.address]);
 
-    // Create basic escrow without receiver addresses (optional)
+    terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+    // Create basic escrow using InitData struct
     const data = encodeAbiParameters(
       [
-        'address',
-        'uint8',
-        'address',
-        'address',
-        'uint256',
-        'string',
-        'address',
-        'bool',
-        'address',
-        'address',
-        'address',
-      ].map(v => ({ type: v })),
+        {
+          type: 'tuple',
+          name: 'initData',
+          components: [
+            { name: 'client', type: 'address' },
+            { name: 'resolverType', type: 'uint8' },
+            { name: 'resolver', type: 'address' },
+            { name: 'token', type: 'address' },
+            { name: 'terminationTime', type: 'uint256' },
+            { name: 'wrappedNativeToken', type: 'address' },
+            { name: 'requireVerification', type: 'bool' },
+            { name: 'factory', type: 'address' },
+            { name: 'providerReceiver', type: 'address' },
+            { name: 'clientReceiver', type: 'address' },
+            { name: 'feeBPS', type: 'uint256' },
+            { name: 'treasury', type: 'address' },
+            { name: 'details', type: 'string' },
+          ],
+        },
+      ],
       [
-        getAddress(client.account.address),
-        individualResolverType,
-        getAddress(resolver.account.address),
-        mockToken,
-        BigInt(terminationTime),
-        '',
-        mockWrappedNativeToken,
-        requireVerification,
-        factory.address,
-        zeroAddress, // no providerReceiver
-        zeroAddress, // no clientReceiver
+        {
+          client: getAddress(client.account.address),
+          resolverType: individualResolverType,
+          resolver: getAddress(resolver.account.address),
+          token: mockToken,
+          terminationTime: BigInt(terminationTime),
+          wrappedNativeToken: mockWrappedNativeToken,
+          requireVerification,
+          factory: factory.address,
+          providerReceiver: zeroAddress, // no providerReceiver
+          clientReceiver: zeroAddress, // no clientReceiver
+          feeBPS: 0n, // no fees
+          treasury: zeroAddress, // no treasury needed when feeBPS is 0
+          details: '',
+        },
       ],
     );
 
@@ -817,33 +832,45 @@ describe('SmartInvoiceEscrow', function () {
     let updatableInvoice: ContractTypesMap['SmartInvoiceEscrow'];
 
     beforeEach(async function () {
-      // Create invoice with receiver addresses
+      // Create invoice with receiver addresses using InitData struct
       const data = encodeAbiParameters(
         [
-          'address',
-          'uint8',
-          'address',
-          'address',
-          'uint256',
-          'string',
-          'address',
-          'bool',
-          'address',
-          'address',
-          'address',
-        ].map(v => ({ type: v })),
+          {
+            type: 'tuple',
+            name: 'initData',
+            components: [
+              { name: 'client', type: 'address' },
+              { name: 'resolverType', type: 'uint8' },
+              { name: 'resolver', type: 'address' },
+              { name: 'token', type: 'address' },
+              { name: 'terminationTime', type: 'uint256' },
+              { name: 'wrappedNativeToken', type: 'address' },
+              { name: 'requireVerification', type: 'bool' },
+              { name: 'factory', type: 'address' },
+              { name: 'providerReceiver', type: 'address' },
+              { name: 'clientReceiver', type: 'address' },
+              { name: 'feeBPS', type: 'uint256' },
+              { name: 'treasury', type: 'address' },
+              { name: 'details', type: 'string' },
+            ],
+          },
+        ],
         [
-          getAddress(client.account.address),
-          individualResolverType,
-          getAddress(resolver.account.address),
-          mockToken,
-          BigInt(terminationTime),
-          '',
-          mockWrappedNativeToken,
-          requireVerification,
-          factory.address,
-          getAddress(providerReceiver.account.address),
-          getAddress(clientReceiver.account.address),
+          {
+            client: getAddress(client.account.address),
+            resolverType: individualResolverType,
+            resolver: getAddress(resolver.account.address),
+            token: mockToken,
+            terminationTime: BigInt(terminationTime),
+            wrappedNativeToken: mockWrappedNativeToken,
+            requireVerification,
+            factory: factory.address,
+            providerReceiver: getAddress(providerReceiver.account.address),
+            clientReceiver: getAddress(clientReceiver.account.address),
+            feeBPS: 0n, // no fees for this test
+            treasury: zeroAddress, // no treasury needed when feeBPS is 0
+            details: '',
+          },
         ],
       );
 
@@ -936,30 +963,42 @@ describe('SmartInvoiceEscrow', function () {
       const currentTime = await currentTimestamp();
       const data = encodeAbiParameters(
         [
-          'address',
-          'uint8',
-          'address',
-          'address',
-          'uint256',
-          'string',
-          'address',
-          'bool',
-          'address',
-          'address',
-          'address',
-        ].map(v => ({ type: v })),
+          {
+            type: 'tuple',
+            name: 'initData',
+            components: [
+              { name: 'client', type: 'address' },
+              { name: 'resolverType', type: 'uint8' },
+              { name: 'resolver', type: 'address' },
+              { name: 'token', type: 'address' },
+              { name: 'terminationTime', type: 'uint256' },
+              { name: 'wrappedNativeToken', type: 'address' },
+              { name: 'requireVerification', type: 'bool' },
+              { name: 'factory', type: 'address' },
+              { name: 'providerReceiver', type: 'address' },
+              { name: 'clientReceiver', type: 'address' },
+              { name: 'feeBPS', type: 'uint256' },
+              { name: 'treasury', type: 'address' },
+              { name: 'details', type: 'string' },
+            ],
+          },
+        ],
         [
-          getAddress(client.account.address),
-          individualResolverType,
-          getAddress(resolver.account.address),
-          mockToken,
-          BigInt(currentTime + 1000),
-          '',
-          mockWrappedNativeToken,
-          false,
-          factory.address,
-          getAddress(providerReceiver.account.address),
-          getAddress(clientReceiver.account.address),
+          {
+            client: getAddress(client.account.address),
+            resolverType: individualResolverType,
+            resolver: getAddress(resolver.account.address),
+            token: mockToken,
+            terminationTime: BigInt(currentTime + 1000),
+            wrappedNativeToken: mockWrappedNativeToken,
+            requireVerification: false,
+            factory: factory.address,
+            providerReceiver: getAddress(providerReceiver.account.address),
+            clientReceiver: getAddress(clientReceiver.account.address),
+            feeBPS: 0n,
+            treasury: zeroAddress,
+            details: '',
+          },
         ],
       );
 
@@ -1032,30 +1071,42 @@ describe('SmartInvoiceEscrow', function () {
       // Create a new invoice with short termination time for withdrawal testing
       const data = encodeAbiParameters(
         [
-          'address',
-          'uint8',
-          'address',
-          'address',
-          'uint256',
-          'string',
-          'address',
-          'bool',
-          'address',
-          'address',
-          'address',
-        ].map(v => ({ type: v })),
+          {
+            type: 'tuple',
+            name: 'initData',
+            components: [
+              { name: 'client', type: 'address' },
+              { name: 'resolverType', type: 'uint8' },
+              { name: 'resolver', type: 'address' },
+              { name: 'token', type: 'address' },
+              { name: 'terminationTime', type: 'uint256' },
+              { name: 'wrappedNativeToken', type: 'address' },
+              { name: 'requireVerification', type: 'bool' },
+              { name: 'factory', type: 'address' },
+              { name: 'providerReceiver', type: 'address' },
+              { name: 'clientReceiver', type: 'address' },
+              { name: 'feeBPS', type: 'uint256' },
+              { name: 'treasury', type: 'address' },
+              { name: 'details', type: 'string' },
+            ],
+          },
+        ],
         [
-          getAddress(client.account.address),
-          individualResolverType,
-          getAddress(resolver.account.address),
-          mockToken,
-          BigInt(currentTime + 1000),
-          '',
-          mockWrappedNativeToken,
-          false,
-          factory.address,
-          getAddress(providerReceiver.account.address),
-          getAddress(clientReceiver.account.address),
+          {
+            client: getAddress(client.account.address),
+            resolverType: individualResolverType,
+            resolver: getAddress(resolver.account.address),
+            token: mockToken,
+            terminationTime: BigInt(currentTime + 1000),
+            wrappedNativeToken: mockWrappedNativeToken,
+            requireVerification: false,
+            factory: factory.address,
+            providerReceiver: getAddress(providerReceiver.account.address),
+            clientReceiver: getAddress(clientReceiver.account.address),
+            feeBPS: 0n,
+            treasury: zeroAddress,
+            details: '',
+          },
         ],
       );
 
@@ -1105,6 +1156,490 @@ describe('SmartInvoiceEscrow', function () {
       expect(afterBalance).to.equal(beforeBalance + 10n);
       // Original receiver should not receive anything
       expect(afterOriginalBalance).to.equal(beforeOriginalBalance);
+    });
+  });
+
+  describe('Fee System', function () {
+    it('Should set fee parameters during initialization', async function () {
+      const feeBPS = 500n; // 5%
+      const treasury = randomSigner.account.address;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      expect(await tempInvoice.read.feeBPS()).to.equal(feeBPS);
+      expect(await tempInvoice.read.treasury()).to.equal(getAddress(treasury));
+    });
+
+    it('Should revert initialization with invalid feeBPS', async function () {
+      const invalidFeeBPS = 10001n; // > 10000 (100%)
+      const treasury = randomSigner.account.address;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS: invalidFeeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+
+      await expect(hash).to.be.revertedWithCustomError(
+        invoice,
+        'InvalidFeeBPS',
+      );
+    });
+
+    it('Should revert initialization with invalid treasury when feeBPS > 0', async function () {
+      const feeBPS = 500n; // 5%
+      const invalidTreasury = zeroAddress;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury: invalidTreasury,
+        details: '',
+      });
+
+      const hash = factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+
+      await expect(hash).to.be.revertedWithCustomError(
+        invoice,
+        'InvalidTreasury',
+      );
+    });
+
+    it('Should deduct fees on provider payment', async function () {
+      const feeBPS = 1000n; // 10%
+      const treasury = randomSigner.account.address;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+
+      const beforeProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      const releaseHash = await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      const milestoneAmount = amounts[0];
+      const expectedFee = (milestoneAmount * feeBPS) / 10000n;
+      const expectedProviderAmount = milestoneAmount - expectedFee;
+
+      const afterProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      expect(afterProviderBalance).to.equal(
+        beforeProviderBalance + expectedProviderAmount,
+      );
+      expect(afterTreasuryBalance).to.equal(
+        beforeTreasuryBalance + expectedFee,
+      );
+
+      // Check for FeeTransferred event
+      await expect(releaseHash)
+        .to.emit(tempInvoice, 'FeeTransferred')
+        .withArgs(mockToken, expectedFee, getAddress(treasury));
+    });
+
+    it('Should deduct fees on client withdrawal', async function () {
+      const feeBPS = 500n; // 5%
+      const treasury = randomSigner.account.address;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(terminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+      await testClient.increaseTime({ seconds: terminationTime + 1000 });
+
+      const beforeClientBalance = await getBalanceOf(
+        mockToken,
+        clientReceiver.account.address,
+      );
+      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      const withdrawHash = await tempInvoice.write.withdraw({
+        account: client.account,
+      });
+
+      const expectedFee = (total * feeBPS) / 10000n;
+      const expectedClientAmount = total - expectedFee;
+
+      const afterClientBalance = await getBalanceOf(
+        mockToken,
+        clientReceiver.account.address,
+      );
+      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      expect(afterClientBalance).to.equal(
+        beforeClientBalance + expectedClientAmount,
+      );
+      expect(afterTreasuryBalance).to.equal(
+        beforeTreasuryBalance + expectedFee,
+      );
+
+      // Check for FeeTransferred event
+      await expect(withdrawHash)
+        .to.emit(tempInvoice, 'FeeTransferred')
+        .withArgs(mockToken, expectedFee, getAddress(treasury));
+    });
+
+    it('Should handle different fee percentages correctly', async function () {
+      // Test 15% fee
+      const feeBPS = 1500n; // 15%
+      const treasury = randomSigner.account.address;
+      const futureTerminationTime =
+        (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(futureTerminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+
+      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      const milestoneAmount = amounts[0];
+      const expectedFee = (milestoneAmount * feeBPS) / 10000n;
+
+      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      expect(afterTreasuryBalance).to.equal(
+        beforeTreasuryBalance + expectedFee,
+      );
+    });
+
+    it('Should handle 100% fee correctly', async function () {
+      const feeBPS = 10000n; // 100%
+      const treasury = randomSigner.account.address;
+      const futureTerminationTime =
+        (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(futureTerminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+
+      const beforeProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      const milestoneAmount = amounts[0];
+      // With 100% fee, all funds go to treasury, none to provider
+      const expectedFee = milestoneAmount;
+      const expectedProviderAmount = 0n;
+
+      const afterProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      expect(afterProviderBalance).to.equal(
+        beforeProviderBalance + expectedProviderAmount,
+      );
+      expect(afterTreasuryBalance).to.equal(
+        beforeTreasuryBalance + expectedFee,
+      );
+    });
+
+    it('Should work with custom receiver addresses and fees', async function () {
+      const feeBPS = 750n; // 7.5%
+      const treasury = randomSigner.account.address;
+      const futureTerminationTime =
+        (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(futureTerminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver2.account.address, // Different receiver
+        clientReceiver: clientReceiver2.account.address, // Different receiver
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+
+      const beforeProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver2.account.address,
+      );
+      const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      const milestoneAmount = amounts[0];
+      const expectedFee = (milestoneAmount * feeBPS) / 10000n;
+      const expectedProviderAmount = milestoneAmount - expectedFee;
+
+      const afterProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver2.account.address,
+      );
+      const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
+
+      expect(afterProviderBalance).to.equal(
+        beforeProviderBalance + expectedProviderAmount,
+      );
+      expect(afterTreasuryBalance).to.equal(
+        beforeTreasuryBalance + expectedFee,
+      );
+    });
+
+    it('Should not charge fees when feeBPS is 0', async function () {
+      const feeBPS = 0n;
+      const treasury = zeroAddress; // Can be zero address when feeBPS is 0
+      const futureTerminationTime =
+        (await currentTimestamp()) + 30 * 24 * 60 * 60;
+
+      const data = encodeInitData({
+        client: client.account.address,
+        resolverType: individualResolverType,
+        resolver: resolver.account.address,
+        token: mockToken,
+        terminationTime: BigInt(futureTerminationTime),
+        wrappedNativeToken: mockWrappedNativeToken,
+        requireVerification,
+        factory: factory.address,
+        providerReceiver: providerReceiver.account.address,
+        clientReceiver: clientReceiver.account.address,
+        feeBPS,
+        treasury,
+        details: '',
+      });
+
+      const hash = await factory.write.create([
+        getAddress(provider.account.address),
+        amounts,
+        data,
+        invoiceType,
+      ]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      const address = await awaitInvoiceAddress(receipt);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        address!,
+      );
+
+      await setBalanceOf(mockToken, tempInvoice.address, total);
+
+      const beforeProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+
+      const releaseHash = await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      const afterProviderBalance = await getBalanceOf(
+        mockToken,
+        providerReceiver.account.address,
+      );
+
+      // Should receive full milestone amount without fees
+      expect(afterProviderBalance).to.equal(beforeProviderBalance + amounts[0]);
+
+      // Should not emit FeeTransferred event when no fees
+      await expect(releaseHash).not.to.emit(tempInvoice, 'FeeTransferred');
     });
   });
 });

@@ -11,6 +11,7 @@ import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
 import {ISplitMain} from "./interfaces/ISplitMain.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SafeSplitsEscrowZap
@@ -196,20 +197,26 @@ contract SafeSplitsEscrowZap is
     ) internal returns (address escrow) {
         EscrowData memory escrowData = _decodeEscrowData(_escrowData);
 
+        // Create InitData struct for escrow setup
+        ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
+            .InitData({
+                client: escrowData.client,
+                resolverType: escrowData.resolverType,
+                resolver: escrowData.resolver,
+                token: escrowData.token,
+                terminationTime: escrowData.terminationTime,
+                wrappedNativeToken: address(wrappedNativeToken),
+                requireVerification: escrowData.requireVerification,
+                factory: address(escrowFactory),
+                providerReceiver: _escrowParams[1], // providerReceiver
+                clientReceiver: escrowData.clientReceiver,
+                feeBPS: escrowData.feeBPS,
+                treasury: escrowData.treasury,
+                details: escrowData.details
+            });
+
         // Encode data for escrow setup
-        bytes memory escrowDetails = abi.encode(
-            escrowData.client,
-            escrowData.resolverType,
-            escrowData.resolver,
-            escrowData.token,
-            escrowData.terminationTime,
-            escrowData.details,
-            wrappedNativeToken,
-            escrowData.requireVerification,
-            address(escrowFactory), // factory address
-            _escrowParams[1], // providerReceiver
-            escrowData.clientReceiver
-        );
+        bytes memory escrowDetails = abi.encode(initData);
 
         // Deploy the escrow
         escrow = escrowFactory.createDeterministic(

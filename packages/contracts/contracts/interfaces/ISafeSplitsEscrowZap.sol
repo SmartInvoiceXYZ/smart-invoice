@@ -22,6 +22,8 @@ interface ISafeSplitsEscrowZap {
         address token;
         uint256 terminationTime;
         bytes32 saltNonce;
+        uint256 feeBPS;
+        address treasury;
         string details;
     }
 

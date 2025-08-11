@@ -7,6 +7,22 @@ import {ISmartInvoice} from "./ISmartInvoice.sol";
 /// @title ISmartInvoiceEscrow
 /// @notice Interface for Smart Invoice Escrow functionality with customizable milestones, releases, and dispute resolution.
 interface ISmartInvoiceEscrow is ISmartInvoice {
+    /// @dev Struct for storing initialization data.
+    struct InitData {
+        address client;
+        uint8 resolverType;
+        address resolver;
+        address token;
+        uint256 terminationTime;
+        address wrappedNativeToken;
+        bool requireVerification;
+        address factory;
+        address providerReceiver;
+        address clientReceiver;
+        uint256 feeBPS;
+        address treasury;
+        string details;
+    }
     /**
         @notice Returns the address of the token used for payment.
         @return The address of the token used for payment.
@@ -109,6 +125,8 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error ResolutionMismatch();
     error InvalidProviderReceiver();
     error InvalidClientReceiver();
+    error InvalidFeeBPS();
+    error InvalidTreasury();
 
     /// @notice Emitted when new milestones are added to the invoice.
     /// @param sender The address that added the milestones.
@@ -195,4 +213,14 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     /// @notice Emitted when the client receiver address is updated.
     /// @param clientReceiver The new client receiver address.
     event UpdatedClientReceiver(address indexed clientReceiver);
+
+    /// @notice Emitted when a fee is transferred to the treasury.
+    /// @param token The address of the token transferred as fee.
+    /// @param amount The amount of fee transferred.
+    /// @param treasury The address of the treasury receiving the fee.
+    event FeeTransferred(
+        address indexed token,
+        uint256 amount,
+        address indexed treasury
+    );
 }
