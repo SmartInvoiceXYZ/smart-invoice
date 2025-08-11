@@ -4,12 +4,26 @@ pragma solidity ^0.8.20;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {
+    ReentrancyGuard
+} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {
+    SafeERC20
+} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {ISmartInvoice} from "./interfaces/ISmartInvoice.sol";
+import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
+import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceFactory
 /// @notice Factory contract for creating and managing smart invoice instances.
-contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
+contract SmartInvoiceFactory is
+    ISmartInvoiceFactory,
+    AccessControl,
+    ReentrancyGuard
+{
+    using SafeERC20 for IERC20;
     uint256 public invoiceCount = 0;
 
     mapping(uint256 => address) internal _invoices;
@@ -22,14 +36,14 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     mapping(bytes32 => uint256) public currentVersions;
 
     // solhint-disable-next-line immutable-vars-naming
-    address public immutable wrappedNativeToken;
+    IWRAPPED public immutable wrappedNativeToken;
 
     /// @notice Constructor to initialize the factory with a wrapped native token.
     /// @param _wrappedNativeToken The address of the wrapped native token.
     constructor(address _wrappedNativeToken) {
         if (_wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
-        wrappedNativeToken = _wrappedNativeToken;
+        wrappedNativeToken = IWRAPPED(_wrappedNativeToken);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN, msg.sender);
@@ -80,7 +94,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         uint256[] calldata _amounts,
         bytes calldata _data,
         bytes32 _type
-    ) external override returns (address) {
+    ) public override returns (address) {
         uint256 _version = currentVersions[_type];
         address _implementation = implementations[_type][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
@@ -121,7 +135,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         bytes calldata _data,
         bytes32 _type,
         bytes32 _salt
-    ) external override returns (address) {
+    ) public override returns (address) {
         uint256 _version = currentVersions[_type];
         address _implementation = implementations[_type][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
@@ -205,4 +219,97 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
 
         emit AddImplementation(_type, _version, _implementation);
     }
+
+    /**
+     * @notice Internal function to handle funding of created escrow contracts
+     * @param escrow The address of the escrow contract to fund
+     * @param _fundAmount The amount to fund the escrow
+     */
+    function _fundEscrow(address escrow, uint256 _fundAmount) internal {
+        // Ensure escrow creation was successful
+        if (escrow == address(0)) revert EscrowNotCreated();
+
+        address token = ISmartInvoiceEscrow(escrow).token();
+
+        if (token == address(wrappedNativeToken) && msg.value > 0) {
+            // Ensure the fund amount is valid
+            if (msg.value != _fundAmount) revert InvalidFundAmount();
+
+            // Transfer the native fund amount to the newly created escrow contract
+            wrappedNativeToken.deposit{value: _fundAmount}();
+
+            // Transfer the fund amount to the newly created escrow contract
+            IERC20(token).safeTransfer(escrow, _fundAmount);
+        } else {
+            // Transfer the fund amount to the newly created escrow contract
+            IERC20(token).safeTransferFrom(msg.sender, escrow, _fundAmount);
+        }
+
+        // Emit an event for the escrow creation
+        emit EscrowCreated(escrow, token, _fundAmount);
+    }
+
+    /**
+     * @notice Create an escrow contract and fund it with tokens
+     * @param _provider The address of the provider
+     * @param _milestoneAmounts Array of milestone amounts
+     * @param _escrowData Additional data for the escrow
+     * @param _escrowType The type of escrow to create
+     * @param _fundAmount The amount to fund the escrow
+     * @return escrow The address of the created escrow contract
+     */
+    function createAndDeposit(
+        address _provider,
+        uint256[] calldata _milestoneAmounts,
+        bytes calldata _escrowData,
+        bytes32 _escrowType,
+        uint256 _fundAmount
+    ) external payable nonReentrant returns (address escrow) {
+        escrow = create(_provider, _milestoneAmounts, _escrowData, _escrowType);
+        _fundEscrow(escrow, _fundAmount);
+    }
+
+    /**
+     * @notice Create an escrow contract deterministically and fund it with tokens
+     * @param _provider The address of the provider
+     * @param _milestoneAmounts Array of milestone amounts
+     * @param _escrowData Additional data for the escrow
+     * @param _escrowType The type of escrow to create
+     * @param _salt The salt used to determine the address
+     * @param _fundAmount The amount to fund the escrow
+     * @return escrow The address of the created escrow contract
+     */
+    function createDeterministicAndDeposit(
+        address _provider,
+        uint256[] calldata _milestoneAmounts,
+        bytes calldata _escrowData,
+        bytes32 _escrowType,
+        bytes32 _salt,
+        uint256 _fundAmount
+    ) external payable nonReentrant returns (address escrow) {
+        escrow = createDeterministic(
+            _provider,
+            _milestoneAmounts,
+            _escrowData,
+            _escrowType,
+            _salt
+        );
+        _fundEscrow(escrow, _fundAmount);
+    }
+
+    /// @notice Error emitted when escrow creation fails
+    error EscrowNotCreated();
+
+    /// @notice Error emitted when the fund amount is invalid
+    error InvalidFundAmount();
+
+    /// @notice Event emitted when a new escrow is created
+    /// @param escrow Address of the newly created escrow
+    /// @param token Address of the token used for payment
+    /// @param amount The total fund amount transferred to the escrow
+    event EscrowCreated(
+        address indexed escrow,
+        address indexed token,
+        uint256 amount
+    );
 }
