@@ -5,10 +5,11 @@ pragma solidity ^0.8.20;
 import {
     OwnableUpgradeable
 } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ISpoilsManager} from "./interfaces/ISpoilsManager.sol";
 
 /// @title Spoils Manager Contract
 /// @notice Manages the distribution of spoils, allowing an owner to set a receiver and adjust the spoils percentage distributed to that receiver.
-contract SpoilsManager is OwnableUpgradeable {
+contract SpoilsManager is OwnableUpgradeable, ISpoilsManager {
     /// @dev The scale used to calculate the spoils percentage
     uint32 public SPLIT_PERCENTAGE_SCALE; // 100 * SPLIT_PERCENTAGE_SCALE = 100%
 
@@ -35,6 +36,7 @@ contract SpoilsManager is OwnableUpgradeable {
         address _receiver,
         address _newOwner
     ) external virtual initializer {
+        if (_receiver == address(0)) revert ZeroReceiverAddress();
         spoils = _spoils;
         receiver = _receiver;
         __Ownable_init(_newOwner);
@@ -47,6 +49,7 @@ contract SpoilsManager is OwnableUpgradeable {
      */
     function setSpoils(uint32 _spoils) external onlyOwner {
         spoils = _spoils;
+        emit SpoilsUpdated(_spoils);
     }
 
     /**
@@ -54,6 +57,7 @@ contract SpoilsManager is OwnableUpgradeable {
      * @param _receiver The address of the owner's receiver
      */
     function setReceiver(address _receiver) external onlyOwner {
+        if (_receiver == address(0)) revert ZeroReceiverAddress();
         receiver = _receiver;
     }
 

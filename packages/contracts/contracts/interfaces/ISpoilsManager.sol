@@ -4,6 +4,11 @@ pragma solidity ^0.8.20;
 /// @title ISpoilsManager
 /// @notice Interface for the Spoils Manager contract that manages spoils and ownership functionalities.
 interface ISpoilsManager {
+    /// @notice Emitted when spoils percentage is updated
+    event SpoilsUpdated(uint32 newSpoils);
+
+    /// @notice Error when receiver address is zero
+    error ZeroReceiverAddress();
     /**
      * @notice Returns the scale used for calculating percentage splits.
      * @return The scale value for percentage splits.
@@ -19,31 +24,22 @@ interface ISpoilsManager {
     /**
      * @notice Initializes the Spoils Manager with the provided spoils percentage, receiver, and new owner.
      * @param _spoils The spoils percentage to set.
+     * @param _percentageScale The scale used to calculate the spoils percentage.
      * @param _receiver The address of the receiver.
      * @param _newOwner The address of the new owner.
      */
     function init(
         uint32 _spoils,
+        uint32 _percentageScale,
         address _receiver,
         address _newOwner
     ) external;
-
-    /**
-     * @notice Returns the address of the current owner.
-     * @return The address of the owner.
-     */
-    function owner() external view returns (address);
 
     /**
      * @notice Returns the address of the current receiver.
      * @return The address of the receiver.
      */
     function receiver() external view returns (address);
-
-    /**
-     * @notice Renounces ownership of the Spoils Manager.
-     */
-    function renounceOwnership() external;
 
     /**
      * @notice Sets a new receiver address for the spoils.
@@ -62,10 +58,4 @@ interface ISpoilsManager {
      * @return The spoils percentage.
      */
     function spoils() external view returns (uint32);
-
-    /**
-     * @notice Transfers ownership of the Spoils Manager to a new owner.
-     * @param newOwner The address of the new owner.
-     */
-    function transferOwnership(address newOwner) external;
 }

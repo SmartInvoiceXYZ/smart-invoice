@@ -11,33 +11,25 @@ import {
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {
+    ISmartInvoiceFactoryBundler
+} from "./interfaces/ISmartInvoiceFactoryBundler.sol";
 
 /// @title SmartInvoiceFactoryBundler
 /// @notice A contract for creating and managing SmartInvoice escrow with customizable settings.
-contract SmartInvoiceFactoryBundler is ReentrancyGuard {
+contract SmartInvoiceFactoryBundler is
+    ReentrancyGuard,
+    ISmartInvoiceFactoryBundler
+{
     using SafeERC20 for IERC20;
 
     /// @notice Address of the SmartInvoiceFactory
-    ISmartInvoiceFactory public escrowFactory;
+    // solhint-disable-next-line immutable-vars-naming
+    ISmartInvoiceFactory public immutable escrowFactory;
 
     /// @notice Address of the wrapped native token (e.g., WETH)
-    IWRAPPED public wrappedNativeToken;
-
-    /// @notice Error emitted when escrow creation fails
-    error EscrowNotCreated();
-
-    /// @notice Error emitted when the fund amount is invalid
-    error InvalidFundAmount();
-
-    /// @notice Event emitted when a new escrow is created
-    /// @param escrow Address of the newly created escrow
-    /// @param token Address of the token used for payment
-    /// @param amount The total fund amount transferred to the escrow
-    event EscrowCreated(
-        address indexed escrow,
-        address indexed token,
-        uint256 amount
-    );
+    // solhint-disable-next-line immutable-vars-naming
+    IWRAPPED public immutable wrappedNativeToken;
 
     /// @notice Constructor to initialize the contract with the factory and wrapped token addresses
     /// @param _escrowFactory Address of the SmartInvoiceFactory

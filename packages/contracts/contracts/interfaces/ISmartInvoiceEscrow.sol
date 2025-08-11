@@ -9,9 +9,9 @@ import {ISmartInvoice} from "./ISmartInvoice.sol";
 interface ISmartInvoiceEscrow is ISmartInvoice {
     /**
         @notice Returns the address of the token used for payment.
-        @return token The address of the token used for payment.
+        @return The address of the token used for payment.
     */
-    function token() external view returns (address token);
+    function token() external view returns (address);
 
     /**
      * @notice Adds new milestones to the invoice.
@@ -91,9 +91,9 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error DurationTooLong();
     error InvalidResolutionRate();
     error InvalidWrappedNativeToken();
-    error NotClient();
-    error NotProvider();
-    error NotParty();
+    error NotClient(address caller);
+    error NotProvider(address caller);
+    error NotParty(address caller);
     error Locked();
     error Terminated();
     error NoMilestones();
@@ -103,9 +103,9 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
     error InvalidMilestone();
     error IncorrectDisputeId();
     error InvalidRuling(uint256 ruling);
-    error InvalidIndividualResolver();
-    error InvalidArbitratorResolver();
-    error NotResolver();
+    error InvalidIndividualResolver(address resolver);
+    error InvalidArbitratorResolver(address resolver);
+    error NotResolver(address caller);
     error ResolutionMismatch();
     error InvalidProviderReceiver();
     error InvalidClientReceiver();

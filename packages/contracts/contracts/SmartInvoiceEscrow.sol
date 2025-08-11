@@ -65,12 +65,12 @@ contract SmartInvoiceEscrow is
     uint256 public disputeId;
 
     modifier onlyProvider() {
-        if (msg.sender != provider) revert NotProvider();
+        if (msg.sender != provider) revert NotProvider(msg.sender);
         _;
     }
 
     modifier onlyClient() {
-        if (msg.sender != client) revert NotClient();
+        if (msg.sender != client) revert NotClient(msg.sender);
         _;
     }
 
@@ -96,7 +96,8 @@ contract SmartInvoiceEscrow is
         provider = _provider;
         amounts = _amounts;
         uint256 _total = 0;
-        for (uint256 i = 0; i < amounts.length; i++) {
+        uint256 amountsLength = amounts.length;
+        for (uint256 i = 0; i < amountsLength; i++) {
             _total += amounts[i];
         }
         total = _total;
@@ -174,7 +175,7 @@ contract SmartInvoiceEscrow is
      * @dev This ensures that client indeed controls this address and can release funds from this escrow
      */
     function verify() external override {
-        if (msg.sender != client) revert NotClient();
+        if (msg.sender != client) revert NotClient(msg.sender);
         emit Verified(client, address(this));
     }
 
@@ -252,7 +253,7 @@ contract SmartInvoiceEscrow is
         if (locked) revert Locked();
         if (block.timestamp >= terminationTime) revert Terminated();
         if (_msgSender() != client && _msgSender() != provider)
-            revert NotParty();
+            revert NotParty(_msgSender());
         if (_milestones.length == 0) revert NoMilestones();
         if (_milestones.length > 10) revert ExceedsMilestoneLimit();
 
@@ -260,12 +261,13 @@ contract SmartInvoiceEscrow is
         uint256[] memory baseArray = new uint256[](newLength);
         uint256 newTotal = total;
 
-        for (uint256 i = 0; i < amounts.length; i++) {
+        uint256 amountsLength = amounts.length;
+        for (uint256 i = 0; i < amountsLength; i++) {
             baseArray[i] = amounts[i];
         }
-        for (uint256 i = amounts.length; i < newLength; i++) {
-            baseArray[i] = _milestones[i - amounts.length];
-            newTotal += _milestones[i - amounts.length];
+        for (uint256 i = amountsLength; i < newLength; i++) {
+            baseArray[i] = _milestones[i - amountsLength];
+            newTotal += _milestones[i - amountsLength];
         }
 
         total = newTotal;
@@ -293,7 +295,7 @@ contract SmartInvoiceEscrow is
      */
     function _release() internal virtual {
         if (locked) revert Locked();
-        if (_msgSender() != client) revert NotClient();
+        if (_msgSender() != client) revert NotClient(_msgSender());
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
@@ -334,7 +336,7 @@ contract SmartInvoiceEscrow is
         uint256 _milestone
     ) external virtual override nonReentrant {
         if (locked) revert Locked();
-        if (_msgSender() != client) revert NotClient();
+        if (_msgSender() != client) revert NotClient(_msgSender());
         if (_milestone < milestone) revert InvalidMilestone();
         if (_milestone >= amounts.length) revert InvalidMilestone();
 
@@ -367,7 +369,7 @@ contract SmartInvoiceEscrow is
         if (_token == token) {
             _release();
         } else {
-            if (_msgSender() != client) revert NotClient();
+            if (_msgSender() != client) revert NotClient(_msgSender());
             uint256 balance = IERC20(_token).balanceOf(address(this));
             _transferPayment(_token, balance);
         }
@@ -423,7 +425,9 @@ contract SmartInvoiceEscrow is
         if (balance == 0) revert BalanceIsZero();
         if (block.timestamp >= terminationTime) revert Terminated();
         if (_msgSender() != client && _msgSender() != provider)
-            revert NotParty();
+            revert NotParty(_msgSender());
+
+        locked = true;
 
         if (resolverType == ADR.ARBITRATOR) {
             // user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
@@ -434,7 +438,6 @@ contract SmartInvoiceEscrow is
 
             emit Dispute(IArbitrator(resolver), disputeId, 0, 0);
         }
-        locked = true;
 
         emit Lock(_msgSender(), _details);
     }
@@ -444,10 +447,11 @@ contract SmartInvoiceEscrow is
      * @param _details Extra data for the arbitrator
      */
     function appeal(string memory _details) external payable nonReentrant {
-        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (resolverType != ADR.ARBITRATOR)
+            revert InvalidArbitratorResolver(resolver);
         if (!locked) revert Locked();
         if (_msgSender() != client && _msgSender() != provider)
-            revert NotParty();
+            revert NotParty(_msgSender());
 
         IArbitrator(resolver).appeal{value: msg.value}(
             disputeId,
@@ -464,10 +468,11 @@ contract SmartInvoiceEscrow is
     function submitEvidence(
         string calldata _evidenceURI
     ) external nonReentrant {
-        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (resolverType != ADR.ARBITRATOR)
+            revert InvalidArbitratorResolver(resolver);
         if (!locked) revert Locked();
         if (_msgSender() != client && _msgSender() != provider)
-            revert NotParty();
+            revert NotParty(_msgSender());
 
         emit Evidence(IArbitrator(resolver), 0, _msgSender(), _evidenceURI);
     }
@@ -483,11 +488,12 @@ contract SmartInvoiceEscrow is
         uint256 _providerAward,
         bytes32 _details
     ) external virtual override nonReentrant {
-        if (resolverType != ADR.INDIVIDUAL) revert InvalidIndividualResolver();
+        if (resolverType != ADR.INDIVIDUAL)
+            revert InvalidIndividualResolver(resolver);
         if (!locked) revert Locked();
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
-        if (_msgSender() != resolver) revert NotResolver();
+        if (_msgSender() != resolver) revert NotResolver(_msgSender());
 
         uint256 resolutionFee = balance / resolutionRate;
 
@@ -525,9 +531,10 @@ contract SmartInvoiceEscrow is
         uint256 _disputeId,
         uint256 _ruling
     ) external virtual override nonReentrant {
-        if (resolverType != ADR.ARBITRATOR) revert InvalidArbitratorResolver();
+        if (resolverType != ADR.ARBITRATOR)
+            revert InvalidArbitratorResolver(resolver);
         if (!locked) revert Locked();
-        if (_msgSender() != resolver) revert NotResolver();
+        if (_msgSender() != resolver) revert NotResolver(_msgSender());
         if (_disputeId != disputeId) revert IncorrectDisputeId();
         if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling(_ruling);
         uint256 balance = IERC20(token).balanceOf(address(this));

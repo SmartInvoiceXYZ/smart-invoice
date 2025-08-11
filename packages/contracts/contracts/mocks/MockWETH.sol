@@ -6,13 +6,13 @@ pragma solidity ^0.8.20;
 /// @notice A mock contract simulating the behavior of Wrapped Ether (WETH) for testing purposes.
 contract MockWETH {
     /// @notice The name of the token.
-    string public name = "Wrapped Ether";
+    string public constant name = "Wrapped Ether";
 
     /// @notice The symbol of the token.
-    string public symbol = "WETH";
+    string public constant symbol = "WETH";
 
     /// @notice The number of decimals the token uses.
-    uint8 public decimals = 18;
+    uint8 public constant decimals = 18;
 
     /// @dev Error indicating that the sender has insufficient balance for a withdrawal or transfer.
     error NotEnoughBalance();

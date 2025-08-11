@@ -21,6 +21,7 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
     mapping(bytes32 => uint256) public currentVersions;
 
+    // solhint-disable-next-line immutable-vars-naming
     address public immutable wrappedNativeToken;
 
     /// @notice Constructor to initialize the factory with a wrapped native token.
@@ -51,11 +52,11 @@ contract SmartInvoiceFactory is ISmartInvoiceFactory, AccessControl {
         bytes32 _type,
         uint256 _version
     ) internal {
-        ISmartInvoice(_invoiceAddress).init(_recipient, _amounts, _data);
-
         uint256 invoiceId = invoiceCount;
         _invoices[invoiceId] = _invoiceAddress;
         invoiceCount++;
+
+        ISmartInvoice(_invoiceAddress).init(_recipient, _amounts, _data);
 
         emit LogNewInvoice(
             invoiceId,

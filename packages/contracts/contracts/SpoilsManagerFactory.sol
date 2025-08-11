@@ -4,22 +4,15 @@ pragma solidity ^0.8.20;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {SpoilsManager} from "./SpoilsManager.sol";
+import {ISpoilsManagerFactory} from "./interfaces/ISpoilsManagerFactory.sol";
 
 /// @title Spoils Manager Factory Contract
 /// @notice Factory contract for deploying new instances of the SpoilsManager contract, allowing configuration of spoils percentage and receiver.
-contract SpoilsManagerFactory {
-    address public implementation;
-
-    error InvalidSpoilsAmount();
-    error InvalidReceiverAddress();
-
-    event SpoilsManagerCreated(
-        address indexed spoilsManager,
-        address indexed implementation,
-        bytes32 indexed salt
-    );
+contract SpoilsManagerFactory is ISpoilsManagerFactory {
+    address public immutable implementation;
 
     constructor(address _implementation) {
+        if (_implementation == address(0)) revert ZeroImplementationAddress();
         implementation = _implementation;
     }
 
