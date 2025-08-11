@@ -10,7 +10,8 @@ import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SafeSplitsDaoEscrowZap
-/// @notice Contract for creating and managing Safe splits with DAO escrow using customizable settings.
+/// @notice Contract for creating and managing Safe splits with DAO escrow using customizable settings
+///         Extends SafeSplitsEscrowZap to include DAO fee splitting functionality
 contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     /// @notice The DAO controller address
     address public dao;
@@ -39,12 +40,12 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     }
 
     /**
-     * @dev Internal function to create a new Split with the provided owners and percent allocations, optionally creates a DAO split for spoils.
-     * @param _owners The address list of owners for the raid party split.
-     * @param _percentAllocations The percent allocations for the raid party split.
-     * @param _splitsData Bundled data for splits.
-     * @param _daoZapData The data struct for storing deployment results.
-     * @return The updated `DaoZapData` with the deployed split addresses.
+     * @dev Internal function to create project team split and optionally a DAO split for fee distribution
+     * @param _owners The address list of owners for the project team split
+     * @param _percentAllocations The percent allocations for the project team split
+     * @param _splitsData Bundled data for splits containing creation flags
+     * @param _daoZapData The data struct for storing deployment results
+     * @return The updated `DaoZapData` with the deployed split addresses
      */
     function _deploySplit(
         address[] memory _owners,
@@ -91,7 +92,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         uint32 projectSplitAmount = (100 *
             spoilsManager.SPLIT_PERCENTAGE_SCALE()) - daoSplitAmount;
 
-        // Sort the addresses and amounts in the correct order
+        // Sort the addresses and amounts in ascending order (required by 0xSplits)
         if (uint160(daoReceiver) < uint160(_daoZapData.zapData.providerSplit)) {
             daoSplitRecipients[0] = daoReceiver;
             daoSplitRecipients[1] = _daoZapData.zapData.providerSplit;
@@ -120,9 +121,10 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     }
 
     /**
-     * @dev Internal function to handle escrow parameters.
-     * @param _daoZapData The data struct for storing deployment results.
-     * @return The escrow parameters for the deployment.
+     * @dev Internal function to determine escrow parameters based on DAO split deployment
+     *      If DAO split is created, DAO becomes the provider with DAO split as receiver
+     * @param _daoZapData The data struct for storing deployment results
+     * @return escrowParams Array containing [provider, providerReceiver] addresses
      */
     function _decodeEscrowParams(
         DaoZapData memory _daoZapData
@@ -131,6 +133,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         escrowParams[0] = _daoZapData.zapData.providerSafe;
         escrowParams[1] = _daoZapData.zapData.providerSplit;
 
+        // If DAO split exists, DAO becomes the provider and split becomes the receiver
         if (_daoZapData.daoSplit != address(0)) {
             escrowParams[0] = dao;
             escrowParams[1] = _daoZapData.daoSplit;
@@ -140,14 +143,15 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     }
 
     /**
-     * @dev Internal function to create a new Safe, Split, and Escrow with DAO support.
-     * @param _owners The list of owners for the Safe and Split.
-     * @param _percentAllocations The percent allocations for the Split.
-     * @param _milestoneAmounts The milestone amounts for the Escrow.
-     * @param _safeData The encoded data for Safe setup.
-     * @param _safeAddress The address of an existing Safe.
-     * @param _splitsData The encoded data for Split setup.
-     * @param _escrowData The encoded data for Escrow setup.
+     * @dev Internal function to create a new Safe, Split(s), and Escrow with DAO support
+     *      Overrides parent implementation to support DAO split creation
+     * @param _owners The list of owners for the Safe and Split
+     * @param _percentAllocations The percent allocations for the Split
+     * @param _milestoneAmounts The milestone amounts for the Escrow
+     * @param _safeData The encoded data for Safe setup
+     * @param _safeAddress The address of an existing Safe
+     * @param _splitsData The encoded data for Split setup containing flags for both splits
+     * @param _escrowData The encoded data for Escrow setup
      */
     function _createSafeSplitEscrow(
         address[] memory _owners,
@@ -200,8 +204,9 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
     }
 
     /**
-     * @dev Internal function to handle initialization data.
-     * @param _data The initialization data.
+     * @dev Internal function to handle initialization data
+     *      Extends parent initialization to include DAO and SpoilsManager addresses
+     * @param _data The initialization data containing all required contract addresses
      */
     function _handleData(bytes calldata _data) internal override {
         (

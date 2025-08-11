@@ -17,22 +17,29 @@ import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceFactory
-/// @notice Factory contract for creating and managing smart invoice instances.
+/// @notice Factory contract for creating and managing smart invoice instances
+///         Supports multiple implementation types and versions with deterministic address creation
 contract SmartInvoiceFactory is
     ISmartInvoiceFactory,
     AccessControl,
     ReentrancyGuard
 {
     using SafeERC20 for IERC20;
+
+    /// @notice Total count of invoices created by this factory
     uint256 public invoiceCount = 0;
 
+    /// @dev Mapping from invoice ID to invoice address
     mapping(uint256 => address) internal _invoices;
+    /// @notice Mapping from resolver address to their resolution rate
     mapping(address => uint256) public resolutionRates;
 
+    /// @notice Admin role identifier for access control
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
-    // Implementation Storage
+    /// @dev Storage for implementation addresses by type and version
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
+    /// @dev Current version for each implementation type
     mapping(bytes32 => uint256) public currentVersions;
 
     IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
@@ -49,13 +56,13 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @dev Internal function to initialize a new invoice.
-     * @param _invoiceAddress The address of the invoice contract.
-     * @param _recipient The address of the recipient.
-     * @param _amounts The array of amounts associated with the recipient.
-     * @param _data Additional data needed for initialization.
-     * @param _type The type of the invoice.
-     * @param _version The version of the invoice implementation.
+     * @dev Internal function to initialize a new invoice
+     * @param _invoiceAddress The address of the invoice contract
+     * @param _recipient The address of the recipient (provider)
+     * @param _amounts The array of amounts associated with the recipient
+     * @param _data Additional data needed for initialization
+     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _version The version of the invoice implementation
      */
     function _init(
         address _invoiceAddress,
@@ -81,12 +88,12 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Creates a new smart invoice instance.
-     * @param _recipient The address of the recipient.
-     * @param _amounts The array of amounts associated with the recipient.
-     * @param _data Additional data needed for initialization.
-     * @param _type The type of the invoice.
-     * @return The address of the created invoice.
+     * @notice Creates a new smart invoice instance using the latest implementation version
+     * @param _recipient The address of the recipient (provider)
+     * @param _amounts The array of amounts associated with the recipient
+     * @param _data Additional data needed for initialization
+     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @return The address of the created invoice
      */
     function create(
         address _recipient,
@@ -105,10 +112,10 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Predicts the deterministic address of a clone.
-     * @param _type The type of the invoice.
-     * @param _salt The salt used to determine the address.
-     * @return The predicted address of the deterministic clone.
+     * @notice Predicts the deterministic address of a clone before creation
+     * @param _type The type of the invoice
+     * @param _salt The salt used to determine the address
+     * @return The predicted address of the deterministic clone
      */
     function predictDeterministicAddress(
         bytes32 _type,
@@ -120,13 +127,13 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Creates a new smart invoice instance deterministically.
-     * @param _recipient The address of the recipient.
-     * @param _amounts The array of amounts associated with the recipient.
-     * @param _data Additional data needed for initialization.
-     * @param _type The type of the invoice.
-     * @param _salt The salt used to determine the address.
-     * @return The address of the created invoice.
+     * @notice Creates a new smart invoice instance deterministically using CREATE2
+     * @param _recipient The address of the recipient (provider)
+     * @param _amounts The array of amounts associated with the recipient
+     * @param _data Additional data needed for initialization
+     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _salt The salt used to determine the address
+     * @return The address of the created invoice
      */
     function createDeterministic(
         address _recipient,
@@ -149,10 +156,10 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Gets the implementation address for a given type and version.
-     * @param _implementationType The type of the implementation.
-     * @param _implementationVersion The version of the implementation.
-     * @return The address of the implementation.
+     * @notice Gets the implementation address for a given type and version
+     * @param _implementationType The type of the implementation
+     * @param _implementationVersion The version of the implementation
+     * @return The address of the implementation
      */
     function getImplementation(
         bytes32 _implementationType,
@@ -162,18 +169,19 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Gets the address of an invoice by its index.
-     * @param index The index of the invoice.
-     * @return The address of the invoice.
+     * @notice Gets the address of an invoice by its sequential ID
+     * @param index The sequential ID of the invoice
+     * @return The address of the invoice
      */
     function getInvoiceAddress(uint256 index) external view returns (address) {
         return _invoices[index];
     }
 
     /**
-     * @notice Updates the resolution rate for a resolver.
-     * @param _resolutionRate The new resolution rate.
-     * @param _details Additional details about the update.
+     * @notice Updates the resolution rate for the calling resolver
+     *         Resolution rate is used to calculate fees (e.g., rate=20 means 1/20 = 5% fee)
+     * @param _resolutionRate The new resolution rate (denominator for fee calculation)
+     * @param _details Additional details about the update
      */
     function updateResolutionRate(
         uint256 _resolutionRate,
@@ -184,9 +192,9 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Gets the resolution rate of a resolver.
-     * @param _resolver The address of the resolver.
-     * @return The resolution rate of the resolver.
+     * @notice Gets the resolution rate of a resolver
+     * @param _resolver The address of the resolver
+     * @return The resolution rate of the resolver (denominator for fee calculation)
      */
     function resolutionRateOf(
         address _resolver
@@ -195,9 +203,10 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Adds a new implementation for a given type.
-     * @param _type The type of the invoice.
-     * @param _implementation The address of the new implementation.
+     * @notice Adds a new implementation for a given type
+     *         If it's the first implementation for the type, uses version 0; otherwise increments version
+     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _implementation The address of the new implementation
      */
     function addImplementation(
         bytes32 _type,
@@ -209,8 +218,10 @@ contract SmartInvoiceFactory is
         address currentImplementation = implementations[_type][_version];
 
         if (currentImplementation == address(0)) {
+            // First implementation for this type
             implementations[_type][_version] = _implementation;
         } else {
+            // Increment version and add new implementation
             _version++;
             implementations[_type][_version] = _implementation;
             currentVersions[_type] = _version;
@@ -234,27 +245,27 @@ contract SmartInvoiceFactory is
             // Ensure the fund amount is valid
             if (msg.value != _fundAmount) revert InvalidFundAmount();
 
-            // Transfer the native fund amount to the newly created escrow contract
+            // Wrap native token (ETH) into WETH
             WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
 
-            // Transfer the fgnd amount to the newly created escrow contract
+            // Transfer the wrapped amount to the newly created escrow contract
             IERC20(token).safeTransfer(escrow, _fundAmount);
         } else {
-            // Transfer the fund amount to the newly created escrow contract
+            // Transfer ERC20 tokens directly from sender to escrow contract
             IERC20(token).safeTransferFrom(msg.sender, escrow, _fundAmount);
         }
 
-        // Emit an event for the escrow creation
+        // Emit event for escrow funding
         emit InvoiceFunded(escrow, token, _fundAmount);
     }
 
     /**
-     * @notice Create an escrow contract and fund it with tokens
+     * @notice Create an escrow contract and fund it with tokens in a single transaction
      * @param _provider The address of the provider
      * @param _milestoneAmounts Array of milestone amounts
-     * @param _escrowData Additional data for the escrow
-     * @param _escrowType The type of escrow to create
-     * @param _fundAmount The amount to fund the escrow
+     * @param _escrowData Additional data for the escrow initialization
+     * @param _escrowType The type of escrow to create (e.g., "ESCROW")
+     * @param _fundAmount The amount to fund the escrow with
      * @return escrow The address of the created escrow contract
      */
     function createAndDeposit(
@@ -269,13 +280,13 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Create an escrow contract deterministically and fund it with tokens
+     * @notice Create an escrow contract deterministically and fund it with tokens in a single transaction
      * @param _provider The address of the provider
      * @param _milestoneAmounts Array of milestone amounts
-     * @param _escrowData Additional data for the escrow
-     * @param _escrowType The type of escrow to create
+     * @param _escrowData Additional data for the escrow initialization
+     * @param _escrowType The type of escrow to create (e.g., "ESCROW")
      * @param _salt The salt used to determine the address
-     * @param _fundAmount The amount to fund the escrow
+     * @param _fundAmount The amount to fund the escrow with
      * @return escrow The address of the created escrow contract
      */
     function createDeterministicAndDeposit(

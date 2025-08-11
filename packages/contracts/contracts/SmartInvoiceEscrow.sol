@@ -68,25 +68,30 @@ contract SmartInvoiceEscrow is
     uint256 public released = 0;
     uint256 public disputeId;
 
-    // @dev metaEvidenceId: latest MetaEvidence identifier for this escrow (ERC-1497).
-    // It advances when off-chain details change (e.g., via _addMilestones),
-    // and the current value is referenced by new Disputes.
+    /// @dev Latest MetaEvidence identifier for this escrow (ERC-1497)
+    ///      It advances when off-chain details change (e.g., via _addMilestones),
+    ///      and the current value is referenced by new Disputes
     uint256 public metaEvidenceId;
-    // @dev" evidenceGroupId: per-dispute Evidence group identifier (ERC-1497).
-    // Incremented *before* opening a new dispute so both Dispute and
-    // subsequent Evidence events for that dispute share the same group.
+    /// @dev Per-dispute Evidence group identifier (ERC-1497)
+    ///      Incremented *before* opening a new dispute so both Dispute and
+    ///      subsequent Evidence events for that dispute share the same group
     uint256 public evidenceGroupId;
 
+    /// @dev Restricts function access to the provider only
     modifier onlyProvider() {
         if (msg.sender != provider) revert NotProvider(msg.sender);
         _;
     }
 
+    /// @dev Restricts function access to the client only
     modifier onlyClient() {
         if (msg.sender != client) revert NotClient(msg.sender);
         _;
     }
 
+    /// @notice Initializes the contract with wrapped native token and factory addresses
+    /// @param _wrappedNativeToken The address of the wrapped native token contract
+    /// @param _factory The address of the SmartInvoiceFactory contract
     constructor(address _wrappedNativeToken, address _factory) {
         if (_wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
@@ -113,7 +118,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables.
+     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables
+     * @param _provider The address of the provider
+     * @param _amounts The array of amounts associated with the provider
      * @param _data The data to be handled and decoded
      */
     function _handleData(
@@ -136,7 +143,7 @@ contract SmartInvoiceEscrow is
         InitData memory initData = abi.decode(_data, (InitData));
 
         uint256 _resolutionRate = FACTORY.resolutionRateOf(initData.resolver);
-        if (_resolutionRate == 0) _resolutionRate = 20; // default ~5%
+        if (_resolutionRate == 0) _resolutionRate = 20; // default ~5% (1/20)
         if (_resolutionRate < 2 || _resolutionRate > 1000)
             revert InvalidResolutionRate();
 
@@ -148,7 +155,7 @@ contract SmartInvoiceEscrow is
         if (initData.terminationTime <= block.timestamp) revert DurationEnded();
         if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
-        if (initData.feeBPS > 1000) revert InvalidFeeBPS(); // max 10%
+        if (initData.feeBPS > 1000) revert InvalidFeeBPS(); // max 10% (1000/10000)
         if (initData.feeBPS > 0 && initData.treasury == address(0))
             revert InvalidTreasury();
         if (initData.providerReceiver == address(this))
@@ -299,7 +306,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to release funds from the contract to the provider.
+     * @dev Internal function to release funds from the contract to the provider
+     *      Releases the current milestone amount or remaining balance if last milestone
      */
     function _release() internal virtual {
         if (locked) revert Locked();
@@ -310,6 +318,7 @@ contract SmartInvoiceEscrow is
 
         if (currentMilestone < amounts.length) {
             uint256 amount = amounts[currentMilestone];
+            // For the last milestone, release all remaining balance if it exceeds the milestone amount
             if (currentMilestone == amounts.length - 1 && amount < balance) {
                 amount = balance;
             }
@@ -320,6 +329,7 @@ contract SmartInvoiceEscrow is
             released = released + amount;
             emit Release(currentMilestone, amount);
         } else {
+            // All milestones completed, release any remaining balance
             if (balance == 0) revert BalanceIsZero();
 
             _transferPayment(token, balance);
@@ -329,16 +339,16 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to release funds from the contract to the provider.
-     * Uses the internal `_release` function to perform the actual release.
+     * @notice External function to release funds from the contract to the provider
+     *         Uses the internal `_release` function to perform the actual release
      */
     function release() external virtual override nonReentrant {
         return _release();
     }
 
     /**
-     * @notice External function to release funds from the contract to the provider up to a certain milestone.
-     * @param _milestone The milestone to release funds to
+     * @notice External function to release funds from the contract to the provider up to a certain milestone
+     * @param _milestone The milestone index to release funds to (inclusive)
      */
     function release(
         uint256 _milestone
@@ -350,7 +360,9 @@ contract SmartInvoiceEscrow is
 
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 amount = 0;
+        // Calculate total amount to release from current milestone to target milestone
         for (uint256 j = milestone; j <= _milestone; j++) {
+            // For the last milestone, release all remaining balance if it exceeds cumulative amount
             if (j == amounts.length - 1 && amount + amounts[j] < balance) {
                 emit Release(j, balance - amount);
                 amount = balance;
@@ -367,9 +379,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to release tokens from the contract to the provider.
-     * Uses the internal `_release` function to perform the actual release.
-     * @param _token The token to release funds from
+     * @notice External function to release tokens from the contract to the provider
+     *         For the main token, uses internal `_release` function; for other tokens, releases entire balance
+     * @param _token The token address to release funds from
      */
     function releaseTokens(
         address _token
@@ -385,7 +397,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to withdraw funds from the contract to the client.
+     * @dev Internal function to withdraw funds from the contract to the client
+     *      Can only be called after termination time has passed
      */
     function _withdraw() internal {
         if (locked) revert Locked();
@@ -400,17 +413,17 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to withdraw funds from the contract to the client.
-     * Uses the internal `_withdraw` function to perform the actual withdrawal.
+     * @notice External function to withdraw funds from the contract to the client
+     *         Uses the internal `_withdraw` function to perform the actual withdrawal
      */
     function withdraw() external override nonReentrant {
         return _withdraw();
     }
 
     /**
-     * @notice External function to withdraw tokens from the contract to the client.
-     * Uses the internal `_withdraw` function to perform the actual withdrawal.
-     * @param _token The token to withdraw
+     * @notice External function to withdraw tokens from the contract to the client
+     *         For the main token, uses internal `_withdraw` function; for other tokens, withdraws entire balance
+     * @param _token The token address to withdraw
      */
     function withdrawTokens(address _token) external override nonReentrant {
         if (_token == token) {
@@ -426,7 +439,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to lock the contract.
+     * @notice External function to lock the contract and initiate dispute resolution
+     *         Can only be called by client or provider before termination
      * @param _details Details of the dispute
      */
     function lock(
@@ -442,9 +456,9 @@ contract SmartInvoiceEscrow is
         locked = true;
 
         if (resolverType == ADR.ARBITRATOR) {
-            // user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
+            // Note: user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
 
-            // ensure each dispute has its own evidence group id
+            // Ensure each dispute has its own evidence group id
             evidenceGroupId = evidenceGroupId + 1;
 
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
@@ -464,7 +478,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to appeal a dispute.
+     * @notice External function to appeal a dispute
+     *         Can only be called by client or provider when contract is locked with arbitrator resolver
      * @param _details Extra data for the arbitrator
      */
     function appeal(string memory _details) external payable nonReentrant {
@@ -474,6 +489,7 @@ contract SmartInvoiceEscrow is
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 
+        // Note: user must call `IArbitrator(resolver).appealCost(disputeId, _details)` to get the appeal cost
         IArbitrator(resolver).appeal{value: msg.value}(
             disputeId,
             abi.encodePacked(_details)
@@ -483,7 +499,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to submit evidence for a dispute.
+     * @notice External function to submit evidence for a dispute
+     *         Can only be called by client or provider when contract is locked with arbitrator resolver
      * @param _evidenceURI The URI of the evidence
      */
     function submitEvidence(
@@ -496,7 +513,7 @@ contract SmartInvoiceEscrow is
             revert NotParty(msg.sender);
 
         // Evidence submitted here is associated with the most recently opened dispute,
-        // via the current evidenceGroupId (incremented in lock()).
+        // via the current evidenceGroupId (incremented in lock())
         emit Evidence(
             IArbitrator(resolver),
             evidenceGroupId,
@@ -506,10 +523,11 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to resolve the contract.
+     * @notice External function to resolve the contract via individual resolver
+     *         Can only be called by the individual resolver when contract is locked
      * @param _clientAward The amount to award the client
      * @param _providerAward The amount to award the provider
-     * @param _details Details of the dispute
+     * @param _details Details of the dispute resolution
      */
     function resolve(
         uint256 _clientAward,
@@ -525,6 +543,7 @@ contract SmartInvoiceEscrow is
 
         uint256 resolutionFee = balance / resolutionRate;
 
+        // Ensure awards plus resolution fee equals total balance
         if (_clientAward + _providerAward != balance - resolutionFee)
             revert ResolutionMismatch();
 
@@ -551,9 +570,10 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to rule on a dispute.
+     * @notice External function to rule on a dispute via arbitrator
+     *         Can only be called by the arbitrator resolver when contract is locked
      * @param _disputeId The ID of the dispute
-     * @param _ruling The ruling of the arbitrator
+     * @param _ruling The ruling of the arbitrator (0=refused, 1=client wins, 2=provider wins)
      */
     function rule(
         uint256 _disputeId,
@@ -582,10 +602,10 @@ contract SmartInvoiceEscrow is
             _withdrawDeposit(token, clientAward);
         }
 
-        // complete all milestones
+        // Complete all milestones
         milestone = amounts.length;
 
-        // reset locked state
+        // Reset locked state
         locked = false;
 
         emit Rule(resolver, clientAward, providerAward, _ruling);
@@ -593,9 +613,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to get the ruling of the arbitrator.
-     * @param _ruling The ruling of the arbitrator
-     * @return ruling Array containing [clientShare, providerShare] percentages
+     * @dev Internal function to get the ruling distribution based on arbitrator decision
+     * @param _ruling The ruling of the arbitrator (0=refused, 1=client wins, 2=provider wins)
+     * @return ruling Array containing [clientShare, providerShare] proportions
      */
     function _getRuling(
         uint256 _ruling
@@ -609,7 +629,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to transfer payment to the provider or provider receiver.
+     * @dev Internal function to transfer payment to the provider or provider receiver
+     *      Deducts fee if configured and transfers to treasury
      * @param _token The token to transfer
      * @param _amount The amount to transfer
      */
@@ -635,7 +656,8 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Internal function to withdraw deposit to the client or client receiver.
+     * @dev Internal function to withdraw deposit to the client or client receiver
+     *      Deducts fee if configured and transfers to treasury
      * @param _token The token to withdraw
      * @param _amount The amount to withdraw
      */
@@ -660,7 +682,10 @@ contract SmartInvoiceEscrow is
         }
     }
 
-    // receive eth transfers
+    /**
+     * @notice Receives ETH transfers and wraps them as WETH
+     *         Only accepts ETH if the token is WETH and contract is not locked
+     */
     // solhint-disable-next-line no-complex-fallback
     receive() external payable {
         if (locked) revert Locked();
@@ -670,7 +695,10 @@ contract SmartInvoiceEscrow is
         emit Deposit(msg.sender, msg.value, token);
     }
 
-    // wrap eth for edge cases when eth was sent via self-destruct
+    /**
+     * @notice Wraps any ETH balance in the contract to WETH
+     *         Handles edge cases when ETH was sent via self-destruct
+     */
     function wrapETH() external nonReentrant {
         if (locked) revert Locked();
         uint256 bal = address(this).balance;
@@ -678,9 +706,9 @@ contract SmartInvoiceEscrow is
         WRAPPED_NATIVE_TOKEN.deposit{value: bal}();
         emit WrappedStrayETH(bal);
         if (token == address(WRAPPED_NATIVE_TOKEN)) {
-            // log address(this) as depositor since it was obtained via self-destruct
+            // Log address(this) as depositor since it was obtained via self-destruct
             emit Deposit(address(this), bal, token);
         }
-        // handle release of wETH as per `releaseTokens` or `withdrawTokens` as needed
+        // Handle release of WETH as per `releaseTokens` or `withdrawTokens` as needed
     }
 }

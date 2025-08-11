@@ -9,7 +9,8 @@ import {
 } from "./interfaces/ISafeSplitsEscrowZapFactory.sol";
 
 /// @title SafeSplitsEscrowZapFactory
-/// @notice Factory contract for creating SafeSplitsEscrowZap instances using the Clones library.
+/// @notice Factory contract for creating SafeSplitsEscrowZap instances using the Clones library
+///         Uses CREATE2 for deterministic address generation
 contract SafeSplitsEscrowZapFactory is ISafeSplitsEscrowZapFactory {
     /// @notice The address of the SafeSplitsEscrowZap implementation used for creating clones.
     address public immutable implementation;
@@ -22,10 +23,10 @@ contract SafeSplitsEscrowZapFactory is ISafeSplitsEscrowZapFactory {
     }
 
     /**
-     * @notice Creates a new SafeSplitsEscrowZap instance using a deterministic address.
-     * @param _data Initialization data to be passed to the new SafeSplitsEscrowZap instance.
-     * @param _salt Salt used to create the deterministic address of the clone.
-     * @return safeSplitsEscrowZap The address of the newly created SafeSplitsEscrowZap instance.
+     * @notice Creates a new SafeSplitsEscrowZap instance using a deterministic address
+     * @param _data Initialization data to be passed to the new SafeSplitsEscrowZap instance
+     * @param _salt Salt used to create the deterministic address of the clone
+     * @return safeSplitsEscrowZap The address of the newly created SafeSplitsEscrowZap instance
      */
     function createSafeSplitsEscrowZap(
         bytes calldata _data,

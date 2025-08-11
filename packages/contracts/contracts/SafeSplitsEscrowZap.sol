@@ -15,7 +15,8 @@ import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SafeSplitsEscrowZap
-/// @notice Contract for creating and managing Safe splits escrow with customizable settings.
+/// @notice Contract for creating and managing Safe splits escrow with customizable settings
+///         Provides a unified interface to deploy Gnosis Safe, 0xSplits, and SmartInvoice Escrow in a single transaction
 contract SafeSplitsEscrowZap is
     AccessControl,
     Initializable,
@@ -42,25 +43,31 @@ contract SafeSplitsEscrowZap is
     /// @notice The distributor fee provided for processing 0xSplits
     uint32 public distributorFee = 0;
 
+    /// @notice Admin role identifier for access control
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
+    /// @notice Hash identifier for escrow type used in deterministic deployment
     bytes32 public constant ESCROW_TYPE_HASH = keccak256("escrow-v3");
 
+    /// @notice Constructor that disables initializers to prevent direct initialization
+    ///         Contract must be initialized via the init() function after deployment
     constructor() {
         _disableInitializers();
     }
 
     /**
-     * @notice Initializes the contract with provided data.
-     * @param _data The initialization data.
+     * @notice Initializes the contract with provided data
+     *         Can only be called once due to initializer modifier
+     * @param _data The initialization data containing addresses for all required contracts
      */
     function init(bytes calldata _data) external virtual initializer {
         _handleData(_data);
     }
 
     /**
-     * @dev Internal function to handle initialization data.
-     * @param _data The initialization data.
+     * @dev Internal function to handle initialization data
+     *      Decodes and sets all required contract addresses
+     * @param _data The initialization data containing contract addresses
      */
     function _handleData(bytes calldata _data) internal virtual {
         (
@@ -84,9 +91,10 @@ contract SafeSplitsEscrowZap is
     }
 
     /**
-     * @dev Internal function to deploy a new Safe with the provided owners and threshold.
-     * @param _owners The address list of owners for the Safe.
-     * @param _safeData The encoded data for Safe setup.
+     * @dev Internal function to deploy a new Gnosis Safe with the provided owners and threshold
+     * @param _owners The address list of owners for the Safe
+     * @param _safeData The encoded data for Safe setup containing threshold and salt nonce
+     * @return safe The address of the deployed Safe
      */
     function _deploySafe(
         address[] memory _owners,
@@ -97,6 +105,7 @@ contract SafeSplitsEscrowZap is
             (uint256, uint256)
         );
 
+        // Encode the Safe setup call with provided parameters
         bytes memory safeInitializer = abi.encodeWithSelector(
             bytes4(
                 keccak256(
@@ -105,12 +114,12 @@ contract SafeSplitsEscrowZap is
             ),
             _owners,
             _threshold,
-            address(0), // to
-            bytes("0x"), // data
+            address(0), // to (no initial transaction)
+            bytes("0x"), // data (no initial transaction data)
             fallbackHandler, // fallbackHandlerAddress
-            address(0), // paymentToken
-            0, // payment
-            address(0) // paymentReceiver
+            address(0), // paymentToken (no payment)
+            0, // payment (no payment)
+            address(0) // paymentReceiver (no payment)
         );
 
         // Create the Safe proxy
@@ -125,11 +134,12 @@ contract SafeSplitsEscrowZap is
     }
 
     /**
-     * @dev Internal function to create a new Split with the provided owners and percent allocations.
-     * @param _owners The address list of owners for the split.
-     * @param _percentAllocations The percent allocations for the split.
-     * @param _splitData The encoded data for split setup.
-     * @param _splitController The address of the controller for the split.
+     * @dev Internal function to create a new 0xSplits split with the provided owners and percent allocations
+     * @param _owners The address list of owners for the split (must be sorted ascending)
+     * @param _percentAllocations The percent allocations for the split (must match owners length)
+     * @param _splitData The encoded data for split setup containing creation flag
+     * @param _splitController The address of the controller for the split
+     * @return split The address of the deployed split, or zero address if not created
      */
     function _deploySplit(
         address[] memory _owners,
