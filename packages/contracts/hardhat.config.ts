@@ -1,4 +1,5 @@
 import '@nomicfoundation/hardhat-toolbox-viem';
+import '@nomicfoundation/hardhat-foundry';
 import 'hardhat-chai-matchers-viem';
 
 import dotenv from 'dotenv';

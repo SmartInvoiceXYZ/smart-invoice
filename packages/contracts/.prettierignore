@@ -19,5 +19,8 @@ ignition/deployments/chain-31337
 
 /flat
 
+/lib
+
 /cache_forge
+
 /out

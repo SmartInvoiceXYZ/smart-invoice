@@ -294,6 +294,9 @@ importers:
       '@kleros/erc-792':
         specifier: ^8.0.0
         version: 8.0.0
+      '@nomicfoundation/hardhat-foundry':
+        specifier: ^1.2.0
+        version: 1.2.0(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))
       '@nomicfoundation/hardhat-toolbox-viem':
         specifier: ^3.0.0
         version: 3.0.0(282f4a10f85977c789b3fbcd50c617b2)
@@ -353,6 +356,8 @@ importers:
         version: 2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4)
 
   packages/contracts/contracts: {}
+
+  packages/contracts/lib/forge-std: {}
 
   packages/forms:
     dependencies:
@@ -1864,6 +1869,11 @@ packages:
   '@nomicfoundation/edr@0.11.2':
     resolution: {integrity: sha512-JEFMTs5Tju+YiCsv6EO+657O/fvPaQ7bkUCkWqHFYFFbCKH1yh0PeRIaqj5h4z4O16ckxbVpAM676ZFTmvFUGQ==}
     engines: {node: '>= 18'}
+
+  '@nomicfoundation/hardhat-foundry@1.2.0':
+    resolution: {integrity: sha512-2AJQLcWnUk/iQqHDVnyOadASKFQKF1PhNtt1cONEQqzUPK+fqME1IbP+EKu+RkZTRcyc4xqUMaB0sutglKRITg==}
+    peerDependencies:
+      hardhat: ^2.26.0
 
   '@nomicfoundation/hardhat-ignition-viem@0.15.12':
     resolution: {integrity: sha512-IGaF6BFMbKh88yxrBcMSPNogp4Nzo6MSDIdyDTzxj781x7J0JGodspESYbX58ksPAaJ8rbSMUFRvSy6XZR6o6Q==}
@@ -10378,6 +10388,11 @@ snapshots:
       '@nomicfoundation/edr-linux-x64-gnu': 0.11.2
       '@nomicfoundation/edr-linux-x64-musl': 0.11.2
       '@nomicfoundation/edr-win32-x64-msvc': 0.11.2
+
+  '@nomicfoundation/hardhat-foundry@1.2.0(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))':
+    dependencies:
+      hardhat: 2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10)
+      picocolors: 1.1.1
 
   '@nomicfoundation/hardhat-ignition-viem@0.15.12(@nomicfoundation/hardhat-ignition@0.15.12(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10)))(bufferutil@4.0.9)(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10))(@nomicfoundation/hardhat-viem@2.0.6(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(typescript@5.8.3)(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))(zod@3.22.4))(@nomicfoundation/ignition-core@0.15.12(bufferutil@4.0.9)(utf-8-validate@5.0.10))(hardhat@2.25.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@22.15.33)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10))(viem@2.31.4(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.22.4))':
     dependencies:

@@ -3,9 +3,9 @@
 
 pragma solidity 0.8.30;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
-    SafeERC20
+    SafeERC20,
+    IERC20
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     ReentrancyGuard
@@ -76,18 +76,6 @@ contract SmartInvoiceEscrow is
     ///      Incremented *before* opening a new dispute so both Dispute and
     ///      subsequent Evidence events for that dispute share the same group
     uint256 public evidenceGroupId;
-
-    /// @dev Restricts function access to the provider only
-    modifier onlyProvider() {
-        if (msg.sender != provider) revert NotProvider(msg.sender);
-        _;
-    }
-
-    /// @dev Restricts function access to the client only
-    modifier onlyClient() {
-        if (msg.sender != client) revert NotClient(msg.sender);
-        _;
-    }
 
     /// @notice Initializes the contract with wrapped native token and factory addresses
     /// @param _wrappedNativeToken The address of the wrapped native token contract
@@ -193,7 +181,8 @@ contract SmartInvoiceEscrow is
      * @notice Updates the client address.
      * @param _client The updated client address.
      */
-    function updateClient(address _client) external onlyClient {
+    function updateClient(address _client) external {
+        if (msg.sender != client) revert NotClient(msg.sender);
         if (_client == address(0)) revert InvalidClient();
         client = _client;
         emit UpdatedClient(_client);
@@ -203,7 +192,8 @@ contract SmartInvoiceEscrow is
      * @notice Updates the provider address.
      * @param _provider The updated provider address.
      */
-    function updateProvider(address _provider) external onlyProvider {
+    function updateProvider(address _provider) external {
+        if (msg.sender != provider) revert NotProvider(msg.sender);
         if (_provider == address(0)) revert InvalidProvider();
         provider = _provider;
         emit UpdatedProvider(_provider);
@@ -213,9 +203,8 @@ contract SmartInvoiceEscrow is
      * @notice Updates the provider's receiver address.
      * @param _providerReceiver The updated provider receiver address.
      */
-    function updateProviderReceiver(
-        address _providerReceiver
-    ) external onlyProvider {
+    function updateProviderReceiver(address _providerReceiver) external {
+        if (msg.sender != provider) revert NotProvider(msg.sender);
         if (
             _providerReceiver == address(0) ||
             _providerReceiver == address(this)
@@ -228,7 +217,8 @@ contract SmartInvoiceEscrow is
      * @notice Updates the client's receiver address.
      * @param _clientReceiver The updated client receiver address.
      */
-    function updateClientReceiver(address _clientReceiver) external onlyClient {
+    function updateClientReceiver(address _clientReceiver) external {
+        if (msg.sender != client) revert NotClient(msg.sender);
         if (_clientReceiver == address(0) || _clientReceiver == address(this))
             revert InvalidClientReceiver();
         clientReceiver = _clientReceiver;
@@ -441,10 +431,10 @@ contract SmartInvoiceEscrow is
     /**
      * @notice External function to lock the contract and initiate dispute resolution
      *         Can only be called by client or provider before termination
-     * @param _details Details of the dispute
+     * @param _disputeURI Extra data for the arbitrator
      */
     function lock(
-        string calldata _details
+        string calldata _disputeURI
     ) external payable override nonReentrant {
         if (locked) revert Locked();
         uint256 balance = IERC20(token).balanceOf(address(this));
@@ -456,14 +446,14 @@ contract SmartInvoiceEscrow is
         locked = true;
 
         if (resolverType == ADR.ARBITRATOR) {
-            // Note: user must call `IArbitrator(resolver).arbitrationCost(_details)` to get the arbitration cost
+            // Note: user must call `IArbitrator(resolver).arbitrationCost(_disputeURI)` to get the arbitration cost
 
             // Ensure each dispute has its own evidence group id
             evidenceGroupId = evidenceGroupId + 1;
 
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
                 NUM_RULING_OPTIONS,
-                abi.encodePacked(_details)
+                bytes(_disputeURI)
             );
 
             emit Dispute(
@@ -474,34 +464,34 @@ contract SmartInvoiceEscrow is
             );
         }
 
-        emit Lock(msg.sender, _details);
+        emit Lock(msg.sender, _disputeURI);
     }
 
     /**
      * @notice External function to appeal a dispute
      *         Can only be called by client or provider when contract is locked with arbitrator resolver
-     * @param _details Extra data for the arbitrator
+     * @param _appealURI Extra data for the arbitrator
      */
-    function appeal(string memory _details) external payable nonReentrant {
+    function appeal(string memory _appealURI) external payable nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 
-        // Note: user must call `IArbitrator(resolver).appealCost(disputeId, _details)` to get the appeal cost
+        // Note: user must call `IArbitrator(resolver).appealCost(disputeId, _appealURI)` to get the appeal cost
         IArbitrator(resolver).appeal{value: msg.value}(
             disputeId,
-            abi.encodePacked(_details)
+            bytes(_appealURI)
         );
 
-        emit DisputeAppealed(msg.sender, _details);
+        emit DisputeAppealed(msg.sender, _appealURI);
     }
 
     /**
      * @notice External function to submit evidence for a dispute
      *         Can only be called by client or provider when contract is locked with arbitrator resolver
-     * @param _evidenceURI The URI of the evidence
+     * @param _evidenceURI Extra data for the arbitrator
      */
     function submitEvidence(
         string calldata _evidenceURI
@@ -527,12 +517,12 @@ contract SmartInvoiceEscrow is
      *         Can only be called by the individual resolver when contract is locked
      * @param _clientAward The amount to award the client
      * @param _providerAward The amount to award the provider
-     * @param _details Details of the dispute resolution
+     * @param _resolutionURI Details of the dispute resolution
      */
     function resolve(
         uint256 _clientAward,
         uint256 _providerAward,
-        string calldata _details
+        string calldata _resolutionURI
     ) external virtual override nonReentrant {
         if (resolverType != ADR.INDIVIDUAL)
             revert InvalidIndividualResolver(resolver);
@@ -557,7 +547,10 @@ contract SmartInvoiceEscrow is
             IERC20(token).safeTransfer(resolver, resolutionFee);
         }
 
+        // Complete all milestones
         milestone = amounts.length;
+
+        // Reset locked state
         locked = false;
 
         emit Resolve(
@@ -565,7 +558,7 @@ contract SmartInvoiceEscrow is
             _clientAward,
             _providerAward,
             resolutionFee,
-            _details
+            _resolutionURI
         );
     }
 
@@ -687,7 +680,7 @@ contract SmartInvoiceEscrow is
      *         Only accepts ETH if the token is WETH and contract is not locked
      */
     // solhint-disable-next-line no-complex-fallback
-    receive() external payable {
+    receive() external payable nonReentrant {
         if (locked) revert Locked();
         if (token != address(WRAPPED_NATIVE_TOKEN))
             revert InvalidWrappedNativeToken();
