@@ -5,5 +5,5 @@ libs = ['node_modules', 'lib']
 test = 'test'
 cache_path  = 'cache_forge'
 
-[lint]
+[profile.lint]
 exclude_lints = ["mixed-case-variable", "mixed-case-function","screaming-snake-case-const", "screaming-snake-case-immutable"]
