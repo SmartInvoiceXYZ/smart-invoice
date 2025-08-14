@@ -226,12 +226,15 @@ contract SafeSplitsEscrowZap is
         // Encode data for escrow setup
         bytes memory escrowDetails = abi.encode(initData);
 
+        uint256 version = escrowFactory.currentVersions(ESCROW_TYPE_HASH);
+
         // Deploy the escrow
         escrow = escrowFactory.createDeterministic(
             _escrowParams[0], // provider
             _milestoneAmounts, // milestoneAmounts
             escrowDetails,
             ESCROW_TYPE_HASH,
+            version,
             escrowData.saltNonce
         );
         if (escrow == address(0)) revert EscrowNotCreated();

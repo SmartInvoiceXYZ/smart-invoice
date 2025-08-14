@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity 0.8.30;
 
+import {IWRAPPED} from "./IWRAPPED.sol";
+
 /// @title ISmartInvoiceFactory
-/// @notice Interface for the Smart Invoice Factory contract that facilitates creating and managing Smart Invoices.
+/// @notice Interface for creating and managing Smart Invoice implementations & escrows.
 interface ISmartInvoiceFactory {
-    /**
-     * @notice Creates a new Smart Invoice with the provided recipient, amounts, and data.
-     * @param _recipient The address of the recipient to receive payments.
-     * @param _amounts An array of amounts representing payments or milestones.
-     * @param _data Additional data needed for initialization, encoded as bytes.
-     * @param _type The type of the Smart Invoice to be created.
-     * @return The address of the newly created Smart Invoice.
-     */
+    /*//////////////////////////////////////////////////////////////
+                                CREATION
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Create a new invoice using the latest implementation version for the given type.
     function create(
         address _recipient,
         uint256[] calldata _amounts,
@@ -20,66 +18,136 @@ interface ISmartInvoiceFactory {
         bytes32 _type
     ) external returns (address);
 
-    /**
-     * @notice Creates a new Smart Invoice deterministically using a salt value.
-     * @param _recipient The address of the recipient to receive payments.
-     * @param _amounts An array of amounts representing payments or milestones.
-     * @param _data Additional data needed for initialization, encoded as bytes.
-     * @param _type The type of the Smart Invoice to be created.
-     * @param _salt The salt value used for deterministic address calculation.
-     * @return The address of the newly created Smart Invoice.
-     */
+    /// @notice Create a new invoice deterministically using CREATE2 and an explicit version.
     function createDeterministic(
         address _recipient,
         uint256[] calldata _amounts,
         bytes calldata _data,
         bytes32 _type,
+        uint256 _version,
         bytes32 _salt
     ) external returns (address);
 
-    /**
-     * @notice Predicts the deterministic address of a Smart Invoice to be created with a specific salt.
-     * @param _type The type of the Smart Invoice.
-     * @param _salt The salt value used for deterministic address calculation.
-     * @return The predicted deterministic address of the Smart Invoice.
-     */
+    /// @notice Predict the deterministic address for a (type, version, salt) before creation.
     function predictDeterministicAddress(
         bytes32 _type,
+        uint256 _version,
         bytes32 _salt
     ) external view returns (address);
 
-    /**
-     * @notice Returns the resolution rate for a specific resolver address.
-     * @param _resolver The address of the resolver.
-     * @return The resolution rate for the specified resolver.
-     */
+    /*//////////////////////////////////////////////////////////////
+                         CREATE + FUND IN ONE TX
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Create an escrow invoice and fund it in a single transaction.
+    function createAndDeposit(
+        address _provider,
+        uint256[] calldata _milestoneAmounts,
+        bytes calldata _escrowData,
+        bytes32 _escrowType,
+        uint256 _fundAmount
+    ) external payable returns (address escrow);
+
+    /// @notice Create an escrow invoice deterministically and fund it in a single transaction.
+    function createDeterministicAndDeposit(
+        address _provider,
+        uint256[] calldata _milestoneAmounts,
+        bytes calldata _escrowData,
+        bytes32 _escrowType,
+        uint256 _version,
+        bytes32 _salt,
+        uint256 _fundAmount
+    ) external payable returns (address escrow);
+
+    /*//////////////////////////////////////////////////////////////
+                              ADMIN OPS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Add a new implementation for a given type, auto-incrementing version if one exists.
+    function addImplementation(bytes32 _type, address _implementation) external;
+
+    /// @notice Set the current version pointer for a given type (must exist).
+    function setCurrentVersion(bytes32 _type, uint256 _version) external;
+
+    /*//////////////////////////////////////////////////////////////
+                             RESOLUTION RATES
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Update the caller's resolution rate (denominator for fee calc).
+    function updateResolutionRate(
+        uint256 _resolutionRate,
+        bytes32 _details
+    ) external;
+
+    /// @notice Read the stored resolution rate via dedicated accessor.
     function resolutionRateOf(
         address _resolver
     ) external view returns (uint256);
 
-    /// @dev Error definitions for more efficient gas usage.
+    /// @notice Public mapping getter (mirrors the contract's public mapping).
+    function resolutionRates(address _resolver) external view returns (uint256);
 
-    /// @notice Reverts when the wrapped native token is invalid.
+    /*//////////////////////////////////////////////////////////////
+                                GETTERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Total invoices created so far.
+    function invoiceCount() external view returns (uint256);
+
+    /// @notice Fetch an invoice address by sequential index.
+    function getInvoiceAddress(uint256 index) external view returns (address);
+
+    /// @notice Convenience getter for an implementation.
+    function getImplementation(
+        bytes32 _implementationType,
+        uint256 _implementationVersion
+    ) external view returns (address);
+
+    /// @notice Public mapping getter for implementations[type][version].
+    function implementations(
+        bytes32 _type,
+        uint256 _version
+    ) external view returns (address);
+
+    /// @notice Public mapping getter for the current version of a type.
+    function currentVersions(bytes32 _type) external view returns (uint256);
+
+    /// @notice Address of the wrapped native token contract used by the factory.
+    function WRAPPED_NATIVE_TOKEN() external view returns (IWRAPPED);
+
+    /*//////////////////////////////////////////////////////////////
+                               SWEEPERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Rescue ERC20 tokens sent to the factory by mistake.
+    function sweepERC20(address token, address to, uint256 amt) external;
+
+    /// @notice Rescue native ETH sent to the factory by mistake.
+    function sweepETH(address to) external;
+
+    /*//////////////////////////////////////////////////////////////
+                                 ERRORS
+    //////////////////////////////////////////////////////////////*/
+
     error InvalidWrappedNativeToken();
-
-    /// @notice Reverts when the requested implementation does not exist.
     error ImplementationDoesNotExist();
-
-    /// @notice Reverts when the implementation address provided is the zero address.
     error ZeroAddressImplementation();
-
-    /// @notice Error emitted when escrow creation fails
     error EscrowNotCreated();
-
-    /// @notice Error emitted when the fund amount is invalid
     error InvalidFundAmount();
+    error ETHNotAccepted();
+    error InvalidResolutionRate();
+    error UnexpectedETH();
+    error InvalidInvoiceIndex();
+    error ETHTransferFailed();
+    error InvalidEscrow();
+    // If your implementation enforces version equality in deterministic create, uncomment:
+    // error VersionMismatch();
+
+    /*//////////////////////////////////////////////////////////////
+                                  EVENTS
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a new invoice is created.
-    /// @param invoiceId The ID of the created invoice.
-    /// @param invoiceAddress The address of the created invoice.
-    /// @param amounts The amounts associated with the invoice.
-    /// @param invoiceType The type of the invoice.
-    /// @param version The version of the invoice implementation.
     event InvoiceCreated(
         uint256 indexed invoiceId,
         address indexed invoiceAddress,
@@ -89,29 +157,20 @@ interface ISmartInvoiceFactory {
     );
 
     /// @notice Emitted when a new implementation is added.
-    /// @param invoiceType The type of the invoice.
-    /// @param version The version of the invoice implementation.
-    /// @param implementation The address of the new implementation.
     event AddImplementation(
         bytes32 indexed invoiceType,
-        uint256 version,
+        uint256 indexed version,
         address implementation
     );
 
-    /// @notice Emitted when the resolution rate is updated.
-    /// @param resolver The address of the resolver.
-    /// @param resolutionRate The new resolution rate.
-    /// @param details Additional details about the update.
+    /// @notice Emitted when a resolver updates their rate.
     event UpdateResolutionRate(
         address indexed resolver,
         uint256 resolutionRate,
         bytes32 details
     );
 
-    /// @notice Event emitted when a new escrow is funded
-    /// @param escrow Address of the newly created escrow
-    /// @param token Address of the token used for payment
-    /// @param amount The total fund amount transferred to the escrow
+    /// @notice Emitted when an escrow is funded by the factory.
     event InvoiceFunded(
         address indexed escrow,
         address indexed token,

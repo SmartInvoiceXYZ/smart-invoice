@@ -61,7 +61,7 @@ contract SmartInvoiceFactory is
      * @param _recipient The address of the recipient (provider)
      * @param _amounts The array of amounts associated with the recipient
      * @param _data Additional data needed for initialization
-     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _escrowType The type of the invoice (e.g., "ESCROW", "INSTANT")
      * @param _version The version of the invoice implementation
      */
     function _init(
@@ -69,12 +69,16 @@ contract SmartInvoiceFactory is
         address _recipient,
         uint256[] calldata _amounts,
         bytes calldata _data,
-        bytes32 _type,
+        bytes32 _escrowType,
         uint256 _version
     ) internal {
+        // Not validating invoice parameters here, as they are validated in the init function of the implementation
         uint256 invoiceId = invoiceCount;
         _invoices[invoiceId] = _invoiceAddress;
-        invoiceCount++;
+
+        unchecked {
+            invoiceCount++;
+        }
 
         ISmartInvoice(_invoiceAddress).init(_recipient, _amounts, _data);
 
@@ -82,7 +86,7 @@ contract SmartInvoiceFactory is
             invoiceId,
             _invoiceAddress,
             _amounts,
-            _type,
+            _escrowType,
             _version
         );
     }
@@ -92,37 +96,47 @@ contract SmartInvoiceFactory is
      * @param _recipient The address of the recipient (provider)
      * @param _amounts The array of amounts associated with the recipient
      * @param _data Additional data needed for initialization
-     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _escrowType The type of the invoice (e.g., "ESCROW", "INSTANT")
      * @return The address of the created invoice
      */
     function create(
         address _recipient,
         uint256[] calldata _amounts,
         bytes calldata _data,
-        bytes32 _type
+        bytes32 _escrowType
     ) public override returns (address) {
-        uint256 _version = currentVersions[_type];
-        address _implementation = implementations[_type][_version];
+        uint256 _version = currentVersions[_escrowType];
+        address _implementation = implementations[_escrowType][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
 
         address invoiceAddress = Clones.clone(_implementation);
-        _init(invoiceAddress, _recipient, _amounts, _data, _type, _version);
+        _init(
+            invoiceAddress,
+            _recipient,
+            _amounts,
+            _data,
+            _escrowType,
+            _version
+        );
 
         return invoiceAddress;
     }
 
     /**
      * @notice Predicts the deterministic address of a clone before creation
-     * @param _type The type of the invoice
+     * @param _escrowType The type of the invoice
+     * @param _version The version of the invoice implementation
      * @param _salt The salt used to determine the address
      * @return The predicted address of the deterministic clone
      */
     function predictDeterministicAddress(
-        bytes32 _type,
+        bytes32 _escrowType,
+        uint256 _version,
         bytes32 _salt
     ) external view override returns (address) {
-        uint256 _version = currentVersions[_type];
-        address _implementation = implementations[_type][_version];
+        address _implementation = implementations[_escrowType][_version];
+        if (_implementation == address(0)) revert ImplementationDoesNotExist();
+
         return Clones.predictDeterministicAddress(_implementation, _salt);
     }
 
@@ -131,7 +145,8 @@ contract SmartInvoiceFactory is
      * @param _recipient The address of the recipient (provider)
      * @param _amounts The array of amounts associated with the recipient
      * @param _data Additional data needed for initialization
-     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _escrowType The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _version The version of the invoice implementation
      * @param _salt The salt used to determine the address
      * @return The address of the created invoice
      */
@@ -139,18 +154,25 @@ contract SmartInvoiceFactory is
         address _recipient,
         uint256[] calldata _amounts,
         bytes calldata _data,
-        bytes32 _type,
+        bytes32 _escrowType,
+        uint256 _version,
         bytes32 _salt
     ) public override returns (address) {
-        uint256 _version = currentVersions[_type];
-        address _implementation = implementations[_type][_version];
+        address _implementation = implementations[_escrowType][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
 
         address invoiceAddress = Clones.cloneDeterministic(
             _implementation,
             _salt
         );
-        _init(invoiceAddress, _recipient, _amounts, _data, _type, _version);
+        _init(
+            invoiceAddress,
+            _recipient,
+            _amounts,
+            _data,
+            _escrowType,
+            _version
+        );
 
         return invoiceAddress;
     }
@@ -174,6 +196,7 @@ contract SmartInvoiceFactory is
      * @return The address of the invoice
      */
     function getInvoiceAddress(uint256 index) external view returns (address) {
+        if (index >= invoiceCount) revert InvalidInvoiceIndex();
         return _invoices[index];
     }
 
@@ -187,6 +210,8 @@ contract SmartInvoiceFactory is
         uint256 _resolutionRate,
         bytes32 _details
     ) external {
+        if (_resolutionRate < 2 || _resolutionRate > 1000)
+            revert InvalidResolutionRate();
         resolutionRates[msg.sender] = _resolutionRate;
         emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
     }
@@ -205,58 +230,86 @@ contract SmartInvoiceFactory is
     /**
      * @notice Adds a new implementation for a given type
      *         If it's the first implementation for the type, uses version 0; otherwise increments version
-     * @param _type The type of the invoice (e.g., "ESCROW", "INSTANT")
+     * @param _escrowType The type of the invoice (e.g., "ESCROW", "INSTANT")
      * @param _implementation The address of the new implementation
      */
     function addImplementation(
-        bytes32 _type,
+        bytes32 _escrowType,
         address _implementation
     ) external onlyRole(ADMIN) {
         if (_implementation == address(0)) revert ZeroAddressImplementation();
+        if (_implementation.code.length == 0)
+            revert ImplementationDoesNotExist();
 
-        uint256 _version = currentVersions[_type];
-        address currentImplementation = implementations[_type][_version];
+        uint256 _version = currentVersions[_escrowType];
+        address currentImplementation = implementations[_escrowType][_version];
 
         if (currentImplementation == address(0)) {
             // First implementation for this type
-            implementations[_type][_version] = _implementation;
+            implementations[_escrowType][_version] = _implementation;
         } else {
             // Increment version and add new implementation
             _version++;
-            implementations[_type][_version] = _implementation;
-            currentVersions[_type] = _version;
+            implementations[_escrowType][_version] = _implementation;
+            currentVersions[_escrowType] = _version;
         }
 
-        emit AddImplementation(_type, _version, _implementation);
+        emit AddImplementation(_escrowType, _version, _implementation);
+    }
+
+    /**
+     * @notice Sets the current version for a given type
+     * @param _escrowType The type of the invoice
+     * @param _version The new version
+     * @dev Only callable by admin, to be used in case of a bug in the implementation
+     */
+    function setCurrentVersion(
+        bytes32 _escrowType,
+        uint256 _version
+    ) external onlyRole(ADMIN) {
+        if (implementations[_escrowType][_version] == address(0))
+            revert ImplementationDoesNotExist();
+        currentVersions[_escrowType] = _version;
     }
 
     /**
      * @notice Internal function to handle funding of created escrow contracts
-     * @param escrow The address of the escrow contract to fund
+     * @param _escrow The address of the escrow contract to fund
      * @param _fundAmount The amount to fund the escrow
      */
-    function _fundEscrow(address escrow, uint256 _fundAmount) internal {
-        // Ensure escrow creation was successful
-        if (escrow == address(0)) revert EscrowNotCreated();
+    function _fundEscrow(address _escrow, uint256 _fundAmount) internal {
+        if (_escrow == address(0)) revert EscrowNotCreated();
+        if (_fundAmount == 0) revert InvalidFundAmount();
 
-        address token = ISmartInvoiceEscrow(escrow).token();
+        try ISmartInvoiceEscrow(_escrow).token() returns (address token) {
+            if (token == address(WRAPPED_NATIVE_TOKEN)) {
+                if (msg.value > 0) {
+                    // Wrap exactly _fundAmount
+                    if (msg.value != _fundAmount) revert InvalidFundAmount();
+                    WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
+                    IERC20(token).safeTransfer(_escrow, _fundAmount);
+                } else {
+                    // ERC20(WNATIVE) transferFrom path (requires allowance)
+                    IERC20(token).safeTransferFrom(
+                        msg.sender,
+                        _escrow,
+                        _fundAmount
+                    );
+                }
+            } else {
+                // Use ERC20 path (msg.value == 0)
+                if (msg.value != 0) revert UnexpectedETH(); // prevent stuck ETH
+                IERC20(token).safeTransferFrom(
+                    msg.sender,
+                    _escrow,
+                    _fundAmount
+                );
+            }
 
-        if (token == address(WRAPPED_NATIVE_TOKEN) && msg.value > 0) {
-            // Ensure the fund amount is valid
-            if (msg.value != _fundAmount) revert InvalidFundAmount();
-
-            // Wrap native token (ETH) into WETH
-            WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
-
-            // Transfer the wrapped amount to the newly created escrow contract
-            IERC20(token).safeTransfer(escrow, _fundAmount);
-        } else {
-            // Transfer ERC20 tokens directly from sender to escrow contract
-            IERC20(token).safeTransferFrom(msg.sender, escrow, _fundAmount);
+            emit InvoiceFunded(_escrow, token, _fundAmount);
+        } catch {
+            revert InvalidEscrow();
         }
-
-        // Emit event for escrow funding
-        emit InvoiceFunded(escrow, token, _fundAmount);
     }
 
     /**
@@ -286,6 +339,7 @@ contract SmartInvoiceFactory is
      * @param _escrowData Additional data for the escrow initialization
      * @param _escrowType The type of escrow to create (e.g., "ESCROW")
      * @param _salt The salt used to determine the address
+     * @param _version The version of the invoice implementation
      * @param _fundAmount The amount to fund the escrow with
      * @return escrow The address of the created escrow contract
      */
@@ -294,6 +348,7 @@ contract SmartInvoiceFactory is
         uint256[] calldata _milestoneAmounts,
         bytes calldata _escrowData,
         bytes32 _escrowType,
+        uint256 _version,
         bytes32 _salt,
         uint256 _fundAmount
     ) external payable nonReentrant returns (address escrow) {
@@ -302,8 +357,25 @@ contract SmartInvoiceFactory is
             _milestoneAmounts,
             _escrowData,
             _escrowType,
+            _version,
             _salt
         );
         _fundEscrow(escrow, _fundAmount);
+    }
+
+    receive() external payable {
+        revert ETHNotAccepted();
+    }
+
+    function sweepERC20(
+        address token,
+        address to,
+        uint256 amt
+    ) external onlyRole(ADMIN) {
+        IERC20(token).safeTransfer(to, amt);
+    }
+    function sweepETH(address to) external onlyRole(ADMIN) {
+        (bool ok, ) = to.call{value: address(this).balance}("");
+        if (!ok) revert ETHTransferFailed();
     }
 }
