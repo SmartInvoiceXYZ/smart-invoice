@@ -48,12 +48,6 @@ interface ISafeSplitsEscrowZap {
     ) external;
 
     /**
-     * @notice Initializes the contract with the provided data.
-     * @param _data The data to initialize the contract with.
-     */
-    function init(bytes memory _data) external;
-
-    /**
      * @notice Updates the addresses used by the contract.
      * @param _data The data containing the new addresses to be updated.
      */
@@ -71,6 +65,11 @@ interface ISafeSplitsEscrowZap {
     error ProjectTeamSplitNotCreated();
     error EscrowNotCreated();
     error NotAuthorized();
+    error ZeroAddress();
+    error NotAContract(address);
+    error InvalidDistributorFee(uint32);
+    error EmptyOwners();
+    error InvalidSafeThreshold(uint256 threshold, uint256 owners);
 
     /// @notice Emitted when a new Safe splits escrow is created.
     /// @param providerSafe The address of the created Safe.

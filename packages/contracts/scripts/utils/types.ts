@@ -13,10 +13,8 @@ export type Zap = {
   fallbackHandler?: Hex;
   safeFactory?: Hex;
   splitMain?: Hex;
-  spoilsManager?: Hex;
-  factory?: Hex;
-  implementations?: Hex[];
-  instances?: Hex[];
+  zaps?: Hex[];
+  daoZaps?: Hex[];
 };
 
 export type NonDao = {

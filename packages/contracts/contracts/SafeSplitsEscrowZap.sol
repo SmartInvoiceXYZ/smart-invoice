@@ -3,25 +3,21 @@
 pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {
-    Initializable
-} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
 import {ISplitMain} from "./interfaces/ISplitMain.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
-import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SafeSplitsEscrowZap
 /// @notice Contract for creating and managing Safe splits escrow with customizable settings
 ///         Provides a unified interface to deploy Gnosis Safe, 0xSplits, and SmartInvoice Escrow in a single transaction
-contract SafeSplitsEscrowZap is
-    AccessControl,
-    Initializable,
-    ISafeSplitsEscrowZap
-{
+contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
+    /*//////////////////////////////////////////////////////////////
+                                STATE
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice The SafeL2 singleton address
     address public safeSingleton;
 
@@ -37,10 +33,7 @@ contract SafeSplitsEscrowZap is
     /// @notice The SmartInvoiceFactory address
     ISmartInvoiceFactory public escrowFactory;
 
-    /// @notice The wrapped native token (WETH) address
-    IWRAPPED public wrappedNativeToken;
-
-    /// @notice The distributor fee provided for processing 0xSplits
+    /// @notice 0xSplits distributor fee (scaled by 1e6)
     uint32 public distributorFee = 0;
 
     /// @notice Admin role identifier for access control
@@ -49,53 +42,51 @@ contract SafeSplitsEscrowZap is
     /// @notice Hash identifier for escrow type used in deterministic deployment
     bytes32 public constant ESCROW_TYPE_HASH = keccak256("escrow-v3");
 
-    /// @notice Constructor that disables initializers to prevent direct initialization
-    ///         Contract must be initialized via the init() function after deployment
-    constructor() {
-        _disableInitializers();
-    }
+    /// @dev Reverts when a required address is zero.
+    error InvalidAddress(string field);
 
-    /**
-     * @notice Initializes the contract with provided data
-     *         Can only be called once due to initializer modifier
-     * @param _data The initialization data containing addresses for all required contracts
-     */
-    function init(bytes calldata _data) external virtual initializer {
+    /*//////////////////////////////////////////////////////////////
+                              CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
+    /// @param _data encoded data for initialization
+    constructor(bytes memory _data) {
+        // grant roles to deployer
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN, msg.sender);
+
         _handleData(_data);
     }
 
-    /**
-     * @dev Internal function to handle initialization data
-     *      Decodes and sets all required contract addresses
-     * @param _data The initialization data containing contract addresses
-     */
-    function _handleData(bytes calldata _data) internal virtual {
+    /*//////////////////////////////////////////////////////////////
+                           INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function _handleData(bytes memory _data) internal virtual {
         (
             address _safeSingleton,
             address _fallbackHandler,
             address _safeFactory,
             address _splitMain,
-            address _escrowFactory,
-            address _wrappedNativeToken
-        ) = abi.decode(
-                _data,
-                (address, address, address, address, address, address)
-            );
+            address _escrowFactory
+        ) = abi.decode(_data, (address, address, address, address, address));
+
+        // minimal sanity checks to avoid footguns
+        if (_safeSingleton == address(0))
+            revert InvalidAddress("safeSingleton");
+        if (_safeFactory == address(0)) revert InvalidAddress("safeFactory");
+        if (_splitMain == address(0)) revert InvalidAddress("splitMain");
+        if (_escrowFactory == address(0))
+            revert InvalidAddress("escrowFactory");
+        // fallbackHandler can be zero depending on your Safe setup; keep optional
 
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;
         safeFactory = ISafeProxyFactory(_safeFactory);
         splitMain = ISplitMain(_splitMain);
         escrowFactory = ISmartInvoiceFactory(_escrowFactory);
-        wrappedNativeToken = IWRAPPED(_wrappedNativeToken);
     }
 
-    /**
-     * @dev Internal function to deploy a new Gnosis Safe with the provided owners and threshold
-     * @param _owners The address list of owners for the Safe
-     * @param _safeData The encoded data for Safe setup containing threshold and salt nonce
-     * @return safe The address of the deployed Safe
-     */
     function _deploySafe(
         address[] memory _owners,
         bytes calldata _safeData
@@ -105,7 +96,7 @@ contract SafeSplitsEscrowZap is
             (uint256, uint256)
         );
 
-        // Encode the Safe setup call with provided parameters
+        // encode Safe.setup(..)
         bytes memory safeInitializer = abi.encodeWithSelector(
             bytes4(
                 keccak256(
@@ -114,33 +105,22 @@ contract SafeSplitsEscrowZap is
             ),
             _owners,
             _threshold,
-            address(0), // to (no initial transaction)
-            bytes("0x"), // data (no initial transaction data)
-            fallbackHandler, // fallbackHandlerAddress
-            address(0), // paymentToken (no payment)
-            0, // payment (no payment)
-            address(0) // paymentReceiver (no payment)
+            address(0), // to
+            bytes("0x"), // data
+            fallbackHandler, // fallback handler
+            address(0), // payment token
+            0, // payment
+            address(0) // payment receiver
         );
 
-        // Create the Safe proxy
         safe = safeFactory.createProxyWithNonce(
             safeSingleton,
             safeInitializer,
             _saltNonce
         );
         if (safe == address(0)) revert SafeNotCreated();
-
-        return safe;
     }
 
-    /**
-     * @dev Internal function to create a new 0xSplits split with the provided owners and percent allocations
-     * @param _owners The address list of owners for the split (must be sorted ascending)
-     * @param _percentAllocations The percent allocations for the split (must match owners length)
-     * @param _splitData The encoded data for split setup containing creation flag
-     * @param _splitController The address of the controller for the split
-     * @return split The address of the deployed split, or zero address if not created
-     */
     function _deploySplit(
         address[] memory _owners,
         uint32[] memory _percentAllocations,
@@ -150,108 +130,72 @@ contract SafeSplitsEscrowZap is
         bool createProjectSplit = abi.decode(_splitData, (bool));
         if (!createProjectSplit) return address(0);
 
-        // Create the project team split
+        if (_percentAllocations.length != _owners.length) {
+            revert InvalidAllocationsOwnersData();
+        }
+
         split = splitMain.createSplit(
             _owners,
             _percentAllocations,
             distributorFee,
             _splitController
         );
-
-        if (split == address(0)) {
-            revert ProjectTeamSplitNotCreated();
-        }
-
-        return split;
+        if (split == address(0)) revert ProjectTeamSplitNotCreated();
     }
 
-    /**
-     * @dev Internal function to handle escrow data.
-     * @param _escrowData The encoded data for escrow setup.
-     */
     function _decodeEscrowData(
         bytes calldata _escrowData
     ) internal pure returns (EscrowData memory escrowData) {
         escrowData = abi.decode(_escrowData, (EscrowData));
-
-        return escrowData;
     }
 
-    /**
-     * @dev Internal function to handle escrow parameters.
-     * @param _zapData The data struct for storing deployment results.
-     * @return The escrow parameters for the deployment.
-     */
     function _decodeEscrowParams(
         ZapData memory _zapData
-    ) internal pure returns (address[] memory) {
-        address[] memory escrowParams = new address[](2);
+    ) internal pure returns (address[] memory escrowParams) {
+        escrowParams = new address[](2);
         escrowParams[0] = _zapData.providerSafe;
         escrowParams[1] = _zapData.providerSplit == address(0)
             ? _zapData.providerSafe
             : _zapData.providerSplit;
-
         return escrowParams;
     }
 
-    /**
-     * @dev Internal function to deploy a new Escrow with the provided details.
-     * @param _milestoneAmounts The milestone amounts for the escrow.
-     * @param _escrowData The encoded data for escrow setup.
-     * @param _escrowParams The provider parameters for the escrow setup.
-     */
     function _deployEscrow(
         uint256[] memory _milestoneAmounts,
         bytes calldata _escrowData,
         address[] memory _escrowParams
     ) internal returns (address escrow) {
-        EscrowData memory escrowData = _decodeEscrowData(_escrowData);
+        EscrowData memory d = _decodeEscrowData(_escrowData);
 
-        // Create InitData struct for escrow setup
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
-                client: escrowData.client,
-                resolverType: escrowData.resolverType,
-                resolver: escrowData.resolver,
-                token: escrowData.token,
-                terminationTime: escrowData.terminationTime,
-                requireVerification: escrowData.requireVerification,
-                providerReceiver: _escrowParams[1], // providerReceiver
-                clientReceiver: escrowData.clientReceiver,
-                feeBPS: escrowData.feeBPS,
-                treasury: escrowData.treasury,
-                details: escrowData.details
+                client: d.client,
+                resolverType: d.resolverType,
+                resolver: d.resolver,
+                token: d.token,
+                terminationTime: d.terminationTime,
+                requireVerification: d.requireVerification,
+                providerReceiver: _escrowParams[1],
+                clientReceiver: d.clientReceiver,
+                feeBPS: d.feeBPS,
+                treasury: d.treasury,
+                details: d.details
             });
 
-        // Encode data for escrow setup
         bytes memory escrowDetails = abi.encode(initData);
-
         uint256 version = escrowFactory.currentVersions(ESCROW_TYPE_HASH);
 
-        // Deploy the escrow
         escrow = escrowFactory.createDeterministic(
-            _escrowParams[0], // provider
-            _milestoneAmounts, // milestoneAmounts
+            _escrowParams[0], // provider (Safe)
+            _milestoneAmounts,
             escrowDetails,
             ESCROW_TYPE_HASH,
             version,
-            escrowData.saltNonce
+            d.saltNonce
         );
         if (escrow == address(0)) revert EscrowNotCreated();
-
-        return escrow;
     }
 
-    /**
-     * @dev Internal function to create a new Safe, Split, and Escrow.
-     * @param _owners The list of owners for the Safe and Split.
-     * @param _percentAllocations The percent allocations for the Split.
-     * @param _milestoneAmounts The milestone amounts for the Escrow.
-     * @param _providerSafeData The encoded data for Safe setup.
-     * @param _providerSafeAddress The address of an existing Safe.
-     * @param _splitData The encoded data for Split setup.
-     * @param _escrowData The encoded data for Escrow setup.
-     */
     function _createSafeSplitEscrow(
         address[] memory _owners,
         uint32[] memory _percentAllocations,
@@ -293,15 +237,19 @@ contract SafeSplitsEscrowZap is
         );
     }
 
+    /*//////////////////////////////////////////////////////////////
+                             EXTERNAL API
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @notice Deploys a new Safe, Project Team Split, and Escrow with the provided details.
-     * @param _owners The Safe owners and project team participants.
-     * @param _percentAllocations The percent allocations for the project team split.
-     * @param _milestoneAmounts The milestone amounts for the escrow.
-     * @param _providerSafeData The encoded data for deploying a Safe.
-     * @param _providerSafeAddress The address of an existing Safe.
-     * @param _splitData The encoded data for deploying a Split.
-     * @param _escrowData The encoded data for escrow deployment.
+     * @notice Deploy a Safe (if not provided), an optional 0xSplits split, and a SmartInvoice escrow.
+     * @param _owners Safe owners / split recipients (must match _percentAllocations length)
+     * @param _percentAllocations Split allocations (1e6 = 100%); ignored if split disabled
+     * @param _milestoneAmounts Escrow milestone amounts
+     * @param _providerSafeData abi.encode(threshold, saltNonce) for Safe; ignored if _providerSafeAddress != 0
+     * @param _providerSafeAddress Existing Safe to reuse; if zero, a new Safe will be created
+     * @param _splitData abi.encode(bool createProjectSplit)
+     * @param _escrowData abi.encode(EscrowData)
      */
     function createSafeSplitEscrow(
         address[] memory _owners,
@@ -311,9 +259,10 @@ contract SafeSplitsEscrowZap is
         address _providerSafeAddress,
         bytes calldata _splitData,
         bytes calldata _escrowData
-    ) public virtual {
-        if (_percentAllocations.length != _owners.length)
+    ) external {
+        if (_percentAllocations.length != _owners.length) {
             revert InvalidAllocationsOwnersData();
+        }
 
         _createSafeSplitEscrow(
             _owners,
@@ -327,10 +276,17 @@ contract SafeSplitsEscrowZap is
     }
 
     /**
-     * @dev Internal function to update addresses used by the contract.
-     * @param _data The encoded data for updating addresses.
+     * @notice Admin: update core addresses. Pass zero to keep a field unchanged.
+     * @param _data abi.encode(
+     *   address _safeSingleton,
+     *   address _safeFactory,
+     *   address _splitMain,
+     *   address _escrowFactory
+     * )
      */
-    function _updateAddresses(bytes calldata _data) internal {
+    function updateAddresses(bytes calldata _data) external {
+        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
+
         (
             address _safeSingleton,
             address _safeFactory,
@@ -354,17 +310,7 @@ contract SafeSplitsEscrowZap is
     }
 
     /**
-     * @notice Updates the addresses used by the contract.
-     * @param _data The encoded data for updating addresses.
-     */
-    function updateAddresses(bytes calldata _data) external {
-        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
-        _updateAddresses(_data);
-    }
-
-    /**
-     * @notice Updates the distributor fee.
-     * @param _distributorFee The new distributor fee.
+     * @notice Admin: update the 0xSplits distributor fee (scaled by 1e6).
      */
     function updateDistributorFee(uint32 _distributorFee) external {
         if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();

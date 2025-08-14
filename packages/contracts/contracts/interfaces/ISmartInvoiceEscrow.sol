@@ -2,11 +2,9 @@
 
 pragma solidity 0.8.30;
 
-import {ISmartInvoice} from "./ISmartInvoice.sol";
-
 /// @title ISmartInvoiceEscrow
 /// @notice Interface for Smart Invoice Escrow functionality with customizable milestones, releases, and dispute resolution.
-interface ISmartInvoiceEscrow is ISmartInvoice {
+interface ISmartInvoiceEscrow {
     /// @dev Struct for storing initialization data.
     struct InitData {
         address client;
@@ -21,6 +19,19 @@ interface ISmartInvoiceEscrow is ISmartInvoice {
         address treasury;
         string details;
     }
+
+    /**
+     * @notice Initializes the Smart Invoice with the provided recipient, amounts, and data.
+     * @param _recipient The address of the recipient to receive payments.
+     * @param _amounts An array of amounts representing payments or milestones.
+     * @param _data Additional data needed for initialization, encoded as bytes.
+     */
+    function init(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) external;
+
     /**
         @notice Returns the address of the token used for payment.
         @return The address of the token used for payment.

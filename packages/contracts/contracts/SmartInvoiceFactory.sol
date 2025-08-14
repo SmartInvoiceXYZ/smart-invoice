@@ -12,7 +12,6 @@ import {
     SafeERC20
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {ISmartInvoice} from "./interfaces/ISmartInvoice.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
@@ -80,7 +79,7 @@ contract SmartInvoiceFactory is
             invoiceCount++;
         }
 
-        ISmartInvoice(_invoiceAddress).init(_recipient, _amounts, _data);
+        ISmartInvoiceEscrow(_invoiceAddress).init(_recipient, _amounts, _data);
 
         emit InvoiceCreated(
             invoiceId,

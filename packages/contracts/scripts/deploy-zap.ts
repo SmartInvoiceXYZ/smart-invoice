@@ -1,25 +1,22 @@
 import { network, viem } from 'hardhat';
-import { ContractTypesMap } from 'hardhat/types/artifacts';
-import { encodeAbiParameters, Hex, toBytes, toHex } from 'viem';
+import { encodeAbiParameters, Hex } from 'viem';
 
-import { getFactory, getWrappedTokenAddress, getZapData } from './constants';
+import { getFactory, getZapData } from './constants';
 import {
-  addZapFactory,
-  addZapImplementation,
-  addZapInstance,
+  addDaoZap,
+  addZap,
   readDeploymentInfo,
   writeDeploymentInfo,
 } from './utils/file';
 import { deployContract, verifyContract } from './utils/general';
 
 const DAO_ZAP = true;
+const INITIAL_SPOILS_BPS = 1000; // 10%
+const INITIAL_DAO_RECEIVER = undefined;
 
 async function main(): Promise<void> {
   const publicClient = await viem.getPublicClient();
   const chainId = await publicClient.getChainId();
-  let zapFactoryInstance:
-    | ContractTypesMap['SafeSplitsEscrowZapFactory']
-    | null = null;
 
   // Handle unsupported networks
   if (![5, 31337, 11155111, 100, 10].includes(chainId)) {
@@ -29,109 +26,77 @@ async function main(): Promise<void> {
 
   const zapData = getZapData(chainId);
   const deploymentInfo = readDeploymentInfo(network.name);
-  let updateFactory = deploymentInfo;
+  const updateFactory = deploymentInfo;
 
   if (!zapData) {
     console.log('Zap data not found for network:', network.name);
     return;
   }
 
-  if (!zapData.factory) {
-    const contractName = DAO_ZAP
-      ? 'SafeSplitsDaoEscrowZap'
-      : 'SafeSplitsEscrowZap';
-    const { contract: safeSplitsEscrowZapImpl } =
-      await deployContract(contractName);
+  if (DAO_ZAP) {
+    const daoReceiver = INITIAL_DAO_RECEIVER ?? zapData.dao;
+    const spoilsBPS = INITIAL_SPOILS_BPS;
 
-    console.log('Implementation Address:', safeSplitsEscrowZapImpl.address);
-
-    await verifyContract(chainId, safeSplitsEscrowZapImpl.address, []);
-    const updateImplementation = addZapImplementation(
-      deploymentInfo,
-      safeSplitsEscrowZapImpl.address,
+    const encodedData = encodeAbiParameters(
+      [
+        { type: 'address' }, // safeSingleton
+        { type: 'address' }, // fallbackHandler
+        { type: 'address' }, // safeFactory
+        { type: 'address' }, // splitMain
+        { type: 'address' }, // escrowFactory
+        { type: 'address' }, // dao
+        { type: 'address' }, // daoReceiver
+        { type: 'uint16' }, // spoilsBPS
+      ],
+      [
+        zapData.safeSingleton as Hex, // singleton
+        zapData.fallbackHandler as Hex, // fallback handler
+        zapData.safeFactory as Hex, // safe factory
+        zapData.splitMain as Hex, // split main
+        getFactory(chainId) as Hex, // escrow factory
+        zapData.dao as Hex, // dao, not used in regular zap
+        daoReceiver as Hex, // dao receiver
+        spoilsBPS,
+      ],
     );
 
-    const { contract } = await deployContract('SafeSplitsEscrowZapFactory', [
-      safeSplitsEscrowZapImpl.address,
-    ]);
-
-    zapFactoryInstance = contract;
-
-    if (!zapFactoryInstance) {
-      console.log('Failed to deploy Safe-Splits-Escrow Zap Factory');
-      return;
-    }
-
-    console.log(
-      'Safe-Splits-Escrow Zap Factory Address:',
-      zapFactoryInstance.address,
-    );
-
-    await verifyContract(chainId, zapFactoryInstance.address, [
-      safeSplitsEscrowZapImpl.address,
-    ]);
-
-    updateFactory = addZapFactory(
-      updateImplementation,
-      zapFactoryInstance.address as Hex,
-    );
-  } else if (!zapFactoryInstance) {
-    zapFactoryInstance = (await viem.getContractAt(
-      'SafeSplitsEscrowZapFactory',
-      zapData.factory,
-    )) as ContractTypesMap['SafeSplitsEscrowZapFactory'];
-  }
-
-  if (!zapFactoryInstance) {
-    console.log('Failed to get Safe-Splits-Escrow Zap Factory');
-    return;
-  }
-
-  // Regular zap = 6 params, DAO zap = 8 params
-  // Deploy a new zap instance
-  const zapDeployData: Hex[] = [
-    zapData.safeSingleton as Hex, // singleton
-    zapData.fallbackHandler as Hex, // fallback handler
-    zapData.safeFactory as Hex, // safe factory
-    zapData.splitMain as Hex, // split main
-    zapData.spoilsManager as Hex, // spoils manager, not used in regular zap
-    getFactory(chainId) as Hex, // escrow factory
-    getWrappedTokenAddress(chainId) as Hex, // wrapped token
-    zapData.dao as Hex, // dao, not used in regular zap
-  ];
-
-  const encodedData = encodeAbiParameters(
-    Array.from({ length: zapDeployData.length }, () => ({ type: 'address' })),
-    zapDeployData,
-  );
-
-  const saltNonce = toHex(
-    toBytes(Math.floor(new Date().getTime() / 1000), {
-      size: 32,
-    }),
-  );
-
-  const zapInstanceTxHash =
-    await zapFactoryInstance.write.createSafeSplitsEscrowZap([
+    const { contract: zap } = await deployContract('SafeSplitsDaoEscrowZap', [
       encodedData,
-      saltNonce,
     ]);
 
-  const safeSplitsEscrowZap = await publicClient.waitForTransactionReceipt({
-    hash: zapInstanceTxHash,
-  });
+    await verifyContract(chainId, zap.address, [encodedData]);
 
-  console.log(
-    'Safe-Splits-Escrow Zap Instance Address:',
-    safeSplitsEscrowZap.logs[0].address,
-  );
+    console.log('SafeSplitsDaoEscrowZap Address:', zap.address);
 
-  const updateInstance = addZapInstance(
-    updateFactory,
-    safeSplitsEscrowZap.logs[0].address as Hex,
-  );
+    const updateInstance = addDaoZap(updateFactory, zap.address as Hex);
 
-  writeDeploymentInfo(updateInstance, network.name);
+    writeDeploymentInfo(updateInstance, network.name);
+  } else {
+    const zapDeployData: Hex[] = [
+      zapData.safeSingleton as Hex, // singleton
+      zapData.fallbackHandler as Hex, // fallback handler
+      zapData.safeFactory as Hex, // safe factory
+      zapData.splitMain as Hex, // split main
+      getFactory(chainId) as Hex, // escrow factory
+    ];
+
+    const encodedData = encodeAbiParameters(
+      Array.from({ length: zapDeployData.length }, () => ({ type: 'address' })),
+      zapDeployData,
+    );
+
+    const { contract: zap } = await deployContract('SafeSplitsEscrowZap', [
+      encodedData,
+    ]);
+
+    await verifyContract(chainId, zap.address, [encodedData]);
+
+    console.log('SafeSplitsEscrowZap Address:', zap.address);
+
+    const updateInstance = addZap(updateFactory, zap.address as Hex);
+
+    writeDeploymentInfo(updateInstance, network.name);
+  }
 }
 
 main()

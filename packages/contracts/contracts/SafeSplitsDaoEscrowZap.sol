@@ -1,32 +1,25 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity 0.8.30;
 
 import {SafeSplitsEscrowZap} from "./SafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
 import {ISplitMain} from "./interfaces/ISplitMain.sol";
-import {ISpoilsManager} from "./interfaces/ISpoilsManager.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SafeSplitsDaoEscrowZap
-/// @notice Contract for creating and managing Safe splits with DAO escrow using customizable settings
-///         Extends SafeSplitsEscrowZap to include DAO fee splitting functionality
+/// @notice Extends SafeSplitsEscrowZap with built-in DAO fee splitting using BPS (basis points).
+///         spoilsBPS is the DAO share in BPS (10_000 = 100%). Internally converted to ppm for 0xSplits.
 contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
-    /// @notice The DAO controller address
+    /// @notice DAO controller address (controller for the DAO split).
     address public dao;
 
-    /// @notice The DAO's SpoilsManager address
-    ISpoilsManager public spoilsManager;
+    /// @notice Address that receives the DAO spoils.
+    address public daoReceiver;
 
-    /// @dev Custom error for DAO split creation failure
-    error DaoSplitCreationFailed();
+    /// @notice DAO spoils in basis points (BPS). 10_000 = 100%.
+    uint16 public spoilsBPS;
 
-    /// @notice Emitted when a new Safe splits DAO escrow is created.
-    /// @param providerSafe The address of the created Safe.
-    /// @param providerSplit The address of the created project team split.
-    /// @param daoSplit The address of the created DAO split.
-    /// @param escrow The address of the created escrow.
+    /// @dev Emitted when a Safe+Split(+DAO split)+Escrow is created.
     event SafeSplitsDaoEscrowCreated(
         address providerSafe,
         address providerSplit,
@@ -34,19 +27,77 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         address escrow
     );
 
+    /// @dev Configuration updates
+    event DaoUpdated(address indexed dao);
+    event DaoReceiverUpdated(address indexed daoReceiver);
+    event SpoilsBPSUpdated(uint16 spoilsBPS);
+
+    /// @dev Errors
+    error DaoSplitCreationFailed();
+    error InvalidReceiver();
+    error InvalidDao();
+    error InvalidSpoilsBPS();
+
     struct DaoZapData {
-        ZapData zapData;
-        address daoSplit;
+        ZapData zapData; // providerSafe, providerSplit, escrow
+        address daoSplit; // optional DAO split (if created)
     }
 
-    /**
-     * @dev Internal function to create project team split and optionally a DAO split for fee distribution
-     * @param _owners The address list of owners for the project team split
-     * @param _percentAllocations The percent allocations for the project team split
-     * @param _splitsData Bundled data for splits containing creation flags
-     * @param _daoZapData The data struct for storing deployment results
-     * @return The updated `DaoZapData` with the deployed split addresses
-     */
+    /// @notice Constructor. Pass the same-ordered bytes payload as the parent, plus DAO params:
+    ///         abi.encode(
+    ///           safeSingleton, fallbackHandler, safeFactory, splitMain, escrowFactory,
+    ///           dao, daoReceiver, spoilsBPS
+    ///         )
+    constructor(bytes memory _data) SafeSplitsEscrowZap(_data) {}
+
+    /*//////////////////////////////////////////////////////////////
+                        INTERNAL VIRTUAL HOOKS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc SafeSplitsEscrowZap
+    function _handleData(bytes memory _data) internal override {
+        (
+            address _safeSingleton,
+            address _fallbackHandler,
+            address _safeFactory,
+            address _splitMain,
+            address _escrowFactory,
+            address _dao,
+            address _daoReceiver,
+            uint16 _spoilsBPS
+        ) = abi.decode(
+                _data,
+                (
+                    address,
+                    address,
+                    address,
+                    address,
+                    address,
+                    address,
+                    address,
+                    uint16
+                )
+            );
+
+        // Set base zap dependencies
+        safeSingleton = _safeSingleton;
+        fallbackHandler = _fallbackHandler;
+        safeFactory = ISafeProxyFactory(_safeFactory);
+        splitMain = ISplitMain(_splitMain);
+        escrowFactory = ISmartInvoiceFactory(_escrowFactory);
+
+        // Validate & set DAO config
+        if (_dao == address(0)) revert InvalidDao();
+        if (_daoReceiver == address(0)) revert InvalidReceiver();
+        if (_spoilsBPS > 10_000) revert InvalidSpoilsBPS();
+
+        dao = _dao;
+        daoReceiver = _daoReceiver;
+        spoilsBPS = _spoilsBPS;
+    }
+
+    /// @notice Create project split (optional) and DAO split (optional).
+    /// @dev `_splitsData` must be `abi.encode(bool createProjectSplit, bool createDaoSplit)`.
     function _deploySplit(
         address[] memory _owners,
         uint32[] memory _percentAllocations,
@@ -58,17 +109,17 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             (bool, bool)
         );
 
-        // Create project team split if required
+        // Project team split (controller = providerSafe)
         if (createProjectSplit) {
             _daoZapData.zapData.providerSplit = splitMain.createSplit(
                 _owners,
-                _percentAllocations,
+                _percentAllocations, // already ppm as required by 0xSplits
                 distributorFee,
                 _daoZapData.zapData.providerSafe
             );
         }
 
-        // Handle the case when project team split is not created
+        // If no project split, fall back to Safe address as daoReceiver; otherwise require Safe exists
         if (_daoZapData.zapData.providerSplit == address(0)) {
             if (_daoZapData.zapData.providerSafe != address(0)) {
                 _daoZapData.zapData.providerSplit = _daoZapData
@@ -79,80 +130,61 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             }
         }
 
-        // Create DAO split if required
+        // DAO split (controller = dao)
         if (!createDaoSplit) return _daoZapData;
 
-        // Prepare arrays for DAO split
-        address[] memory daoSplitRecipients = new address[](2);
-        uint32[] memory daoSplitPercentAllocations = new uint32[](2);
+        // Validate DAO split config when requested
+        if (daoReceiver == address(0)) revert InvalidReceiver();
+        if (spoilsBPS == 0 || spoilsBPS > 10_000) revert InvalidSpoilsBPS();
 
-        // Get DAO split recipients and amounts
-        address daoReceiver = spoilsManager.receiver();
-        uint32 daoSplitAmount = spoilsManager.getSpoils();
-        uint32 projectSplitAmount = (100 *
-            spoilsManager.SPLIT_PERCENTAGE_SCALE()) - daoSplitAmount;
+        // Convert BPS -> ppm (1 bps = 100 ppm). 10_000 bps -> 1_000_000 ppm.
+        uint32 daoAmountPPM = uint32(uint256(spoilsBPS) * 100);
+        uint32 projectAmountPPM = uint32(1_000_000 - daoAmountPPM);
 
-        // Sort the addresses and amounts in ascending order (required by 0xSplits)
+        address[] memory recipients = new address[](2);
+        uint32[] memory allocations = new uint32[](2);
+
+        // 0xSplits requires ascending sorting by address
         if (uint160(daoReceiver) < uint160(_daoZapData.zapData.providerSplit)) {
-            daoSplitRecipients[0] = daoReceiver;
-            daoSplitRecipients[1] = _daoZapData.zapData.providerSplit;
-            daoSplitPercentAllocations[0] = daoSplitAmount;
-            daoSplitPercentAllocations[1] = projectSplitAmount;
+            recipients[0] = daoReceiver;
+            recipients[1] = _daoZapData.zapData.providerSplit;
+            allocations[0] = daoAmountPPM;
+            allocations[1] = projectAmountPPM;
         } else {
-            daoSplitRecipients[0] = _daoZapData.zapData.providerSplit;
-            daoSplitRecipients[1] = daoReceiver;
-            daoSplitPercentAllocations[0] = projectSplitAmount;
-            daoSplitPercentAllocations[1] = daoSplitAmount;
+            recipients[0] = _daoZapData.zapData.providerSplit;
+            recipients[1] = daoReceiver;
+            allocations[0] = projectAmountPPM;
+            allocations[1] = daoAmountPPM;
         }
 
-        // Create DAO split
         _daoZapData.daoSplit = splitMain.createSplit(
-            daoSplitRecipients,
-            daoSplitPercentAllocations,
+            recipients,
+            allocations,
             distributorFee,
             dao
         );
-
-        if (_daoZapData.daoSplit == address(0)) {
-            revert DaoSplitCreationFailed();
-        }
+        if (_daoZapData.daoSplit == address(0)) revert DaoSplitCreationFailed();
 
         return _daoZapData;
     }
 
-    /**
-     * @dev Internal function to determine escrow parameters based on DAO split deployment
-     *      If DAO split is created, DAO becomes the provider with DAO split as receiver
-     * @param _daoZapData The data struct for storing deployment results
-     * @return escrowParams Array containing [provider, providerReceiver] addresses
-     */
+    /// @notice If a DAO split was created, DAO becomes the provider and its split the daoReceiver.
     function _decodeEscrowParams(
         DaoZapData memory _daoZapData
-    ) internal view returns (address[] memory) {
-        address[] memory escrowParams = new address[](2);
+    ) internal view returns (address[] memory escrowParams) {
+        escrowParams = new address[](2);
         escrowParams[0] = _daoZapData.zapData.providerSafe;
         escrowParams[1] = _daoZapData.zapData.providerSplit;
 
-        // If DAO split exists, DAO becomes the provider and split becomes the receiver
         if (_daoZapData.daoSplit != address(0)) {
-            escrowParams[0] = dao;
-            escrowParams[1] = _daoZapData.daoSplit;
+            escrowParams[0] = dao; // provider = DAO
+            escrowParams[1] = _daoZapData.daoSplit; // providerReceiver = DAO split
         }
 
         return escrowParams;
     }
 
-    /**
-     * @dev Internal function to create a new Safe, Split(s), and Escrow with DAO support
-     *      Overrides parent implementation to support DAO split creation
-     * @param _owners The list of owners for the Safe and Split
-     * @param _percentAllocations The percent allocations for the Split
-     * @param _milestoneAmounts The milestone amounts for the Escrow
-     * @param _safeData The encoded data for Safe setup
-     * @param _safeAddress The address of an existing Safe
-     * @param _splitsData The encoded data for Split setup containing flags for both splits
-     * @param _escrowData The encoded data for Escrow setup
-     */
+    /// @inheritdoc SafeSplitsEscrowZap
     function _createSafeSplitEscrow(
         address[] memory _owners,
         uint32[] memory _percentAllocations,
@@ -162,8 +194,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
         bytes calldata _splitsData,
         bytes calldata _escrowData
     ) internal override {
-        // Initialize DaoZapData
-        DaoZapData memory daoZapData = DaoZapData({
+        DaoZapData memory dz = DaoZapData({
             zapData: ZapData({
                 providerSafe: _safeAddress,
                 providerSplit: address(0),
@@ -172,73 +203,52 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             daoSplit: address(0)
         });
 
-        // Deploy Safe if not already provided
-        if (daoZapData.zapData.providerSafe == address(0)) {
-            daoZapData.zapData.providerSafe = _deploySafe(_owners, _safeData);
+        // Safe (if not supplied)
+        if (dz.zapData.providerSafe == address(0)) {
+            dz.zapData.providerSafe = _deploySafe(_owners, _safeData);
         }
 
-        // Create Split(s)
-        daoZapData = _deploySplit(
-            _owners,
-            _percentAllocations,
-            _splitsData,
-            daoZapData
-        );
+        // Splits (project, then optional DAO split)
+        dz = _deploySplit(_owners, _percentAllocations, _splitsData, dz);
 
-        // Handle escrow parameters and deploy escrow
-        address[] memory escrowParams = _decodeEscrowParams(daoZapData);
-
-        daoZapData.zapData.escrow = _deployEscrow(
+        // Escrow
+        address[] memory escrowParams = _decodeEscrowParams(dz);
+        dz.zapData.escrow = _deployEscrow(
             _milestoneAmounts,
             _escrowData,
             escrowParams
         );
 
-        // Emit event for the created Safe splits DAO escrow
         emit SafeSplitsDaoEscrowCreated(
-            daoZapData.zapData.providerSafe,
-            daoZapData.zapData.providerSplit,
-            daoZapData.daoSplit,
-            daoZapData.zapData.escrow
+            dz.zapData.providerSafe,
+            dz.zapData.providerSplit,
+            dz.daoSplit,
+            dz.zapData.escrow
         );
     }
 
-    /**
-     * @dev Internal function to handle initialization data
-     *      Extends parent initialization to include DAO and SpoilsManager addresses
-     * @param _data The initialization data containing all required contract addresses
-     */
-    function _handleData(bytes calldata _data) internal override {
-        (
-            address _safeSingleton,
-            address _fallbackHandler,
-            address _safeFactory,
-            address _splitMain,
-            address _spoilsManager,
-            address _escrowFactory,
-            address _wrappedNativeToken,
-            address _dao
-        ) = abi.decode(
-                _data,
-                (
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address,
-                    address
-                )
-            );
+    /*//////////////////////////////////////////////////////////////
+                         ADMIN CONFIG (only ADMIN)
+    //////////////////////////////////////////////////////////////*/
 
-        safeSingleton = _safeSingleton;
-        fallbackHandler = _fallbackHandler;
-        safeFactory = ISafeProxyFactory(_safeFactory);
-        splitMain = ISplitMain(_splitMain);
-        spoilsManager = ISpoilsManager(_spoilsManager);
-        escrowFactory = ISmartInvoiceFactory(_escrowFactory);
-        wrappedNativeToken = IWRAPPED(_wrappedNativeToken);
+    /// @notice Update the DAO controller.
+    function setDao(address _dao) external onlyRole(ADMIN) {
+        if (_dao == address(0)) revert InvalidDao();
         dao = _dao;
+        emit DaoUpdated(_dao);
+    }
+
+    /// @notice Update the daoReceiver (DAO treasury).
+    function setReceiver(address _daoReceiver) external onlyRole(ADMIN) {
+        if (_daoReceiver == address(0)) revert InvalidReceiver();
+        daoReceiver = _daoReceiver;
+        emit DaoReceiverUpdated(_daoReceiver);
+    }
+
+    /// @notice Update the DAO spoils in basis points (0–10_000).
+    function setSpoilsBPS(uint16 _spoilsBPS) external onlyRole(ADMIN) {
+        if (_spoilsBPS > 10_000) revert InvalidSpoilsBPS();
+        spoilsBPS = _spoilsBPS;
+        emit SpoilsBPSUpdated(_spoilsBPS);
     }
 }

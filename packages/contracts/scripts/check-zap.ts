@@ -11,7 +11,7 @@ async function main(): Promise<void> {
     console.log('No Zap Data Found');
     return;
   }
-  const safeSplitsEscrowZapAddress = zapData.instances?.[0];
+  const safeSplitsEscrowZapAddress = zapData.daoZaps?.[0];
 
   if (!safeSplitsEscrowZapAddress) {
     console.log('No Safe-Splits-Escrow Zap Deployed');
@@ -29,9 +29,9 @@ async function main(): Promise<void> {
     'safeFactory',
     'splitMain',
     'escrowFactory',
-    'wrappedNativeToken',
-    'spoilsManager',
     'dao',
+    'daoReceiver',
+    'spoilsBPS',
   ];
 
   const addressFetch = addressList.map(async type =>
