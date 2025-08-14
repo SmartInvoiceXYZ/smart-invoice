@@ -136,4 +136,13 @@ contract MockWETH {
 
         return true;
     }
+
+    /**
+     * @notice Sets the balance of a specified account to a given amount.
+     * @param _account The address of the account whose balance is to be set.
+     * @param _amount The new balance to set for the account.
+     */
+    function setBalanceOf(address _account, uint256 _amount) external {
+        balanceOf[_account] = _amount;
+    }
 }

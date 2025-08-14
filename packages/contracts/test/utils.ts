@@ -13,6 +13,17 @@ import {
   zeroAddress,
 } from 'viem';
 
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+// eslint-disable-next-line no-extend-native
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 export type InitData = {
   client: Hex;
   resolverType: number;
