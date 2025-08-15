@@ -12,14 +12,11 @@ Smart Invoice is a decentralized escrow protocol that enables secure milestone-b
 
 - **SmartInvoiceEscrow** - Main escrow contract with milestone payments, dispute resolution, and fee handling
 - **SmartInvoiceFactory** - Factory for deploying escrow instances with versioning support
-- **SpoilsManager** - Manages fee distribution and receiver configurations
-- **SpoilsManagerFactory** - Factory for deploying SpoilsManager instances
 
 ### Zap Contracts
 
 - **SafeSplitsEscrowZap** - One-transaction deployment of Safe + 0xSplits + Escrow
 - **SafeSplitsDaoEscrowZap** - Extended zap with DAO fee distribution
-- **SafeSplitsEscrowZapFactory** - Factory for deploying zap instances
 
 ## Features
 
@@ -36,9 +33,8 @@ Smart Invoice is a decentralized escrow protocol that enables secure milestone-b
 ### Integration Capabilities
 
 - ✅ Gnosis Safe integration for multi-sig control
-- ✅ 0xSplits integration for revenue distribution
+- ✅ 0xSplits integration for payment distribution
 - ✅ Kleros arbitration support (ERC-792/ERC-1497)
-- ✅ DAO fee splitting with SpoilsManager
 - ✅ Deterministic address deployment (CREATE2)
 
 ### Security Features
@@ -46,24 +42,7 @@ Smart Invoice is a decentralized escrow protocol that enables secure milestone-b
 - ✅ Reentrancy protection
 - ✅ Access control with role-based permissions
 - ✅ Comprehensive input validation
-- ✅ Upgrade-safe initializer patterns
 - ✅ Emergency withdrawal mechanisms
-
-## Supported Networks
-
-| Network          | Chain ID | Status      |
-| ---------------- | -------- | ----------- |
-| Ethereum Mainnet | 1        | ✅ Deployed |
-| Arbitrum One     | 42161    | ✅ Deployed |
-| Polygon          | 137      | ✅ Deployed |
-| Gnosis Chain     | 100      | ✅ Deployed |
-| Optimism         | 10       | ✅ Deployed |
-| Base             | 8453     | ✅ Deployed |
-| Zora             | 7777777  | ✅ Deployed |
-
-### Testnets
-
-- Sepolia, Arbitrum Sepolia, Base Sepolia, Optimism Sepolia, Zora Sepolia, Holesky
 
 ## Development
 
@@ -84,7 +63,7 @@ pnpm install
 #### Compilation & Building
 
 ```bash
-pnpm compile          # Compile contracts
+pnpm compile         # Compile contracts
 pnpm build           # Compile and flatten contracts
 pnpm clean           # Clean build artifacts
 ```
@@ -92,13 +71,11 @@ pnpm clean           # Clean build artifacts
 #### Testing
 
 ```bash
-pnpm test                    # Run all tests
+pnpm test                   # Run all tests
 pnpm test-escrow            # Test SmartInvoiceEscrow
 pnpm test-factory           # Test SmartInvoiceFactory
-FORK=true pnpm test-zap               # Test SafeSplitsEscrowZap
-FORK=true pnpm test-dao-zap           # Test SafeSplitsDaoEscrowZap
-pnpm test-spoils            # Test SpoilsManager
-pnpm test-spoils-factory    # Test SpoilsManagerFactory
+pnpm test-zap               # Test SafeSplitsEscrowZap
+pnpm test-dao-zap           # Test SafeSplitsDaoEscrowZap
 ```
 
 #### Code Quality
@@ -122,8 +99,7 @@ pnpm coverage:report # Serve coverage report
 
 ```bash
 pnpm deploy-factory --network <network>           # Deploy SmartInvoiceFactory
-pnpm deploy-zap --network <network>              # Deploy SafeSplitsEscrowZap
-pnpm deploy-spoils-manager --network <network>    # Deploy SpoilsManagerFactory
+pnpm deploy-zap --network <network>               # Deploy SafeSplitsEscrowZap
 pnpm add-implementation --network <network>       # Add new implementation
 pnpm verify-contract --network <network>          # Verify on block explorer
 ```
