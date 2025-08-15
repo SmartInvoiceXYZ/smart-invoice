@@ -136,8 +136,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       ],
       [
         SEPOLIA_CONTRACTS.safeSingleton,
-        // any non-zero fallback handler is fine for tests
-        '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
+        SEPOLIA_CONTRACTS.fallbackHandler,
         SEPOLIA_CONTRACTS.safeFactory,
         SEPOLIA_CONTRACTS.splitMain,
         escrowFactory.address,

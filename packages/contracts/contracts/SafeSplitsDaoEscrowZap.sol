@@ -79,6 +79,16 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
                 )
             );
 
+        // sanity checks
+        if (_safeSingleton == address(0))
+            revert InvalidAddress("safeSingleton");
+        if (_safeFactory == address(0)) revert InvalidAddress("safeFactory");
+        if (_splitMain == address(0)) revert InvalidAddress("splitMain");
+        if (_escrowFactory == address(0))
+            revert InvalidAddress("escrowFactory");
+        if (_fallbackHandler == address(0))
+            revert InvalidAddress("fallbackHandler");
+
         // Set base zap dependencies
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;

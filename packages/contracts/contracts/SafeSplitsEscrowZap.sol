@@ -71,14 +71,15 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             address _escrowFactory
         ) = abi.decode(_data, (address, address, address, address, address));
 
-        // minimal sanity checks to avoid footguns
+        // sanity checks
         if (_safeSingleton == address(0))
             revert InvalidAddress("safeSingleton");
         if (_safeFactory == address(0)) revert InvalidAddress("safeFactory");
         if (_splitMain == address(0)) revert InvalidAddress("splitMain");
         if (_escrowFactory == address(0))
             revert InvalidAddress("escrowFactory");
-        // fallbackHandler can be zero depending on your Safe setup; keep optional
+        if (_fallbackHandler == address(0))
+            revert InvalidAddress("fallbackHandler");
 
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;

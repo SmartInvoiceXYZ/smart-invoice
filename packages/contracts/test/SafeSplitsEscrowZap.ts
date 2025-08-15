@@ -120,7 +120,7 @@ describe('SafeSplitsEscrowZap', function () {
     // constructor(bytes memory _data) with 5 addresses
     const zapDeployData = [
       SEPOLIA_CONTRACTS.safeSingleton, // singleton
-      SEPOLIA_CONTRACTS.fallbackHandler, // fallback handler (can be zero per setup)
+      SEPOLIA_CONTRACTS.fallbackHandler, // fallback handler
       SEPOLIA_CONTRACTS.safeFactory, // safe factory
       SEPOLIA_CONTRACTS.splitMain, // split main
       escrowFactory.address, // escrow factory

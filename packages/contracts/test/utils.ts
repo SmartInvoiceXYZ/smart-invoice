@@ -15,10 +15,10 @@ import {
 
 // Hardcoded constants for Sepolia testnet (chain ID 11155111)
 export const SEPOLIA_CONTRACTS = {
-  safeSingleton: '0x3E5c63644E683549055b9Be8653de26E0B4CD36E' as Hex,
-  safeFactory: '0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2' as Hex,
+  safeSingleton: '0xEdd160fEBBD92E350D4D398fb636302fccd67C7e' as Hex,
+  safeFactory: '0x14F2982D601c9458F93bd70B218933A6f8165e7b' as Hex,
   splitMain: '0x54E4a6014D36c381fC43b7E24A1492F556139a6F' as Hex,
-  fallbackHandler: '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4' as Hex,
+  fallbackHandler: '0x85a8ca358D388530ad0fB95D0cb89Dd44Fc242c3' as Hex,
   wrappedETH: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14' as Hex,
 };
 
