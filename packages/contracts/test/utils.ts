@@ -100,7 +100,6 @@ export const createEscrow = async (
   amounts: bigint[],
   terminationTime: number,
   details: string,
-  wrappedNativeToken: Hex,
   requireVerification: boolean,
   feeBPS: bigint = 0n,
   treasury: Hex = zeroAddress,
@@ -194,13 +193,13 @@ export const getLockedEscrow = async (
   token: Hex,
   amounts: bigint[],
   details: string,
-  mockWrappedNativeToken: Hex,
+  mockWrappedETH: Hex,
   value = 0n,
   requireVerification: boolean = false,
 ): Promise<ContractTypesMap['SmartInvoiceEscrow']> => {
   const currentTime = await currentTimestamp();
   const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
-    mockWrappedNativeToken,
+    mockWrappedETH,
     factory.address,
   ]);
 
@@ -216,7 +215,6 @@ export const getLockedEscrow = async (
     amounts,
     currentTime + 1000,
     details,
-    mockWrappedNativeToken,
     requireVerification,
   );
 

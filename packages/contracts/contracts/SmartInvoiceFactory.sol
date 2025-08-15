@@ -43,15 +43,14 @@ contract SmartInvoiceFactory is
     /// @notice Current version for each implementation type
     mapping(bytes32 => uint256) public currentVersions;
 
-    /// @notice Wrapped native token contract for handling ETH operations
-    IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
+    /// @notice Wrapped ETH contract for handling ETH operations
+    IWRAPPED public immutable WRAPPED_ETH;
 
-    /// @notice Constructor to initialize the factory with a wrapped native token
-    /// @param _wrappedNativeToken The address of the wrapped native token contract
-    constructor(address _wrappedNativeToken) {
-        if (_wrappedNativeToken == address(0))
-            revert InvalidWrappedNativeToken();
-        WRAPPED_NATIVE_TOKEN = IWRAPPED(_wrappedNativeToken);
+    /// @notice Constructor to initialize the factory with a wrapped ETH
+    /// @param _wrappedETH The address of the wrapped ETH contract
+    constructor(address _wrappedETH) {
+        if (_wrappedETH == address(0)) revert InvalidWrappedETH();
+        WRAPPED_ETH = IWRAPPED(_wrappedETH);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN, msg.sender);
@@ -289,11 +288,11 @@ contract SmartInvoiceFactory is
         address token = ISmartInvoiceEscrow(_escrow).token();
         uint256 beforeBal = IERC20(token).balanceOf(_escrow);
 
-        if (token == address(WRAPPED_NATIVE_TOKEN)) {
+        if (token == address(WRAPPED_ETH)) {
             if (msg.value > 0) {
                 if (msg.value != _fundAmount)
                     revert FundingAmountMismatch(_fundAmount, msg.value);
-                WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
+                WRAPPED_ETH.deposit{value: _fundAmount}();
                 IERC20(token).safeTransfer(_escrow, _fundAmount);
             } else {
                 IERC20(token).safeTransferFrom(
@@ -367,7 +366,7 @@ contract SmartInvoiceFactory is
 
     /**
      * @notice Reverts any direct ETH transfers to prevent accidental loss of funds
-     * @dev ETH should only be sent through createAndDeposit functions for WNATIVE invoices
+     * @dev ETH should only be sent through createAndDeposit functions for WETH invoices
      */
     receive() external payable {
         revert ETHNotAccepted();
@@ -390,7 +389,7 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Emergency function to recover native ETH sent to the factory by mistake
+     * @notice Emergency function to recover ETH sent to the factory by mistake
      * @param to The destination address to send the recovered ETH
      * @dev Only callable by admin role
      */

@@ -146,7 +146,7 @@ interface ISmartInvoiceEscrow {
     error DurationEnded();
     error DurationTooLong();
     error InvalidResolutionRate();
-    error InvalidWrappedNativeToken();
+    error InvalidWrappedETH();
     error OnlyFactory();
     error InvalidFactory();
     error NotClient(address caller);

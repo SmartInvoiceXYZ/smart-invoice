@@ -51,8 +51,8 @@ contract SmartInvoiceEscrow is
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
-    /// @notice Wrapped native token contract for handling ETH deposits
-    IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
+    /// @notice Wrapped ETH contract for handling ETH deposits
+    IWRAPPED public immutable WRAPPED_ETH;
 
     /// @notice Factory contract that deployed this escrow instance
     ISmartInvoiceFactory public immutable FACTORY;
@@ -106,14 +106,13 @@ contract SmartInvoiceEscrow is
     ///      subsequent Evidence events for that dispute share the same group
     uint256 public evidenceGroupId;
 
-    /// @notice Initializes the contract with wrapped native token and factory addresses
-    /// @param _wrappedNativeToken The address of the wrapped native token contract
+    /// @notice Initializes the contract with wrapped ETH and factory addresses
+    /// @param _wrappedETH The address of the wrapped ETH contract
     /// @param _factory The address of the SmartInvoiceFactory contract
-    constructor(address _wrappedNativeToken, address _factory) {
-        if (_wrappedNativeToken == address(0))
-            revert InvalidWrappedNativeToken();
+    constructor(address _wrappedETH, address _factory) {
+        if (_wrappedETH == address(0)) revert InvalidWrappedETH();
         if (_factory == address(0)) revert InvalidFactory();
-        WRAPPED_NATIVE_TOKEN = IWRAPPED(_wrappedNativeToken);
+        WRAPPED_ETH = IWRAPPED(_wrappedETH);
         FACTORY = ISmartInvoiceFactory(_factory);
         _disableInitializers();
     }
@@ -787,9 +786,8 @@ contract SmartInvoiceEscrow is
     // solhint-disable-next-line no-complex-fallback
     receive() external payable nonReentrant {
         if (locked) revert Locked();
-        if (token != address(WRAPPED_NATIVE_TOKEN))
-            revert InvalidWrappedNativeToken();
-        WRAPPED_NATIVE_TOKEN.deposit{value: msg.value}();
+        if (token != address(WRAPPED_ETH)) revert InvalidWrappedETH();
+        WRAPPED_ETH.deposit{value: msg.value}();
         emit Deposit(msg.sender, msg.value, token);
     }
 
@@ -801,9 +799,9 @@ contract SmartInvoiceEscrow is
         if (locked) revert Locked();
         uint256 bal = address(this).balance;
         if (bal == 0) revert BalanceIsZero();
-        WRAPPED_NATIVE_TOKEN.deposit{value: bal}();
+        WRAPPED_ETH.deposit{value: bal}();
         emit WrappedStrayETH(bal);
-        if (token == address(WRAPPED_NATIVE_TOKEN)) {
+        if (token == address(WRAPPED_ETH)) {
             // Log address(this) as depositor since it was obtained via self-destruct
             emit Deposit(address(this), bal, token);
         }

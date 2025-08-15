@@ -20,7 +20,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
     SmartInvoiceEscrow public implementation;
     SmartInvoiceFactory public factory;
     MockToken public token;
-    MockWETH public wrappedNativeToken;
+    MockWETH public wrappedETH;
     MockArbitrator public arbitrator;
 
     address public client = makeAddr("client");
@@ -36,12 +36,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
     function setUp() public {
         token = new MockToken();
-        wrappedNativeToken = new MockWETH();
+        wrappedETH = new MockWETH();
         arbitrator = new MockArbitrator(10);
 
-        factory = new SmartInvoiceFactory(address(wrappedNativeToken));
+        factory = new SmartInvoiceFactory(address(wrappedETH));
         implementation = new SmartInvoiceEscrow(
-            address(wrappedNativeToken),
+            address(wrappedETH),
             address(factory)
         );
 
@@ -447,20 +447,20 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         assertEq(invoice.clientReceiver(), newClientReceiver);
     }
 
-    /// @dev Fuzz test ETH handling for wrapped native token invoices
+    /// @dev Fuzz test ETH handling for wrapped ETH invoices
     function testFuzz_ETHHandling(uint256 ethAmount) public {
         ethAmount = bound(ethAmount, 1e15, 100 ether);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = ethAmount;
 
-        // Create invoice with wrapped native token
+        // Create invoice with wrapped ETH
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
                 resolverType: INDIVIDUAL_RESOLVER,
                 resolver: resolver,
-                token: address(wrappedNativeToken),
+                token: address(wrappedETH),
                 terminationTime: block.timestamp + 30 days,
                 requireVerification: false,
                 providerReceiver: address(0),
@@ -488,7 +488,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         (bool success, ) = address(invoice).call{value: ethAmount}("");
         assertTrue(success);
 
-        assertEq(wrappedNativeToken.balanceOf(address(invoice)), ethAmount);
+        assertEq(wrappedETH.balanceOf(address(invoice)), ethAmount);
 
         // Test wrapETH function with additional ETH sent via selfdestruct simulation
         vm.deal(address(invoice), ethAmount / 2);
@@ -496,7 +496,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         invoice.wrapETH();
 
         assertEq(
-            wrappedNativeToken.balanceOf(address(invoice)),
+            wrappedETH.balanceOf(address(invoice)),
             ethAmount + ethAmount / 2
         );
         assertEq(address(invoice).balance, 0);

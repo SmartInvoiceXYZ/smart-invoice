@@ -39,8 +39,8 @@ describe('SmartInvoiceFactory', function () {
   let token: Hex;
   let tokenContract: ContractTypesMap['MockToken'];
 
-  let wrappedNativeToken: Hex;
-  let wrappedNativeTokenContract: ContractTypesMap['MockWETH'];
+  let wrappedETH: Hex;
+  let wrappedETHContract: ContractTypesMap['MockWETH'];
 
   let amounts: bigint[];
   let total: bigint;
@@ -82,15 +82,15 @@ describe('SmartInvoiceFactory', function () {
     tokenContract = await viem.deployContract('MockToken');
     token = getAddress(tokenContract.address);
 
-    wrappedNativeTokenContract = await viem.deployContract('MockWETH');
-    wrappedNativeToken = getAddress(wrappedNativeTokenContract.address);
+    wrappedETHContract = await viem.deployContract('MockWETH');
+    wrappedETH = getAddress(wrappedETHContract.address);
 
     // factory and escrow implementation
     invoiceFactory = await viem.deployContract('SmartInvoiceFactory', [
-      wrappedNativeToken,
+      wrappedETH,
     ]);
     escrowImpl = await viem.deployContract('SmartInvoiceEscrow', [
-      wrappedNativeToken,
+      wrappedETH,
       invoiceFactory.address,
     ]);
 
@@ -133,7 +133,7 @@ describe('SmartInvoiceFactory', function () {
       const tx = viem.deployContract('SmartInvoiceFactory', [zeroAddress]);
       await expect(tx).to.be.revertedWithCustomError(
         invoiceFactory,
-        'InvalidWrappedNativeToken',
+        'InvalidWrappedETH',
       );
     });
 
@@ -151,9 +151,9 @@ describe('SmartInvoiceFactory', function () {
       ).to.equal(true);
     });
 
-    it('exposes WRAPPED_NATIVE_TOKEN address', async function () {
-      expect(await invoiceFactory.read.WRAPPED_NATIVE_TOKEN()).to.equal(
-        getAddress(wrappedNativeTokenContract.address),
+    it('exposes WRAPPED_ETH address', async function () {
+      expect(await invoiceFactory.read.WRAPPED_ETH()).to.equal(
+        getAddress(wrappedETHContract.address),
       );
     });
 
@@ -217,7 +217,7 @@ describe('SmartInvoiceFactory', function () {
 
       // Deploy a new implementation (v1)
       const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
-        wrappedNativeToken,
+        wrappedETH,
         invoiceFactory.address,
       ]);
 
@@ -245,7 +245,7 @@ describe('SmartInvoiceFactory', function () {
       // Add v0 and v1
       await addEscrowImplementation();
       const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
-        wrappedNativeToken,
+        wrappedETH,
         invoiceFactory.address,
       ]);
       await invoiceFactory.write.addImplementation([
@@ -374,7 +374,7 @@ describe('SmartInvoiceFactory', function () {
 
       // Add v1 and change pointer to v1 to prove createDeterministic must use v1
       const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
-        wrappedNativeToken,
+        wrappedETH,
         invoiceFactory.address,
       ]);
       await invoiceFactory.write.addImplementation([
@@ -482,11 +482,11 @@ describe('SmartInvoiceFactory', function () {
       );
     });
 
-    it('ETH path (WNATIVE): wraps and funds; emits InvoiceFunded', async function () {
+    it('ETH path (WETH): wraps and funds; emits InvoiceFunded', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
       const data = encodeInitData({
         ...escrowInitData,
-        token: wrappedNativeToken,
+        token: wrappedETH,
       });
 
       const txHash = await invoiceFactory.write.createAndDeposit(
@@ -506,10 +506,10 @@ describe('SmartInvoiceFactory', function () {
 
       await expect(txHash)
         .to.emit(invoiceFactory, 'InvoiceFunded')
-        .withArgs(escrowAddress!, getAddress(wrappedNativeToken), fundAmount);
+        .withArgs(escrowAddress!, getAddress(wrappedETH), fundAmount);
 
       expect(
-        await wrappedNativeTokenContract.read.balanceOf([escrowAddress!]),
+        await wrappedETHContract.read.balanceOf([escrowAddress!]),
       ).to.equal(fundAmount);
     });
 
@@ -517,7 +517,7 @@ describe('SmartInvoiceFactory', function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
       const data = encodeInitData({
         ...escrowInitData,
-        token: wrappedNativeToken,
+        token: wrappedETH,
       });
 
       const tx = invoiceFactory.write.createAndDeposit(
@@ -620,13 +620,13 @@ describe('SmartInvoiceFactory', function () {
       expect(await tokenContract.read.balanceOf([addr!])).to.equal(fundAmount);
     });
 
-    it('deterministic + ETH (WNATIVE) funding works and address matches prediction', async function () {
+    it('deterministic + ETH (WETH) funding works and address matches prediction', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
       const version = await invoiceFactory.read.currentVersions([escrowType]);
       const salt = keccak256(toBytes('fund-eth'));
       const data = encodeInitData({
         ...escrowInitData,
-        token: wrappedNativeToken,
+        token: wrappedETH,
       });
       const predicted = await predict(escrowType, version, salt);
 
@@ -648,7 +648,7 @@ describe('SmartInvoiceFactory', function () {
       const addr = await awaitInvoiceAddress(receipt);
 
       expect(addr).to.equal(predicted);
-      expect(await wrappedNativeTokenContract.read.balanceOf([addr!])).to.equal(
+      expect(await wrappedETHContract.read.balanceOf([addr!])).to.equal(
         fundAmount,
       );
     });

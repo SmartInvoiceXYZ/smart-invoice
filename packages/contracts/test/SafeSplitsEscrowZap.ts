@@ -111,7 +111,7 @@ describe('SafeSplitsEscrowZap', function () {
 
     // Deploy SmartInvoiceFactory + implementation
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
-      getWrappedTokenAddress(TEST_CHAIN_ID), // this factory still requires WNATIVE
+      getWrappedTokenAddress(TEST_CHAIN_ID), // this factory still requires WETH
     ]);
     const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
       getWrappedTokenAddress(TEST_CHAIN_ID),
@@ -122,7 +122,7 @@ describe('SafeSplitsEscrowZap', function () {
       invoiceImpl.address,
     ]);
 
-    // ---------- Deploy Zap directly (no initializer, no wrappedNativeToken arg) ----------
+    // ---------- Deploy Zap directly (no initializer, no wrappedETH arg) ----------
     // constructor(bytes memory _data) with 5 addresses
     const zapDeployData = [
       zapData.safeSingleton, // singleton

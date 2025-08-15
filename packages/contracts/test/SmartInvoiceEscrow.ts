@@ -40,8 +40,8 @@ describe('SmartInvoiceEscrow', function () {
   let factory: ContractTypesMap['SmartInvoiceFactory'];
   let invoice: ContractTypesMap['SmartInvoiceEscrow'];
   let mockToken: Hex;
-  let mockWrappedNativeTokenContract: ContractTypesMap['MockWETH'];
-  let mockWrappedNativeToken: Hex;
+  let mockWrappedETHContract: ContractTypesMap['MockWETH'];
+  let mockWrappedETH: Hex;
   let mockArbitrator: Hex;
   let mockArbitratorContract: ContractTypesMap['MockArbitrator'];
   let client: WalletClient;
@@ -78,17 +78,17 @@ describe('SmartInvoiceEscrow', function () {
     const mockTokenContract = await viem.deployContract('MockToken');
     mockToken = getAddress(mockTokenContract.address);
 
-    mockWrappedNativeTokenContract = await viem.deployContract('MockWETH');
-    mockWrappedNativeToken = getAddress(mockWrappedNativeTokenContract.address);
+    mockWrappedETHContract = await viem.deployContract('MockWETH');
+    mockWrappedETH = getAddress(mockWrappedETHContract.address);
 
     mockArbitratorContract = await viem.deployContract('MockArbitrator', [10n]);
     mockArbitrator = getAddress(mockArbitratorContract.address);
 
     factory = await viem.deployContract('SmartInvoiceFactory', [
-      mockWrappedNativeToken,
+      mockWrappedETH,
     ]);
     const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
-      mockWrappedNativeToken,
+      mockWrappedETH,
       factory.address,
     ]);
 
@@ -174,9 +174,7 @@ describe('SmartInvoiceEscrow', function () {
       expect(await invoice.read.total()).to.equal(total);
       expect(await invoice.read.locked()).to.equal(false);
       expect(await invoice.read.disputeId()).to.equal(0n);
-      expect(await invoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
-        mockWrappedNativeToken,
-      );
+      expect(await invoice.read.WRAPPED_ETH()).to.equal(mockWrappedETH);
       expect(await invoice.read.providerReceiver()).to.equal(zeroAddress);
       expect(await invoice.read.clientReceiver()).to.equal(zeroAddress);
     });
@@ -312,7 +310,7 @@ describe('SmartInvoiceEscrow', function () {
     it('Should revert init if invalid params', async function () {
       const currentTime = await currentTimestamp();
       const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
-        mockWrappedNativeToken,
+        mockWrappedETH,
         factory.address,
       ]);
 
@@ -334,7 +332,7 @@ describe('SmartInvoiceEscrow', function () {
           mockToken,
           BigInt(currentTime - 3600),
           zeroHash,
-          mockWrappedNativeToken,
+          mockWrappedETH,
           requireVerification,
         ],
       );
@@ -364,7 +362,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime - 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -387,7 +384,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -410,7 +406,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime - 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -433,7 +428,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime - 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -456,7 +450,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime - 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -479,7 +472,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 5 * 365 * 24 * 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
@@ -502,7 +494,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 365 * 24 * 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const invoiceAddr = await awaitInvoiceAddress(tx);
@@ -529,7 +520,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 365 * 24 * 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       await expect(receipt).to.revertedWithCustomError(
@@ -697,7 +687,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 30 * 24 * 60 * 60,
         zeroHash,
-        mockWrappedNativeToken,
         true, // requireVerification = true
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -780,7 +769,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       expect(lockedInvoice.write.release()).to.be.revertedWithCustomError(
         invoice,
@@ -841,7 +830,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       await expect(
         lockedInvoice.write.releaseTokens([mockToken2]),
@@ -870,7 +859,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -900,7 +888,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -941,7 +928,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       await testClient.increaseTime({ seconds: terminationTime + 1000 });
       await expect(
@@ -963,7 +950,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -996,7 +982,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1023,7 +1008,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1051,7 +1035,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1077,7 +1060,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       await testClient.increaseTime({ seconds: terminationTime + 1000 });
       await expect(
@@ -1101,7 +1084,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1125,7 +1107,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       expect(await lockedInvoice.read.locked()).to.equal(true);
     });
@@ -1144,7 +1126,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -1179,7 +1160,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -1211,7 +1191,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
       const clientBeforeBalance = await getBalanceOf(
@@ -1265,7 +1245,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1301,7 +1281,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
       expect(await lockedInvoice.read.resolverType()).to.be.equal(
@@ -1336,7 +1316,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1364,7 +1344,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1388,7 +1368,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(
@@ -1413,7 +1393,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -1449,7 +1428,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1469,7 +1448,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1493,7 +1472,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1517,7 +1496,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1545,7 +1524,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1573,7 +1552,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1598,7 +1577,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -1627,7 +1605,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(
@@ -1651,7 +1629,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1681,7 +1659,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1711,7 +1689,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -1737,7 +1715,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -1767,7 +1744,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(
@@ -1782,15 +1759,15 @@ describe('SmartInvoiceEscrow', function () {
     });
   });
 
-  describe('Native Token Operations', function () {
-    it('Should revert receive if not wrappedNativeToken', async function () {
+  describe('ETH Operations', function () {
+    it('Should revert receive if not wrappedETH', async function () {
       const receipt = client.sendTransaction({
         to: invoice.address,
         value: 10n,
       });
       await expect(receipt).to.be.revertedWithCustomError(
         invoice,
-        'InvalidWrappedNativeToken',
+        'InvalidWrappedETH',
       );
     });
 
@@ -1802,10 +1779,10 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         individualResolverType,
         resolver.account.address,
-        mockWrappedNativeToken, // Using wrapped native token
+        mockWrappedETH, // Using wrapped ETH
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       const receipt = client.sendTransaction({
@@ -1827,11 +1804,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         individualResolverType,
         getAddress(resolver.account.address),
-        mockWrappedNativeToken,
+        mockWrappedETH,
         amounts,
         terminationTime,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1845,10 +1821,10 @@ describe('SmartInvoiceEscrow', function () {
         .withArgs(
           getAddress(client.account.address),
           10,
-          getAddress(mockWrappedNativeToken),
+          getAddress(mockWrappedETH),
         );
       expect(
-        await mockWrappedNativeTokenContract.read.balanceOf([invoice.address]),
+        await mockWrappedETHContract.read.balanceOf([invoice.address]),
       ).to.equal(10);
     });
 
@@ -1861,11 +1837,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         individualResolverType,
         getAddress(resolver.account.address),
-        mockWrappedNativeToken,
+        mockWrappedETH,
         amounts,
         terminationTime,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1874,13 +1849,10 @@ describe('SmartInvoiceEscrow', function () {
       // Simulate ETH received via self-destruct by manually sending ETH to mockWETH
       // then transferring it to invoice address to simulate contract ETH balance
       await client.sendTransaction({
-        to: mockWrappedNativeTokenContract.address,
+        to: mockWrappedETHContract.address,
         value: 25n,
       });
-      await mockWrappedNativeTokenContract.write.transfer([
-        invoice.address,
-        25n,
-      ]);
+      await mockWrappedETHContract.write.transfer([invoice.address, 25n]);
 
       // Now manually set the ETH balance on the invoice contract to simulate self-destruct
       await testClient.setBalance({
@@ -1888,18 +1860,20 @@ describe('SmartInvoiceEscrow', function () {
         value: 15n, // Set direct ETH balance
       });
 
-      const beforeWrapBalance =
-        await mockWrappedNativeTokenContract.read.balanceOf([invoice.address]);
+      const beforeWrapBalance = await mockWrappedETHContract.read.balanceOf([
+        invoice.address,
+      ]);
       const receipt = await invoice.write.wrapETH();
 
       await expect(receipt).to.emit(invoice, 'WrappedStrayETH').withArgs(15);
 
       await expect(receipt)
         .to.emit(invoice, 'Deposit')
-        .withArgs(invoice.address, 15, mockWrappedNativeToken);
+        .withArgs(invoice.address, 15, mockWrappedETH);
 
-      const afterWrapBalance =
-        await mockWrappedNativeTokenContract.read.balanceOf([invoice.address]);
+      const afterWrapBalance = await mockWrappedETHContract.read.balanceOf([
+        invoice.address,
+      ]);
       expect(afterWrapBalance).to.equal(beforeWrapBalance + 15n);
     });
 
@@ -1912,11 +1886,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         individualResolverType,
         getAddress(resolver.account.address),
-        mockToken, // Different token, not wrapped native
+        mockToken, // Different token, not wrapped ETH
         amounts,
         terminationTime,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       invoiceAddress = await awaitInvoiceAddress(tx);
@@ -1932,7 +1905,7 @@ describe('SmartInvoiceEscrow', function () {
 
       await expect(receipt).to.emit(invoice, 'WrappedStrayETH').withArgs(20);
 
-      // Should NOT emit Deposit event since token != WRAPPED_NATIVE_TOKEN
+      // Should NOT emit Deposit event since token != WRAPPED_ETH
       await expect(receipt).not.to.emit(invoice, 'Deposit');
     });
 
@@ -1947,7 +1920,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(lockedInvoice.write.wrapETH()).to.be.revertedWithCustomError(
@@ -1966,19 +1939,19 @@ describe('SmartInvoiceEscrow', function () {
   });
 
   describe('Constructor Validation', function () {
-    it('Should revert constructor with invalid wrapped native token', async function () {
+    it('Should revert constructor with invalid wrapped ETH', async function () {
       await expect(
         viem.deployContract('SmartInvoiceEscrow', [
           zeroAddress,
           factory.address,
         ]),
-      ).to.be.revertedWithCustomError(invoice, 'InvalidWrappedNativeToken');
+      ).to.be.revertedWithCustomError(invoice, 'InvalidWrappedETH');
     });
 
     it('Should revert constructor with invalid factory', async function () {
       await expect(
         viem.deployContract('SmartInvoiceEscrow', [
-          mockWrappedNativeToken,
+          mockWrappedETH,
           zeroAddress,
         ]),
       ).to.be.revertedWithCustomError(invoice, 'InvalidFactory');
@@ -1986,12 +1959,10 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should set immutable values correctly', async function () {
       const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
-        mockWrappedNativeToken,
+        mockWrappedETH,
         factory.address,
       ]);
-      expect(await newInvoice.read.WRAPPED_NATIVE_TOKEN()).to.equal(
-        mockWrappedNativeToken,
-      );
+      expect(await newInvoice.read.WRAPPED_ETH()).to.equal(mockWrappedETH);
       expect(await newInvoice.read.FACTORY()).to.equal(
         getAddress(factory.address),
       );
@@ -2099,7 +2070,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(
@@ -2123,7 +2094,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -2248,7 +2218,6 @@ describe('SmartInvoiceEscrow', function () {
           [], // Empty amounts array
           terminationTime,
           zeroHash,
-          mockWrappedNativeToken,
           requireVerification,
         ),
       ).to.be.revertedWithCustomError(invoice, 'NoMilestones');
@@ -2270,7 +2239,6 @@ describe('SmartInvoiceEscrow', function () {
           tooManyAmounts,
           terminationTime,
           zeroHash,
-          mockWrappedNativeToken,
           requireVerification,
         ),
       ).to.be.revertedWithCustomError(invoice, 'ExceedsMilestoneLimit');
@@ -2705,7 +2673,7 @@ describe('SmartInvoiceEscrow', function () {
   describe('Additional Error Handling and Edge Cases', function () {
     it('Should revert init when called directly', async function () {
       const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
-        mockWrappedNativeToken,
+        mockWrappedETH,
         factory.address,
       ]);
 
@@ -2737,7 +2705,7 @@ describe('SmartInvoiceEscrow', function () {
       // Mock a factory that returns invalid resolution rate
       const mockFactory = await viem.deployContract('MockFactory');
       const testInvoice = await viem.deployContract('SmartInvoiceEscrow', [
-        mockWrappedNativeToken,
+        mockWrappedETH,
         mockFactory.address,
       ]);
 
@@ -2782,7 +2750,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
@@ -2813,7 +2781,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -2848,7 +2816,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
@@ -2871,7 +2839,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       // Set balance first so ResolutionMismatch check passes, then verify BalanceIsZero check
@@ -2910,7 +2878,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 1000,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -2940,7 +2907,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await expect(
@@ -2964,7 +2931,6 @@ describe('SmartInvoiceEscrow', function () {
         amounts,
         currentTime + 3600,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -3052,7 +3018,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
       );
 
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
@@ -3087,7 +3053,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         amounts,
         zeroHash,
-        mockWrappedNativeToken,
+        mockWrappedETH,
         10n,
       );
 
@@ -3138,11 +3104,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         individualResolverType,
         getAddress(resolver.account.address),
-        mockWrappedNativeToken, // Use wrapped native token as main token
+        mockWrappedETH, // Use wrapped ETH as main token
         amounts,
         terminationTime,
         zeroHash,
-        mockWrappedNativeToken,
         requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
@@ -3160,7 +3125,7 @@ describe('SmartInvoiceEscrow', function () {
       await expect(receipt).to.emit(tempInvoice, 'Deposit').withArgs(
         getAddress(client.account.address), // sender
         depositAmount, // amount
-        getAddress(mockWrappedNativeToken), // token
+        getAddress(mockWrappedETH), // token
       );
     });
   });

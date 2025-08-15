@@ -115,8 +115,8 @@ interface ISmartInvoiceFactory {
     /// @notice Public mapping getter for the current version of a type.
     function currentVersions(bytes32 _type) external view returns (uint256);
 
-    /// @notice Address of the wrapped native token contract used by the factory.
-    function WRAPPED_NATIVE_TOKEN() external view returns (IWRAPPED);
+    /// @notice Address of the wrapped ETH contract used by the factory.
+    function WRAPPED_ETH() external view returns (IWRAPPED);
 
     /*//////////////////////////////////////////////////////////////
                                SWEEPERS
@@ -128,7 +128,7 @@ interface ISmartInvoiceFactory {
     /// @param amt The amount of tokens to recover
     function sweepERC20(address token, address to, uint256 amt) external;
 
-    /// @notice Emergency function to recover native ETH sent to the factory by mistake
+    /// @notice Emergency function to recover ETH sent to the factory by mistake
     /// @param to The destination address to send the recovered ETH
     function sweepETH(address to) external;
 
@@ -136,7 +136,7 @@ interface ISmartInvoiceFactory {
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error InvalidWrappedNativeToken();
+    error InvalidWrappedETH();
     error ImplementationDoesNotExist();
     error ZeroAddressImplementation();
     error EscrowNotCreated();
@@ -182,7 +182,7 @@ interface ISmartInvoiceFactory {
 
     /// @notice Emitted when an escrow is funded during creation
     /// @param escrow The address of the funded escrow contract
-    /// @param token The token used for funding (could be WNATIVE or ERC20)
+    /// @param token The token used for funding (could be WETH or ERC20)
     /// @param amount The amount of tokens deposited
     event InvoiceFunded(
         address indexed escrow,
