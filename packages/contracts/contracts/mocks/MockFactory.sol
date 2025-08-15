@@ -9,19 +9,19 @@ import {ISmartInvoiceEscrow} from "../interfaces/ISmartInvoiceEscrow.sol";
 /// @notice This contract simulates the behavior of a factory for testing purposes.
 contract MockFactory {
     /// @notice Mapping to store resolution rates for addresses
-    mapping(address => uint256) public resolutionRates;
+    mapping(address => uint256) private _resolutionRateBPS;
 
     /// @notice Default resolution rate
-    uint256 public defaultResolutionRate = 20;
+    uint256 public defaultResolutionRateBPS = 500;
 
     /// @notice Set resolution rate for a specific address
     /// @param _resolver The resolver address
-    /// @param _resolutionRate The resolution rate to set
-    function setResolutionRate(
+    /// @param _rateBPS The resolution rate to set
+    function setResolutionRateBPS(
         address _resolver,
-        uint256 _resolutionRate
+        uint256 _rateBPS
     ) external {
-        resolutionRates[_resolver] = _resolutionRate;
+        _resolutionRateBPS[_resolver] = _rateBPS;
     }
 
     /// @notice Get resolution rate for an address
@@ -30,8 +30,8 @@ contract MockFactory {
     function resolutionRateOf(
         address _resolver
     ) external view returns (uint256) {
-        uint256 rate = resolutionRates[_resolver];
-        return rate == 0 ? defaultResolutionRate : rate;
+        uint256 rate = _resolutionRateBPS[_resolver];
+        return rate == 0 ? defaultResolutionRateBPS : rate;
     }
 
     /// @notice Call init on an escrow contract (for testing)

@@ -30,14 +30,16 @@ contract SmartInvoiceFactory is
 
     /// @dev Mapping from invoice ID to invoice address
     mapping(uint256 => address) internal _invoices;
-    /// @notice Mapping from resolver address to their resolution rate
-    mapping(address => uint256) public resolutionRates;
+
+    /// @notice Mapping from resolver address to their resolution rate bps
+    mapping(address => uint256) private _resolutionRateBPS;
 
     /// @notice Admin role identifier for access control
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
     /// @dev Storage for implementation addresses by type and version
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
+
     /// @dev Current version for each implementation type
     mapping(bytes32 => uint256) public currentVersions;
 
@@ -203,28 +205,30 @@ contract SmartInvoiceFactory is
     /**
      * @notice Updates the resolution rate for the calling resolver
      *         Resolution rate is used to calculate fees (e.g., rate=20 means 1/20 = 5% fee)
-     * @param _resolutionRate The new resolution rate (denominator for fee calculation)
+     * @param _rateBPS The new resolution rate (denominator for fee calculation)
      * @param _details Additional details about the update
      */
-    function updateResolutionRate(
-        uint256 _resolutionRate,
-        bytes32 _details
+    function updateResolutionRateBPS(
+        uint256 _rateBPS,
+        string calldata _details
     ) external {
-        if (_resolutionRate < 2 || _resolutionRate > 1000)
+        if (_rateBPS < 1 || _rateBPS > 1000)
+            // 0.01% to 10%
             revert InvalidResolutionRate();
-        resolutionRates[msg.sender] = _resolutionRate;
-        emit UpdateResolutionRate(msg.sender, _resolutionRate, _details);
+        _resolutionRateBPS[msg.sender] = _rateBPS;
+        emit UpdateResolutionRate(msg.sender, _rateBPS, _details);
     }
 
     /**
      * @notice Gets the resolution rate of a resolver
      * @param _resolver The address of the resolver
-     * @return The resolution rate of the resolver (denominator for fee calculation)
+     * @return The resolution rate of the resolver in basis points (default 500 = 5%)
      */
     function resolutionRateOf(
         address _resolver
     ) external view override returns (uint256) {
-        return resolutionRates[_resolver];
+        uint256 rate = _resolutionRateBPS[_resolver];
+        return rate == 0 ? 500 : rate; // Default to 5% (500 BPS)
     }
 
     /**

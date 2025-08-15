@@ -662,16 +662,14 @@ describe('SmartInvoiceFactory', function () {
     it('updates and reads back via mapping getter & dedicated view', async function () {
       const details = keccak256(toBytes('details-1'));
       await expect(
-        invoiceFactory.write.updateResolutionRate([15n, details], {
+        invoiceFactory.write.updateResolutionRateBPS([15n, details], {
           account: resolver.account,
         }),
       )
         .to.emit(invoiceFactory, 'UpdateResolutionRate')
         .withArgs(getAddress(resolver.account.address), 15n, details);
 
-      expect(
-        await invoiceFactory.read.resolutionRates([resolver.account.address]),
-      ).to.equal(15n);
+      // resolutionRates mapping is now private, so we can't test it directly
       expect(
         await invoiceFactory.read.resolutionRateOf([resolver.account.address]),
       ).to.equal(15n);
@@ -679,10 +677,10 @@ describe('SmartInvoiceFactory', function () {
 
     it('handles distinct resolvers independently', async function () {
       const [, , , , , , , , otherResolver] = await viem.getWalletClients();
-      await invoiceFactory.write.updateResolutionRate([10n, zeroHash], {
+      await invoiceFactory.write.updateResolutionRateBPS([10n, zeroHash], {
         account: resolver.account,
       });
-      await invoiceFactory.write.updateResolutionRate([30n, zeroHash], {
+      await invoiceFactory.write.updateResolutionRateBPS([30n, zeroHash], {
         account: otherResolver.account,
       });
 
@@ -696,28 +694,28 @@ describe('SmartInvoiceFactory', function () {
       ).to.equal(30n);
     });
 
-    it('enforces bounds: [2, 1000] allowed; below/above revert', async function () {
+    it('enforces bounds: [1, 1000] allowed; 0 and above 1000 revert', async function () {
       await expect(
-        invoiceFactory.write.updateResolutionRate([1n, zeroHash], {
+        invoiceFactory.write.updateResolutionRateBPS([0n, zeroHash], {
           account: resolver.account,
         }),
       ).to.be.revertedWithCustomError(invoiceFactory, 'InvalidResolutionRate');
 
       await expect(
-        invoiceFactory.write.updateResolutionRate([1001n, zeroHash], {
+        invoiceFactory.write.updateResolutionRateBPS([1001n, zeroHash], {
           account: resolver.account,
         }),
       ).to.be.revertedWithCustomError(invoiceFactory, 'InvalidResolutionRate');
 
       // edges ok
       await expect(
-        invoiceFactory.write.updateResolutionRate([2n, zeroHash], {
+        invoiceFactory.write.updateResolutionRateBPS([1n, zeroHash], {
           account: resolver.account,
         }),
       ).to.emit(invoiceFactory, 'UpdateResolutionRate');
 
       await expect(
-        invoiceFactory.write.updateResolutionRate([1000n, zeroHash], {
+        invoiceFactory.write.updateResolutionRateBPS([1000n, zeroHash], {
           account: resolver.account,
         }),
       ).to.emit(invoiceFactory, 'UpdateResolutionRate');

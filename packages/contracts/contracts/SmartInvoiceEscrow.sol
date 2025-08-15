@@ -58,7 +58,7 @@ contract SmartInvoiceEscrow is
     address public resolver;
     address public token;
     uint256 public terminationTime;
-    uint256 public resolutionRate;
+    uint256 public resolutionRateBPS;
 
     uint256 public feeBPS; // fee in basis points (100 = 1%)
     address public treasury; // treasury address to receive fees
@@ -137,11 +137,10 @@ contract SmartInvoiceEscrow is
 
         InitData memory initData = abi.decode(_data, (InitData));
 
-        uint256 _resolutionRate = FACTORY.resolutionRateOf(initData.resolver);
-        if (_resolutionRate == 0) _resolutionRate = 20; // default ~5% (1/20)
-        if (_resolutionRate < 2 || _resolutionRate > 1000)
-            revert InvalidResolutionRate();
-
+        uint256 _resolutionRateBPS = FACTORY.resolutionRateOf(
+            initData.resolver
+        );
+        if (_resolutionRateBPS > 1000) revert InvalidResolutionRate();
         if (initData.client == address(0)) revert InvalidClient();
         if (initData.resolverType > uint8(ADR.ARBITRATOR))
             revert InvalidResolverType();
@@ -164,7 +163,7 @@ contract SmartInvoiceEscrow is
         resolver = initData.resolver;
         token = initData.token;
         terminationTime = initData.terminationTime;
-        resolutionRate = _resolutionRate;
+        resolutionRateBPS = _resolutionRateBPS;
         providerReceiver = initData.providerReceiver;
         clientReceiver = initData.clientReceiver;
         feeBPS = initData.feeBPS;
@@ -559,7 +558,7 @@ contract SmartInvoiceEscrow is
         if (balance == 0) revert BalanceIsZero();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
 
-        uint256 resolutionFee = balance / resolutionRate;
+        uint256 resolutionFee = (balance * resolutionRateBPS) / BPS_DENOMINATOR;
 
         // Ensure awards plus resolution fee equals total balance
         if (_clientAward + _providerAward != balance - resolutionFee)

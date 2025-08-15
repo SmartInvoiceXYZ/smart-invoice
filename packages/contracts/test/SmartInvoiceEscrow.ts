@@ -32,7 +32,7 @@ const amounts = [BigInt(10), BigInt(10)];
 const total = amounts.reduce((t, v) => t + v, BigInt(0));
 let terminationTime =
   Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60;
-const resolutionRate = 20n;
+const resolutionRateBPS = 500n; // 5%
 const requireVerification = true;
 const invoiceType = toHex(toBytes('escrow-v3', { size: 32 }));
 
@@ -167,7 +167,9 @@ describe('SmartInvoiceEscrow', function () {
         expect(await invoice.read.amounts([BigInt(i)])).to.equal(amounts[i]);
       }
       expect(await invoice.read.terminationTime()).to.equal(terminationTime);
-      expect(await invoice.read.resolutionRate()).to.equal(resolutionRate);
+      expect(await invoice.read.resolutionRateBPS()).to.equal(
+        resolutionRateBPS,
+      );
       expect(await invoice.read.milestone()).to.equal(0n);
       expect(await invoice.read.total()).to.equal(total);
       expect(await invoice.read.locked()).to.equal(false);
@@ -508,8 +510,8 @@ describe('SmartInvoiceEscrow', function () {
         'SmartInvoiceEscrow',
         invoiceAddr!,
       );
-      expect(await deployedInvoice.read.resolutionRate()).to.equal(
-        resolutionRate,
+      expect(await deployedInvoice.read.resolutionRateBPS()).to.equal(
+        resolutionRateBPS,
       );
     });
 
@@ -2616,8 +2618,11 @@ describe('SmartInvoiceEscrow', function () {
         mockFactory.address,
       ]);
 
-      // Set up mock factory to return resolution rate < 2
-      await mockFactory.write.setResolutionRate([resolver.account.address, 1n]);
+      // Set up mock factory to return resolution rate > 1000
+      await mockFactory.write.setResolutionRateBPS([
+        resolver.account.address,
+        1001n,
+      ]);
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2632,21 +2637,6 @@ describe('SmartInvoiceEscrow', function () {
         treasury: zeroAddress,
         details: '',
       });
-
-      await expect(
-        mockFactory.write.callInit([
-          testInvoice.address,
-          getAddress(provider.account.address),
-          amounts,
-          data,
-        ]),
-      ).to.be.revertedWithCustomError(testInvoice, 'InvalidResolutionRate');
-
-      // Set up mock factory to return resolution rate > 1000
-      await mockFactory.write.setResolutionRate([
-        resolver.account.address,
-        1001n,
-      ]);
 
       await expect(
         mockFactory.write.callInit([
@@ -2945,7 +2935,7 @@ describe('SmartInvoiceEscrow', function () {
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
       const resolutionURI = 'ipfs://resolution-details';
 
-      // Balance = 100, resolutionRate = 20, so fee = 100/20 = 5
+      // Balance = 100, resolutionRateBPS = 500, so fee = (100 * 500) / 10000 = 5
       // Client gets 30, provider gets 65, resolver gets 5
       const receipt = await lockedInvoice.write.resolve(
         [30n, 65n, resolutionURI],

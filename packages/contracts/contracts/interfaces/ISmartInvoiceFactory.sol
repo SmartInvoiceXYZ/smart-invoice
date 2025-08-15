@@ -74,18 +74,15 @@ interface ISmartInvoiceFactory {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Update the caller's resolution rate (denominator for fee calc).
-    function updateResolutionRate(
-        uint256 _resolutionRate,
-        bytes32 _details
+    function updateResolutionRateBPS(
+        uint256 _resolutionRateBPS,
+        string calldata _details
     ) external;
 
     /// @notice Read the stored resolution rate via dedicated accessor.
     function resolutionRateOf(
         address _resolver
     ) external view returns (uint256);
-
-    /// @notice Public mapping getter (mirrors the contract's public mapping).
-    function resolutionRates(address _resolver) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 GETTERS
@@ -166,8 +163,8 @@ interface ISmartInvoiceFactory {
     /// @notice Emitted when a resolver updates their rate.
     event UpdateResolutionRate(
         address indexed resolver,
-        uint256 resolutionRate,
-        bytes32 details
+        uint256 resolutionRateBPS,
+        string details
     );
 
     /// @notice Emitted when an escrow is funded by the factory.

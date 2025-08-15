@@ -284,11 +284,11 @@ contract SmartInvoiceEscrowFuzzTest is Test {
     function testFuzz_DisputeResolution(
         uint256 balance,
         uint256 clientAwardPct,
-        uint256 resolutionRate
+        uint256 resolutionRateBPS
     ) public {
         balance = bound(balance, 1e18, 1e25);
         clientAwardPct = bound(clientAwardPct, 0, 100);
-        resolutionRate = bound(resolutionRate, 2, 1000);
+        resolutionRateBPS = bound(resolutionRateBPS, 1, 1000);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = balance;
@@ -307,7 +307,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
                 ISmartInvoiceFactory.resolutionRateOf.selector,
                 resolver
             ),
-            abi.encode(resolutionRate)
+            abi.encode(resolutionRateBPS)
         );
 
         // Create new invoice with mocked resolution rate
@@ -322,7 +322,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         assertTrue(invoice.locked());
 
         // Calculate awards
-        uint256 resolutionFee = balance / resolutionRate;
+        uint256 resolutionFee = (balance * resolutionRateBPS) / 10000;
         uint256 remainingBalance = balance - resolutionFee;
         uint256 clientAward = (remainingBalance * clientAwardPct) / 100;
         uint256 providerAward = remainingBalance - clientAward;
