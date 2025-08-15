@@ -29,11 +29,26 @@ interface ISmartInvoiceFactory {
         bytes32 _salt
     ) external returns (address);
 
-    /// @notice Predict the deterministic address for a (type, version, salt) before creation.
-    function predictDeterministicAddress(
+    /// @notice Helper function to compute the derived salt used in deterministic deployments
+    function getDerivedSalt(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data,
         bytes32 _type,
         uint256 _version,
-        bytes32 _salt
+        bytes32 _salt,
+        address _deployer
+    ) external pure returns (bytes32);
+
+    /// @notice Predict the deterministic address for a (type, version, salt) before creation.
+    function predictDeterministicAddress(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data,
+        bytes32 _type,
+        uint256 _version,
+        bytes32 _salt,
+        address _deployer
     ) external view returns (address);
 
     /*//////////////////////////////////////////////////////////////

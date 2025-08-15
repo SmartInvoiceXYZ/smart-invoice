@@ -70,8 +70,24 @@ describe('SmartInvoiceFactory', function () {
     ]);
   };
 
-  const predict = async (type: Hex, version: bigint, salt: Hex) =>
-    invoiceFactory.read.predictDeterministicAddress([type, version, salt]);
+  const predict = async (
+    _recipient: Hex,
+    _amounts: bigint[],
+    _data: Hex,
+    _type: Hex,
+    _version: bigint,
+    _salt: Hex,
+    _deployer: Hex,
+  ) =>
+    invoiceFactory.read.predictDeterministicAddress([
+      _recipient,
+      _amounts,
+      _data,
+      _type,
+      _version,
+      _salt,
+      _deployer,
+    ]);
 
   beforeEach(async function () {
     [owner, client, clientReceiver, resolver, provider, providerReceiver] =
@@ -357,11 +373,16 @@ describe('SmartInvoiceFactory', function () {
   describe('CreateDeterministic / predictDeterministicAddress', function () {
     it('predictDeterministicAddress reverts if implementation missing', async function () {
       const fakeType = keccak256(toBytes('fake-type'));
+      const data = encodeInitData(escrowInitData);
       await expect(
         invoiceFactory.read.predictDeterministicAddress([
+          provider.account.address,
+          [10n, 10n],
+          data,
           fakeType,
           0n,
           zeroHash,
+          client.account.address,
         ]),
       ).to.be.revertedWithCustomError(
         invoiceFactory,
@@ -388,9 +409,16 @@ describe('SmartInvoiceFactory', function () {
       );
 
       const salt = keccak256(toBytes('salt-demo'));
-      const predicted = await predict(escrowType, v1, salt);
-
       const data = encodeInitData(escrowInitData);
+      const predicted = await predict(
+        provider.account.address,
+        [10n, 10n],
+        data,
+        escrowType,
+        v1,
+        salt,
+        owner.account.address,
+      );
       const hash = await invoiceFactory.write.createDeterministic([
         provider.account.address,
         [10n, 10n],
@@ -597,7 +625,15 @@ describe('SmartInvoiceFactory', function () {
       });
 
       const data = encodeInitData(escrowInitData);
-      const predicted = await predict(escrowType, version, salt);
+      const predicted = await predict(
+        provider.account.address,
+        milestoneAmounts,
+        data,
+        escrowType,
+        version,
+        salt,
+        client.account.address,
+      );
 
       const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
         [
@@ -628,7 +664,15 @@ describe('SmartInvoiceFactory', function () {
         ...escrowInitData,
         token: wrappedETH,
       });
-      const predicted = await predict(escrowType, version, salt);
+      const predicted = await predict(
+        provider.account.address,
+        milestoneAmounts,
+        data,
+        escrowType,
+        version,
+        salt,
+        client.account.address,
+      );
 
       const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
         [
@@ -759,9 +803,26 @@ describe('SmartInvoiceFactory', function () {
       const v = await invoiceFactory.read.currentVersions([escrowType]);
       const s1 = keccak256(toBytes('s1'));
       const s2 = keccak256(toBytes('s2'));
+      const data = encodeInitData(escrowInitData);
 
-      const p1 = await predict(escrowType, v, s1);
-      const p2 = await predict(escrowType, v, s2);
+      const p1 = await predict(
+        provider.account.address,
+        [10n, 10n],
+        data,
+        escrowType,
+        v,
+        s1,
+        client.account.address,
+      );
+      const p2 = await predict(
+        provider.account.address,
+        [10n, 10n],
+        data,
+        escrowType,
+        v,
+        s2,
+        client.account.address,
+      );
       expect(p1).to.not.equal(p2);
     });
   });

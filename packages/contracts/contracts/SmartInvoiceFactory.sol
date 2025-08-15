@@ -124,21 +124,78 @@ contract SmartInvoiceFactory is
     }
 
     /**
+     * @notice Helper function to compute the derived salt used in deterministic deployments
+     * @param _recipient The address of the recipient (provider)
+     * @param _amounts The array of amounts associated with the recipient
+     * @param _data Additional data needed for initialization
+     * @param _escrowType The type of the invoice
+     * @param _version The version of the invoice implementation
+     * @param _salt The base salt used to determine the address
+     * @param _deployer The address that will deploy the contract (msg.sender for createDeterministic)
+     * @return The derived salt that combines all parameters
+     */
+    function getDerivedSalt(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data,
+        bytes32 _escrowType,
+        uint256 _version,
+        bytes32 _salt,
+        address _deployer
+    ) public pure returns (bytes32) {
+        // hash arrays to keep gas bounded
+        bytes32 amountsHash = keccak256(abi.encodePacked(_amounts));
+        bytes32 dataHash = keccak256(_data);
+
+        // bind salt to caller + params so nobody else can reuse it
+        return
+            keccak256(
+                abi.encodePacked(
+                    _escrowType,
+                    _version,
+                    _recipient,
+                    _deployer,
+                    amountsHash,
+                    dataHash,
+                    _salt // user-provided nonce
+                )
+            );
+    }
+
+    /**
      * @notice Predicts the deterministic address of a clone before creation
+     * @param _recipient The address of the recipient (provider)
+     * @param _amounts The array of amounts associated with the recipient
+     * @param _data Additional data needed for initialization
      * @param _escrowType The type of the invoice
      * @param _version The version of the invoice implementation
      * @param _salt The salt used to determine the address
+     * @param _deployer The address that will deploy the contract (msg.sender for createDeterministic)
      * @return The predicted address of the deterministic clone
      */
     function predictDeterministicAddress(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data,
         bytes32 _escrowType,
         uint256 _version,
-        bytes32 _salt
+        bytes32 _salt,
+        address _deployer
     ) external view override returns (address) {
         address _implementation = implementations[_escrowType][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
 
-        return Clones.predictDeterministicAddress(_implementation, _salt);
+        bytes32 derivedSalt = getDerivedSalt(
+            _recipient,
+            _amounts,
+            _data,
+            _escrowType,
+            _version,
+            _salt,
+            _deployer
+        );
+
+        return Clones.predictDeterministicAddress(_implementation, derivedSalt);
     }
 
     /**
@@ -163,9 +220,19 @@ contract SmartInvoiceFactory is
         address _implementation = implementations[_escrowType][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
 
+        bytes32 derivedSalt = getDerivedSalt(
+            _recipient,
+            _amounts,
+            _data,
+            _escrowType,
+            _version,
+            _salt,
+            msg.sender
+        );
+
         address invoiceAddress = Clones.cloneDeterministic(
             _implementation,
-            _salt
+            derivedSalt
         );
         _init(
             invoiceAddress,
