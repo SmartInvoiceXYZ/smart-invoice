@@ -31,7 +31,7 @@ contract SmartInvoiceFactory is
     /// @dev Mapping from invoice ID to invoice address
     mapping(uint256 => address) internal _invoices;
 
-    /// @notice Mapping from resolver address to their resolution rate bps
+    /// @notice Mapping from resolver address to their resolution rate in basis points (BPS)
     mapping(address => uint256) private _resolutionRateBPS;
 
     /// @notice Admin role identifier for access control
@@ -45,8 +45,8 @@ contract SmartInvoiceFactory is
 
     IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
 
-    /// @notice Constructor to initialize the factory with a wrapped native token.
-    /// @param _wrappedNativeToken The address of the wrapped native token.
+    /// @notice Constructor to initialize the factory with a wrapped native token
+    /// @param _wrappedNativeToken The address of the wrapped native token contract
     constructor(address _wrappedNativeToken) {
         if (_wrappedNativeToken == address(0))
             revert InvalidWrappedNativeToken();
@@ -204,17 +204,16 @@ contract SmartInvoiceFactory is
 
     /**
      * @notice Updates the resolution rate for the calling resolver
-     *         Resolution rate is used to calculate fees (e.g., rate=20 means 1/20 = 5% fee)
-     * @param _rateBPS The new resolution rate (denominator for fee calculation)
-     * @param _details Additional details about the update
+     *         Resolution rate is specified in basis points (BPS) where 100 BPS = 1%
+     *         Used to calculate dispute resolution fees when resolving conflicts
+     * @param _rateBPS The new resolution rate in basis points (1-1000 BPS = 0.01%-10%)
+     * @param _details Additional details about the rate update (e.g., reasoning, effective date)
      */
     function updateResolutionRateBPS(
         uint256 _rateBPS,
         string calldata _details
     ) external {
-        if (_rateBPS < 1 || _rateBPS > 1000)
-            // 0.01% to 10%
-            revert InvalidResolutionRate();
+        if (_rateBPS < 1 || _rateBPS > 1000) revert InvalidResolutionRate(); // must be between 1-1000 BPS
         _resolutionRateBPS[msg.sender] = _rateBPS;
         emit UpdateResolutionRate(msg.sender, _rateBPS, _details);
     }
@@ -368,10 +367,21 @@ contract SmartInvoiceFactory is
         _fundEscrow(escrow, _fundAmount);
     }
 
+    /**
+     * @notice Reverts any direct ETH transfers to prevent accidental loss of funds
+     * @dev ETH should only be sent through createAndDeposit functions for WNATIVE invoices
+     */
     receive() external payable {
         revert ETHNotAccepted();
     }
 
+    /**
+     * @notice Emergency function to recover ERC20 tokens sent to the factory by mistake
+     * @param token The ERC20 token contract address to recover
+     * @param to The destination address to send the recovered tokens
+     * @param amt The amount of tokens to recover
+     * @dev Only callable by admin role
+     */
     function sweepERC20(
         address token,
         address to,
@@ -381,6 +391,11 @@ contract SmartInvoiceFactory is
         IERC20(token).safeTransfer(to, amt);
     }
 
+    /**
+     * @notice Emergency function to recover native ETH sent to the factory by mistake
+     * @param to The destination address to send the recovered ETH
+     * @dev Only callable by admin role
+     */
     function sweepETH(address to) external onlyRole(ADMIN) nonReentrant {
         if (to == address(0)) revert ETHTransferFailed();
         (bool ok, ) = to.call{value: address(this).balance}("");

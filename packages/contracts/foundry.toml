@@ -12,7 +12,7 @@ remappings = [
     'contracts/=contracts/'
 ]
 
-[profile.lint]
+[lint]
 exclude_lints = [
     "mixed-case-variable",
     "mixed-case-function",

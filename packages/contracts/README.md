@@ -143,8 +143,19 @@ The main escrow contract supporting:
 - **Milestone Management**: Add milestones, release payments progressively
 - **Dispute Resolution**: Individual resolvers or Kleros arbitration
 - **Fee Handling**: Configurable basis points with treasury integration
-- **Asset Support**: ERC20 tokens and native ETH (via WETH wrapping)
+- **Asset Support**: Standard ERC20 tokens and native ETH (via WETH wrapping)
 - **Security**: Comprehensive access controls and reentrancy protection
+
+#### ⚠️ Token Compatibility Warning
+
+**IMPORTANT**: The protocol only supports standard ERC20 tokens. The following token types may break contract functionality:
+
+- **Fee-on-transfer tokens** - Fees reduce actual received amounts
+- **Rebasing tokens** - Balance changes affect milestone calculations
+- **ERC777 tokens** - Hooks can cause reentrancy issues despite protections
+- **Tokens with non-standard behavior** - May cause unexpected failures
+
+Always verify token compatibility before creating escrows with non-standard tokens.
 
 ### SafeSplitsEscrowZap
 

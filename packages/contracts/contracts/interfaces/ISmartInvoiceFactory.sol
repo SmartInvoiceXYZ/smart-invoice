@@ -4,7 +4,8 @@ pragma solidity 0.8.30;
 import {IWRAPPED} from "./IWRAPPED.sol";
 
 /// @title ISmartInvoiceFactory
-/// @notice Interface for creating and managing Smart Invoice implementations & escrows.
+/// @notice Interface for creating and managing Smart Invoice implementations and escrow contracts
+///         Supports multiple implementation types, versions, and deterministic address creation
 interface ISmartInvoiceFactory {
     /*//////////////////////////////////////////////////////////////
                                 CREATION
@@ -73,13 +74,18 @@ interface ISmartInvoiceFactory {
                              RESOLUTION RATES
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Update the caller's resolution rate (denominator for fee calc).
+    /// @notice Updates the resolution rate for the calling resolver in basis points
+    /// @dev Rate must be between 1-1000 BPS (0.01%-10%). Used for dispute resolution fees
+    /// @param _resolutionRateBPS The new resolution rate in basis points
+    /// @param _details Additional details about the rate update
     function updateResolutionRateBPS(
         uint256 _resolutionRateBPS,
         string calldata _details
     ) external;
 
-    /// @notice Read the stored resolution rate via dedicated accessor.
+    /// @notice Gets the resolution rate for a specific resolver
+    /// @param _resolver The address of the resolver to query
+    /// @return The resolution rate in basis points (default 500 BPS = 5% if not set)
     function resolutionRateOf(
         address _resolver
     ) external view returns (uint256);
@@ -116,10 +122,14 @@ interface ISmartInvoiceFactory {
                                SWEEPERS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Rescue ERC20 tokens sent to the factory by mistake.
+    /// @notice Emergency function to recover ERC20 tokens sent to the factory by mistake
+    /// @param token The ERC20 token contract address to recover
+    /// @param to The destination address to send the recovered tokens
+    /// @param amt The amount of tokens to recover
     function sweepERC20(address token, address to, uint256 amt) external;
 
-    /// @notice Rescue native ETH sent to the factory by mistake.
+    /// @notice Emergency function to recover native ETH sent to the factory by mistake
+    /// @param to The destination address to send the recovered ETH
     function sweepETH(address to) external;
 
     /*//////////////////////////////////////////////////////////////
@@ -160,20 +170,28 @@ interface ISmartInvoiceFactory {
         address implementation
     );
 
-    /// @notice Emitted when a resolver updates their rate.
+    /// @notice Emitted when a resolver updates their resolution rate
+    /// @param resolver The address of the resolver updating their rate
+    /// @param resolutionRateBPS The new resolution rate in basis points
+    /// @param details Additional details about the rate update
     event UpdateResolutionRate(
         address indexed resolver,
         uint256 resolutionRateBPS,
         string details
     );
 
-    /// @notice Emitted when an escrow is funded by the factory.
+    /// @notice Emitted when an escrow is funded during creation
+    /// @param escrow The address of the funded escrow contract
+    /// @param token The token used for funding (could be WNATIVE or ERC20)
+    /// @param amount The amount of tokens deposited
     event InvoiceFunded(
         address indexed escrow,
         address indexed token,
         uint256 amount
     );
 
-    /// @notice Emitted when a new particular version is set as current for an invoice type
+    /// @notice Emitted when the current version pointer is updated for an invoice type
+    /// @param escrowType The type of invoice (e.g., keccak256("escrow-v3"))
+    /// @param version The new current version number
     event SetCurrentVersion(bytes32 indexed escrowType, uint256 version);
 }

@@ -3,28 +3,30 @@
 pragma solidity 0.8.30;
 
 /// @title ISmartInvoiceEscrow
-/// @notice Interface for Smart Invoice Escrow functionality with customizable milestones, releases, and dispute resolution.
+/// @notice Interface for Smart Invoice Escrow functionality with milestone-based payments and dispute resolution
+/// @dev Supports both individual and arbitrator-based dispute resolution with customizable fee structures
 interface ISmartInvoiceEscrow {
-    /// @dev Struct for storing initialization data.
+    /// @dev Struct containing all initialization parameters for escrow setup
     struct InitData {
-        address client;
-        uint8 resolverType;
-        address resolver;
-        address token;
-        uint256 terminationTime;
-        bool requireVerification;
-        address providerReceiver;
-        address clientReceiver;
-        uint256 feeBPS;
-        address treasury;
-        string details;
+        address client; // Address of the client funding the escrow
+        uint8 resolverType; // 0 = individual resolver, 1 = arbitrator resolver
+        address resolver; // Address of the dispute resolver
+        address token; // ERC20 token contract for payments
+        uint256 terminationTime; // Timestamp when client can withdraw remaining funds
+        bool requireVerification; // Whether client must call verify() before releases
+        address providerReceiver; // Optional custom receiver for provider payments
+        address clientReceiver; // Optional custom receiver for client withdrawals
+        uint256 feeBPS; // Platform fee in basis points (100 BPS = 1%)
+        address treasury; // Address to receive platform fees
+        string details; // IPFS hash or details about the project/invoice
     }
 
     /**
-     * @notice Initializes the Smart Invoice with the provided recipient, amounts, and data.
-     * @param _recipient The address of the recipient to receive payments.
-     * @param _amounts An array of amounts representing payments or milestones.
-     * @param _data Additional data needed for initialization, encoded as bytes.
+     * @notice Initializes the escrow contract with provider, milestone amounts, and configuration
+     * @param _recipient The address of the service provider who will receive milestone payments
+     * @param _amounts Array of milestone amounts (must be non-empty, max 50 milestones)
+     * @param _data ABI-encoded InitData struct containing all escrow configuration parameters
+     * @dev Can only be called once by the factory contract during escrow creation
      */
     function init(
         address _recipient,
@@ -33,21 +35,23 @@ interface ISmartInvoiceEscrow {
     ) external;
 
     /**
-        @notice Returns the address of the token used for payment.
-        @return The address of the token used for payment.
-    */
+     * @notice Returns the ERC20 token contract address used for all payments in this escrow
+     * @return The address of the ERC20 token contract
+     */
     function token() external view returns (address);
 
     /**
-     * @notice Adds new milestones to the invoice.
-     * @param _milestones An array of milestone amounts to be added.
+     * @notice Adds new milestone amounts to the escrow without additional details
+     * @param _milestones Array of new milestone amounts to append to existing milestones
+     * @dev Only callable by client or provider when contract is not locked or terminated
      */
     function addMilestones(uint256[] calldata _milestones) external;
 
     /**
-     * @notice Adds new milestones to the invoice with additional details.
-     * @param _milestones An array of milestone amounts to be added.
-     * @param _details Additional details associated with the milestones.
+     * @notice Adds new milestone amounts to the escrow with additional project details
+     * @param _milestones Array of new milestone amounts to append to existing milestones
+     * @param _details IPFS hash or description of the new milestones/work scope
+     * @dev Only callable by client or provider when contract is not locked or terminated
      */
     function addMilestones(
         uint256[] calldata _milestones,
@@ -55,49 +59,57 @@ interface ISmartInvoiceEscrow {
     ) external;
 
     /**
-     * @notice Releases funds for the next milestone.
+     * @notice Releases funds for the next pending milestone to the provider
+     * @dev Only callable by client when contract has sufficient balance and is not locked
      */
     function release() external;
 
     /**
-     * @notice Releases funds for a specific milestone.
-     * @param _milestone The milestone number to release funds for.
+     * @notice Releases funds for a specific milestone to the provider
+     * @param _milestone The milestone index to release (must be current or future milestone)
+     * @dev Only callable by client when contract has sufficient balance and is not locked
      */
     function release(uint256 _milestone) external;
 
     /**
-     * @notice Releases all tokens of a specified type from the contract.
-     * @param _token The address of the token to be released.
+     * @notice Releases all tokens of a specified type to the provider (for non-escrow tokens)
+     * @param _token The address of the token contract to release
+     * @dev Used to release tokens that were sent to the contract by mistake or as bonuses
      */
     function releaseTokens(address _token) external;
 
     /**
-     * @notice Verifies the client and the contract are correctly paired.
+     * @notice Verifies that the client controls this address and can release funds
+     * @dev Only callable by client address, emits Verified event for off-chain tracking
      */
     function verify() external;
 
     /**
-     * @notice Withdraws funds from the contract to the client.
+     * @notice Withdraws remaining escrow funds to the client after termination time
+     * @dev Only callable after terminationTime has passed and contract is not locked
      */
     function withdraw() external;
 
     /**
-     * @notice Withdraws tokens of a specified type from the contract to the client.
-     * @param _token The address of the token to be withdrawn.
+     * @notice Withdraws tokens of a specified type to the client after termination
+     * @param _token The address of the token contract to withdraw
+     * @dev Only callable after terminationTime, used for non-escrow tokens
      */
     function withdrawTokens(address _token) external;
 
     /**
-     * @notice Locks the contract to prevent further actions until resolved.
-     * @param _details The details of the dispute or reason for locking.
+     * @notice Locks the contract to initiate dispute resolution process
+     * @param _details IPFS hash or description of the dispute and issues
+     * @dev Callable by client or provider, may require arbitration fee for arbitrator disputes
      */
     function lock(string calldata _details) external payable;
 
     /**
-     * @notice Resolves a dispute by awarding funds to the client and provider.
-     * @param _clientAward The amount to be awarded to the client.
-     * @param _providerAward The amount to be awarded to the provider.
-     * @param _details Additional details of the resolution.
+     * @notice Resolves a dispute by distributing funds between client and provider
+     * @param _clientAward Amount to be awarded to the client
+     * @param _providerAward Amount to be awarded to the provider
+     * @param _details IPFS hash or description of the resolution reasoning
+     * @dev Only callable by individual resolver, includes resolution fee deduction
      */
     function resolve(
         uint256 _clientAward,
@@ -141,11 +153,11 @@ interface ISmartInvoiceEscrow {
     error InvalidFeeBPS();
     error InvalidTreasury();
 
-    /// @notice Emitted when a the invoice is initialized.
-    /// @param provider The address of the provider.
-    /// @param client The address of the client.
-    /// @param amounts The amounts of the invoice.
-    /// @param details The details of the invoice.
+    /// @notice Emitted when the escrow contract is successfully initialized
+    /// @param provider The address of the service provider
+    /// @param client The address of the client funding the escrow
+    /// @param amounts Array of milestone amounts for this escrow
+    /// @param details IPFS hash or description of the project/work scope
     event InvoiceInit(
         address indexed provider,
         address indexed client,
@@ -174,8 +186,8 @@ interface ISmartInvoiceEscrow {
     /// @param token The token that was deposited.
     event Deposit(address indexed sender, uint256 amount, address token);
 
-    /// @notice Emitted when stray eth is wrapped.
-    /// @param amount The amount of eth wrapped.
+    /// @notice Emitted when stray ETH sent to the contract is wrapped to WETH
+    /// @param amount The amount of ETH that was wrapped to WETH
     event WrappedStrayETH(uint256 amount);
 
     /// @notice Emitted when a milestone is released.
@@ -201,12 +213,12 @@ interface ISmartInvoiceEscrow {
     /// @param details The details of the appeal.
     event DisputeAppealed(address indexed sender, string details);
 
-    /// @notice Emitted when a dispute is resolved.
-    /// @param resolver The address that resolved the dispute.
-    /// @param clientAward The amount awarded to the client.
-    /// @param providerAward The amount awarded to the provider.
-    /// @param resolutionFee The fee deducted for resolving the dispute.
-    /// @param details Additional details of the resolution.
+    /// @notice Emitted when a dispute is resolved by an individual resolver
+    /// @param resolver The address of the individual resolver
+    /// @param clientAward The amount awarded to the client
+    /// @param providerAward The amount awarded to the provider
+    /// @param resolutionFee The fee paid to the resolver in basis points
+    /// @param details IPFS hash or description of the resolution reasoning
     event Resolve(
         address indexed resolver,
         uint256 clientAward,
@@ -215,11 +227,11 @@ interface ISmartInvoiceEscrow {
         string details
     );
 
-    /// @notice Emitted when a ruling is made on a dispute.
-    /// @param resolver The address that made the ruling.
-    /// @param clientAward The amount awarded to the client.
-    /// @param providerAward The amount awarded to the provider.
-    /// @param ruling The ruling number representing the decision.
+    /// @notice Emitted when a ruling is made by an arbitrator resolver
+    /// @param resolver The address of the arbitrator
+    /// @param clientAward The amount awarded to the client
+    /// @param providerAward The amount awarded to the provider
+    /// @param ruling The ruling number (0=refused/split, 1=client wins, 2=provider wins)
     event Rule(
         address indexed resolver,
         uint256 clientAward,
@@ -248,10 +260,10 @@ interface ISmartInvoiceEscrow {
     /// @param clientReceiver The new client receiver address.
     event UpdatedClientReceiver(address indexed clientReceiver);
 
-    /// @notice Emitted when a fee is transferred to the treasury.
-    /// @param token The address of the token transferred as fee.
-    /// @param amount The amount of fee transferred.
-    /// @param treasury The address of the treasury receiving the fee.
+    /// @notice Emitted when platform fees are transferred to the treasury
+    /// @param token The address of the token used for fee payment
+    /// @param amount The amount of fees transferred (in basis points of payment)
+    /// @param treasury The address of the treasury receiving the platform fees
     event FeeTransferred(
         address indexed token,
         uint256 amount,

@@ -21,7 +21,8 @@ import {IEvidence} from "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceEscrow
-/// @notice A comprehensive escrow contract with milestone payments, arbitration, and updatable addresses
+/// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
+/// @dev Supports both individual and arbitrator-based dispute resolution with customizable fee structures
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
     IArbitrable,
@@ -58,17 +59,17 @@ contract SmartInvoiceEscrow is
     address public resolver;
     address public token;
     uint256 public terminationTime;
-    uint256 public resolutionRateBPS;
+    uint256 public resolutionRateBPS; // Resolution fee rate in basis points (BPS) for dispute resolution
 
-    uint256 public feeBPS; // fee in basis points (100 = 1%)
-    address public treasury; // treasury address to receive fees
+    uint256 public feeBPS; // Platform fee in basis points (100 BPS = 1%)
+    address public treasury; // Treasury address to receive platform fees
 
-    uint256[] public amounts; // milestones split into amounts
-    uint256 public total = 0;
-    bool public locked;
-    uint256 public milestone = 0; // current milestone - starts from 0 to amounts.length
-    uint256 public released = 0;
-    uint256 public disputeId;
+    uint256[] public amounts; // Array of milestone amounts
+    uint256 public total = 0; // Total amount across all milestones
+    bool public locked; // Whether the contract is locked due to a dispute
+    uint256 public milestone = 0; // Current milestone index (0 to amounts.length)
+    uint256 public released = 0; // Total amount released so far
+    uint256 public disputeId; // Current dispute ID for arbitrator resolution
 
     /// @dev Latest MetaEvidence identifier for this escrow (ERC-1497)
     ///      It advances when off-chain details change (e.g., via _addMilestones),
@@ -92,10 +93,11 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Initializes the contract with the provided provider, amounts, and data.
-     * @param _provider The address of the provider
-     * @param _amounts The array of amounts associated with the provider
-     * @param _data The additional data needed for initialization
+     * @notice Initializes the escrow contract with provider, milestone amounts, and configuration data
+     * @dev Can only be called once by the factory contract. Validates all parameters and sets up the escrow
+     * @param _provider The address of the service provider receiving payments
+     * @param _amounts Array of milestone amounts (must be non-empty, max 50 milestones)
+     * @param _data ABI-encoded InitData struct containing client, resolver, token, and other configuration
      */
     function init(
         address _provider,
@@ -108,12 +110,13 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @dev Handles the provided data, decodes it, and initializes necessary contract state variables
-     * @param _provider The address of the provider
-     * @param _amounts The array of amounts associated with the provider
-     * @param _data The data to be handled and decoded
-     * @dev The token MUST be a standard ERC20 token
-     *      Any fee-on-transfer, rebasing or ERC777 tokens may break the contract
+     * @dev Internal function to decode initialization data and set contract state
+     * @param _provider The address of the service provider
+     * @param _amounts Array of milestone amounts to validate and store
+     * @param _data ABI-encoded InitData containing all escrow configuration parameters
+     * @dev IMPORTANT: The token MUST be a standard ERC20 token
+     *      Fee-on-transfer, rebasing, or ERC777 tokens may break the contract functionality
+     *      Resolution rate is fetched from the factory and must not exceed 1000 BPS (10%)
      */
     function _handleData(
         address _provider,
@@ -185,8 +188,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice Updates the client address.
-     * @param _client The updated client address.
+     * @notice Updates the client address
+     * @param _client The new client address (cannot be zero address)
+     * @dev Only callable by current client when contract is not locked
      */
     function updateClient(address _client) external {
         if (msg.sender != client) revert NotClient(msg.sender);
@@ -198,8 +202,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice Updates the provider address.
-     * @param _provider The updated provider address.
+     * @notice Updates the provider address
+     * @param _provider The new provider address (cannot be zero address)
+     * @dev Only callable by current provider when contract is not locked
      */
     function updateProvider(address _provider) external {
         if (msg.sender != provider) revert NotProvider(msg.sender);
@@ -211,8 +216,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice Updates the provider's receiver address.
-     * @param _providerReceiver The updated provider receiver address.
+     * @notice Updates the provider's receiver address for milestone payments
+     * @param _providerReceiver The new receiver address (cannot be zero or this contract)
+     * @dev Only callable by current provider when contract is not locked
      */
     function updateProviderReceiver(address _providerReceiver) external {
         if (msg.sender != provider) revert NotProvider(msg.sender);
@@ -227,8 +233,9 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice Updates the client's receiver address.
-     * @param _clientReceiver The updated client receiver address.
+     * @notice Updates the client's receiver address for withdrawal payments
+     * @param _clientReceiver The new receiver address (cannot be zero or this contract)
+     * @dev Only callable by current client when contract is not locked
      */
     function updateClientReceiver(address _clientReceiver) external {
         if (msg.sender != client) revert NotClient(msg.sender);
@@ -241,8 +248,10 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice Adds milestones without extra details.
-     * @param _milestones The array of new milestones to be added
+     * @notice Adds new milestone amounts to the escrow without additional details
+     * @param _milestones Array of new milestone amounts to add
+     * @dev Only callable by client or provider when contract is not locked and not terminated
+     * @dev Total milestones cannot exceed MAX_MILESTONE_LIMIT (50)
      */
     function addMilestones(uint256[] calldata _milestones) external override {
         _addMilestones(_milestones, "");
@@ -540,11 +549,13 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to resolve the contract via individual resolver
-     *         Can only be called by the individual resolver when contract is locked
-     * @param _clientAward The amount to award the client
-     * @param _providerAward The amount to award the provider
-     * @param _resolutionURI Details of the dispute resolution
+     * @notice Resolves a dispute through individual resolver with specified award amounts
+     * @param _clientAward Amount to be awarded to the client
+     * @param _providerAward Amount to be awarded to the provider
+     * @param _resolutionURI URI containing details and reasoning for the resolution
+     * @dev Only callable by individual resolver when contract is locked
+     * @dev Total awards plus resolution fee must equal contract balance
+     * @dev Resolution fee is calculated as (balance * resolutionRateBPS) / 10000
      */
     function resolve(
         uint256 _clientAward,
@@ -590,10 +601,12 @@ contract SmartInvoiceEscrow is
     }
 
     /**
-     * @notice External function to rule on a dispute via arbitrator
-     *         Can only be called by the arbitrator resolver when contract is locked
-     * @param _disputeId The ID of the dispute
-     * @param _ruling The ruling of the arbitrator (0=refused, 1=client wins, 2=provider wins)
+     * @notice Rules on a dispute through arbitrator resolver with predefined award distribution
+     * @param _disputeId The ID of the dispute being ruled on (must match current disputeId)
+     * @param _ruling The arbitrator's ruling (0=refused/split, 1=client wins, 2=provider wins)
+     * @dev Only callable by arbitrator resolver when contract is locked
+     * @dev Awards are distributed based on predefined ruling ratios
+     * @dev No resolution fee is charged for arbitrator rulings
      */
     function rule(
         uint256 _disputeId,
