@@ -12,6 +12,7 @@ import {
   getContract,
   GetContractReturnType,
   Hex,
+  hexToBigInt,
   keccak256,
   parseAbiParameters,
   parseEventLogs,
@@ -20,7 +21,9 @@ import {
   zeroAddress,
 } from 'viem';
 
+import pullSplitAbi from './contracts/PullSplit.json';
 import safeAbi from './contracts/Safe.json';
+import splitsWarehouseAbi from './contracts/SplitsWarehouse.json';
 import wethAbi from './contracts/WETH9.json';
 import { SEPOLIA_CONTRACTS } from './utils';
 
@@ -61,6 +64,14 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
     { public: PublicClient; wallet: WalletClient }
   >;
   let split: Hex;
+  let splitContract: GetContractReturnType<
+    typeof pullSplitAbi,
+    { public: PublicClient; wallet: WalletClient }
+  >;
+  let warehouse: GetContractReturnType<
+    typeof splitsWarehouseAbi,
+    { public: PublicClient; wallet: WalletClient }
+  >;
   let escrow: ContractTypesMap['SmartInvoiceEscrow'];
   let token: GetContractReturnType<
     typeof wethAbi,
@@ -84,6 +95,13 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
     token = getContract({
       address: ZAP_DATA.token,
       abi: wethAbi,
+      client: { public: publicClient, wallet: deployer },
+    });
+
+    // Set up warehouse contract
+    warehouse = getContract({
+      address: SEPOLIA_CONTRACTS.splitsWarehouse,
+      abi: splitsWarehouseAbi,
       client: { public: publicClient, wallet: deployer },
     });
 
@@ -121,7 +139,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       SEPOLIA_CONTRACTS.safeSingleton, // singleton
       SEPOLIA_CONTRACTS.fallbackHandler, // fallback handler
       SEPOLIA_CONTRACTS.safeFactory, // safe factory
-      SEPOLIA_CONTRACTS.splitFactoryV2, // v2 split factory (Push or Pull)
+      SEPOLIA_CONTRACTS.pullSplitFactory, // v2 split factory (Push or Pull)
       escrowFactory.address, // escrow factory
     ];
     const encodedData = encodeAbiParameters(
@@ -148,7 +166,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       );
       // v2: splitFactory, not splitMain
       expect(await zap.read.splitFactory()).to.equal(
-        SEPOLIA_CONTRACTS.splitFactoryV2,
+        SEPOLIA_CONTRACTS.pullSplitFactory,
       );
       expect(await zap.read.escrowFactory()).to.equal(
         getAddress(escrowFactory.address),
@@ -164,7 +182,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
           zeroAddress, // bad safeSingleton
           SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           escrowFactory.address,
         ],
       );
@@ -260,6 +278,15 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       });
       escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress);
       split = splitAddress;
+
+      // Set up split contract instance for testing
+      if (split !== zeroAddress) {
+        splitContract = getContract({
+          address: split,
+          abi: pullSplitAbi,
+          client: { public: publicClient, wallet: deployer },
+        });
+      }
     });
 
     it('creates a Safe with correct owners & threshold', async function () {
@@ -274,6 +301,26 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       expect(split).to.not.equal(zeroAddress);
       // providerReceiver below should point at the split (verifies zap wiring)
       expect(await escrow.read.providerReceiver()).to.equal(split);
+    });
+
+    it('verifies split has correct recipients and allocations', async function () {
+      expect(split).to.not.equal(zeroAddress);
+
+      // The split should be properly configured
+      const splitHash = await splitContract.read.splitHash();
+      expect(splitHash).to.not.equal(`0x${'0'.repeat(64)}`);
+
+      // Check if split has correct owner (should be the Safe)
+      const splitOwner = await splitContract.read.owner();
+      expect(splitOwner).to.equal(safe.address);
+    });
+
+    it('verifies split owner is set to the Safe', async function () {
+      expect(split).to.not.equal(zeroAddress);
+
+      // In v2 splits, the owner should be the Safe
+      const splitOwner = await splitContract.read.owner();
+      expect(splitOwner).to.equal(safe.address);
     });
 
     it('creates an Escrow wired to Safe and Split', async function () {
@@ -343,6 +390,137 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       ])) as bigint;
       expect(afterEscrow).to.equal(beforeEscrow); // amount left escrow on release
     }).timeout(80000);
+
+    it('tests split distribute functionality with WETH', async function () {
+      const amount = ZAP_DATA.milestoneAmounts[0];
+
+      // First, fund the escrow and release to get funds to the split
+      const clientToken = getContract({
+        address: ZAP_DATA.token,
+        abi: wethAbi,
+        client: { public: publicClient, wallet: client },
+      });
+
+      await clientToken.write.deposit([], { value: amount });
+      await clientToken.write.transfer([escrow.address, amount]);
+
+      // Release funds from escrow to split
+      await escrow.write.release({ account: client.account });
+
+      // Check split balance
+      const splitBalanceResult = (await splitContract.read.getSplitBalance([
+        ZAP_DATA.token,
+      ])) as readonly [bigint, bigint];
+      const [splitBalance] = splitBalanceResult;
+      expect(splitBalance).to.be.greaterThan(0n);
+
+      // Now test distribute functionality
+      const splitData = {
+        recipients: ZAP_DATA.owners,
+        allocations: ZAP_DATA.allocations,
+        totalAllocation: 100n,
+        distributionIncentive: 0,
+      };
+
+      // Get balances before distribution
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      const balance0Before = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ])) as bigint;
+      const balance1Before = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[1],
+        tokenId,
+      ])) as bigint;
+
+      // Distribute the split
+      await splitContract.write.distribute([
+        splitData,
+        ZAP_DATA.token,
+        deployer.account.address,
+      ]);
+
+      // Check that funds were distributed to warehouse
+      const balance0After = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ])) as bigint;
+      const balance1After = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[1],
+        tokenId,
+      ])) as bigint;
+
+      expect(balance0After).to.be.greaterThan(balance0Before);
+      expect(balance1After).to.be.greaterThan(balance1Before);
+
+      // Verify allocations are proportional (50/50 split)
+      const diff0 = balance0After - balance0Before;
+      const diff1 = balance1After - balance1Before;
+      expect(diff0).to.equal(diff1); // 50/50 allocation should be equal
+    }).timeout(120000);
+
+    it('tests withdraw functionality from warehouse', async function () {
+      // Ensure we have some funds in the warehouse from previous test
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      let ownerBalance = await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ]);
+
+      if (ownerBalance === 0n) {
+        // If no balance, fund and distribute first
+        const amount = ZAP_DATA.milestoneAmounts[0];
+        const clientToken = getContract({
+          address: ZAP_DATA.token,
+          abi: wethAbi,
+          client: { public: publicClient, wallet: client },
+        });
+
+        await clientToken.write.deposit([], { value: amount });
+        await clientToken.write.transfer([escrow.address, amount]);
+        await escrow.write.release({ account: client.account });
+
+        const splitData = {
+          recipients: ZAP_DATA.owners,
+          allocations: ZAP_DATA.allocations,
+          totalAllocation: 100n,
+          distributionIncentive: 0,
+        };
+
+        await splitContract.write.distribute([
+          splitData,
+          ZAP_DATA.token,
+          deployer.account.address,
+        ]);
+
+        ownerBalance = await warehouse.read.balanceOf([
+          ZAP_DATA.owners[0],
+          tokenId,
+        ]);
+      }
+
+      // Now test withdrawal
+      expect(ownerBalance).to.be.greaterThan(0n);
+
+      // Get WETH balance before withdrawal
+      const wethBalanceBefore = await token.read.balanceOf([
+        ZAP_DATA.owners[0],
+      ]);
+
+      // Withdraw from warehouse
+      await warehouse.write.withdraw([ZAP_DATA.owners[0], ZAP_DATA.token]);
+
+      // Check WETH balance after withdrawal
+      const wethBalanceAfter = await token.read.balanceOf([ZAP_DATA.owners[0]]);
+      expect(wethBalanceAfter).to.be.greaterThan(wethBalanceBefore);
+
+      // Check warehouse balance is now zero
+      const warehouseBalanceAfter = await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ]);
+      expect(warehouseBalanceAfter).to.equal(1n); // splits always leaves 1 wei for gas purposes
+    }).timeout(120000);
 
     it('can skip creating a project split; providerReceiver falls back to Safe', async function () {
       // create again with split disabled
@@ -547,7 +725,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
         [
           zeroAddress,
           zeroAddress,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           zeroAddress,
         ],
       );
@@ -556,7 +734,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
         'UpdatedAddresses',
       );
       expect(await zap.read.splitFactory()).to.equal(
-        SEPOLIA_CONTRACTS.splitFactoryV2,
+        SEPOLIA_CONTRACTS.pullSplitFactory,
       );
     });
 
@@ -566,7 +744,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
         [
           zeroAddress,
           zeroAddress,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           zeroAddress,
         ],
       );

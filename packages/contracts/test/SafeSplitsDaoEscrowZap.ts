@@ -12,6 +12,7 @@ import {
   getContract,
   GetContractReturnType,
   Hex,
+  hexToBigInt,
   keccak256,
   parseAbiParameters,
   parseEventLogs,
@@ -20,7 +21,9 @@ import {
   zeroAddress,
 } from 'viem';
 
+import pullSplitAbi from './contracts/PullSplit.json';
 import safeAbi from './contracts/Safe.json';
+import splitsWarehouseAbi from './contracts/SplitsWarehouse.json';
 import wethAbi from './contracts/WETH9.json';
 import { SEPOLIA_CONTRACTS } from './utils';
 
@@ -137,7 +140,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         SEPOLIA_CONTRACTS.safeSingleton,
         SEPOLIA_CONTRACTS.fallbackHandler,
         SEPOLIA_CONTRACTS.safeFactory,
-        SEPOLIA_CONTRACTS.splitFactoryV2, // <-- updated
+        SEPOLIA_CONTRACTS.pullSplitFactory, // <-- updated
         escrowFactory.address,
         getAddress(dao.account.address),
         getAddress(daoTreasury.account.address),
@@ -198,7 +201,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       );
       // v2: splitFactory (not splitMain)
       expect(await zap.read.splitFactory()).to.equal(
-        getAddress(SEPOLIA_CONTRACTS.splitFactoryV2),
+        getAddress(SEPOLIA_CONTRACTS.pullSplitFactory),
       );
       expect(await zap.read.escrowFactory()).to.equal(
         getAddress(escrowFactory.address),
@@ -226,7 +229,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           SEPOLIA_CONTRACTS.safeSingleton,
           SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           escrowFactory.address,
           zeroAddress, // bad dao
           getAddress(daoTreasury.account.address),
@@ -253,7 +256,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           SEPOLIA_CONTRACTS.safeSingleton,
           SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           escrowFactory.address,
           getAddress(dao.account.address),
           zeroAddress, // bad receiver
@@ -281,7 +284,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           SEPOLIA_CONTRACTS.safeSingleton,
           SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitFactoryV2,
+          SEPOLIA_CONTRACTS.pullSplitFactory,
           escrowFactory.address,
           getAddress(dao.account.address),
           getAddress(daoTreasury.account.address),
@@ -344,6 +347,18 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
     >;
     let teamSplit: Hex;
     let daoSplit: Hex;
+    let teamSplitContract: GetContractReturnType<
+      typeof pullSplitAbi,
+      { public: PublicClient; wallet: WalletClient }
+    >;
+    let daoSplitContract: GetContractReturnType<
+      typeof pullSplitAbi,
+      { public: PublicClient; wallet: WalletClient }
+    >;
+    let warehouse: GetContractReturnType<
+      typeof splitsWarehouseAbi,
+      { public: PublicClient; wallet: WalletClient }
+    >;
     let escrow: ContractTypesMap['SmartInvoiceEscrow'];
 
     before(async function () {
@@ -359,6 +374,13 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       token = getContract({
         address: ZAP_DATA.token,
         abi: wethAbi,
+        client: { public: publicClient, wallet: deployer },
+      });
+
+      // Set up warehouse contract
+      warehouse = getContract({
+        address: SEPOLIA_CONTRACTS.splitsWarehouse,
+        abi: splitsWarehouseAbi,
         client: { public: publicClient, wallet: deployer },
       });
 
@@ -396,6 +418,23 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       escrow = await viem.getContractAt('SmartInvoiceEscrow', args.escrow);
       teamSplit = args.providerSplit;
       daoSplit = args.daoSplit;
+
+      // Set up split contract instances for testing
+      if (teamSplit !== zeroAddress) {
+        teamSplitContract = getContract({
+          address: teamSplit,
+          abi: pullSplitAbi,
+          client: { public: publicClient, wallet: deployer },
+        });
+      }
+
+      if (daoSplit !== zeroAddress) {
+        daoSplitContract = getContract({
+          address: daoSplit,
+          abi: pullSplitAbi,
+          client: { public: publicClient, wallet: deployer },
+        });
+      }
     });
 
     it('creates a Safe', async function () {
@@ -477,6 +516,377 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       ])) as bigint;
       expect(after).to.equal(0n);
     }).timeout(90_000);
+
+    it('verifies team split has correct configuration', async function () {
+      expect(teamSplit).to.not.equal(zeroAddress);
+
+      // The split should be properly configured
+      const splitHash = await teamSplitContract.read.splitHash();
+      expect(splitHash).to.not.equal(`0x${'0'.repeat(64)}`);
+
+      // Check if split has correct owner (should be the Safe)
+      const splitOwner = await teamSplitContract.read.owner();
+      expect(splitOwner).to.equal(safe.address);
+    });
+
+    it('verifies DAO split has correct configuration', async function () {
+      expect(daoSplit).to.not.equal(zeroAddress);
+
+      // The DAO split should be properly configured
+      const splitHash = await daoSplitContract.read.splitHash();
+      expect(splitHash).to.not.equal(`0x${'0'.repeat(64)}`);
+
+      // Check if DAO split has correct owner (should be the DAO)
+      const splitOwner = await daoSplitContract.read.owner();
+      expect(splitOwner).to.equal(getAddress(dao.account.address));
+    });
+
+    it('verifies team split owner is set to the Safe', async function () {
+      expect(teamSplit).to.not.equal(zeroAddress);
+
+      // In v2 splits, the team split owner should be the Safe
+      const splitOwner = await teamSplitContract.read.owner();
+      expect(splitOwner).to.equal(safe.address);
+    });
+
+    it('verifies DAO split owner is set to the DAO', async function () {
+      expect(daoSplit).to.not.equal(zeroAddress);
+
+      // In v2 splits, the DAO split owner should be the DAO
+      const splitOwner = await daoSplitContract.read.owner();
+      expect(splitOwner).to.equal(getAddress(dao.account.address));
+    });
+
+    it('tests DAO split distribute functionality with WETH', async function () {
+      const amount = ZAP_DATA.milestoneAmounts[0];
+
+      // First, fund the escrow and release to get funds to the DAO split
+      const clientToken = getContract({
+        address: ZAP_DATA.token,
+        abi: wethAbi,
+        client: { public: publicClient, wallet: client },
+      });
+
+      await clientToken.write.deposit([], { value: amount });
+      await clientToken.write.transfer([escrow.address, amount]);
+
+      // Release funds from escrow to DAO split
+      await escrow.write.release({ account: client.account });
+
+      // Check DAO split balance
+      const splitBalanceResult = (await daoSplitContract.read.getSplitBalance([
+        ZAP_DATA.token,
+      ])) as readonly [bigint, bigint];
+      const [daoSplitBalance] = splitBalanceResult;
+      expect(daoSplitBalance).to.be.greaterThan(0n);
+
+      // Create DAO split data (includes team split recipients + DAO treasury)
+      // The DAO split should have team split + treasury as recipients
+      // Ensure teamSplit is a valid address
+      expect(teamSplit).to.not.equal(zeroAddress);
+
+      const daoSplitData = {
+        recipients: [
+          getAddress(daoTreasury.account.address),
+          getAddress(teamSplit),
+        ],
+        allocations: [1000n, 9000n], // 10% to DAO treasury, 90% to team split (based on spoilsBPS)
+        totalAllocation: 10000n,
+        distributionIncentive: 0,
+      };
+
+      // Get balances before distribution
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      const teamSplitBalanceBefore = (await warehouse.read.balanceOf([
+        teamSplit,
+        tokenId,
+      ])) as bigint;
+      const treasuryBalanceBefore = (await warehouse.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+        tokenId,
+      ])) as bigint;
+
+      // Distribute the DAO split
+      await daoSplitContract.write.distribute([
+        daoSplitData,
+        ZAP_DATA.token,
+        deployer.account.address,
+      ]);
+
+      // Check that funds were distributed to warehouse
+      const teamSplitBalanceAfter = (await warehouse.read.balanceOf([
+        teamSplit,
+        tokenId,
+      ])) as bigint;
+      const treasuryBalanceAfter = (await warehouse.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+        tokenId,
+      ])) as bigint;
+
+      expect(teamSplitBalanceAfter).to.be.greaterThan(teamSplitBalanceBefore);
+      expect(treasuryBalanceAfter).to.be.greaterThan(treasuryBalanceBefore);
+
+      // Verify allocations are proportional (90/10 split based on spoilsBPS)
+      const teamDiff = teamSplitBalanceAfter - teamSplitBalanceBefore;
+      const treasuryDiff = treasuryBalanceAfter - treasuryBalanceBefore;
+
+      // Team should get ~90% and treasury should get ~10%
+      const totalDistributed = teamDiff + treasuryDiff;
+      const teamPercentage = (teamDiff * 10000n) / totalDistributed;
+      const treasuryPercentage = (treasuryDiff * 10000n) / totalDistributed;
+
+      expect(teamPercentage).to.be.approximately(9000n, 50n); // ~90% ±0.5%
+      expect(treasuryPercentage).to.be.approximately(1000n, 50n); // ~10% ±0.5%
+    }).timeout(120000);
+
+    it('tests team split distribute functionality after DAO split distribution', async function () {
+      // Ensure team split has funds from previous test or fund it
+      let teamSplitBalance = 0n;
+      try {
+        const splitBalanceResult =
+          (await teamSplitContract.read.getSplitBalance([
+            ZAP_DATA.token,
+          ])) as readonly [bigint, bigint];
+        [teamSplitBalance] = splitBalanceResult;
+      } catch {
+        // If getSplitBalance fails, team split doesn't exist or has no balance
+        teamSplitBalance = 0n;
+      }
+
+      // If no balance, run the distribution flow first
+      if (teamSplitBalance === 0n) {
+        const amount = ZAP_DATA.milestoneAmounts[0];
+        const clientToken = getContract({
+          address: ZAP_DATA.token,
+          abi: wethAbi,
+          client: { public: publicClient, wallet: client },
+        });
+
+        await clientToken.write.deposit([], { value: amount });
+        await clientToken.write.transfer([escrow.address, amount]);
+        await escrow.write.release({ account: client.account });
+
+        const daoSplitData = {
+          recipients: [getAddress(daoTreasury.account.address), teamSplit],
+          allocations: [1000n, 9000n], // 10% to DAO treasury, 90% to team split
+          totalAllocation: 10000n,
+          distributionIncentive: 0,
+        };
+
+        await daoSplitContract.write.distribute([
+          daoSplitData,
+          ZAP_DATA.token,
+          deployer.account.address,
+        ]);
+
+        const splitBalanceResult =
+          (await teamSplitContract.read.getSplitBalance([
+            ZAP_DATA.token,
+          ])) as readonly [bigint, bigint];
+        [teamSplitBalance] = splitBalanceResult;
+      }
+
+      // If still 0 after distribution, check warehouse balance instead
+      if (teamSplitBalance === 0n) {
+        const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+        teamSplitBalance = (await warehouse.read.balanceOf([
+          teamSplit,
+          tokenId,
+        ])) as bigint;
+      }
+
+      expect(teamSplitBalance).to.be.greaterThan(0n);
+
+      // Now test team split distribution
+      const teamSplitData = {
+        recipients: ZAP_DATA.owners,
+        allocations: ZAP_DATA.allocations,
+        totalAllocation: 100n,
+        distributionIncentive: 0,
+      };
+
+      // Get balances before distribution
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      const balance0Before = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ])) as bigint;
+      const balance1Before = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[1],
+        tokenId,
+      ])) as bigint;
+
+      // Distribute the team split
+      await teamSplitContract.write.distribute([
+        teamSplitData,
+        ZAP_DATA.token,
+        deployer.account.address,
+      ]);
+
+      // Check that funds were distributed to warehouse
+      const balance0After = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ])) as bigint;
+      const balance1After = (await warehouse.read.balanceOf([
+        ZAP_DATA.owners[1],
+        tokenId,
+      ])) as bigint;
+
+      expect(balance0After).to.be.greaterThan(balance0Before);
+      expect(balance1After).to.be.greaterThan(balance1Before);
+
+      // Verify allocations are proportional (50/50 split)
+      const diff0 = balance0After - balance0Before;
+      const diff1 = balance1After - balance1Before;
+      expect(diff0).to.equal(diff1); // 50/50 allocation should be equal
+    }).timeout(120000);
+
+    it('tests withdraw functionality from warehouse for team members', async function () {
+      // Ensure we have some funds in the warehouse from previous tests
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      let ownerBalance = await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ]);
+
+      if (ownerBalance === 0n) {
+        // If no balance, run the full distribution flow
+        const amount = ZAP_DATA.milestoneAmounts[0];
+        const clientToken = getContract({
+          address: ZAP_DATA.token,
+          abi: wethAbi,
+          client: { public: publicClient, wallet: client },
+        });
+
+        await clientToken.write.deposit([], { value: amount });
+        await clientToken.write.transfer([escrow.address, amount]);
+        await escrow.write.release({ account: client.account });
+
+        // Distribute DAO split first
+        const daoSplitData = {
+          recipients: [getAddress(daoTreasury.account.address), teamSplit],
+          allocations: [1000n, 9000n], // 10% to DAO treasury, 90% to team split
+          totalAllocation: 10000n,
+          distributionIncentive: 0,
+        };
+
+        await daoSplitContract.write.distribute([
+          daoSplitData,
+          ZAP_DATA.token,
+          deployer.account.address,
+        ]);
+
+        // Then distribute team split
+        const teamSplitData = {
+          recipients: ZAP_DATA.owners,
+          allocations: ZAP_DATA.allocations,
+          totalAllocation: 100n,
+          distributionIncentive: 0,
+        };
+
+        await teamSplitContract.write.distribute([
+          teamSplitData,
+          ZAP_DATA.token,
+          deployer.account.address,
+        ]);
+
+        ownerBalance = await warehouse.read.balanceOf([
+          ZAP_DATA.owners[0],
+          tokenId,
+        ]);
+      }
+
+      // Now test withdrawal
+      expect(ownerBalance).to.be.greaterThan(0n);
+
+      // Get WETH balance before withdrawal
+      const wethBalanceBefore = await token.read.balanceOf([
+        ZAP_DATA.owners[0],
+      ]);
+
+      // Withdraw from warehouse
+      await warehouse.write.withdraw([ZAP_DATA.owners[0], ZAP_DATA.token]);
+
+      // Check WETH balance after withdrawal
+      const wethBalanceAfter = await token.read.balanceOf([ZAP_DATA.owners[0]]);
+      expect(wethBalanceAfter).to.be.greaterThan(wethBalanceBefore);
+
+      // Check warehouse balance is now zero (or 1 wei for gas optimization)
+      const warehouseBalanceAfter = await warehouse.read.balanceOf([
+        ZAP_DATA.owners[0],
+        tokenId,
+      ]);
+      expect(warehouseBalanceAfter).to.be.lessThanOrEqual(1n);
+    }).timeout(120000);
+
+    it('tests withdraw functionality for DAO treasury', async function () {
+      // Ensure we have some funds in the warehouse for treasury
+      const tokenId = hexToBigInt(ZAP_DATA.token as Hex);
+      let treasuryBalance = await warehouse.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+        tokenId,
+      ]);
+
+      if (treasuryBalance === 0n) {
+        // If no balance, run the distribution flow
+        const amount = ZAP_DATA.milestoneAmounts[0];
+        const clientToken = getContract({
+          address: ZAP_DATA.token,
+          abi: wethAbi,
+          client: { public: publicClient, wallet: client },
+        });
+
+        await clientToken.write.deposit([], { value: amount });
+        await clientToken.write.transfer([escrow.address, amount]);
+        await escrow.write.release({ account: client.account });
+
+        const daoSplitData = {
+          recipients: [getAddress(daoTreasury.account.address), teamSplit],
+          allocations: [1000n, 9000n], // 10% to DAO treasury, 90% to team split
+          totalAllocation: 10000n,
+          distributionIncentive: 0,
+        };
+
+        await daoSplitContract.write.distribute([
+          daoSplitData,
+          ZAP_DATA.token,
+          deployer.account.address,
+        ]);
+
+        treasuryBalance = await warehouse.read.balanceOf([
+          getAddress(daoTreasury.account.address),
+          tokenId,
+        ]);
+      }
+
+      // Now test treasury withdrawal
+      expect(treasuryBalance).to.be.greaterThan(0n);
+
+      // Get WETH balance before withdrawal
+      const wethBalanceBefore = await token.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+      ]);
+
+      // Withdraw from warehouse for treasury
+      await warehouse.write.withdraw([
+        getAddress(daoTreasury.account.address),
+        ZAP_DATA.token,
+      ]);
+
+      // Check WETH balance after withdrawal
+      const wethBalanceAfter = await token.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+      ]);
+      expect(wethBalanceAfter).to.be.greaterThan(wethBalanceBefore);
+
+      // Check warehouse balance is now zero (or 1 wei for gas optimization)
+      const warehouseBalanceAfter = await warehouse.read.balanceOf([
+        getAddress(daoTreasury.account.address),
+        tokenId,
+      ]);
+      expect(warehouseBalanceAfter).to.be.lessThanOrEqual(1n);
+    }).timeout(120000);
   });
 
   // -------------------------------------------------------------------------
