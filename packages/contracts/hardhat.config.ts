@@ -9,6 +9,7 @@ dotenv.config();
 
 const {
   INFURA_PROJECT_ID,
+  ALCHEMY_PROJECT_ID,
   PRIVATE_KEY,
   MNEMONIC,
   ETHERSCAN_API_KEY,
@@ -110,7 +111,9 @@ const config: HardhatUserConfig = {
       chainId: 31337,
       forking: {
         enabled: process.env.FORK === 'true',
-        url: `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
+        url: ALCHEMY_PROJECT_ID
+          ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_PROJECT_ID}`
+          : `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
       },
     },
     anvil: {

@@ -629,7 +629,7 @@ describe('SmartInvoiceEscrow', function () {
       // Add more tokens and release remaining
       await setBalanceOf(mockToken, invoice.address, 5);
       const receipt = await invoice.write.release();
-      await expect(receipt).to.emit(invoice, 'Release').withArgs(2, 5);
+      await expect(receipt).to.emit(invoice, 'ReleaseRemainder').withArgs(5);
     });
 
     it('Should revert release remaining balance when zero', async function () {

@@ -371,9 +371,8 @@ describe('SmartInvoiceFactory', function () {
 
     it('predicts and deploys at same address; version taken from explicit param', async function () {
       await addEscrowImplementation();
-      const v0 = await invoiceFactory.read.currentVersions([escrowType]); // 0
 
-      // Add v1 and change pointer to v1 to prove createDeterministic can still use v0
+      // Add v1 and change pointer to v1 to prove createDeterministic must use v1
       const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
         wrappedNativeToken,
         invoiceFactory.address,
@@ -382,10 +381,14 @@ describe('SmartInvoiceFactory', function () {
         escrowType,
         escrowImpl2.address,
       ]);
-      await invoiceFactory.write.setCurrentVersion([escrowType, 1n]);
+
+      const v1 = 1n;
+      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+        v1,
+      );
 
       const salt = keccak256(toBytes('salt-demo'));
-      const predicted = await predict(escrowType, v0, salt);
+      const predicted = await predict(escrowType, v1, salt);
 
       const data = encodeInitData(escrowInitData);
       const hash = await invoiceFactory.write.createDeterministic([
@@ -393,7 +396,7 @@ describe('SmartInvoiceFactory', function () {
         [10n, 10n],
         data,
         escrowType,
-        v0,
+        v1,
         salt,
       ]);
 
@@ -404,7 +407,7 @@ describe('SmartInvoiceFactory', function () {
 
       await expect(hash)
         .to.emit(invoiceFactory, 'InvoiceCreated')
-        .withArgs(0, actual, [10n, 10n], escrowType, v0);
+        .withArgs(0, actual, [10n, 10n], escrowType, v1);
     });
 
     it('reverts createDeterministic with no implementation', async function () {
@@ -510,7 +513,7 @@ describe('SmartInvoiceFactory', function () {
       ).to.equal(fundAmount);
     });
 
-    it('reverts when ETH sent != fundAmount (InvalidFundAmount)', async function () {
+    it('reverts when ETH sent != fundAmount (FundAmountMismatch)', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
       const data = encodeInitData({
         ...escrowInitData,
@@ -529,7 +532,7 @@ describe('SmartInvoiceFactory', function () {
       );
       await expect(tx).to.be.revertedWithCustomError(
         invoiceFactory,
-        'InvalidFundAmount',
+        'FundAmountMismatch',
       );
     });
 

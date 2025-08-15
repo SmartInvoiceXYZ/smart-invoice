@@ -140,8 +140,8 @@ interface ISmartInvoiceFactory {
     error InvalidInvoiceIndex();
     error ETHTransferFailed();
     error InvalidEscrow();
-    // If your implementation enforces version equality in deterministic create, uncomment:
-    // error VersionMismatch();
+    error VersionMismatch();
+    error FundAmountMismatch();
 
     /*//////////////////////////////////////////////////////////////
                                   EVENTS
@@ -152,13 +152,13 @@ interface ISmartInvoiceFactory {
         uint256 indexed invoiceId,
         address indexed invoiceAddress,
         uint256[] amounts,
-        bytes32 indexed invoiceType,
+        bytes32 indexed escrowType,
         uint256 version
     );
 
     /// @notice Emitted when a new implementation is added.
     event AddImplementation(
-        bytes32 indexed invoiceType,
+        bytes32 indexed escrowType,
         uint256 indexed version,
         address implementation
     );
@@ -176,4 +176,7 @@ interface ISmartInvoiceFactory {
         address indexed token,
         uint256 amount
     );
+
+    /// @notice Emitted when a new particular version is set as current for an invoice type
+    event SetCurrentVersion(bytes32 indexed escrowType, uint256 version);
 }

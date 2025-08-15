@@ -44,6 +44,8 @@ contract SmartInvoiceEscrow is
 
     uint256 public constant MAX_MILESTONE_LIMIT = 50;
 
+    uint256 internal constant BPS_DENOMINATOR = 10_000;
+
     IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
 
     ISmartInvoiceFactory public immutable FACTORY;
@@ -110,6 +112,8 @@ contract SmartInvoiceEscrow is
      * @param _provider The address of the provider
      * @param _amounts The array of amounts associated with the provider
      * @param _data The data to be handled and decoded
+     * @dev The token MUST be a standard ERC20 token
+     *      Any fee-on-transfer, rebasing or ERC777 tokens may break the contract
      */
     function _handleData(
         address _provider,
@@ -123,8 +127,11 @@ contract SmartInvoiceEscrow is
         uint256 amountsLength = amounts.length;
         if (amountsLength == 0) revert NoMilestones();
         if (amountsLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
-        for (uint256 i = 0; i < amountsLength; i++) {
+        for (uint256 i = 0; i < amountsLength; ) {
             _total += amounts[i];
+            unchecked {
+                ++i;
+            }
         }
         total = _total;
 
@@ -140,6 +147,7 @@ contract SmartInvoiceEscrow is
             revert InvalidResolverType();
         if (initData.resolver == address(0)) revert InvalidResolver();
         if (initData.token == address(0)) revert InvalidToken();
+        if (initData.token.code.length == 0) revert InvalidToken();
         if (initData.terminationTime <= block.timestamp) revert DurationEnded();
         if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
@@ -184,6 +192,8 @@ contract SmartInvoiceEscrow is
     function updateClient(address _client) external {
         if (msg.sender != client) revert NotClient(msg.sender);
         if (_client == address(0)) revert InvalidClient();
+        if (locked) revert Locked();
+
         client = _client;
         emit UpdatedClient(_client);
     }
@@ -195,6 +205,8 @@ contract SmartInvoiceEscrow is
     function updateProvider(address _provider) external {
         if (msg.sender != provider) revert NotProvider(msg.sender);
         if (_provider == address(0)) revert InvalidProvider();
+        if (locked) revert Locked();
+
         provider = _provider;
         emit UpdatedProvider(_provider);
     }
@@ -209,6 +221,8 @@ contract SmartInvoiceEscrow is
             _providerReceiver == address(0) ||
             _providerReceiver == address(this)
         ) revert InvalidProviderReceiver();
+        if (locked) revert Locked();
+
         providerReceiver = _providerReceiver;
         emit UpdatedProviderReceiver(_providerReceiver);
     }
@@ -221,6 +235,8 @@ contract SmartInvoiceEscrow is
         if (msg.sender != client) revert NotClient(msg.sender);
         if (_clientReceiver == address(0) || _clientReceiver == address(this))
             revert InvalidClientReceiver();
+        if (locked) revert Locked();
+
         clientReceiver = _clientReceiver;
         emit UpdatedClientReceiver(_clientReceiver);
     }
@@ -267,12 +283,18 @@ contract SmartInvoiceEscrow is
         uint256 newTotal = total;
 
         uint256 amountsLength = amounts.length;
-        for (uint256 i = 0; i < amountsLength; i++) {
+        for (uint256 i = 0; i < amountsLength; ) {
             baseArray[i] = amounts[i];
+            unchecked {
+                ++i;
+            }
         }
-        for (uint256 i = amountsLength; i < newLength; i++) {
+        for (uint256 i = amountsLength; i < newLength; ) {
             baseArray[i] = _milestones[i - amountsLength];
             newTotal += _milestones[i - amountsLength];
+            unchecked {
+                ++i;
+            }
         }
 
         total = newTotal;
@@ -302,6 +324,7 @@ contract SmartInvoiceEscrow is
     function _release() internal virtual {
         if (locked) revert Locked();
         if (msg.sender != client) revert NotClient(msg.sender);
+        if (block.timestamp > terminationTime) revert Terminated();
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
@@ -324,7 +347,7 @@ contract SmartInvoiceEscrow is
 
             _transferPayment(token, balance);
             released = released + balance;
-            emit Release(currentMilestone, balance);
+            emit ReleaseRemainder(balance);
         }
     }
 
@@ -381,7 +404,10 @@ contract SmartInvoiceEscrow is
         } else {
             if (locked) revert Locked();
             if (msg.sender != client) revert NotClient(msg.sender);
+            if (block.timestamp > terminationTime) revert Terminated();
             uint256 balance = IERC20(_token).balanceOf(address(this));
+            if (balance == 0) revert BalanceIsZero();
+
             _transferPayment(_token, balance);
         }
     }
@@ -449,7 +475,9 @@ contract SmartInvoiceEscrow is
             // Note: user must call `IArbitrator(resolver).arbitrationCost(_disputeURI)` to get the arbitration cost
 
             // Ensure each dispute has its own evidence group id
-            evidenceGroupId = evidenceGroupId + 1;
+            unchecked {
+                ++evidenceGroupId;
+            }
 
             disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
                 NUM_RULING_OPTIONS,
@@ -472,7 +500,7 @@ contract SmartInvoiceEscrow is
      *         Can only be called by client or provider when contract is locked with arbitrator resolver
      * @param _appealURI Extra data for the arbitrator
      */
-    function appeal(string memory _appealURI) external payable nonReentrant {
+    function appeal(string calldata _appealURI) external payable nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
@@ -636,7 +664,7 @@ contract SmartInvoiceEscrow is
             : provider;
 
         if (feeBPS > 0 && treasury != address(0)) {
-            uint256 feeAmount = (_amount * feeBPS) / 10000;
+            uint256 feeAmount = (_amount * feeBPS) / BPS_DENOMINATOR;
             uint256 netAmount = _amount - feeAmount;
 
             IERC20(_token).safeTransfer(treasury, feeAmount);
@@ -663,7 +691,7 @@ contract SmartInvoiceEscrow is
             : client;
 
         if (feeBPS > 0 && treasury != address(0)) {
-            uint256 feeAmount = (_amount * feeBPS) / 10000;
+            uint256 feeAmount = (_amount * feeBPS) / BPS_DENOMINATOR;
             uint256 netAmount = _amount - feeAmount;
 
             IERC20(_token).safeTransfer(treasury, feeAmount);

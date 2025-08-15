@@ -63,8 +63,8 @@
     "test": "hardhat test",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.ts",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.ts",
-    "test-zap": "hardhat test ./test/SafeSplitsEscrowZap.ts",
-    "test-dao-zap": "hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
+    "test-zap": "FORK=true hardhat test ./test/SafeSplitsEscrowZap.ts",
+    "test-dao-zap": "FORK=true hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
     "typecheck": "tsc --noEmit",
     "verify-contract": "hardhat run scripts/verify-contract.ts --network"
   }

@@ -183,6 +183,10 @@ interface ISmartInvoiceEscrow {
     /// @param amount The amount released for the milestone.
     event Release(uint256 milestone, uint256 amount);
 
+    /// @notice Emitted when funds are released after all milestones have been released.
+    /// @param amount The amount released.
+    event ReleaseRemainder(uint256 amount);
+
     /// @notice Emitted when funds are withdrawn from the invoice.
     /// @param balance The amount withdrawn.
     event Withdraw(uint256 balance);

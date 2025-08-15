@@ -157,6 +157,7 @@ contract SmartInvoiceFactory is
         uint256 _version,
         bytes32 _salt
     ) public override returns (address) {
+        if (_version != currentVersions[_escrowType]) revert VersionMismatch();
         address _implementation = implementations[_escrowType][_version];
         if (_implementation == address(0)) revert ImplementationDoesNotExist();
 
@@ -269,6 +270,7 @@ contract SmartInvoiceFactory is
         if (implementations[_escrowType][_version] == address(0))
             revert ImplementationDoesNotExist();
         currentVersions[_escrowType] = _version;
+        emit SetCurrentVersion(_escrowType, _version);
     }
 
     /**
@@ -284,7 +286,7 @@ contract SmartInvoiceFactory is
             if (token == address(WRAPPED_NATIVE_TOKEN)) {
                 if (msg.value > 0) {
                     // Wrap exactly _fundAmount
-                    if (msg.value != _fundAmount) revert InvalidFundAmount();
+                    if (msg.value != _fundAmount) revert FundAmountMismatch();
                     WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
                     IERC20(token).safeTransfer(_escrow, _fundAmount);
                 } else {
@@ -370,10 +372,13 @@ contract SmartInvoiceFactory is
         address token,
         address to,
         uint256 amt
-    ) external onlyRole(ADMIN) {
+    ) external onlyRole(ADMIN) nonReentrant {
+        if (to == address(0)) revert ETHTransferFailed();
         IERC20(token).safeTransfer(to, amt);
     }
-    function sweepETH(address to) external onlyRole(ADMIN) {
+
+    function sweepETH(address to) external onlyRole(ADMIN) nonReentrant {
+        if (to == address(0)) revert ETHTransferFailed();
         (bool ok, ) = to.call{value: address(this).balance}("");
         if (!ok) revert ETHTransferFailed();
     }
