@@ -69,8 +69,9 @@ interface ISafeSplitsEscrowZap {
     error NotAuthorized();
     error ZeroAddress();
     error NotAContract(address);
-    error EmptyOwners();
     error InvalidSafeThreshold(uint256 threshold, uint256 owners);
+    error EmptyOwners();
+    error InvalidOwner();
 
     /// @notice Emitted when a new Safe splits escrow is created.
     /// @param providerSafe The address of the created Safe.

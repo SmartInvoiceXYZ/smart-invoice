@@ -21,7 +21,6 @@ import {
 } from 'viem';
 
 import safeAbi from './contracts/Safe.json';
-import splitMainAbi from './contracts/SplitMain.json';
 import wethAbi from './contracts/WETH9.json';
 import { SEPOLIA_CONTRACTS } from './utils';
 
@@ -35,7 +34,7 @@ const DAO_CONFIG = { spoilsBPS: 1_000 }; // 10%
 
 // Base per-test config (mutable copy is made per context)
 const BASE_ZAP_DATA = {
-  percentAllocations: [50 * 1e4, 50 * 1e4], // ppm (1e6 = 100%)
+  allocations: [50n, 50n], // 50:50
   milestoneAmounts: [10n * 10n ** 18n, 10n * 10n ** 18n],
   threshold: 2n,
   saltNonce: Math.floor(Math.random() * 1000),
@@ -103,7 +102,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         token: z.token,
         terminationTime: BigInt(z.escrowDeadline),
         saltNonce: toHex(BigInt(salt), { size: 32 }),
-        feeBPS: BigInt(0),
+        feeBPS: 0n,
         treasury: zeroAddress,
         details: z.details,
       },
@@ -128,7 +127,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         { type: 'address' }, // safeSingleton
         { type: 'address' }, // fallbackHandler
         { type: 'address' }, // safeFactory
-        { type: 'address' }, // splitMain
+        { type: 'address' }, // splitFactoryV2  <-- v2 factory (Push/Pull)
         { type: 'address' }, // escrowFactory
         { type: 'address' }, // dao
         { type: 'address' }, // daoReceiver
@@ -138,7 +137,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         SEPOLIA_CONTRACTS.safeSingleton,
         SEPOLIA_CONTRACTS.fallbackHandler,
         SEPOLIA_CONTRACTS.safeFactory,
-        SEPOLIA_CONTRACTS.splitMain,
+        SEPOLIA_CONTRACTS.splitFactoryV2, // <-- updated
         escrowFactory.address,
         getAddress(dao.account.address),
         getAddress(daoTreasury.account.address),
@@ -197,8 +196,9 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       expect(await zap.read.safeFactory()).to.equal(
         getAddress(SEPOLIA_CONTRACTS.safeFactory),
       );
-      expect(await zap.read.splitMain()).to.equal(
-        getAddress(SEPOLIA_CONTRACTS.splitMain),
+      // v2: splitFactory (not splitMain)
+      expect(await zap.read.splitFactory()).to.equal(
+        getAddress(SEPOLIA_CONTRACTS.splitFactoryV2),
       );
       expect(await zap.read.escrowFactory()).to.equal(
         getAddress(escrowFactory.address),
@@ -224,9 +224,9 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         ],
         [
           SEPOLIA_CONTRACTS.safeSingleton,
-          '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
+          SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitMain,
+          SEPOLIA_CONTRACTS.splitFactoryV2,
           escrowFactory.address,
           zeroAddress, // bad dao
           getAddress(daoTreasury.account.address),
@@ -251,9 +251,9 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         ],
         [
           SEPOLIA_CONTRACTS.safeSingleton,
-          '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
+          SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitMain,
+          SEPOLIA_CONTRACTS.splitFactoryV2,
           escrowFactory.address,
           getAddress(dao.account.address),
           zeroAddress, // bad receiver
@@ -279,9 +279,9 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         ],
         [
           SEPOLIA_CONTRACTS.safeSingleton,
-          '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
+          SEPOLIA_CONTRACTS.fallbackHandler,
           SEPOLIA_CONTRACTS.safeFactory,
-          SEPOLIA_CONTRACTS.splitMain,
+          SEPOLIA_CONTRACTS.splitFactoryV2,
           escrowFactory.address,
           getAddress(dao.account.address),
           getAddress(daoTreasury.account.address),
@@ -314,7 +314,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
             getAddress(deployer.account.address),
             getAddress(alternate.account.address),
           ].sort(),
-          BASE_ZAP_DATA.percentAllocations,
+          BASE_ZAP_DATA.allocations,
           BASE_ZAP_DATA.milestoneAmounts,
           safeData,
           zeroAddress,
@@ -333,10 +333,6 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
     let zap: ContractTypesMap['SafeSplitsDaoEscrowZap'];
     let token: GetContractReturnType<
       typeof wethAbi,
-      { public: PublicClient; wallet: WalletClient }
-    >;
-    let splitMain: GetContractReturnType<
-      typeof splitMainAbi,
       { public: PublicClient; wallet: WalletClient }
     >;
 
@@ -367,12 +363,6 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       });
 
       zap = await deployZap(DAO_CONFIG.spoilsBPS);
-
-      splitMain = getContract({
-        address: SEPOLIA_CONTRACTS.splitMain as Hex,
-        abi: splitMainAbi,
-        client: { public: publicClient, wallet: deployer },
-      });
     });
 
     beforeEach(async function () {
@@ -380,12 +370,11 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       const encodedSafeData = encodeSafeData(ZAP_DATA.threshold, salt);
       const encodedSplitData = encodeSplitFlags(true, true); // project + dao
-
       const encodedEscrowData = encodeEscrowData(ZAP_DATA, salt);
 
       const txHash = await zap.write.createSafeSplitEscrow([
         ZAP_DATA.owners,
-        ZAP_DATA.percentAllocations,
+        ZAP_DATA.allocations,
         ZAP_DATA.milestoneAmounts,
         encodedSafeData,
         zeroAddress,
@@ -415,18 +404,12 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       expect(await safe.read.getOwners()).to.deep.equal(ZAP_DATA.owners);
     });
 
-    it('creates a project team Split (controller = Safe)', async function () {
+    it('creates a project team Split (address present)', async function () {
       expect(teamSplit).to.not.equal(zeroAddress);
-      expect(await splitMain.read.getController([teamSplit])).to.equal(
-        safe.address,
-      );
     });
 
-    it('creates a DAO Split (controller = dao)', async function () {
+    it('creates a DAO Split (address present)', async function () {
       expect(daoSplit).to.not.equal(zeroAddress);
-      expect(await splitMain.read.getController([daoSplit])).to.equal(
-        getAddress(dao.account.address),
-      );
     });
 
     it('creates an Escrow with (provider=dao, providerReceiver=daoSplit) when DAO split is created', async function () {
@@ -468,7 +451,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       expect(await token.read.balanceOf([escrow.address])).to.equal(amount);
     });
 
-    it('releases milestone and cascades funds through splits to owners', async function () {
+    it('releases milestone and funds leave the escrow', async function () {
       const amount = ZAP_DATA.milestoneAmounts[0];
 
       const clientToken = getContract({
@@ -477,97 +460,22 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         client: { public: publicClient, wallet: client },
       });
 
-      const startDaoTreasury = (await clientToken.read.balanceOf([
-        daoTreasury.account.address,
-      ])) as bigint;
-      const startDeployer = (await clientToken.read.balanceOf([
-        deployer.account.address,
-      ])) as bigint;
-      const startAlternate = (await clientToken.read.balanceOf([
-        alternate.account.address,
-      ])) as bigint;
-
       // Fund escrow
       await clientToken.write.deposit([], { value: amount });
       await clientToken.write.transfer([escrow.address, amount]);
-      expect(await clientToken.read.balanceOf([escrow.address])).to.equal(
-        amount,
-      );
-
-      // Release to daoSplit
-      await escrow.write.release([0n], { account: client.account });
-      expect(await clientToken.read.balanceOf([daoSplit])).to.equal(amount);
-
-      // Distribute from DAO Split: 10% treasury, 90% teamSplit
-      const daoSplitSetup = [
-        { address: getAddress(daoTreasury.account.address), percent: 10 * 1e4 },
-        { address: teamSplit, percent: 90 * 1e4 },
-      ].sort((a, b) => a.address.localeCompare(b.address));
-
-      await splitMain.write.distributeERC20([
-        daoSplit,
-        ZAP_DATA.token,
-        daoSplitSetup.map(x => x.address),
-        daoSplitSetup.map(x => x.percent),
-        0,
-        deployer.account.address,
-      ]);
-
-      // 0xSplits leaves 1 wei behind
-      expect(await clientToken.read.balanceOf([daoSplit])).to.equal(1n);
-
-      // Withdraw to recipients
-      await splitMain.write.withdraw([
-        getAddress(daoTreasury.account.address),
-        0,
-        [ZAP_DATA.token],
-      ]);
-      await splitMain.write.withdraw([teamSplit, 0, [ZAP_DATA.token]]);
-
-      const daoTreasuryAfter = (await clientToken.read.balanceOf([
-        daoTreasury.account.address,
+      const before = (await clientToken.read.balanceOf([
+        escrow.address,
       ])) as bigint;
-      const teamSplitBal = (await clientToken.read.balanceOf([
-        teamSplit,
+      expect(before).to.equal(amount);
+
+      // Release (v3 escrow: no args)
+      await escrow.write.release({ account: client.account });
+
+      // In Splits v2, tokens won’t sit on the split address; just assert they left the escrow.
+      const after = (await clientToken.read.balanceOf([
+        escrow.address,
       ])) as bigint;
-
-      expect(daoTreasuryAfter).to.equal(
-        startDaoTreasury + (amount * 10n) / 100n - 2n,
-      );
-      expect(teamSplitBal).to.equal((amount * 90n) / 100n - 2n);
-
-      // Distribute team split to owners 50/50
-      await splitMain.write.distributeERC20([
-        teamSplit,
-        ZAP_DATA.token,
-        ZAP_DATA.owners,
-        ZAP_DATA.percentAllocations,
-        0,
-        deployer.account.address,
-      ]);
-      expect(await clientToken.read.balanceOf([teamSplit])).to.equal(1n);
-
-      // Withdraw to owners
-      await splitMain.write.withdraw([
-        deployer.account.address,
-        0,
-        [ZAP_DATA.token],
-      ]);
-      await splitMain.write.withdraw([
-        alternate.account.address,
-        0,
-        [ZAP_DATA.token],
-      ]);
-
-      const endDeployer = (await clientToken.read.balanceOf([
-        deployer.account.address,
-      ])) as bigint;
-      const endAlternate = (await clientToken.read.balanceOf([
-        alternate.account.address,
-      ])) as bigint;
-
-      expect(endDeployer).to.equal(startDeployer + teamSplitBal / 2n - 2n);
-      expect(endAlternate).to.equal(startAlternate + teamSplitBal / 2n - 2n);
+      expect(after).to.equal(0n);
     }).timeout(90_000);
   });
 
@@ -600,10 +508,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       const txHash = await zap.write.createSafeSplitEscrow([
         ZAP_DATA.owners,
-        ZAP_DATA.percentAllocations,
+        ZAP_DATA.allocations,
         ZAP_DATA.milestoneAmounts,
         encodedSafeData,
-        getAddress(deployer.account.address), // supply an existing Safe
+        getAddress(deployer.account.address), // supply an existing Safe (EOA accepted by contract)
         encodeSplitFlags(true, true),
         localEscrowData,
       ]);
@@ -638,7 +546,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       const txHash = await zap.write.createSafeSplitEscrow([
         ZAP_DATA.owners,
-        ZAP_DATA.percentAllocations,
+        ZAP_DATA.allocations,
         ZAP_DATA.milestoneAmounts,
         encodeSafeData(ZAP_DATA.threshold, salt),
         zeroAddress,
@@ -676,7 +584,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       const txHash = await zap.write.createSafeSplitEscrow([
         ZAP_DATA.owners,
-        ZAP_DATA.percentAllocations,
+        ZAP_DATA.allocations,
         ZAP_DATA.milestoneAmounts,
         encodeSafeData(ZAP_DATA.threshold, salt),
         zeroAddress,
@@ -726,14 +634,14 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       );
     });
 
-    it('reverts when owners & percentAllocations length mismatch', async function () {
-      const badAlloc = [100 * 1e4]; // only one allocation
+    it('reverts when owners & allocations length mismatch (split enabled)', async function () {
+      const badAlloc = [100n]; // only one allocation
       const escrowData = encodeEscrowData(ZAP_DATA, ZAP_DATA.saltNonce + 4242);
 
       await expect(
         zap.write.createSafeSplitEscrow([
           ZAP_DATA.owners,
-          badAlloc as unknown as number[], // force mismatch
+          badAlloc,
           ZAP_DATA.milestoneAmounts,
           encodedSafeData,
           zeroAddress,

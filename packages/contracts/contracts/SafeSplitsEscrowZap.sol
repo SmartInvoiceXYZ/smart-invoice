@@ -112,7 +112,7 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             _owners,
             _threshold,
             address(0), // to
-            bytes("0x"), // data
+            bytes(""), // data
             fallbackHandler, // fallback handler
             address(0), // payment token
             0, // payment
@@ -143,8 +143,11 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
 
         // Build v2 Split params
         uint256 len = _owners.length;
+        if (len == 0) revert EmptyOwners();
+
         uint256 total;
         for (uint256 i; i < len; ++i) {
+            if (_owners[i] == address(0)) revert InvalidOwner();
             total += _allocations[i];
         }
 
@@ -268,9 +271,6 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
         bytes calldata _splitData,
         bytes calldata _escrowData
     ) external {
-        if (_allocations.length != _owners.length) {
-            revert InvalidAllocationsOwnersData();
-        }
         _createSafeSplitEscrow(
             _owners,
             _allocations,
@@ -310,16 +310,15 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             escrowFactory = ISmartInvoiceFactory(_escrowFactory);
 
         emit UpdatedAddresses(
-            _safeSingleton,
-            _safeFactory,
-            _splitFactoryV2,
-            _escrowFactory
+            address(safeSingleton),
+            address(safeFactory),
+            address(splitFactory),
+            address(escrowFactory)
         );
     }
 
     /**
-     * @notice Admin: update the Splits v2 distribution incentive (scaled by 1e6).
-     *         v2 caps this to ~6.5%. Values above that will revert here.
+     * @notice Admin: update the Splits v2 distribution incentive
      */
     function updateDistributionIncentive(
         uint16 _distributionIncentive

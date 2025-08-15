@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     'safeSingleton',
     'fallbackHandler',
     'safeFactory',
-    'splitMain',
+    'splitFactory',
     'escrowFactory',
     'dao',
     'daoReceiver',

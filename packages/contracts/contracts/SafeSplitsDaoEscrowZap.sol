@@ -125,10 +125,18 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
 
         // Project team split (controller = providerSafe)
         if (createProjectSplit) {
+            if (_allocations.length != _owners.length) {
+                revert InvalidAllocationsOwnersData();
+            }
+
             // Build v2 Split params
             uint256 len = _owners.length;
+
+            if (len == 0) revert EmptyOwners();
+
             uint256 total;
             for (uint256 i; i < len; ++i) {
+                if (_owners[i] == address(0)) revert InvalidOwner();
                 total += _allocations[i];
             }
 
@@ -139,7 +147,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
                 distributionIncentive: distributionIncentive
             });
 
-            // Owner = Safe; Creator = msg.sender (for event attribution)
+            // Owner = Dao; Creator = msg.sender (for event attribution)
             _daoZapData.zapData.providerSplit = splitFactory.createSplit(
                 projectSplitParams,
                 _daoZapData.zapData.providerSafe,
@@ -147,7 +155,8 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             );
         }
 
-        // If no project split, fall back to Safe address as daoReceiver; otherwise require Safe exists
+        // If no project split, fall back to using the Safe address as the "providerSplit" recipient.
+
         if (_daoZapData.zapData.providerSplit == address(0)) {
             if (_daoZapData.zapData.providerSafe != address(0)) {
                 _daoZapData.zapData.providerSplit = _daoZapData
@@ -163,7 +172,7 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
 
         // Validate DAO split config when requested
         if (daoReceiver == address(0)) revert InvalidReceiver();
-        if (spoilsBPS == 0 || spoilsBPS > BPS_DENOMINATOR)
+        if (spoilsBPS == 0 || spoilsBPS >= BPS_DENOMINATOR)
             revert InvalidSpoilsBPS();
 
         uint256 projectBPS = BPS_DENOMINATOR - spoilsBPS;
@@ -249,6 +258,14 @@ contract SafeSplitsDaoEscrowZap is SafeSplitsEscrowZap {
             dz.zapData.providerSafe,
             dz.zapData.providerSplit,
             dz.daoSplit,
+            dz.zapData.escrow
+        );
+
+        emit SafeSplitsEscrowCreated(
+            dz.zapData.providerSafe,
+            dz.zapData.providerSplit == dz.zapData.providerSafe
+                ? address(0)
+                : dz.zapData.providerSplit,
             dz.zapData.escrow
         );
     }
