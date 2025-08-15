@@ -37,12 +37,13 @@ contract SmartInvoiceFactory is
     /// @notice Admin role identifier for access control
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
-    /// @dev Storage for implementation addresses by type and version
+    /// @notice Storage for implementation addresses by type and version
     mapping(bytes32 => mapping(uint256 => address)) public implementations;
 
-    /// @dev Current version for each implementation type
+    /// @notice Current version for each implementation type
     mapping(bytes32 => uint256) public currentVersions;
 
+    /// @notice Wrapped native token contract for handling ETH operations
     IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
 
     /// @notice Constructor to initialize the factory with a wrapped native token
@@ -285,35 +286,32 @@ contract SmartInvoiceFactory is
         if (_escrow == address(0)) revert EscrowNotCreated();
         if (_fundAmount == 0) revert InvalidFundAmount();
 
-        try ISmartInvoiceEscrow(_escrow).token() returns (address token) {
-            if (token == address(WRAPPED_NATIVE_TOKEN)) {
-                if (msg.value > 0) {
-                    // Wrap exactly _fundAmount
-                    if (msg.value != _fundAmount) revert FundAmountMismatch();
-                    WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
-                    IERC20(token).safeTransfer(_escrow, _fundAmount);
-                } else {
-                    // ERC20(WNATIVE) transferFrom path (requires allowance)
-                    IERC20(token).safeTransferFrom(
-                        msg.sender,
-                        _escrow,
-                        _fundAmount
-                    );
-                }
+        address token = ISmartInvoiceEscrow(_escrow).token();
+        uint256 beforeBal = IERC20(token).balanceOf(_escrow);
+
+        if (token == address(WRAPPED_NATIVE_TOKEN)) {
+            if (msg.value > 0) {
+                if (msg.value != _fundAmount)
+                    revert FundingAmountMismatch(_fundAmount, msg.value);
+                WRAPPED_NATIVE_TOKEN.deposit{value: _fundAmount}();
+                IERC20(token).safeTransfer(_escrow, _fundAmount);
             } else {
-                // Use ERC20 path (msg.value == 0)
-                if (msg.value != 0) revert UnexpectedETH(); // prevent stuck ETH
                 IERC20(token).safeTransferFrom(
                     msg.sender,
                     _escrow,
                     _fundAmount
                 );
             }
-
-            emit InvoiceFunded(_escrow, token, _fundAmount);
-        } catch {
-            revert InvalidEscrow();
+        } else {
+            if (msg.value != 0) revert UnexpectedETH();
+            IERC20(token).safeTransferFrom(msg.sender, _escrow, _fundAmount);
         }
+
+        uint256 actual = IERC20(token).balanceOf(_escrow) - beforeBal;
+        if (actual != _fundAmount)
+            revert FundingAmountMismatch(_fundAmount, actual);
+
+        emit InvoiceFunded(_escrow, token, _fundAmount);
     }
 
     /**

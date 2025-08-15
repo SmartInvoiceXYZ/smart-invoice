@@ -37,46 +37,72 @@ contract SmartInvoiceEscrow is
         ARBITRATOR
     }
 
+    /// @notice Contract version identifier
     string public constant VERSION = "3.0.0";
 
+    /// @notice Number of ruling options available to arbitrators (client wins or provider wins)
     uint256 public constant NUM_RULING_OPTIONS = 2;
 
-    uint256 public constant MAX_TERMINATION_TIME = 63113904; // 2-year limit on termination time
+    /// @notice Maximum allowed termination time (730 days from contract creation)
+    uint256 public constant MAX_TERMINATION_TIME = 730 days;
 
+    /// @notice Maximum number of milestones allowed per contract
     uint256 public constant MAX_MILESTONE_LIMIT = 50;
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
+    /// @notice Wrapped native token contract for handling ETH deposits
     IWRAPPED public immutable WRAPPED_NATIVE_TOKEN;
 
+    /// @notice Factory contract that deployed this escrow instance
     ISmartInvoiceFactory public immutable FACTORY;
 
+    /// @notice Address of the client who can release funds and receives refunds
     address public client;
+    /// @notice Address of the service provider who receives milestone payments
     address public provider;
+    /// @notice Optional address to receive provider payments (defaults to provider if not set)
     address public providerReceiver;
+    /// @notice Optional address to receive client refunds (defaults to client if not set)
     address public clientReceiver;
+    /// @notice Type of dispute resolution mechanism (INDIVIDUAL or ARBITRATOR)
     ADR public resolverType;
+    /// @notice Address of the dispute resolver (individual or arbitrator contract)
     address public resolver;
+    /// @notice ERC20 token used for payments in this escrow
     address public token;
+    /// @notice Timestamp after which client can withdraw remaining funds
     uint256 public terminationTime;
-    uint256 public resolutionRateBPS; // Resolution fee rate in basis points (BPS) for dispute resolution
+    /// @notice Resolution fee rate in basis points (BPS) charged by individual resolvers
+    uint256 public resolutionRateBPS;
 
-    uint256 public feeBPS; // Platform fee in basis points (100 BPS = 1%)
-    address public treasury; // Treasury address to receive platform fees
+    /// @notice Platform fee rate in basis points (100 BPS = 1%)
+    uint256 public feeBPS;
+    /// @notice Treasury address that receives platform fees
+    address public treasury;
 
-    uint256[] public amounts; // Array of milestone amounts
-    uint256 public total = 0; // Total amount across all milestones
-    bool public locked; // Whether the contract is locked due to a dispute
-    uint256 public milestone = 0; // Current milestone index (0 to amounts.length)
-    uint256 public released = 0; // Total amount released so far
-    uint256 public disputeId; // Current dispute ID for arbitrator resolution
+    /// @notice Array of milestone payment amounts
+    uint256[] public amounts;
+    /// @notice Total amount across all milestones
+    uint256 public total = 0;
+    /// @notice Whether the contract is locked due to an active dispute
+    bool public locked;
+    /// @notice Off-chain signal that the client has verified control of this address.
+    /// @dev Informational only; does not affect permissions or fund flow.
+    bool public verified;
+    /// @notice Current milestone index (0 to amounts.length)
+    uint256 public milestone = 0;
+    /// @notice Total amount released to provider so far
+    uint256 public released = 0;
+    /// @notice Current dispute ID when using arbitrator resolution
+    uint256 public disputeId;
 
-    /// @dev Latest MetaEvidence identifier for this escrow (ERC-1497)
-    ///      It advances when off-chain details change (e.g., via _addMilestones),
+    /// @notice Latest MetaEvidence identifier for this escrow (ERC-1497)
+    /// @dev Advances when off-chain details change (e.g., via _addMilestones),
     ///      and the current value is referenced by new Disputes
     uint256 public metaEvidenceId;
-    /// @dev Per-dispute Evidence group identifier (ERC-1497)
-    ///      Incremented *before* opening a new dispute so both Dispute and
+    /// @notice Per-dispute Evidence group identifier (ERC-1497)
+    /// @dev Incremented *before* opening a new dispute so both Dispute and
     ///      subsequent Evidence events for that dispute share the same group
     uint256 public evidenceGroupId;
 
@@ -172,19 +198,34 @@ contract SmartInvoiceEscrow is
         feeBPS = initData.feeBPS;
         treasury = initData.treasury;
 
-        if (!initData.requireVerification) emit Verified(client, address(this));
+        if (!initData.requireVerification) {
+            verified = true;
+            emit Verified(client, address(this));
+        }
 
         emit InvoiceInit(provider, client, amounts, initData.details);
         emit MetaEvidence(metaEvidenceId, initData.details);
     }
 
     /**
-     * @notice Verifies the client and contract are paired
-     * @dev This ensures that client indeed controls this address and can release funds from this escrow
+     * @notice Mark the client as verified for off-chain consumers.
+     * @dev Does not affect release/withdraw permissions.
      */
     function verify() external override {
         if (msg.sender != client) revert NotClient(msg.sender);
+        verified = true;
         emit Verified(client, address(this));
+    }
+
+    /**
+     * @dev Internal helper to automatically verify the client if not already verified
+     *      Called by release methods to ensure verification event is emitted when client takes action
+     */
+    function _autoVerify() internal {
+        if (!verified && msg.sender == client) {
+            verified = true;
+            emit Verified(client, address(this));
+        }
     }
 
     /**
@@ -287,26 +328,16 @@ contract SmartInvoiceEscrow is
         uint256 newLength = amounts.length + _milestones.length;
         if (newLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
 
-        uint256[] memory baseArray = new uint256[](newLength);
         uint256 newTotal = total;
-
-        uint256 amountsLength = amounts.length;
-        for (uint256 i = 0; i < amountsLength; ) {
-            baseArray[i] = amounts[i];
-            unchecked {
-                ++i;
-            }
-        }
-        for (uint256 i = amountsLength; i < newLength; ) {
-            baseArray[i] = _milestones[i - amountsLength];
-            newTotal += _milestones[i - amountsLength];
+        for (uint256 i = 0; i < _milestones.length; ) {
+            amounts.push(_milestones[i]);
+            newTotal += _milestones[i];
             unchecked {
                 ++i;
             }
         }
 
         total = newTotal;
-        amounts = baseArray;
 
         if (bytes(_details).length > 0) {
             emit DetailsUpdated(msg.sender, _details);
@@ -326,6 +357,33 @@ contract SmartInvoiceEscrow is
     }
 
     /**
+     * @notice Checks if the escrow contract has been fully funded
+     * @return True if current balance plus released amount equals or exceeds total milestone amount
+     * @dev Useful for determining if the contract has sufficient funds for all milestones
+     */
+    function isFullyFunded() external view returns (bool) {
+        return IERC20(token).balanceOf(address(this)) + released >= total;
+    }
+
+    /**
+     * @notice Checks if the escrow has sufficient funds to cover milestones up to a specific milestone
+     * @param _milestoneId The milestone index to check funding for (0-based)
+     * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
+     * @dev Reverts if milestoneId is out of bounds
+     */
+    function isFunded(uint256 _milestoneId) external view returns (bool) {
+        if (_milestoneId >= amounts.length) revert InvalidMilestone();
+
+        uint256 requiredAmount = released;
+        for (uint256 i = milestone; i <= _milestoneId; i++) {
+            requiredAmount += amounts[i];
+        }
+
+        return
+            IERC20(token).balanceOf(address(this)) + released >= requiredAmount;
+    }
+
+    /**
      * @dev Internal function to release funds from the contract to the provider
      *      Releases the current milestone amount or remaining balance if last milestone
      */
@@ -333,6 +391,8 @@ contract SmartInvoiceEscrow is
         if (locked) revert Locked();
         if (msg.sender != client) revert NotClient(msg.sender);
         if (block.timestamp > terminationTime) revert Terminated();
+
+        _autoVerify();
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
@@ -379,6 +439,8 @@ contract SmartInvoiceEscrow is
         if (_milestone < milestone) revert InvalidMilestone();
         if (_milestone >= amounts.length) revert InvalidMilestone();
 
+        _autoVerify();
+
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 amount = 0;
         // Calculate total amount to release from current milestone to target milestone
@@ -413,6 +475,9 @@ contract SmartInvoiceEscrow is
             if (locked) revert Locked();
             if (msg.sender != client) revert NotClient(msg.sender);
             if (block.timestamp > terminationTime) revert Terminated();
+
+            _autoVerify();
+
             uint256 balance = IERC20(_token).balanceOf(address(this));
             if (balance == 0) revert BalanceIsZero();
 

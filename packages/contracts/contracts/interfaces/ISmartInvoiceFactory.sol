@@ -148,7 +148,7 @@ interface ISmartInvoiceFactory {
     error ETHTransferFailed();
     error InvalidEscrow();
     error VersionMismatch();
-    error FundAmountMismatch();
+    error FundingAmountMismatch(uint256 expected, uint256 actual);
 
     /*//////////////////////////////////////////////////////////////
                                   EVENTS

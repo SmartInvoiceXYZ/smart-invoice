@@ -13,7 +13,7 @@ interface ISmartInvoiceEscrow {
         address resolver; // Address of the dispute resolver
         address token; // ERC20 token contract for payments
         uint256 terminationTime; // Timestamp when client can withdraw remaining funds
-        bool requireVerification; // Whether client must call verify() before releases
+        bool requireVerification; // Optional off-chain signal for frontends; not enforced in escrow logic.
         address providerReceiver; // Optional custom receiver for provider payments
         address clientReceiver; // Optional custom receiver for client withdrawals
         uint256 feeBPS; // Platform fee in basis points (100 BPS = 1%)
@@ -39,6 +39,25 @@ interface ISmartInvoiceEscrow {
      * @return The address of the ERC20 token contract
      */
     function token() external view returns (address);
+
+    /**
+     * @notice Returns whether the client has been verified for this escrow
+     * @return True if the client has been verified (either automatically or manually)
+     */
+    function verified() external view returns (bool);
+
+    /**
+     * @notice Checks if the escrow contract has been fully funded
+     * @return True if current balance plus released amount equals or exceeds total milestone amount
+     */
+    function isFullyFunded() external view returns (bool);
+
+    /**
+     * @notice Checks if the escrow has sufficient funds to cover milestones up to a specific milestone
+     * @param _milestoneId The milestone index to check funding for (0-based)
+     * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
+     */
+    function isFunded(uint256 _milestoneId) external view returns (bool);
 
     /**
      * @notice Adds new milestone amounts to the escrow without additional details
@@ -79,8 +98,8 @@ interface ISmartInvoiceEscrow {
     function releaseTokens(address _token) external;
 
     /**
-     * @notice Verifies that the client controls this address and can release funds
-     * @dev Only callable by client address, emits Verified event for off-chain tracking
+     * @notice Client can optionally mark the invoice as verified for off-chain tracking
+     * @dev This is informational only for off-chain consumers; it does not restrict releases
      */
     function verify() external;
 
@@ -217,7 +236,7 @@ interface ISmartInvoiceEscrow {
     /// @param resolver The address of the individual resolver
     /// @param clientAward The amount awarded to the client
     /// @param providerAward The amount awarded to the provider
-    /// @param resolutionFee The fee paid to the resolver in basis points
+    /// @param resolutionFee The fee paid to the resolver (in token units)
     /// @param details IPFS hash or description of the resolution reasoning
     event Resolve(
         address indexed resolver,
@@ -262,7 +281,7 @@ interface ISmartInvoiceEscrow {
 
     /// @notice Emitted when platform fees are transferred to the treasury
     /// @param token The address of the token used for fee payment
-    /// @param amount The amount of fees transferred (in basis points of payment)
+    /// @param amount The amount of fees transferred (in token units)
     /// @param treasury The address of the treasury receiving the platform fees
     event FeeTransferred(
         address indexed token,

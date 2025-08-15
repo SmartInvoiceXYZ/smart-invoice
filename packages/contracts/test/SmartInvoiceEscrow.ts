@@ -539,6 +539,64 @@ describe('SmartInvoiceEscrow', function () {
     });
   });
 
+  describe('Funding Status', function () {
+    it('Should return false for isFullyFunded when no funds deposited', async function () {
+      expect(await invoice.read.isFullyFunded()).to.equal(false);
+    });
+
+    it('Should return true for isFullyFunded when fully funded', async function () {
+      await setBalanceOf(mockToken, invoiceAddress!, total);
+      expect(await invoice.read.isFullyFunded()).to.equal(true);
+    });
+
+    it('Should return true for isFullyFunded after partial release when total funds available', async function () {
+      // Fund the contract with total amount
+      await setBalanceOf(mockToken, invoiceAddress!, total);
+
+      // Release first milestone
+      await invoice.write.release({ account: client.account });
+
+      // Should still be considered fully funded since released + balance >= total
+      expect(await invoice.read.isFullyFunded()).to.equal(true);
+    });
+
+    it('Should return false for isFunded when milestone out of bounds', async function () {
+      await expect(invoice.read.isFunded([999n])).to.be.revertedWithCustomError(
+        invoice,
+        'InvalidMilestone',
+      );
+    });
+
+    it('Should return false for isFunded when insufficient funds for milestone', async function () {
+      // Don't fund the contract
+      expect(await invoice.read.isFunded([0n])).to.equal(false);
+    });
+
+    it('Should return true for isFunded when sufficient funds for specific milestone', async function () {
+      // Fund with enough for first milestone
+      await setBalanceOf(mockToken, invoiceAddress!, amounts[0]);
+      expect(await invoice.read.isFunded([0n])).to.equal(true);
+    });
+
+    it('Should return true for isFunded when checking past milestones', async function () {
+      // Fund and release first milestone
+      await setBalanceOf(mockToken, invoiceAddress!, total);
+      await invoice.write.release({ account: client.account });
+
+      // Should return true for milestone 0 since it's already released
+      expect(await invoice.read.isFunded([0n])).to.equal(true);
+    });
+
+    it('Should correctly calculate required amount for future milestones', async function () {
+      // Fund with enough for first two milestones
+      const requiredForTwo = amounts[0] + amounts[1];
+      await setBalanceOf(mockToken, invoiceAddress!, requiredForTwo);
+
+      expect(await invoice.read.isFunded([0n])).to.equal(true);
+      expect(await invoice.read.isFunded([1n])).to.equal(true);
+    });
+  });
+
   describe('Release Operations', function () {
     it('Should revert release by non client', async function () {
       await expect(
@@ -571,6 +629,29 @@ describe('SmartInvoiceEscrow', function () {
       expect(afterBalance).to.equal(beforeBalance + 10n);
     });
 
+    it('Should auto-verify client on first release() call', async function () {
+      // Ensure invoice starts unverified since requireVerification is true
+      expect(await invoice.read.verified()).to.equal(false);
+
+      await setBalanceOf(mockToken, invoice.address, 10);
+      const receipt = await invoice.write.release();
+
+      // Should emit both Verified and Release events
+      await expect(receipt)
+        .to.emit(invoice, 'Verified')
+        .withArgs(getAddress(client.account.address), invoice.address);
+      await expect(receipt).to.emit(invoice, 'Release').withArgs(0, 10);
+
+      // Should now be verified
+      expect(await invoice.read.verified()).to.equal(true);
+
+      // Subsequent releases should not emit Verified event again
+      await setBalanceOf(mockToken, invoice.address, 10);
+      const receipt2 = await invoice.write.release();
+      await expect(receipt2).to.not.emit(invoice, 'Verified');
+      await expect(receipt2).to.emit(invoice, 'Release').withArgs(1, 10);
+    });
+
     it('Should release full balance at last milestone', async function () {
       await setBalanceOf(mockToken, invoice.address, 10);
       const beforeBalance = await getBalanceOf(
@@ -599,6 +680,48 @@ describe('SmartInvoiceEscrow', function () {
       expect(await invoice.read.released()).to.equal(10);
       expect(await invoice.read.milestone()).to.equal(1);
       await expect(receipt).to.emit(invoice, 'Release').withArgs(0, 10);
+    });
+
+    it('Should auto-verify client on first release(milestone) call', async function () {
+      // Create a fresh invoice for this test to ensure unverified state
+      const currentTime = await currentTimestamp();
+      const tx = await createEscrow(
+        factory,
+        invoice,
+        invoiceType,
+        getAddress(client.account.address),
+        getAddress(provider.account.address),
+        individualResolverType,
+        getAddress(resolver.account.address),
+        mockToken,
+        amounts,
+        currentTime + 30 * 24 * 60 * 60,
+        zeroHash,
+        mockWrappedNativeToken,
+        true, // requireVerification = true
+      );
+      const tempAddress = await awaitInvoiceAddress(tx);
+      const tempInvoice = await viem.getContractAt(
+        'SmartInvoiceEscrow',
+        tempAddress!,
+      );
+
+      // Ensure invoice starts unverified
+      expect(await tempInvoice.read.verified()).to.equal(false);
+
+      await setBalanceOf(mockToken, tempInvoice.address, 10);
+      const receipt = await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      // Should emit both Verified and Release events
+      await expect(receipt)
+        .to.emit(tempInvoice, 'Verified')
+        .withArgs(getAddress(client.account.address), tempInvoice.address);
+      await expect(receipt).to.emit(tempInvoice, 'Release').withArgs(0, 10);
+
+      // Should now be verified
+      expect(await tempInvoice.read.verified()).to.equal(true);
     });
 
     it('Should revert release milestone below current', async function () {

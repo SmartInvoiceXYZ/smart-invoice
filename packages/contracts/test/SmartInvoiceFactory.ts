@@ -513,7 +513,7 @@ describe('SmartInvoiceFactory', function () {
       ).to.equal(fundAmount);
     });
 
-    it('reverts when ETH sent != fundAmount (FundAmountMismatch)', async function () {
+    it('reverts when ETH sent != fundAmount (FundingAmountMismatch)', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
       const data = encodeInitData({
         ...escrowInitData,
@@ -532,7 +532,7 @@ describe('SmartInvoiceFactory', function () {
       );
       await expect(tx).to.be.revertedWithCustomError(
         invoiceFactory,
-        'FundAmountMismatch',
+        'FundingAmountMismatch',
       );
     });
 
