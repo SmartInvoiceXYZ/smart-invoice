@@ -20,36 +20,14 @@ import {
   zeroAddress,
 } from 'viem';
 
-import { getWrappedTokenAddress, getZapData } from '../scripts/constants';
 import safeAbi from './contracts/Safe.json';
 import splitMainAbi from './contracts/SplitMain.json';
 import wethAbi from './contracts/WETH9.json';
+import { SEPOLIA_CONTRACTS } from './utils';
 
 // ---------------------------------------------------------------------------
 // Constants / shared scaffolding
 // ---------------------------------------------------------------------------
-
-// Use forked Sepolia for tests to avoid deploying dependency contracts
-const TEST_CHAIN_ID = 11155111;
-const chainAddrs = getZapData(TEST_CHAIN_ID);
-if (!chainAddrs)
-  throw new Error(`Zap data not found for chain ID ${TEST_CHAIN_ID}`);
-
-type ChainAddrs = {
-  safeSingleton: Hex;
-  safeFactory: Hex;
-  splitMain: Hex;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const validateChainAddrs = (_chainAddrs: any): _chainAddrs is ChainAddrs => {
-  if (!_chainAddrs.safeSingleton) throw new Error('SafeSingleton not found');
-  if (!_chainAddrs.safeFactory) throw new Error('SafeFactory not found');
-  if (!_chainAddrs.splitMain) throw new Error('SplitMain not found');
-  return true;
-};
-
-if (!validateChainAddrs(chainAddrs)) throw new Error('Chain addrs not valid');
 
 const invoiceType = keccak256(toBytes('escrow-v3'));
 
@@ -64,7 +42,7 @@ const BASE_ZAP_DATA = {
   arbitration: 1,
   isDaoSplit: true,
   isProjectSplit: true,
-  token: getWrappedTokenAddress(TEST_CHAIN_ID) as Hex,
+  token: SEPOLIA_CONTRACTS.wrappedETH,
   escrowDeadline: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
   details: 'ipfs://',
   owners: [] as Array<Hex>,
@@ -157,11 +135,11 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         { type: 'uint16' }, // spoilsBPS
       ],
       [
-        chainAddrs.safeSingleton,
+        SEPOLIA_CONTRACTS.safeSingleton,
         // any non-zero fallback handler is fine for tests
         '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
-        chainAddrs.safeFactory,
-        chainAddrs.splitMain,
+        SEPOLIA_CONTRACTS.safeFactory,
+        SEPOLIA_CONTRACTS.splitMain,
         escrowFactory.address,
         getAddress(dao.account.address),
         getAddress(daoTreasury.account.address),
@@ -176,8 +154,11 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
   // -------------------------------------------------------------------------
 
   before(async function () {
+    // Use forked Sepolia for tests to avoid deploying dependency contracts
     if (process.env.FORK !== 'true') {
-      throw new Error(`This test requires a forked network (FORK=true)`);
+      throw new Error(
+        `This test requires a forked Sepolia network (FORK=true)`,
+      );
     }
 
     publicClient = await viem.getPublicClient();
@@ -186,10 +167,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
     // Deploy core invoice infra (shared for all contexts)
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
-      getWrappedTokenAddress(TEST_CHAIN_ID),
+      SEPOLIA_CONTRACTS.wrappedETH,
     ]);
     const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
-      getWrappedTokenAddress(TEST_CHAIN_ID),
+      SEPOLIA_CONTRACTS.wrappedETH,
       escrowFactory.address,
     ]);
     await escrowFactory.write.addImplementation([
@@ -212,13 +193,13 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
     it('deploys a Zap instance with DAO config', async function () {
       expect(await zap.read.safeSingleton()).to.equal(
-        getAddress(chainAddrs.safeSingleton),
+        getAddress(SEPOLIA_CONTRACTS.safeSingleton),
       );
       expect(await zap.read.safeFactory()).to.equal(
-        getAddress(chainAddrs.safeFactory),
+        getAddress(SEPOLIA_CONTRACTS.safeFactory),
       );
       expect(await zap.read.splitMain()).to.equal(
-        getAddress(chainAddrs.splitMain),
+        getAddress(SEPOLIA_CONTRACTS.splitMain),
       );
       expect(await zap.read.escrowFactory()).to.equal(
         getAddress(escrowFactory.address),
@@ -243,10 +224,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           { type: 'uint16' },
         ],
         [
-          chainAddrs.safeSingleton,
+          SEPOLIA_CONTRACTS.safeSingleton,
           '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
-          chainAddrs.safeFactory,
-          chainAddrs.splitMain,
+          SEPOLIA_CONTRACTS.safeFactory,
+          SEPOLIA_CONTRACTS.splitMain,
           escrowFactory.address,
           zeroAddress, // bad dao
           getAddress(daoTreasury.account.address),
@@ -270,10 +251,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           { type: 'uint16' },
         ],
         [
-          chainAddrs.safeSingleton,
+          SEPOLIA_CONTRACTS.safeSingleton,
           '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
-          chainAddrs.safeFactory,
-          chainAddrs.splitMain,
+          SEPOLIA_CONTRACTS.safeFactory,
+          SEPOLIA_CONTRACTS.splitMain,
           escrowFactory.address,
           getAddress(dao.account.address),
           zeroAddress, // bad receiver
@@ -298,10 +279,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           { type: 'uint16' },
         ],
         [
-          chainAddrs.safeSingleton,
+          SEPOLIA_CONTRACTS.safeSingleton,
           '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4',
-          chainAddrs.safeFactory,
-          chainAddrs.splitMain,
+          SEPOLIA_CONTRACTS.safeFactory,
+          SEPOLIA_CONTRACTS.splitMain,
           escrowFactory.address,
           getAddress(dao.account.address),
           getAddress(daoTreasury.account.address),
@@ -389,7 +370,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       zap = await deployZap(DAO_CONFIG.spoilsBPS);
 
       splitMain = getContract({
-        address: chainAddrs.splitMain as Hex,
+        address: SEPOLIA_CONTRACTS.splitMain as Hex,
         abi: splitMainAbi,
         client: { public: publicClient, wallet: deployer },
       });

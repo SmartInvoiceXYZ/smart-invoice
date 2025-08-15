@@ -20,17 +20,10 @@ import {
   zeroAddress,
 } from 'viem';
 
-import { getWrappedTokenAddress, getZapData } from '../scripts/constants';
 import safeAbi from './contracts/Safe.json';
 import splitMainAbi from './contracts/SplitMain.json';
 import wethAbi from './contracts/WETH9.json';
-
-const TEST_CHAIN_ID = 11155111; // Sepolia fork
-
-const zapData = getZapData(TEST_CHAIN_ID);
-if (!zapData) {
-  throw new Error(`Zap data not found for chain ID ${TEST_CHAIN_ID}`);
-}
+import { SEPOLIA_CONTRACTS } from './utils';
 
 const invoiceType = keccak256(toBytes('escrow-v3'));
 
@@ -45,7 +38,7 @@ const ZAP_DATA = {
   saltNonce: Math.floor(Math.random() * 1000000),
   arbitration: 1,
   isProjectSplit: true,
-  token: getWrappedTokenAddress(TEST_CHAIN_ID) as Hex, // WETH
+  token: SEPOLIA_CONTRACTS.wrappedETH, // WETH
   escrowDeadline: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
   details: 'ipfs://', // string (not bytes32)
   owners: [] as Array<Hex>,
@@ -89,8 +82,9 @@ describe('SafeSplitsEscrowZap', function () {
     [deployer, alternate, client, resolver, clientReceiver] =
       await viem.getWalletClients();
 
+    // Use forked Sepolia for tests to avoid deploying dependency contracts
     if (process.env.FORK !== 'true') {
-      throw new Error(`This test requires a forked network`);
+      throw new Error(`This test requires a forked Sepolia network`);
     }
 
     // On fork, point at canonical WETH
@@ -111,10 +105,10 @@ describe('SafeSplitsEscrowZap', function () {
 
     // Deploy SmartInvoiceFactory + implementation
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
-      getWrappedTokenAddress(TEST_CHAIN_ID), // this factory still requires WETH
+      SEPOLIA_CONTRACTS.wrappedETH,
     ]);
     const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
-      getWrappedTokenAddress(TEST_CHAIN_ID),
+      SEPOLIA_CONTRACTS.wrappedETH,
       escrowFactory.address,
     ]);
     await escrowFactory.write.addImplementation([
@@ -125,10 +119,10 @@ describe('SafeSplitsEscrowZap', function () {
     // ---------- Deploy Zap directly (no initializer, no wrappedETH arg) ----------
     // constructor(bytes memory _data) with 5 addresses
     const zapDeployData = [
-      zapData.safeSingleton, // singleton
-      zapData.fallbackHandler, // fallback handler (can be zero per setup)
-      zapData.safeFactory, // safe factory
-      zapData.splitMain, // split main
+      SEPOLIA_CONTRACTS.safeSingleton, // singleton
+      SEPOLIA_CONTRACTS.fallbackHandler, // fallback handler (can be zero per setup)
+      SEPOLIA_CONTRACTS.safeFactory, // safe factory
+      SEPOLIA_CONTRACTS.splitMain, // split main
       escrowFactory.address, // escrow factory
     ];
     const encodedData = encodeAbiParameters(
@@ -144,12 +138,16 @@ describe('SafeSplitsEscrowZap', function () {
   describe('Deployment', function () {
     it('deploys a Zap instance with constructor data correctly set', async function () {
       expect(zap.address).to.not.equal(zeroAddress);
-      expect(await zap.read.safeSingleton()).to.equal(zapData.safeSingleton);
-      expect(await zap.read.fallbackHandler()).to.equal(
-        zapData.fallbackHandler,
+      expect(await zap.read.safeSingleton()).to.equal(
+        SEPOLIA_CONTRACTS.safeSingleton,
       );
-      expect(await zap.read.safeFactory()).to.equal(zapData.safeFactory);
-      expect(await zap.read.splitMain()).to.equal(zapData.splitMain);
+      expect(await zap.read.fallbackHandler()).to.equal(
+        SEPOLIA_CONTRACTS.fallbackHandler,
+      );
+      expect(await zap.read.safeFactory()).to.equal(
+        SEPOLIA_CONTRACTS.safeFactory,
+      );
+      expect(await zap.read.splitMain()).to.equal(SEPOLIA_CONTRACTS.splitMain);
       expect(await zap.read.escrowFactory()).to.equal(
         getAddress(escrowFactory.address),
       );
@@ -162,9 +160,9 @@ describe('SafeSplitsEscrowZap', function () {
         })),
         [
           zeroAddress, // bad safeSingleton
-          zapData.fallbackHandler,
-          zapData.safeFactory,
-          zapData.splitMain,
+          SEPOLIA_CONTRACTS.fallbackHandler,
+          SEPOLIA_CONTRACTS.safeFactory,
+          SEPOLIA_CONTRACTS.splitMain,
           escrowFactory.address,
         ],
       );
@@ -259,7 +257,7 @@ describe('SafeSplitsEscrowZap', function () {
         client: { public: publicClient, wallet: deployer },
       });
       splitMain = getContract({
-        address: zapData.splitMain as Hex,
+        address: SEPOLIA_CONTRACTS.splitMain as Hex,
         abi: splitMainAbi,
         client: { public: publicClient, wallet: deployer },
       });
@@ -582,19 +580,19 @@ describe('SafeSplitsEscrowZap', function () {
       // change splitMain to itself (idempotent change)
       const updateData = encodeAbiParameters(
         ['address', 'address', 'address', 'address'].map(t => ({ type: t })),
-        [zeroAddress, zeroAddress, zapData.splitMain, zeroAddress],
+        [zeroAddress, zeroAddress, SEPOLIA_CONTRACTS.splitMain, zeroAddress],
       );
       await expect(zap.write.updateAddresses([updateData])).to.emit(
         zap,
         'UpdatedAddresses',
       );
-      expect(await zap.read.splitMain()).to.equal(zapData.splitMain);
+      expect(await zap.read.splitMain()).to.equal(SEPOLIA_CONTRACTS.splitMain);
     });
 
     it('reverts updateAddresses for non-admin', async function () {
       const data = encodeAbiParameters(
         ['address', 'address', 'address', 'address'].map(t => ({ type: t })),
-        [zeroAddress, zeroAddress, zapData.splitMain, zeroAddress],
+        [zeroAddress, zeroAddress, SEPOLIA_CONTRACTS.splitMain, zeroAddress],
       );
       await expect(
         zap.write.updateAddresses([data], { account: client.account }),

@@ -13,6 +13,15 @@ import {
   zeroAddress,
 } from 'viem';
 
+// Hardcoded constants for Sepolia testnet (chain ID 11155111)
+export const SEPOLIA_CONTRACTS = {
+  safeSingleton: '0x3E5c63644E683549055b9Be8653de26E0B4CD36E' as Hex,
+  safeFactory: '0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2' as Hex,
+  splitMain: '0x54E4a6014D36c381fC43b7E24A1492F556139a6F' as Hex,
+  fallbackHandler: '0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4' as Hex,
+  wrappedETH: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14' as Hex,
+};
+
 declare global {
   interface BigInt {
     toJSON(): string;
