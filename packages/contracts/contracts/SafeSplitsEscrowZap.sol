@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
 import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
-import {ISplitMain} from "./interfaces/ISplitMain.sol";
+import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
+import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 
-/// @title SafeSplitsEscrowZap
-/// @notice Contract for creating and managing Safe splits escrow with customizable settings
-///         Provides a unified interface to deploy Gnosis Safe, 0xSplits, and SmartInvoice Escrow in a single transaction
+/// @title SafeSplitsEscrowZap (v2 Splits)
+/// @notice Deploys a Safe (optional), a Splits v2 splitter (optional), and a SmartInvoice escrow in one tx.
+///         Splits v2 decouples the splitter from balances (Warehouse) and supports Push/Pull flavors via factories.
 contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
     /*//////////////////////////////////////////////////////////////
                                 STATE
@@ -27,16 +27,16 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
     /// @notice The Safe proxy factory address
     ISafeProxyFactory public safeFactory;
 
-    /// @notice The SplitMain address
-    ISplitMain public splitMain;
+    /// @notice The Splits v2 factory address
+    ISplitFactoryV2 public splitFactory;
 
     /// @notice The SmartInvoiceFactory address
     ISmartInvoiceFactory public escrowFactory;
 
-    /// @notice 0xSplits distributor fee (scaled by 1e6)
-    uint32 public distributorFee = 0;
+    /// @notice The Splits v2 distribution incentive (max ~6.5%)
+    uint16 public distributionIncentive = 0;
 
-    /// @notice Admin role identifier for access control
+    /// @notice Admin role
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
     /// @notice Hash identifier for escrow type used in deterministic deployment
@@ -49,12 +49,16 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    /// @param _data encoded data for initialization
+    /// @param _data abi.encode(
+    ///   address _safeSingleton,
+    ///   address _fallbackHandler,
+    ///   address _safeFactory,
+    ///   address _splitFactoryV2, the PushSplitFactory or PullSplitFactory
+    ///   address _escrowFactory
+    /// )
     constructor(bytes memory _data) {
-        // grant roles to deployer
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN, msg.sender);
-
         _handleData(_data);
     }
 
@@ -67,15 +71,15 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             address _safeSingleton,
             address _fallbackHandler,
             address _safeFactory,
-            address _splitMain,
+            address _splitFactoryV2,
             address _escrowFactory
         ) = abi.decode(_data, (address, address, address, address, address));
 
-        // sanity checks
         if (_safeSingleton == address(0))
             revert InvalidAddress("safeSingleton");
         if (_safeFactory == address(0)) revert InvalidAddress("safeFactory");
-        if (_splitMain == address(0)) revert InvalidAddress("splitMain");
+        if (_splitFactoryV2 == address(0))
+            revert InvalidAddress("splitFactoryV2");
         if (_escrowFactory == address(0))
             revert InvalidAddress("escrowFactory");
         if (_fallbackHandler == address(0))
@@ -84,10 +88,11 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
         safeSingleton = _safeSingleton;
         fallbackHandler = _fallbackHandler;
         safeFactory = ISafeProxyFactory(_safeFactory);
-        splitMain = ISplitMain(_splitMain);
+        splitFactory = ISplitFactoryV2(_splitFactoryV2);
         escrowFactory = ISmartInvoiceFactory(_escrowFactory);
     }
 
+    /// @dev Deploy a Safe
     function _deploySafe(
         address[] memory _owners,
         bytes calldata _safeData
@@ -122,25 +127,36 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
         if (safe == address(0)) revert SafeNotCreated();
     }
 
+    /// @dev Create a Splits v2 splitter via factory (Push or Pull depending on factory address)
     function _deploySplit(
         address[] memory _owners,
-        uint32[] memory _percentAllocations,
+        uint256[] memory _allocations,
         bytes calldata _splitData,
-        address _splitController
+        address _splitOwner
     ) internal returns (address split) {
         bool createProjectSplit = abi.decode(_splitData, (bool));
         if (!createProjectSplit) return address(0);
 
-        if (_percentAllocations.length != _owners.length) {
+        if (_allocations.length != _owners.length) {
             revert InvalidAllocationsOwnersData();
         }
 
-        split = splitMain.createSplit(
-            _owners,
-            _percentAllocations,
-            distributorFee,
-            _splitController
-        );
+        // Build v2 Split params
+        uint256 len = _owners.length;
+        uint256 total;
+        for (uint256 i; i < len; ++i) {
+            total += _allocations[i];
+        }
+
+        SplitV2Lib.Split memory params = SplitV2Lib.Split({
+            recipients: _owners,
+            allocations: _allocations,
+            totalAllocation: total,
+            distributionIncentive: distributionIncentive
+        });
+
+        // Owner = Safe; Creator = msg.sender (for event attribution)
+        split = splitFactory.createSplit(params, _splitOwner, msg.sender);
         if (split == address(0)) revert ProjectTeamSplitNotCreated();
     }
 
@@ -199,7 +215,7 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
 
     function _createSafeSplitEscrow(
         address[] memory _owners,
-        uint32[] memory _percentAllocations,
+        uint256[] memory _allocations,
         uint256[] memory _milestoneAmounts,
         bytes calldata _providerSafeData,
         address _providerSafeAddress,
@@ -216,11 +232,12 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             zapData.providerSafe = _deploySafe(_owners, _providerSafeData);
         }
 
+        // v2 splitter (optional)
         zapData.providerSplit = _deploySplit(
             _owners,
-            _percentAllocations,
+            _allocations,
             _splitData,
-            zapData.providerSafe
+            zapData.providerSafe // owner of the split is the Safe
         );
 
         address[] memory escrowParams = _decodeEscrowParams(zapData);
@@ -242,32 +259,21 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
                              EXTERNAL API
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Deploy a Safe (if not provided), an optional 0xSplits split, and a SmartInvoice escrow.
-     * @param _owners Safe owners / split recipients (must match _percentAllocations length)
-     * @param _percentAllocations Split allocations (1e6 = 100%); ignored if split disabled
-     * @param _milestoneAmounts Escrow milestone amounts
-     * @param _providerSafeData abi.encode(threshold, saltNonce) for Safe; ignored if _providerSafeAddress != 0
-     * @param _providerSafeAddress Existing Safe to reuse; if zero, a new Safe will be created
-     * @param _splitData abi.encode(bool createProjectSplit)
-     * @param _escrowData abi.encode(EscrowData)
-     */
     function createSafeSplitEscrow(
         address[] memory _owners,
-        uint32[] memory _percentAllocations,
+        uint256[] memory _allocations,
         uint256[] memory _milestoneAmounts,
         bytes calldata _providerSafeData,
         address _providerSafeAddress,
         bytes calldata _splitData,
         bytes calldata _escrowData
     ) external {
-        if (_percentAllocations.length != _owners.length) {
+        if (_allocations.length != _owners.length) {
             revert InvalidAllocationsOwnersData();
         }
-
         _createSafeSplitEscrow(
             _owners,
-            _percentAllocations,
+            _allocations,
             _milestoneAmounts,
             _providerSafeData,
             _providerSafeAddress,
@@ -281,7 +287,7 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
      * @param _data abi.encode(
      *   address _safeSingleton,
      *   address _safeFactory,
-     *   address _splitMain,
+     *   address _splitFactoryV2,
      *   address _escrowFactory
      * )
      */
@@ -291,31 +297,37 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
         (
             address _safeSingleton,
             address _safeFactory,
-            address _splitMain,
+            address _splitFactoryV2,
             address _escrowFactory
         ) = abi.decode(_data, (address, address, address, address));
 
         if (_safeSingleton != address(0)) safeSingleton = _safeSingleton;
         if (_safeFactory != address(0))
             safeFactory = ISafeProxyFactory(_safeFactory);
-        if (_splitMain != address(0)) splitMain = ISplitMain(_splitMain);
+        if (_splitFactoryV2 != address(0))
+            splitFactory = ISplitFactoryV2(_splitFactoryV2);
         if (_escrowFactory != address(0))
             escrowFactory = ISmartInvoiceFactory(_escrowFactory);
 
         emit UpdatedAddresses(
             _safeSingleton,
             _safeFactory,
-            _splitMain,
+            _splitFactoryV2,
             _escrowFactory
         );
     }
 
     /**
-     * @notice Admin: update the 0xSplits distributor fee (scaled by 1e6).
+     * @notice Admin: update the Splits v2 distribution incentive (scaled by 1e6).
+     *         v2 caps this to ~6.5%. Values above that will revert here.
      */
-    function updateDistributorFee(uint32 _distributorFee) external {
+    function updateDistributionIncentive(
+        uint16 _distributionIncentive
+    ) external {
         if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
-        distributorFee = _distributorFee;
-        emit UpdatedDistributorFee(_distributorFee);
+
+        distributionIncentive = uint16(_distributionIncentive);
+
+        emit UpdatedDistributionIncentive(_distributionIncentive);
     }
 }

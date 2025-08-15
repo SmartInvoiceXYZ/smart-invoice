@@ -30,7 +30,7 @@ interface ISafeSplitsEscrowZap {
     /**
      * @notice Creates a new safe split escrow contract.
      * @param _owners The array of addresses that will be the owners of the safe.
-     * @param _percentAllocations The array of percentage allocations for each owner.
+     * @param _allocations The array of allocations for each owner.
      * @param _milestoneAmounts The array of milestone amounts associated with the escrow.
      * @param _safeData The data for setting up the safe contract.
      * @param _safeAddress The address of the safe contract.
@@ -39,7 +39,7 @@ interface ISafeSplitsEscrowZap {
      */
     function createSafeSplitEscrow(
         address[] memory _owners,
-        uint32[] memory _percentAllocations,
+        uint256[] memory _allocations,
         uint256[] memory _milestoneAmounts,
         bytes calldata _safeData,
         address _safeAddress,
@@ -55,9 +55,11 @@ interface ISafeSplitsEscrowZap {
 
     /**
      * @notice Updates the distributor fee for the contract.
-     * @param _distributorFee The new distributor fee as a percentage (scaled by 1e6).
+     * @param _distributionIncentive The new distributor fee as a percentage (scaled by 1e6).
      */
-    function updateDistributorFee(uint32 _distributorFee) external;
+    function updateDistributionIncentive(
+        uint16 _distributionIncentive
+    ) external;
 
     /// @dev Custom errors for more efficient gas usage.
     error InvalidAllocationsOwnersData();
@@ -67,7 +69,6 @@ interface ISafeSplitsEscrowZap {
     error NotAuthorized();
     error ZeroAddress();
     error NotAContract(address);
-    error InvalidDistributorFee(uint32);
     error EmptyOwners();
     error InvalidSafeThreshold(uint256 threshold, uint256 owners);
 
@@ -93,7 +94,7 @@ interface ISafeSplitsEscrowZap {
         address escrowFactory
     );
 
-    /// @notice Emitted when the distributor fee is updated.
-    /// @param distributorFee The updated distributor fee.
-    event UpdatedDistributorFee(uint32 distributorFee);
+    /// @notice Emitted when the distribution incentive is updated.
+    /// @param distributionIncentive The updated distribution incentive.
+    event UpdatedDistributionIncentive(uint16 distributionIncentive);
 }

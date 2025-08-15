@@ -17,5 +17,6 @@ exclude_lints = [
     "mixed-case-variable",
     "mixed-case-function",
     "screaming-snake-case-const",
-    "screaming-snake-case-immutable"
+    "screaming-snake-case-immutable",
+    "asm-keccak256",
 ]
