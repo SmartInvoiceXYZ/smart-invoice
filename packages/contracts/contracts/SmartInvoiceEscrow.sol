@@ -15,9 +15,10 @@ import {
 } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
 import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {IArbitrable} from "@kleros/erc-792/contracts/IArbitrable.sol";
+import {
+    IDisputeResolver
+} from "@kleros/dispute-resolver-interface-contract/contracts/IDisputeResolver.sol";
 import {IArbitrator} from "@kleros/erc-792/contracts/IArbitrator.sol";
-import {IEvidence} from "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
 import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceEscrow
@@ -25,8 +26,7 @@ import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
 /// @dev Supports both individual and arbitrator-based dispute resolution with customizable fee structures
 contract SmartInvoiceEscrow is
     ISmartInvoiceEscrow,
-    IArbitrable,
-    IEvidence,
+    IDisputeResolver,
     Initializable,
     ReentrancyGuard
 {
@@ -37,19 +37,41 @@ contract SmartInvoiceEscrow is
         ARBITRATOR
     }
 
-    /// @notice Contract version identifier
-    string public constant VERSION = "3.0.0";
+    /// @notice Round accounting adapted from Kleros ArbitrableProxy
+    struct Round {
+        mapping(uint256 => uint256) paidFees; // amount raised per ruling option in this round
+        mapping(uint256 => bool) hasPaid; // true if that ruling option reached its specificCost in this round
+        mapping(address => mapping(uint256 => uint256)) contributions; // user => ruling => amount
+        uint256 feeRewards; // reimbursable appeal fees available to winners’ contributors in this round
+        uint256[] fundedRulings; // ruling options that fully funded in this round
+    }
 
-    /// @notice Number of ruling options available to arbitrators (client wins or provider wins)
+    /// @notice Single dispute bookkeeping
+    struct DisputeData {
+        // TODO: move arbitratorExtraData to constructor as public variable
+        bytes arbitratorExtraData; // arbitrator-specific data (e.g. subcourt)
+        bool isRuled; // whether a dispute is currently ruled
+        uint256 ruling; // final ruling
+        uint256 disputeId; // external dispute id
+    }
+
+    /// @notice Number of ruling options available to arbitrators: client vs provider; plus 0 = "refused/split"
     uint256 public constant NUM_RULING_OPTIONS = 2;
 
-    /// @notice Maximum allowed termination time (730 days from contract creation)
+    /// @notice Maximum allowed termination time (2 years from contract creation)
     uint256 public constant MAX_TERMINATION_TIME = 730 days;
 
     /// @notice Maximum number of milestones allowed per contract
     uint256 public constant MAX_MILESTONE_LIMIT = 50;
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
+
+    uint256 internal constant DISPUTE_EVIDENCE_GROUP_ID = 0;
+
+    /// @notice Appeal stake multipliers (basis points), aligned with ArbitrableProxy defaults
+    uint256 internal constant WINNER_STAKE_MULTIPLIER = 10000; // 1x appeal fee
+    uint256 internal constant LOSER_STAKE_MULTIPLIER = 20000; // 2x appeal fee
+    uint256 internal constant LOSER_APPEAL_PERIOD_MULTIPLIER = 5000; // losers: first 50% of the appeal window
 
     /// @notice Wrapped ETH contract for handling ETH deposits
     IWRAPPED public immutable WRAPPED_ETH;
@@ -94,21 +116,16 @@ contract SmartInvoiceEscrow is
     uint256 public milestone = 0;
     /// @notice Total amount released to provider so far
     uint256 public released = 0;
-    /// @notice Current dispute ID when using arbitrator resolution
-    uint256 public disputeId;
 
     /// @notice Latest MetaEvidence identifier for this escrow (ERC-1497)
     /// @dev Advances when off-chain details change (e.g., via _addMilestones),
     ///      and the current value is referenced by new Disputes
     uint256 public metaEvidenceId;
-    /// @notice Per-dispute Evidence group identifier (ERC-1497)
-    /// @dev Incremented *before* opening a new dispute so both Dispute and
-    ///      subsequent Evidence events for that dispute share the same group
-    uint256 public evidenceGroupId;
 
-    /// @notice Initializes the contract with wrapped ETH and factory addresses
-    /// @param _wrappedETH The address of the wrapped ETH contract
-    /// @param _factory The address of the SmartInvoiceFactory contract
+    /// @notice Current dispute data when using arbitrator resolution
+    DisputeData private disputeData;
+    Round[] private rounds; // crowdfunded appeal rounds for the current dispute
+
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
         if (_factory == address(0)) revert InvalidFactory();
@@ -544,72 +561,35 @@ contract SmartInvoiceEscrow is
         locked = true;
 
         if (resolverType == ADR.ARBITRATOR) {
+            if (disputeData.isRuled) revert DisputeAlreadyRuled();
+
             // Note: user must call `IArbitrator(resolver).arbitrationCost(_disputeURI)` to get the arbitration cost
+            // TODO: update extra data to be provided via constructor
+            uint256 disputeId = IArbitrator(resolver).createDispute{
+                value: msg.value
+            }(NUM_RULING_OPTIONS, bytes(_disputeURI));
 
-            // Ensure each dispute has its own evidence group id
-            unchecked {
-                ++evidenceGroupId;
-            }
+            // Reset crowdfund state for the new dispute
+            rounds.push(); // round 0
 
-            disputeId = IArbitrator(resolver).createDispute{value: msg.value}(
-                NUM_RULING_OPTIONS,
-                bytes(_disputeURI)
-            );
+            // Set/replace the single disputeData
+            // TODO: update extra data to be provided via constructor
+            disputeData = DisputeData({
+                arbitratorExtraData: bytes(_disputeURI),
+                ruling: 0,
+                disputeId: disputeId,
+                isRuled: false
+            });
 
             emit Dispute(
                 IArbitrator(resolver),
                 disputeId,
                 metaEvidenceId,
-                evidenceGroupId
+                DISPUTE_EVIDENCE_GROUP_ID
             );
         }
 
         emit Lock(msg.sender, _disputeURI);
-    }
-
-    /**
-     * @notice External function to appeal a dispute
-     *         Can only be called by client or provider when contract is locked with arbitrator resolver
-     * @param _appealURI Extra data for the arbitrator
-     */
-    function appeal(string calldata _appealURI) external payable nonReentrant {
-        if (resolverType != ADR.ARBITRATOR)
-            revert InvalidArbitratorResolver(resolver);
-        if (!locked) revert NotLocked();
-        if (msg.sender != client && msg.sender != provider)
-            revert NotParty(msg.sender);
-
-        // Note: user must call `IArbitrator(resolver).appealCost(disputeId, _appealURI)` to get the appeal cost
-        IArbitrator(resolver).appeal{value: msg.value}(
-            disputeId,
-            bytes(_appealURI)
-        );
-
-        emit DisputeAppealed(msg.sender, _appealURI);
-    }
-
-    /**
-     * @notice External function to submit evidence for a dispute
-     *         Can only be called by client or provider when contract is locked with arbitrator resolver
-     * @param _evidenceURI Extra data for the arbitrator
-     */
-    function submitEvidence(
-        string calldata _evidenceURI
-    ) external nonReentrant {
-        if (resolverType != ADR.ARBITRATOR)
-            revert InvalidArbitratorResolver(resolver);
-        if (!locked) revert NotLocked();
-        if (msg.sender != client && msg.sender != provider)
-            revert NotParty(msg.sender);
-
-        // Evidence submitted here is associated with the most recently opened dispute,
-        // via the current evidenceGroupId (incremented in lock())
-        emit Evidence(
-            IArbitrator(resolver),
-            evidenceGroupId,
-            msg.sender,
-            _evidenceURI
-        );
     }
 
     /**
@@ -665,29 +645,235 @@ contract SmartInvoiceEscrow is
     }
 
     /**
+     * @notice External function to submit evidence for a dispute
+     *         Can only be called by client or provider when contract is locked with arbitrator resolver
+     * @param _evidenceURI Off-chain URI to evidence for the arbitrator
+     */
+    function submitEvidence(
+        string calldata _evidenceURI
+    ) external nonReentrant {
+        _submitEvidence(_evidenceURI);
+    }
+
+    /// @notice IDisputeResolver evidence submission (by local dispute id)
+    function submitEvidence(
+        uint256 _localDisputeId,
+        string calldata _evidenceURI
+    ) external override {
+        // Local dispute ID is always 0 for arbitrator resolver
+        if (_localDisputeId != 0) revert IncorrectDisputeId();
+        _submitEvidence(_evidenceURI);
+    }
+
+    function _submitEvidence(string calldata _evidenceURI) internal {
+        if (resolverType != ADR.ARBITRATOR)
+            revert InvalidArbitratorResolver(resolver);
+        if (!locked) revert NotLocked();
+        if (msg.sender != client && msg.sender != provider)
+            revert NotParty(msg.sender);
+        if (disputeData.isRuled) revert DisputeAlreadyRuled();
+
+        emit Evidence(
+            IArbitrator(resolver),
+            DISPUTE_EVIDENCE_GROUP_ID,
+            msg.sender,
+            _evidenceURI
+        );
+    }
+
+    /// @notice Contribute towards appealing to a *specific ruling option*
+    /// @dev Payable by ANY address; opens a new round only when two opposing options are fully funded
+    function fundAppeal(
+        uint256 _localDisputeId,
+        uint256 _ruling
+    ) external payable override nonReentrant returns (bool fullyFunded) {
+        if (_localDisputeId != 0) revert IncorrectDisputeId();
+        if (resolverType != ADR.ARBITRATOR)
+            revert InvalidArbitratorResolver(resolver);
+        if (!locked) revert NotLocked();
+        if (disputeData.isRuled) revert DisputeAlreadyRuled();
+        if (_ruling == 0 || _ruling > NUM_RULING_OPTIONS)
+            revert InvalidRuling(_ruling);
+
+        IArbitrator arbitrator = IArbitrator(resolver);
+        uint256 externalId = disputeData.disputeId;
+
+        uint256 originalCost;
+        uint256 totalCost;
+        {
+            uint256 currentRuling = arbitrator.currentRuling(externalId);
+            (originalCost, totalCost) = _appealCost(
+                externalId,
+                disputeData.arbitratorExtraData,
+                _ruling,
+                currentRuling
+            );
+            _checkAppealPeriod(arbitrator, externalId, _ruling, currentRuling);
+        }
+
+        uint256 lastRoundIndex = rounds.length - 1;
+        Round storage lastRound = rounds[lastRoundIndex];
+
+        if (lastRound.hasPaid[_ruling]) revert AppealFeeAlreadyPaid();
+        uint256 already = lastRound.paidFees[_ruling];
+
+        uint256 remaining = totalCost > already ? (totalCost - already) : 0;
+        uint256 contribution = msg.value < remaining ? msg.value : remaining;
+
+        // Record contribution
+        lastRound.paidFees[_ruling] = already + contribution;
+        lastRound.contributions[msg.sender][_ruling] += contribution;
+        emit Contribution(
+            _localDisputeId,
+            lastRoundIndex,
+            _ruling,
+            msg.sender,
+            contribution
+        );
+
+        // If fully funded now, mark and add to pot
+        if (lastRound.paidFees[_ruling] >= totalCost) {
+            lastRound.hasPaid[_ruling] = true;
+            lastRound.fundedRulings.push(_ruling);
+            lastRound.feeRewards += lastRound.paidFees[_ruling];
+            emit RulingFunded(_localDisputeId, lastRoundIndex, _ruling);
+        }
+
+        // If two opposing rulings are fully funded, escalate: pay base fee and open next round
+        if (lastRound.fundedRulings.length == 2) {
+            rounds.push(); // next round
+            uint256 pay = originalCost;
+            if (lastRound.feeRewards >= pay) {
+                lastRound.feeRewards -= pay;
+            } else {
+                pay = lastRound.feeRewards;
+                lastRound.feeRewards = 0;
+            }
+            arbitrator.appeal{value: pay}(
+                externalId,
+                disputeData.arbitratorExtraData
+            );
+        }
+
+        // Refund any excess
+        uint256 refund = msg.value > contribution
+            ? (msg.value - contribution)
+            : 0;
+        if (refund > 0) {
+            (bool s, ) = payable(msg.sender).call{value: refund}("");
+            s;
+        }
+
+        return lastRound.hasPaid[_ruling];
+    }
+
+    /// @notice Withdraw reimbursable fees and/or rewards from a specific round
+    function withdrawFeesAndRewards(
+        uint256 _localDisputeId,
+        address payable _contributor,
+        uint256 _round,
+        uint256 _ruling
+    ) public override nonReentrant returns (uint256 amount) {
+        if (_localDisputeId != 0) revert IncorrectDisputeId();
+        if (locked) revert Locked();
+        if (!disputeData.isRuled) revert DisputeNotRuled();
+        if (_round >= rounds.length) return 0;
+
+        Round storage r = rounds[_round];
+        amount = _previewWithdrawableAmount(
+            r,
+            _contributor,
+            _ruling,
+            disputeData.ruling
+        );
+
+        if (amount != 0) {
+            r.contributions[_contributor][_ruling] = 0;
+            (bool s, ) = _contributor.call{value: amount}("");
+            s; // deliberately ignoring failure to match Kleros' pattern
+            emit Withdrawal(
+                _localDisputeId,
+                _round,
+                _ruling,
+                _contributor,
+                amount
+            );
+        }
+    }
+
+    /// @notice Withdraw reimbursable fees and/or rewards for all rounds
+    function withdrawFeesAndRewardsForAllRounds(
+        uint256 _localDisputeId,
+        address payable _contributor,
+        uint256 _ruling
+    ) external override {
+        if (_localDisputeId != 0) revert IncorrectDisputeId();
+        if (locked) revert Locked();
+        if (!disputeData.isRuled) revert DisputeNotRuled();
+        uint256 n = rounds.length;
+        for (uint256 i; i < n; i++) {
+            withdrawFeesAndRewards(_localDisputeId, _contributor, i, _ruling);
+        }
+    }
+
+    /// @notice Sum of withdrawable amounts across all rounds
+    function getTotalWithdrawableAmount(
+        uint256 _localDisputeId,
+        address payable _contributor,
+        uint256 _ruling
+    ) external view override returns (uint256 sum) {
+        if (_localDisputeId != 0) return 0;
+        if (locked) return 0;
+        if (!disputeData.isRuled) return 0;
+
+        uint256 n = rounds.length;
+        for (uint256 i; i < n; i++) {
+            Round storage r = rounds[i];
+            sum += _previewWithdrawableAmount(
+                r,
+                _contributor,
+                _ruling,
+                disputeData.ruling
+            );
+        }
+    }
+
+    /**
      * @notice Rules on a dispute through arbitrator resolver with predefined award distribution
-     * @param _disputeId The ID of the dispute being ruled on (must match current disputeId)
+     * @param _externalDisputeId The ID of the dispute being ruled on
      * @param _ruling The arbitrator's ruling (0=refused/split, 1=client wins, 2=provider wins)
      * @dev Only callable by arbitrator resolver when contract is locked
      * @dev Awards are distributed based on predefined ruling ratios
      * @dev No resolution fee is charged for arbitrator rulings
      */
     function rule(
-        uint256 _disputeId,
+        uint256 _externalDisputeId,
         uint256 _ruling
-    ) external virtual override nonReentrant {
+    ) external override nonReentrant {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
-        if (_disputeId != disputeId) revert IncorrectDisputeId();
+        if (_externalDisputeId != disputeData.disputeId)
+            revert IncorrectDisputeId();
+        if (disputeData.isRuled) revert DisputeAlreadyRuled();
         if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling(_ruling);
+
+        // Mark ruling
+        disputeData.ruling = _ruling;
+        disputeData.isRuled = true;
+
+        // If only one ruling option was funded in the last round, it wins by default.
+        Round storage lastRound = rounds[rounds.length - 1];
+        if (lastRound.fundedRulings.length == 1) {
+            disputeData.ruling = lastRound.fundedRulings[0];
+        }
+
+        // Distribute escrowed tokens according to ruling
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
 
-        uint8[2] memory ruling = _getRuling(_ruling);
-        uint8 clientShare = ruling[0];
-        uint8 providerShare = ruling[1];
+        (uint8 clientShare, uint8 providerShare) = _getRuling(_ruling);
         uint8 denom = clientShare + providerShare;
         uint256 providerAward = (balance * providerShare) / denom;
         uint256 clientAward = balance - providerAward;
@@ -706,23 +892,138 @@ contract SmartInvoiceEscrow is
         locked = false;
 
         emit Rule(resolver, clientAward, providerAward, _ruling);
-        emit Ruling(IArbitrator(resolver), _disputeId, _ruling);
+        emit Ruling(IArbitrator(resolver), _externalDisputeId, _ruling);
+    }
+
+    /// @notice external (arbitrator) id -> local id (always 0 for current dispute)
+    function externalIDtoLocalID(
+        uint256 _externalDisputeId
+    ) external view override returns (uint256 localDisputeId) {
+        if (!locked) revert NotLocked();
+        if (_externalDisputeId != disputeData.disputeId) {
+            revert IncorrectDisputeId();
+        }
+        return 0;
+    }
+
+    /// @notice Number of ruling options for the single local dispute (id must be 0)
+    function numberOfRulingOptions(
+        uint256 _localDisputeId
+    ) external pure override returns (uint256 count) {
+        if (_localDisputeId != 0) return 0;
+        return NUM_RULING_OPTIONS;
+    }
+
+    function getMultipliers()
+        external
+        pure
+        override
+        returns (uint256, uint256, uint256, uint256)
+    {
+        return (
+            WINNER_STAKE_MULTIPLIER,
+            LOSER_STAKE_MULTIPLIER,
+            LOSER_APPEAL_PERIOD_MULTIPLIER,
+            BPS_DENOMINATOR
+        );
     }
 
     /**
      * @dev Internal function to get the ruling distribution based on arbitrator decision
      * @param _ruling The ruling of the arbitrator (0=refused, 1=client wins, 2=provider wins)
-     * @return ruling Array containing [clientShare, providerShare] proportions
+     * @return clientShare The share of the total award allocated to the client
+     * @return providerShare The share of the total award allocated to the provider
      */
     function _getRuling(
         uint256 _ruling
-    ) internal pure returns (uint8[2] memory ruling) {
-        uint8[2][3] memory rulings = [
-            [1, 1], // 0 = refused to arbitrate => 50% to client, 50% to provider
-            [1, 0], // 1 = 100% to client, 0% to provider
-            [0, 1] // 2 = 0% to client, 100% to provider
-        ];
-        ruling = rulings[_ruling];
+    ) internal pure returns (uint8 clientShare, uint8 providerShare) {
+        if (_ruling == 1) return (1, 0); // client wins
+        if (_ruling == 2) return (0, 1); // provider wins
+        return (1, 1); // split / refused
+    }
+
+    /// @dev Kleros-style appeal period check: losers get shorter window
+    function _checkAppealPeriod(
+        IArbitrator _arbitrator,
+        uint256 _externalDisputeId,
+        uint256 _ruling,
+        uint256 _currentRuling
+    ) internal view {
+        (uint256 originalStart, uint256 originalEnd) = _arbitrator.appealPeriod(
+            _externalDisputeId
+        );
+        if (_currentRuling == _ruling) {
+            if (block.timestamp >= originalEnd) {
+                revert AppealPeriodEnded();
+            }
+        } else {
+            uint256 loserEnd = originalStart +
+                ((originalEnd - originalStart) *
+                    LOSER_APPEAL_PERIOD_MULTIPLIER) /
+                BPS_DENOMINATOR;
+            if (block.timestamp >= loserEnd) {
+                revert AppealPeriodEnded();
+            }
+        }
+    }
+
+    /// @dev Kleros-style appeal cost with stake multiplier
+    function _appealCost(
+        uint256 _externalDisputeId,
+        bytes memory _arbitratorExtraData,
+        uint256 _ruling,
+        uint256 _currentRuling
+    ) internal view returns (uint256 originalCost, uint256 specificCost) {
+        uint256 multiplier = (_ruling == _currentRuling)
+            ? WINNER_STAKE_MULTIPLIER
+            : LOSER_STAKE_MULTIPLIER;
+        uint256 appealFee = IArbitrator(resolver).appealCost(
+            _externalDisputeId,
+            _arbitratorExtraData
+        );
+        return (
+            appealFee,
+            appealFee + ((appealFee * multiplier) / BPS_DENOMINATOR)
+        );
+    }
+
+    /// @dev Compute withdrawable amount, used in both view and state-mutating paths
+    function _previewWithdrawableAmount(
+        Round storage _round,
+        address _contributor,
+        uint256 _ruling,
+        uint256 _finalRuling
+    ) internal view returns (uint256 amount) {
+        if (!_round.hasPaid[_ruling]) {
+            // Funding unsuccessful for this ruling option => reimburse contribution
+            amount = _round.contributions[_contributor][_ruling];
+        } else {
+            // Funding was successful for this ruling option.
+            if (_ruling == _finalRuling) {
+                // Winner gets pro-rata share of the round pot
+                uint256 paid = _round.paidFees[_ruling];
+                amount = paid > 0
+                    ? (_round.contributions[_contributor][_ruling] *
+                        _round.feeRewards) / paid
+                    : 0;
+            } else if (!_round.hasPaid[_finalRuling]) {
+                // The ultimate winner wasn't funded that round => funded side(s) win by default.
+                // Prize is split among contributors of the funded side(s).
+                uint256 denom = 0;
+                if (_round.fundedRulings.length > 0) {
+                    // Safe: length is either 1 or 2 by construction
+                    denom += _round.paidFees[_round.fundedRulings[0]];
+                    if (_round.fundedRulings.length > 1)
+                        denom += _round.paidFees[_round.fundedRulings[1]];
+                }
+                if (denom > 0) {
+                    amount =
+                        (_round.contributions[_contributor][_ruling] *
+                            _round.feeRewards) /
+                        denom;
+                }
+            }
+        }
     }
 
     /**

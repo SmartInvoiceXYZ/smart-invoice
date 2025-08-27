@@ -171,6 +171,10 @@ interface ISmartInvoiceEscrow {
     error InvalidClientReceiver();
     error InvalidFeeBPS();
     error InvalidTreasury();
+    error AppealPeriodEnded();
+    error AppealFeeAlreadyPaid();
+    error DisputeAlreadyRuled();
+    error DisputeNotRuled();
 
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
