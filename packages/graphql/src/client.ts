@@ -69,7 +69,9 @@ export const fetchTypedQuery =
     }
     const gql = typedGql<O, Scalars, R>('query' as O, { scalars })(o, ops);
 
-    const { data, error } = await clients[chainId].query({
+    const client = clients[chainId];
+
+    const { data, error } = await client.query({
       query: gql,
       ...ops,
     });

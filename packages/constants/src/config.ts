@@ -141,9 +141,16 @@ const GRAPH_STUDIO_ID = '78711';
 
 export const getGoldskySubgraphUrl = (subgraph: string) =>
   `https://api.goldsky.com/api/public/${GOLDSKY_PROJECT_ID}/subgraphs/${subgraph}/latest/gn`;
-export const getGraphStudioSubgraphUrl = (subgraph: string) =>
-  `https://api.studio.thegraph.com/query/${GRAPH_STUDIO_ID}/${subgraph}/version/latest`;
+export const getGraphStudioSubgraphUrl = (
+  subgraph: string,
+  version = 'latest',
+) => {
+  if (version === 'latest') {
+    return `https://api.studio.thegraph.com/query/${GRAPH_STUDIO_ID}/${subgraph}/version/${version}`;
+  }
 
+  return `https://api.studio.thegraph.com/query/${GRAPH_STUDIO_ID}/${subgraph}/${version}`;
+};
 const chains: readonly [Chain, ...Chain[]] = [
   mainnet,
   gnosis,
@@ -230,7 +237,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [polygon.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-polygon'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-polygon', 'v0.0.7'),
     SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
