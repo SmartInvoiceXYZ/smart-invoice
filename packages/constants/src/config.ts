@@ -136,7 +136,7 @@ export const KLEROS_COURTS: Array<KlerosCourtData> = [
   },
 ];
 
-const GOLDSKY_PROJECT_ID = 'project_cm2itwou5aapv01we2n0q698q';
+const GOLDSKY_PROJECT_ID = 'project_cm39qflfrtz7e01xibgnuczby';
 const GRAPH_STUDIO_ID = '78711';
 
 export const getGoldskySubgraphUrl = (subgraph: string) =>
@@ -278,7 +278,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [base.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-base'),
+    SUBGRAPH: getGoldskySubgraphUrl('smart-invoice-base'),
     SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
