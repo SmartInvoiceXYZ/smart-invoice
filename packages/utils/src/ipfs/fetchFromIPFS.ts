@@ -2,6 +2,7 @@ import { OldMetadata } from '@smartinvoicexyz/types';
 import { Cache } from 'memory-cache';
 
 const IPFS_ENDPOINTS = [
+  `https://smart-invoice.mypinata.cloud/ipfs/`,
   `https://ipfs.io/ipfs/`,
   `https://cloudflare-ipfs.com/ipfs/`,
   `https://dweb.link/ipfs/`,
