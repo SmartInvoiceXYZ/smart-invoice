@@ -17,33 +17,41 @@ export type SubgraphStatus = {
 export const getSubgraphStatus = async (
   chainId: number,
 ): Promise<SubgraphStatus> => {
-  const data = await fetchTypedQuery(chainId)(
-    {
-      _meta: [
-        {},
-        {
-          block: {
-            number: true,
+  try {
+    const data = await fetchTypedQuery(chainId)(
+      {
+        _meta: [
+          {},
+          {
+            block: {
+              number: true,
+            },
+            hasIndexingErrors: true,
           },
-          hasIndexingErrors: true,
-        },
-      ],
-    },
-    {
-      fetchPolicy: 'network-only',
-    },
-  );
+        ],
+      },
+      {
+        fetchPolicy: 'network-only',
+      },
+    );
 
-  const status = {
-    // eslint-disable-next-line no-underscore-dangle
-    syncedBlockNumber: data?._meta?.block?.number ?? 0,
-    // eslint-disable-next-line no-underscore-dangle
-    hasIndexingErrors: data?._meta?.hasIndexingErrors ?? false,
-  };
+    const status = {
+      // eslint-disable-next-line no-underscore-dangle
+      syncedBlockNumber: data?._meta?.block?.number ?? 0,
+      // eslint-disable-next-line no-underscore-dangle
+      hasIndexingErrors: data?._meta?.hasIndexingErrors ?? false,
+    };
 
-  setCachedSubgraphStatus(chainId, status);
+    setCachedSubgraphStatus(chainId, status);
 
-  return status;
+    return status;
+  } catch (e) {
+    console.error(`Failed to get subgraph status for chain ${chainId}: `, e);
+    return {
+      syncedBlockNumber: 0,
+      hasIndexingErrors: false,
+    };
+  }
 };
 
 const getSubgraphBlockNumber = async (chainId: number) => {
