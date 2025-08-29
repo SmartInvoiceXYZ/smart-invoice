@@ -9,8 +9,6 @@ interface ISmartInvoiceEscrow {
     /// @dev Struct containing all initialization parameters for escrow setup
     struct InitData {
         address client; // Address of the client funding the escrow
-        uint8 resolverType; // 0 = individual resolver, 1 = arbitrator resolver
-        address resolver; // Address of the dispute resolver
         address token; // ERC20 token contract for payments
         uint256 terminationTime; // Timestamp when client can withdraw remaining funds
         bool requireVerification; // Optional off-chain signal for frontends; not enforced in escrow logic.
@@ -19,6 +17,8 @@ interface ISmartInvoiceEscrow {
         uint256 feeBPS; // Platform fee in basis points (100 BPS = 1%)
         address treasury; // Address to receive platform fees
         string details; // IPFS hash or details about the project/invoice
+        address resolver; // Address of the dispute resolver
+        bytes resolverData; // Arbitrator resolver data
     }
 
     /**
@@ -141,6 +141,7 @@ interface ISmartInvoiceEscrow {
     error InvalidProvider();
     error InvalidClient();
     error InvalidResolverType();
+    error InvalidResolverData();
     error InvalidResolver();
     error InvalidToken();
     error DurationEnded();

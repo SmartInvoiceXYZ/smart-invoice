@@ -48,8 +48,6 @@ contract SmartInvoiceEscrow is
 
     /// @notice Single dispute bookkeeping
     struct DisputeData {
-        // TODO: move arbitratorExtraData to constructor as public variable
-        bytes arbitratorExtraData; // arbitrator-specific data (e.g. subcourt)
         bool isRuled; // whether a dispute is currently ruled
         uint256 ruling; // final ruling
         uint256 disputeId; // external dispute id
@@ -121,10 +119,12 @@ contract SmartInvoiceEscrow is
     /// @dev Advances when off-chain details change (e.g., via _addMilestones),
     ///      and the current value is referenced by new Disputes
     uint256 public metaEvidenceId;
-
+    /// @notice Arbitrator extra data for arbitrator resolvers (court and number of jurors)
+    bytes public arbitratorExtraData;
     /// @notice Current dispute data when using arbitrator resolution
     DisputeData private disputeData;
-    Round[] private rounds; // crowdfunded appeal rounds for the current dispute
+    /// @notice Crowdfunded appeal rounds for the current dispute
+    Round[] private rounds;
 
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
@@ -182,14 +182,7 @@ contract SmartInvoiceEscrow is
 
         InitData memory initData = abi.decode(_data, (InitData));
 
-        uint256 _resolutionRateBPS = FACTORY.resolutionRateOf(
-            initData.resolver
-        );
-        if (_resolutionRateBPS > 1000) revert InvalidResolutionRate();
         if (initData.client == address(0)) revert InvalidClient();
-        if (initData.resolverType > uint8(ADR.ARBITRATOR))
-            revert InvalidResolverType();
-        if (initData.resolver == address(0)) revert InvalidResolver();
         if (initData.token == address(0)) revert InvalidToken();
         if (initData.token.code.length == 0) revert InvalidToken();
         if (initData.terminationTime <= block.timestamp) revert DurationEnded();
@@ -204,15 +197,14 @@ contract SmartInvoiceEscrow is
             revert InvalidClientReceiver();
 
         client = initData.client;
-        resolverType = ADR(initData.resolverType);
-        resolver = initData.resolver;
         token = initData.token;
         terminationTime = initData.terminationTime;
-        resolutionRateBPS = _resolutionRateBPS;
         providerReceiver = initData.providerReceiver;
         clientReceiver = initData.clientReceiver;
         feeBPS = initData.feeBPS;
         treasury = initData.treasury;
+
+        _handleResolver(initData.resolver, initData.resolverData);
 
         if (!initData.requireVerification) {
             verified = true;
@@ -221,6 +213,36 @@ contract SmartInvoiceEscrow is
 
         emit InvoiceInit(provider, client, amounts, initData.details);
         emit MetaEvidence(metaEvidenceId, initData.details);
+    }
+
+    function _handleResolver(
+        address _resolver,
+        bytes memory _resolverData
+    ) internal {
+        if (_resolver == address(0)) revert InvalidResolver();
+        if (_resolverData.length < 32) revert InvalidResolverData();
+
+        uint8 _resolverType = abi.decode(_resolverData, (uint8));
+        if (_resolverType > uint8(ADR.ARBITRATOR)) revert InvalidResolverType();
+
+        if (_resolverType == uint8(ADR.INDIVIDUAL)) {
+            // Expect exactly one static word: abi.encode(uint8)
+            if (_resolverData.length != 32) revert InvalidResolverData();
+            uint256 _resolutionRateBPS = FACTORY.resolutionRateOf(_resolver);
+            if (_resolutionRateBPS > 1000) revert InvalidResolutionRate();
+            resolutionRateBPS = _resolutionRateBPS;
+        } else {
+            // Expect tuple encoding: abi.encode(uint8, bytes)
+            (uint8 t, bytes memory extra) = abi.decode(
+                _resolverData,
+                (uint8, bytes)
+            );
+            if (t != _resolverType) revert InvalidResolverData(); // optional sanity check
+            arbitratorExtraData = extra; // bytes("") works too
+        }
+
+        resolverType = ADR(_resolverType);
+        resolver = _resolver;
     }
 
     /**
@@ -564,18 +586,15 @@ contract SmartInvoiceEscrow is
             if (disputeData.isRuled) revert DisputeAlreadyRuled();
 
             // Note: user must call `IArbitrator(resolver).arbitrationCost(_disputeURI)` to get the arbitration cost
-            // TODO: update extra data to be provided via constructor
             uint256 disputeId = IArbitrator(resolver).createDispute{
                 value: msg.value
-            }(NUM_RULING_OPTIONS, bytes(_disputeURI));
+            }(NUM_RULING_OPTIONS, arbitratorExtraData);
 
             // Reset crowdfund state for the new dispute
             rounds.push(); // round 0
 
             // Set/replace the single disputeData
-            // TODO: update extra data to be provided via constructor
             disputeData = DisputeData({
-                arbitratorExtraData: bytes(_disputeURI),
                 ruling: 0,
                 disputeId: disputeId,
                 isRuled: false
@@ -696,19 +715,15 @@ contract SmartInvoiceEscrow is
             revert InvalidRuling(_ruling);
 
         IArbitrator arbitrator = IArbitrator(resolver);
-        uint256 externalId = disputeData.disputeId;
 
         uint256 originalCost;
         uint256 totalCost;
         {
-            uint256 currentRuling = arbitrator.currentRuling(externalId);
-            (originalCost, totalCost) = _appealCost(
-                externalId,
-                disputeData.arbitratorExtraData,
-                _ruling,
-                currentRuling
+            uint256 currentRuling = arbitrator.currentRuling(
+                disputeData.disputeId
             );
-            _checkAppealPeriod(arbitrator, externalId, _ruling, currentRuling);
+            (originalCost, totalCost) = _appealCost(_ruling, currentRuling);
+            _checkAppealPeriod(_ruling, currentRuling);
         }
 
         uint256 lastRoundIndex = rounds.length - 1;
@@ -750,8 +765,8 @@ contract SmartInvoiceEscrow is
                 lastRound.feeRewards = 0;
             }
             arbitrator.appeal{value: pay}(
-                externalId,
-                disputeData.arbitratorExtraData
+                disputeData.disputeId,
+                arbitratorExtraData
             );
         }
 
@@ -944,14 +959,11 @@ contract SmartInvoiceEscrow is
 
     /// @dev Kleros-style appeal period check: losers get shorter window
     function _checkAppealPeriod(
-        IArbitrator _arbitrator,
-        uint256 _externalDisputeId,
         uint256 _ruling,
         uint256 _currentRuling
     ) internal view {
-        (uint256 originalStart, uint256 originalEnd) = _arbitrator.appealPeriod(
-            _externalDisputeId
-        );
+        (uint256 originalStart, uint256 originalEnd) = IArbitrator(resolver)
+            .appealPeriod(disputeData.disputeId);
         if (_currentRuling == _ruling) {
             if (block.timestamp >= originalEnd) {
                 revert AppealPeriodEnded();
@@ -969,17 +981,16 @@ contract SmartInvoiceEscrow is
 
     /// @dev Kleros-style appeal cost with stake multiplier
     function _appealCost(
-        uint256 _externalDisputeId,
-        bytes memory _arbitratorExtraData,
         uint256 _ruling,
         uint256 _currentRuling
     ) internal view returns (uint256 originalCost, uint256 specificCost) {
         uint256 multiplier = (_ruling == _currentRuling)
             ? WINNER_STAKE_MULTIPLIER
             : LOSER_STAKE_MULTIPLIER;
+
         uint256 appealFee = IArbitrator(resolver).appealCost(
-            _externalDisputeId,
-            _arbitratorExtraData
+            disputeData.disputeId,
+            arbitratorExtraData
         );
         return (
             appealFee,

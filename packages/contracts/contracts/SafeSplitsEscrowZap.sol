@@ -190,7 +190,7 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: d.client,
-                resolverType: d.resolverType,
+                resolverData: d.resolverData,
                 resolver: d.resolver,
                 token: d.token,
                 terminationTime: d.terminationTime,
