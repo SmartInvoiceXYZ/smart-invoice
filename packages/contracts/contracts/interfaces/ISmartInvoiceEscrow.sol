@@ -172,6 +172,7 @@ interface ISmartInvoiceEscrow {
     error InvalidClientReceiver();
     error InvalidFeeBPS();
     error InvalidTreasury();
+    error AppealPeriodNotStarted();
     error AppealPeriodEnded();
     error AppealFeeAlreadyPaid();
     error DisputeAlreadyRuled();

@@ -233,6 +233,7 @@ contract SmartInvoiceEscrow is
             resolutionRateBPS = _resolutionRateBPS;
         } else {
             // Expect tuple encoding: abi.encode(uint8, bytes)
+            if (_resolverData.length < 96) revert InvalidResolverData();
             (uint8 t, bytes memory extra) = abi.decode(
                 _resolverData,
                 (uint8, bytes)
@@ -678,7 +679,7 @@ contract SmartInvoiceEscrow is
     function submitEvidence(
         uint256 _localDisputeId,
         string calldata _evidenceURI
-    ) external override {
+    ) external override nonReentrant {
         // Local dispute ID is always 0 for arbitrator resolver
         if (_localDisputeId != 0) revert IncorrectDisputeId();
         _submitEvidence(_evidenceURI);
@@ -964,6 +965,9 @@ contract SmartInvoiceEscrow is
     ) internal view {
         (uint256 originalStart, uint256 originalEnd) = IArbitrator(resolver)
             .appealPeriod(disputeData.disputeId);
+        if (block.timestamp < originalStart) {
+            revert AppealPeriodNotStarted();
+        }
         if (_currentRuling == _ruling) {
             if (block.timestamp >= originalEnd) {
                 revert AppealPeriodEnded();
