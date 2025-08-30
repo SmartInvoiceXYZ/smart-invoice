@@ -3,6 +3,7 @@
   "description": "Solidity smart contracts of the Smart Invoice protocol.",
   "version": "0.1.28",
   "dependencies": {
+    "@kleros/dispute-resolver-interface-contract": "^8.0.0",
     "@kleros/erc-792": "^8.0.0",
     "@nomicfoundation/hardhat-foundry": "^1.2.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
