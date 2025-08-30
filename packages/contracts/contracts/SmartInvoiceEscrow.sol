@@ -50,7 +50,7 @@ contract SmartInvoiceEscrow is
     struct DisputeData {
         bool isRuled; // whether a dispute is currently ruled
         uint256 ruling; // final ruling
-        uint256 disputeId; // external dispute id
+        uint256 externalDisputeId; // external dispute id
     }
 
     /// @notice Number of ruling options available to arbitrators: client vs provider; plus 0 = "refused/split"
@@ -64,11 +64,9 @@ contract SmartInvoiceEscrow is
 
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
-    uint256 internal constant DISPUTE_EVIDENCE_GROUP_ID = 0;
-
-    /// @notice Appeal stake multipliers (basis points), aligned with ArbitrableProxy defaults
-    uint256 internal constant WINNER_STAKE_MULTIPLIER = 10000; // 1x appeal fee
-    uint256 internal constant LOSER_STAKE_MULTIPLIER = 20000; // 2x appeal fee
+    /// @notice Appeal stake multipliers (basis points)
+    uint256 internal constant WINNER_STAKE_MULTIPLIER = 3000; // 30% of the appeal fee
+    uint256 internal constant LOSER_STAKE_MULTIPLIER = 7000; // 70% of the appeal fee
     uint256 internal constant LOSER_APPEAL_PERIOD_MULTIPLIER = 5000; // losers: first 50% of the appeal window
 
     /// @notice Wrapped ETH contract for handling ETH deposits
@@ -122,9 +120,11 @@ contract SmartInvoiceEscrow is
     /// @notice Arbitrator extra data for arbitrator resolvers (court and number of jurors)
     bytes public arbitratorExtraData;
     /// @notice Current dispute data when using arbitrator resolution
-    DisputeData private disputeData;
-    /// @notice Crowdfunded appeal rounds for the current dispute
-    Round[] private rounds;
+    DisputeData[] private disputes;
+    /// @notice Crowdfunded appeal rounds for each dispute
+    mapping(uint256 => Round[]) private appealRoundsMap;
+    /// @notice Maps external dispute ID to local dispute ID
+    mapping(uint256 => uint256) public override externalIDtoLocalID;
 
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
@@ -233,7 +233,7 @@ contract SmartInvoiceEscrow is
             resolutionRateBPS = _resolutionRateBPS;
         } else {
             // Expect tuple encoding: abi.encode(uint8, bytes)
-            if (_resolverData.length < 96) revert InvalidResolverData();
+            if (_resolverData.length < 160) revert InvalidResolverData();
             (uint8 t, bytes memory extra) = abi.decode(
                 _resolverData,
                 (uint8, bytes)
@@ -380,7 +380,9 @@ contract SmartInvoiceEscrow is
 
         if (bytes(_details).length > 0) {
             emit DetailsUpdated(msg.sender, _details);
-            metaEvidenceId = metaEvidenceId + 1;
+            unchecked {
+                metaEvidenceId += 1;
+            }
             emit MetaEvidence(metaEvidenceId, _details);
         }
 
@@ -569,7 +571,7 @@ contract SmartInvoiceEscrow is
     /**
      * @notice External function to lock the contract and initiate dispute resolution
      *         Can only be called by client or provider before termination
-     * @param _disputeURI Extra data for the arbitrator
+     * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
      */
     function lock(
         string calldata _disputeURI
@@ -584,28 +586,39 @@ contract SmartInvoiceEscrow is
         locked = true;
 
         if (resolverType == ADR.ARBITRATOR) {
-            if (disputeData.isRuled) revert DisputeAlreadyRuled();
-
             // Note: user must call `IArbitrator(resolver).arbitrationCost(_disputeURI)` to get the arbitration cost
-            uint256 disputeId = IArbitrator(resolver).createDispute{
+            uint256 externalDisputeId = IArbitrator(resolver).createDispute{
                 value: msg.value
             }(NUM_RULING_OPTIONS, arbitratorExtraData);
 
-            // Reset crowdfund state for the new dispute
-            rounds.push(); // round 0
+            uint256 localDisputeId = disputes.length;
 
-            // Set/replace the single disputeData
-            disputeData = DisputeData({
-                ruling: 0,
-                disputeId: disputeId,
-                isRuled: false
-            });
+            // Push new disputeData
+            disputes.push(
+                DisputeData({
+                    ruling: 0,
+                    externalDisputeId: externalDisputeId,
+                    isRuled: false
+                })
+            );
+
+            // Set external dispute ID to local dispute ID
+            externalIDtoLocalID[externalDisputeId] = localDisputeId;
+
+            // initialize first round 0
+            appealRoundsMap[localDisputeId].push();
 
             emit Dispute(
                 IArbitrator(resolver),
-                disputeId,
+                externalDisputeId,
                 metaEvidenceId,
-                DISPUTE_EVIDENCE_GROUP_ID
+                localDisputeId
+            );
+            emit Evidence(
+                IArbitrator(resolver),
+                localDisputeId,
+                msg.sender,
+                _disputeURI
             );
         }
 
@@ -667,35 +680,25 @@ contract SmartInvoiceEscrow is
     /**
      * @notice External function to submit evidence for a dispute
      *         Can only be called by client or provider when contract is locked with arbitrator resolver
+     * @param _localDisputeId The ID of the dispute to submit evidence for
      * @param _evidenceURI Off-chain URI to evidence for the arbitrator
      */
-    function submitEvidence(
-        string calldata _evidenceURI
-    ) external nonReentrant {
-        _submitEvidence(_evidenceURI);
-    }
-
-    /// @notice IDisputeResolver evidence submission (by local dispute id)
     function submitEvidence(
         uint256 _localDisputeId,
         string calldata _evidenceURI
     ) external override nonReentrant {
-        // Local dispute ID is always 0 for arbitrator resolver
-        if (_localDisputeId != 0) revert IncorrectDisputeId();
-        _submitEvidence(_evidenceURI);
-    }
-
-    function _submitEvidence(string calldata _evidenceURI) internal {
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
+        if (_localDisputeId >= disputes.length) revert IncorrectDisputeId();
+        DisputeData storage disputeData = disputes[_localDisputeId];
         if (disputeData.isRuled) revert DisputeAlreadyRuled();
 
         emit Evidence(
             IArbitrator(resolver),
-            DISPUTE_EVIDENCE_GROUP_ID,
+            _localDisputeId,
             msg.sender,
             _evidenceURI
         );
@@ -707,26 +710,33 @@ contract SmartInvoiceEscrow is
         uint256 _localDisputeId,
         uint256 _ruling
     ) external payable override nonReentrant returns (bool fullyFunded) {
-        if (_localDisputeId != 0) revert IncorrectDisputeId();
+        if (_localDisputeId >= disputes.length) revert IncorrectDisputeId();
         if (resolverType != ADR.ARBITRATOR)
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
-        if (disputeData.isRuled) revert DisputeAlreadyRuled();
         if (_ruling == 0 || _ruling > NUM_RULING_OPTIONS)
             revert InvalidRuling(_ruling);
 
         IArbitrator arbitrator = IArbitrator(resolver);
+        DisputeData storage disputeData = disputes[_localDisputeId];
+
+        if (disputeData.isRuled) revert DisputeAlreadyRuled();
 
         uint256 originalCost;
         uint256 totalCost;
         {
             uint256 currentRuling = arbitrator.currentRuling(
-                disputeData.disputeId
+                disputeData.externalDisputeId
             );
-            (originalCost, totalCost) = _appealCost(_ruling, currentRuling);
-            _checkAppealPeriod(_ruling, currentRuling);
+            (originalCost, totalCost) = _appealCost(
+                _localDisputeId,
+                _ruling,
+                currentRuling
+            );
+            _checkAppealPeriod(_localDisputeId, _ruling, currentRuling);
         }
 
+        Round[] storage rounds = appealRoundsMap[_localDisputeId];
         uint256 lastRoundIndex = rounds.length - 1;
         Round storage lastRound = rounds[lastRoundIndex];
 
@@ -766,7 +776,7 @@ contract SmartInvoiceEscrow is
                 lastRound.feeRewards = 0;
             }
             arbitrator.appeal{value: pay}(
-                disputeData.disputeId,
+                disputeData.externalDisputeId,
                 arbitratorExtraData
             );
         }
@@ -787,29 +797,33 @@ contract SmartInvoiceEscrow is
     function withdrawFeesAndRewards(
         uint256 _localDisputeId,
         address payable _contributor,
-        uint256 _round,
+        uint256 _roundIndex,
         uint256 _ruling
     ) public override nonReentrant returns (uint256 amount) {
-        if (_localDisputeId != 0) revert IncorrectDisputeId();
         if (locked) revert Locked();
-        if (!disputeData.isRuled) revert DisputeNotRuled();
-        if (_round >= rounds.length) return 0;
 
-        Round storage r = rounds[_round];
+        if (_localDisputeId >= disputes.length) revert IncorrectDisputeId();
+        DisputeData storage disputeData = disputes[_localDisputeId];
+        if (!disputeData.isRuled) revert DisputeNotRuled();
+
+        Round[] storage rounds = appealRoundsMap[_localDisputeId];
+        if (_roundIndex >= rounds.length) return 0;
+
+        Round storage round = rounds[_roundIndex];
         amount = _previewWithdrawableAmount(
-            r,
+            round,
             _contributor,
             _ruling,
             disputeData.ruling
         );
 
         if (amount != 0) {
-            r.contributions[_contributor][_ruling] = 0;
+            round.contributions[_contributor][_ruling] = 0;
             (bool s, ) = _contributor.call{value: amount}("");
             s; // deliberately ignoring failure to match Kleros' pattern
             emit Withdrawal(
                 _localDisputeId,
-                _round,
+                _roundIndex,
                 _ruling,
                 _contributor,
                 amount
@@ -823,10 +837,7 @@ contract SmartInvoiceEscrow is
         address payable _contributor,
         uint256 _ruling
     ) external override {
-        if (_localDisputeId != 0) revert IncorrectDisputeId();
-        if (locked) revert Locked();
-        if (!disputeData.isRuled) revert DisputeNotRuled();
-        uint256 n = rounds.length;
+        uint256 n = appealRoundsMap[_localDisputeId].length;
         for (uint256 i; i < n; i++) {
             withdrawFeesAndRewards(_localDisputeId, _contributor, i, _ruling);
         }
@@ -838,15 +849,17 @@ contract SmartInvoiceEscrow is
         address payable _contributor,
         uint256 _ruling
     ) external view override returns (uint256 sum) {
-        if (_localDisputeId != 0) return 0;
+        if (_localDisputeId >= disputes.length) return 0;
         if (locked) return 0;
+        DisputeData storage disputeData = disputes[_localDisputeId];
         if (!disputeData.isRuled) return 0;
 
+        Round[] storage rounds = appealRoundsMap[_localDisputeId];
         uint256 n = rounds.length;
         for (uint256 i; i < n; i++) {
-            Round storage r = rounds[i];
+            Round storage round = rounds[i];
             sum += _previewWithdrawableAmount(
-                r,
+                round,
                 _contributor,
                 _ruling,
                 disputeData.ruling
@@ -870,14 +883,19 @@ contract SmartInvoiceEscrow is
             revert InvalidArbitratorResolver(resolver);
         if (!locked) revert NotLocked();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
-        if (_externalDisputeId != disputeData.disputeId)
-            revert IncorrectDisputeId();
-        if (disputeData.isRuled) revert DisputeAlreadyRuled();
         if (_ruling > NUM_RULING_OPTIONS) revert InvalidRuling(_ruling);
+
+        uint256 localDisputeId = externalIDtoLocalID[_externalDisputeId];
+        DisputeData storage disputeData = disputes[localDisputeId];
+        if (disputeData.isRuled) revert DisputeAlreadyRuled();
+        if (disputeData.externalDisputeId != _externalDisputeId)
+            revert IncorrectDisputeId();
 
         // Mark ruling
         disputeData.ruling = _ruling;
         disputeData.isRuled = true;
+
+        Round[] storage rounds = appealRoundsMap[localDisputeId];
 
         // If only one ruling option was funded in the last round, it wins by default.
         Round storage lastRound = rounds[rounds.length - 1];
@@ -911,22 +929,10 @@ contract SmartInvoiceEscrow is
         emit Ruling(IArbitrator(resolver), _externalDisputeId, _ruling);
     }
 
-    /// @notice external (arbitrator) id -> local id (always 0 for current dispute)
-    function externalIDtoLocalID(
-        uint256 _externalDisputeId
-    ) external view override returns (uint256 localDisputeId) {
-        if (!locked) revert NotLocked();
-        if (_externalDisputeId != disputeData.disputeId) {
-            revert IncorrectDisputeId();
-        }
-        return 0;
-    }
-
     /// @notice Number of ruling options for the single local dispute (id must be 0)
     function numberOfRulingOptions(
-        uint256 _localDisputeId
+        uint256
     ) external pure override returns (uint256 count) {
-        if (_localDisputeId != 0) return 0;
         return NUM_RULING_OPTIONS;
     }
 
@@ -960,11 +966,14 @@ contract SmartInvoiceEscrow is
 
     /// @dev Kleros-style appeal period check: losers get shorter window
     function _checkAppealPeriod(
+        uint256 _localDisputeId,
         uint256 _ruling,
         uint256 _currentRuling
     ) internal view {
+        DisputeData storage disputeData = disputes[_localDisputeId];
+
         (uint256 originalStart, uint256 originalEnd) = IArbitrator(resolver)
-            .appealPeriod(disputeData.disputeId);
+            .appealPeriod(disputeData.externalDisputeId);
         if (block.timestamp < originalStart) {
             revert AppealPeriodNotStarted();
         }
@@ -985,15 +994,18 @@ contract SmartInvoiceEscrow is
 
     /// @dev Kleros-style appeal cost with stake multiplier
     function _appealCost(
+        uint256 _localDisputeId,
         uint256 _ruling,
         uint256 _currentRuling
     ) internal view returns (uint256 originalCost, uint256 specificCost) {
+        DisputeData storage disputeData = disputes[_localDisputeId];
+
         uint256 multiplier = (_ruling == _currentRuling)
             ? WINNER_STAKE_MULTIPLIER
             : LOSER_STAKE_MULTIPLIER;
 
         uint256 appealFee = IArbitrator(resolver).appealCost(
-            disputeData.disputeId,
+            disputeData.externalDisputeId,
             arbitratorExtraData
         );
         return (
