@@ -16,6 +16,25 @@ import {
 contract SmartInvoiceEscrowBasic is SmartInvoiceEscrowBase {
     using SafeERC20 for IERC20;
 
+    error InvalidResolutionRate();
+    error ResolutionMismatch();
+
+    /// @notice Emitted when a dispute is resolved by an individual resolver
+    /// @param resolver The address of the individual resolver
+    /// @param clientAward The amount awarded to the client
+    /// @param providerAward The amount awarded to the provider
+    /// @param resolutionFee The fee paid to the resolver (in token units)
+    /// @param details IPFS hash or description of the resolution reasoning
+    event Resolve(
+        address indexed resolver,
+        uint256 clientAward,
+        uint256 providerAward,
+        uint256 resolutionFee,
+        string details
+    );
+
+    /// @notice Address of the dispute resolver
+    address public resolver;
     /// @notice Resolution fee rate in basis points (BPS) charged by individual resolvers
     uint256 public resolutionRateBPS;
 

@@ -48,8 +48,6 @@ abstract contract SmartInvoiceEscrowBase is
     address public providerReceiver;
     /// @notice Optional address to receive client refunds (defaults to client if not set)
     address public clientReceiver;
-    /// @notice Address of the dispute resolver (individual or arbitrator contract)
-    address public resolver;
     /// @notice ERC20 token used for payments in this escrow
     address public token;
     /// @notice Timestamp after which client can withdraw remaining funds
@@ -87,7 +85,7 @@ abstract contract SmartInvoiceEscrowBase is
      * @dev Can only be called once by the factory contract. Validates all parameters and sets up the escrow
      * @param _provider The address of the service provider receiving payments
      * @param _amounts Array of milestone amounts (must be non-empty, max 50 milestones)
-     * @param _data ABI-encoded InitData struct containing client, resolver, token, and other configuration
+     * @param _data ABI-encoded InitData struct containing client, token, and other configuration
      */
     function init(
         address _provider,
@@ -106,7 +104,6 @@ abstract contract SmartInvoiceEscrowBase is
      * @param _data ABI-encoded InitData containing all escrow configuration parameters
      * @dev IMPORTANT: The token MUST be a standard ERC20 token
      *      Fee-on-transfer, rebasing, or ERC777 tokens may break the contract functionality
-     *      Resolution rate is fetched from the factory and must not exceed 1000 BPS (10%)
      */
     function _handleData(
         address _provider,
@@ -487,7 +484,9 @@ abstract contract SmartInvoiceEscrowBase is
      *         Can only be called by client or provider before termination
      * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
      */
-    function lock(string calldata _disputeURI) external payable virtual;
+    function lock(
+        string calldata _disputeURI
+    ) external payable virtual override;
 
     /**
      * @dev Internal function to transfer payment to the provider or provider receiver
