@@ -17,8 +17,7 @@ interface ISmartInvoiceEscrow {
         uint256 feeBPS; // Platform fee in basis points (100 BPS = 1%)
         address treasury; // Address to receive platform fees
         string details; // IPFS hash or details about the project/invoice
-        address resolver; // Address of the dispute resolver
-        bytes resolverData; // Arbitrator resolver data
+        bytes resolverData; // Resolver-specific data
     }
 
     /**
@@ -123,19 +122,6 @@ interface ISmartInvoiceEscrow {
      */
     function lock(string calldata _details) external payable;
 
-    /**
-     * @notice Resolves a dispute by distributing funds between client and provider
-     * @param _clientAward Amount to be awarded to the client
-     * @param _providerAward Amount to be awarded to the provider
-     * @param _details IPFS hash or description of the resolution reasoning
-     * @dev Only callable by individual resolver, includes resolution fee deduction
-     */
-    function resolve(
-        uint256 _clientAward,
-        uint256 _providerAward,
-        string calldata _details
-    ) external;
-
     /// @dev Custom errors for more efficient gas usage
 
     error InvalidProvider();
@@ -164,8 +150,6 @@ interface ISmartInvoiceEscrow {
     error InvalidMilestone();
     error IncorrectDisputeId();
     error InvalidRuling(uint256 ruling);
-    error InvalidIndividualResolver(address resolver);
-    error InvalidArbitratorResolver(address resolver);
     error NotResolver(address caller);
     error ResolutionMismatch();
     error InvalidProviderReceiver();
@@ -232,11 +216,6 @@ interface ISmartInvoiceEscrow {
     /// @param sender The address that locked the contract.
     /// @param details The details of the lock.
     event Lock(address indexed sender, string details);
-
-    /// @notice Emitted when the dispute is appealed.
-    /// @param sender The address that appealed the dispute.
-    /// @param details The details of the appeal.
-    event DisputeAppealed(address indexed sender, string details);
 
     /// @notice Emitted when a dispute is resolved by an individual resolver
     /// @param resolver The address of the individual resolver

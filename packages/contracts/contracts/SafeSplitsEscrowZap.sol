@@ -39,9 +39,6 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
     /// @notice Admin role
     bytes32 public constant ADMIN = keccak256("ADMIN");
 
-    /// @notice Hash identifier for escrow type used in deterministic deployment
-    bytes32 public constant ESCROW_TYPE_HASH = keccak256("escrow-v3");
-
     /// @dev Reverts when a required address is zero.
     error InvalidAddress(string field);
 
@@ -191,7 +188,6 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             .InitData({
                 client: d.client,
                 resolverData: d.resolverData,
-                resolver: d.resolver,
                 token: d.token,
                 terminationTime: d.terminationTime,
                 requireVerification: d.requireVerification,
@@ -203,13 +199,13 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             });
 
         bytes memory escrowDetails = abi.encode(initData);
-        uint256 version = escrowFactory.currentVersions(ESCROW_TYPE_HASH);
+        uint256 version = escrowFactory.currentVersions(d.escrowType);
 
         escrow = escrowFactory.createDeterministic(
             _escrowParams[0], // provider (Safe)
             _milestoneAmounts,
             escrowDetails,
-            ESCROW_TYPE_HASH,
+            d.escrowType,
             version,
             d.saltNonce
         );
