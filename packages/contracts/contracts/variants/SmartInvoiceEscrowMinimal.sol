@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {SmartInvoiceEscrowBase} from "./SmartInvoiceEscrowBase.sol";
+import {
+    SmartInvoiceEscrowBase
+} from "contracts/base/SmartInvoiceEscrowBase.sol";
 
 /// @title SmartInvoiceEscrowMinimal
 /// @notice Milestone escrow with *no* on-chain dispute mechanism.

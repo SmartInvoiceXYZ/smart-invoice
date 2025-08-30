@@ -3,7 +3,9 @@
 pragma solidity 0.8.30;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {ISmartInvoiceEscrow} from "../interfaces/ISmartInvoiceEscrow.sol";
+import {
+    ISmartInvoiceEscrow
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
 
 /// @title Mock Factory Contract
 /// @notice This contract simulates the behavior of a factory for testing purposes.

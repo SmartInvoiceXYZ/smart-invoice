@@ -41,6 +41,9 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  paths: {
+    sources: './contracts',
+  },
   networks: {
     gnosis: {
       chainId: 100,

@@ -3,17 +3,19 @@
 
 pragma solidity 0.8.30;
 
-import {SmartInvoiceEscrowBase} from "./SmartInvoiceEscrowBase.sol";
+import {
+    SmartInvoiceEscrowBase
+} from "contracts/base/SmartInvoiceEscrowBase.sol";
 
 import {
     SafeERC20,
     IERC20
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/// @title SmartInvoiceEscrowBasic
+/// @title SmartInvoiceEscrow
 /// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
 /// @dev Supports direct dispute resolution
-contract SmartInvoiceEscrowBasic is SmartInvoiceEscrowBase {
+contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
     using SafeERC20 for IERC20;
 
     error InvalidResolutionRate();

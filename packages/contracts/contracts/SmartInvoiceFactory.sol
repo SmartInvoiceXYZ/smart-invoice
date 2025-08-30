@@ -11,9 +11,13 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
     SafeERC20
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
-import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
+import {
+    ISmartInvoiceFactory
+} from "contracts/interfaces/ISmartInvoiceFactory.sol";
+import {
+    ISmartInvoiceEscrow
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
+import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceFactory
 /// @notice Factory contract for creating and managing smart invoice instances

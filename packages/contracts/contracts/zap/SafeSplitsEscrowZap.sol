@@ -3,12 +3,20 @@ pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
-import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
-import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
-import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
-import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
+import {
+    ISafeSplitsEscrowZap
+} from "contracts/interfaces/ISafeSplitsEscrowZap.sol";
+import {ISafeProxyFactory} from "contracts/interfaces/ISafeProxyFactory.sol";
+import {
+    ISplitFactoryV2
+} from "contracts/external/interfaces/ISplitFactoryV2.sol";
+import {SplitV2Lib} from "contracts/external/libraries/SplitV2Lib.sol";
+import {
+    ISmartInvoiceFactory
+} from "contracts/interfaces/ISmartInvoiceFactory.sol";
+import {
+    ISmartInvoiceEscrow
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
 
 /// @title SafeSplitsEscrowZap (v2 Splits)
 /// @notice Deploys a Safe (optional), a Splits v2 splitter (optional), and a SmartInvoice escrow in one tx.

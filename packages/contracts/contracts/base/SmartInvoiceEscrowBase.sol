@@ -13,9 +13,13 @@ import {
 import {
     Initializable
 } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
-import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {IWRAPPED} from "./interfaces/IWRAPPED.sol";
+import {
+    ISmartInvoiceEscrow
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
+import {
+    ISmartInvoiceFactory
+} from "contracts/interfaces/ISmartInvoiceFactory.sol";
+import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
 
 /// @title SmartInvoiceEscrowBase
 /// @notice A comprehensive base escrow contract with milestone-based payments and updatable addresses

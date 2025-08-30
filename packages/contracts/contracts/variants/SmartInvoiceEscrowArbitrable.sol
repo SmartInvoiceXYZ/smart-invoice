@@ -8,7 +8,9 @@ import {
     IDisputeResolver
 } from "@kleros/dispute-resolver-interface-contract/contracts/IDisputeResolver.sol";
 
-import {SmartInvoiceEscrowBase} from "./SmartInvoiceEscrowBase.sol";
+import {
+    SmartInvoiceEscrowBase
+} from "contracts/base/SmartInvoiceEscrowBase.sol";
 import {
     SafeERC20,
     IERC20
