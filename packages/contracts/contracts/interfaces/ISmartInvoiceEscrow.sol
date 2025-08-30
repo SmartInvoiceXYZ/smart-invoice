@@ -17,8 +17,7 @@ interface ISmartInvoiceEscrow {
         uint256 feeBPS; // Platform fee in basis points (100 BPS = 1%)
         address treasury; // Address to receive platform fees
         string details; // IPFS hash or details about the project/invoice
-        address resolver; // Address of the dispute resolver
-        bytes resolverData; // Arbitrator resolver data
+        bytes resolverData; // Resolver-specific data
     }
 
     /**
@@ -123,30 +122,14 @@ interface ISmartInvoiceEscrow {
      */
     function lock(string calldata _details) external payable;
 
-    /**
-     * @notice Resolves a dispute by distributing funds between client and provider
-     * @param _clientAward Amount to be awarded to the client
-     * @param _providerAward Amount to be awarded to the provider
-     * @param _details IPFS hash or description of the resolution reasoning
-     * @dev Only callable by individual resolver, includes resolution fee deduction
-     */
-    function resolve(
-        uint256 _clientAward,
-        uint256 _providerAward,
-        string calldata _details
-    ) external;
-
     /// @dev Custom errors for more efficient gas usage
-
     error InvalidProvider();
     error InvalidClient();
-    error InvalidResolverType();
     error InvalidResolverData();
     error InvalidResolver();
     error InvalidToken();
     error DurationEnded();
     error DurationTooLong();
-    error InvalidResolutionRate();
     error InvalidWrappedETH();
     error OnlyFactory();
     error InvalidFactory();
@@ -162,21 +145,11 @@ interface ISmartInvoiceEscrow {
     error InsufficientBalance();
     error BalanceIsZero();
     error InvalidMilestone();
-    error IncorrectDisputeId();
-    error InvalidRuling(uint256 ruling);
-    error InvalidIndividualResolver(address resolver);
-    error InvalidArbitratorResolver(address resolver);
     error NotResolver(address caller);
-    error ResolutionMismatch();
     error InvalidProviderReceiver();
     error InvalidClientReceiver();
     error InvalidFeeBPS();
     error InvalidTreasury();
-    error AppealPeriodNotStarted();
-    error AppealPeriodEnded();
-    error AppealFeeAlreadyPaid();
-    error DisputeAlreadyRuled();
-    error DisputeNotRuled();
 
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
@@ -232,37 +205,6 @@ interface ISmartInvoiceEscrow {
     /// @param sender The address that locked the contract.
     /// @param details The details of the lock.
     event Lock(address indexed sender, string details);
-
-    /// @notice Emitted when the dispute is appealed.
-    /// @param sender The address that appealed the dispute.
-    /// @param details The details of the appeal.
-    event DisputeAppealed(address indexed sender, string details);
-
-    /// @notice Emitted when a dispute is resolved by an individual resolver
-    /// @param resolver The address of the individual resolver
-    /// @param clientAward The amount awarded to the client
-    /// @param providerAward The amount awarded to the provider
-    /// @param resolutionFee The fee paid to the resolver (in token units)
-    /// @param details IPFS hash or description of the resolution reasoning
-    event Resolve(
-        address indexed resolver,
-        uint256 clientAward,
-        uint256 providerAward,
-        uint256 resolutionFee,
-        string details
-    );
-
-    /// @notice Emitted when a ruling is made by an arbitrator resolver
-    /// @param resolver The address of the arbitrator
-    /// @param clientAward The amount awarded to the client
-    /// @param providerAward The amount awarded to the provider
-    /// @param ruling The ruling number (0=refused/split, 1=client wins, 2=provider wins)
-    event Rule(
-        address indexed resolver,
-        uint256 clientAward,
-        uint256 providerAward,
-        uint256 ruling
-    );
 
     /// @notice Emitted when the client and invoice are verified.
     /// @param client The address of the client.

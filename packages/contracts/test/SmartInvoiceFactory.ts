@@ -19,7 +19,6 @@ import {
 
 import { awaitInvoiceAddress, currentTimestamp, encodeInitData } from './utils';
 
-const resolverType = 0;
 const escrowType = keccak256(toBytes('escrow-v3'));
 
 describe('SmartInvoiceFactory', function () {
@@ -51,8 +50,7 @@ describe('SmartInvoiceFactory', function () {
 
   let escrowInitData: {
     client: Hex;
-    resolverType: number;
-    resolver: Hex;
+    resolverData: Hex;
     token: Hex;
     terminationTime: bigint;
     requireVerification: boolean;
@@ -113,10 +111,14 @@ describe('SmartInvoiceFactory', function () {
     // data
     terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
 
+    const resolverData = encodeAbiParameters(
+      [{ type: 'address', name: 'resolver' }],
+      [resolver.account.address],
+    );
+
     escrowInitData = {
       client: getAddress(client.account.address),
-      resolverType,
-      resolver: getAddress(resolver.account.address),
+      resolverData,
       token,
       terminationTime: BigInt(terminationTime),
       requireVerification,
@@ -349,7 +351,6 @@ describe('SmartInvoiceFactory', function () {
       expect(await invoice.read.provider()).to.equal(
         getAddress(provider.account.address),
       );
-      expect(await invoice.read.resolverType()).to.equal(resolverType);
       expect(await invoice.read.resolver()).to.equal(
         getAddress(resolver.account.address),
       );

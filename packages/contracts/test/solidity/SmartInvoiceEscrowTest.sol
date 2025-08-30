@@ -5,9 +5,9 @@ pragma solidity 0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {
-    SmartInvoiceEscrow,
     ISmartInvoiceEscrow
-} from "contracts/SmartInvoiceEscrow.sol";
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
+import {SmartInvoiceEscrow} from "contracts/variants/SmartInvoiceEscrow.sol";
 import {
     SmartInvoiceFactory,
     ISmartInvoiceFactory
@@ -30,8 +30,6 @@ contract SmartInvoiceEscrowFuzzTest is Test {
     address public clientReceiver = makeAddr("clientReceiver");
     address public treasury = makeAddr("treasury");
 
-    uint8 public constant INDIVIDUAL_RESOLVER = 0;
-    uint8 public constant ARBITRATOR_RESOLVER = 1;
     bytes32 public constant INVOICE_TYPE = keccak256("escrow-v3");
 
     function setUp() public {
@@ -54,11 +52,11 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256 feeBPS,
         bool useReceivers
     ) internal returns (SmartInvoiceEscrow) {
+        bytes memory resolverData = abi.encode(resolver);
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
-                resolverType: INDIVIDUAL_RESOLVER,
-                resolver: resolver,
+                resolverData: resolverData,
                 token: address(token),
                 terminationTime: terminationTime,
                 requireVerification: false,
@@ -454,12 +452,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = ethAmount;
 
+        bytes memory resolverData = abi.encode(resolver);
+
         // Create invoice with wrapped ETH
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
-                resolverType: INDIVIDUAL_RESOLVER,
-                resolver: resolver,
+                resolverData: resolverData,
                 token: address(wrappedETH),
                 terminationTime: block.timestamp + 30 days,
                 requireVerification: false,

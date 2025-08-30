@@ -36,8 +36,7 @@ BigInt.prototype.toJSON = function () {
 
 export type InitData = {
   client: Hex;
-  resolverType: number;
-  resolver: Hex;
+  resolverData: Hex;
   token: Hex;
   terminationTime: bigint;
   requireVerification: boolean;
@@ -57,8 +56,6 @@ export const encodeInitData = (initData: InitData) => {
         name: 'initData',
         components: [
           { name: 'client', type: 'address' },
-          { name: 'resolverType', type: 'uint8' },
-          { name: 'resolver', type: 'address' },
           { name: 'token', type: 'address' },
           { name: 'terminationTime', type: 'uint256' },
           { name: 'requireVerification', type: 'bool' },
@@ -67,6 +64,7 @@ export const encodeInitData = (initData: InitData) => {
           { name: 'feeBPS', type: 'uint256' },
           { name: 'treasury', type: 'address' },
           { name: 'details', type: 'string' },
+          { name: 'resolverData', type: 'bytes' },
         ],
       },
     ],

@@ -2,10 +2,14 @@
 pragma solidity 0.8.30;
 
 import {SafeSplitsEscrowZap} from "./SafeSplitsEscrowZap.sol";
-import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
-import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
-import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
-import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
+import {ISafeProxyFactory} from "contracts/interfaces/ISafeProxyFactory.sol";
+import {
+    ISplitFactoryV2
+} from "contracts/external/interfaces/ISplitFactoryV2.sol";
+import {SplitV2Lib} from "contracts/external/libraries/SplitV2Lib.sol";
+import {
+    ISmartInvoiceFactory
+} from "contracts/interfaces/ISmartInvoiceFactory.sol";
 
 /// @title SafeSplitsDaoEscrowZap
 /// @notice Extends SafeSplitsEscrowZap with built-in DAO fee splitting using BPS (basis points).

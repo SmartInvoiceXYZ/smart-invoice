@@ -17,8 +17,8 @@ interface ISafeSplitsEscrowZap {
         address client;
         address clientReceiver;
         bool requireVerification;
+        bytes32 escrowType;
         bytes resolverData;
-        address resolver;
         address token;
         uint256 terminationTime;
         bytes32 saltNonce;

@@ -3,12 +3,20 @@ pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-import {ISafeSplitsEscrowZap} from "./interfaces/ISafeSplitsEscrowZap.sol";
-import {ISafeProxyFactory} from "./interfaces/ISafeProxyFactory.sol";
-import {ISplitFactoryV2} from "./interfaces/ISplitFactoryV2.sol";
-import {SplitV2Lib} from "./libraries/SplitV2Lib.sol";
-import {ISmartInvoiceFactory} from "./interfaces/ISmartInvoiceFactory.sol";
-import {ISmartInvoiceEscrow} from "./interfaces/ISmartInvoiceEscrow.sol";
+import {
+    ISafeSplitsEscrowZap
+} from "contracts/interfaces/ISafeSplitsEscrowZap.sol";
+import {ISafeProxyFactory} from "contracts/interfaces/ISafeProxyFactory.sol";
+import {
+    ISplitFactoryV2
+} from "contracts/external/interfaces/ISplitFactoryV2.sol";
+import {SplitV2Lib} from "contracts/external/libraries/SplitV2Lib.sol";
+import {
+    ISmartInvoiceFactory
+} from "contracts/interfaces/ISmartInvoiceFactory.sol";
+import {
+    ISmartInvoiceEscrow
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
 
 /// @title SafeSplitsEscrowZap (v2 Splits)
 /// @notice Deploys a Safe (optional), a Splits v2 splitter (optional), and a SmartInvoice escrow in one tx.
@@ -38,9 +46,6 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
 
     /// @notice Admin role
     bytes32 public constant ADMIN = keccak256("ADMIN");
-
-    /// @notice Hash identifier for escrow type used in deterministic deployment
-    bytes32 public constant ESCROW_TYPE_HASH = keccak256("escrow-v3");
 
     /// @dev Reverts when a required address is zero.
     error InvalidAddress(string field);
@@ -191,7 +196,6 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             .InitData({
                 client: d.client,
                 resolverData: d.resolverData,
-                resolver: d.resolver,
                 token: d.token,
                 terminationTime: d.terminationTime,
                 requireVerification: d.requireVerification,
@@ -203,13 +207,13 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
             });
 
         bytes memory escrowDetails = abi.encode(initData);
-        uint256 version = escrowFactory.currentVersions(ESCROW_TYPE_HASH);
+        uint256 version = escrowFactory.currentVersions(d.escrowType);
 
         escrow = escrowFactory.createDeterministic(
             _escrowParams[0], // provider (Safe)
             _milestoneAmounts,
             escrowDetails,
-            ESCROW_TYPE_HASH,
+            d.escrowType,
             version,
             d.saltNonce
         );
