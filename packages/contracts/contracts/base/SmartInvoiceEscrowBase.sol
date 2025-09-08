@@ -553,7 +553,6 @@ abstract contract SmartInvoiceEscrowBase is
      */
     // solhint-disable-next-line no-complex-fallback
     receive() external payable nonReentrant {
-        if (locked) revert Locked();
         if (token != address(WRAPPED_ETH)) revert InvalidWrappedETH();
         WRAPPED_ETH.deposit{value: msg.value}();
         emit Deposit(msg.sender, msg.value, token);
@@ -564,7 +563,6 @@ abstract contract SmartInvoiceEscrowBase is
      *         Handles edge cases when ETH was sent via self-destruct
      */
     function wrapETH() external nonReentrant {
-        if (locked) revert Locked();
         uint256 bal = address(this).balance;
         if (bal == 0) revert BalanceIsZero();
         WRAPPED_ETH.deposit{value: bal}();
