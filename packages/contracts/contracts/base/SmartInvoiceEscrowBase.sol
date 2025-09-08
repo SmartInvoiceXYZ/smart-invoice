@@ -226,7 +226,6 @@ abstract contract SmartInvoiceEscrowBase is
             _providerReceiver == address(0) ||
             _providerReceiver == address(this)
         ) revert InvalidProviderReceiver();
-        if (locked) revert Locked();
 
         providerReceiver = _providerReceiver;
         emit UpdatedProviderReceiver(_providerReceiver);
@@ -241,7 +240,6 @@ abstract contract SmartInvoiceEscrowBase is
         if (msg.sender != client) revert NotClient(msg.sender);
         if (_clientReceiver == address(0) || _clientReceiver == address(this))
             revert InvalidClientReceiver();
-        if (locked) revert Locked();
 
         clientReceiver = _clientReceiver;
         emit UpdatedClientReceiver(_clientReceiver);
