@@ -52,7 +52,7 @@
     "deploy-factory": "hardhat run scripts/deploy-factory.ts --network",
     "deploy-zap": "hardhat run scripts/deploy-zap.ts --network",
     "flatten-all": "mkdir -p flat && pnpm flatten-factory && pnpm flatten-escrow && pnpm flatten-zap && pnpm flatten-dao-zap",
-    "flatten-escrow": "forge flatten contracts/SmartInvoiceEscrow.sol > flat/SmartInvoiceEscrow.sol",
+    "flatten-escrow": "forge flatten contracts/variants/base/SmartInvoiceEscrowPush.sol > flat/SmartInvoiceEscrow.sol",
     "flatten-factory": "forge flatten contracts/SmartInvoiceFactory.sol > flat/SmartInvoiceFactory.sol",
     "flatten-zap": "forge flatten contracts/SafeSplitsEscrowZap.sol > flat/SafeSplitsEscrowZap.sol",
     "flatten-dao-zap": "forge flatten contracts/SafeSplitsDaoEscrowZap.sol > flat/SafeSplitsDaoEscrowZap.sol",

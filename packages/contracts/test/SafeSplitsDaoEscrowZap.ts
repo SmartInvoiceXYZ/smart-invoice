@@ -192,7 +192,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
       SEPOLIA_CONTRACTS.wrappedETH,
     ]);
-    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrowPush', [
       SEPOLIA_CONTRACTS.wrappedETH,
       escrowFactory.address,
     ]);
@@ -381,7 +381,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       typeof splitsWarehouseAbi,
       { public: PublicClient; wallet: WalletClient }
     >;
-    let escrow: ContractTypesMap['SmartInvoiceEscrow'];
+    let escrow: ContractTypesMap['SmartInvoiceEscrowPush'];
 
     before(async function () {
       // role wiring once for the context
@@ -437,7 +437,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         client: { public: publicClient, wallet: deployer },
       });
 
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', args.escrow);
+      escrow = await viem.getContractAt('SmartInvoiceEscrowPush', args.escrow);
       teamSplit = args.providerSplit;
       daoSplit = args.daoSplit;
 
@@ -1030,7 +1030,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       expect(args.daoSplit).to.equal(zeroAddress);
 
-      const inv = await viem.getContractAt('SmartInvoiceEscrow', args.escrow);
+      const inv = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        args.escrow,
+      );
       expect(await inv.read.provider()).to.equal(args.providerSafe);
       expect(await inv.read.providerReceiver()).to.equal(args.providerSplit);
     });

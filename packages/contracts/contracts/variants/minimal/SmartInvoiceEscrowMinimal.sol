@@ -2,18 +2,13 @@
 pragma solidity 0.8.30;
 
 import {
-    SmartInvoiceEscrowBase
-} from "contracts/base/SmartInvoiceEscrowBase.sol";
+    SmartInvoiceEscrowCore
+} from "contracts/core/SmartInvoiceEscrowCore.sol";
 
 /// @title SmartInvoiceEscrowMinimal
 /// @notice Milestone escrow with *no* on-chain dispute mechanism.
-contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowBase {
+abstract contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowCore {
     error LockDisabled();
-
-    constructor(
-        address _wrappedETH,
-        address _factory
-    ) SmartInvoiceEscrowBase(_wrappedETH, _factory) {}
 
     /// @dev For this no-dispute flavor, both resolver and resolverData must be empty.
     function _handleResolverData(

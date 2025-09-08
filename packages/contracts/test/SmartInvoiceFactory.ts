@@ -30,7 +30,7 @@ describe('SmartInvoiceFactory', function () {
   /*                                   SETUP                                    */
   /* -------------------------------------------------------------------------- */
   let invoiceFactory: ContractTypesMap['SmartInvoiceFactory'];
-  let escrowImpl: ContractTypesMap['SmartInvoiceEscrow'];
+  let escrowImpl: ContractTypesMap['SmartInvoiceEscrowPush'];
   let publicClient: PublicClient;
   let owner: WalletClient;
   let client: WalletClient;
@@ -104,7 +104,7 @@ describe('SmartInvoiceFactory', function () {
     invoiceFactory = await viem.deployContract('SmartInvoiceFactory', [
       wrappedETH,
     ]);
-    escrowImpl = await viem.deployContract('SmartInvoiceEscrow', [
+    escrowImpl = await viem.deployContract('SmartInvoiceEscrowPush', [
       wrappedETH,
       invoiceFactory.address,
     ]);
@@ -232,7 +232,7 @@ describe('SmartInvoiceFactory', function () {
       await addEscrowImplementation();
 
       // Deploy a new implementation (v1)
-      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
+      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrowPush', [
         wrappedETH,
         invoiceFactory.address,
       ]);
@@ -260,7 +260,7 @@ describe('SmartInvoiceFactory', function () {
     it('setCurrentVersion: admin can point back to an older version; non-admin reverts; non-existent version reverts', async function () {
       // Add v0 and v1
       await addEscrowImplementation();
-      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
+      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrowPush', [
         wrappedETH,
         invoiceFactory.address,
       ]);
@@ -323,7 +323,7 @@ describe('SmartInvoiceFactory', function () {
       await addEscrowImplementation();
 
       // Add v1 and change pointer to v1 to prove createDeterministic must use v1
-      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrow', [
+      const escrowImpl2 = await viem.deployContract('SmartInvoiceEscrowPush', [
         wrappedETH,
         invoiceFactory.address,
       ]);

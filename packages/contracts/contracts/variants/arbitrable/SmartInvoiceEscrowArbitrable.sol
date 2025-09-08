@@ -9,22 +9,17 @@ import {
 } from "@kleros/dispute-resolver-interface-contract/contracts/IDisputeResolver.sol";
 
 import {
-    SmartInvoiceEscrowBase
-} from "contracts/base/SmartInvoiceEscrowBase.sol";
-import {
-    SafeERC20,
-    IERC20
-} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+    SmartInvoiceEscrowCore
+} from "contracts/core/SmartInvoiceEscrowCore.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title SmartInvoiceEscrow
 /// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
 /// @dev Supports kleros-style arbitrator-based dispute resolution
-contract SmartInvoiceEscrowArbitrable is
-    SmartInvoiceEscrowBase,
+abstract contract SmartInvoiceEscrowArbitrable is
+    SmartInvoiceEscrowCore,
     IDisputeResolver
 {
-    using SafeERC20 for IERC20;
-
     error IncorrectDisputeId();
     error InvalidRuling(uint256 ruling);
     error AppealPeriodNotStarted();
@@ -83,11 +78,6 @@ contract SmartInvoiceEscrowArbitrable is
     mapping(uint256 => Round[]) private appealRoundsMap;
     /// @notice Maps external dispute ID to local dispute ID
     mapping(uint256 => uint256) public override externalIDtoLocalID;
-
-    constructor(
-        address _wrappedETH,
-        address _factory
-    ) SmartInvoiceEscrowBase(_wrappedETH, _factory) {}
 
     /**
      * @dev Internal function to decode initialization data and set contract state
@@ -406,10 +396,10 @@ contract SmartInvoiceEscrowArbitrable is
         uint256 clientAward = balance - providerAward;
 
         if (providerAward > 0) {
-            _transferPayment(token, providerAward);
+            _transferToProvider(token, providerAward);
         }
         if (clientAward > 0) {
-            _withdrawDeposit(token, clientAward);
+            _transferToClient(token, clientAward);
         }
 
         // Complete all milestones

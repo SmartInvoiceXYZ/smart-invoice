@@ -38,10 +38,10 @@ const requireVerification = true;
 
 describe('SmartInvoiceEscrow', function () {
   let factory: ContractTypesMap['SmartInvoiceFactory'];
-  let escrowImplementation: ContractTypesMap['SmartInvoiceEscrow'];
-  let arbitrableImplementation: ContractTypesMap['SmartInvoiceEscrowArbitrable'];
+  let escrowImplementation: ContractTypesMap['SmartInvoiceEscrowPush'];
+  let arbitrableImplementation: ContractTypesMap['SmartInvoiceEscrowArbitrablePush'];
 
-  let escrow: ContractTypesMap['SmartInvoiceEscrow'];
+  let escrow: ContractTypesMap['SmartInvoiceEscrowPush'];
   let mockToken: Hex;
   let mockWrappedETHContract: ContractTypesMap['MockWETH'];
   let mockWrappedETH: Hex;
@@ -91,7 +91,7 @@ describe('SmartInvoiceEscrow', function () {
     factory = await viem.deployContract('SmartInvoiceFactory', [
       mockWrappedETH,
     ]);
-    escrowImplementation = await viem.deployContract('SmartInvoiceEscrow', [
+    escrowImplementation = await viem.deployContract('SmartInvoiceEscrowPush', [
       mockWrappedETH,
       factory.address,
     ]);
@@ -102,7 +102,7 @@ describe('SmartInvoiceEscrow', function () {
     ]);
 
     arbitrableImplementation = await viem.deployContract(
-      'SmartInvoiceEscrowArbitrable',
+      'SmartInvoiceEscrowArbitrablePush',
       [mockWrappedETH, factory.address],
     );
 
@@ -164,7 +164,7 @@ describe('SmartInvoiceEscrow', function () {
     ]);
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     const address = await awaitInvoiceAddress(receipt);
-    escrow = await viem.getContractAt('SmartInvoiceEscrow', address!);
+    escrow = await viem.getContractAt('SmartInvoiceEscrowPush', address!);
     escrowAddress = getAddress(address!);
   });
 
@@ -221,7 +221,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const newInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -270,7 +270,7 @@ describe('SmartInvoiceEscrow', function () {
       const address = await awaitInvoiceAddress(receipt);
 
       const newInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -289,7 +289,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should revert init if invalid params', async function () {
       const currentTime = await currentTimestamp();
-      const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+      const newInvoice = await viem.deployContract('SmartInvoiceEscrowPush', [
         mockWrappedETH,
         factory.address,
       ]);
@@ -462,7 +462,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const invoiceAddr = await awaitInvoiceAddress(tx);
       const deployedInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         invoiceAddr!,
       );
       expect(await deployedInvoice.read.resolutionRateBPS()).to.equal(
@@ -631,7 +631,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -797,7 +797,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -824,7 +824,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -876,7 +876,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -905,7 +905,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
 
       const receipt = escrow.write.withdraw();
       await expect(receipt).to.revertedWithCustomError(escrow, 'NotTerminated');
@@ -926,7 +929,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
 
       await testClient.increaseTime({ seconds: 1000 });
       await setBalanceOf(mockToken, escrow.address, 10);
@@ -951,7 +957,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
 
       await testClient.increaseTime({ seconds: 1000 });
       // Don't set any balance
@@ -996,7 +1005,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
       await setBalanceOf(mockToken, escrow.address, 0);
       const receipt = escrow.write.lock([zeroHash]);
       await expect(receipt).to.be.revertedWithCustomError(
@@ -1035,7 +1047,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -1067,7 +1079,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -1406,7 +1418,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const regularInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrowArbitrable',
+        'SmartInvoiceEscrowArbitrablePush',
         tempAddress!,
       );
 
@@ -1446,7 +1458,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
       const receipt = await client.sendTransaction({
         to: escrow.address,
         value: 10n,
@@ -1477,7 +1492,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
 
       // Simulate ETH received via self-destruct by manually sending ETH to mockWETH
       // then transferring it to invoice address to simulate contract ETH balance
@@ -1524,7 +1542,10 @@ describe('SmartInvoiceEscrow', function () {
         requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress!);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress!,
+      );
 
       // Set ETH balance to wrap
       await testClient.setBalance({
@@ -1552,7 +1573,7 @@ describe('SmartInvoiceEscrow', function () {
   describe('Constructor Validation', function () {
     it('Should revert constructor with invalid wrapped ETH', async function () {
       await expect(
-        viem.deployContract('SmartInvoiceEscrow', [
+        viem.deployContract('SmartInvoiceEscrowPush', [
           zeroAddress,
           factory.address,
         ]),
@@ -1564,7 +1585,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should revert constructor with invalid factory', async function () {
       await expect(
-        viem.deployContract('SmartInvoiceEscrow', [
+        viem.deployContract('SmartInvoiceEscrowPush', [
           mockWrappedETH,
           zeroAddress,
         ]),
@@ -1572,7 +1593,7 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should set immutable values correctly', async function () {
-      const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+      const newInvoice = await viem.deployContract('SmartInvoiceEscrowPush', [
         mockWrappedETH,
         factory.address,
       ]);
@@ -1679,7 +1700,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -1728,7 +1749,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -1768,7 +1789,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -1828,7 +1849,7 @@ describe('SmartInvoiceEscrow', function () {
   });
 
   describe('Address Update Functionality', function () {
-    let updatableInvoice: ContractTypesMap['SmartInvoiceEscrow'];
+    let updatableInvoice: ContractTypesMap['SmartInvoiceEscrowPush'];
 
     beforeEach(async function () {
       const data = encodeInitData({
@@ -1855,7 +1876,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       updatableInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
     });
@@ -2055,7 +2076,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2136,7 +2157,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2178,7 +2199,7 @@ describe('SmartInvoiceEscrow', function () {
 
   describe('Additional Error Handling and Edge Cases', function () {
     it('Should revert init when called directly', async function () {
-      const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+      const newInvoice = await viem.deployContract('SmartInvoiceEscrowPush', [
         mockWrappedETH,
         factory.address,
       ]);
@@ -2209,7 +2230,7 @@ describe('SmartInvoiceEscrow', function () {
     it('Should revert with invalid resolution rate bounds', async function () {
       // Mock a factory that returns invalid resolution rate
       const mockFactory = await viem.deployContract('MockFactory');
-      const testInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+      const testInvoice = await viem.deployContract('SmartInvoiceEscrowPush', [
         mockWrappedETH,
         mockFactory.address,
       ]);
@@ -2351,7 +2372,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -2400,7 +2421,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrowArbitrable',
+        'SmartInvoiceEscrowArbitrablePush',
         tempAddress!,
       );
 
@@ -2519,7 +2540,7 @@ describe('SmartInvoiceEscrow', function () {
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         tempAddress!,
       );
 
@@ -2566,7 +2587,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2666,7 +2687,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2733,7 +2754,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2803,7 +2824,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2855,7 +2876,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 
@@ -2919,7 +2940,7 @@ describe('SmartInvoiceEscrow', function () {
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
       const tempInvoice = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         address!,
       );
 

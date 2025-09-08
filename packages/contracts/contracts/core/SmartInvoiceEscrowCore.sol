@@ -21,9 +21,9 @@ import {
 } from "contracts/interfaces/ISmartInvoiceFactory.sol";
 import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
 
-/// @title SmartInvoiceEscrowBase
-/// @notice A comprehensive base escrow contract with milestone-based payments and updatable addresses
-abstract contract SmartInvoiceEscrowBase is
+/// @title SmartInvoiceEscrowCore
+/// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
+abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
     Initializable,
     ReentrancyGuard
@@ -349,20 +349,27 @@ abstract contract SmartInvoiceEscrowBase is
     }
 
     /**
-     * @notice Checks if the escrow has sufficient funds to cover milestones up to a specific milestone
+     * @notice Checks if there are enough funds remaining to cover unpaid milestones up to `_milestoneId`.
      * @param _milestoneId The milestone index to check funding for (0-based)
-     * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
+     * @return True if current balance can cover milestones from `milestone` through `_milestoneId` (inclusive).
+     * @dev If `_milestoneId` is before the current milestone, returns true.
      * @dev Reverts if milestoneId is out of bounds
      */
     function isFunded(uint256 _milestoneId) external view returns (bool) {
         if (_milestoneId >= amounts.length) revert InvalidMilestone();
+        if (_milestoneId < milestone) return true;
 
-        uint256 requiredAmount;
-        for (uint256 i = milestone; i <= _milestoneId; i++) {
-            requiredAmount += amounts[i];
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 required;
+
+        for (uint256 i = milestone; i <= _milestoneId; ) {
+            required += amounts[i];
+            if (required > balance) return false; // short-circuit
+            unchecked {
+                ++i;
+            }
         }
-
-        return IERC20(token).balanceOf(address(this)) >= requiredAmount;
+        return true;
     }
 
     /**
@@ -387,16 +394,16 @@ abstract contract SmartInvoiceEscrowBase is
             }
             if (balance < amount) revert InsufficientBalance();
 
-            milestone = milestone + 1;
-            _transferPayment(token, amount);
-            released = released + amount;
+            milestone += 1;
+            _transferToProvider(token, amount);
+            released += amount;
             emit Release(currentMilestone, amount);
         } else {
             // All milestones completed, release any remaining balance
             if (balance == 0) revert BalanceIsZero();
 
-            _transferPayment(token, balance);
-            released = released + balance;
+            _transferToProvider(token, balance);
+            released += balance;
             emit ReleaseRemainder(balance);
         }
     }
@@ -406,7 +413,7 @@ abstract contract SmartInvoiceEscrowBase is
      *         Uses the internal `_release` function to perform the actual release
      */
     function release() external virtual override nonReentrant {
-        return _release();
+        _release();
     }
 
     /**
@@ -427,19 +434,22 @@ abstract contract SmartInvoiceEscrowBase is
         uint256 balance = IERC20(token).balanceOf(address(this));
         uint256 amount;
         // Calculate total amount to release from current milestone to target milestone
-        for (uint256 j = milestone; j <= _milestone; j++) {
+        for (uint256 i = milestone; i <= _milestone; ) {
             // For the last milestone, release all remaining balance if it exceeds cumulative amount
-            if (j == amounts.length - 1 && amount + amounts[j] < balance) {
-                emit Release(j, balance - amount);
+            if (i == amounts.length - 1 && amount + amounts[i] < balance) {
+                emit Release(i, balance - amount);
                 amount = balance;
             } else {
-                emit Release(j, amounts[j]);
-                amount = amount + amounts[j];
+                emit Release(i, amounts[i]);
+                amount = amount + amounts[i];
+            }
+            unchecked {
+                ++i;
             }
         }
         if (balance < amount) revert InsufficientBalance();
 
-        _transferPayment(token, amount);
+        _transferToProvider(token, amount);
         released = released + amount;
         milestone = _milestone + 1;
     }
@@ -464,7 +474,7 @@ abstract contract SmartInvoiceEscrowBase is
             uint256 balance = IERC20(_token).balanceOf(address(this));
             if (balance == 0) revert BalanceIsZero();
 
-            _transferPayment(_token, balance);
+            _transferToProvider(_token, balance);
         }
     }
 
@@ -478,7 +488,7 @@ abstract contract SmartInvoiceEscrowBase is
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
 
-        _withdrawDeposit(token, balance);
+        _transferToClient(token, balance);
         milestone = amounts.length;
 
         emit Withdraw(balance);
@@ -489,7 +499,7 @@ abstract contract SmartInvoiceEscrowBase is
      *         Uses the internal `_withdraw` function to perform the actual withdrawal
      */
     function withdraw() external override nonReentrant {
-        return _withdraw();
+        _withdraw();
     }
 
     /**
@@ -505,7 +515,7 @@ abstract contract SmartInvoiceEscrowBase is
             uint256 balance = IERC20(_token).balanceOf(address(this));
             if (balance == 0) revert BalanceIsZero();
 
-            _withdrawDeposit(_token, balance);
+            _transferToClient(_token, balance);
         }
     }
 
@@ -524,7 +534,7 @@ abstract contract SmartInvoiceEscrowBase is
      * @param _token The token to transfer
      * @param _amount The amount to transfer
      */
-    function _transferPayment(
+    function _transferToProvider(
         address _token,
         uint256 _amount
     ) internal virtual {
@@ -532,17 +542,7 @@ abstract contract SmartInvoiceEscrowBase is
             ? providerReceiver
             : provider;
 
-        if (feeBPS > 0 && treasury != address(0)) {
-            uint256 feeAmount = (_amount * feeBPS) / BPS_DENOMINATOR;
-            uint256 netAmount = _amount - feeAmount;
-
-            IERC20(_token).safeTransfer(treasury, feeAmount);
-            IERC20(_token).safeTransfer(recipient, netAmount);
-
-            emit FeeTransferred(_token, feeAmount, treasury);
-        } else {
-            IERC20(_token).safeTransfer(recipient, _amount);
-        }
+        _transferWithFees(_token, _amount, recipient);
     }
 
     /**
@@ -551,7 +551,7 @@ abstract contract SmartInvoiceEscrowBase is
      * @param _token The token to withdraw
      * @param _amount The amount to withdraw
      */
-    function _withdrawDeposit(
+    function _transferToClient(
         address _token,
         uint256 _amount
     ) internal virtual {
@@ -559,18 +559,38 @@ abstract contract SmartInvoiceEscrowBase is
             ? clientReceiver
             : client;
 
+        _transferWithFees(_token, _amount, recipient);
+    }
+
+    /**
+     * @dev Internal function to transfer payment to a recipient and handle fees
+     * @param _token The token to transfer
+     * @param _amount The amount to transfer
+     * @param _recipient The recipient address
+     */
+    function _transferWithFees(
+        address _token,
+        uint256 _amount,
+        address _recipient
+    ) internal virtual {
         if (feeBPS > 0 && treasury != address(0)) {
             uint256 feeAmount = (_amount * feeBPS) / BPS_DENOMINATOR;
             uint256 netAmount = _amount - feeAmount;
 
-            IERC20(_token).safeTransfer(treasury, feeAmount);
-            IERC20(_token).safeTransfer(recipient, netAmount);
+            _transferToken(_token, treasury, feeAmount);
+            _transferToken(_token, _recipient, netAmount);
 
             emit FeeTransferred(_token, feeAmount, treasury);
         } else {
-            IERC20(_token).safeTransfer(recipient, _amount);
+            _transferToken(_token, _recipient, _amount);
         }
     }
+
+    function _transferToken(
+        address _token,
+        address _recipient,
+        uint256 _amount
+    ) internal virtual;
 
     /**
      * @notice Receives ETH transfers and wraps them as WETH

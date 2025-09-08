@@ -264,9 +264,9 @@ export const getLockedEscrow = async (
   mockWrappedETH: Hex,
   value = 0n,
   requireVerification: boolean = false,
-): Promise<ContractTypesMap['SmartInvoiceEscrow']> => {
+): Promise<ContractTypesMap['SmartInvoiceEscrowPush']> => {
   const currentTime = await currentTimestamp();
-  const newInvoice = await viem.deployContract('SmartInvoiceEscrow', [
+  const newInvoice = await viem.deployContract('SmartInvoiceEscrowPush', [
     mockWrappedETH,
     factory.address,
   ]);
@@ -289,7 +289,7 @@ export const getLockedEscrow = async (
     throw new Error('Failed to get invoice address');
   }
   const lockedInvoice = await viem.getContractAt(
-    'SmartInvoiceEscrow',
+    'SmartInvoiceEscrowPush',
     newInvoiceAddress,
   );
 
@@ -326,12 +326,12 @@ export const getLockedArbitrableEscrow = async (
   mockWrappedETH: Hex,
   value = 0n,
   requireVerification: boolean = false,
-): Promise<ContractTypesMap['SmartInvoiceEscrowArbitrable']> => {
+): Promise<ContractTypesMap['SmartInvoiceEscrowArbitrablePush']> => {
   const currentTime = await currentTimestamp();
-  const newInvoice = await viem.deployContract('SmartInvoiceEscrowArbitrable', [
-    mockWrappedETH,
-    factory.address,
-  ]);
+  const newInvoice = await viem.deployContract(
+    'SmartInvoiceEscrowArbitrablePush',
+    [mockWrappedETH, factory.address],
+  );
 
   const initReceipt = await createArbitrableEscrow(
     factory,
@@ -351,7 +351,7 @@ export const getLockedArbitrableEscrow = async (
     throw new Error('Failed to get invoice address');
   }
   const lockedInvoice = await viem.getContractAt(
-    'SmartInvoiceEscrowArbitrable',
+    'SmartInvoiceEscrowArbitrablePush',
     newInvoiceAddress,
   );
 

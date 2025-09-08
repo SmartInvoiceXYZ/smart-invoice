@@ -4,8 +4,8 @@
 pragma solidity 0.8.30;
 
 import {
-    SmartInvoiceEscrowBase
-} from "contracts/base/SmartInvoiceEscrowBase.sol";
+    SmartInvoiceEscrowCore
+} from "contracts/core/SmartInvoiceEscrowCore.sol";
 
 import {
     SafeERC20,
@@ -15,7 +15,7 @@ import {
 /// @title SmartInvoiceEscrow
 /// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
 /// @dev Supports direct dispute resolution
-contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
+abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
     using SafeERC20 for IERC20;
 
     error InvalidResolutionRate();
@@ -41,11 +41,6 @@ contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
     address public resolver;
     /// @notice Resolution fee rate in basis points (BPS) charged by individual resolvers
     uint256 public resolutionRateBPS;
-
-    constructor(
-        address _wrappedETH,
-        address _factory
-    ) SmartInvoiceEscrowBase(_wrappedETH, _factory) {}
 
     function _handleResolverData(bytes memory _resolverData) internal override {
         if (_resolverData.length < 64) revert InvalidResolverData();
@@ -112,13 +107,13 @@ contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
             revert ResolutionMismatch();
 
         if (_providerAward > 0) {
-            _transferPayment(token, _providerAward);
+            _transferToProvider(token, _providerAward);
         }
         if (_clientAward > 0) {
-            _withdrawDeposit(token, _clientAward);
+            _transferToClient(token, _clientAward);
         }
         if (resolutionFee > 0) {
-            IERC20(token).safeTransfer(resolver, resolutionFee);
+            _transferToken(token, resolver, resolutionFee);
         }
 
         // Complete all milestones

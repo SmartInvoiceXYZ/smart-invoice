@@ -119,7 +119,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
     typeof splitsWarehouseAbi,
     { public: PublicClient; wallet: WalletClient }
   >;
-  let escrow: ContractTypesMap['SmartInvoiceEscrow'];
+  let escrow: ContractTypesMap['SmartInvoiceEscrowPush'];
   let token: GetContractReturnType<
     typeof wethAbi,
     { public: PublicClient; wallet: WalletClient }
@@ -165,7 +165,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
       SEPOLIA_CONTRACTS.wrappedETH,
     ]);
-    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrowPush', [
       SEPOLIA_CONTRACTS.wrappedETH,
       escrowFactory.address,
     ]);
@@ -288,7 +288,10 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
         abi: safeAbi,
         client: { public: publicClient, wallet: deployer },
       });
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', escrowAddress);
+      escrow = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        escrowAddress,
+      );
       split = splitAddress;
 
       // Set up split contract instance for testing
@@ -565,7 +568,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
 
       expect(splitAddress).to.equal(zeroAddress);
       const escrow2 = await viem.getContractAt(
-        'SmartInvoiceEscrow',
+        'SmartInvoiceEscrowPush',
         escrowAddress,
       );
       expect(await escrow2.read.provider()).to.equal(safeAddress);
