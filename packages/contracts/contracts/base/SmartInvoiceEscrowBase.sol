@@ -170,6 +170,7 @@ abstract contract SmartInvoiceEscrowBase is
      * @dev Does not affect release/withdraw permissions.
      */
     function verify() external override {
+        if (verified) revert AlreadyVerified();
         if (msg.sender != client) revert NotClient(msg.sender);
         verified = true;
         emit Verified(client, address(this));

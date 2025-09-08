@@ -151,6 +151,7 @@ interface ISmartInvoiceEscrow {
     error InvalidFeeBPS();
     error InvalidTreasury();
     error ZeroAmount();
+    error AlreadyVerified();
 
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
