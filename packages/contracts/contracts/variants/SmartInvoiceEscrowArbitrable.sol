@@ -143,7 +143,7 @@ contract SmartInvoiceEscrowArbitrable is
         if (locked) revert Locked();
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
-        if (block.timestamp >= terminationTime) revert Terminated();
+        if (block.timestamp > terminationTime) revert Terminated();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 

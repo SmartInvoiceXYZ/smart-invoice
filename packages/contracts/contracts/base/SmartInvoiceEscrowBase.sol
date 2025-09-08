@@ -279,7 +279,7 @@ abstract contract SmartInvoiceEscrowBase is
         string memory _detailsURI
     ) internal virtual {
         if (locked) revert Locked();
-        if (block.timestamp >= terminationTime) revert Terminated();
+        if (block.timestamp > terminationTime) revert Terminated();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
         if (_milestones.length == 0) revert NoMilestones();
