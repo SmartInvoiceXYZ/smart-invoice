@@ -93,7 +93,7 @@ contract SmartInvoiceEscrowArbitrable is
      * @dev Internal function to decode initialization data and set contract state
      * @param _provider The address of the service provider
      * @param _amounts Array of milestone amounts to validate and store
-     * @param _data ABI-encoded InitData containing all escrow configuration parameters
+     * @param _data InitData containing all escrow configuration parameters
      * @dev IMPORTANT: The token MUST be a standard ERC20 token
      *      Fee-on-transfer, rebasing, or ERC777 tokens may break the contract functionality
      *      Resolution rate is fetched from the factory and must not exceed 1000 BPS (10%)
@@ -101,56 +101,10 @@ contract SmartInvoiceEscrowArbitrable is
     function _handleData(
         address _provider,
         uint256[] calldata _amounts,
-        bytes calldata _data
+        InitData memory _data
     ) internal virtual override {
-        if (_provider == address(0)) revert InvalidProvider();
-        provider = _provider;
-        amounts = _amounts;
-        uint256 _total = 0;
-        uint256 amountsLength = amounts.length;
-        if (amountsLength == 0) revert NoMilestones();
-        if (amountsLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
-        for (uint256 i = 0; i < amountsLength; ) {
-            _total += amounts[i];
-            unchecked {
-                ++i;
-            }
-        }
-        total = _total;
-
-        InitData memory initData = abi.decode(_data, (InitData));
-
-        if (initData.client == address(0)) revert InvalidClient();
-        if (initData.token == address(0)) revert InvalidToken();
-        if (initData.token.code.length == 0) revert InvalidToken();
-        if (initData.terminationTime <= block.timestamp) revert DurationEnded();
-        if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
-            revert DurationTooLong();
-        if (initData.feeBPS > 1000) revert InvalidFeeBPS(); // max 10% (1000/10000)
-        if (initData.feeBPS > 0 && initData.treasury == address(0))
-            revert InvalidTreasury();
-        if (initData.providerReceiver == address(this))
-            revert InvalidProviderReceiver();
-        if (initData.clientReceiver == address(this))
-            revert InvalidClientReceiver();
-
-        client = initData.client;
-        token = initData.token;
-        terminationTime = initData.terminationTime;
-        providerReceiver = initData.providerReceiver;
-        clientReceiver = initData.clientReceiver;
-        feeBPS = initData.feeBPS;
-        treasury = initData.treasury;
-
-        _handleResolverData(initData.resolverData);
-
-        if (!initData.requireVerification) {
-            verified = true;
-            emit Verified(client, address(this));
-        }
-
-        emit InvoiceInit(provider, client, amounts, initData.details);
-        emit MetaEvidence(metaEvidenceId, initData.details);
+        super._handleData(_provider, _amounts, _data);
+        emit MetaEvidence(metaEvidenceId, _data.details);
     }
 
     function _handleResolverData(
@@ -165,6 +119,17 @@ contract SmartInvoiceEscrowArbitrable is
 
         resolver = IArbitrator(_resolver);
         arbitratorExtraData = extra; // bytes("") works too
+    }
+
+    function _addMilestones(
+        uint256[] calldata _milestones,
+        string memory _detailsURI
+    ) internal virtual override {
+        super._addMilestones(_milestones, _detailsURI);
+        if (bytes(_detailsURI).length > 0) {
+            metaEvidenceId = metaEvidenceId + 1;
+            emit MetaEvidence(metaEvidenceId, _detailsURI);
+        }
     }
 
     /**

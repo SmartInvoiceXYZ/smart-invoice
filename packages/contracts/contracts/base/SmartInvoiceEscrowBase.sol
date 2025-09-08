@@ -98,21 +98,22 @@ abstract contract SmartInvoiceEscrowBase is
     ) external virtual override initializer {
         if (msg.sender != address(FACTORY)) revert OnlyFactory();
 
-        _handleData(_provider, _amounts, _data);
+        InitData memory initData = abi.decode(_data, (InitData));
+        _handleData(_provider, _amounts, initData);
     }
 
     /**
      * @dev Internal function to decode initialization data and set contract state
      * @param _provider The address of the service provider
      * @param _amounts Array of milestone amounts to validate and store
-     * @param _data ABI-encoded InitData containing all escrow configuration parameters
+     * @param _data InitData containing all escrow configuration parameters
      * @dev IMPORTANT: The token MUST be a standard ERC20 token
      *      Fee-on-transfer, rebasing, or ERC777 tokens may break the contract functionality
      */
     function _handleData(
         address _provider,
         uint256[] calldata _amounts,
-        bytes calldata _data
+        InitData memory _data
     ) internal virtual {
         if (_provider == address(0)) revert InvalidProvider();
         provider = _provider;
@@ -122,6 +123,7 @@ abstract contract SmartInvoiceEscrowBase is
         if (amountsLength == 0) revert NoMilestones();
         if (amountsLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
         for (uint256 i = 0; i < amountsLength; ) {
+            if (amounts[i] == 0) revert ZeroAmount();
             _total += amounts[i];
             unchecked {
                 ++i;
@@ -129,38 +131,36 @@ abstract contract SmartInvoiceEscrowBase is
         }
         total = _total;
 
-        InitData memory initData = abi.decode(_data, (InitData));
-
-        if (initData.client == address(0)) revert InvalidClient();
-        if (initData.token == address(0)) revert InvalidToken();
-        if (initData.token.code.length == 0) revert InvalidToken();
-        if (initData.terminationTime <= block.timestamp) revert DurationEnded();
-        if (initData.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
+        if (_data.client == address(0)) revert InvalidClient();
+        if (_data.token == address(0)) revert InvalidToken();
+        if (_data.token.code.length == 0) revert InvalidToken();
+        if (_data.terminationTime <= block.timestamp) revert DurationEnded();
+        if (_data.terminationTime > block.timestamp + MAX_TERMINATION_TIME)
             revert DurationTooLong();
-        if (initData.feeBPS > 1000) revert InvalidFeeBPS(); // max 10% (1000/10000)
-        if (initData.feeBPS > 0 && initData.treasury == address(0))
+        if (_data.feeBPS > 1000) revert InvalidFeeBPS(); // max 10% (1000/10000)
+        if (_data.feeBPS > 0 && _data.treasury == address(0))
             revert InvalidTreasury();
-        if (initData.providerReceiver == address(this))
+        if (_data.providerReceiver == address(this))
             revert InvalidProviderReceiver();
-        if (initData.clientReceiver == address(this))
+        if (_data.clientReceiver == address(this))
             revert InvalidClientReceiver();
 
-        client = initData.client;
-        token = initData.token;
-        terminationTime = initData.terminationTime;
-        providerReceiver = initData.providerReceiver;
-        clientReceiver = initData.clientReceiver;
-        feeBPS = initData.feeBPS;
-        treasury = initData.treasury;
+        client = _data.client;
+        token = _data.token;
+        terminationTime = _data.terminationTime;
+        providerReceiver = _data.providerReceiver;
+        clientReceiver = _data.clientReceiver;
+        feeBPS = _data.feeBPS;
+        treasury = _data.treasury;
 
-        _handleResolverData(initData.resolverData);
+        _handleResolverData(_data.resolverData);
 
-        if (!initData.requireVerification) {
+        if (!_data.requireVerification) {
             verified = true;
             emit Verified(client, address(this));
         }
 
-        emit InvoiceInit(provider, client, amounts, initData.details);
+        emit InvoiceInit(provider, client, amounts, _data.details);
     }
 
     function _handleResolverData(bytes memory _resolverData) internal virtual;
@@ -288,6 +288,7 @@ abstract contract SmartInvoiceEscrowBase is
 
         uint256 newTotal = total;
         for (uint256 i = 0; i < _milestones.length; ) {
+            if (_milestones[i] == 0) revert ZeroAmount();
             amounts.push(_milestones[i]);
             newTotal += _milestones[i];
             unchecked {
