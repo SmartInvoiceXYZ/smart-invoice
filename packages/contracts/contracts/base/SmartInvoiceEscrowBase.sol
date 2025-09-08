@@ -391,6 +391,7 @@ abstract contract SmartInvoiceEscrowBase is
     ) external virtual override nonReentrant {
         if (locked) revert Locked();
         if (msg.sender != client) revert NotClient(msg.sender);
+        if (block.timestamp > terminationTime) revert Terminated();
         if (_milestone < milestone) revert InvalidMilestone();
         if (_milestone >= amounts.length) revert InvalidMilestone();
 
