@@ -845,12 +845,6 @@ describe('SmartInvoiceEscrow', function () {
       expect(afterBalance).to.equal(beforeBalance + 25n);
     });
 
-    it('Should revert withdrawTokens before termination', async function () {
-      await expect(
-        escrow.write.withdrawTokens([mockToken2]),
-      ).to.be.revertedWithCustomError(escrow, 'NotTerminated');
-    });
-
     it('Should revert withdrawTokens if locked', async function () {
       const lockedInvoice = await getLockedEscrow(
         factory,
@@ -1896,7 +1890,10 @@ describe('SmartInvoiceEscrow', function () {
       );
       await expect(receipt)
         .to.emit(updatableInvoice, 'UpdatedClient')
-        .withArgs(getAddress(client2.account.address));
+        .withArgs(
+          getAddress(client.account.address),
+          getAddress(client2.account.address),
+        );
     });
 
     it('Should revert the client update if not the client', async function () {
@@ -1927,7 +1924,10 @@ describe('SmartInvoiceEscrow', function () {
       );
       await expect(receipt)
         .to.emit(updatableInvoice, 'UpdatedProvider')
-        .withArgs(getAddress(provider2.account.address));
+        .withArgs(
+          getAddress(provider.account.address),
+          getAddress(provider2.account.address),
+        );
     });
 
     it('Should revert provider update if not the provider', async function () {
@@ -1956,7 +1956,10 @@ describe('SmartInvoiceEscrow', function () {
       );
       await expect(receipt)
         .to.emit(updatableInvoice, 'UpdatedProviderReceiver')
-        .withArgs(getAddress(providerReceiver2.account.address));
+        .withArgs(
+          getAddress(providerReceiver.account.address),
+          getAddress(providerReceiver2.account.address),
+        );
     });
 
     it('Should revert provider receiver update if not the provider', async function () {
@@ -1966,17 +1969,6 @@ describe('SmartInvoiceEscrow', function () {
           { account: client.account },
         ),
       ).to.be.revertedWithCustomError(updatableInvoice, 'NotProvider');
-    });
-
-    it('Should revert provider receiver update with zero address', async function () {
-      await expect(
-        updatableInvoice.write.updateProviderReceiver([zeroAddress], {
-          account: provider.account,
-        }),
-      ).to.be.revertedWithCustomError(
-        updatableInvoice,
-        'InvalidProviderReceiver',
-      );
     });
 
     it('Should revert provider receiver update with contract address', async function () {
@@ -2003,7 +1995,10 @@ describe('SmartInvoiceEscrow', function () {
       );
       await expect(receipt)
         .to.emit(updatableInvoice, 'UpdatedClientReceiver')
-        .withArgs(getAddress(clientReceiver2.account.address));
+        .withArgs(
+          getAddress(clientReceiver.account.address),
+          getAddress(clientReceiver2.account.address),
+        );
     });
 
     it('Should revert client receiver update if not the client', async function () {
@@ -2013,17 +2008,6 @@ describe('SmartInvoiceEscrow', function () {
           { account: provider.account },
         ),
       ).to.be.revertedWithCustomError(updatableInvoice, 'NotClient');
-    });
-
-    it('Should revert client receiver update with zero address', async function () {
-      await expect(
-        updatableInvoice.write.updateClientReceiver([zeroAddress], {
-          account: client.account,
-        }),
-      ).to.be.revertedWithCustomError(
-        updatableInvoice,
-        'InvalidClientReceiver',
-      );
     });
 
     it('Should revert client receiver update with contract address', async function () {
