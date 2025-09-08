@@ -65,16 +65,16 @@ abstract contract SmartInvoiceEscrowBase is
     /// @notice Array of milestone payment amounts
     uint256[] public amounts;
     /// @notice Total amount across all milestones
-    uint256 public total = 0;
+    uint256 public total;
     /// @notice Whether the contract is locked due to an active dispute
     bool public locked;
     /// @notice Off-chain signal that the client has verified control of this address.
     /// @dev Informational only; does not affect permissions or fund flow.
     bool public verified;
     /// @notice Current milestone index (0 to amounts.length)
-    uint256 public milestone = 0;
+    uint256 public milestone;
     /// @notice Total amount released to provider so far
-    uint256 public released = 0;
+    uint256 public released;
 
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
@@ -118,11 +118,11 @@ abstract contract SmartInvoiceEscrowBase is
         if (_provider == address(0)) revert InvalidProvider();
         provider = _provider;
         amounts = _amounts;
-        uint256 _total = 0;
+        uint256 _total;
         uint256 amountsLength = amounts.length;
         if (amountsLength == 0) revert NoMilestones();
         if (amountsLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
-        for (uint256 i = 0; i < amountsLength; ) {
+        for (uint256 i; i < amountsLength; ) {
             if (amounts[i] == 0) revert ZeroAmount();
             _total += amounts[i];
             unchecked {
@@ -287,7 +287,7 @@ abstract contract SmartInvoiceEscrowBase is
         if (newLength > MAX_MILESTONE_LIMIT) revert ExceedsMilestoneLimit();
 
         uint256 newTotal = total;
-        for (uint256 i = 0; i < _milestones.length; ) {
+        for (uint256 i; i < _milestones.length; ) {
             if (_milestones[i] == 0) revert ZeroAmount();
             amounts.push(_milestones[i]);
             newTotal += _milestones[i];
@@ -331,13 +331,12 @@ abstract contract SmartInvoiceEscrowBase is
     function isFunded(uint256 _milestoneId) external view returns (bool) {
         if (_milestoneId >= amounts.length) revert InvalidMilestone();
 
-        uint256 requiredAmount = released;
+        uint256 requiredAmount;
         for (uint256 i = milestone; i <= _milestoneId; i++) {
             requiredAmount += amounts[i];
         }
 
-        return
-            IERC20(token).balanceOf(address(this)) + released >= requiredAmount;
+        return IERC20(token).balanceOf(address(this)) >= requiredAmount;
     }
 
     /**
@@ -399,7 +398,7 @@ abstract contract SmartInvoiceEscrowBase is
         _autoVerify();
 
         uint256 balance = IERC20(token).balanceOf(address(this));
-        uint256 amount = 0;
+        uint256 amount;
         // Calculate total amount to release from current milestone to target milestone
         for (uint256 j = milestone; j <= _milestone; j++) {
             // For the last milestone, release all remaining balance if it exceeds cumulative amount
