@@ -152,6 +152,7 @@ interface ISmartInvoiceEscrow {
     error InvalidTreasury();
     error ZeroAmount();
     error AlreadyVerified();
+    error NoChange();
 
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
@@ -214,20 +215,33 @@ interface ISmartInvoiceEscrow {
     event Verified(address indexed client, address indexed invoice);
 
     /// @notice Emitted when the client address is updated.
-    /// @param client The new client address.
-    event UpdatedClient(address indexed client);
+    /// @param oldClient The old client address.
+    /// @param newClient The new client address.
+    event UpdatedClient(address indexed oldClient, address indexed newClient);
 
     /// @notice Emitted when the provider address is updated.
-    /// @param provider The new provider address.
-    event UpdatedProvider(address indexed provider);
+    /// @param oldProvider The old provider address.
+    /// @param newProvider The new provider address.
+    event UpdatedProvider(
+        address indexed oldProvider,
+        address indexed newProvider
+    );
 
     /// @notice Emitted when the provider receiver address is updated.
-    /// @param providerReceiver The new provider receiver address.
-    event UpdatedProviderReceiver(address indexed providerReceiver);
+    /// @param oldProviderReceiver The old provider receiver address.
+    /// @param newProviderReceiver The new provider receiver address.
+    event UpdatedProviderReceiver(
+        address indexed oldProviderReceiver,
+        address indexed newProviderReceiver
+    );
 
     /// @notice Emitted when the client receiver address is updated.
-    /// @param clientReceiver The new client receiver address.
-    event UpdatedClientReceiver(address indexed clientReceiver);
+    /// @param oldClientReceiver The old client receiver address.
+    /// @param newClientReceiver The new client receiver address.
+    event UpdatedClientReceiver(
+        address indexed oldClientReceiver,
+        address indexed newClientReceiver
+    );
 
     /// @notice Emitted when platform fees are transferred to the treasury
     /// @param token The address of the token used for fee payment

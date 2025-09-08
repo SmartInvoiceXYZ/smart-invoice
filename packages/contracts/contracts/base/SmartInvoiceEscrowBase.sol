@@ -194,11 +194,15 @@ abstract contract SmartInvoiceEscrowBase is
      */
     function updateClient(address _client) external {
         if (msg.sender != client) revert NotClient(msg.sender);
-        if (_client == address(0)) revert InvalidClient();
         if (locked) revert Locked();
+        if (_client == address(0) || _client == address(this))
+            revert InvalidClient();
+        if (_client == client) revert NoChange();
 
+        address oldClient = client;
         client = _client;
-        emit UpdatedClient(_client);
+        emit UpdatedClient(oldClient, _client);
+        _updateClientReceiver(address(0));
     }
 
     /**
@@ -208,41 +212,64 @@ abstract contract SmartInvoiceEscrowBase is
      */
     function updateProvider(address _provider) external {
         if (msg.sender != provider) revert NotProvider(msg.sender);
-        if (_provider == address(0)) revert InvalidProvider();
         if (locked) revert Locked();
+        if (_provider == address(0) || _provider == address(this))
+            revert InvalidProvider();
+        if (_provider == provider) revert NoChange();
 
+        address oldProvider = provider;
         provider = _provider;
-        emit UpdatedProvider(_provider);
+        emit UpdatedProvider(oldProvider, _provider);
+        _updateProviderReceiver(address(0));
     }
 
     /**
      * @notice Updates the provider's receiver address for milestone payments
-     * @param _providerReceiver The new receiver address (cannot be zero or this contract)
-     * @dev Only callable by current provider when contract is not locked
+     * @param _providerReceiver The new receiver address (cannot be this contract)
+     * @dev allows setting to zero address to fallback to provider
      */
     function updateProviderReceiver(address _providerReceiver) external {
         if (msg.sender != provider) revert NotProvider(msg.sender);
-        if (
-            _providerReceiver == address(0) ||
-            _providerReceiver == address(this)
-        ) revert InvalidProviderReceiver();
+        if (_providerReceiver == providerReceiver) revert NoChange();
+        _updateProviderReceiver(_providerReceiver);
+    }
 
+    /**
+     * @dev Internal function to update the provider receiver address
+     * @param _providerReceiver The new provider receiver address
+     */
+    function _updateProviderReceiver(address _providerReceiver) internal {
+        if (_providerReceiver == address(this))
+            revert InvalidProviderReceiver();
+        if (_providerReceiver == providerReceiver) return;
+
+        address oldProviderReceiver = providerReceiver;
         providerReceiver = _providerReceiver;
-        emit UpdatedProviderReceiver(_providerReceiver);
+        emit UpdatedProviderReceiver(oldProviderReceiver, _providerReceiver);
     }
 
     /**
      * @notice Updates the client's receiver address for withdrawal payments
-     * @param _clientReceiver The new receiver address (cannot be zero or this contract)
-     * @dev Only callable by current client when contract is not locked
+     * @param _clientReceiver The new receiver address (cannot be this contract)
+     * @dev allows setting to zero address to fallback to client
      */
     function updateClientReceiver(address _clientReceiver) external {
         if (msg.sender != client) revert NotClient(msg.sender);
-        if (_clientReceiver == address(0) || _clientReceiver == address(this))
-            revert InvalidClientReceiver();
+        if (_clientReceiver == clientReceiver) revert NoChange();
+        _updateClientReceiver(_clientReceiver);
+    }
 
+    /**
+     * @dev Internal function to update the client receiver address
+     * @param _clientReceiver The new client receiver address
+     */
+    function _updateClientReceiver(address _clientReceiver) internal {
+        if (_clientReceiver == address(this)) revert InvalidClientReceiver();
+        if (_clientReceiver == clientReceiver) return;
+
+        address oldClientReceiver = clientReceiver;
         clientReceiver = _clientReceiver;
-        emit UpdatedClientReceiver(_clientReceiver);
+        emit UpdatedClientReceiver(oldClientReceiver, _clientReceiver);
     }
 
     /**
