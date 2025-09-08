@@ -53,7 +53,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         bool useReceivers,
         uint256 salt
     ) internal returns (SmartInvoiceEscrow) {
-        bytes memory resolverData = abi.encode(resolver);
+        bytes memory resolverData = abi.encode(resolver, 1000);
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
@@ -479,7 +479,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = ethAmount;
 
-        bytes memory resolverData = abi.encode(resolver);
+        bytes memory resolverData = abi.encode(resolver, 500);
 
         // Create invoice with wrapped ETH
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow

@@ -22,7 +22,6 @@ contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowBase {
         if (_resolverData.length != 0) {
             revert LockDisabled();
         }
-        // Leave `resolver` as zero address; nothing else to store.
     }
 
     /// @dev Disables the locking mechanism.

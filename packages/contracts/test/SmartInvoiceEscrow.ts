@@ -60,6 +60,7 @@ describe('SmartInvoiceEscrow', function () {
   let publicClient: PublicClient;
   let testClient: TestClient;
   let escrowAddress: Hex | null;
+  let resolverData: Hex;
 
   beforeEach(async function () {
     const walletClients = await viem.getWalletClients();
@@ -112,10 +113,10 @@ describe('SmartInvoiceEscrow', function () {
 
     terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
 
-    // only address encoded as bytes32
-    const resolverData = encodeAbiParameters(
-      [{ name: 'resolver', type: 'address' }],
-      [resolver.account.address],
+    // address + max rate encoded
+    resolverData = encodeAbiParameters(
+      [{ type: 'address' }, { type: 'uint256' }],
+      [resolver.account.address, 500n],
     );
     // Create basic escrow using InitData struct
     const data = encodeAbiParameters(
@@ -195,11 +196,6 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should emit InvoiceInit event during deployment', async function () {
-      // only address encoded as bytes32
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -248,11 +244,6 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should emit Verified event when requireVerification is false', async function () {
-      // only address encoded as bytes32
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -1713,10 +1704,6 @@ describe('SmartInvoiceEscrow', function () {
       // First, create an invoice with many milestones (close to limit)
       const manyAmounts = Array(48).fill(BigInt(1)); // 48 milestones
       const currentTime = await currentTimestamp();
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -1757,10 +1744,6 @@ describe('SmartInvoiceEscrow', function () {
       // Create invoice with 49 milestones
       const manyAmounts = Array(49).fill(BigInt(1));
       const currentTime = await currentTimestamp();
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -1848,11 +1831,6 @@ describe('SmartInvoiceEscrow', function () {
     let updatableInvoice: ContractTypesMap['SmartInvoiceEscrow'];
 
     beforeEach(async function () {
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
-
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -2052,11 +2030,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should send withdrawals to clientReceiver when set', async function () {
       const currentTime = await currentTimestamp();
 
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
-
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -2139,11 +2112,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should send withdrawals to updated clientReceiver after address change', async function () {
       const currentTime = await currentTimestamp();
 
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
-
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -2214,10 +2182,6 @@ describe('SmartInvoiceEscrow', function () {
         mockWrappedETH,
         factory.address,
       ]);
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2255,11 +2219,6 @@ describe('SmartInvoiceEscrow', function () {
         resolver.account.address,
         1001n,
       ]);
-
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2479,10 +2438,6 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should properly emit events during initialization', async function () {
       const currentTime = await currentTimestamp();
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
       const data = encodeInitData({
         client: client.account.address,
         resolverData,
@@ -2586,10 +2541,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should set fee parameters during initialization', async function () {
       const feeBPS = 500n; // 5%
       const treasury = randomSigner.account.address;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2626,10 +2577,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should revert initialization with invalid feeBPS', async function () {
       const invalidFeeBPS = 1001n; // > 1000 (10%)
       const treasury = randomSigner.account.address;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2662,10 +2609,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should revert initialization with invalid treasury when feeBPS > 0', async function () {
       const feeBPS = 500n; // 5%
       const invalidTreasury = zeroAddress;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2698,10 +2641,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should deduct fees on provider payment', async function () {
       const feeBPS = 1000n; // 10%
       const treasury = randomSigner.account.address;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2769,10 +2708,6 @@ describe('SmartInvoiceEscrow', function () {
     it('Should deduct fees on client withdrawal', async function () {
       const feeBPS = 500n; // 5%
       const treasury = randomSigner.account.address;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2843,10 +2778,6 @@ describe('SmartInvoiceEscrow', function () {
       const treasury = randomSigner.account.address;
       const futureTerminationTime =
         (await currentTimestamp()) + 30 * 24 * 60 * 60;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2899,10 +2830,6 @@ describe('SmartInvoiceEscrow', function () {
       const treasury = randomSigner.account.address;
       const futureTerminationTime =
         (await currentTimestamp()) + 30 * 24 * 60 * 60;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,
@@ -2967,10 +2894,6 @@ describe('SmartInvoiceEscrow', function () {
       const treasury = zeroAddress; // Can be zero address when feeBPS is 0
       const futureTerminationTime =
         (await currentTimestamp()) + 30 * 24 * 60 * 60;
-      const resolverData = encodeAbiParameters(
-        [{ name: 'resolver', type: 'address' }],
-        [resolver.account.address],
-      );
 
       const data = encodeInitData({
         client: client.account.address,

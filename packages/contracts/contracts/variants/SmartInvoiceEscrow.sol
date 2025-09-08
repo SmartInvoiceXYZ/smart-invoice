@@ -21,6 +21,8 @@ contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
     error InvalidResolutionRate();
     error ResolutionMismatch();
 
+    uint256 internal constant MAX_RESOLUTION_RATE_BPS = 2000;
+
     /// @notice Emitted when a dispute is resolved by an individual resolver
     /// @param resolver The address of the individual resolver
     /// @param clientAward The amount awarded to the client
@@ -46,13 +48,19 @@ contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
     ) SmartInvoiceEscrowBase(_wrappedETH, _factory) {}
 
     function _handleResolverData(bytes memory _resolverData) internal override {
-        if (_resolverData.length < 32) revert InvalidResolverData();
+        if (_resolverData.length < 64) revert InvalidResolverData();
 
-        (address _resolver) = abi.decode(_resolverData, (address));
+        (address _resolver, uint256 _maxRate) = abi.decode(
+            _resolverData,
+            (address, uint256)
+        );
         if (_resolver == address(0)) revert InvalidResolver();
 
         uint256 _rate = FACTORY.resolutionRateOf(_resolver);
-        if (_rate > 1000) revert InvalidResolutionRate();
+        // user sets max rate to disallow resolver frontrunning
+        if (_rate > _maxRate) revert InvalidResolutionRate();
+        // force a max of 20 %
+        if (_rate > MAX_RESOLUTION_RATE_BPS) revert InvalidResolutionRate();
 
         resolver = _resolver;
         resolutionRateBPS = _rate;

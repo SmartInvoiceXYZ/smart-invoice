@@ -45,8 +45,6 @@ describe('SmartInvoiceFactory', function () {
   let wrappedETH: Hex;
   let wrappedETHContract: ContractTypesMap['MockWETH'];
 
-  let amounts: bigint[];
-
   let milestoneAmounts: bigint[];
   let terminationTime: number;
   const requireVerification = true;
@@ -115,8 +113,8 @@ describe('SmartInvoiceFactory', function () {
     terminationTime = (await currentTimestamp()) + 30 * 24 * 60 * 60;
 
     const resolverData = encodeAbiParameters(
-      [{ type: 'address', name: 'resolver' }],
-      [resolver.account.address],
+      [{ type: 'address' }, { type: 'uint256' }],
+      [resolver.account.address, 500n],
     );
 
     escrowInitData = {
@@ -131,8 +129,6 @@ describe('SmartInvoiceFactory', function () {
       treasury: zeroAddress,
       details: '',
     };
-
-    amounts = [10n, 10n];
 
     milestoneAmounts = [
       10n * 10n ** 18n, // 10 tokens with 18 decimals

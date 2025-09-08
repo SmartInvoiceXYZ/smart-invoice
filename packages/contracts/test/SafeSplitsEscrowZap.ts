@@ -47,8 +47,8 @@ const encodeEscrowData = (() => {
     internalCounter++;
 
     const resolverData = encodeAbiParameters(
-      [{ type: 'address' }],
-      [ZAP_DATA.resolver],
+      [{ type: 'address' }, { type: 'uint256' }],
+      [ZAP_DATA.resolver, 500n],
     );
 
     const encodedEscrowData = encodeAbiParameters(

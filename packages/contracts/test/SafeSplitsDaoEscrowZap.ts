@@ -88,8 +88,8 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
   const encodeEscrowData = (z: typeof BASE_ZAP_DATA, salt: number) => {
     const resolverData = encodeAbiParameters(
-      [{ type: 'address' }],
-      [z.resolver],
+      [{ type: 'address' }, { type: 'uint256' }],
+      [z.resolver, 500n],
     );
 
     const encodedEscrowData = encodeAbiParameters(

@@ -131,8 +131,8 @@ export const createEscrow = async (
 
   // only address encoded as bytes32
   const resolverData = encodeAbiParameters(
-    [{ name: 'resolver', type: 'address' }],
-    [resolver],
+    [{ type: 'address' }, { type: 'uint256' }],
+    [resolver, 500n],
   );
 
   const data = encodeInitData({
