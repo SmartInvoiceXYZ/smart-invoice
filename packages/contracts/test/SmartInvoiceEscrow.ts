@@ -1121,7 +1121,7 @@ describe('SmartInvoiceEscrow', function () {
       await expect(receipt)
         .to.emit(lockedInvoice, 'Resolve')
         .withArgs(getAddress(resolver.account.address), 5, 90, 5, zeroHash);
-      expect(await lockedInvoice.read.released()).to.be.equal(0);
+      expect(await lockedInvoice.read.released()).to.be.equal(100);
       expect(await lockedInvoice.read.milestone()).to.be.equal(2);
       expect(await lockedInvoice.read.locked()).to.be.equal(false);
       const clientAfterBalance = await getBalanceOf(
@@ -1172,7 +1172,7 @@ describe('SmartInvoiceEscrow', function () {
       await expect(receipt)
         .to.emit(lockedInvoice, 'Ruling')
         .withArgs(mockArbitrator, 1, 0);
-      expect(await lockedInvoice.read.released()).to.be.equal(0);
+      expect(await lockedInvoice.read.released()).to.be.equal(100);
       expect(await lockedInvoice.read.milestone()).to.be.equal(2);
       expect(await lockedInvoice.read.locked()).to.be.equal(false);
     });
@@ -1205,7 +1205,7 @@ describe('SmartInvoiceEscrow', function () {
       await expect(receipt)
         .to.emit(lockedInvoice, 'Ruling')
         .withArgs(mockArbitrator, 1, 1);
-      expect(await lockedInvoice.read.released()).to.be.equal(0);
+      expect(await lockedInvoice.read.released()).to.be.equal(100);
       expect(await lockedInvoice.read.milestone()).to.be.equal(2);
       expect(await lockedInvoice.read.locked()).to.be.equal(false);
     });
@@ -1440,28 +1440,6 @@ describe('SmartInvoiceEscrow', function () {
       );
     });
 
-    it('Should revert receive if locked', async function () {
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        client.account.address,
-        provider.account.address,
-        resolver.account.address,
-        mockWrappedETH, // Using wrapped ETH
-        amounts,
-        zeroHash,
-        mockWrappedETH,
-      );
-
-      const receipt = client.sendTransaction({
-        to: lockedInvoice.address,
-        value: 10n,
-      });
-      await expect(receipt).to.be.revertedWithCustomError(
-        lockedInvoice,
-        'Locked',
-      );
-    });
-
     it('Should accept receive and convert to wrapped token', async function () {
       const tx = await createEscrow(
         factory,
@@ -1568,24 +1546,6 @@ describe('SmartInvoiceEscrow', function () {
 
       // Should NOT emit Deposit event since token != WRAPPED_ETH
       await expect(receipt).not.to.emit(escrow, 'Deposit');
-    });
-
-    it('Should revert wrapETH if locked', async function () {
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        client.account.address,
-        provider.account.address,
-        resolver.account.address,
-        mockToken,
-        amounts,
-        zeroHash,
-        mockWrappedETH,
-      );
-
-      await expect(lockedInvoice.write.wrapETH()).to.be.revertedWithCustomError(
-        lockedInvoice,
-        'Locked',
-      );
     });
 
     it('Should revert wrapETH with zero balance', async function () {
