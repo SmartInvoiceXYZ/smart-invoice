@@ -475,7 +475,6 @@ abstract contract SmartInvoiceEscrowBase is
             _withdraw();
         } else {
             if (locked) revert Locked();
-            if (block.timestamp <= terminationTime) revert NotTerminated();
             uint256 balance = IERC20(_token).balanceOf(address(this));
             if (balance == 0) revert BalanceIsZero();
 
