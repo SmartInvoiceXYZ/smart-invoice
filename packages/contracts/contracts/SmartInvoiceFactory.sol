@@ -3,7 +3,9 @@
 pragma solidity 0.8.30;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {
+    AccessControlDefaultAdminRules
+} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
 import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -24,7 +26,7 @@ import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
 ///         Supports multiple implementation types and versions with deterministic address creation
 contract SmartInvoiceFactory is
     ISmartInvoiceFactory,
-    AccessControl,
+    AccessControlDefaultAdminRules,
     ReentrancyGuard
 {
     using SafeERC20 for IERC20;
@@ -52,11 +54,12 @@ contract SmartInvoiceFactory is
 
     /// @notice Constructor to initialize the factory with a wrapped ETH
     /// @param _wrappedETH The address of the wrapped ETH contract
-    constructor(address _wrappedETH) {
+    constructor(
+        address _wrappedETH
+    ) AccessControlDefaultAdminRules(1 days, msg.sender) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
         WRAPPED_ETH = IWRAPPED(_wrappedETH);
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN, msg.sender);
     }
 

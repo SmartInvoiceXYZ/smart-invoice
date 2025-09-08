@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {
+    AccessControlDefaultAdminRules
+} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
 
 import {
     ISafeSplitsEscrowZap
@@ -21,7 +23,10 @@ import {
 /// @title SafeSplitsEscrowZap (v2 Splits)
 /// @notice Deploys a Safe (optional), a Splits v2 splitter (optional), and a SmartInvoice escrow in one tx.
 ///         Splits v2 decouples the splitter from balances (Warehouse) and supports Push/Pull flavors via factories.
-contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
+contract SafeSplitsEscrowZap is
+    AccessControlDefaultAdminRules,
+    ISafeSplitsEscrowZap
+{
     /*//////////////////////////////////////////////////////////////
                                 STATE
     //////////////////////////////////////////////////////////////*/
@@ -61,8 +66,9 @@ contract SafeSplitsEscrowZap is AccessControl, ISafeSplitsEscrowZap {
     ///   address _splitFactoryV2, the PushSplitFactory or PullSplitFactory
     ///   address _escrowFactory
     /// )
-    constructor(bytes memory _data) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    constructor(
+        bytes memory _data
+    ) AccessControlDefaultAdminRules(1 days, msg.sender) {
         _grantRole(ADMIN, msg.sender);
         _handleData(_data);
     }
