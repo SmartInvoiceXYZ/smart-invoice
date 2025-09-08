@@ -418,6 +418,9 @@ contract SmartInvoiceEscrowArbitrable is
         // Reset locked state
         locked = false;
 
+        // Set released state
+        released += balance;
+
         emit Rule(resolver, clientAward, providerAward, _ruling);
         emit Ruling(resolver, _externalDisputeId, _ruling);
     }

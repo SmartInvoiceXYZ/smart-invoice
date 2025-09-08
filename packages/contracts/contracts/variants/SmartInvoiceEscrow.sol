@@ -119,6 +119,9 @@ contract SmartInvoiceEscrow is SmartInvoiceEscrowBase {
         // Reset locked state
         locked = false;
 
+        // Set released state
+        released += balance;
+
         emit Resolve(
             msg.sender,
             _clientAward,
