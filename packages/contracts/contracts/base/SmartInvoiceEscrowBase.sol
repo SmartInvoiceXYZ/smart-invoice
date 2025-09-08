@@ -180,7 +180,7 @@ abstract contract SmartInvoiceEscrowBase is
      *      Called by release methods to ensure verification event is emitted when client takes action
      */
     function _autoVerify() internal {
-        if (!verified && msg.sender == client) {
+        if (!verified) {
             verified = true;
             emit Verified(client, address(this));
         }
