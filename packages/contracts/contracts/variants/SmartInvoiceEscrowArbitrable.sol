@@ -464,6 +464,7 @@ contract SmartInvoiceEscrowArbitrable is
         return NUM_RULING_OPTIONS;
     }
 
+    // solhint-disable-next-line named-return-values
     function getMultipliers()
         external
         pure
