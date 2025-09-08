@@ -100,37 +100,6 @@ contract SmartInvoiceFactory is
     }
 
     /**
-     * @notice Creates a new smart invoice instance using the latest implementation version
-     * @param _recipient The address of the recipient (provider)
-     * @param _amounts The array of amounts associated with the recipient
-     * @param _data Additional data needed for initialization
-     * @param _escrowType The type of the invoice (e.g., "ESCROW", "INSTANT")
-     * @return The address of the created invoice
-     */
-    function create(
-        address _recipient,
-        uint256[] calldata _amounts,
-        bytes calldata _data,
-        bytes32 _escrowType
-    ) public override returns (address) {
-        uint256 _version = currentVersions[_escrowType];
-        address _implementation = implementations[_escrowType][_version];
-        if (_implementation == address(0)) revert ImplementationDoesNotExist();
-
-        address invoiceAddress = Clones.clone(_implementation);
-        _init(
-            invoiceAddress,
-            _recipient,
-            _amounts,
-            _data,
-            _escrowType,
-            _version
-        );
-
-        return invoiceAddress;
-    }
-
-    /**
      * @notice Helper function to compute the derived salt used in deterministic deployments
      * @param _recipient The address of the recipient (provider)
      * @param _amounts The array of amounts associated with the recipient
@@ -385,26 +354,6 @@ contract SmartInvoiceFactory is
             revert FundingAmountMismatch(_fundAmount, actual);
 
         emit InvoiceFunded(_escrow, token, _fundAmount);
-    }
-
-    /**
-     * @notice Create an escrow contract and fund it with tokens in a single transaction
-     * @param _provider The address of the provider
-     * @param _milestoneAmounts Array of milestone amounts
-     * @param _escrowData Additional data for the escrow initialization
-     * @param _escrowType The type of escrow to create (e.g., "ESCROW")
-     * @param _fundAmount The amount to fund the escrow with
-     * @return escrow The address of the created escrow contract
-     */
-    function createAndDeposit(
-        address _provider,
-        uint256[] calldata _milestoneAmounts,
-        bytes calldata _escrowData,
-        bytes32 _escrowType,
-        uint256 _fundAmount
-    ) external payable nonReentrant returns (address escrow) {
-        escrow = create(_provider, _milestoneAmounts, _escrowData, _escrowType);
-        _fundEscrow(escrow, _fundAmount);
     }
 
     /**

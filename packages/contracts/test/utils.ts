@@ -20,6 +20,16 @@ export const ESCROW_TYPE = toHex(toBytes('escrow-v3', { size: 32 }));
 export const ARBITRABLE_TYPE = toHex(toBytes('arbitrable-v3', { size: 32 }));
 export const MINIMAL_TYPE = toHex(toBytes('minimal-v3', { size: 32 }));
 
+export const nextSalt = (() => {
+  let i = 0;
+  return () => {
+    i += 1;
+    return toHex(BigInt(i), {
+      size: 32,
+    });
+  };
+})();
+
 // Hardcoded constants for Sepolia testnet (chain ID 11155111)
 export const SEPOLIA_CONTRACTS = {
   safeSingleton: '0xEdd160fEBBD92E350D4D398fb636302fccd67C7e' as Hex,
@@ -138,11 +148,15 @@ export const createEscrow = async (
     details,
   });
 
-  const hash = await factory.write.create([
+  const version = await factory.read.currentVersions([ESCROW_TYPE]);
+
+  const hash = await factory.write.createDeterministic([
     provider,
     amounts,
     data,
     ESCROW_TYPE,
+    version,
+    nextSalt(),
   ]);
 
   return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });
@@ -191,11 +205,15 @@ export const createArbitrableEscrow = async (
     details,
   });
 
-  const hash = await factory.write.create([
+  const version = await factory.read.currentVersions([ARBITRABLE_TYPE]);
+
+  const hash = await factory.write.createDeterministic([
     provider,
     amounts,
     data,
     ARBITRABLE_TYPE,
+    version,
+    nextSalt(),
   ]);
 
   return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });

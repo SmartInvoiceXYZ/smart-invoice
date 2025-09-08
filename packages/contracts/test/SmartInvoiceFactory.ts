@@ -12,12 +12,16 @@ import {
   Hex,
   keccak256,
   toBytes,
-  toHex,
   zeroAddress,
   zeroHash,
 } from 'viem';
 
-import { awaitInvoiceAddress, currentTimestamp, encodeInitData } from './utils';
+import {
+  awaitInvoiceAddress,
+  currentTimestamp,
+  encodeInitData,
+  nextSalt,
+} from './utils';
 
 const escrowType = keccak256(toBytes('escrow-v3'));
 
@@ -42,7 +46,6 @@ describe('SmartInvoiceFactory', function () {
   let wrappedETHContract: ContractTypesMap['MockWETH'];
 
   let amounts: bigint[];
-  let total: bigint;
 
   let milestoneAmounts: bigint[];
   let terminationTime: number;
@@ -130,7 +133,6 @@ describe('SmartInvoiceFactory', function () {
     };
 
     amounts = [10n, 10n];
-    total = amounts.reduce((t, v) => t + v, 0n);
 
     milestoneAmounts = [
       10n * 10n ** 18n, // 10 tokens with 18 decimals
@@ -298,76 +300,6 @@ describe('SmartInvoiceFactory', function () {
   });
 
   /* -------------------------------------------------------------------------- */
-  /*                                   CREATE                                   */
-  /* -------------------------------------------------------------------------- */
-
-  describe('Create (non-deterministic)', function () {
-    it('reverts if no implementation for type', async function () {
-      const fakeType = toHex(toBytes('fake', { size: 32 }));
-      const data = encodeAbiParameters([{ type: 'string' }], ['']);
-      const tx = invoiceFactory.write.create([
-        provider.account.address,
-        [10n, 10n],
-        data,
-        fakeType,
-      ]);
-      await expect(tx).to.be.revertedWithCustomError(
-        invoiceFactory,
-        'ImplementationDoesNotExist',
-      );
-    });
-
-    it('creates a SmartInvoiceEscrow, initializes state, emits, increments invoiceCount', async function () {
-      await addEscrowImplementation();
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
-      const data = encodeInitData(escrowInitData);
-
-      expect(await invoiceFactory.read.invoiceCount()).to.equal(0n);
-
-      const hash = await invoiceFactory.write.create([
-        provider.account.address,
-        [10n, 10n],
-        data,
-        escrowType,
-      ]);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      const address = await awaitInvoiceAddress(receipt);
-      expect(address).to.not.equal(undefined);
-
-      await expect(hash)
-        .to.emit(invoiceFactory, 'InvoiceCreated')
-        .withArgs(0, address, [10n, 10n], escrowType, version);
-
-      expect(await invoiceFactory.read.invoiceCount()).to.equal(1n);
-      expect(await invoiceFactory.read.getInvoiceAddress([0n])).to.equal(
-        address,
-      );
-
-      // verify escrow fields
-      const invoice = await viem.getContractAt('SmartInvoiceEscrow', address!);
-      expect(await invoice.read.client()).to.equal(
-        getAddress(client.account.address),
-      );
-      expect(await invoice.read.provider()).to.equal(
-        getAddress(provider.account.address),
-      );
-      expect(await invoice.read.resolver()).to.equal(
-        getAddress(resolver.account.address),
-      );
-      expect(await invoice.read.token()).to.equal(token);
-      expect(await invoice.read.total()).to.equal(total);
-      expect(await invoice.read.terminationTime()).to.equal(terminationTime);
-      expect(await invoice.read.locked()).to.equal(false);
-    });
-
-    it('getInvoiceAddress: out-of-bounds index reverts', async function () {
-      await expect(
-        invoiceFactory.read.getInvoiceAddress([0n]),
-      ).to.be.revertedWithCustomError(invoiceFactory, 'InvalidInvoiceIndex');
-    });
-  });
-
-  /* -------------------------------------------------------------------------- */
   /*                         CREATE (DETERMINISTIC / CREATE2)                   */
   /* -------------------------------------------------------------------------- */
 
@@ -455,6 +387,12 @@ describe('SmartInvoiceFactory', function () {
         'ImplementationDoesNotExist',
       );
     });
+
+    it('getInvoiceAddress: out-of-bounds index reverts', async function () {
+      await expect(
+        invoiceFactory.read.getInvoiceAddress([0n]),
+      ).to.be.revertedWithCustomError(invoiceFactory, 'InvalidInvoiceIndex');
+    });
   });
 
   /* -------------------------------------------------------------------------- */
@@ -479,13 +417,17 @@ describe('SmartInvoiceFactory', function () {
       });
 
       const data = encodeInitData(escrowInitData);
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const salt = keccak256(toBytes('fund-erc20'));
 
-      const txHash = await invoiceFactory.write.createAndDeposit(
+      const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
           escrowType,
+          version,
+          salt,
           fundAmount,
         ],
         { account: client.account },
@@ -517,13 +459,17 @@ describe('SmartInvoiceFactory', function () {
         ...escrowInitData,
         token: wrappedETH,
       });
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const salt = keccak256(toBytes('fund-erc20'));
 
-      const txHash = await invoiceFactory.write.createAndDeposit(
+      const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
           escrowType,
+          version,
+          salt,
           fundAmount,
         ],
         { account: client.account, value: fundAmount },
@@ -548,13 +494,17 @@ describe('SmartInvoiceFactory', function () {
         ...escrowInitData,
         token: wrappedETH,
       });
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const salt = keccak256(toBytes('fund-erc20'));
 
-      const tx = invoiceFactory.write.createAndDeposit(
+      const tx = invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
           escrowType,
+          version,
+          salt,
           fundAmount,
         ],
         { account: client.account, value: fundAmount / 2n },
@@ -567,12 +517,16 @@ describe('SmartInvoiceFactory', function () {
 
     it('reverts when fundAmount == 0 (InvalidFundAmount)', async function () {
       const data = encodeInitData(escrowInitData);
-      const tx = invoiceFactory.write.createAndDeposit(
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const salt = keccak256(toBytes('fund-erc20'));
+      const tx = invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
           escrowType,
+          version,
+          salt,
           0n,
         ],
         { account: client.account },
@@ -585,6 +539,8 @@ describe('SmartInvoiceFactory', function () {
 
     it('reverts if ERC20 path is used but value > 0 (UnexpectedETH)', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const salt = keccak256(toBytes('fund-erc20'));
       const data = encodeInitData(escrowInitData);
 
       // fund client ERC20 and approve
@@ -596,12 +552,14 @@ describe('SmartInvoiceFactory', function () {
         account: client.account,
       });
 
-      const tx = invoiceFactory.write.createAndDeposit(
+      const tx = invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
           escrowType,
+          version,
+          salt,
           fundAmount,
         ],
         { account: client.account, value: 1n }, // stray ETH
@@ -774,17 +732,20 @@ describe('SmartInvoiceFactory', function () {
   describe('Getters & indexing', function () {
     it('returns correct invoice addresses for multiple invoices', async function () {
       await addEscrowImplementation();
+      const version = await invoiceFactory.read.currentVersions([escrowType]);
       const data = encodeInitData(escrowInitData);
 
       const addrs: Hex[] = [];
       const N = 3;
 
       for (let i = 0; i < N; i++) {
-        const hash = await invoiceFactory.write.create([
+        const hash = await invoiceFactory.write.createDeterministic([
           provider.account.address,
           [10n, 10n],
           data,
           escrowType,
+          version,
+          nextSalt(),
         ]);
         const receipt = await publicClient.waitForTransactionReceipt({ hash });
         const addr = await awaitInvoiceAddress(receipt);

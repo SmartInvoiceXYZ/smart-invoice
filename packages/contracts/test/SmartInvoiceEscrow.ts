@@ -25,6 +25,7 @@ import {
   getBalanceOf,
   getLockedArbitrableEscrow,
   getLockedEscrow,
+  nextSalt,
   setBalanceOf,
 } from './utils';
 
@@ -152,11 +153,13 @@ describe('SmartInvoiceEscrow', function () {
       ],
     );
 
-    const hash = await factory.write.create([
+    const hash = await factory.write.createDeterministic([
       getAddress(provider.account.address),
       amounts,
       data,
       ESCROW_TYPE,
+      0n,
+      nextSalt(),
     ]);
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     const address = await awaitInvoiceAddress(receipt);
@@ -210,11 +213,13 @@ describe('SmartInvoiceEscrow', function () {
         details: 'Test invoice details',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -261,11 +266,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -1723,11 +1730,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         manyAmounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -1765,11 +1774,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         manyAmounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -1855,11 +1866,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2057,11 +2070,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -2142,11 +2157,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2479,11 +2496,13 @@ describe('SmartInvoiceEscrow', function () {
         details: 'Test invoice details',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
@@ -2585,11 +2604,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2623,11 +2644,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = factory.write.create([
+      const hash = factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
 
       await expect(hash).to.be.revertedWithCustomError(
@@ -2657,11 +2680,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = factory.write.create([
+      const hash = factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
 
       await expect(hash).to.be.revertedWithCustomError(
@@ -2691,11 +2716,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2760,11 +2787,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2832,11 +2861,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2886,11 +2917,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);
@@ -2952,11 +2985,13 @@ describe('SmartInvoiceEscrow', function () {
         details: '',
       });
 
-      const hash = await factory.write.create([
+      const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
         amounts,
         data,
         ESCROW_TYPE,
+        0n,
+        nextSalt(),
       ]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       const address = await awaitInvoiceAddress(receipt);

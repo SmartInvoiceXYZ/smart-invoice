@@ -11,14 +11,6 @@ interface ISmartInvoiceFactory {
                                 CREATION
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Create a new invoice using the latest implementation version for the given type.
-    function create(
-        address _recipient,
-        uint256[] calldata _amounts,
-        bytes calldata _data,
-        bytes32 _type
-    ) external returns (address);
-
     /// @notice Create a new invoice deterministically using CREATE2 and an explicit version.
     function createDeterministic(
         address _recipient,
@@ -54,15 +46,6 @@ interface ISmartInvoiceFactory {
     /*//////////////////////////////////////////////////////////////
                          CREATE + FUND IN ONE TX
     //////////////////////////////////////////////////////////////*/
-
-    /// @notice Create an escrow invoice and fund it in a single transaction.
-    function createAndDeposit(
-        address _provider,
-        uint256[] calldata _milestoneAmounts,
-        bytes calldata _escrowData,
-        bytes32 _escrowType,
-        uint256 _fundAmount
-    ) external payable returns (address escrow);
 
     /// @notice Create an escrow invoice deterministically and fund it in a single transaction.
     function createDeterministicAndDeposit(

@@ -50,7 +50,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts,
         uint256 terminationTime,
         uint256 feeBPS,
-        bool useReceivers
+        bool useReceivers,
+        uint256 salt
     ) internal returns (SmartInvoiceEscrow) {
         bytes memory resolverData = abi.encode(resolver);
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
@@ -69,11 +70,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         bytes memory data = abi.encode(initData);
 
-        address invoiceAddress = factory.create(
+        address invoiceAddress = factory.createDeterministic(
             provider,
             amounts,
             data,
-            INVOICE_TYPE
+            INVOICE_TYPE,
+            0,
+            bytes32(salt)
         );
 
         return SmartInvoiceEscrow(payable(invoiceAddress));
@@ -106,7 +109,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             terminationTime,
             feeBPS,
-            feeBPS > 0
+            feeBPS > 0,
+            baseAmount
         );
 
         // Verify basic properties
@@ -156,7 +160,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         releaseUpTo = uint8(bound(releaseUpTo, 0, milestoneCount - 1));
@@ -206,7 +211,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             terminationTime,
             0,
-            false
+            false,
+            amount
         );
 
         // Fund the contract
@@ -239,7 +245,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             feeBPS,
-            true
+            true,
+            amount
         );
 
         token.mint(address(invoice), amount);
@@ -295,7 +302,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            balance
         );
 
         // Mock resolution rate
@@ -309,7 +317,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         );
 
         // Create new invoice with mocked resolution rate
-        invoice = _createInvoice(amounts, block.timestamp + 30 days, 0, false);
+        invoice = _createInvoice(
+            amounts,
+            block.timestamp + 30 days,
+            0,
+            false,
+            balance + 1
+        );
 
         token.mint(address(invoice), balance);
 
@@ -372,7 +386,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         uint256[] memory newMilestones = new uint256[](additionalCount);
@@ -404,14 +419,25 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         address newClientReceiver
     ) public {
         // Ensure addresses are not zero or the contract itself
-        vm.assume(newClient != address(0) && newClient != address(0x1));
-        vm.assume(newProvider != address(0) && newProvider != address(0x1));
         vm.assume(
-            newProviderReceiver != address(0) &&
-                newProviderReceiver != address(0x1)
+            newClient != address(0) &&
+                newClient != address(0x1) &&
+                newClient != client
         );
         vm.assume(
-            newClientReceiver != address(0) && newClientReceiver != address(0x1)
+            newProvider != address(0) &&
+                newProvider != address(0x1) &&
+                newProvider != provider
+        );
+        vm.assume(
+            newProviderReceiver != address(0) &&
+                newProviderReceiver != address(0x1) &&
+                newProviderReceiver != providerReceiver
+        );
+        vm.assume(
+            newClientReceiver != address(0) &&
+                newClientReceiver != address(0x1) &&
+                newClientReceiver != clientReceiver
         );
 
         uint256[] memory amounts = new uint256[](1);
@@ -421,7 +447,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            true
+            true,
+            1 ether
         );
 
         // Update client
@@ -471,11 +498,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         bytes memory data = abi.encode(initData);
 
-        address invoiceAddress = factory.create(
+        address invoiceAddress = factory.createDeterministic(
             provider,
             amounts,
             data,
-            INVOICE_TYPE
+            INVOICE_TYPE,
+            0,
+            bytes32(ethAmount)
         );
         SmartInvoiceEscrow invoice = SmartInvoiceEscrow(
             payable(invoiceAddress)
@@ -524,7 +553,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            milestoneAmount
         );
 
         token.mint(address(invoice), actualBalance);
@@ -566,7 +596,8 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         token.mint(address(invoice), baseAmount * 3);
