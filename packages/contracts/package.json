@@ -69,6 +69,7 @@
     "test-zap": "FORK=true hardhat test ./test/SafeSplitsEscrowZap.ts",
     "test-dao-zap": "FORK=true hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
     "typecheck": "tsc --noEmit",
-    "verify-contract": "hardhat run scripts/verify-contract.ts --network"
+    "verify-contract": "hardhat run scripts/verify-contract.ts --network",
+    "preinstall": "forge install"
   }
 }
