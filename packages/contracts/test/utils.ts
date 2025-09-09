@@ -12,6 +12,9 @@ import {
   parseEventLogs,
   toBytes,
   toHex,
+  TypedData,
+  TypedDataDomain,
+  WalletClient,
   zeroAddress,
   zeroHash,
 } from 'viem';
@@ -376,3 +379,77 @@ export const getLockedArbitrableEscrow = async (
 
   return lockedInvoice;
 };
+
+/**
+ * Creates a multi-signature by concatenating individual signatures from multiple signers
+ * @param domain EIP712 domain data
+ * @param types EIP712 type definitions
+ * @param data The data to sign
+ * @param signers Array of wallet clients to create signatures from
+ * @returns Concatenated signature bytes
+ */
+export async function multisig(
+  domain: TypedDataDomain,
+  types: TypedData,
+  data: Record<string, string | number | boolean | Hex | bigint>,
+  signers: WalletClient[],
+): Promise<Hex> {
+  let signature = '0x' as Hex;
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const signer of signers) {
+    // eslint-disable-next-line no-await-in-loop
+    const individualSignature = await signer.signTypedData({
+      domain,
+      types,
+      primaryType: Object.keys(types)[0],
+      message: data,
+      account: signer.account!,
+    });
+    // Remove the '0x' prefix from subsequent signatures and concatenate
+    signature = (signature + individualSignature.slice(2)) as Hex;
+  }
+
+  return signature;
+}
+
+/**
+ * Helper function to create unlock signatures for testing
+ * @param contract The escrow contract instance
+ * @param refundBPS The refund basis points (0-10000)
+ * @param unlockURI The URI for unlock details
+ * @param signers Array of wallet clients (should be [client, provider])
+ * @returns Promise resolving to concatenated signatures
+ */
+export async function createUnlockSignatures(
+  contract: ContractTypesMap['SmartInvoiceEscrowPush'],
+  refundBPS: bigint,
+  unlockURI: string,
+  signers: WalletClient[],
+): Promise<Hex> {
+  const unlockData = {
+    refundBPS,
+    unlockURI,
+  };
+
+  // Get EIP712 domain info from contract
+  const domainData = await contract.read.eip712Domain();
+  // EIP712Domain returns: fields, name, version, chainId, verifyingContract, salt, extensions
+  const [, name, version, chainId, verifyingContract] = domainData;
+
+  const domain = {
+    name,
+    version,
+    chainId: Number(chainId), // Convert bigint to number for viem
+    verifyingContract,
+  };
+
+  const types = {
+    UnlockData: [
+      { name: 'refundBPS', type: 'uint256' },
+      { name: 'unlockURI', type: 'string' },
+    ],
+  };
+
+  return multisig(domain, types, unlockData, signers);
+}

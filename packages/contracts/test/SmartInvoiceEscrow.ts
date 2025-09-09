@@ -10,6 +10,8 @@ import {
   encodeAbiParameters,
   getAddress,
   Hex,
+  parseAbi,
+  parseEventLogs,
   zeroAddress,
   zeroHash,
 } from 'viem';
@@ -19,6 +21,7 @@ import {
   awaitInvoiceAddress,
   createArbitrableEscrow,
   createEscrow,
+  createUnlockSignatures,
   currentTimestamp,
   encodeInitData,
   ESCROW_TYPE,
@@ -1143,6 +1146,521 @@ describe('SmartInvoiceEscrow', function () {
       expect(clientAfterBalance).to.be.equal(clientBeforeBalance + 5n);
       expect(providerAfterBalance).to.be.equal(providerBeforeBalance + 90n);
       expect(resolverAfterBalance).to.be.equal(resolverBeforeBalance + 5n);
+    });
+
+    describe('Unlock Operations', function () {
+      it('Should unlock with valid signatures - 50/50 split', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const balance = await getBalanceOf(mockToken, lockedInvoice.address);
+        expect(balance).to.equal(10n);
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          5000n, // 50% to client
+          'ipfs://unlock-details-50-50',
+          [client, provider],
+        );
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        const hash = await lockedInvoice.write.unlock([
+          { refundBPS: 5000n, unlockURI: 'ipfs://unlock-details-50-50' },
+          signatures,
+        ]);
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Verify balance transfers
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 5n); // 50% of 10
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 5n); // 50% of 10
+
+        // Verify contract state changes
+        expect(await lockedInvoice.read.locked()).to.equal(false);
+        expect(await lockedInvoice.read.milestone()).to.equal(2n); // All milestones completed
+        expect(await lockedInvoice.read.released()).to.equal(10n);
+
+        // Verify event emission
+        const unlockEvents = parseEventLogs({
+          abi: parseAbi([
+            'event Unlock(address indexed sender, uint256 clientAward, uint256 providerAward, string unlockURI)',
+          ]),
+          logs: receipt.logs,
+        });
+
+        expect(unlockEvents).to.have.length(1);
+        const unlockEvent = unlockEvents[0];
+        expect(unlockEvent.eventName).to.equal('Unlock');
+        expect(unlockEvent.args.sender).to.equal(
+          getAddress(client.account.address),
+        );
+        expect(unlockEvent.args.clientAward).to.equal(5n);
+        expect(unlockEvent.args.providerAward).to.equal(5n);
+        expect(unlockEvent.args.unlockURI).to.equal(
+          'ipfs://unlock-details-50-50',
+        );
+      });
+
+      it('Should unlock with valid signatures - 70/30 split', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          7000n, // 70% to client
+          'ipfs://unlock-details-70-30',
+          [client, provider],
+        );
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        await lockedInvoice.write.unlock([
+          { refundBPS: 7000n, unlockURI: 'ipfs://unlock-details-70-30' },
+          signatures,
+        ]);
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 7n); // 70% of 10
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 3n); // 30% of 10
+      });
+
+      it('Should unlock with 100% to client', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          10000n, // 100% to client
+          'ipfs://full-refund',
+          [client, provider],
+        );
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        await lockedInvoice.write.unlock([
+          { refundBPS: 10000n, unlockURI: 'ipfs://full-refund' },
+          signatures,
+        ]);
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 10n); // 100% of 10
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 0n); // 0% of 10
+      });
+
+      it('Should unlock with 0% to client (100% to provider)', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          0n, // 0% to client, 100% to provider
+          'ipfs://full-provider-award',
+          [client, provider],
+        );
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        await lockedInvoice.write.unlock([
+          { refundBPS: 0n, unlockURI: 'ipfs://full-provider-award' },
+          signatures,
+        ]);
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 0n); // 0% of 10
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 10n); // 100% of 10
+      });
+
+      it('Should revert unlock if not locked', async function () {
+        const currentTime = await currentTimestamp();
+        const receipt = await createEscrow(
+          factory,
+          escrowImplementation,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          currentTime + 1000,
+          'test details',
+          requireVerification,
+        );
+        const newInvoiceAddress = await awaitInvoiceAddress(receipt);
+        const invoice = await viem.getContractAt(
+          'SmartInvoiceEscrowPush',
+          newInvoiceAddress!,
+        );
+
+        const signatures = await createUnlockSignatures(
+          invoice,
+          5000n,
+          'ipfs://should-fail',
+          [client, provider],
+        );
+
+        await expect(
+          invoice.write.unlock([
+            { refundBPS: 5000n, unlockURI: 'ipfs://should-fail' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('NotLocked');
+      });
+
+      it('Should revert unlock with zero balance', async function () {
+        // Create locked escrow but drain the balance
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        // Drain balance to 0
+        await setBalanceOf(mockToken, lockedInvoice.address, 0n);
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          5000n,
+          'ipfs://zero-balance',
+          [client, provider],
+        );
+
+        await expect(
+          lockedInvoice.write.unlock([
+            { refundBPS: 5000n, unlockURI: 'ipfs://zero-balance' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('BalanceIsZero');
+      });
+
+      it('Should revert unlock with invalid refundBPS > 10000', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          10001n, // Invalid: > 10000 (100%)
+          'ipfs://invalid-refund',
+          [client, provider],
+        );
+
+        await expect(
+          lockedInvoice.write.unlock([
+            { refundBPS: 10001n, unlockURI: 'ipfs://invalid-refund' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('InvalidRefundBPS');
+      });
+
+      it('Should revert unlock with invalid signatures', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        // Use wrong signers (random instead of client/provider)
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          5000n,
+          'ipfs://invalid-sig',
+          [randomSigner, resolver], // Wrong signers
+        );
+
+        await expect(
+          lockedInvoice.write.unlock([
+            { refundBPS: 5000n, unlockURI: 'ipfs://invalid-sig' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('InvalidSignatures');
+      });
+
+      it('Should revert unlock with only one signature', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        // Only client signature, missing provider
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          5000n,
+          'ipfs://single-sig',
+          [client], // Missing provider signature
+        );
+
+        await expect(
+          lockedInvoice.write.unlock([
+            { refundBPS: 5000n, unlockURI: 'ipfs://single-sig' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('ECDSAInvalidSignature');
+      });
+
+      it('Should revert unlock with signatures in wrong order', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        // Provider signature first, client second (wrong order)
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          5000n,
+          'ipfs://wrong-order',
+          [provider, client], // Wrong order: should be [client, provider]
+        );
+
+        await expect(
+          lockedInvoice.write.unlock([
+            { refundBPS: 5000n, unlockURI: 'ipfs://wrong-order' },
+            signatures,
+          ]),
+        ).to.be.rejectedWith('InvalidSignatures');
+      });
+
+      it('Should unlock initiated by provider', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const signatures = await createUnlockSignatures(
+          lockedInvoice,
+          3000n, // 30% to client
+          'ipfs://provider-initiated',
+          [client, provider],
+        );
+
+        const hash = await lockedInvoice.write.unlock(
+          [
+            { refundBPS: 3000n, unlockURI: 'ipfs://provider-initiated' },
+            signatures,
+          ],
+          {
+            account: provider.account, // Provider initiates the unlock
+          },
+        );
+
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+        // Verify event shows provider as sender
+        const unlockEvents = parseEventLogs({
+          abi: parseAbi([
+            'event Unlock(address indexed sender, uint256 clientAward, uint256 providerAward, string unlockURI)',
+          ]),
+          logs: receipt.logs,
+        });
+
+        expect(unlockEvents[0].args.sender).to.equal(
+          getAddress(provider.account.address),
+        );
+        expect(await lockedInvoice.read.locked()).to.equal(false);
+      });
+
+      it('Should unlock with custom receivers', async function () {
+        // Create escrow with custom receiver addresses
+        const currentTime = await currentTimestamp();
+
+        const data = encodeInitData({
+          client: client.account.address,
+          resolverData,
+          token: mockToken,
+          terminationTime: BigInt(currentTime + 1000),
+          requireVerification: false,
+          providerReceiver: providerReceiver.account.address,
+          clientReceiver: clientReceiver.account.address,
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: 'test with receivers',
+        });
+
+        const version = await factory.read.currentVersions([ESCROW_TYPE]);
+        const hash = await factory.write.createDeterministic([
+          provider.account.address,
+          amounts,
+          data,
+          ESCROW_TYPE,
+          version,
+          nextSalt(),
+        ]);
+
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+        const newInvoiceAddress = await awaitInvoiceAddress(receipt);
+        const invoice = await viem.getContractAt(
+          'SmartInvoiceEscrowPush',
+          newInvoiceAddress!,
+        );
+
+        // Fund and lock the invoice
+        await setBalanceOf(mockToken, invoice.address, 10n);
+        await invoice.write.lock(['test'], { account: client.account });
+
+        const signatures = await createUnlockSignatures(
+          invoice,
+          4000n, // 40% to client
+          'ipfs://custom-receivers',
+          [client, provider],
+        );
+
+        const clientReceiverBalanceBefore = await getBalanceOf(
+          mockToken,
+          clientReceiver.account.address,
+        );
+        const providerReceiverBalanceBefore = await getBalanceOf(
+          mockToken,
+          providerReceiver.account.address,
+        );
+
+        await invoice.write.unlock([
+          { refundBPS: 4000n, unlockURI: 'ipfs://custom-receivers' },
+          signatures,
+        ]);
+
+        const clientReceiverBalanceAfter = await getBalanceOf(
+          mockToken,
+          clientReceiver.account.address,
+        );
+        const providerReceiverBalanceAfter = await getBalanceOf(
+          mockToken,
+          providerReceiver.account.address,
+        );
+
+        // Verify funds went to custom receivers
+        expect(clientReceiverBalanceAfter).to.equal(
+          clientReceiverBalanceBefore + 4n,
+        ); // 40% to client receiver
+        expect(providerReceiverBalanceAfter).to.equal(
+          providerReceiverBalanceBefore + 6n,
+        ); // 60% to provider receiver
+      });
     });
   });
 
