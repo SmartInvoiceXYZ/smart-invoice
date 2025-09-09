@@ -34,14 +34,18 @@ async function main(): Promise<void> {
     'spoilsBPS',
   ];
 
-  const addressFetch = addressList.map(async type =>
-    safeSplitsEscrowZap.read[type](),
-  );
-
-  const addresses = await Promise.all(addressFetch);
-  console.log(
-    addresses.map((address, index) => `${addressList[index]}: ${address}`),
-  );
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key of addressList) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await (
+        safeSplitsEscrowZap.read[key] as () => Promise<unknown>
+      )();
+      console.log(`${key}: ${result}`);
+    } catch (error) {
+      console.log(`${key}: Error - ${error}`);
+    }
+  }
 }
 
 main()
