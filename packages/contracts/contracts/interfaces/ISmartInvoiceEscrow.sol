@@ -20,6 +20,12 @@ interface ISmartInvoiceEscrow {
         bytes resolverData; // Resolver-specific data
     }
 
+    /// @notice Struct for unlock data
+    struct UnlockData {
+        uint256 refundBPS;
+        string unlockURI;
+    }
+
     /**
      * @notice Initializes the escrow contract with provider, milestone amounts, and configuration
      * @param _recipient The address of the service provider who will receive milestone payments
@@ -57,13 +63,6 @@ interface ISmartInvoiceEscrow {
      * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
      */
     function isFunded(uint256 _milestoneId) external view returns (bool);
-
-    /**
-     * @notice Adds new milestone amounts to the escrow without additional details
-     * @param _milestones Array of new milestone amounts to append to existing milestones
-     * @dev Only callable by client or provider when contract is not locked or terminated
-     */
-    function addMilestones(uint256[] calldata _milestones) external;
 
     /**
      * @notice Adds new milestone amounts to the escrow with additional project details
@@ -122,6 +121,16 @@ interface ISmartInvoiceEscrow {
      */
     function lock(string calldata _details) external payable;
 
+    /**
+     * @notice Unlocks the contract by the client and provider
+     * @param _data UnlockData struct containing refundBPS and unlockURI
+     * @param _signatures concatenated EIP712 signatures for the hash of the data
+     */
+    function unlock(
+        UnlockData calldata _data,
+        bytes calldata _signatures
+    ) external;
+
     /// @dev Custom errors for more efficient gas usage
     error InvalidProvider();
     error InvalidClient();
@@ -149,10 +158,12 @@ interface ISmartInvoiceEscrow {
     error InvalidProviderReceiver();
     error InvalidClientReceiver();
     error InvalidFeeBPS();
+    error InvalidRefundBPS();
     error InvalidTreasury();
     error ZeroAmount();
     error AlreadyVerified();
     error NoChange();
+    error InvalidSignatures();
 
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
@@ -208,6 +219,23 @@ interface ISmartInvoiceEscrow {
     /// @param sender The address that locked the contract.
     /// @param details The details of the lock.
     event Lock(address indexed sender, string details);
+
+    /// @notice Emitted when the contract is unlocked.
+    /// @param sender The address that unlocked the contract.
+    /// @param clientAward The amount of client award
+    /// @param providerAward The amount of provider award
+    /// @param unlockURI The unlockURI of the unlock.
+    event Unlock(
+        address indexed sender,
+        uint256 clientAward,
+        uint256 providerAward,
+        string unlockURI
+    );
+
+    /// @notice Emitted when a hash is approved by client or provider
+    /// @param hash The hash that was approved
+    /// @param sender The address that approved the hash
+    event ApproveHash(bytes32 hash, address indexed sender);
 
     /// @notice Emitted when the client and invoice are verified.
     /// @param client The address of the client.

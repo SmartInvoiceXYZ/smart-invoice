@@ -290,12 +290,13 @@ contract SmartInvoiceEscrowPushFuzzTest is Test {
     /// @dev Fuzz test dispute resolution with various award distributions
     function testFuzz_DisputeResolution(
         uint256 balance,
-        uint256 clientAwardPct,
+        uint256 clientAwardBPS,
         uint256 resolutionRateBPS
     ) public {
         balance = bound(balance, 1e18, 1e25);
-        clientAwardPct = bound(clientAwardPct, 0, 100);
+        clientAwardBPS = bound(clientAwardBPS, 0, 10000);
         resolutionRateBPS = bound(resolutionRateBPS, 1, 1000);
+        vm.assume(resolutionRateBPS + clientAwardBPS <= 10000);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = balance;
@@ -337,16 +338,15 @@ contract SmartInvoiceEscrowPushFuzzTest is Test {
 
         // Calculate awards
         uint256 resolutionFee = (balance * resolutionRateBPS) / 10000;
-        uint256 remainingBalance = balance - resolutionFee;
-        uint256 clientAward = (remainingBalance * clientAwardPct) / 100;
-        uint256 providerAward = remainingBalance - clientAward;
+        uint256 clientAward = (balance * clientAwardBPS) / 10000;
+        uint256 providerAward = balance - clientAward - resolutionFee;
 
         uint256 clientBalanceBefore = token.balanceOf(client);
         uint256 providerBalanceBefore = token.balanceOf(provider);
         uint256 resolverBalanceBefore = token.balanceOf(resolver);
 
         vm.prank(resolver);
-        invoice.resolve(clientAward, providerAward, "Fuzz resolution");
+        invoice.resolve(clientAwardBPS, "Fuzz resolution");
 
         assertEq(invoice.locked(), false);
         assertEq(token.balanceOf(client), clientBalanceBefore + clientAward);
@@ -404,7 +404,7 @@ contract SmartInvoiceEscrowPushFuzzTest is Test {
         if (addDetails) {
             invoice.addMilestones(newMilestones, "Additional milestones");
         } else {
-            invoice.addMilestones(newMilestones);
+            invoice.addMilestones(newMilestones, "");
         }
 
         assertEq(invoice.total(), initialTotal + additionalTotal);

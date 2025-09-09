@@ -20,13 +20,16 @@ import {
     ISmartInvoiceFactory
 } from "contracts/interfaces/ISmartInvoiceFactory.sol";
 import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
+import {SignatureDecoder} from "../libraries/SignatureDecoder.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 /// @title SmartInvoiceEscrowCore
 /// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
 abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
     Initializable,
-    ReentrancyGuard
+    ReentrancyGuard,
+    EIP712
 {
     using SafeERC20 for IERC20;
 
@@ -75,6 +78,12 @@ abstract contract SmartInvoiceEscrowCore is
     uint256 public milestone;
     /// @notice Total amount released to provider so far
     uint256 public released;
+    /// @notice Mapping of approved hashes for client and provider
+    mapping(address => mapping(bytes32 => bool)) public approvedHashes;
+
+    /// @notice Hash of unlock data struct for eip712 signature
+    bytes32 public constant UNLOCK_HASH =
+        keccak256("Unlock(uint256 refundBPS,string unlockURI)");
 
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
@@ -189,7 +198,7 @@ abstract contract SmartInvoiceEscrowCore is
 
     /**
      * @notice Updates the client address
-     * @param _client The new client address (cannot be zero address)
+     * @param _client Theent address (cannot be zero address)
      * @dev Only callable by current client when contract is not locked
      */
     function updateClient(address _client) external {
@@ -270,16 +279,6 @@ abstract contract SmartInvoiceEscrowCore is
         address oldClientReceiver = clientReceiver;
         clientReceiver = _clientReceiver;
         emit UpdatedClientReceiver(oldClientReceiver, _clientReceiver);
-    }
-
-    /**
-     * @notice Adds new milestone amounts to the escrow without additional details
-     * @param _milestones Array of new milestone amounts to add
-     * @dev Only callable by client or provider when contract is not locked and not terminated
-     * @dev Total milestones cannot exceed MAX_MILESTONE_LIMIT (50)
-     */
-    function addMilestones(uint256[] calldata _milestones) external override {
-        _addMilestones(_milestones, "");
     }
 
     /**
@@ -523,10 +522,127 @@ abstract contract SmartInvoiceEscrowCore is
      * @notice External function to lock the contract and initiate dispute resolution
      *         Can only be called by client or provider before termination
      * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
+     * @dev it is payable to allow for potential dispute fees in ether
      */
-    function lock(
-        string calldata _disputeURI
-    ) external payable virtual override;
+    function lock(string calldata _disputeURI) external payable virtual;
+
+    /**
+     * @dev Internal function to lock the contract and initiate dispute resolution
+     *      Can only be called by client or provider before termination
+     * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
+     */
+    function _lock(string calldata _disputeURI) internal virtual {
+        if (locked) revert Locked();
+        if (block.timestamp > terminationTime) revert Terminated();
+        if (msg.sender != client && msg.sender != provider)
+            revert NotParty(msg.sender);
+
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        if (balance == 0) revert BalanceIsZero();
+
+        locked = true;
+
+        emit Lock(msg.sender, _disputeURI);
+    }
+
+    /**
+     * @notice External function to unlock the contract by the client and provider
+     * @param _data UnlockData struct containing refundBPS and unlockURI
+     * @param _signatures concatenated EIP712 signatures for the hash of the data
+     */
+    function unlock(
+        UnlockData calldata _data,
+        bytes calldata _signatures
+    ) external virtual override nonReentrant {
+        if (!locked) revert NotLocked();
+        if (_data.refundBPS > BPS_DENOMINATOR) revert InvalidRefundBPS();
+
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        if (balance == 0) revert BalanceIsZero();
+
+        // Compute hash from data
+        bytes32 _hash = _hashTypedDataV4(
+            keccak256(abi.encode(UNLOCK_HASH, _data.refundBPS, _data.unlockURI))
+        );
+
+        // Check signatures
+        _checkSignature(_hash, _signatures);
+
+        uint256 clientAward = (balance * _data.refundBPS) / BPS_DENOMINATOR;
+        uint256 providerAward = balance - clientAward;
+
+        if (providerAward > 0) {
+            _transferToProvider(token, providerAward);
+        }
+        if (clientAward > 0) {
+            _transferToClient(token, clientAward);
+        }
+
+        // Complete all milestones
+        milestone = amounts.length;
+
+        // Reset locked state
+        locked = false;
+
+        // Set released state
+        released += balance;
+
+        emit Unlock(msg.sender, clientAward, providerAward, _data.unlockURI);
+    }
+
+    /**
+     * @notice Approve a hash on-chain.
+     * @param _hash bytes32 - hash that is to be approved
+     */
+    function approveHash(bytes32 _hash) external {
+        // Allowing anyone to sign, as its hard to add restrictions here.
+        // Store _hash as signed for sender.
+        approvedHashes[msg.sender][_hash] = true;
+
+        emit ApproveHash(_hash, msg.sender);
+    }
+
+    /**
+     * @dev Check if recovered signatures match with client and provider address.
+     * Signatures must be in sequential order. First client then provider.
+     * Reverts if signature do not match.
+     * @param _hash bytes32 typed hash of data
+     * @param _signature bytes appended signatures
+     */
+    function _checkSignature(
+        bytes32 _hash,
+        bytes calldata _signature
+    ) internal {
+        _checkSignatureValidity(client, _hash, _signature, 0);
+        _checkSignatureValidity(provider, _hash, _signature, 1);
+    }
+
+    /**
+     * @dev Internal function for checking signature validity
+     * @dev Checks if the signature is approved or recovered
+     * @dev Reverts if not
+     * @param _address - address checked for validity
+     * @param _hash bytes32 - hash for which the signature is recovered
+     * @param _signatures bytes - concatenated signatures
+     * @param _signatureIndex uint256 - index at which the signature should be present
+     */
+    function _checkSignatureValidity(
+        address _address,
+        bytes32 _hash,
+        bytes calldata _signatures,
+        uint256 _signatureIndex
+    ) internal {
+        if (
+            !approvedHashes[_address][_hash] &&
+            SignatureDecoder.recoverKey(_hash, _signatures, _signatureIndex) !=
+            _address
+        ) {
+            revert InvalidSignatures();
+        }
+
+        // delete from approvedHash
+        delete approvedHashes[_address][_hash];
+    }
 
     /**
      * @dev Internal function to transfer payment to the provider or provider receiver
