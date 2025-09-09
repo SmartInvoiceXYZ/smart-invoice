@@ -83,7 +83,7 @@ abstract contract SmartInvoiceEscrowCore is
 
     /// @notice Hash of unlock data struct for eip712 signature
     bytes32 public constant UNLOCK_HASH =
-        keccak256("Unlock(uint256 refundBPS,string unlockURI)");
+        keccak256("UnlockData(uint256 refundBPS,string unlockURI)");
 
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
@@ -562,7 +562,13 @@ abstract contract SmartInvoiceEscrowCore is
 
         // Compute hash from data
         bytes32 _hash = _hashTypedDataV4(
-            keccak256(abi.encode(UNLOCK_HASH, _data.refundBPS, _data.unlockURI))
+            keccak256(
+                abi.encode(
+                    UNLOCK_HASH,
+                    _data.refundBPS,
+                    keccak256(bytes(_data.unlockURI))
+                )
+            )
         );
 
         // Check signatures
@@ -588,6 +594,40 @@ abstract contract SmartInvoiceEscrowCore is
         released += balance;
 
         emit Unlock(msg.sender, clientAward, providerAward, _data.unlockURI);
+    }
+
+    /**
+     * @notice Test function to verify unlock signatures (for testing purposes)
+     * @param _data UnlockData struct containing refundBPS and unlockURI
+     * @param _signatures concatenated EIP712 signatures for the hash of the data
+     * @return hash The computed EIP712 hash
+     * @return clientSigner The recovered client signer address
+     * @return providerSigner The recovered provider signer address
+     */
+    function testUnlockSignatures(
+        UnlockData calldata _data,
+        bytes calldata _signatures
+    )
+        external
+        view
+        returns (bytes32 hash, address clientSigner, address providerSigner)
+    {
+        // Compute hash from data (same as unlock function)
+        hash = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    UNLOCK_HASH,
+                    _data.refundBPS,
+                    keccak256(bytes(_data.unlockURI))
+                )
+            )
+        );
+
+        // Recover signers
+        clientSigner = SignatureDecoder.recoverKey(hash, _signatures, 0);
+        providerSigner = SignatureDecoder.recoverKey(hash, _signatures, 1);
+
+        return (hash, clientSigner, providerSigner);
     }
 
     /**
