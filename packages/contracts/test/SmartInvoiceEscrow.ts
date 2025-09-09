@@ -1661,6 +1661,322 @@ describe('SmartInvoiceEscrow', function () {
           providerReceiverBalanceBefore + 6n,
         ); // 60% to provider receiver
       });
+
+      it('Should unlock with client approveHash and provider signature', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        // Get the hash that would be used for unlock
+        const unlockData = {
+          refundBPS: 5000n,
+          unlockURI: 'ipfs://approve-hash-test',
+        };
+
+        // Compute the EIP712 hash using our utility to get the hash
+        const tempSignatures = await createUnlockSignatures(
+          lockedInvoice,
+          unlockData.refundBPS,
+          unlockData.unlockURI,
+          [client, provider], // We'll only use the provider signature
+        );
+
+        // Get the hash from the contract
+        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
+          unlockData,
+          tempSignatures,
+        ]);
+
+        // Client approves the hash on-chain instead of signing
+        await lockedInvoice.write.approveHash([eip712Hash], {
+          account: client.account,
+        });
+
+        // Provider signs normally
+        const domainData = await lockedInvoice.read.eip712Domain();
+        const [, name, version, chainId, verifyingContract] = domainData;
+        const domain = {
+          name,
+          version,
+          chainId: Number(chainId),
+          verifyingContract,
+        };
+        const types = {
+          UnlockData: [
+            { name: 'refundBPS', type: 'uint256' },
+            { name: 'unlockURI', type: 'string' },
+          ],
+        };
+
+        const providerSignature = await provider.signTypedData({
+          domain,
+          types,
+          primaryType: 'UnlockData',
+          message: unlockData,
+          account: provider.account,
+        });
+
+        // Create combined signatures: empty client sig (65 bytes of zeros) + provider sig
+        const emptySignature = `0x${'00'.repeat(65)}`; // 65 bytes of zeros for empty signature
+        const combinedSignatures = (emptySignature +
+          providerSignature.slice(2)) as Hex;
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Should unlock successfully with approved hash + signature
+        const hash = await lockedInvoice.write.unlock([
+          unlockData,
+          combinedSignatures,
+        ]);
+        await publicClient.waitForTransactionReceipt({ hash });
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Verify balance transfers (50/50 split)
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 5n);
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 5n);
+      });
+
+      it('Should unlock with provider approveHash and client signature', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const unlockData = {
+          refundBPS: 7000n, // 70% to client
+          unlockURI: 'ipfs://provider-approve-hash',
+        };
+
+        // Get the EIP712 hash
+        const tempSignatures = await createUnlockSignatures(
+          lockedInvoice,
+          unlockData.refundBPS,
+          unlockData.unlockURI,
+          [client, provider],
+        );
+
+        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
+          unlockData,
+          tempSignatures,
+        ]);
+
+        // Provider approves the hash on-chain
+        await lockedInvoice.write.approveHash([eip712Hash], {
+          account: provider.account,
+        });
+
+        // Client signs normally
+        const domainData = await lockedInvoice.read.eip712Domain();
+        const [, name, version, chainId, verifyingContract] = domainData;
+        const domain = {
+          name,
+          version,
+          chainId: Number(chainId),
+          verifyingContract,
+        };
+        const types = {
+          UnlockData: [
+            { name: 'refundBPS', type: 'uint256' },
+            { name: 'unlockURI', type: 'string' },
+          ],
+        };
+
+        const clientSignature = await client.signTypedData({
+          domain,
+          types,
+          primaryType: 'UnlockData',
+          message: unlockData,
+          account: client.account,
+        });
+
+        // Create combined signatures: client sig + empty provider sig
+        const emptySignature = `0x${'00'.repeat(65)}`; // 65 bytes of zeros for empty signature
+        const combinedSignatures = (clientSignature +
+          emptySignature.slice(2)) as Hex;
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Should unlock successfully with signature + approved hash
+        const hash = await lockedInvoice.write.unlock([
+          unlockData,
+          combinedSignatures,
+        ]);
+        await publicClient.waitForTransactionReceipt({ hash });
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Verify balance transfers (70/30 split)
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 7n);
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 3n);
+      });
+
+      it('Should unlock with both client and provider approveHash', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const unlockData = {
+          refundBPS: 9000n, // 90% to client
+          unlockURI: 'ipfs://both-approve-hash',
+        };
+
+        // Get the EIP712 hash
+        const tempSignatures = await createUnlockSignatures(
+          lockedInvoice,
+          unlockData.refundBPS,
+          unlockData.unlockURI,
+          [client, provider],
+        );
+
+        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
+          unlockData,
+          tempSignatures,
+        ]);
+
+        // Both parties approve the hash on-chain
+        await lockedInvoice.write.approveHash([eip712Hash], {
+          account: client.account,
+        });
+        await lockedInvoice.write.approveHash([eip712Hash], {
+          account: provider.account,
+        });
+
+        // Use empty signatures for both (since both are approved)
+        const combinedSignatures: Hex = `0x${'00'.repeat(130)}`; // 65 bytes of zeros per empty signature
+
+        const clientBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceBefore = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Should unlock successfully with both approved hashes
+        const hash = await lockedInvoice.write.unlock([
+          unlockData,
+          combinedSignatures,
+        ]);
+        await publicClient.waitForTransactionReceipt({ hash });
+
+        const clientBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(client.account.address),
+        );
+        const providerBalanceAfter = await getBalanceOf(
+          mockToken,
+          getAddress(provider.account.address),
+        );
+
+        // Verify balance transfers (90/10 split)
+        expect(clientBalanceAfter).to.equal(clientBalanceBefore + 9n);
+        expect(providerBalanceAfter).to.equal(providerBalanceBefore + 1n);
+      });
+
+      it('Should emit ApproveHash event when hash is approved', async function () {
+        const lockedInvoice = await getLockedEscrow(
+          factory,
+          getAddress(client.account.address),
+          getAddress(provider.account.address),
+          getAddress(resolver.account.address),
+          mockToken,
+          amounts,
+          'test unlock',
+          mockWrappedETH,
+        );
+
+        const unlockData = {
+          refundBPS: 5000n,
+          unlockURI: 'ipfs://approve-hash-event-test',
+        };
+
+        // Get the EIP712 hash
+        const tempSignatures = await createUnlockSignatures(
+          lockedInvoice,
+          unlockData.refundBPS,
+          unlockData.unlockURI,
+          [client, provider],
+        );
+
+        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
+          unlockData,
+          tempSignatures,
+        ]);
+
+        // Approve the hash and check for event
+        const hash = await lockedInvoice.write.approveHash([eip712Hash], {
+          account: client.account,
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+        // Check for ApproveHash event
+        const events = parseEventLogs({
+          abi: parseAbi([
+            'event ApproveHash(bytes32 indexed hash, address indexed owner)',
+          ]),
+          logs: receipt.logs,
+        });
+
+        const approveHashEvent = events.find(
+          e => e.eventName === 'ApproveHash',
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(approveHashEvent).to.not.be.undefined;
+        expect(approveHashEvent?.args.hash).to.equal(eip712Hash);
+        expect(approveHashEvent?.args.owner).to.equal(
+          getAddress(client.account.address),
+        );
+      });
     });
   });
 
