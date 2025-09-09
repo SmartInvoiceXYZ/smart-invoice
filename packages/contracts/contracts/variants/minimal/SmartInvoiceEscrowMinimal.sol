@@ -23,4 +23,12 @@ abstract contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowCore {
     function lock(string calldata) external payable override {
         revert LockDisabled();
     }
+
+    /// @dev Disables the locking mechanism.
+    function unlock(
+        UnlockData calldata,
+        bytes calldata
+    ) external pure override {
+        revert LockDisabled();
+    }
 }

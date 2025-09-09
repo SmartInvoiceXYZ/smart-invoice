@@ -2,7 +2,8 @@
 pragma solidity 0.8.30;
 
 import {
-    SmartInvoiceEscrowCore
+    SmartInvoiceEscrowCore,
+    EIP712
 } from "contracts/core/SmartInvoiceEscrowCore.sol";
 import {SmartInvoiceEscrowMinimal} from "./SmartInvoiceEscrowMinimal.sol";
 import {PushStrategy} from "contracts/strategies/PushStrategy.sol";
@@ -14,7 +15,10 @@ contract SmartInvoiceEscrowMinimalPush is
     constructor(
         address _wrappedETH,
         address _factory
-    ) SmartInvoiceEscrowCore(_wrappedETH, _factory) {}
+    )
+        SmartInvoiceEscrowCore(_wrappedETH, _factory)
+        EIP712("SmartInvoiceEscrowMinimalPush", "1.0.0")
+    {}
 
     function _transferToken(
         address _token,
