@@ -130,14 +130,7 @@ abstract contract SmartInvoiceEscrowArbitrable is
     function lock(
         string calldata _disputeURI
     ) external payable virtual override nonReentrant {
-        if (locked) revert Locked();
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        if (balance == 0) revert BalanceIsZero();
-        if (block.timestamp > terminationTime) revert Terminated();
-        if (msg.sender != client && msg.sender != provider)
-            revert NotParty(msg.sender);
-
-        locked = true;
+        _lock(_disputeURI);
 
         // Note: user must call `resolver.arbitrationCost(_disputeURI)` to get the arbitration cost
         uint256 externalDisputeId = resolver.createDispute{value: msg.value}(
@@ -169,7 +162,6 @@ abstract contract SmartInvoiceEscrowArbitrable is
             localDisputeId
         );
         emit Evidence(resolver, localDisputeId, msg.sender, _disputeURI);
-        emit Lock(msg.sender, _disputeURI);
     }
 
     /**

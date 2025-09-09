@@ -1119,7 +1119,7 @@ describe('SmartInvoiceEscrow', function () {
         mockToken,
         resolver.account.address,
       );
-      const receipt = lockedInvoice.write.resolve([5n, 90n, zeroHash], {
+      const receipt = lockedInvoice.write.resolve([500n, zeroHash], {
         account: resolver.account,
       });
       await expect(receipt)
@@ -1619,7 +1619,7 @@ describe('SmartInvoiceEscrow', function () {
 
   describe('Milestone Management', function () {
     it('Should addMilestones if client', async function () {
-      const receipt = await escrow.write.addMilestones([[13n, 14n]]);
+      const receipt = await escrow.write.addMilestones([[13n, 14n], '']);
       expect((await escrow.read.getAmounts()).length).to.equal(4);
       expect(await escrow.read.amounts([0n])).to.equal(10n);
       expect(await escrow.read.amounts([1n])).to.equal(10n);
@@ -1634,7 +1634,7 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should addMilestones if provider', async function () {
-      const receipt = await escrow.write.addMilestones([[13n, 14n]], {
+      const receipt = await escrow.write.addMilestones([[13n, 14n], ''], {
         account: provider.account,
       });
       expect((await escrow.read.getAmounts()).length).to.equal(4);
@@ -1651,7 +1651,7 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should addMilestones and update total with added milestones', async function () {
-      await escrow.write.addMilestones([[13n, 14n]], {
+      await escrow.write.addMilestones([[13n, 14n], ''], {
         account: provider.account,
       });
       expect(await escrow.read.total()).to.equal(47);
@@ -1659,7 +1659,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should revert addMilestones if executed by non-client/non-provider', async function () {
       await expect(
-        escrow.write.addMilestones([[13n, 14n]], {
+        escrow.write.addMilestones([[13n, 14n], ''], {
           account: randomSigner.account,
         }),
       ).to.be.revertedWithCustomError(escrow, 'NotParty');
@@ -1678,7 +1678,7 @@ describe('SmartInvoiceEscrow', function () {
       );
 
       await expect(
-        lockedInvoice.write.addMilestones([[15n]], {
+        lockedInvoice.write.addMilestones([[15n], ''], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(lockedInvoice, 'Locked');
@@ -1707,7 +1707,7 @@ describe('SmartInvoiceEscrow', function () {
       await testClient.increaseTime({ seconds: 1000 });
 
       await expect(
-        tempInvoice.write.addMilestones([[15n]], {
+        tempInvoice.write.addMilestones([[15n], ''], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(tempInvoice, 'Terminated');
@@ -1715,7 +1715,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should revert addMilestones with empty array', async function () {
       await expect(
-        escrow.write.addMilestones([[]], {
+        escrow.write.addMilestones([[], ''], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(escrow, 'NoMilestones');
@@ -1755,7 +1755,7 @@ describe('SmartInvoiceEscrow', function () {
 
       // Now try to add 3 more milestones (48 + 3 = 51 > 50 limit)
       await expect(
-        tempInvoice.write.addMilestones([[1n, 1n, 1n]], {
+        tempInvoice.write.addMilestones([[1n, 1n, 1n], ''], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(tempInvoice, 'ExceedsMilestoneLimit');
@@ -1794,7 +1794,7 @@ describe('SmartInvoiceEscrow', function () {
       );
 
       // Add 1 more milestone to reach exactly 50 (should succeed)
-      await tempInvoice.write.addMilestones([[1n]], {
+      await tempInvoice.write.addMilestones([[1n], ''], {
         account: client.account,
       });
 
@@ -1802,7 +1802,7 @@ describe('SmartInvoiceEscrow', function () {
 
       // Try to add one more (should fail as it exceeds limit)
       await expect(
-        tempInvoice.write.addMilestones([[1n]], {
+        tempInvoice.write.addMilestones([[1n], ''], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(tempInvoice, 'ExceedsMilestoneLimit');
@@ -2264,38 +2264,9 @@ describe('SmartInvoiceEscrow', function () {
       ).to.be.revertedWithCustomError(testInvoice, 'InvalidResolutionRate');
     });
 
-    it('Should revert resolve with incorrect resolution awards', async function () {
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        getAddress(client.account.address),
-        getAddress(provider.account.address),
-        getAddress(resolver.account.address),
-        mockToken,
-        amounts,
-        zeroHash,
-        mockWrappedETH,
-      );
-
-      await setBalanceOf(mockToken, lockedInvoice.address, 100);
-
-      // Try resolution where awards don't match balance - fee
-      await expect(
-        lockedInvoice.write.resolve([50n, 40n, zeroHash], {
-          account: resolver.account,
-        }),
-      ).to.be.revertedWithCustomError(lockedInvoice, 'ResolutionMismatch');
-      // 50 + 40 = 90, but should be 100 - 5 = 95
-
-      // Correct resolution should work
-      await lockedInvoice.write.resolve([45n, 50n, zeroHash], {
-        account: resolver.account,
-      });
-      // 45 + 50 = 95 = 100 - 5 ✓
-    });
-
     it('Should revert resolve if not locked', async function () {
       await expect(
-        escrow.write.resolve([45n, 50n, zeroHash], {
+        escrow.write.resolve([4500n, zeroHash], {
           account: resolver.account,
         }),
       ).to.be.revertedWithCustomError(escrow, 'NotLocked');
@@ -2316,7 +2287,7 @@ describe('SmartInvoiceEscrow', function () {
       await setBalanceOf(mockToken, lockedInvoice.address, 100);
 
       await expect(
-        lockedInvoice.write.resolve([45n, 50n, zeroHash], {
+        lockedInvoice.write.resolve([4500n, zeroHash], {
           account: client.account,
         }),
       ).to.be.revertedWithCustomError(lockedInvoice, 'NotResolver');
@@ -2340,7 +2311,7 @@ describe('SmartInvoiceEscrow', function () {
       await setBalanceOf(mockToken, lockedInvoice.address, 0n);
 
       await expect(
-        lockedInvoice.write.resolve([0n, 0n, zeroHash], {
+        lockedInvoice.write.resolve([0n, zeroHash], {
           account: resolver.account,
         }),
       ).to.be.revertedWithCustomError(lockedInvoice, 'BalanceIsZero');
@@ -2450,7 +2421,7 @@ describe('SmartInvoiceEscrow', function () {
       expect(currentAmounts[1]).to.equal(10n);
 
       // Add milestones and check again
-      await escrow.write.addMilestones([[15n, 20n]]);
+      await escrow.write.addMilestones([[15n, 20n], '']);
       const newAmounts = await escrow.read.getAmounts();
       expect(newAmounts.length).to.equal(4);
       expect(newAmounts[2]).to.equal(15n);
@@ -2510,7 +2481,7 @@ describe('SmartInvoiceEscrow', function () {
       // Balance = 100, resolutionRateBPS = 500, so fee = (100 * 500) / 10000 = 5
       // Client gets 30, provider gets 65, resolver gets 5
       const receipt = await lockedInvoice.write.resolve(
-        [30n, 65n, resolutionURI],
+        [3000n, resolutionURI],
         {
           account: resolver.account,
         },

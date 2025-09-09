@@ -20,6 +20,7 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
 
     error InvalidResolutionRate();
     error ResolutionMismatch();
+    error UnexpectedEther();
 
     uint256 internal constant MAX_RESOLUTION_RATE_BPS = 2000;
 
@@ -69,48 +70,38 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
     function lock(
         string calldata _disputeURI
     ) external payable virtual override nonReentrant {
-        if (locked) revert Locked();
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        if (balance == 0) revert BalanceIsZero();
-        if (block.timestamp > terminationTime) revert Terminated();
-        if (msg.sender != client && msg.sender != provider)
-            revert NotParty(msg.sender);
-
-        locked = true;
-
-        emit Lock(msg.sender, _disputeURI);
+        if (msg.value > 0) revert UnexpectedEther();
+        _lock(_disputeURI);
     }
 
     /**
      * @notice Resolves a dispute through individual resolver with specified award amounts
-     * @param _clientAward Amount to be awarded to the client
-     * @param _providerAward Amount to be awarded to the provider
+     * @param _refundBPS Percentage of total balance to refund to client
      * @param _resolutionURI URI containing details and reasoning for the resolution
      * @dev Only callable by individual resolver when contract is locked
      * @dev Total awards plus resolution fee must equal contract balance
      * @dev Resolution fee is calculated as (balance * resolutionRateBPS) / 10000
      */
     function resolve(
-        uint256 _clientAward,
-        uint256 _providerAward,
+        uint256 _refundBPS,
         string calldata _resolutionURI
     ) external virtual nonReentrant {
         if (!locked) revert NotLocked();
+        if (msg.sender != resolver) revert NotResolver(msg.sender);
+        if (_refundBPS > BPS_DENOMINATOR) revert InvalidRefundBPS();
+
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
-        if (msg.sender != resolver) revert NotResolver(msg.sender);
 
         uint256 resolutionFee = (balance * resolutionRateBPS) / BPS_DENOMINATOR;
+        uint256 clientAward = (balance * _refundBPS) / BPS_DENOMINATOR;
+        uint256 providerAward = balance - clientAward - resolutionFee;
 
-        // Ensure awards plus resolution fee equals total balance
-        if (_clientAward + _providerAward != balance - resolutionFee)
-            revert ResolutionMismatch();
-
-        if (_providerAward > 0) {
-            _transferToProvider(token, _providerAward);
+        if (providerAward > 0) {
+            _transferToProvider(token, providerAward);
         }
-        if (_clientAward > 0) {
-            _transferToClient(token, _clientAward);
+        if (clientAward > 0) {
+            _transferToClient(token, clientAward);
         }
         if (resolutionFee > 0) {
             _transferToken(token, resolver, resolutionFee);
@@ -127,8 +118,8 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
 
         emit Resolve(
             msg.sender,
-            _clientAward,
-            _providerAward,
+            clientAward,
+            providerAward,
             resolutionFee,
             _resolutionURI
         );

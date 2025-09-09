@@ -2,7 +2,8 @@
 pragma solidity 0.8.30;
 
 import {
-    SmartInvoiceEscrowCore
+    SmartInvoiceEscrowCore,
+    EIP712
 } from "contracts/core/SmartInvoiceEscrowCore.sol";
 import {SmartInvoiceEscrow} from "./SmartInvoiceEscrow.sol";
 import {PullStrategy} from "contracts/strategies/PullStrategy.sol";
@@ -15,6 +16,7 @@ contract SmartInvoiceEscrowPull is SmartInvoiceEscrow, PullStrategy {
     )
         SmartInvoiceEscrowCore(_wrappedETH, _factory)
         PullStrategy(_splitsWarehouse)
+        EIP712("SmartInvoiceEscrowPull", "1.0.0")
     {}
 
     function _transferToken(
