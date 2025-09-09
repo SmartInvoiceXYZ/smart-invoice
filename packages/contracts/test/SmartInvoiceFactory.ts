@@ -20,10 +20,9 @@ import {
   awaitInvoiceAddress,
   currentTimestamp,
   encodeInitData,
+  ESCROW_TYPE,
   nextSalt,
-} from './utils';
-
-const escrowType = keccak256(toBytes('escrow-v3'));
+} from './helpers';
 
 describe('SmartInvoiceFactory', function () {
   /* -------------------------------------------------------------------------- */
@@ -64,7 +63,7 @@ describe('SmartInvoiceFactory', function () {
 
   const addEscrowImplementation = async (): Promise<Hex> => {
     return invoiceFactory.write.addImplementation([
-      escrowType,
+      ESCROW_TYPE,
       escrowImpl.address,
     ]);
   };
@@ -193,24 +192,24 @@ describe('SmartInvoiceFactory', function () {
     it('admin can add first implementation (version 0)', async function () {
       await expect(addEscrowImplementation())
         .to.emit(invoiceFactory, 'AddImplementation')
-        .withArgs(escrowType, 0n, getAddress(escrowImpl.address));
+        .withArgs(ESCROW_TYPE, 0n, getAddress(escrowImpl.address));
 
-      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+      expect(await invoiceFactory.read.currentVersions([ESCROW_TYPE])).to.equal(
         0n,
       );
       expect(
-        await invoiceFactory.read.getImplementation([escrowType, 0n]),
+        await invoiceFactory.read.getImplementation([ESCROW_TYPE, 0n]),
       ).to.equal(getAddress(escrowImpl.address));
 
       // public mapping getter
       expect(
-        await invoiceFactory.read.implementations([escrowType, 0n]),
+        await invoiceFactory.read.implementations([ESCROW_TYPE, 0n]),
       ).to.equal(getAddress(escrowImpl.address));
     });
 
     it('non-admin addImplementation reverts', async function () {
       const tx = invoiceFactory.write.addImplementation(
-        [escrowType, escrowImpl.address],
+        [ESCROW_TYPE, escrowImpl.address],
         { account: client.account },
       );
       await expect(tx).to.be.reverted;
@@ -218,7 +217,7 @@ describe('SmartInvoiceFactory', function () {
 
     it('addImplementation with zero address reverts', async function () {
       const tx = invoiceFactory.write.addImplementation([
-        escrowType,
+        ESCROW_TYPE,
         zeroAddress,
       ]);
       await expect(tx).to.be.revertedWithCustomError(
@@ -239,21 +238,21 @@ describe('SmartInvoiceFactory', function () {
 
       await expect(
         invoiceFactory.write.addImplementation([
-          escrowType,
+          ESCROW_TYPE,
           escrowImpl2.address,
         ]),
       )
         .to.emit(invoiceFactory, 'AddImplementation')
-        .withArgs(escrowType, 1, getAddress(escrowImpl2.address));
+        .withArgs(ESCROW_TYPE, 1, getAddress(escrowImpl2.address));
 
-      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+      expect(await invoiceFactory.read.currentVersions([ESCROW_TYPE])).to.equal(
         1n,
       );
       expect(
-        await invoiceFactory.read.getImplementation([escrowType, 0n]),
+        await invoiceFactory.read.getImplementation([ESCROW_TYPE, 0n]),
       ).to.equal(getAddress(escrowImpl.address));
       expect(
-        await invoiceFactory.read.getImplementation([escrowType, 1n]),
+        await invoiceFactory.read.getImplementation([ESCROW_TYPE, 1n]),
       ).to.equal(getAddress(escrowImpl2.address));
     });
 
@@ -265,31 +264,31 @@ describe('SmartInvoiceFactory', function () {
         invoiceFactory.address,
       ]);
       await invoiceFactory.write.addImplementation([
-        escrowType,
+        ESCROW_TYPE,
         escrowImpl2.address,
       ]);
-      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+      expect(await invoiceFactory.read.currentVersions([ESCROW_TYPE])).to.equal(
         1n,
       );
 
       // Non-admin revert
       await expect(
-        invoiceFactory.write.setCurrentVersion([escrowType, 0n], {
+        invoiceFactory.write.setCurrentVersion([ESCROW_TYPE, 0n], {
           account: client.account,
         }),
       ).to.be.reverted;
 
       // Non-existent version
       await expect(
-        invoiceFactory.write.setCurrentVersion([escrowType, 42n]),
+        invoiceFactory.write.setCurrentVersion([ESCROW_TYPE, 42n]),
       ).to.be.revertedWithCustomError(
         invoiceFactory,
         'ImplementationDoesNotExist',
       );
 
       // Admin success: back to v0
-      await invoiceFactory.write.setCurrentVersion([escrowType, 0n]);
-      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+      await invoiceFactory.write.setCurrentVersion([ESCROW_TYPE, 0n]);
+      expect(await invoiceFactory.read.currentVersions([ESCROW_TYPE])).to.equal(
         0n,
       );
     });
@@ -328,12 +327,12 @@ describe('SmartInvoiceFactory', function () {
         invoiceFactory.address,
       ]);
       await invoiceFactory.write.addImplementation([
-        escrowType,
+        ESCROW_TYPE,
         escrowImpl2.address,
       ]);
 
       const v1 = 1n;
-      expect(await invoiceFactory.read.currentVersions([escrowType])).to.equal(
+      expect(await invoiceFactory.read.currentVersions([ESCROW_TYPE])).to.equal(
         v1,
       );
 
@@ -343,7 +342,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         [10n, 10n],
         data,
-        escrowType,
+        ESCROW_TYPE,
         v1,
         salt,
         owner.account.address,
@@ -352,7 +351,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         [10n, 10n],
         data,
-        escrowType,
+        ESCROW_TYPE,
         v1,
         salt,
       ]);
@@ -364,7 +363,7 @@ describe('SmartInvoiceFactory', function () {
 
       await expect(hash)
         .to.emit(invoiceFactory, 'InvoiceCreated')
-        .withArgs(0, actual, [10n, 10n], escrowType, v1);
+        .withArgs(0, actual, [10n, 10n], ESCROW_TYPE, v1);
     });
 
     it('reverts createDeterministic with no implementation', async function () {
@@ -413,7 +412,7 @@ describe('SmartInvoiceFactory', function () {
       });
 
       const data = encodeInitData(escrowInitData);
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
 
       const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
@@ -421,7 +420,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -455,7 +454,7 @@ describe('SmartInvoiceFactory', function () {
         ...escrowInitData,
         token: wrappedETH,
       });
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
 
       const txHash = await invoiceFactory.write.createDeterministicAndDeposit(
@@ -463,7 +462,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -490,7 +489,7 @@ describe('SmartInvoiceFactory', function () {
         ...escrowInitData,
         token: wrappedETH,
       });
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
 
       const tx = invoiceFactory.write.createDeterministicAndDeposit(
@@ -498,7 +497,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -513,14 +512,14 @@ describe('SmartInvoiceFactory', function () {
 
     it('reverts when fundAmount == 0 (InvalidFundAmount)', async function () {
       const data = encodeInitData(escrowInitData);
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
       const tx = invoiceFactory.write.createDeterministicAndDeposit(
         [
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           0n,
@@ -535,7 +534,7 @@ describe('SmartInvoiceFactory', function () {
 
     it('reverts if ERC20 path is used but value > 0 (UnexpectedETH)', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
       const data = encodeInitData(escrowInitData);
 
@@ -553,7 +552,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -568,7 +567,7 @@ describe('SmartInvoiceFactory', function () {
 
     it('deterministic + ERC20 funding works and address matches prediction', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-erc20'));
 
       await tokenContract.write.setBalanceOf([
@@ -584,7 +583,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         milestoneAmounts,
         data,
-        escrowType,
+        ESCROW_TYPE,
         version,
         salt,
         client.account.address,
@@ -595,7 +594,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -613,7 +612,7 @@ describe('SmartInvoiceFactory', function () {
 
     it('deterministic + ETH (WETH) funding works and address matches prediction', async function () {
       const fundAmount = milestoneAmounts.reduce((s, v) => s + v, 0n);
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const salt = keccak256(toBytes('fund-eth'));
       const data = encodeInitData({
         ...escrowInitData,
@@ -623,7 +622,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         milestoneAmounts,
         data,
-        escrowType,
+        ESCROW_TYPE,
         version,
         salt,
         client.account.address,
@@ -634,7 +633,7 @@ describe('SmartInvoiceFactory', function () {
           getAddress(provider.account.address),
           milestoneAmounts,
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           salt,
           fundAmount,
@@ -728,7 +727,7 @@ describe('SmartInvoiceFactory', function () {
   describe('Getters & indexing', function () {
     it('returns correct invoice addresses for multiple invoices', async function () {
       await addEscrowImplementation();
-      const version = await invoiceFactory.read.currentVersions([escrowType]);
+      const version = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const data = encodeInitData(escrowInitData);
 
       const addrs: Hex[] = [];
@@ -739,7 +738,7 @@ describe('SmartInvoiceFactory', function () {
           provider.account.address,
           [10n, 10n],
           data,
-          escrowType,
+          ESCROW_TYPE,
           version,
           nextSalt(),
         ]);
@@ -758,7 +757,7 @@ describe('SmartInvoiceFactory', function () {
 
     it('predictDeterministicAddress yields distinct addresses for distinct salts', async function () {
       await addEscrowImplementation();
-      const v = await invoiceFactory.read.currentVersions([escrowType]);
+      const v = await invoiceFactory.read.currentVersions([ESCROW_TYPE]);
       const s1 = keccak256(toBytes('s1'));
       const s2 = keccak256(toBytes('s2'));
       const data = encodeInitData(escrowInitData);
@@ -767,7 +766,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         [10n, 10n],
         data,
-        escrowType,
+        ESCROW_TYPE,
         v,
         s1,
         client.account.address,
@@ -776,7 +775,7 @@ describe('SmartInvoiceFactory', function () {
         provider.account.address,
         [10n, 10n],
         data,
-        escrowType,
+        ESCROW_TYPE,
         v,
         s2,
         client.account.address,
