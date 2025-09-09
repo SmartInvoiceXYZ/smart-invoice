@@ -235,7 +235,7 @@ interface ISmartInvoiceEscrow {
     /// @notice Emitted when a hash is approved by client or provider
     /// @param hash The hash that was approved
     /// @param sender The address that approved the hash
-    event ApproveHash(bytes32 hash, address indexed sender);
+    event ApproveHash(bytes32 indexed hash, address indexed sender);
 
     /// @notice Emitted when the client and invoice are verified.
     /// @param client The address of the client.
