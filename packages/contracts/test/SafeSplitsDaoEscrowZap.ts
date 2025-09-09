@@ -18,11 +18,14 @@ import {
   zeroAddress,
 } from 'viem';
 
-import pullSplitAbi from './contracts/PullSplit.json';
-import safeAbi from './contracts/Safe.json';
-import splitsWarehouseAbi from './contracts/SplitsWarehouse.json';
-import wethAbi from './contracts/WETH9.json';
-import { ESCROW_TYPE, SEPOLIA_CONTRACTS } from './utils';
+import {
+  ESCROW_TYPE,
+  pullSplitAbi,
+  safeAbi,
+  SEPOLIA_CONTRACTS,
+  splitsWarehouseAbi,
+  wethAbi,
+} from './helpers';
 
 // ---------------------------------------------------------------------------
 // Constants / shared scaffolding
