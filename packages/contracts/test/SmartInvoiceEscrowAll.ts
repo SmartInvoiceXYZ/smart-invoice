@@ -1,10 +1,10 @@
 /* eslint-disable mocha/no-setup-in-describe */
 import {
   createSuiteContext,
-  PUSH_VARIANTS,
   SuiteCtx,
   VariantConfig,
   VariantName,
+  VARIANTS,
 } from './helpers';
 import { addressUpdateFunctionalityTests } from './suites/addressUpdateFunctionality';
 import { basicFunctionalityTests } from './suites/basicFunctionality';
@@ -29,4 +29,4 @@ function suiteFor<const V extends VariantName>(variant: VariantConfig<V>) {
 }
 
 // Iterate with the generic wrapper so V is inferred for each element:
-PUSH_VARIANTS.forEach(v => suiteFor(v));
+VARIANTS.forEach(v => suiteFor(v));

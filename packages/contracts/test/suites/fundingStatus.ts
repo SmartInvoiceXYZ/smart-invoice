@@ -14,16 +14,16 @@ export function fundingStatusTests<const V extends VariantName>(
     });
 
     it('Should return true for isFullyFunded when fully funded', async function () {
-      const { escrow, mockToken, escrowAddress, total } = ctx();
-      await setBalanceOf(mockToken.address, escrowAddress, total);
+      const { escrow, mockToken, total } = ctx();
+      await setBalanceOf(mockToken.address, escrow.address, total);
       expect(await escrow.read.isFullyFunded()).to.equal(true);
     });
 
     it('Should return true for isFullyFunded after partial release when total funds available', async function () {
-      const { escrow, mockToken, escrowAddress, total, client } = ctx();
+      const { escrow, mockToken, total, client } = ctx();
 
       // Fund the contract with total amount
-      await setBalanceOf(mockToken.address, escrowAddress, total);
+      await setBalanceOf(mockToken.address, escrow.address, total);
 
       // Release first milestone
       await escrow.write.release({ account: client.account });
@@ -47,17 +47,17 @@ export function fundingStatusTests<const V extends VariantName>(
     });
 
     it('Should return true for isFunded when sufficient funds for specific milestone', async function () {
-      const { escrow, mockToken, escrowAddress, amounts } = ctx();
+      const { escrow, mockToken, amounts } = ctx();
       // Fund with enough for first milestone
-      await setBalanceOf(mockToken.address, escrowAddress, amounts[0]);
+      await setBalanceOf(mockToken.address, escrow.address, amounts[0]);
       expect(await escrow.read.isFunded([0n])).to.equal(true);
     });
 
     it('Should return true for isFunded when checking past milestones', async function () {
-      const { escrow, mockToken, escrowAddress, total, client } = ctx();
+      const { escrow, mockToken, total, client } = ctx();
 
       // Fund and release first milestone
-      await setBalanceOf(mockToken.address, escrowAddress, total);
+      await setBalanceOf(mockToken.address, escrow.address, total);
       await escrow.write.release({ account: client.account });
 
       // Should return true for milestone 0 since it's already released
@@ -65,11 +65,11 @@ export function fundingStatusTests<const V extends VariantName>(
     });
 
     it('Should correctly calculate required amount for future milestones', async function () {
-      const { escrow, mockToken, escrowAddress, amounts } = ctx();
+      const { escrow, mockToken, amounts } = ctx();
 
       // Fund with enough for first two milestones
       const requiredForTwo = amounts[0] + amounts[1];
-      await setBalanceOf(mockToken.address, escrowAddress, requiredForTwo);
+      await setBalanceOf(mockToken.address, escrow.address, requiredForTwo);
 
       expect(await escrow.read.isFunded([0n])).to.equal(true);
       expect(await escrow.read.isFunded([1n])).to.equal(true);
