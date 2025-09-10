@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 
-import { setBalanceOf } from '../helpers';
-import { SuiteCtx, VariantName } from '../helpers/variants';
+import { setBalanceOf, SuiteCtx, VariantName } from '../helpers';
 
 // eslint-disable-next-line mocha/no-exports
 export function fundingStatusTests<const V extends VariantName>(

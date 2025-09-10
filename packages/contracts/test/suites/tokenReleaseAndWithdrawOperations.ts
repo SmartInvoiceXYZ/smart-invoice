@@ -1,18 +1,20 @@
 import { expect } from 'chai';
 import { viem } from 'hardhat';
 import { ContractTypesMap } from 'hardhat/types';
-import { getAddress, Hex, zeroHash } from 'viem';
+import { getAddress, Hex, zeroAddress } from 'viem';
 
 import {
   awaitInvoiceAddress,
+  createVariantLockedEscrow,
   currentTimestamp,
   deployEscrow,
   getBalanceOf,
-  getLockedEscrow,
+  getEscrowAt,
   getSplitsBalanceOf,
   setBalanceOf,
+  SuiteCtx,
+  VariantName,
 } from '../helpers';
-import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
 export function tokenReleaseAndWithdrawOperationsTests<
@@ -98,24 +100,28 @@ export function tokenReleaseAndWithdrawOperationsTests<
       }
 
       const {
-        factory,
         client,
-        provider,
-        resolver,
         mockToken,
-        amounts,
-        mockWrappedETH,
+        clientReceiver,
+        providerReceiver,
+        resolverData,
       } = ctx();
 
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        client.account.address,
-        provider.account.address,
-        resolver.account.address,
-        mockToken.address,
-        amounts,
-        zeroHash,
-        mockWrappedETH.address,
+      const lockedInvoice = await createVariantLockedEscrow(
+        ctx(),
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(await currentTimestamp()) + 1000n,
+          requireVerification: false,
+          providerReceiver: getAddress(providerReceiver.account.address),
+          clientReceiver: getAddress(clientReceiver.account.address),
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+        'test unlock',
       );
 
       await expect(
@@ -157,21 +163,16 @@ export function tokenReleaseAndWithdrawOperationsTests<
           token: mockToken.address,
           terminationTime: BigInt(currentTime + 1000),
           requireVerification: true,
-          providerReceiver: getAddress(
-            '0x0000000000000000000000000000000000000000',
-          ),
-          clientReceiver: getAddress(
-            '0x0000000000000000000000000000000000000000',
-          ),
+          providerReceiver: zeroAddress,
+          clientReceiver: zeroAddress,
           feeBPS: 0n,
-          treasury: getAddress('0x0000000000000000000000000000000000000000'),
+          treasury: zeroAddress,
           details: '',
         },
       );
       const tempAddress = await awaitInvoiceAddress(tx);
 
       // Get contract instance for the temp address
-      const { getEscrowAt } = await import('../helpers/variants');
       const tempInvoice = (await getEscrowAt(
         variant.contract,
         tempAddress!,
@@ -210,19 +211,16 @@ export function tokenReleaseAndWithdrawOperationsTests<
           token: mockToken.address,
           terminationTime: BigInt(currentTime + 1000),
           requireVerification: true,
-          providerReceiver: getAddress(
-            '0x0000000000000000000000000000000000000000',
-          ),
+          providerReceiver: zeroAddress,
           clientReceiver: getAddress(clientReceiver.account.address),
           feeBPS: 0n,
-          treasury: getAddress('0x0000000000000000000000000000000000000000'),
+          treasury: zeroAddress,
           details: '',
         },
       );
       const tempAddress = await awaitInvoiceAddress(tx);
 
       // Get contract instance for the temp address
-      const { getEscrowAt } = await import('../helpers/variants');
       const tempInvoice = (await getEscrowAt(
         variant.contract,
         tempAddress!,
@@ -257,27 +255,25 @@ export function tokenReleaseAndWithdrawOperationsTests<
         this.skip();
       }
 
-      const {
-        factory,
-        client,
-        provider,
-        resolver,
-        mockToken,
-        amounts,
-        mockWrappedETH,
-        terminationTime,
-        testClient,
-      } = ctx();
+      const { client, mockToken, resolverData, testClient } = ctx();
 
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        client.account.address,
-        provider.account.address,
-        resolver.account.address,
-        mockToken.address,
-        amounts,
-        zeroHash,
-        mockWrappedETH.address,
+      const currentTime = await currentTimestamp();
+      const terminationTime = currentTime + 1000;
+      const lockedInvoice = await createVariantLockedEscrow(
+        ctx(),
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(terminationTime),
+          requireVerification: true,
+          providerReceiver: zeroAddress,
+          clientReceiver: zeroAddress,
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+        'test unlock',
       );
 
       await testClient.increaseTime({ seconds: terminationTime + 1000 });
@@ -310,21 +306,15 @@ export function tokenReleaseAndWithdrawOperationsTests<
           token: mockToken.address,
           terminationTime: BigInt(currentTime + 1000),
           requireVerification: true,
-          providerReceiver: getAddress(
-            '0x0000000000000000000000000000000000000000',
-          ),
-          clientReceiver: getAddress(
-            '0x0000000000000000000000000000000000000000',
-          ),
+          providerReceiver: zeroAddress,
+          clientReceiver: zeroAddress,
           feeBPS: 0n,
-          treasury: getAddress('0x0000000000000000000000000000000000000000'),
+          treasury: zeroAddress,
           details: '',
         },
       );
       const tempAddress = await awaitInvoiceAddress(tx);
 
-      // Get contract instance for the temp address
-      const { getEscrowAt } = await import('../helpers/variants');
       const tempInvoice = (await getEscrowAt(
         variant.contract,
         tempAddress!,

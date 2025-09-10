@@ -1,16 +1,19 @@
 import { expect } from 'chai';
 import { ContractTypesMap } from 'hardhat/types';
-import { getAddress, zeroHash } from 'viem';
+import { getAddress, zeroAddress } from 'viem';
 
 import {
   awaitInvoiceAddress,
+  createVariantLockedEscrow,
+  currentTimestamp,
   deployEscrow,
   getBalanceOf,
-  getLockedEscrow,
+  getEscrowAt,
   getSplitsBalanceOf,
   setBalanceOf,
+  SuiteCtx,
+  VariantName,
 } from '../helpers';
-import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
 export function releaseOperationsTests<const V extends VariantName>(
@@ -188,7 +191,6 @@ export function releaseOperationsTests<const V extends VariantName>(
       const tempAddress = await awaitInvoiceAddress(tx);
 
       // Get contract instance for the temp address
-      const { getEscrowAt } = await import('../helpers/variants');
       const tempInvoice = (await getEscrowAt(
         variant.contract,
         tempAddress!,
@@ -272,25 +274,30 @@ export function releaseOperationsTests<const V extends VariantName>(
       }
 
       const {
-        factory,
         client,
-        provider,
-        resolver,
         mockToken,
-        amounts,
-        mockWrappedETH,
+        clientReceiver,
+        providerReceiver,
+        resolverData,
       } = ctx();
 
-      const lockedInvoice = await getLockedEscrow(
-        factory,
-        client.account.address,
-        provider.account.address,
-        resolver.account.address,
-        mockToken.address,
-        amounts,
-        zeroHash,
-        mockWrappedETH.address,
+      const lockedInvoice = await createVariantLockedEscrow(
+        ctx(),
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(await currentTimestamp()) + 1000n,
+          requireVerification: false,
+          providerReceiver: getAddress(providerReceiver.account.address),
+          clientReceiver: getAddress(clientReceiver.account.address),
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+        'test unlock',
       );
+
       expect(lockedInvoice.write.release()).to.be.revertedWithCustomError(
         lockedInvoice,
         'Locked',
