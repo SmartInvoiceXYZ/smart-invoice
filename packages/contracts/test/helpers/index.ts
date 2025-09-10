@@ -17,3 +17,4 @@ export * from './init';
 export * from './salt';
 export * from './sign';
 export * from './timestamp';
+export * from './variants';

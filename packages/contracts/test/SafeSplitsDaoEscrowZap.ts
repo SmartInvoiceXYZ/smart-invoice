@@ -19,7 +19,7 @@ import {
 } from 'viem';
 
 import {
-  ESCROW_TYPE,
+  ESCROW_PUSH_TYPE,
   pullSplitAbi,
   safeAbi,
   SEPOLIA_CONTRACTS,
@@ -120,7 +120,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
           client: z.client,
           clientReceiver: z.clientReceiver,
           requireVerification: false,
-          escrowType: ESCROW_TYPE,
+          escrowType: ESCROW_PUSH_TYPE,
           resolverData,
           token: z.token,
           terminationTime: BigInt(z.escrowDeadline),
@@ -200,7 +200,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       escrowFactory.address,
     ]);
     await escrowFactory.write.addImplementation([
-      ESCROW_TYPE,
+      ESCROW_PUSH_TYPE,
       invoiceImpl.address,
     ]);
   });
