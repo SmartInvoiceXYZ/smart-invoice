@@ -1,30 +1,32 @@
+/* eslint-disable mocha/no-setup-in-describe */
 import {
   createSuiteContext,
-  VARIANT_ARB_PUSH,
-  VARIANT_MIN_PUSH,
-  VARIANT_PUSH,
-} from './helpers/variants';
+  PUSH_VARIANTS,
+  SuiteCtx,
+  VariantConfig,
+  VariantName,
+} from './helpers';
+import { addressUpdateFunctionalityTests } from './suites/addressUpdateFunctionality';
 import { basicFunctionalityTests } from './suites/basicFunctionality';
+import { fundingStatusTests } from './suites/fundingStatus';
+import { releaseOperationsTests } from './suites/releaseOperations';
 
-const PUSH_VARIANTS = [
-  VARIANT_PUSH,
-  VARIANT_ARB_PUSH,
-  VARIANT_MIN_PUSH,
-] as const;
-
-PUSH_VARIANTS.forEach(variant => {
-  // eslint-disable-next-line mocha/no-setup-in-describe
+function suiteFor<const V extends VariantName>(variant: VariantConfig<V>) {
   describe(`SmartInvoiceEscrow - ${variant.label}`, function () {
-    let ctx: Awaited<ReturnType<typeof createSuiteContext>>;
+    let ctx: SuiteCtx<V>;
 
     beforeEach(async function () {
       ctx = await createSuiteContext(variant);
     });
 
-    // Basic Functionality Tests
-    // eslint-disable-next-line mocha/no-setup-in-describe
-    basicFunctionalityTests(() => ctx);
+    basicFunctionalityTests<V>(() => ctx);
+    fundingStatusTests<V>(() => ctx);
+    releaseOperationsTests<V>(() => ctx);
+    addressUpdateFunctionalityTests<V>(() => ctx);
 
     // TODO: Add other test suites as we refactor them
   });
-});
+}
+
+// Iterate with the generic wrapper so V is inferred for each element:
+PUSH_VARIANTS.forEach(v => suiteFor(v));

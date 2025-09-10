@@ -72,8 +72,6 @@ export type VariantConfig<V extends VariantName> = {
   capabilities: Capabilities;
 };
 
-type ContractOf<V extends VariantName> = ContractTypesMap[V];
-
 export type SuiteCtx<V extends VariantName> = {
   // constants / params
   amounts: readonly bigint[];
@@ -99,8 +97,8 @@ export type SuiteCtx<V extends VariantName> = {
 
   // contracts / addresses
   factory: ContractTypesMap['SmartInvoiceFactory'];
-  escrowImplementation: ContractOf<V>;
-  escrow: ContractOf<V>;
+  escrowImplementation: ContractTypesMap[V];
+  escrow: ContractTypesMap[V];
   escrowAddress: Hex;
 
   mockToken: ContractTypesMap['MockToken'];
@@ -115,67 +113,69 @@ export type SuiteCtx<V extends VariantName> = {
   variant: VariantConfig<V>;
 };
 
-export async function getEscrowAt<V extends VariantName>(
+export async function getEscrowAt<const V extends VariantName>(
   variantName: V,
   address: Hex,
-): Promise<ContractOf<V>> {
+): Promise<ContractTypesMap[V]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = await viem.getContractAt(variantName as any, address);
-  return c as unknown as ContractOf<V>;
+  return c as unknown as ContractTypesMap[V];
 }
 
-export async function createPushImplementation<V extends PushVariantName>(
+export async function createPushImplementation<const V extends PushVariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
     factory: ContractTypesMap['SmartInvoiceFactory'];
   },
-): Promise<ContractOf<V>> {
+): Promise<ContractTypesMap[V]> {
   const { mockWrappedETH, factory } = deps;
   const impl = await viem.deployContract(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     variantName as any,
     [mockWrappedETH, factory.address],
   );
-  return impl as unknown as ContractOf<V>;
+  return impl as unknown as ContractTypesMap[V];
 }
 
-export async function createPullImplementation<V extends PullVariantName>(
+export async function createPullImplementation<const V extends PullVariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
     factory: ContractTypesMap['SmartInvoiceFactory'];
   },
-): Promise<ContractOf<V>> {
+): Promise<ContractTypesMap[V]> {
   const { mockWrappedETH, factory } = deps;
   const impl = await viem.deployContract(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     variantName as any,
     [mockWrappedETH, factory.address, SEPOLIA_CONTRACTS.splitsWarehouse],
   );
-  return impl as unknown as ContractOf<V>;
+  return impl as unknown as ContractTypesMap[V];
 }
 
-export async function createImplementation<V extends VariantName>(
+export async function createImplementation<const V extends VariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
     factory: ContractTypesMap['SmartInvoiceFactory'];
   },
-): Promise<ContractOf<V>> {
+): Promise<ContractTypesMap[V]> {
   if (
     variantName === 'SmartInvoiceEscrowPush' ||
     variantName === 'SmartInvoiceEscrowArbitrablePush' ||
     variantName === 'SmartInvoiceEscrowMinimalPush'
   ) {
     return createPushImplementation(variantName, deps) as Promise<
-      ContractOf<V>
+      ContractTypesMap[V]
     >;
   }
-  return createPullImplementation(variantName, deps) as Promise<ContractOf<V>>;
+  return createPullImplementation(variantName, deps) as Promise<
+    ContractTypesMap[V]
+  >;
 }
 
-export async function deployEscrow<V extends VariantName>(
+export async function deployEscrow<const V extends VariantName>(
   variant: VariantConfig<V>,
   factory: ContractTypesMap['SmartInvoiceFactory'],
   provider: Hex,
@@ -200,7 +200,7 @@ export async function deployEscrow<V extends VariantName>(
 
 /* ------------------------------- Factory func ------------------------------ */
 
-export async function createSuiteContext<V extends VariantName>(
+export async function createSuiteContext<const V extends VariantName>(
   variant: VariantConfig<V>,
   options?: {
     amounts?: readonly bigint[];
@@ -425,5 +425,17 @@ export const VARIANTS = [
   VARIANT_ARB_PUSH,
   VARIANT_ARB_PULL,
   VARIANT_MIN_PUSH,
+  VARIANT_MIN_PULL,
+] as const;
+
+export const PUSH_VARIANTS = [
+  VARIANT_PUSH,
+  VARIANT_ARB_PUSH,
+  VARIANT_MIN_PUSH,
+] as const;
+
+export const PULL_VARIANTS = [
+  VARIANT_PULL,
+  VARIANT_ARB_PULL,
   VARIANT_MIN_PULL,
 ] as const;
