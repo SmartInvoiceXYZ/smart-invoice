@@ -97,8 +97,8 @@ export type SuiteCtx<V extends VariantName> = {
 
   // contracts / addresses
   factory: ContractTypesMap['SmartInvoiceFactory'];
-  escrowImplementation: ContractTypesMap[V];
-  escrow: ContractTypesMap[V];
+  escrowImplementation: ContractTypesMap['SmartInvoiceEscrowCore'];
+  escrow: ContractTypesMap['SmartInvoiceEscrowCore'];
   escrowAddress: Hex;
 
   mockToken: ContractTypesMap['MockToken'];
@@ -324,8 +324,9 @@ export async function createSuiteContext<const V extends VariantName>(
     clientReceiver2,
 
     factory,
-    escrowImplementation,
-    escrow,
+    escrowImplementation:
+      escrowImplementation as unknown as ContractTypesMap['SmartInvoiceEscrowCore'],
+    escrow: escrow as unknown as ContractTypesMap['SmartInvoiceEscrowCore'],
     escrowAddress: getAddress(address!),
 
     mockToken: mockTokenContract,

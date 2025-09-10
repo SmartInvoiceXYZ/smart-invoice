@@ -26,7 +26,7 @@ export function fundingStatusTests<const V extends VariantName>(
       await setBalanceOf(mockToken.address, escrowAddress, total);
 
       // Release first milestone
-      await escrow.write.release([], { account: client.account });
+      await escrow.write.release({ account: client.account });
 
       // Should still be considered fully funded since released + balance >= total
       expect(await escrow.read.isFullyFunded()).to.equal(true);
@@ -58,7 +58,7 @@ export function fundingStatusTests<const V extends VariantName>(
 
       // Fund and release first milestone
       await setBalanceOf(mockToken.address, escrowAddress, total);
-      await escrow.write.release([], { account: client.account });
+      await escrow.write.release({ account: client.account });
 
       // Should return true for milestone 0 since it's already released
       expect(await escrow.read.isFunded([0n])).to.equal(true);
