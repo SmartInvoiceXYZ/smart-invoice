@@ -46,7 +46,7 @@
     "build": "hardhat compile && pnpm flatten-all",
     "clean": "hardhat clean && rm -rf contracts/build",
     "compile": "hardhat compile",
-    "coverage": "hardhat coverage",
+    "coverage": "SOLIDITY_COVERAGE=true hardhat coverage",
     "coverage:report": "python3 -m http.server --directory ./coverage",
     "create-with-zap": "hardhat run scripts/create-safe-split-escrow.ts --network",
     "deploy-factory": "hardhat run scripts/deploy-factory.ts --network",
