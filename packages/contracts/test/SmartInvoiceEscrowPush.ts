@@ -21,6 +21,7 @@ import {
   awaitInvoiceAddress,
   createArbitrableEscrow,
   createEscrow,
+  createUnlockHash,
   createUnlockSignatures,
   currentTimestamp,
   encodeInitData,
@@ -1682,18 +1683,11 @@ describe('SmartInvoiceEscrowPush', function () {
         };
 
         // Compute the EIP712 hash using our utility to get the hash
-        const tempSignatures = await createUnlockSignatures(
+        const eip712Hash = await createUnlockHash(
           lockedInvoice,
           unlockData.refundBPS,
           unlockData.unlockURI,
-          [client, provider], // We'll only use the provider signature
         );
-
-        // Get the hash from the contract
-        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
-          unlockData,
-          tempSignatures,
-        ]);
 
         // Client approves the hash on-chain instead of signing
         await lockedInvoice.write.approveHash([eip712Hash], {
@@ -1777,17 +1771,11 @@ describe('SmartInvoiceEscrowPush', function () {
         };
 
         // Get the EIP712 hash
-        const tempSignatures = await createUnlockSignatures(
+        const eip712Hash = await createUnlockHash(
           lockedInvoice,
           unlockData.refundBPS,
           unlockData.unlockURI,
-          [client, provider],
         );
-
-        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
-          unlockData,
-          tempSignatures,
-        ]);
 
         // Provider approves the hash on-chain
         await lockedInvoice.write.approveHash([eip712Hash], {
@@ -1871,17 +1859,11 @@ describe('SmartInvoiceEscrowPush', function () {
         };
 
         // Get the EIP712 hash
-        const tempSignatures = await createUnlockSignatures(
+        const eip712Hash = await createUnlockHash(
           lockedInvoice,
           unlockData.refundBPS,
           unlockData.unlockURI,
-          [client, provider],
         );
-
-        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
-          unlockData,
-          tempSignatures,
-        ]);
 
         // Both parties approve the hash on-chain
         await lockedInvoice.write.approveHash([eip712Hash], {
@@ -1942,17 +1924,11 @@ describe('SmartInvoiceEscrowPush', function () {
         };
 
         // Get the EIP712 hash
-        const tempSignatures = await createUnlockSignatures(
+        const eip712Hash = await createUnlockHash(
           lockedInvoice,
           unlockData.refundBPS,
           unlockData.unlockURI,
-          [client, provider],
         );
-
-        const [eip712Hash] = await lockedInvoice.read.testUnlockSignatures([
-          unlockData,
-          tempSignatures,
-        ]);
 
         // Approve the hash and check for event
         const hash = await lockedInvoice.write.approveHash([eip712Hash], {
