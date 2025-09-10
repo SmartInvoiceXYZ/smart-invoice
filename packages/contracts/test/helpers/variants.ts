@@ -3,6 +3,7 @@ import {
   TestClient,
   WalletClient,
 } from '@nomicfoundation/hardhat-viem/types';
+import { expect } from 'chai';
 import { viem } from 'hardhat';
 import { ContractTypesMap } from 'hardhat/types';
 import {
@@ -10,6 +11,8 @@ import {
   getAddress,
   GetTransactionReceiptReturnType,
   Hex,
+  parseAbi,
+  parseEventLogs,
   zeroAddress,
   zeroHash,
 } from 'viem';
@@ -23,6 +26,7 @@ import {
   MINIMAL_PUSH_TYPE,
 } from './constants';
 import { awaitInvoiceAddress } from './create';
+import { setBalanceOf } from './erc20';
 import { encodeInitData, InitData } from './init';
 import { nextSalt } from './salt';
 import { currentTimestamp } from './timestamp';
@@ -349,6 +353,77 @@ export async function createSuiteContext<const V extends VariantName>(
   };
 }
 
+/* ------------------------------ Locked Escrow Helper ------------------------------ */
+
+export async function createVariantLockedEscrow<const V extends VariantName>(
+  ctx: SuiteCtx<V>,
+  initData: InitData,
+  details: string,
+  value = 0n,
+): Promise<ContractTypesMap['SmartInvoiceEscrowCore']> {
+  const { variant, factory, provider, amounts, mockArbitrator } = ctx;
+
+  // Check if the variant supports locking
+  if (!variant.capabilities.lock) {
+    throw new Error(
+      `Variant ${variant.label} does not support locking operations`,
+    );
+  }
+
+  // Create the escrow
+  const tx = await deployEscrow(
+    variant,
+    factory,
+    getAddress(provider.account.address),
+    amounts,
+    initData,
+  );
+
+  const newInvoiceAddress = await awaitInvoiceAddress(tx);
+  if (!newInvoiceAddress) {
+    throw new Error('Failed to get invoice address');
+  }
+
+  const lockedInvoice = (await getEscrowAt(
+    variant.contract,
+    newInvoiceAddress,
+  )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
+
+  expect(await lockedInvoice.read.locked()).to.equal(false);
+
+  // Fund the contract with tokens
+  await setBalanceOf(initData.token, newInvoiceAddress, 10n);
+
+  // Lock the contract
+  let lockValue = value;
+
+  // For arbitrable contracts, we need to pay arbitration costs
+  if (variant.capabilities.arbitrable) {
+    const extraData = (zeroHash + zeroHash.slice(2)) as Hex;
+    lockValue = await mockArbitrator.read.arbitrationCost([extraData]);
+  }
+
+  const lockHash = await lockedInvoice.write.lock([details], {
+    value: lockValue,
+  });
+
+  const receipt = await (
+    await viem.getPublicClient()
+  ).waitForTransactionReceipt({ hash: lockHash });
+
+  // Verify lock event was emitted
+  const events = parseEventLogs({
+    abi: parseAbi(['event Lock(address indexed client, string id)']),
+    logs: receipt.logs,
+  });
+
+  expect(events[0].eventName).to.equal('Lock');
+  expect(events[0].args.client).to.equal(getAddress(initData.client));
+  expect(events[0].args.id).to.equal(details);
+
+  return lockedInvoice;
+}
+
 /* --------------------------- Strongly-typed variants ----------------------- */
 
 export const VARIANT_PUSH = {
@@ -428,24 +503,3 @@ export const VARIANT_MIN_PULL = {
     pull: true,
   },
 } as const satisfies VariantConfig<'SmartInvoiceEscrowMinimalPull'>;
-
-export const VARIANTS = [
-  VARIANT_PUSH,
-  VARIANT_PULL,
-  VARIANT_ARB_PUSH,
-  VARIANT_ARB_PULL,
-  VARIANT_MIN_PUSH,
-  VARIANT_MIN_PULL,
-] as const;
-
-export const PUSH_VARIANTS = [
-  VARIANT_PUSH,
-  VARIANT_ARB_PUSH,
-  VARIANT_MIN_PUSH,
-] as const;
-
-export const PULL_VARIANTS = [
-  VARIANT_PULL,
-  VARIANT_ARB_PULL,
-  VARIANT_MIN_PULL,
-] as const;

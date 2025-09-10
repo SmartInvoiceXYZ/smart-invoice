@@ -11,9 +11,6 @@ import {
     ReentrancyGuard
 } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {
-    Initializable
-} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {
     ISmartInvoiceEscrow
 } from "contracts/interfaces/ISmartInvoiceEscrow.sol";
 import {
@@ -21,15 +18,16 @@ import {
 } from "contracts/interfaces/ISmartInvoiceFactory.sol";
 import {IWRAPPED} from "contracts/interfaces/IWRAPPED.sol";
 import {SignatureDecoder} from "../libraries/SignatureDecoder.sol";
-import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {
+    EIP712Upgradeable
+} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 
 /// @title SmartInvoiceEscrowCore
 /// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
 abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
-    Initializable,
     ReentrancyGuard,
-    EIP712
+    EIP712Upgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -109,7 +107,13 @@ abstract contract SmartInvoiceEscrowCore is
 
         InitData memory initData = abi.decode(_data, (InitData));
         _handleData(_provider, _amounts, initData);
+        _postInit();
     }
+
+    /**
+     * @dev Internal function to perform any post-initialization logic such as calling init functions of upgradeable contracts
+     */
+    function _postInit() internal virtual;
 
     /**
      * @dev Internal function to decode initialization data and set contract state
@@ -594,40 +598,6 @@ abstract contract SmartInvoiceEscrowCore is
         released += balance;
 
         emit Unlock(msg.sender, clientAward, providerAward, _data.unlockURI);
-    }
-
-    /**
-     * @notice Test function to verify unlock signatures (for testing purposes)
-     * @param _data UnlockData struct containing refundBPS and unlockURI
-     * @param _signatures concatenated EIP712 signatures for the hash of the data
-     * @return hash The computed EIP712 hash
-     * @return clientSigner The recovered client signer address
-     * @return providerSigner The recovered provider signer address
-     */
-    function testUnlockSignatures(
-        UnlockData calldata _data,
-        bytes calldata _signatures
-    )
-        external
-        view
-        returns (bytes32 hash, address clientSigner, address providerSigner)
-    {
-        // Compute hash from data (same as unlock function)
-        hash = _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    UNLOCK_HASH,
-                    _data.refundBPS,
-                    keccak256(bytes(_data.unlockURI))
-                )
-            )
-        );
-
-        // Recover signers
-        clientSigner = SignatureDecoder.recoverKey(hash, _signatures, 0);
-        providerSigner = SignatureDecoder.recoverKey(hash, _signatures, 1);
-
-        return (hash, clientSigner, providerSigner);
     }
 
     /**
