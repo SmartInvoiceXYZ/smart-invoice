@@ -14,7 +14,7 @@ import {
 import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
-export function basicFunctionalityTests<V extends VariantName>(
+export function basicFunctionalityTests<const V extends VariantName>(
   ctx: () => SuiteCtx<V>,
 ) {
   describe('Basic Functionality', function () {
