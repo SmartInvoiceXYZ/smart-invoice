@@ -1,8 +1,13 @@
 import { expect } from 'chai';
 import { getAddress, zeroAddress } from 'viem';
 
-import { getBalanceOf, getSplitsBalanceOf, setBalanceOf } from '../helpers';
-import { SuiteCtx, VariantName } from '../helpers/variants';
+import {
+  getBalanceOf,
+  getSplitsBalanceOf,
+  setBalanceOf,
+  SuiteCtx,
+  VariantName,
+} from '../helpers';
 
 // eslint-disable-next-line mocha/no-exports
 export function addressUpdateFunctionalityTests<const V extends VariantName>(

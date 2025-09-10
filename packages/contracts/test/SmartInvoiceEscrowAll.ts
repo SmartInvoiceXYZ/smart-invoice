@@ -11,13 +11,21 @@ import {
   VariantConfig,
   VariantName,
 } from './helpers';
+import { additionalErrorHandlingAndEdgeCasesTests } from './suites/additionalErrorHandlingAndEdgeCases';
 import { addressUpdateFunctionalityTests } from './suites/addressUpdateFunctionality';
+import { arbitrationOperationsTests } from './suites/arbitrationOperations';
 import { basicFunctionalityTests } from './suites/basicFunctionality';
+import { ethOperationsTests } from './suites/ethOperations';
+import { evidenceAndAppealOperationsTests } from './suites/evidenceAndAppealOperations';
+import { feeSystemTests } from './suites/feeSystem';
 import { fundingStatusTests } from './suites/fundingStatus';
 import { lockAndResolveOperationsTests } from './suites/lockAndResolveOperations';
+import { milestoneManagementTests } from './suites/milestoneManagement';
 import { releaseOperationsTests } from './suites/releaseOperations';
 import { tokenReleaseAndWithdrawOperationsTests } from './suites/tokenReleaseAndWithdrawOperations';
 import { unlockOperationsTests } from './suites/unlockOperations';
+import { verificationTests } from './suites/verification';
+import { withdrawOperationsTests } from './suites/withdrawOperations';
 
 const VARIANTS = [
   VARIANT_PUSH,
@@ -43,8 +51,14 @@ function suiteFor<const V extends VariantName>(variant: VariantConfig<V>) {
     tokenReleaseAndWithdrawOperationsTests<V>(() => ctx);
     lockAndResolveOperationsTests<V>(() => ctx);
     unlockOperationsTests<V>(() => ctx);
-
-    // TODO: Add other test suites as we refactor them
+    withdrawOperationsTests<V>(() => ctx);
+    arbitrationOperationsTests<V>(() => ctx);
+    evidenceAndAppealOperationsTests<V>(() => ctx);
+    ethOperationsTests<V>(() => ctx);
+    verificationTests<V>(() => ctx);
+    milestoneManagementTests<V>(() => ctx);
+    additionalErrorHandlingAndEdgeCasesTests<V>(() => ctx);
+    feeSystemTests<V>(() => ctx);
   });
 }
 
