@@ -187,7 +187,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         mockToken.address,
         providerReceiver.account.address,
       );
-      await escrow.write.release([], { account: client.account });
+      await escrow.write.release({ account: client.account });
       const afterBalance = await getBalanceOf(
         mockToken.address,
         providerReceiver.account.address,
@@ -205,7 +205,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         mockToken.address,
         clientReceiver.account.address,
       );
-      await escrow.write.withdraw([], { account: client.account });
+      await escrow.write.withdraw({ account: client.account });
       const afterBalance = await getBalanceOf(
         mockToken.address,
         clientReceiver.account.address,
@@ -240,7 +240,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         providerReceiver.account.address,
       );
 
-      await escrow.write.release([], { account: client.account });
+      await escrow.write.release({ account: client.account });
 
       const afterBalance = await getBalanceOf(
         mockToken.address,
@@ -285,7 +285,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         clientReceiver.account.address,
       );
 
-      await escrow.write.withdraw([], { account: client.account });
+      await escrow.write.withdraw({ account: client.account });
 
       const afterBalance = await getBalanceOf(
         mockToken.address,
