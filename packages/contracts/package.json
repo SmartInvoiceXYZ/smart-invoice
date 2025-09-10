@@ -65,6 +65,7 @@
     "test:sol": "forge test --fuzz-runs 10000",
     "test": "pnpm test:ts && pnpm test:sol",
     "test-escrow": "hardhat test ./test/SmartInvoiceEscrow.ts",
+    "test-escrow-push": "hardhat test ./test/SmartInvoiceEscrowPush.ts",
     "test-factory": "hardhat test ./test/SmartInvoiceFactory.ts",
     "test-zap": "FORK=true hardhat test ./test/SafeSplitsEscrowZap.ts",
     "test-dao-zap": "FORK=true hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
