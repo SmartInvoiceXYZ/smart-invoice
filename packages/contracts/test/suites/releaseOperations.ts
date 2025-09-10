@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { ContractTypesMap } from 'hardhat/types';
 import { getAddress, zeroHash } from 'viem';
 
 import {
@@ -149,7 +150,10 @@ export function releaseOperationsTests<const V extends VariantName>(
 
       // Get contract instance for the temp address
       const { getEscrowAt } = await import('../helpers/variants');
-      const tempInvoice = await getEscrowAt(variant.contract, tempAddress!);
+      const tempInvoice = (await getEscrowAt(
+        variant.contract,
+        tempAddress!,
+      )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
 
       // Ensure invoice starts unverified
       expect(await tempInvoice.read.verified()).to.equal(false);
