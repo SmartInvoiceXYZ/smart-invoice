@@ -37,7 +37,7 @@ const total = amounts.reduce((t, v) => t + v, 0n);
 const resolutionRateBps = 500n; // 5%
 const requireVerification = true;
 
-describe('SmartInvoiceEscrow', function () {
+describe('SmartInvoiceEscrowPush', function () {
   let terminationTime: number;
   let factory: ContractTypesMap['SmartInvoiceFactory'];
   let escrowImplementation: ContractTypesMap['SmartInvoiceEscrowPush'];
