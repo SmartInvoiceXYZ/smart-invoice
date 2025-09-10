@@ -10,6 +10,13 @@ export const SEPOLIA_CONTRACTS = {
   wrappedETH: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14' as Hex,
 };
 
-export const ESCROW_TYPE = toHex(toBytes('escrow-v3', { size: 32 }));
-export const ARBITRABLE_TYPE = toHex(toBytes('arbitrable-v3', { size: 32 }));
-export const MINIMAL_TYPE = toHex(toBytes('minimal-v3', { size: 32 }));
+export const ESCROW_PUSH_TYPE = toHex(toBytes('escrow-push', { size: 32 }));
+export const ESCROW_PULL_TYPE = toHex(toBytes('escrow-pull', { size: 32 }));
+export const ARBITRABLE_PUSH_TYPE = toHex(
+  toBytes('arbitrable-push', { size: 32 }),
+);
+export const ARBITRABLE_PULL_TYPE = toHex(
+  toBytes('arbitrable-pull', { size: 32 }),
+);
+export const MINIMAL_PUSH_TYPE = toHex(toBytes('minimal-push', { size: 32 }));
+export const MINIMAL_PULL_TYPE = toHex(toBytes('minimal-pull', { size: 32 }));

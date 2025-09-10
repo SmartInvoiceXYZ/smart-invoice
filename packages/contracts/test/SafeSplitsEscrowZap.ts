@@ -19,7 +19,7 @@ import {
 } from 'viem';
 
 import {
-  ESCROW_TYPE,
+  ESCROW_PUSH_TYPE,
   pullSplitAbi,
   safeAbi,
   SEPOLIA_CONTRACTS,
@@ -79,7 +79,7 @@ const encodeEscrowData = (() => {
           client: ZAP_DATA.client,
           clientReceiver: ZAP_DATA.clientReceiver,
           requireVerification: false,
-          escrowType: ESCROW_TYPE,
+          escrowType: ESCROW_PUSH_TYPE,
           resolverData,
           token: ZAP_DATA.token,
           terminationTime: BigInt(ZAP_DATA.escrowDeadline),
@@ -173,7 +173,7 @@ describe('SafeSplitsEscrowZap (v2 Splits)', function () {
       escrowFactory.address,
     ]);
     await escrowFactory.write.addImplementation([
-      ESCROW_TYPE,
+      ESCROW_PUSH_TYPE,
       invoiceImpl.address,
     ]);
 

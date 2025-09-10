@@ -13,7 +13,7 @@ import {
   zeroHash,
 } from 'viem';
 
-import { ARBITRABLE_TYPE, ESCROW_TYPE } from './constants';
+import { ARBITRABLE_PUSH_TYPE, ESCROW_PUSH_TYPE } from './constants';
 import { setBalanceOf } from './erc20';
 import { encodeInitData } from './init';
 import { nextSalt } from './salt';
@@ -51,7 +51,10 @@ export const createEscrow = async (
   feeBPS: bigint = 0n,
   treasury: Hex = zeroAddress,
 ): Promise<GetTransactionReceiptReturnType> => {
-  await factory.write.addImplementation([ESCROW_TYPE, implementation.address]);
+  await factory.write.addImplementation([
+    ESCROW_PUSH_TYPE,
+    implementation.address,
+  ]);
 
   // only address encoded as bytes32
   const resolverData = encodeAbiParameters(
@@ -72,13 +75,13 @@ export const createEscrow = async (
     details,
   });
 
-  const version = await factory.read.currentVersions([ESCROW_TYPE]);
+  const version = await factory.read.currentVersions([ESCROW_PUSH_TYPE]);
 
   const hash = await factory.write.createDeterministic([
     provider,
     amounts,
     data,
-    ESCROW_TYPE,
+    ESCROW_PUSH_TYPE,
     version,
     nextSalt(),
   ]);
@@ -101,7 +104,7 @@ export const createArbitrableEscrow = async (
   treasury: Hex = zeroAddress,
 ): Promise<GetTransactionReceiptReturnType> => {
   await factory.write.addImplementation([
-    ARBITRABLE_TYPE,
+    ARBITRABLE_PUSH_TYPE,
     implementation.address,
   ]);
 
@@ -129,13 +132,13 @@ export const createArbitrableEscrow = async (
     details,
   });
 
-  const version = await factory.read.currentVersions([ARBITRABLE_TYPE]);
+  const version = await factory.read.currentVersions([ARBITRABLE_PUSH_TYPE]);
 
   const hash = await factory.write.createDeterministic([
     provider,
     amounts,
     data,
-    ARBITRABLE_TYPE,
+    ARBITRABLE_PUSH_TYPE,
     version,
     nextSalt(),
   ]);
