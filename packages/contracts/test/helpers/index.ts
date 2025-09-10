@@ -16,5 +16,6 @@ export * from './erc20';
 export * from './init';
 export * from './salt';
 export * from './sign';
+export * from './splits';
 export * from './timestamp';
 export * from './variants';

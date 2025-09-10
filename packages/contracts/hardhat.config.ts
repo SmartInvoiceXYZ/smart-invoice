@@ -35,6 +35,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.30',
     settings: {
+      evmVersion: 'cancun',
       optimizer: {
         enabled: true,
         runs: 200,
@@ -117,6 +118,7 @@ const config: HardhatUserConfig = {
         url: ALCHEMY_PROJECT_ID
           ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_PROJECT_ID}`
           : `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
+        blockNumber: ALCHEMY_PROJECT_ID ? 9173000 : undefined, // Fixed block for faster forking
       },
     },
     anvil: {
