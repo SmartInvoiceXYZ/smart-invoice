@@ -7,6 +7,7 @@ import {
   deployEscrow,
   getBalanceOf,
   getLockedEscrow,
+  getSplitsBalanceOf,
   setBalanceOf,
 } from '../helpers';
 import { SuiteCtx, VariantName } from '../helpers/variants';
@@ -33,20 +34,40 @@ export function releaseOperationsTests<const V extends VariantName>(
     });
 
     it('Should release', async function () {
-      const { escrow, mockToken, providerReceiver } = ctx();
+      const {
+        escrow,
+        mockToken,
+        providerReceiver,
+        variant,
+        mockSplitsWarehouse,
+      } = ctx();
       await setBalanceOf(mockToken.address, escrow.address, 10n);
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       const receipt = await escrow.write.release();
       expect(await escrow.read.released()).to.equal(10n);
       expect(await escrow.read.milestone()).to.equal(1n);
       await expect(receipt).to.emit(escrow, 'Release').withArgs(0n, 10n);
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       expect(afterBalance).to.equal(beforeBalance + 10n);
     });
 
@@ -76,13 +97,25 @@ export function releaseOperationsTests<const V extends VariantName>(
     });
 
     it('Should release full balance at last milestone', async function () {
-      const { escrow, mockToken, providerReceiver } = ctx();
+      const {
+        escrow,
+        mockToken,
+        providerReceiver,
+        mockSplitsWarehouse,
+        variant,
+      } = ctx();
 
       await setBalanceOf(mockToken.address, escrow.address, 10n);
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       let receipt = await escrow.write.release();
       expect(await escrow.read.released()).to.equal(10n);
       expect(await escrow.read.milestone()).to.equal(1n);
@@ -94,10 +127,16 @@ export function releaseOperationsTests<const V extends VariantName>(
       expect(await escrow.read.milestone()).to.equal(2n);
       await expect(receipt).to.emit(escrow, 'Release').withArgs(1n, 15n);
 
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       expect(afterBalance).to.equal(beforeBalance + 25n);
     });
 

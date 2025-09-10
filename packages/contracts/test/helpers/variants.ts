@@ -21,7 +21,6 @@ import {
   ESCROW_PUSH_TYPE,
   MINIMAL_PULL_TYPE,
   MINIMAL_PUSH_TYPE,
-  SEPOLIA_CONTRACTS,
 } from './constants';
 import { awaitInvoiceAddress } from './create';
 import { encodeInitData, InitData } from './init';
@@ -79,6 +78,10 @@ export type SuiteCtx<V extends VariantName> = {
   resolutionRateBps: bigint; // e.g. 500n (5%)
   requireVerification: boolean;
 
+  // init data
+  resolverData: Hex;
+  terminationTime: number;
+
   // chain clients
   publicClient: PublicClient;
   testClient: TestClient;
@@ -95,19 +98,16 @@ export type SuiteCtx<V extends VariantName> = {
   providerReceiver2: WalletClient;
   clientReceiver2: WalletClient;
 
-  // contracts / addresses
+  // contracts
   factory: ContractTypesMap['SmartInvoiceFactory'];
   escrowImplementation: ContractTypesMap['SmartInvoiceEscrowCore'];
   escrow: ContractTypesMap['SmartInvoiceEscrowCore'];
-  escrowAddress: Hex;
 
+  // mock contracts
   mockToken: ContractTypesMap['MockToken'];
   mockWrappedETH: ContractTypesMap['MockWETH'];
   mockArbitrator: ContractTypesMap['MockArbitrator'];
-
-  // init data
-  resolverData: Hex;
-  terminationTime: number;
+  mockSplitsWarehouse: ContractTypesMap['MockSplitsWarehouse'];
 
   // chosen variant
   variant: VariantConfig<V>;
@@ -126,14 +126,14 @@ export async function createPushImplementation<const V extends PushVariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
-    factory: ContractTypesMap['SmartInvoiceFactory'];
+    factory: Hex;
   },
 ): Promise<ContractTypesMap[V]> {
   const { mockWrappedETH, factory } = deps;
   const impl = await viem.deployContract(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     variantName as any,
-    [mockWrappedETH, factory.address],
+    [mockWrappedETH, factory],
   );
   return impl as unknown as ContractTypesMap[V];
 }
@@ -142,14 +142,15 @@ export async function createPullImplementation<const V extends PullVariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
-    factory: ContractTypesMap['SmartInvoiceFactory'];
+    factory: Hex;
+    splitsWarehouse: Hex;
   },
 ): Promise<ContractTypesMap[V]> {
-  const { mockWrappedETH, factory } = deps;
+  const { mockWrappedETH, factory, splitsWarehouse } = deps;
   const impl = await viem.deployContract(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     variantName as any,
-    [mockWrappedETH, factory.address, SEPOLIA_CONTRACTS.splitsWarehouse],
+    [mockWrappedETH, factory, splitsWarehouse],
   );
   return impl as unknown as ContractTypesMap[V];
 }
@@ -158,7 +159,8 @@ export async function createImplementation<const V extends VariantName>(
   variantName: V,
   deps: {
     mockWrappedETH: Hex;
-    factory: ContractTypesMap['SmartInvoiceFactory'];
+    factory: Hex;
+    splitsWarehouse: Hex;
   },
 ): Promise<ContractTypesMap[V]> {
   if (
@@ -241,6 +243,12 @@ export async function createSuiteContext<const V extends VariantName>(
   ]);
   const mockArbitrator = getAddress(mockArbitratorContract.address);
 
+  const mockSplitsWarehouseContract = await viem.deployContract(
+    'MockSplitsWarehouse',
+    ['ETH', 'ETH'],
+  );
+  const mockSplitsWarehouse = getAddress(mockSplitsWarehouseContract.address);
+
   const factory = await viem.deployContract('SmartInvoiceFactory', [
     mockWrappedETH,
   ]);
@@ -248,7 +256,8 @@ export async function createSuiteContext<const V extends VariantName>(
   // Deploy the variant implementation and register it
   const escrowImplementation = await createImplementation(variant.contract, {
     mockWrappedETH,
-    factory,
+    factory: factory.address,
+    splitsWarehouse: mockSplitsWarehouse,
   });
   await factory.write.addImplementation([
     variant.typeId,
@@ -327,11 +336,11 @@ export async function createSuiteContext<const V extends VariantName>(
     escrowImplementation:
       escrowImplementation as unknown as ContractTypesMap['SmartInvoiceEscrowCore'],
     escrow: escrow as unknown as ContractTypesMap['SmartInvoiceEscrowCore'],
-    escrowAddress: getAddress(address!),
 
     mockToken: mockTokenContract,
     mockWrappedETH: mockWrappedETHContract,
     mockArbitrator: mockArbitratorContract,
+    mockSplitsWarehouse: mockSplitsWarehouseContract,
 
     resolverData,
     terminationTime,

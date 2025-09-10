@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { getAddress, zeroAddress } from 'viem';
 
-import { getBalanceOf, setBalanceOf } from '../helpers';
+import { getBalanceOf, getSplitsBalanceOf, setBalanceOf } from '../helpers';
 import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
@@ -180,36 +180,69 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should send payments to providerReceiver when set', async function () {
-      const { client, mockToken, providerReceiver, escrow } = ctx();
+      const {
+        client,
+        mockToken,
+        providerReceiver,
+        escrow,
+        mockSplitsWarehouse,
+        variant,
+      } = ctx();
 
       await setBalanceOf(mockToken.address, escrow.address, 10n);
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       await escrow.write.release({ account: client.account });
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
       expect(afterBalance).to.equal(beforeBalance + 10n);
     });
 
     it('Should send withdrawals to clientReceiver when set', async function () {
-      const { client, clientReceiver, mockToken, testClient, escrow } = ctx();
+      const {
+        client,
+        clientReceiver,
+        mockToken,
+        testClient,
+        escrow,
+        variant,
+        mockSplitsWarehouse,
+      } = ctx();
 
       await testClient.increaseTime({ seconds: 30 * 24 * 60 * 60 });
       await setBalanceOf(mockToken.address, escrow.address, 10n);
 
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver.account.address,
-      );
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
       await escrow.write.withdraw({ account: client.account });
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver.account.address,
-      );
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
       expect(afterBalance).to.equal(beforeBalance + 10n);
     });
 
@@ -221,6 +254,8 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         providerReceiver,
         providerReceiver2,
         escrow,
+        variant,
+        mockSplitsWarehouse,
       } = ctx();
 
       // First update the provider receiver to providerReceiver2
@@ -231,25 +266,49 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
 
       await setBalanceOf(mockToken.address, escrow.address, 10n);
 
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver2.account.address,
-      );
-      const beforeOriginalBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver2.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver2.account.address,
+          );
+      const beforeOriginalBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
 
       await escrow.write.release({ account: client.account });
 
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver2.account.address,
-      );
-      const afterOriginalBalance = await getBalanceOf(
-        mockToken.address,
-        providerReceiver.account.address,
-      );
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver2.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver2.account.address,
+          );
+      const afterOriginalBalance = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
 
       // Payment should go to the NEW receiver
       expect(afterBalance).to.equal(beforeBalance + 10n);
@@ -265,6 +324,8 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         mockToken,
         testClient,
         escrow,
+        variant,
+        mockSplitsWarehouse,
       } = ctx();
 
       // Update client receiver to clientReceiver2
@@ -276,25 +337,37 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
       await testClient.increaseTime({ seconds: 30 * 24 * 60 * 60 });
       await setBalanceOf(mockToken.address, escrow.address, 10n);
 
-      const beforeBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver2.account.address,
-      );
-      const beforeOriginalBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver.account.address,
-      );
+      const beforeBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver2.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver2.account.address,
+          );
+      const beforeOriginalBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
 
       await escrow.write.withdraw({ account: client.account });
 
-      const afterBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver2.account.address,
-      );
-      const afterOriginalBalance = await getBalanceOf(
-        mockToken.address,
-        clientReceiver.account.address,
-      );
+      const afterBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver2.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver2.account.address,
+          );
+      const afterOriginalBalance = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
 
       // Withdrawal should go to the NEW receiver
       expect(afterBalance).to.equal(beforeBalance + 10n);

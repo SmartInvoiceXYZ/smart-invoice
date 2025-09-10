@@ -43,7 +43,7 @@ export function basicFunctionalityTests<const V extends VariantName>(
 
       if (ctx().variant.capabilities.resolvable) {
         const resolvableEscrow =
-          escrow as unknown as ContractTypesMap['SmartInvoiceEscrowPush'];
+          escrow as unknown as ContractTypesMap['SmartInvoiceEscrow'];
         expect(await resolvableEscrow.read.resolver()).to.equal(
           getAddress(resolver.account.address),
         );
@@ -52,7 +52,7 @@ export function basicFunctionalityTests<const V extends VariantName>(
         );
       } else if (ctx().variant.capabilities.arbitrable) {
         const arbitrableEscrow =
-          escrow as unknown as ContractTypesMap['SmartInvoiceEscrowArbitrablePush'];
+          escrow as unknown as ContractTypesMap['SmartInvoiceEscrowArbitrable'];
         // For arbitrable variants, resolver field contains the arbitrator address
         expect(await arbitrableEscrow.read.resolver()).to.equal(
           getAddress(ctx().mockArbitrator.address),
@@ -206,6 +206,7 @@ export function basicFunctionalityTests<const V extends VariantName>(
         resolver,
         mockToken,
         mockWrappedETH,
+        mockSplitsWarehouse,
         factory,
         variant,
         requireVerification,
@@ -216,7 +217,8 @@ export function basicFunctionalityTests<const V extends VariantName>(
       const currentTime = await currentTimestamp();
       const newInvoice = (await createImplementation(variant.contract, {
         mockWrappedETH: mockWrappedETH.address,
-        factory,
+        factory: factory.address,
+        splitsWarehouse: mockSplitsWarehouse.address,
       })) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
 
       const data = encodeAbiParameters(
