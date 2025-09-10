@@ -4,7 +4,7 @@ import {
   WalletClient,
 } from '@nomicfoundation/hardhat-viem/types';
 import { viem } from 'hardhat';
-import { ArtifactsMap, ContractTypesMap } from 'hardhat/types';
+import { ContractTypesMap } from 'hardhat/types';
 import {
   encodeAbiParameters,
   getAddress,
@@ -34,7 +34,7 @@ export const VARIANT_PUSH_NAMES = [
   'SmartInvoiceEscrowPush',
   'SmartInvoiceEscrowArbitrablePush',
   'SmartInvoiceEscrowMinimalPush',
-] as const satisfies readonly (keyof ArtifactsMap)[];
+] as const;
 
 type PushVariantName = (typeof VARIANT_PUSH_NAMES)[number];
 
@@ -42,14 +42,14 @@ export const VARIANT_PULL_NAMES = [
   'SmartInvoiceEscrowPull',
   'SmartInvoiceEscrowArbitrablePull',
   'SmartInvoiceEscrowMinimalPull',
-] as const satisfies readonly (keyof ArtifactsMap)[];
+] as const;
 
 type PullVariantName = (typeof VARIANT_PULL_NAMES)[number];
 
 export const VARIANT_NAMES = [
   ...VARIANT_PUSH_NAMES,
   ...VARIANT_PULL_NAMES,
-] as const satisfies readonly (keyof ArtifactsMap)[];
+] as const;
 
 // The union type of exactly those 6 strings
 export type VariantName = (typeof VARIANT_NAMES)[number];
@@ -281,8 +281,8 @@ export async function createSuiteContext<const V extends VariantName>(
     token: mockToken,
     terminationTime: BigInt(terminationTime),
     requireVerification,
-    providerReceiver: zeroAddress,
-    clientReceiver: zeroAddress,
+    providerReceiver: providerReceiver.account.address,
+    clientReceiver: clientReceiver.account.address,
     feeBPS: 0n,
     treasury: zeroAddress,
     details: options?.details ?? '',
