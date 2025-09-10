@@ -6,17 +6,16 @@ import {
   awaitInvoiceAddress,
   createUnlockHash,
   createUnlockSignatures,
+  createVariantLockedEscrow,
   currentTimestamp,
   deployEscrow,
   getBalanceOf,
+  getEscrowAt,
   getSplitsBalanceOf,
   setBalanceOf,
-} from '../helpers';
-import {
-  createVariantLockedEscrow,
   SuiteCtx,
   VariantName,
-} from '../helpers/variants';
+} from '../helpers';
 
 // eslint-disable-next-line mocha/no-exports
 export function unlockOperationsTests<const V extends VariantName>(
@@ -420,8 +419,6 @@ export function unlockOperationsTests<const V extends VariantName>(
       );
       const tempAddress = await awaitInvoiceAddress(tx);
 
-      // Get contract instance for the temp address
-      const { getEscrowAt } = await import('../helpers/variants');
       const tempInvoice = (await getEscrowAt(
         variant.contract,
         tempAddress!,

@@ -120,10 +120,10 @@ export type SuiteCtx<V extends VariantName> = {
 export async function getEscrowAt<const V extends VariantName>(
   variantName: V,
   address: Hex,
-): Promise<ContractTypesMap[V]> {
+): Promise<ContractTypesMap['SmartInvoiceEscrowCore']> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = await viem.getContractAt(variantName as any, address);
-  return c as unknown as ContractTypesMap[V];
+  return c as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
 }
 
 export async function createPushImplementation<const V extends PushVariantName>(

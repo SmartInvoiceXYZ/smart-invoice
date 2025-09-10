@@ -10,8 +10,9 @@ import {
   encodeInitData,
   getEscrowAt,
   nextSalt,
+  SuiteCtx,
+  VariantName,
 } from '../helpers';
-import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
 export function basicFunctionalityTests<const V extends VariantName>(
