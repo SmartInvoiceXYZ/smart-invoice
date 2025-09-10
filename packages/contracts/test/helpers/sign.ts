@@ -1,5 +1,11 @@
 import { ContractTypesMap } from 'hardhat/types';
-import { Hex, TypedData, TypedDataDomain, WalletClient } from 'viem';
+import {
+  hashTypedData,
+  Hex,
+  TypedData,
+  TypedDataDomain,
+  WalletClient,
+} from 'viem';
 
 /**
  * Creates a multi-signature by concatenating individual signatures from multiple signers
@@ -43,7 +49,9 @@ export async function multisig(
  * @returns Promise resolving to concatenated signatures
  */
 export async function createUnlockSignatures(
-  contract: ContractTypesMap['SmartInvoiceEscrowPush'],
+  contract:
+    | ContractTypesMap['SmartInvoiceEscrowCore']
+    | ContractTypesMap['SmartInvoiceEscrowPush'],
   refundBPS: bigint,
   unlockURI: string,
   signers: WalletClient[],
@@ -73,4 +81,50 @@ export async function createUnlockSignatures(
   };
 
   return multisig(domain, types, unlockData, signers);
+}
+
+/**
+ * Helper function to create an unlock hash for testing
+ * @param contract The escrow contract instance
+ * @param refundBPS The refund basis points (0-10000)
+ * @param unlockURI The URI for unlock details
+ * @returns Promise resolving to the EIP712 hash
+ */
+export async function createUnlockHash(
+  contract:
+    | ContractTypesMap['SmartInvoiceEscrowCore']
+    | ContractTypesMap['SmartInvoiceEscrowPush'],
+  refundBPS: bigint,
+  unlockURI: string,
+): Promise<Hex> {
+  const unlockData = {
+    refundBPS,
+    unlockURI,
+  };
+
+  // Get EIP712 domain info from contract
+  const domainData = await contract.read.eip712Domain();
+  // EIP712Domain returns: fields, name, version, chainId, verifyingContract, salt, extensions
+  const [, name, version, chainId, verifyingContract] = domainData;
+
+  const domain = {
+    name,
+    version,
+    chainId: Number(chainId), // Convert bigint to number for viem
+    verifyingContract,
+  };
+
+  const types = {
+    UnlockData: [
+      { name: 'refundBPS', type: 'uint256' },
+      { name: 'unlockURI', type: 'string' },
+    ],
+  };
+
+  return hashTypedData({
+    domain,
+    types,
+    primaryType: 'UnlockData',
+    message: unlockData,
+  });
 }

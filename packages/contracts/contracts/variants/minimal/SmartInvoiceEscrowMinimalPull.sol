@@ -2,8 +2,7 @@
 pragma solidity 0.8.30;
 
 import {
-    SmartInvoiceEscrowCore,
-    EIP712
+    SmartInvoiceEscrowCore
 } from "contracts/core/SmartInvoiceEscrowCore.sol";
 import {SmartInvoiceEscrowMinimal} from "./SmartInvoiceEscrowMinimal.sol";
 import {PullStrategy} from "contracts/strategies/PullStrategy.sol";
@@ -19,8 +18,11 @@ contract SmartInvoiceEscrowMinimalPull is
     )
         SmartInvoiceEscrowCore(_wrappedETH, _factory)
         PullStrategy(_splitsWarehouse)
-        EIP712("SmartInvoiceEscrowMinimalPull", "1.0.0")
     {}
+
+    function _postInit() internal virtual override {
+        __EIP712_init("SmartInvoiceEscrowMinimalPull", "1.0.0");
+    }
 
     function _transferToken(
         address _token,
@@ -28,5 +30,15 @@ contract SmartInvoiceEscrowMinimalPull is
         uint256 _amount
     ) internal virtual override {
         _transferTokenPull(_token, _recipient, _amount);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function _EIP712Name() internal pure override returns (string memory) {
+        return "SmartInvoiceEscrowMinimalPull";
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function _EIP712Version() internal pure override returns (string memory) {
+        return "1.0.0";
     }
 }
