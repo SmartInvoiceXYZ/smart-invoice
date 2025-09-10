@@ -70,6 +70,6 @@
     "test-dao-zap": "FORK=true hardhat test ./test/SafeSplitsDaoEscrowZap.ts",
     "typecheck": "tsc --noEmit",
     "verify-contract": "hardhat run scripts/verify-contract.ts --network",
-    "preinstall": "forge install"
+    "preinstall": "command -v forge >/dev/null 2>&1 && forge install || echo 'Forge not available, skipping forge install'"
   }
 }
