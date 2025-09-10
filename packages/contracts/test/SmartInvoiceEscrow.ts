@@ -32,10 +32,10 @@ import {
   setBalanceOf,
 } from './helpers';
 
-const AMOUNTS = [10n, 10n];
-const TOTAL = AMOUNTS.reduce((t, v) => t + v, 0n);
-const RESOLUTION_RATE_BPS = 500n; // 5%
-const REQUIRE_VERIFICATION = true;
+const amounts = [10n, 10n];
+const total = amounts.reduce((t, v) => t + v, 0n);
+const resolutionRateBps = 500n; // 5%
+const requireVerification = true;
 
 describe('SmartInvoiceEscrow', function () {
   let terminationTime: number;
@@ -146,7 +146,7 @@ describe('SmartInvoiceEscrow', function () {
           client: getAddress(client.account.address),
           token: mockToken,
           terminationTime: BigInt(terminationTime),
-          requireVerification: REQUIRE_VERIFICATION,
+          requireVerification,
           providerReceiver: zeroAddress, // no providerReceiver
           clientReceiver: zeroAddress, // no clientReceiver
           feeBPS: 0n, // no fees
@@ -159,7 +159,7 @@ describe('SmartInvoiceEscrow', function () {
 
     const hash = await factory.write.createDeterministic([
       getAddress(provider.account.address),
-      AMOUNTS,
+      amounts,
       data,
       ESCROW_PUSH_TYPE,
       0n,
@@ -185,16 +185,14 @@ describe('SmartInvoiceEscrow', function () {
       );
       expect(await escrow.read.token()).to.equal(mockToken);
 
-      for (let i = 0; i < AMOUNTS.length; i += 1) {
+      for (let i = 0; i < amounts.length; i += 1) {
         // eslint-disable-next-line no-await-in-loop
-        expect(await escrow.read.amounts([BigInt(i)])).to.equal(AMOUNTS[i]);
+        expect(await escrow.read.amounts([BigInt(i)])).to.equal(amounts[i]);
       }
       expect(await escrow.read.terminationTime()).to.equal(terminationTime);
-      expect(await escrow.read.resolutionRateBPS()).to.equal(
-        RESOLUTION_RATE_BPS,
-      );
+      expect(await escrow.read.resolutionRateBPS()).to.equal(resolutionRateBps);
       expect(await escrow.read.milestone()).to.equal(0n);
-      expect(await escrow.read.total()).to.equal(TOTAL);
+      expect(await escrow.read.total()).to.equal(total);
       expect(await escrow.read.locked()).to.equal(false);
       expect(await escrow.read.WRAPPED_ETH()).to.equal(mockWrappedETH);
       expect(await escrow.read.providerReceiver()).to.equal(zeroAddress);
@@ -207,7 +205,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: zeroAddress,
         clientReceiver: zeroAddress,
         feeBPS: 0n,
@@ -217,7 +215,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -236,7 +234,7 @@ describe('SmartInvoiceEscrow', function () {
         .withArgs(
           getAddress(provider.account.address),
           getAddress(client.account.address),
-          AMOUNTS,
+          amounts,
           'Test invoice details',
         );
 
@@ -265,7 +263,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -285,7 +283,7 @@ describe('SmartInvoiceEscrow', function () {
         .withArgs(
           getAddress(provider.account.address),
           getAddress(client.account.address),
-          AMOUNTS,
+          amounts,
           '',
         );
       await expect(hash)
@@ -317,13 +315,13 @@ describe('SmartInvoiceEscrow', function () {
           BigInt(currentTime - 3600),
           zeroHash,
           mockWrappedETH,
-          REQUIRE_VERIFICATION,
+          requireVerification,
         ],
       );
 
       const receipt = newInvoice.write.init([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
       ]);
       await expect(receipt).to.be.revertedWithCustomError(
@@ -341,10 +339,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime - 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -361,10 +359,10 @@ describe('SmartInvoiceEscrow', function () {
         zeroAddress,
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -381,10 +379,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         zeroAddress,
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -401,10 +399,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         zeroAddress,
-        AMOUNTS,
+        amounts,
         currentTime - 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -421,10 +419,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime - 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -441,10 +439,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 5 * 365 * 24 * 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       await expect(receipt).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -461,10 +459,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 365 * 24 * 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const invoiceAddr = await awaitInvoiceAddress(tx);
       const deployedInvoice = await viem.getContractAt(
@@ -472,7 +470,7 @@ describe('SmartInvoiceEscrow', function () {
         invoiceAddr!,
       );
       expect(await deployedInvoice.read.resolutionRateBPS()).to.equal(
-        RESOLUTION_RATE_BPS,
+        resolutionRateBps,
       );
     });
   });
@@ -483,13 +481,13 @@ describe('SmartInvoiceEscrow', function () {
     });
 
     it('Should return true for isFullyFunded when fully funded', async function () {
-      await setBalanceOf(mockToken, escrowAddress!, TOTAL);
+      await setBalanceOf(mockToken, escrowAddress!, total);
       expect(await escrow.read.isFullyFunded()).to.equal(true);
     });
 
     it('Should return true for isFullyFunded after partial release when total funds available', async function () {
       // Fund the contract with total amount
-      await setBalanceOf(mockToken, escrowAddress!, TOTAL);
+      await setBalanceOf(mockToken, escrowAddress!, total);
 
       // Release first milestone
       await escrow.write.release({ account: client.account });
@@ -512,13 +510,13 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should return true for isFunded when sufficient funds for specific milestone', async function () {
       // Fund with enough for first milestone
-      await setBalanceOf(mockToken, escrowAddress!, AMOUNTS[0]);
+      await setBalanceOf(mockToken, escrowAddress!, amounts[0]);
       expect(await escrow.read.isFunded([0n])).to.equal(true);
     });
 
     it('Should return true for isFunded when checking past milestones', async function () {
       // Fund and release first milestone
-      await setBalanceOf(mockToken, escrowAddress!, TOTAL);
+      await setBalanceOf(mockToken, escrowAddress!, total);
       await escrow.write.release({ account: client.account });
 
       // Should return true for milestone 0 since it's already released
@@ -527,7 +525,7 @@ describe('SmartInvoiceEscrow', function () {
 
     it('Should correctly calculate required amount for future milestones', async function () {
       // Fund with enough for first two milestones
-      const requiredForTwo = AMOUNTS[0] + AMOUNTS[1];
+      const requiredForTwo = amounts[0] + amounts[1];
       await setBalanceOf(mockToken, escrowAddress!, requiredForTwo);
 
       expect(await escrow.read.isFunded([0n])).to.equal(true);
@@ -630,7 +628,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 30 * 24 * 60 * 60,
         zeroHash,
         true, // requireVerification = true
@@ -711,7 +709,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -770,7 +768,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -796,10 +794,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -823,10 +821,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -856,7 +854,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -875,10 +873,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -905,10 +903,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -929,10 +927,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -957,10 +955,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -984,7 +982,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -1005,10 +1003,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -1030,7 +1028,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -1046,10 +1044,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -1078,10 +1076,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -1108,7 +1106,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -1159,7 +1157,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1235,7 +1233,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1281,7 +1279,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1327,7 +1325,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1375,10 +1373,10 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           currentTime + 1000,
           'test details',
-          REQUIRE_VERIFICATION,
+          requireVerification,
         );
         const newInvoiceAddress = await awaitInvoiceAddress(receipt);
         const invoice = await viem.getContractAt(
@@ -1409,7 +1407,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1439,7 +1437,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1466,7 +1464,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1494,7 +1492,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1522,7 +1520,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1550,7 +1548,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1608,7 +1606,7 @@ describe('SmartInvoiceEscrow', function () {
         const version = await factory.read.currentVersions([ESCROW_PUSH_TYPE]);
         const hash = await factory.write.createDeterministic([
           provider.account.address,
-          AMOUNTS,
+          amounts,
           data,
           ESCROW_PUSH_TYPE,
           version,
@@ -1672,7 +1670,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1768,7 +1766,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1862,7 +1860,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1933,7 +1931,7 @@ describe('SmartInvoiceEscrow', function () {
           getAddress(provider.account.address),
           getAddress(resolver.account.address),
           mockToken,
-          AMOUNTS,
+          amounts,
           'test unlock',
           mockWrappedETH,
         );
@@ -1991,7 +1989,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2025,7 +2023,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2058,7 +2056,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2084,7 +2082,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2106,7 +2104,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2124,7 +2122,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2146,7 +2144,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2168,7 +2166,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2197,7 +2195,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2226,7 +2224,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
         10n,
@@ -2248,10 +2246,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const regularInvoice = await viem.getContractAt(
@@ -2289,10 +2287,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockWrappedETH,
-        AMOUNTS,
+        amounts,
         terminationTime,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -2323,10 +2321,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockWrappedETH,
-        AMOUNTS,
+        amounts,
         terminationTime,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -2373,10 +2371,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken, // Different token, not wrapped ETH
-        AMOUNTS,
+        amounts,
         terminationTime,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       escrowAddress = await awaitInvoiceAddress(tx);
       escrow = await viem.getContractAt(
@@ -2509,7 +2507,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -2530,10 +2528,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -2567,7 +2565,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(currentTime + 30 * 24 * 60 * 60),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: zeroAddress,
         clientReceiver: zeroAddress,
         feeBPS: 0n,
@@ -2607,7 +2605,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(currentTime + 30 * 24 * 60 * 60),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: zeroAddress,
         clientReceiver: zeroAddress,
         feeBPS: 0n,
@@ -2657,7 +2655,7 @@ describe('SmartInvoiceEscrow', function () {
           [], // Empty amounts array
           terminationTime,
           zeroHash,
-          REQUIRE_VERIFICATION,
+          requireVerification,
         ),
       ).to.be.revertedWithCustomError(escrowImplementation, 'NoMilestones');
     });
@@ -2676,7 +2674,7 @@ describe('SmartInvoiceEscrow', function () {
           tooManyAmounts,
           terminationTime,
           zeroHash,
-          REQUIRE_VERIFICATION,
+          requireVerification,
         ),
       ).to.be.revertedWithCustomError(
         escrowImplementation,
@@ -2694,7 +2692,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: getAddress(providerReceiver.account.address),
         clientReceiver: getAddress(clientReceiver.account.address),
         feeBPS: 0n,
@@ -2704,7 +2702,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -2903,7 +2901,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -2985,7 +2983,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3046,7 +3044,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: zeroAddress,
         clientReceiver: zeroAddress,
         feeBPS: 0n,
@@ -3058,7 +3056,7 @@ describe('SmartInvoiceEscrow', function () {
       await expect(
         newInvoice.write.init([
           getAddress(provider.account.address),
-          AMOUNTS,
+          amounts,
           data,
         ]),
       ).to.be.revertedWithCustomError(newInvoice, 'InvalidInitialization');
@@ -3083,7 +3081,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: zeroAddress,
         clientReceiver: zeroAddress,
         feeBPS: 0n,
@@ -3095,7 +3093,7 @@ describe('SmartInvoiceEscrow', function () {
         mockFactory.write.callInit([
           testInvoice.address,
           getAddress(provider.account.address),
-          AMOUNTS,
+          amounts,
           data,
         ]),
       ).to.be.revertedWithCustomError(testInvoice, 'InvalidResolutionRate');
@@ -3116,7 +3114,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -3137,7 +3135,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -3173,10 +3171,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 1000,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -3201,7 +3199,7 @@ describe('SmartInvoiceEscrow', function () {
         provider.account.address,
         resolver.account.address,
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -3222,10 +3220,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         mockArbitrator,
         mockToken,
-        AMOUNTS,
+        amounts,
         currentTime + 3600,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -3282,7 +3280,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3307,7 +3305,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockToken,
-        AMOUNTS,
+        amounts,
         zeroHash,
         mockWrappedETH,
       );
@@ -3341,10 +3339,10 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         getAddress(resolver.account.address),
         mockWrappedETH, // Use wrapped ETH as main token
-        AMOUNTS,
+        amounts,
         terminationTime,
         zeroHash,
-        REQUIRE_VERIFICATION,
+        requireVerification,
       );
       const tempAddress = await awaitInvoiceAddress(tx);
       const tempInvoice = await viem.getContractAt(
@@ -3376,7 +3374,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3386,7 +3384,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3412,7 +3410,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS: invalidFeeBPS,
@@ -3422,7 +3420,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3444,7 +3442,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3454,7 +3452,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3476,7 +3474,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3486,7 +3484,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3499,7 +3497,7 @@ describe('SmartInvoiceEscrow', function () {
         address!,
       );
 
-      await setBalanceOf(mockToken, tempInvoice.address, TOTAL);
+      await setBalanceOf(mockToken, tempInvoice.address, total);
 
       const beforeProviderBalance = await getBalanceOf(
         mockToken,
@@ -3511,7 +3509,7 @@ describe('SmartInvoiceEscrow', function () {
         account: client.account,
       });
 
-      const milestoneAmount = AMOUNTS[0];
+      const milestoneAmount = amounts[0];
       const expectedFee = (milestoneAmount * feeBPS) / 10000n;
       const expectedProviderAmount = milestoneAmount - expectedFee;
 
@@ -3543,7 +3541,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(terminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3553,7 +3551,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3566,7 +3564,7 @@ describe('SmartInvoiceEscrow', function () {
         address!,
       );
 
-      await setBalanceOf(mockToken, tempInvoice.address, TOTAL);
+      await setBalanceOf(mockToken, tempInvoice.address, total);
       await testClient.increaseTime({ seconds: terminationTime + 1000 });
 
       const beforeClientBalance = await getBalanceOf(
@@ -3579,8 +3577,8 @@ describe('SmartInvoiceEscrow', function () {
         account: client.account,
       });
 
-      const expectedFee = (TOTAL * feeBPS) / 10000n;
-      const expectedClientAmount = TOTAL - expectedFee;
+      const expectedFee = (total * feeBPS) / 10000n;
+      const expectedClientAmount = total - expectedFee;
 
       const afterClientBalance = await getBalanceOf(
         mockToken,
@@ -3613,7 +3611,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3623,7 +3621,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3636,7 +3634,7 @@ describe('SmartInvoiceEscrow', function () {
         address!,
       );
 
-      await setBalanceOf(mockToken, tempInvoice.address, TOTAL);
+      await setBalanceOf(mockToken, tempInvoice.address, total);
 
       const beforeTreasuryBalance = await getBalanceOf(mockToken, treasury);
 
@@ -3644,7 +3642,7 @@ describe('SmartInvoiceEscrow', function () {
         account: client.account,
       });
 
-      const milestoneAmount = AMOUNTS[0];
+      const milestoneAmount = amounts[0];
       const expectedFee = (milestoneAmount * feeBPS) / 10000n;
 
       const afterTreasuryBalance = await getBalanceOf(mockToken, treasury);
@@ -3665,7 +3663,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver2.account.address, // Different receiver
         clientReceiver: clientReceiver2.account.address, // Different receiver
         feeBPS,
@@ -3675,7 +3673,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3688,7 +3686,7 @@ describe('SmartInvoiceEscrow', function () {
         address!,
       );
 
-      await setBalanceOf(mockToken, tempInvoice.address, TOTAL);
+      await setBalanceOf(mockToken, tempInvoice.address, total);
 
       const beforeProviderBalance = await getBalanceOf(
         mockToken,
@@ -3700,7 +3698,7 @@ describe('SmartInvoiceEscrow', function () {
         account: client.account,
       });
 
-      const milestoneAmount = AMOUNTS[0];
+      const milestoneAmount = amounts[0];
       const expectedFee = (milestoneAmount * feeBPS) / 10000n;
       const expectedProviderAmount = milestoneAmount - expectedFee;
 
@@ -3729,7 +3727,7 @@ describe('SmartInvoiceEscrow', function () {
         resolverData,
         token: mockToken,
         terminationTime: BigInt(futureTerminationTime),
-        requireVerification: REQUIRE_VERIFICATION,
+        requireVerification,
         providerReceiver: providerReceiver.account.address,
         clientReceiver: clientReceiver.account.address,
         feeBPS,
@@ -3739,7 +3737,7 @@ describe('SmartInvoiceEscrow', function () {
 
       const hash = await factory.write.createDeterministic([
         getAddress(provider.account.address),
-        AMOUNTS,
+        amounts,
         data,
         ESCROW_PUSH_TYPE,
         0n,
@@ -3752,7 +3750,7 @@ describe('SmartInvoiceEscrow', function () {
         address!,
       );
 
-      await setBalanceOf(mockToken, tempInvoice.address, TOTAL);
+      await setBalanceOf(mockToken, tempInvoice.address, total);
 
       const beforeProviderBalance = await getBalanceOf(
         mockToken,
@@ -3769,7 +3767,7 @@ describe('SmartInvoiceEscrow', function () {
       );
 
       // Should receive full milestone amount without fees
-      expect(afterProviderBalance).to.equal(beforeProviderBalance + AMOUNTS[0]);
+      expect(afterProviderBalance).to.equal(beforeProviderBalance + amounts[0]);
 
       // Should not emit FeeTransferred event when no fees
       await expect(releaseHash).not.to.emit(tempInvoice, 'FeeTransferred');

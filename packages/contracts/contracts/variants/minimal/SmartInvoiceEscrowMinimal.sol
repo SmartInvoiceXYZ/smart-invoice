@@ -15,7 +15,7 @@ abstract contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowCore {
         bytes memory _resolverData
     ) internal pure override {
         if (_resolverData.length != 0) {
-            revert LockDisabled();
+            revert InvalidResolverData();
         }
     }
 
