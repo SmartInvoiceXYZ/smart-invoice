@@ -17,14 +17,14 @@ import {
 } from 'viem';
 
 import {
-  ARBITRABLE_TYPE,
+  ARBITRABLE_PUSH_TYPE,
   awaitInvoiceAddress,
   createArbitrableEscrow,
   createEscrow,
   createUnlockSignatures,
   currentTimestamp,
   encodeInitData,
-  ESCROW_TYPE,
+  ESCROW_PUSH_TYPE,
   getBalanceOf,
   getLockedArbitrableEscrow,
   getLockedEscrow,
@@ -99,7 +99,7 @@ describe('SmartInvoiceEscrow', function () {
     ]);
 
     await factory.write.addImplementation([
-      ESCROW_TYPE,
+      ESCROW_PUSH_TYPE,
       escrowImplementation.address,
     ]);
 
@@ -109,7 +109,7 @@ describe('SmartInvoiceEscrow', function () {
     );
 
     await factory.write.addImplementation([
-      ARBITRABLE_TYPE,
+      ARBITRABLE_PUSH_TYPE,
       arbitrableImplementation.address,
     ]);
 
@@ -161,7 +161,7 @@ describe('SmartInvoiceEscrow', function () {
       getAddress(provider.account.address),
       AMOUNTS,
       data,
-      ESCROW_TYPE,
+      ESCROW_PUSH_TYPE,
       0n,
       nextSalt(),
     ]);
@@ -219,7 +219,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -267,7 +267,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -1605,12 +1605,12 @@ describe('SmartInvoiceEscrow', function () {
           details: 'test with receivers',
         });
 
-        const version = await factory.read.currentVersions([ESCROW_TYPE]);
+        const version = await factory.read.currentVersions([ESCROW_PUSH_TYPE]);
         const hash = await factory.write.createDeterministic([
           provider.account.address,
           AMOUNTS,
           data,
-          ESCROW_TYPE,
+          ESCROW_PUSH_TYPE,
           version,
           nextSalt(),
         ]);
@@ -2579,7 +2579,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         manyAmounts,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -2619,7 +2619,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         manyAmounts,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -2706,7 +2706,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -2905,7 +2905,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -2987,7 +2987,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3284,7 +3284,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3388,7 +3388,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3424,7 +3424,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3456,7 +3456,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3488,7 +3488,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3555,7 +3555,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3625,7 +3625,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3677,7 +3677,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
@@ -3741,7 +3741,7 @@ describe('SmartInvoiceEscrow', function () {
         getAddress(provider.account.address),
         AMOUNTS,
         data,
-        ESCROW_TYPE,
+        ESCROW_PUSH_TYPE,
         0n,
         nextSalt(),
       ]);
