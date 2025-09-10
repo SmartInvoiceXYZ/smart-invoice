@@ -1,13 +1,7 @@
 import { expect } from 'chai';
 import { getAddress, zeroAddress } from 'viem';
 
-import {
-  awaitInvoiceAddress,
-  currentTimestamp,
-  deployEscrow,
-  getBalanceOf,
-  setBalanceOf,
-} from '../helpers';
+import { getBalanceOf, setBalanceOf } from '../helpers';
 import { SuiteCtx, VariantName } from '../helpers/variants';
 
 // eslint-disable-next-line mocha/no-exports
@@ -15,72 +9,31 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
   ctx: () => SuiteCtx<V>,
 ) {
   describe('Address Update Functionality', function () {
-    let updatableInvoice: Awaited<ReturnType<typeof ctx>>['escrow'];
-
-    beforeEach(async function () {
-      const {
-        factory,
-        client,
-        provider,
-        providerReceiver,
-        clientReceiver,
-        resolverData,
-        mockToken,
-        terminationTime,
-        requireVerification,
-        amounts,
-        variant,
-      } = ctx();
-
-      const tx = await deployEscrow(
-        variant,
-        factory,
-        getAddress(provider.account.address),
-        amounts,
-        {
-          client: client.account.address,
-          resolverData,
-          token: mockToken.address,
-          terminationTime: BigInt(terminationTime),
-          requireVerification,
-          providerReceiver: getAddress(providerReceiver.account.address),
-          clientReceiver: getAddress(clientReceiver.account.address),
-          feeBPS: 0n,
-          treasury: zeroAddress,
-          details: '',
-        },
-      );
-
-      const address = await awaitInvoiceAddress(tx);
-      const { getEscrowAt } = await import('../helpers/variants');
-      updatableInvoice = await getEscrowAt(variant.contract, address!);
-    });
-
     it('Should deploy with receiver addresses', async function () {
-      const { providerReceiver, clientReceiver } = ctx();
+      const { providerReceiver, clientReceiver, escrow } = ctx();
 
-      expect(await updatableInvoice.read.providerReceiver()).to.equal(
+      expect(await escrow.read.providerReceiver()).to.equal(
         getAddress(providerReceiver.account.address),
       );
-      expect(await updatableInvoice.read.clientReceiver()).to.equal(
+      expect(await escrow.read.clientReceiver()).to.equal(
         getAddress(clientReceiver.account.address),
       );
     });
 
     it('Should allow the client to update their address', async function () {
-      const { client, client2 } = ctx();
+      const { client, client2, escrow } = ctx();
 
-      const receipt = await updatableInvoice.write.updateClient(
+      const receipt = await escrow.write.updateClient(
         [client2.account.address],
         {
           account: client.account,
         },
       );
-      expect(await updatableInvoice.read.client()).to.equal(
+      expect(await escrow.read.client()).to.equal(
         getAddress(client2.account.address),
       );
       await expect(receipt)
-        .to.emit(updatableInvoice, 'UpdatedClient')
+        .to.emit(escrow, 'UpdatedClient')
         .withArgs(
           getAddress(client.account.address),
           getAddress(client2.account.address),
@@ -88,39 +41,39 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should revert the client update if not the client', async function () {
-      const { provider, client2 } = ctx();
+      const { provider, client2, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateClient([client2.account.address], {
+        escrow.write.updateClient([client2.account.address], {
           account: provider.account,
         }),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'NotClient');
+      ).to.be.revertedWithCustomError(escrow, 'NotClient');
     });
 
     it('Should revert client update with zero address', async function () {
-      const { client } = ctx();
+      const { client, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateClient([zeroAddress], {
+        escrow.write.updateClient([zeroAddress], {
           account: client.account,
         }),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'InvalidClient');
+      ).to.be.revertedWithCustomError(escrow, 'InvalidClient');
     });
 
     it('Should allow the provider to update their address', async function () {
-      const { provider, provider2 } = ctx();
+      const { provider, provider2, escrow } = ctx();
 
-      const receipt = await updatableInvoice.write.updateProvider(
+      const receipt = await escrow.write.updateProvider(
         [provider2.account.address],
         {
           account: provider.account,
         },
       );
-      expect(await updatableInvoice.read.provider()).to.equal(
+      expect(await escrow.read.provider()).to.equal(
         getAddress(provider2.account.address),
       );
       await expect(receipt)
-        .to.emit(updatableInvoice, 'UpdatedProvider')
+        .to.emit(escrow, 'UpdatedProvider')
         .withArgs(
           getAddress(provider.account.address),
           getAddress(provider2.account.address),
@@ -128,37 +81,37 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should revert provider update if not the provider', async function () {
-      const { client, provider2 } = ctx();
+      const { client, provider2, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateProvider([provider2.account.address], {
+        escrow.write.updateProvider([provider2.account.address], {
           account: client.account,
         }),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'NotProvider');
+      ).to.be.revertedWithCustomError(escrow, 'NotProvider');
     });
 
     it('Should revert provider update with zero address', async function () {
-      const { provider } = ctx();
+      const { provider, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateProvider([zeroAddress], {
+        escrow.write.updateProvider([zeroAddress], {
           account: provider.account,
         }),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'InvalidProvider');
+      ).to.be.revertedWithCustomError(escrow, 'InvalidProvider');
     });
 
     it('Should allow the provider to update their receiving address', async function () {
-      const { provider, providerReceiver, providerReceiver2 } = ctx();
+      const { provider, providerReceiver, providerReceiver2, escrow } = ctx();
 
-      const receipt = await updatableInvoice.write.updateProviderReceiver(
+      const receipt = await escrow.write.updateProviderReceiver(
         [providerReceiver2.account.address],
         { account: provider.account },
       );
-      expect(await updatableInvoice.read.providerReceiver()).to.equal(
+      expect(await escrow.read.providerReceiver()).to.equal(
         getAddress(providerReceiver2.account.address),
       );
       await expect(receipt)
-        .to.emit(updatableInvoice, 'UpdatedProviderReceiver')
+        .to.emit(escrow, 'UpdatedProviderReceiver')
         .withArgs(
           getAddress(providerReceiver.account.address),
           getAddress(providerReceiver2.account.address),
@@ -166,44 +119,40 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should revert provider receiver update if not the provider', async function () {
-      const { client, providerReceiver2 } = ctx();
+      const { client, providerReceiver2, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateProviderReceiver(
+        escrow.write.updateProviderReceiver(
           [providerReceiver2.account.address],
           { account: client.account },
         ),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'NotProvider');
+      ).to.be.revertedWithCustomError(escrow, 'NotProvider');
     });
 
     it('Should revert provider receiver update with contract address', async function () {
-      const { provider } = ctx();
+      const { provider, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateProviderReceiver(
-          [updatableInvoice.address],
-          { account: provider.account },
-        ),
-      ).to.be.revertedWithCustomError(
-        updatableInvoice,
-        'InvalidProviderReceiver',
-      );
+        escrow.write.updateProviderReceiver([escrow.address], {
+          account: provider.account,
+        }),
+      ).to.be.revertedWithCustomError(escrow, 'InvalidProviderReceiver');
     });
 
     it('Should allow the client to update their receiving address', async function () {
-      const { client, clientReceiver, clientReceiver2 } = ctx();
+      const { client, clientReceiver, clientReceiver2, escrow } = ctx();
 
-      const receipt = await updatableInvoice.write.updateClientReceiver(
+      const receipt = await escrow.write.updateClientReceiver(
         [clientReceiver2.account.address],
         {
           account: client.account,
         },
       );
-      expect(await updatableInvoice.read.clientReceiver()).to.equal(
+      expect(await escrow.read.clientReceiver()).to.equal(
         getAddress(clientReceiver2.account.address),
       );
       await expect(receipt)
-        .to.emit(updatableInvoice, 'UpdatedClientReceiver')
+        .to.emit(escrow, 'UpdatedClientReceiver')
         .withArgs(
           getAddress(clientReceiver.account.address),
           getAddress(clientReceiver2.account.address),
@@ -211,39 +160,34 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should revert client receiver update if not the client', async function () {
-      const { provider, clientReceiver2 } = ctx();
+      const { provider, clientReceiver2, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateClientReceiver(
-          [clientReceiver2.account.address],
-          { account: provider.account },
-        ),
-      ).to.be.revertedWithCustomError(updatableInvoice, 'NotClient');
+        escrow.write.updateClientReceiver([clientReceiver2.account.address], {
+          account: provider.account,
+        }),
+      ).to.be.revertedWithCustomError(escrow, 'NotClient');
     });
 
     it('Should revert client receiver update with contract address', async function () {
-      const { client } = ctx();
+      const { client, escrow } = ctx();
 
       await expect(
-        updatableInvoice.write.updateClientReceiver(
-          [updatableInvoice.address],
-          { account: client.account },
-        ),
-      ).to.be.revertedWithCustomError(
-        updatableInvoice,
-        'InvalidClientReceiver',
-      );
+        escrow.write.updateClientReceiver([escrow.address], {
+          account: client.account,
+        }),
+      ).to.be.revertedWithCustomError(escrow, 'InvalidClientReceiver');
     });
 
     it('Should send payments to providerReceiver when set', async function () {
-      const { client, mockToken, providerReceiver } = ctx();
+      const { client, mockToken, providerReceiver, escrow } = ctx();
 
-      await setBalanceOf(mockToken.address, updatableInvoice.address, 10n);
+      await setBalanceOf(mockToken.address, escrow.address, 10n);
       const beforeBalance = await getBalanceOf(
         mockToken.address,
         providerReceiver.account.address,
       );
-      await updatableInvoice.write.release([], { account: client.account });
+      await escrow.write.release([], { account: client.account });
       const afterBalance = await getBalanceOf(
         mockToken.address,
         providerReceiver.account.address,
@@ -252,52 +196,16 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
     });
 
     it('Should send withdrawals to clientReceiver when set', async function () {
-      const {
-        factory,
-        client,
-        provider,
-        providerReceiver,
-        clientReceiver,
-        resolverData,
-        mockToken,
-        amounts,
-        variant,
-        testClient,
-      } = ctx();
+      const { client, clientReceiver, mockToken, testClient, escrow } = ctx();
 
-      const currentTime = await currentTimestamp();
-
-      const tx = await deployEscrow(
-        variant,
-        factory,
-        getAddress(provider.account.address),
-        amounts,
-        {
-          client: client.account.address,
-          resolverData,
-          token: mockToken.address,
-          terminationTime: BigInt(currentTime + 1000),
-          requireVerification: false,
-          providerReceiver: getAddress(providerReceiver.account.address),
-          clientReceiver: getAddress(clientReceiver.account.address),
-          feeBPS: 0n,
-          treasury: zeroAddress,
-          details: '',
-        },
-      );
-
-      const address = await awaitInvoiceAddress(tx);
-      const { getEscrowAt } = await import('../helpers/variants');
-      const tempInvoice = await getEscrowAt(variant.contract, address!);
-
-      await testClient.increaseTime({ seconds: 1000 });
-      await setBalanceOf(mockToken.address, tempInvoice.address, 10n);
+      await testClient.increaseTime({ seconds: 30 * 24 * 60 * 60 });
+      await setBalanceOf(mockToken.address, escrow.address, 10n);
 
       const beforeBalance = await getBalanceOf(
         mockToken.address,
         clientReceiver.account.address,
       );
-      await tempInvoice.write.withdraw([], { account: client.account });
+      await escrow.write.withdraw([], { account: client.account });
       const afterBalance = await getBalanceOf(
         mockToken.address,
         clientReceiver.account.address,
@@ -312,15 +220,16 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         mockToken,
         providerReceiver,
         providerReceiver2,
+        escrow,
       } = ctx();
 
       // First update the provider receiver to providerReceiver2
-      await updatableInvoice.write.updateProviderReceiver(
+      await escrow.write.updateProviderReceiver(
         [providerReceiver2.account.address],
         { account: provider.account },
       );
 
-      await setBalanceOf(mockToken.address, updatableInvoice.address, 10n);
+      await setBalanceOf(mockToken.address, escrow.address, 10n);
 
       const beforeBalance = await getBalanceOf(
         mockToken.address,
@@ -331,7 +240,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         providerReceiver.account.address,
       );
 
-      await updatableInvoice.write.release([], { account: client.account });
+      await escrow.write.release([], { account: client.account });
 
       const afterBalance = await getBalanceOf(
         mockToken.address,
@@ -350,52 +259,22 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
 
     it('Should send withdrawals to updated clientReceiver after address change', async function () {
       const {
-        factory,
         client,
-        provider,
-        providerReceiver,
         clientReceiver,
         clientReceiver2,
-        resolverData,
         mockToken,
-        amounts,
-        variant,
         testClient,
+        escrow,
       } = ctx();
 
-      const currentTime = await currentTimestamp();
-
-      const tx = await deployEscrow(
-        variant,
-        factory,
-        getAddress(provider.account.address),
-        amounts,
-        {
-          client: client.account.address,
-          resolverData,
-          token: mockToken.address,
-          terminationTime: BigInt(currentTime + 1000),
-          requireVerification: false,
-          providerReceiver: getAddress(providerReceiver.account.address),
-          clientReceiver: getAddress(clientReceiver.account.address),
-          feeBPS: 0n,
-          treasury: zeroAddress,
-          details: '',
-        },
-      );
-
-      const address = await awaitInvoiceAddress(tx);
-      const { getEscrowAt } = await import('../helpers/variants');
-      const tempInvoice = await getEscrowAt(variant.contract, address!);
-
       // Update client receiver to clientReceiver2
-      await tempInvoice.write.updateClientReceiver(
+      await escrow.write.updateClientReceiver(
         [clientReceiver2.account.address],
         { account: client.account },
       );
 
-      await testClient.increaseTime({ seconds: 1000 });
-      await setBalanceOf(mockToken.address, tempInvoice.address, 10n);
+      await testClient.increaseTime({ seconds: 30 * 24 * 60 * 60 });
+      await setBalanceOf(mockToken.address, escrow.address, 10n);
 
       const beforeBalance = await getBalanceOf(
         mockToken.address,
@@ -406,7 +285,7 @@ export function addressUpdateFunctionalityTests<const V extends VariantName>(
         clientReceiver.account.address,
       );
 
-      await tempInvoice.write.withdraw([], { account: client.account });
+      await escrow.write.withdraw([], { account: client.account });
 
       const afterBalance = await getBalanceOf(
         mockToken.address,

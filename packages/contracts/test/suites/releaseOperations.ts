@@ -32,11 +32,11 @@ export function releaseOperationsTests<const V extends VariantName>(
     });
 
     it('Should release', async function () {
-      const { escrow, mockToken, provider } = ctx();
+      const { escrow, mockToken, providerReceiver } = ctx();
       await setBalanceOf(mockToken.address, escrow.address, 10n);
       const beforeBalance = await getBalanceOf(
         mockToken.address,
-        provider.account.address,
+        providerReceiver.account.address,
       );
       const receipt = await escrow.write.release();
       expect(await escrow.read.released()).to.equal(10n);
@@ -44,7 +44,7 @@ export function releaseOperationsTests<const V extends VariantName>(
       await expect(receipt).to.emit(escrow, 'Release').withArgs(0n, 10n);
       const afterBalance = await getBalanceOf(
         mockToken.address,
-        provider.account.address,
+        providerReceiver.account.address,
       );
       expect(afterBalance).to.equal(beforeBalance + 10n);
     });
@@ -75,12 +75,12 @@ export function releaseOperationsTests<const V extends VariantName>(
     });
 
     it('Should release full balance at last milestone', async function () {
-      const { escrow, mockToken, provider } = ctx();
+      const { escrow, mockToken, providerReceiver } = ctx();
 
       await setBalanceOf(mockToken.address, escrow.address, 10n);
       const beforeBalance = await getBalanceOf(
         mockToken.address,
-        provider.account.address,
+        providerReceiver.account.address,
       );
       let receipt = await escrow.write.release();
       expect(await escrow.read.released()).to.equal(10n);
@@ -95,7 +95,7 @@ export function releaseOperationsTests<const V extends VariantName>(
 
       const afterBalance = await getBalanceOf(
         mockToken.address,
-        provider.account.address,
+        providerReceiver.account.address,
       );
       expect(afterBalance).to.equal(beforeBalance + 25n);
     });

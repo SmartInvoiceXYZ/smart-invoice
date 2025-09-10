@@ -22,7 +22,9 @@ export function basicFunctionalityTests<const V extends VariantName>(
       const {
         escrow,
         client,
+        clientReceiver,
         provider,
+        providerReceiver,
         resolver,
         mockToken,
         amounts,
@@ -79,8 +81,12 @@ export function basicFunctionalityTests<const V extends VariantName>(
       expect(await escrow.read.WRAPPED_ETH()).to.equal(
         getAddress(mockWrappedETH.address),
       );
-      expect(await escrow.read.providerReceiver()).to.equal(zeroAddress);
-      expect(await escrow.read.clientReceiver()).to.equal(zeroAddress);
+      expect(await escrow.read.providerReceiver()).to.equal(
+        getAddress(providerReceiver.account.address),
+      );
+      expect(await escrow.read.clientReceiver()).to.equal(
+        getAddress(clientReceiver.account.address),
+      );
     });
 
     it('Should emit InvoiceInit event during deployment', async function () {
@@ -234,8 +240,7 @@ export function basicFunctionalityTests<const V extends VariantName>(
         ],
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const receipt = (newInvoice.write as any).init([
+      const receipt = newInvoice.write.init([
         getAddress(provider.account.address),
         amounts,
         data,
