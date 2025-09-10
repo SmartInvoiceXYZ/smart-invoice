@@ -8,6 +8,7 @@ import { ArtifactsMap, ContractTypesMap } from 'hardhat/types';
 import {
   encodeAbiParameters,
   getAddress,
+  GetTransactionReceiptReturnType,
   Hex,
   zeroAddress,
   zeroHash,
@@ -23,7 +24,7 @@ import {
   SEPOLIA_CONTRACTS,
 } from './constants';
 import { awaitInvoiceAddress } from './create';
-import { encodeInitData } from './init';
+import { encodeInitData, InitData } from './init';
 import { nextSalt } from './salt';
 import { currentTimestamp } from './timestamp';
 
@@ -75,10 +76,10 @@ type ContractOf<V extends VariantName> = ContractTypesMap[V];
 
 export type SuiteCtx<V extends VariantName> = {
   // constants / params
-  AMOUNTS: readonly bigint[];
-  TOTAL: bigint;
-  RESOLUTION_RATE_BPS: bigint; // e.g. 500n (5%)
-  REQUIRE_VERIFICATION: boolean;
+  amounts: readonly bigint[];
+  total: bigint;
+  resolutionRateBps: bigint; // e.g. 500n (5%)
+  requireVerification: boolean;
 
   // chain clients
   publicClient: PublicClient;
@@ -174,6 +175,29 @@ export async function createImplementation<V extends VariantName>(
   return createPullImplementation(variantName, deps) as Promise<ContractOf<V>>;
 }
 
+export async function deployEscrow<V extends VariantName>(
+  variant: VariantConfig<V>,
+  factory: ContractTypesMap['SmartInvoiceFactory'],
+  provider: Hex,
+  amounts: readonly bigint[],
+  initData: InitData,
+): Promise<GetTransactionReceiptReturnType> {
+  const data = encodeInitData(initData);
+
+  const version = await factory.read.currentVersions([variant.typeId]);
+
+  const hash = await factory.write.createDeterministic([
+    provider,
+    amounts,
+    data,
+    variant.typeId,
+    version,
+    nextSalt(),
+  ]);
+
+  return (await viem.getPublicClient()).waitForTransactionReceipt({ hash });
+}
+
 /* ------------------------------- Factory func ------------------------------ */
 
 export async function createSuiteContext<V extends VariantName>(
@@ -185,9 +209,9 @@ export async function createSuiteContext<V extends VariantName>(
     details?: string;
   },
 ): Promise<SuiteCtx<V>> {
-  const AMOUNTS = options?.amounts ?? ([10n, 10n] as const);
-  const RESOLUTION_RATE_BPS = options?.resolutionRateBps ?? 500n;
-  const REQUIRE_VERIFICATION = options?.requireVerification ?? true;
+  const amounts = options?.amounts ?? ([10n, 10n] as const);
+  const resolutionRateBps = options?.resolutionRateBps ?? 500n;
+  const requireVerification = options?.requireVerification ?? true;
 
   const walletClients = await viem.getWalletClients();
   const [
@@ -237,7 +261,7 @@ export async function createSuiteContext<V extends VariantName>(
     // resolverData = address + max rate
     resolverData = encodeAbiParameters(
       [{ type: 'address' }, { type: 'uint256' }],
-      [resolver.account.address, RESOLUTION_RATE_BPS], // use same BPS as max rate
+      [resolver.account.address, resolutionRateBps], // use same BPS as max rate
     );
   } else if (variant.capabilities.arbitrable) {
     // resolverData = address + arbitrator extra data
@@ -256,7 +280,7 @@ export async function createSuiteContext<V extends VariantName>(
     resolverData,
     token: mockToken,
     terminationTime: BigInt(terminationTime),
-    requireVerification: REQUIRE_VERIFICATION,
+    requireVerification,
     providerReceiver: zeroAddress,
     clientReceiver: zeroAddress,
     feeBPS: 0n,
@@ -266,7 +290,7 @@ export async function createSuiteContext<V extends VariantName>(
 
   const createHash = await factory.write.createDeterministic([
     getAddress(provider.account.address),
-    AMOUNTS,
+    amounts,
     data,
     variant.typeId,
     0n,
@@ -280,10 +304,10 @@ export async function createSuiteContext<V extends VariantName>(
   const escrow = await getEscrowAt(variant.contract, address!);
 
   return {
-    AMOUNTS,
-    TOTAL: AMOUNTS.reduce((t, v) => t + v, 0n),
-    RESOLUTION_RATE_BPS,
-    REQUIRE_VERIFICATION,
+    amounts,
+    total: amounts.reduce((t, v) => t + v, 0n),
+    resolutionRateBps,
+    requireVerification,
 
     publicClient,
     testClient,
