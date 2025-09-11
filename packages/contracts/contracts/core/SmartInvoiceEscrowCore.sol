@@ -8,8 +8,8 @@ import {
     IERC20
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+    ReentrancyGuardUpgradeable
+} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import {
     ISmartInvoiceEscrow
 } from "contracts/interfaces/ISmartInvoiceEscrow.sol";
@@ -26,7 +26,7 @@ import {
 /// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
 abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
-    ReentrancyGuard,
+    ReentrancyGuardUpgradeable,
     EIP712Upgradeable
 {
     using SafeERC20 for IERC20;
@@ -107,6 +107,8 @@ abstract contract SmartInvoiceEscrowCore is
 
         InitData memory initData = abi.decode(_data, (InitData));
         _handleData(_provider, _amounts, initData);
+
+        __ReentrancyGuard_init();
         _postInit();
     }
 
