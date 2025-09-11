@@ -28,6 +28,13 @@ contract SafeSplitsEscrowZap is
     ISafeSplitsEscrowZap
 {
     /*//////////////////////////////////////////////////////////////
+                               CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Admin role
+    bytes32 public constant ADMIN = keccak256("ADMIN");
+
+    /*//////////////////////////////////////////////////////////////
                                 STATE
     //////////////////////////////////////////////////////////////*/
 
@@ -49,9 +56,6 @@ contract SafeSplitsEscrowZap is
     /// @notice The Splits v2 distribution incentive (max ~6.5%)
     uint16 public distributionIncentive = 0;
 
-    /// @notice Admin role
-    bytes32 public constant ADMIN = keccak256("ADMIN");
-
     /// @dev Reverts when a required address is zero.
     error InvalidAddress(string field);
 
@@ -71,6 +75,78 @@ contract SafeSplitsEscrowZap is
     ) AccessControlDefaultAdminRules(1 days, msg.sender) {
         _grantRole(ADMIN, msg.sender);
         _handleData(_data);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                             EXTERNAL API
+    //////////////////////////////////////////////////////////////*/
+
+    function createSafeSplitEscrow(
+        address[] memory _owners,
+        uint256[] memory _allocations,
+        uint256[] memory _milestoneAmounts,
+        bytes calldata _providerSafeData,
+        address _providerSafeAddress,
+        bytes calldata _splitData,
+        bytes calldata _escrowData
+    ) external override {
+        _createSafeSplitEscrow(
+            _owners,
+            _allocations,
+            _milestoneAmounts,
+            _providerSafeData,
+            _providerSafeAddress,
+            _splitData,
+            _escrowData
+        );
+    }
+
+    /**
+     * @notice Admin: update core addresses. Pass zero to keep a field unchanged.
+     * @param _data abi.encode(
+     *   address _safeSingleton,
+     *   address _safeFactory,
+     *   address _splitFactoryV2,
+     *   address _escrowFactory
+     * )
+     */
+    function updateAddresses(bytes calldata _data) external override {
+        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
+
+        (
+            address _safeSingleton,
+            address _safeFactory,
+            address _splitFactoryV2,
+            address _escrowFactory
+        ) = abi.decode(_data, (address, address, address, address));
+
+        if (_safeSingleton != address(0)) safeSingleton = _safeSingleton;
+        if (_safeFactory != address(0))
+            safeFactory = ISafeProxyFactory(_safeFactory);
+        if (_splitFactoryV2 != address(0))
+            splitFactory = ISplitFactoryV2(_splitFactoryV2);
+        if (_escrowFactory != address(0))
+            escrowFactory = ISmartInvoiceFactory(_escrowFactory);
+
+        emit UpdatedAddresses(
+            address(safeSingleton),
+            address(safeFactory),
+            address(splitFactory),
+            address(escrowFactory)
+        );
+    }
+
+    /**
+     * @notice Admin: update the Splits v2 distribution incentive
+     */
+    function updateDistributionIncentive(
+        uint16 _distributionIncentive
+    ) external override {
+        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
+
+        distributionIncentive = uint16(_distributionIncentive);
+
+        emit UpdatedDistributionIncentive(_distributionIncentive);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -174,23 +250,6 @@ contract SafeSplitsEscrowZap is
         if (split == address(0)) revert ProjectTeamSplitNotCreated();
     }
 
-    function _decodeEscrowData(
-        bytes calldata _escrowData
-    ) internal pure returns (EscrowData memory escrowData) {
-        escrowData = abi.decode(_escrowData, (EscrowData));
-    }
-
-    function _decodeEscrowParams(
-        ZapData memory _zapData
-    ) internal pure returns (address[] memory escrowParams) {
-        escrowParams = new address[](2);
-        escrowParams[0] = _zapData.providerSafe;
-        escrowParams[1] = _zapData.providerSplit == address(0)
-            ? _zapData.providerSafe
-            : _zapData.providerSplit;
-        return escrowParams;
-    }
-
     function _deployEscrow(
         uint256[] memory _milestoneAmounts,
         bytes calldata _escrowData,
@@ -268,75 +327,20 @@ contract SafeSplitsEscrowZap is
         );
     }
 
-    /*//////////////////////////////////////////////////////////////
-                             EXTERNAL API
-    //////////////////////////////////////////////////////////////*/
-
-    function createSafeSplitEscrow(
-        address[] memory _owners,
-        uint256[] memory _allocations,
-        uint256[] memory _milestoneAmounts,
-        bytes calldata _providerSafeData,
-        address _providerSafeAddress,
-        bytes calldata _splitData,
+    function _decodeEscrowData(
         bytes calldata _escrowData
-    ) external {
-        _createSafeSplitEscrow(
-            _owners,
-            _allocations,
-            _milestoneAmounts,
-            _providerSafeData,
-            _providerSafeAddress,
-            _splitData,
-            _escrowData
-        );
+    ) internal pure returns (EscrowData memory escrowData) {
+        escrowData = abi.decode(_escrowData, (EscrowData));
     }
 
-    /**
-     * @notice Admin: update core addresses. Pass zero to keep a field unchanged.
-     * @param _data abi.encode(
-     *   address _safeSingleton,
-     *   address _safeFactory,
-     *   address _splitFactoryV2,
-     *   address _escrowFactory
-     * )
-     */
-    function updateAddresses(bytes calldata _data) external {
-        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
-
-        (
-            address _safeSingleton,
-            address _safeFactory,
-            address _splitFactoryV2,
-            address _escrowFactory
-        ) = abi.decode(_data, (address, address, address, address));
-
-        if (_safeSingleton != address(0)) safeSingleton = _safeSingleton;
-        if (_safeFactory != address(0))
-            safeFactory = ISafeProxyFactory(_safeFactory);
-        if (_splitFactoryV2 != address(0))
-            splitFactory = ISplitFactoryV2(_splitFactoryV2);
-        if (_escrowFactory != address(0))
-            escrowFactory = ISmartInvoiceFactory(_escrowFactory);
-
-        emit UpdatedAddresses(
-            address(safeSingleton),
-            address(safeFactory),
-            address(splitFactory),
-            address(escrowFactory)
-        );
-    }
-
-    /**
-     * @notice Admin: update the Splits v2 distribution incentive
-     */
-    function updateDistributionIncentive(
-        uint16 _distributionIncentive
-    ) external {
-        if (!hasRole(ADMIN, msg.sender)) revert NotAuthorized();
-
-        distributionIncentive = uint16(_distributionIncentive);
-
-        emit UpdatedDistributionIncentive(_distributionIncentive);
+    function _decodeEscrowParams(
+        ZapData memory _zapData
+    ) internal pure returns (address[] memory escrowParams) {
+        escrowParams = new address[](2);
+        escrowParams[0] = _zapData.providerSafe;
+        escrowParams[1] = _zapData.providerSplit == address(0)
+            ? _zapData.providerSafe
+            : _zapData.providerSplit;
+        return escrowParams;
     }
 }

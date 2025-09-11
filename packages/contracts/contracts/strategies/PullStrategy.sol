@@ -12,9 +12,10 @@ interface ISplitsWarehouse {
 
 abstract contract PullStrategy {
     using SafeERC20 for IERC20;
-    error InvalidSplitsWarehouse();
 
-    ISplitsWarehouse internal immutable SPLITS_WAREHOUSE;
+    ISplitsWarehouse public immutable SPLITS_WAREHOUSE;
+
+    error InvalidSplitsWarehouse();
 
     constructor(address _warehouse) {
         if (_warehouse == address(0)) revert InvalidSplitsWarehouse();

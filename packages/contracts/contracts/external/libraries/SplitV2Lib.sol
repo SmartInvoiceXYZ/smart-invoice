@@ -3,13 +3,6 @@ pragma solidity 0.8.30;
 
 library SplitV2Lib {
     /* -------------------------------------------------------------------------- */
-    /*                                   ERRORS                                   */
-    /* -------------------------------------------------------------------------- */
-
-    error InvalidSplit_TotalAllocationMismatch();
-    error InvalidSplit_LengthMismatch();
-
-    /* -------------------------------------------------------------------------- */
     /*                                   STRUCTS                                  */
     /* -------------------------------------------------------------------------- */
 
@@ -35,7 +28,14 @@ library SplitV2Lib {
     /*                                  CONSTANTS                                 */
     /* -------------------------------------------------------------------------- */
 
-    uint256 internal constant PERCENTAGE_SCALE = 1e6;
+    uint256 internal constant _PERCENTAGE_SCALE = 1e6;
+
+    /* -------------------------------------------------------------------------- */
+    /*                                   ERRORS                                   */
+    /* -------------------------------------------------------------------------- */
+
+    error InvalidSplit_TotalAllocationMismatch();
+    error InvalidSplit_LengthMismatch();
 
     /* -------------------------------------------------------------------------- */
     /*                                  FUNCTIONS                                 */
@@ -99,7 +99,7 @@ library SplitV2Lib {
     ) internal pure returns (uint256 distributorReward) {
         distributorReward =
             (_amount * _split.distributionIncentive) /
-            PERCENTAGE_SCALE;
+            _PERCENTAGE_SCALE;
     }
 
     // only used in tests
@@ -116,7 +116,7 @@ library SplitV2Lib {
 
         distributorReward =
             (_amount * _split.distributionIncentive) /
-            PERCENTAGE_SCALE;
+            _PERCENTAGE_SCALE;
         _amount -= distributorReward;
 
         for (uint256 i; i < numOfRecipients; ++i) {
