@@ -7,6 +7,8 @@ import {
 import {SmartInvoiceEscrowArbitrable} from "./SmartInvoiceEscrowArbitrable.sol";
 import {PullStrategy} from "contracts/strategies/PullStrategy.sol";
 
+/// @title SmartInvoiceEscrowArbitrablePull
+/// @notice Escrow with milestone-based payments, Kleros-style dispute resolution, and pull-based payouts via Splits Warehouse.
 contract SmartInvoiceEscrowArbitrablePull is
     SmartInvoiceEscrowArbitrable,
     PullStrategy
@@ -20,10 +22,12 @@ contract SmartInvoiceEscrowArbitrablePull is
         PullStrategy(_splitsWarehouse)
     {}
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _postInit() internal virtual override {
-        __EIP712_init("SmartInvoiceEscrowArbitrablePull", "1.0.0");
+        __EIP712_init("SmartInvoiceEscrowArbitrablePull", "1");
     }
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _transferToken(
         address _token,
         address _recipient,
@@ -32,13 +36,15 @@ contract SmartInvoiceEscrowArbitrablePull is
         _transferTokenPull(_token, _recipient, _amount);
     }
 
+    ///  @dev The name parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Name() internal pure override returns (string memory) {
         return "SmartInvoiceEscrowArbitrablePull";
     }
 
+    ///  @dev The version parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Version() internal pure override returns (string memory) {
-        return "1.0.0";
+        return "1";
     }
 }

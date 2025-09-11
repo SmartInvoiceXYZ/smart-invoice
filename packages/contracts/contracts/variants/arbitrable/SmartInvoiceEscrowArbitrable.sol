@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time, max-states-count
+// solhint-disable not-rely-on-time
 
 pragma solidity 0.8.30;
 
@@ -13,8 +13,8 @@ import {
 } from "contracts/core/SmartInvoiceEscrowCore.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @title SmartInvoiceEscrow
-/// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
+/// @title SmartInvoiceEscrowArbitrable
+/// @notice A comprehensive escrow contract with milestone-based payments,  dispute resolution, and updatable addresses
 /// @dev Supports kleros-style arbitrator-based dispute resolution
 abstract contract SmartInvoiceEscrowArbitrable is
     SmartInvoiceEscrowCore,
@@ -80,16 +80,15 @@ abstract contract SmartInvoiceEscrowArbitrable is
     error DisputeNotRuled();
 
     /**
-     * @notice External function to lock the contract and initiate dispute resolution
-     *         Can only be called by client or provider before termination
-     * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
+     * @notice Locks the escrow and opens a dispute with the configured arbitrator.
+     * @dev Caller should query `resolver.arbitrationCost(arbitratorExtraData)` and send at least that much ETH in `msg.value`. Any excess is handled by the arbitrator per its implementation (e.g., extra jurors or refund).
+     * @param _disputeURI Off-chain evidence URI
      */
     function lock(
         string calldata _disputeURI
     ) external payable virtual override nonReentrant {
         _lock(_disputeURI);
 
-        // Note: user must call `resolver.arbitrationCost(_disputeURI)` to get the arbitration cost
         uint256 externalDisputeId = resolver.createDispute{value: msg.value}(
             _NUM_RULING_OPTIONS,
             arbitratorExtraData
@@ -247,7 +246,7 @@ abstract contract SmartInvoiceEscrowArbitrable is
         uint256 _localDisputeId,
         address payable _contributor,
         uint256 _ruling
-    ) external override {
+    ) external override nonReentrant {
         uint256 n = _appealRoundsMap[_localDisputeId].length;
         for (uint256 i; i < n; i++) {
             _withdrawFeesAndRewards(_localDisputeId, _contributor, i, _ruling);
@@ -288,21 +287,16 @@ abstract contract SmartInvoiceEscrowArbitrable is
             disputeData.ruling = lastRound.fundedRulings[0];
         }
 
+        uint256 finalRuling = disputeData.ruling;
+
         // Distribute escrowed tokens according to ruling
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
 
-        (uint8 clientShare, uint8 providerShare) = _getRuling(_ruling);
+        (uint8 clientShare, uint8 providerShare) = _getRuling(finalRuling);
         uint8 denom = clientShare + providerShare;
         uint256 providerAward = (balance * providerShare) / denom;
         uint256 clientAward = balance - providerAward;
-
-        if (providerAward > 0) {
-            _transferToProvider(token, providerAward);
-        }
-        if (clientAward > 0) {
-            _transferToClient(token, clientAward);
-        }
 
         // Complete all milestones
         milestone = amounts.length;
@@ -313,8 +307,15 @@ abstract contract SmartInvoiceEscrowArbitrable is
         // Set released state
         released += balance;
 
-        emit Rule(resolver, clientAward, providerAward, _ruling);
-        emit Ruling(resolver, _externalDisputeId, _ruling);
+        if (providerAward > 0) {
+            _transferToProvider(token, providerAward);
+        }
+        if (clientAward > 0) {
+            _transferToClient(token, clientAward);
+        }
+
+        emit Rule(resolver, clientAward, providerAward, finalRuling);
+        emit Ruling(resolver, _externalDisputeId, finalRuling);
     }
 
     /// @notice Sum of withdrawable amounts across all rounds
@@ -342,6 +343,7 @@ abstract contract SmartInvoiceEscrowArbitrable is
     }
 
     /// @notice Number of ruling options for the single local dispute (id must be 0)
+    /// @dev 0 = refused/split, 1 = client wins, 2 = provider wins
     function numberOfRulingOptions(
         uint256
     ) external pure override returns (uint256 count) {
@@ -381,20 +383,36 @@ abstract contract SmartInvoiceEscrowArbitrable is
         emit MetaEvidence(metaEvidenceId, _data.details);
     }
 
+    /**
+     * @notice Internal helper to handle resolver data
+     * @dev Decodes and sets the arbitrator resolver and its extra data.
+     *      Expects ABI-encoded `(address resolver, bytes extraData)` where `extraData.length == 64`.
+     *      Extra data is arbitrator-specific configuration (e.g., court ID, number of jurors).
+     *      See: https://docs.kleros.io/developer/arbitration-development/erc-792-arbitration-standard#arbitrator-interface
+     * @param _resolverData ABI-encoded resolver data, must encode a 64-byte `extraData`.
+     */
     function _handleResolverData(
         bytes memory _resolverData
     ) internal virtual override {
-        if (_resolverData.length < 160) revert InvalidResolverData();
+        // ABI encoding: 32 (address) + 32 (offset) + 32 (length) + 64 (data) = 160 total
+        if (_resolverData.length != 160) revert InvalidResolverData();
+
         (address _resolver, bytes memory extra) = abi.decode(
             _resolverData,
             (address, bytes)
         );
         if (_resolver == address(0)) revert InvalidResolver();
+        if (extra.length != 64) revert InvalidResolverData();
 
         resolver = IArbitrator(_resolver);
-        arbitratorExtraData = extra; // bytes("") works too
+        arbitratorExtraData = extra;
     }
 
+    /**
+     * @dev Internal function to add milestones and update the contract state.
+     * @param _milestones The array of new milestones to be added
+     * @param _detailsURI Additional details for the milestones
+     */
     function _addMilestones(
         uint256[] calldata _milestones,
         string memory _detailsURI

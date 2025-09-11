@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time, max-states-count
+// solhint-disable not-rely-on-time
 
 pragma solidity 0.8.30;
 
@@ -23,7 +23,7 @@ import {
 } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 
 /// @title SmartInvoiceEscrowCore
-/// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
+/// @notice Abstract base contract for milestone-based escrow with client/provider roles, termination, and dispute hooks.
 abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
     ReentrancyGuardUpgradeable,
@@ -93,7 +93,7 @@ abstract contract SmartInvoiceEscrowCore is
 
     /**
      * @notice Receives ETH transfers and wraps them as WETH
-     *         Only accepts ETH if the token is WETH and contract is not locked
+     *         Only accepts ETH if the token is WETH
      */
     // solhint-disable-next-line no-complex-fallback
     receive() external payable nonReentrant {
@@ -136,7 +136,7 @@ abstract contract SmartInvoiceEscrowCore is
 
     /**
      * @notice Updates the client address
-     * @param _client Theent address (cannot be zero address)
+     * @param _client The new client address (cannot be zero address)
      * @dev Only callable by current client when contract is not locked
      */
     function updateClient(address _client) external override {
@@ -230,11 +230,12 @@ abstract contract SmartInvoiceEscrowCore is
         _autoVerify();
 
         uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 amountsLength = amounts.length;
         uint256 amount;
         // Calculate total amount to release from current milestone to target milestone
         for (uint256 i = milestone; i <= _milestone; ) {
             // For the last milestone, release all remaining balance if it exceeds cumulative amount
-            if (i == amounts.length - 1 && amount + amounts[i] < balance) {
+            if (i == amountsLength - 1 && amount + amounts[i] < balance) {
                 emit Release(i, balance - amount);
                 amount = balance;
             } else {
@@ -279,6 +280,7 @@ abstract contract SmartInvoiceEscrowCore is
     /**
      * @notice External function to withdraw funds from the contract to the client
      *         Uses the internal `_withdraw` function to perform the actual withdrawal
+     *  @dev Anyone may trigger rescue of non-primary tokens after termination, sent to client/clientReceiver.
      */
     function withdraw() external override nonReentrant {
         _withdraw();
@@ -288,6 +290,7 @@ abstract contract SmartInvoiceEscrowCore is
      * @notice External function to withdraw tokens from the contract to the client
      *         For the main token, uses internal `_withdraw` function; for other tokens, withdraws entire balance
      * @param _token The token address to withdraw
+     *  @dev Anyone may trigger rescue of non-primary tokens after termination, sent to client/clientReceiver.
      */
     function withdrawTokens(address _token) external override nonReentrant {
         if (_token == token) {
@@ -361,8 +364,9 @@ abstract contract SmartInvoiceEscrowCore is
     }
 
     /**
-     * @notice Approve a hash on-chain.
-     * @param _hash bytes32 - hash that is to be approved
+     * @notice Approve a hash on-chain for EIP-712 signature validation
+     * @param _hash The hash to be approved for the sender
+     * @dev Anyone can approve a hash. Used for unlock operations where both client and provider must approve the same hash
      */
     function approveHash(bytes32 _hash) external {
         // Allowing anyone to sign, as its hard to add restrictions here.
@@ -495,6 +499,10 @@ abstract contract SmartInvoiceEscrowCore is
         emit InvoiceInit(provider, client, amounts, _data.details);
     }
 
+    /**
+     * @dev Internal helper to handle resolver data
+     * @param _resolverData The resolver data to be decoded
+     */
     function _handleResolverData(bytes memory _resolverData) internal virtual;
 
     /**
@@ -584,11 +592,12 @@ abstract contract SmartInvoiceEscrowCore is
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 amountsLength = amounts.length;
 
-        if (currentMilestone < amounts.length) {
+        if (currentMilestone < amountsLength) {
             uint256 amount = amounts[currentMilestone];
             // For the last milestone, release all remaining balance if it exceeds the milestone amount
-            if (currentMilestone == amounts.length - 1 && amount < balance) {
+            if (currentMilestone == amountsLength - 1 && amount < balance) {
                 amount = balance;
             }
             if (balance < amount) revert InsufficientBalance();

@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time, max-states-count
 
 pragma solidity 0.8.30;
 
@@ -13,11 +12,12 @@ import {
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title SmartInvoiceEscrow
-/// @notice A comprehensive escrow contract with milestone-based payments, dispute resolution, and updatable addresses
+/// @notice A comprehensive escrow contract with milestone-based payments, basic dispute resolution, and updatable addresses
 /// @dev Supports direct dispute resolution
 abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
     using SafeERC20 for IERC20;
 
+    /// @notice Maximum resolution rate in BPS
     uint256 internal constant _MAX_RESOLUTION_RATE_BPS = 2000;
 
     /// @notice Address of the dispute resolver
@@ -70,6 +70,8 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
         if (!locked) revert NotLocked();
         if (msg.sender != resolver) revert NotResolver(msg.sender);
         if (_refundBPS > _BPS_DENOMINATOR) revert InvalidRefundBPS();
+        if (_refundBPS + resolutionRateBPS > _BPS_DENOMINATOR)
+            revert ResolutionMismatch();
 
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
@@ -78,6 +80,15 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
             _BPS_DENOMINATOR;
         uint256 clientAward = (balance * _refundBPS) / _BPS_DENOMINATOR;
         uint256 providerAward = balance - clientAward - resolutionFee;
+
+        // Complete all milestones
+        milestone = amounts.length;
+
+        // Reset locked state
+        locked = false;
+
+        // Set released state
+        released += balance;
 
         if (providerAward > 0) {
             _transferToProvider(token, providerAward);
@@ -89,15 +100,6 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
             _transferToken(token, resolver, resolutionFee);
         }
 
-        // Complete all milestones
-        milestone = amounts.length;
-
-        // Reset locked state
-        locked = false;
-
-        // Set released state
-        released += balance;
-
         emit Resolve(
             msg.sender,
             clientAward,
@@ -107,8 +109,17 @@ abstract contract SmartInvoiceEscrow is SmartInvoiceEscrowCore {
         );
     }
 
+    /**
+     * @notice Internal helper to handle resolver data
+     * @dev Decodes and sets the resolver and its fee cap using a fixed-size payload.
+     *      Expects exactly 64 bytes: ABI-encoded `(address resolver, uint256 maxRateBps)`.
+     *      Fetches the resolver's actual rate from the factory and enforces:
+     *      (1) `actualRate <= maxRateBps` to prevent frontrunning, and
+     *      (2) `actualRate <= _MAX_RESOLUTION_RATE_BPS` (global hard cap, e.g. 20%).
+     * @param _resolverData ABI-encoded `(address, uint256)`; MUST be exactly 64 bytes.
+     */
     function _handleResolverData(bytes memory _resolverData) internal override {
-        if (_resolverData.length < 64) revert InvalidResolverData();
+        if (_resolverData.length != 64) revert InvalidResolverData();
 
         (address _resolver, uint256 _maxRate) = abi.decode(
             _resolverData,

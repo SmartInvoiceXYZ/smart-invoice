@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.30;
 
+/// @title SplitV2Lib
+/// @notice Library for Split V2 functionality, providing data structures and utilities for split operations
+/// @dev Used by SplitFactoryV2 for creating and managing splits
 library SplitV2Lib {
     /* -------------------------------------------------------------------------- */
     /*                                   STRUCTS                                  */
@@ -41,14 +44,23 @@ library SplitV2Lib {
     /*                                  FUNCTIONS                                 */
     /* -------------------------------------------------------------------------- */
 
+    /// @notice Generates a hash for a calldata Split struct
+    /// @param _split The split data to hash
+    /// @return The keccak256 hash of the split data
     function getHash(Split calldata _split) internal pure returns (bytes32) {
         return keccak256(abi.encode(_split));
     }
 
+    /// @notice Generates a hash for a memory Split struct
+    /// @param _split The split data to hash
+    /// @return The keccak256 hash of the split data
     function getHashMem(Split memory _split) internal pure returns (bytes32) {
         return keccak256(abi.encode(_split));
     }
 
+    /// @notice Validates a Split struct for correctness
+    /// @param _split The split data to validate
+    /// @dev Checks that allocations array length matches recipients length and total allocation is correct
     function validate(Split calldata _split) internal pure {
         uint256 numOfRecipients = _split.recipients.length;
         if (_split.allocations.length != numOfRecipients) {
@@ -64,6 +76,11 @@ library SplitV2Lib {
             revert InvalidSplit_TotalAllocationMismatch();
     }
 
+    /// @notice Calculates distribution amounts for recipients and distributor reward
+    /// @param _split The split configuration
+    /// @param _amount The total amount to distribute
+    /// @return amounts Array of amounts for each recipient
+    /// @return distributorReward Amount reserved for the distributor as incentive
     function getDistributions(
         Split calldata _split,
         uint256 _amount
@@ -83,6 +100,11 @@ library SplitV2Lib {
         }
     }
 
+    /// @notice Calculates the allocated amount for a specific recipient
+    /// @param _split The split configuration
+    /// @param _amount The total amount to distribute (after distributor reward)
+    /// @param _index The index of the recipient in the recipients array
+    /// @return allocatedAmount The amount allocated to the specified recipient
     function calculateAllocatedAmount(
         Split calldata _split,
         uint256 _amount,
@@ -93,6 +115,10 @@ library SplitV2Lib {
             _split.totalAllocation;
     }
 
+    /// @notice Calculates the distributor reward based on distribution incentive
+    /// @param _split The split configuration containing distribution incentive
+    /// @param _amount The total amount before distributor reward is deducted
+    /// @return distributorReward The amount reserved as distributor incentive
     function calculateDistributorReward(
         Split calldata _split,
         uint256 _amount
@@ -102,7 +128,12 @@ library SplitV2Lib {
             _PERCENTAGE_SCALE;
     }
 
-    // only used in tests
+    /// @notice Calculates distribution amounts using memory Split struct (used in tests)
+    /// @param _split The split configuration in memory
+    /// @param _amount The total amount to distribute
+    /// @return amounts Array of amounts for each recipient
+    /// @return distributorReward Amount reserved for the distributor as incentive
+    /// @dev This function is optimized for testing and uses memory instead of calldata
     function getDistributionsMem(
         Split memory _split,
         uint256 _amount
