@@ -27,6 +27,44 @@ interface ISafeSplitsEscrowZap {
         string details;
     }
 
+    /// @notice Emitted when a new Safe splits escrow is created.
+    /// @param providerSafe The address of the created Safe.
+    /// @param providerSplit The address of the created project team split.
+    /// @param escrow The address of the created escrow.
+    event SafeSplitsEscrowCreated(
+        address providerSafe,
+        address providerSplit,
+        address escrow
+    );
+
+    /// @notice Emitted when addresses are updated.
+    /// @param safeSingleton The updated Safe singleton address.
+    /// @param safeFactory The updated Safe proxy factory address.
+    /// @param splitMain The updated SplitMain address.
+    /// @param escrowFactory The updated SmartInvoiceFactory address.
+    event UpdatedAddresses(
+        address safeSingleton,
+        address safeFactory,
+        address splitMain,
+        address escrowFactory
+    );
+
+    /// @notice Emitted when the distribution incentive is updated.
+    /// @param distributionIncentive The updated distribution incentive.
+    event UpdatedDistributionIncentive(uint16 distributionIncentive);
+
+    /// @dev Custom errors for more efficient gas usage.
+    error InvalidAllocationsOwnersData();
+    error SafeNotCreated();
+    error ProjectTeamSplitNotCreated();
+    error EscrowNotCreated();
+    error NotAuthorized();
+    error ZeroAddress();
+    error NotAContract(address);
+    error InvalidSafeThreshold(uint256 threshold, uint256 owners);
+    error EmptyOwners();
+    error InvalidOwner();
+
     /**
      * @notice Creates a new safe split escrow contract.
      * @param _owners The array of addresses that will be the owners of the safe.
@@ -60,42 +98,4 @@ interface ISafeSplitsEscrowZap {
     function updateDistributionIncentive(
         uint16 _distributionIncentive
     ) external;
-
-    /// @dev Custom errors for more efficient gas usage.
-    error InvalidAllocationsOwnersData();
-    error SafeNotCreated();
-    error ProjectTeamSplitNotCreated();
-    error EscrowNotCreated();
-    error NotAuthorized();
-    error ZeroAddress();
-    error NotAContract(address);
-    error InvalidSafeThreshold(uint256 threshold, uint256 owners);
-    error EmptyOwners();
-    error InvalidOwner();
-
-    /// @notice Emitted when a new Safe splits escrow is created.
-    /// @param providerSafe The address of the created Safe.
-    /// @param providerSplit The address of the created project team split.
-    /// @param escrow The address of the created escrow.
-    event SafeSplitsEscrowCreated(
-        address providerSafe,
-        address providerSplit,
-        address escrow
-    );
-
-    /// @notice Emitted when addresses are updated.
-    /// @param safeSingleton The updated Safe singleton address.
-    /// @param safeFactory The updated Safe proxy factory address.
-    /// @param splitMain The updated SplitMain address.
-    /// @param escrowFactory The updated SmartInvoiceFactory address.
-    event UpdatedAddresses(
-        address safeSingleton,
-        address safeFactory,
-        address splitMain,
-        address escrowFactory
-    );
-
-    /// @notice Emitted when the distribution incentive is updated.
-    /// @param distributionIncentive The updated distribution incentive.
-    event UpdatedDistributionIncentive(uint16 distributionIncentive);
 }

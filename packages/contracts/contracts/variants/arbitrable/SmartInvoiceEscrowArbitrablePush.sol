@@ -7,6 +7,8 @@ import {
 import {SmartInvoiceEscrowArbitrable} from "./SmartInvoiceEscrowArbitrable.sol";
 import {PushStrategy} from "contracts/strategies/PushStrategy.sol";
 
+/// @title SmartInvoiceEscrowArbitrablePush
+/// @notice Escrow with milestone-based payments, Kleros-style dispute resolution, and direct (push) token transfers.
 contract SmartInvoiceEscrowArbitrablePush is
     SmartInvoiceEscrowArbitrable,
     PushStrategy
@@ -16,10 +18,12 @@ contract SmartInvoiceEscrowArbitrablePush is
         address _factory
     ) SmartInvoiceEscrowCore(_wrappedETH, _factory) {}
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _postInit() internal virtual override {
-        __EIP712_init("SmartInvoiceEscrowArbitrablePush", "1.0.0");
+        __EIP712_init("SmartInvoiceEscrowArbitrablePush", "1");
     }
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _transferToken(
         address _token,
         address _recipient,
@@ -28,13 +32,15 @@ contract SmartInvoiceEscrowArbitrablePush is
         _transferTokenPush(_token, _recipient, _amount);
     }
 
+    ///  @dev The name parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Name() internal pure override returns (string memory) {
         return "SmartInvoiceEscrowArbitrablePush";
     }
 
+    ///  @dev The version parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Version() internal pure override returns (string memory) {
-        return "1.0.0";
+        return "1";
     }
 }

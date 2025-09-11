@@ -6,18 +6,9 @@ import {
 } from "contracts/core/SmartInvoiceEscrowCore.sol";
 
 /// @title SmartInvoiceEscrowMinimal
-/// @notice Milestone escrow with *no* on-chain dispute mechanism.
+/// @notice Minimal escrow with milestone-based payments and no dispute resolution mechanism.
 abstract contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowCore {
     error LockDisabled();
-
-    /// @dev For this no-dispute flavor, both resolver and resolverData must be empty.
-    function _handleResolverData(
-        bytes memory _resolverData
-    ) internal pure override {
-        if (_resolverData.length != 0) {
-            revert InvalidResolverData();
-        }
-    }
 
     /// @dev Disables the locking mechanism.
     function lock(string calldata) external payable override {
@@ -30,5 +21,18 @@ abstract contract SmartInvoiceEscrowMinimal is SmartInvoiceEscrowCore {
         bytes calldata
     ) external pure override {
         revert LockDisabled();
+    }
+
+    /**
+     * @notice Internal helper to handle resolver data.
+     * @dev For the no-dispute variant, both `resolver` and `resolverData` must be empty.
+     * @param _resolverData Resolver data to decode. MUST be empty (`length == 0`).
+     */
+    function _handleResolverData(
+        bytes memory _resolverData
+    ) internal pure override {
+        if (_resolverData.length != 0) {
+            revert InvalidResolverData();
+        }
     }
 }

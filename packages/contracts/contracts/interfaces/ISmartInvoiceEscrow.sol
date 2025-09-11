@@ -26,145 +26,6 @@ interface ISmartInvoiceEscrow {
         string unlockURI;
     }
 
-    /**
-     * @notice Initializes the escrow contract with provider, milestone amounts, and configuration
-     * @param _recipient The address of the service provider who will receive milestone payments
-     * @param _amounts Array of milestone amounts (must be non-empty, max 50 milestones)
-     * @param _data ABI-encoded InitData struct containing all escrow configuration parameters
-     * @dev Can only be called once by the factory contract during escrow creation
-     */
-    function init(
-        address _recipient,
-        uint256[] calldata _amounts,
-        bytes calldata _data
-    ) external;
-
-    /**
-     * @notice Returns the ERC20 token contract address used for all payments in this escrow
-     * @return The address of the ERC20 token contract
-     */
-    function token() external view returns (address);
-
-    /**
-     * @notice Returns whether the client has been verified for this escrow
-     * @return True if the client has been verified (either automatically or manually)
-     */
-    function verified() external view returns (bool);
-
-    /**
-     * @notice Checks if the escrow contract has been fully funded
-     * @return True if current balance plus released amount equals or exceeds total milestone amount
-     */
-    function isFullyFunded() external view returns (bool);
-
-    /**
-     * @notice Checks if the escrow has sufficient funds to cover milestones up to a specific milestone
-     * @param _milestoneId The milestone index to check funding for (0-based)
-     * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
-     */
-    function isFunded(uint256 _milestoneId) external view returns (bool);
-
-    /**
-     * @notice Adds new milestone amounts to the escrow with additional project details
-     * @param _milestones Array of new milestone amounts to append to existing milestones
-     * @param _details IPFS hash or description of the new milestones/work scope
-     * @dev Only callable by client or provider when contract is not locked or terminated
-     */
-    function addMilestones(
-        uint256[] calldata _milestones,
-        string calldata _details
-    ) external;
-
-    /**
-     * @notice Releases funds for the next pending milestone to the provider
-     * @dev Only callable by client when contract has sufficient balance and is not locked
-     */
-    function release() external;
-
-    /**
-     * @notice Releases funds for a specific milestone to the provider
-     * @param _milestone The milestone index to release (must be current or future milestone)
-     * @dev Only callable by client when contract has sufficient balance and is not locked
-     */
-    function release(uint256 _milestone) external;
-
-    /**
-     * @notice Releases all tokens of a specified type to the provider (for non-escrow tokens)
-     * @param _token The address of the token contract to release
-     * @dev Used to release tokens that were sent to the contract by mistake or as bonuses
-     */
-    function releaseTokens(address _token) external;
-
-    /**
-     * @notice Client can optionally mark the invoice as verified for off-chain tracking
-     * @dev This is informational only for off-chain consumers; it does not restrict releases
-     */
-    function verify() external;
-
-    /**
-     * @notice Withdraws remaining escrow funds to the client after termination time
-     * @dev Only callable after terminationTime has passed and contract is not locked
-     */
-    function withdraw() external;
-
-    /**
-     * @notice Withdraws tokens of a specified type to the client after termination
-     * @param _token The address of the token contract to withdraw
-     * @dev Only callable after terminationTime, used for non-escrow tokens
-     */
-    function withdrawTokens(address _token) external;
-
-    /**
-     * @notice Locks the contract to initiate dispute resolution process
-     * @param _details IPFS hash or description of the dispute and issues
-     * @dev Callable by client or provider, may require arbitration fee for arbitrator disputes
-     */
-    function lock(string calldata _details) external payable;
-
-    /**
-     * @notice Unlocks the contract by the client and provider
-     * @param _data UnlockData struct containing refundBPS and unlockURI
-     * @param _signatures concatenated EIP712 signatures for the hash of the data
-     */
-    function unlock(
-        UnlockData calldata _data,
-        bytes calldata _signatures
-    ) external;
-
-    /// @dev Custom errors for more efficient gas usage
-    error InvalidProvider();
-    error InvalidClient();
-    error InvalidResolverData();
-    error InvalidResolver();
-    error InvalidToken();
-    error DurationEnded();
-    error DurationTooLong();
-    error InvalidWrappedETH();
-    error OnlyFactory();
-    error InvalidFactory();
-    error NotClient(address caller);
-    error NotProvider(address caller);
-    error NotParty(address caller);
-    error Locked();
-    error NotLocked();
-    error Terminated();
-    error NotTerminated();
-    error NoMilestones();
-    error ExceedsMilestoneLimit();
-    error InsufficientBalance();
-    error BalanceIsZero();
-    error InvalidMilestone();
-    error NotResolver(address caller);
-    error InvalidProviderReceiver();
-    error InvalidClientReceiver();
-    error InvalidFeeBPS();
-    error InvalidRefundBPS();
-    error InvalidTreasury();
-    error ZeroAmount();
-    error AlreadyVerified();
-    error NoChange();
-    error InvalidSignatures();
-
     /// @notice Emitted when the escrow contract is successfully initialized
     /// @param provider The address of the service provider
     /// @param client The address of the client funding the escrow
@@ -280,4 +141,151 @@ interface ISmartInvoiceEscrow {
         uint256 amount,
         address indexed treasury
     );
+
+    /// @dev Custom errors for more efficient gas usage
+    error InvalidProvider();
+    error InvalidClient();
+    error InvalidResolverData();
+    error InvalidResolver();
+    error InvalidToken();
+    error DurationEnded();
+    error DurationTooLong();
+    error InvalidWrappedETH();
+    error OnlyFactory();
+    error InvalidFactory();
+    error NotClient(address caller);
+    error NotProvider(address caller);
+    error NotParty(address caller);
+    error Locked();
+    error NotLocked();
+    error Terminated();
+    error NotTerminated();
+    error NoMilestones();
+    error ExceedsMilestoneLimit();
+    error InsufficientBalance();
+    error BalanceIsZero();
+    error InvalidMilestone();
+    error NotResolver(address caller);
+    error InvalidProviderReceiver();
+    error InvalidClientReceiver();
+    error InvalidFeeBPS();
+    error InvalidRefundBPS();
+    error InvalidTreasury();
+    error ZeroAmount();
+    error AlreadyVerified();
+    error NoChange();
+    error InvalidSignatures();
+
+    /**
+     * @notice Initializes the escrow contract with provider, milestone amounts, and configuration
+     * @param _recipient The address of the service provider who will receive milestone payments
+     * @param _amounts Array of milestone amounts (must be non-empty, max 50 milestones)
+     * @param _data ABI-encoded InitData struct containing all escrow configuration parameters
+     * @dev Can only be called once by the factory contract during escrow creation
+     */
+    function init(
+        address _recipient,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) external;
+
+    function updateClient(address _client) external;
+
+    function updateProvider(address _provider) external;
+
+    function updateProviderReceiver(address _providerReceiver) external;
+
+    function updateClientReceiver(address _clientReceiver) external;
+
+    /**
+     * @notice Adds new milestone amounts to the escrow with additional project details
+     * @param _milestones Array of new milestone amounts to append to existing milestones
+     * @param _details IPFS hash or description of the new milestones/work scope
+     * @dev Only callable by client or provider when contract is not locked or terminated
+     */
+    function addMilestones(
+        uint256[] calldata _milestones,
+        string calldata _details
+    ) external;
+
+    /**
+     * @notice Releases funds for the next pending milestone to the provider
+     * @dev Only callable by client when contract has sufficient balance and is not locked
+     */
+    function release() external;
+
+    /**
+     * @notice Releases funds for a specific milestone to the provider
+     * @param _milestone The milestone index to release (must be current or future milestone)
+     * @dev Only callable by client when contract has sufficient balance and is not locked
+     */
+    function release(uint256 _milestone) external;
+
+    /**
+     * @notice Releases all tokens of a specified type to the provider (for non-escrow tokens)
+     * @param _token The address of the token contract to release
+     * @dev Used to release tokens that were sent to the contract by mistake or as bonuses
+     */
+    function releaseTokens(address _token) external;
+
+    /**
+     * @notice Client can optionally mark the invoice as verified for off-chain tracking
+     * @dev This is informational only for off-chain consumers; it does not restrict releases
+     */
+    function verify() external;
+
+    /**
+     * @notice Withdraws remaining escrow funds to the client after termination time
+     * @dev Only callable after terminationTime has passed and contract is not locked
+     */
+    function withdraw() external;
+
+    /**
+     * @notice Withdraws tokens of a specified type to the client after termination
+     * @param _token The address of the token contract to withdraw
+     * @dev Only callable after terminationTime, used for non-escrow tokens
+     */
+    function withdrawTokens(address _token) external;
+
+    /**
+     * @notice Unlocks the contract by the client and provider
+     * @param _data UnlockData struct containing refundBPS and unlockURI
+     * @param _signatures concatenated EIP712 signatures for the hash of the data
+     */
+    function unlock(
+        UnlockData calldata _data,
+        bytes calldata _signatures
+    ) external;
+
+    /**
+     * @notice Locks the contract to initiate dispute resolution process
+     * @param _details IPFS hash or description of the dispute and issues
+     * @dev Callable by client or provider, may require arbitration fee for arbitrator disputes
+     */
+    function lock(string calldata _details) external payable;
+
+    /**
+     * @notice Returns the ERC20 token contract address used for all payments in this escrow
+     * @return The address of the ERC20 token contract
+     */
+    function token() external view returns (address);
+
+    /**
+     * @notice Returns whether the client has been verified for this escrow
+     * @return True if the client has been verified (either automatically or manually)
+     */
+    function verified() external view returns (bool);
+
+    /**
+     * @notice Checks if the escrow contract has been fully funded
+     * @return True if current balance plus released amount equals or exceeds total milestone amount
+     */
+    function isFullyFunded() external view returns (bool);
+
+    /**
+     * @notice Checks if the escrow has sufficient funds to cover milestones up to a specific milestone
+     * @param _milestoneId The milestone index to check funding for (0-based)
+     * @return True if current balance plus released amount can cover milestones up to and including _milestoneId
+     */
+    function isFunded(uint256 _milestoneId) external view returns (bool);
 }

@@ -7,6 +7,8 @@ import {
 import {SmartInvoiceEscrowMinimal} from "./SmartInvoiceEscrowMinimal.sol";
 import {PullStrategy} from "contracts/strategies/PullStrategy.sol";
 
+/// @title SmartInvoiceEscrowMinimalPull
+/// @notice Minimal escrow with milestone-based payments and pull-based token distribution via Splits Warehouse.
 contract SmartInvoiceEscrowMinimalPull is
     SmartInvoiceEscrowMinimal,
     PullStrategy
@@ -20,10 +22,12 @@ contract SmartInvoiceEscrowMinimalPull is
         PullStrategy(_splitsWarehouse)
     {}
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _postInit() internal virtual override {
-        __EIP712_init("SmartInvoiceEscrowMinimalPull", "1.0.0");
+        __EIP712_init("SmartInvoiceEscrowMinimalPull", "1");
     }
 
+    /// @inheritdoc SmartInvoiceEscrowCore
     function _transferToken(
         address _token,
         address _recipient,
@@ -32,13 +36,15 @@ contract SmartInvoiceEscrowMinimalPull is
         _transferTokenPull(_token, _recipient, _amount);
     }
 
+    ///  @dev The name parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Name() internal pure override returns (string memory) {
         return "SmartInvoiceEscrowMinimalPull";
     }
 
+    ///  @dev The version parameter for the EIP712 domain.
     // solhint-disable-next-line func-name-mixedcase
     function _EIP712Version() internal pure override returns (string memory) {
-        return "1.0.0";
+        return "1";
     }
 }

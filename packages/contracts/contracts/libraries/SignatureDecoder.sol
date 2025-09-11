@@ -28,7 +28,7 @@ library SignatureDecoder {
             revert InvalidSignaturesLength();
         }
 
-        (uint8 v, bytes32 r, bytes32 s) = signatureSplit(_signatures, _pos);
+        (uint8 v, bytes32 r, bytes32 s) = _signatureSplit(_signatures, _pos);
         address signer = ECDSA.recover(_hash, v, r, s);
         return signer;
     }
@@ -39,7 +39,7 @@ library SignatureDecoder {
      * @param _pos which signature to read. A prior bounds check of this parameter should be performed, to avoid out of bounds access
      * @param _signatures concatenated rsv signatures
      */
-    function signatureSplit(
+    function _signatureSplit(
         bytes memory _signatures,
         uint256 _pos
     ) private pure returns (uint8 v, bytes32 r, bytes32 s) {

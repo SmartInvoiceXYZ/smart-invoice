@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable not-rely-on-time, max-states-count
+// solhint-disable not-rely-on-time
 
 pragma solidity 0.8.30;
 
@@ -23,7 +23,7 @@ import {
 } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 
 /// @title SmartInvoiceEscrowCore
-/// @notice A comprehensive core escrow contract with milestone-based payments and updatable addresses
+/// @notice Abstract base contract for milestone-based escrow with client/provider roles, termination, and dispute hooks.
 abstract contract SmartInvoiceEscrowCore is
     ISmartInvoiceEscrow,
     ReentrancyGuardUpgradeable,
@@ -37,7 +37,11 @@ abstract contract SmartInvoiceEscrowCore is
     /// @notice Maximum number of milestones allowed per contract
     uint256 public constant MAX_MILESTONE_LIMIT = 50;
 
-    uint256 internal constant BPS_DENOMINATOR = 10_000;
+    uint256 internal constant _BPS_DENOMINATOR = 10_000;
+
+    /// @notice Hash of unlock data struct for eip712 signature
+    bytes32 public constant UNLOCK_HASH =
+        keccak256("UnlockData(uint256 refundBPS,string unlockURI)");
 
     /// @notice Wrapped ETH contract for handling ETH deposits
     IWRAPPED public immutable WRAPPED_ETH;
@@ -79,16 +83,23 @@ abstract contract SmartInvoiceEscrowCore is
     /// @notice Mapping of approved hashes for client and provider
     mapping(address => mapping(bytes32 => bool)) public approvedHashes;
 
-    /// @notice Hash of unlock data struct for eip712 signature
-    bytes32 public constant UNLOCK_HASH =
-        keccak256("UnlockData(uint256 refundBPS,string unlockURI)");
-
     constructor(address _wrappedETH, address _factory) {
         if (_wrappedETH == address(0)) revert InvalidWrappedETH();
         if (_factory == address(0)) revert InvalidFactory();
         WRAPPED_ETH = IWRAPPED(_wrappedETH);
         FACTORY = ISmartInvoiceFactory(_factory);
         _disableInitializers();
+    }
+
+    /**
+     * @notice Receives ETH transfers and wraps them as WETH
+     *         Only accepts ETH if the token is WETH
+     */
+    // solhint-disable-next-line no-complex-fallback
+    receive() external payable nonReentrant {
+        if (token != address(WRAPPED_ETH)) revert InvalidWrappedETH();
+        WRAPPED_ETH.deposit{value: msg.value}();
+        emit Deposit(msg.sender, msg.value, token);
     }
 
     /**
@@ -110,6 +121,316 @@ abstract contract SmartInvoiceEscrowCore is
 
         __ReentrancyGuard_init();
         _postInit();
+    }
+
+    /**
+     * @notice Mark the client as verified for off-chain consumers.
+     * @dev Does not affect release/withdraw permissions.
+     */
+    function verify() external override {
+        if (verified) revert AlreadyVerified();
+        if (msg.sender != client) revert NotClient(msg.sender);
+        verified = true;
+        emit Verified(client, address(this));
+    }
+
+    /**
+     * @notice Updates the client address
+     * @param _client The new client address (cannot be zero address)
+     * @dev Only callable by current client when contract is not locked
+     */
+    function updateClient(address _client) external override {
+        if (msg.sender != client) revert NotClient(msg.sender);
+        if (locked) revert Locked();
+        if (_client == address(0) || _client == address(this))
+            revert InvalidClient();
+        if (_client == client) revert NoChange();
+
+        address oldClient = client;
+        client = _client;
+        emit UpdatedClient(oldClient, _client);
+        _updateClientReceiver(address(0));
+    }
+
+    /**
+     * @notice Updates the provider address
+     * @param _provider The new provider address (cannot be zero address)
+     * @dev Only callable by current provider when contract is not locked
+     */
+    function updateProvider(address _provider) external override {
+        if (msg.sender != provider) revert NotProvider(msg.sender);
+        if (locked) revert Locked();
+        if (_provider == address(0) || _provider == address(this))
+            revert InvalidProvider();
+        if (_provider == provider) revert NoChange();
+
+        address oldProvider = provider;
+        provider = _provider;
+        emit UpdatedProvider(oldProvider, _provider);
+        _updateProviderReceiver(address(0));
+    }
+
+    /**
+     * @notice Updates the provider's receiver address for milestone payments
+     * @param _providerReceiver The new receiver address (cannot be this contract)
+     * @dev allows setting to zero address to fallback to provider
+     */
+    function updateProviderReceiver(
+        address _providerReceiver
+    ) external override {
+        if (msg.sender != provider) revert NotProvider(msg.sender);
+        if (_providerReceiver == providerReceiver) revert NoChange();
+        _updateProviderReceiver(_providerReceiver);
+    }
+
+    /**
+     * @notice Updates the client's receiver address for withdrawal payments
+     * @param _clientReceiver The new receiver address (cannot be this contract)
+     * @dev allows setting to zero address to fallback to client
+     */
+    function updateClientReceiver(address _clientReceiver) external override {
+        if (msg.sender != client) revert NotClient(msg.sender);
+        if (_clientReceiver == clientReceiver) revert NoChange();
+        _updateClientReceiver(_clientReceiver);
+    }
+
+    /**
+     * @notice Adds milestones with extra details.
+     * @param _milestones The array of new milestones to be added
+     * @param _detailsURI Additional details for the milestones
+     */
+    function addMilestones(
+        uint256[] calldata _milestones,
+        string calldata _detailsURI
+    ) external override {
+        _addMilestones(_milestones, _detailsURI);
+    }
+
+    /**
+     * @notice External function to release funds from the contract to the provider
+     *         Uses the internal `_release` function to perform the actual release
+     */
+    function release() external virtual override nonReentrant {
+        _release();
+    }
+
+    /**
+     * @notice External function to release funds from the contract to the provider up to a certain milestone
+     * @param _milestone The milestone index to release funds to (inclusive)
+     */
+    function release(
+        uint256 _milestone
+    ) external virtual override nonReentrant {
+        if (locked) revert Locked();
+        if (msg.sender != client) revert NotClient(msg.sender);
+        if (block.timestamp > terminationTime) revert Terminated();
+        if (_milestone < milestone) revert InvalidMilestone();
+        if (_milestone >= amounts.length) revert InvalidMilestone();
+
+        _autoVerify();
+
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 amountsLength = amounts.length;
+        uint256 amount;
+        // Calculate total amount to release from current milestone to target milestone
+        for (uint256 i = milestone; i <= _milestone; ) {
+            // For the last milestone, release all remaining balance if it exceeds cumulative amount
+            if (i == amountsLength - 1 && amount + amounts[i] < balance) {
+                emit Release(i, balance - amount);
+                amount = balance;
+            } else {
+                emit Release(i, amounts[i]);
+                amount = amount + amounts[i];
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        if (balance < amount) revert InsufficientBalance();
+
+        _transferToProvider(token, amount);
+        released = released + amount;
+        milestone = _milestone + 1;
+    }
+
+    /**
+     * @notice External function to release tokens from the contract to the provider
+     *         For the main token, uses internal `_release` function; for other tokens, releases entire balance
+     * @param _token The token address to release funds from
+     */
+    function releaseTokens(
+        address _token
+    ) external virtual override nonReentrant {
+        if (_token == token) {
+            _release();
+        } else {
+            if (locked) revert Locked();
+            if (msg.sender != client) revert NotClient(msg.sender);
+            if (block.timestamp > terminationTime) revert Terminated();
+
+            _autoVerify();
+
+            uint256 balance = IERC20(_token).balanceOf(address(this));
+            if (balance == 0) revert BalanceIsZero();
+
+            _transferToProvider(_token, balance);
+        }
+    }
+
+    /**
+     * @notice External function to withdraw funds from the contract to the client
+     *         Uses the internal `_withdraw` function to perform the actual withdrawal
+     *  @dev Anyone may trigger rescue of non-primary tokens after termination, sent to client/clientReceiver.
+     */
+    function withdraw() external override nonReentrant {
+        _withdraw();
+    }
+
+    /**
+     * @notice External function to withdraw tokens from the contract to the client
+     *         For the main token, uses internal `_withdraw` function; for other tokens, withdraws entire balance
+     * @param _token The token address to withdraw
+     *  @dev Anyone may trigger rescue of non-primary tokens after termination, sent to client/clientReceiver.
+     */
+    function withdrawTokens(address _token) external override nonReentrant {
+        if (_token == token) {
+            _withdraw();
+        } else {
+            if (locked) revert Locked();
+            uint256 balance = IERC20(_token).balanceOf(address(this));
+            if (balance == 0) revert BalanceIsZero();
+
+            _transferToClient(_token, balance);
+        }
+    }
+
+    /**
+     * @notice External function to lock the contract and initiate dispute resolution
+     *         Can only be called by client or provider before termination
+     * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
+     * @dev it is payable to allow for potential dispute fees in ether
+     */
+    function lock(string calldata _disputeURI) external payable virtual;
+
+    /**
+     * @notice External function to unlock the contract by the client and provider
+     * @param _data UnlockData struct containing refundBPS and unlockURI
+     * @param _signatures concatenated EIP712 signatures for the hash of the data
+     */
+    function unlock(
+        UnlockData calldata _data,
+        bytes calldata _signatures
+    ) external virtual override nonReentrant {
+        if (!locked) revert NotLocked();
+        if (_data.refundBPS > _BPS_DENOMINATOR) revert InvalidRefundBPS();
+
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        if (balance == 0) revert BalanceIsZero();
+
+        // Compute hash from data
+        bytes32 _hash = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    UNLOCK_HASH,
+                    _data.refundBPS,
+                    keccak256(bytes(_data.unlockURI))
+                )
+            )
+        );
+
+        // Check signatures
+        _checkSignature(_hash, _signatures);
+
+        uint256 clientAward = (balance * _data.refundBPS) / _BPS_DENOMINATOR;
+        uint256 providerAward = balance - clientAward;
+
+        if (providerAward > 0) {
+            _transferToProvider(token, providerAward);
+        }
+        if (clientAward > 0) {
+            _transferToClient(token, clientAward);
+        }
+
+        // Complete all milestones
+        milestone = amounts.length;
+
+        // Reset locked state
+        locked = false;
+
+        // Set released state
+        released += balance;
+
+        emit Unlock(msg.sender, clientAward, providerAward, _data.unlockURI);
+    }
+
+    /**
+     * @notice Approve a hash on-chain for EIP-712 signature validation
+     * @param _hash The hash to be approved for the sender
+     * @dev Anyone can approve a hash. Used for unlock operations where both client and provider must approve the same hash
+     */
+    function approveHash(bytes32 _hash) external {
+        // Allowing anyone to sign, as its hard to add restrictions here.
+        // Store _hash as signed for sender.
+        approvedHashes[msg.sender][_hash] = true;
+
+        emit ApproveHash(_hash, msg.sender);
+    }
+
+    /**
+     * @notice Wraps any ETH balance in the contract to WETH
+     *         Handles edge cases when ETH was sent via self-destruct
+     */
+    function wrapETH() external nonReentrant {
+        uint256 bal = address(this).balance;
+        if (bal == 0) revert BalanceIsZero();
+        WRAPPED_ETH.deposit{value: bal}();
+        emit WrappedStrayETH(bal);
+        if (token == address(WRAPPED_ETH)) {
+            // Log address(this) as depositor since it was obtained via self-destruct
+            emit Deposit(address(this), bal, token);
+        }
+        // Handle release of WETH as per `releaseTokens` or `withdrawTokens` as needed
+    }
+
+    /**
+     * @notice Returns the amounts associated with the milestones.
+     * @return An array of amounts for each milestone
+     */
+    function getAmounts() external view returns (uint256[] memory) {
+        return amounts;
+    }
+
+    /**
+     * @notice Checks if the escrow contract has been fully funded
+     * @return True if current balance plus released amount equals or exceeds total milestone amount
+     * @dev Useful for determining if the contract has sufficient funds for all milestones
+     */
+    function isFullyFunded() external view returns (bool) {
+        return IERC20(token).balanceOf(address(this)) + released >= total;
+    }
+
+    /**
+     * @notice Checks if there are enough funds remaining to cover unpaid milestones up to `_milestoneId`.
+     * @param _milestoneId The milestone index to check funding for (0-based)
+     * @return True if current balance can cover milestones from `milestone` through `_milestoneId` (inclusive).
+     * @dev If `_milestoneId` is before the current milestone, returns true.
+     * @dev Reverts if milestoneId is out of bounds
+     */
+    function isFunded(uint256 _milestoneId) external view returns (bool) {
+        if (_milestoneId >= amounts.length) revert InvalidMilestone();
+        if (_milestoneId < milestone) return true;
+
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 required;
+
+        for (uint256 i = milestone; i <= _milestoneId; ) {
+            required += amounts[i];
+            if (required > balance) return false; // short-circuit
+            unchecked {
+                ++i;
+            }
+        }
+        return true;
     }
 
     /**
@@ -178,18 +499,11 @@ abstract contract SmartInvoiceEscrowCore is
         emit InvoiceInit(provider, client, amounts, _data.details);
     }
 
-    function _handleResolverData(bytes memory _resolverData) internal virtual;
-
     /**
-     * @notice Mark the client as verified for off-chain consumers.
-     * @dev Does not affect release/withdraw permissions.
+     * @dev Internal helper to handle resolver data
+     * @param _resolverData The resolver data to be decoded
      */
-    function verify() external override {
-        if (verified) revert AlreadyVerified();
-        if (msg.sender != client) revert NotClient(msg.sender);
-        verified = true;
-        emit Verified(client, address(this));
-    }
+    function _handleResolverData(bytes memory _resolverData) internal virtual;
 
     /**
      * @dev Internal helper to automatically verify the client if not already verified
@@ -200,53 +514,6 @@ abstract contract SmartInvoiceEscrowCore is
             verified = true;
             emit Verified(client, address(this));
         }
-    }
-
-    /**
-     * @notice Updates the client address
-     * @param _client Theent address (cannot be zero address)
-     * @dev Only callable by current client when contract is not locked
-     */
-    function updateClient(address _client) external {
-        if (msg.sender != client) revert NotClient(msg.sender);
-        if (locked) revert Locked();
-        if (_client == address(0) || _client == address(this))
-            revert InvalidClient();
-        if (_client == client) revert NoChange();
-
-        address oldClient = client;
-        client = _client;
-        emit UpdatedClient(oldClient, _client);
-        _updateClientReceiver(address(0));
-    }
-
-    /**
-     * @notice Updates the provider address
-     * @param _provider The new provider address (cannot be zero address)
-     * @dev Only callable by current provider when contract is not locked
-     */
-    function updateProvider(address _provider) external {
-        if (msg.sender != provider) revert NotProvider(msg.sender);
-        if (locked) revert Locked();
-        if (_provider == address(0) || _provider == address(this))
-            revert InvalidProvider();
-        if (_provider == provider) revert NoChange();
-
-        address oldProvider = provider;
-        provider = _provider;
-        emit UpdatedProvider(oldProvider, _provider);
-        _updateProviderReceiver(address(0));
-    }
-
-    /**
-     * @notice Updates the provider's receiver address for milestone payments
-     * @param _providerReceiver The new receiver address (cannot be this contract)
-     * @dev allows setting to zero address to fallback to provider
-     */
-    function updateProviderReceiver(address _providerReceiver) external {
-        if (msg.sender != provider) revert NotProvider(msg.sender);
-        if (_providerReceiver == providerReceiver) revert NoChange();
-        _updateProviderReceiver(_providerReceiver);
     }
 
     /**
@@ -264,17 +531,6 @@ abstract contract SmartInvoiceEscrowCore is
     }
 
     /**
-     * @notice Updates the client's receiver address for withdrawal payments
-     * @param _clientReceiver The new receiver address (cannot be this contract)
-     * @dev allows setting to zero address to fallback to client
-     */
-    function updateClientReceiver(address _clientReceiver) external {
-        if (msg.sender != client) revert NotClient(msg.sender);
-        if (_clientReceiver == clientReceiver) revert NoChange();
-        _updateClientReceiver(_clientReceiver);
-    }
-
-    /**
      * @dev Internal function to update the client receiver address
      * @param _clientReceiver The new client receiver address
      */
@@ -285,18 +541,6 @@ abstract contract SmartInvoiceEscrowCore is
         address oldClientReceiver = clientReceiver;
         clientReceiver = _clientReceiver;
         emit UpdatedClientReceiver(oldClientReceiver, _clientReceiver);
-    }
-
-    /**
-     * @notice Adds milestones with extra details.
-     * @param _milestones The array of new milestones to be added
-     * @param _detailsURI Additional details for the milestones
-     */
-    function addMilestones(
-        uint256[] calldata _milestones,
-        string calldata _detailsURI
-    ) external override {
-        _addMilestones(_milestones, _detailsURI);
     }
 
     /**
@@ -335,48 +579,6 @@ abstract contract SmartInvoiceEscrowCore is
 
         emit MilestonesAdded(msg.sender, address(this), _milestones);
     }
-
-    /**
-     * @notice Returns the amounts associated with the milestones.
-     * @return An array of amounts for each milestone
-     */
-    function getAmounts() public view returns (uint256[] memory) {
-        return amounts;
-    }
-
-    /**
-     * @notice Checks if the escrow contract has been fully funded
-     * @return True if current balance plus released amount equals or exceeds total milestone amount
-     * @dev Useful for determining if the contract has sufficient funds for all milestones
-     */
-    function isFullyFunded() external view returns (bool) {
-        return IERC20(token).balanceOf(address(this)) + released >= total;
-    }
-
-    /**
-     * @notice Checks if there are enough funds remaining to cover unpaid milestones up to `_milestoneId`.
-     * @param _milestoneId The milestone index to check funding for (0-based)
-     * @return True if current balance can cover milestones from `milestone` through `_milestoneId` (inclusive).
-     * @dev If `_milestoneId` is before the current milestone, returns true.
-     * @dev Reverts if milestoneId is out of bounds
-     */
-    function isFunded(uint256 _milestoneId) external view returns (bool) {
-        if (_milestoneId >= amounts.length) revert InvalidMilestone();
-        if (_milestoneId < milestone) return true;
-
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        uint256 required;
-
-        for (uint256 i = milestone; i <= _milestoneId; ) {
-            required += amounts[i];
-            if (required > balance) return false; // short-circuit
-            unchecked {
-                ++i;
-            }
-        }
-        return true;
-    }
-
     /**
      * @dev Internal function to release funds from the contract to the provider
      *      Releases the current milestone amount or remaining balance if last milestone
@@ -390,11 +592,12 @@ abstract contract SmartInvoiceEscrowCore is
 
         uint256 currentMilestone = milestone;
         uint256 balance = IERC20(token).balanceOf(address(this));
+        uint256 amountsLength = amounts.length;
 
-        if (currentMilestone < amounts.length) {
+        if (currentMilestone < amountsLength) {
             uint256 amount = amounts[currentMilestone];
             // For the last milestone, release all remaining balance if it exceeds the milestone amount
-            if (currentMilestone == amounts.length - 1 && amount < balance) {
+            if (currentMilestone == amountsLength - 1 && amount < balance) {
                 amount = balance;
             }
             if (balance < amount) revert InsufficientBalance();
@@ -414,76 +617,6 @@ abstract contract SmartInvoiceEscrowCore is
     }
 
     /**
-     * @notice External function to release funds from the contract to the provider
-     *         Uses the internal `_release` function to perform the actual release
-     */
-    function release() external virtual override nonReentrant {
-        _release();
-    }
-
-    /**
-     * @notice External function to release funds from the contract to the provider up to a certain milestone
-     * @param _milestone The milestone index to release funds to (inclusive)
-     */
-    function release(
-        uint256 _milestone
-    ) external virtual override nonReentrant {
-        if (locked) revert Locked();
-        if (msg.sender != client) revert NotClient(msg.sender);
-        if (block.timestamp > terminationTime) revert Terminated();
-        if (_milestone < milestone) revert InvalidMilestone();
-        if (_milestone >= amounts.length) revert InvalidMilestone();
-
-        _autoVerify();
-
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        uint256 amount;
-        // Calculate total amount to release from current milestone to target milestone
-        for (uint256 i = milestone; i <= _milestone; ) {
-            // For the last milestone, release all remaining balance if it exceeds cumulative amount
-            if (i == amounts.length - 1 && amount + amounts[i] < balance) {
-                emit Release(i, balance - amount);
-                amount = balance;
-            } else {
-                emit Release(i, amounts[i]);
-                amount = amount + amounts[i];
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        if (balance < amount) revert InsufficientBalance();
-
-        _transferToProvider(token, amount);
-        released = released + amount;
-        milestone = _milestone + 1;
-    }
-
-    /**
-     * @notice External function to release tokens from the contract to the provider
-     *         For the main token, uses internal `_release` function; for other tokens, releases entire balance
-     * @param _token The token address to release funds from
-     */
-    function releaseTokens(
-        address _token
-    ) external virtual override nonReentrant {
-        if (_token == token) {
-            _release();
-        } else {
-            if (locked) revert Locked();
-            if (msg.sender != client) revert NotClient(msg.sender);
-            if (block.timestamp > terminationTime) revert Terminated();
-
-            _autoVerify();
-
-            uint256 balance = IERC20(_token).balanceOf(address(this));
-            if (balance == 0) revert BalanceIsZero();
-
-            _transferToProvider(_token, balance);
-        }
-    }
-
-    /**
      * @dev Internal function to withdraw funds from the contract to the client
      *      Can only be called after termination time has passed
      */
@@ -498,40 +631,6 @@ abstract contract SmartInvoiceEscrowCore is
 
         emit Withdraw(balance);
     }
-
-    /**
-     * @notice External function to withdraw funds from the contract to the client
-     *         Uses the internal `_withdraw` function to perform the actual withdrawal
-     */
-    function withdraw() external override nonReentrant {
-        _withdraw();
-    }
-
-    /**
-     * @notice External function to withdraw tokens from the contract to the client
-     *         For the main token, uses internal `_withdraw` function; for other tokens, withdraws entire balance
-     * @param _token The token address to withdraw
-     */
-    function withdrawTokens(address _token) external override nonReentrant {
-        if (_token == token) {
-            _withdraw();
-        } else {
-            if (locked) revert Locked();
-            uint256 balance = IERC20(_token).balanceOf(address(this));
-            if (balance == 0) revert BalanceIsZero();
-
-            _transferToClient(_token, balance);
-        }
-    }
-
-    /**
-     * @notice External function to lock the contract and initiate dispute resolution
-     *         Can only be called by client or provider before termination
-     * @param _disputeURI Off-chain URI for extra evidence/details regarding dispute
-     * @dev it is payable to allow for potential dispute fees in ether
-     */
-    function lock(string calldata _disputeURI) external payable virtual;
-
     /**
      * @dev Internal function to lock the contract and initiate dispute resolution
      *      Can only be called by client or provider before termination
@@ -550,70 +649,6 @@ abstract contract SmartInvoiceEscrowCore is
 
         emit Lock(msg.sender, _disputeURI);
     }
-
-    /**
-     * @notice External function to unlock the contract by the client and provider
-     * @param _data UnlockData struct containing refundBPS and unlockURI
-     * @param _signatures concatenated EIP712 signatures for the hash of the data
-     */
-    function unlock(
-        UnlockData calldata _data,
-        bytes calldata _signatures
-    ) external virtual override nonReentrant {
-        if (!locked) revert NotLocked();
-        if (_data.refundBPS > BPS_DENOMINATOR) revert InvalidRefundBPS();
-
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        if (balance == 0) revert BalanceIsZero();
-
-        // Compute hash from data
-        bytes32 _hash = _hashTypedDataV4(
-            keccak256(
-                abi.encode(
-                    UNLOCK_HASH,
-                    _data.refundBPS,
-                    keccak256(bytes(_data.unlockURI))
-                )
-            )
-        );
-
-        // Check signatures
-        _checkSignature(_hash, _signatures);
-
-        uint256 clientAward = (balance * _data.refundBPS) / BPS_DENOMINATOR;
-        uint256 providerAward = balance - clientAward;
-
-        if (providerAward > 0) {
-            _transferToProvider(token, providerAward);
-        }
-        if (clientAward > 0) {
-            _transferToClient(token, clientAward);
-        }
-
-        // Complete all milestones
-        milestone = amounts.length;
-
-        // Reset locked state
-        locked = false;
-
-        // Set released state
-        released += balance;
-
-        emit Unlock(msg.sender, clientAward, providerAward, _data.unlockURI);
-    }
-
-    /**
-     * @notice Approve a hash on-chain.
-     * @param _hash bytes32 - hash that is to be approved
-     */
-    function approveHash(bytes32 _hash) external {
-        // Allowing anyone to sign, as its hard to add restrictions here.
-        // Store _hash as signed for sender.
-        approvedHashes[msg.sender][_hash] = true;
-
-        emit ApproveHash(_hash, msg.sender);
-    }
-
     /**
      * @dev Check if recovered signatures match with client and provider address.
      * Signatures must be in sequential order. First client then provider.
@@ -702,7 +737,7 @@ abstract contract SmartInvoiceEscrowCore is
         address _recipient
     ) internal virtual {
         if (feeBPS > 0 && treasury != address(0)) {
-            uint256 feeAmount = (_amount * feeBPS) / BPS_DENOMINATOR;
+            uint256 feeAmount = (_amount * feeBPS) / _BPS_DENOMINATOR;
             uint256 netAmount = _amount - feeAmount;
 
             _transferToken(_token, treasury, feeAmount);
@@ -719,31 +754,4 @@ abstract contract SmartInvoiceEscrowCore is
         address _recipient,
         uint256 _amount
     ) internal virtual;
-
-    /**
-     * @notice Receives ETH transfers and wraps them as WETH
-     *         Only accepts ETH if the token is WETH and contract is not locked
-     */
-    // solhint-disable-next-line no-complex-fallback
-    receive() external payable nonReentrant {
-        if (token != address(WRAPPED_ETH)) revert InvalidWrappedETH();
-        WRAPPED_ETH.deposit{value: msg.value}();
-        emit Deposit(msg.sender, msg.value, token);
-    }
-
-    /**
-     * @notice Wraps any ETH balance in the contract to WETH
-     *         Handles edge cases when ETH was sent via self-destruct
-     */
-    function wrapETH() external nonReentrant {
-        uint256 bal = address(this).balance;
-        if (bal == 0) revert BalanceIsZero();
-        WRAPPED_ETH.deposit{value: bal}();
-        emit WrappedStrayETH(bal);
-        if (token == address(WRAPPED_ETH)) {
-            // Log address(this) as depositor since it was obtained via self-destruct
-            emit Deposit(address(this), bal, token);
-        }
-        // Handle release of WETH as per `releaseTokens` or `withdrawTokens` as needed
-    }
 }

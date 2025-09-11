@@ -36,7 +36,7 @@
       "prettier --write"
     ],
     "*.sol": [
-      "prettier --write --plugin=prettier-plugin-solidity",
+      "prettier --write",
       "solhint --fix"
     ]
   },
@@ -56,10 +56,10 @@
     "flatten-factory": "forge flatten contracts/SmartInvoiceFactory.sol > flat/SmartInvoiceFactory.sol",
     "flatten-zap": "forge flatten contracts/SafeSplitsEscrowZap.sol > flat/SafeSplitsEscrowZap.sol",
     "flatten-dao-zap": "forge flatten contracts/SafeSplitsDaoEscrowZap.sol > flat/SafeSplitsDaoEscrowZap.sol",
-    "format": "prettier --ignore-path .prettierignore --write --plugin=prettier-plugin-solidity \"{*,**/*}.{ts,json,md,sol}\"",
+    "format": "prettier --ignore-path .prettierignore --write \"{*,**/*}.{ts,json,md,sol}\"",
     "help": "hardhat help",
     "lint": "pnpm lint:sol && pnpm lint:ts",
-    "lint:sol": "solhint -f table \"contracts/{*,**/*}.sol\"",
+    "lint:sol": "solhint \"contracts/{*,**/*}.sol\"",
     "lint:ts": "eslint --ignore-path .gitignore \"./**/*.ts\"",
     "test:ts": "pnpm test-factory && pnpm test-escrow-all && pnpm test-zap && pnpm test-dao-zap",
     "test:sol": "forge test --fuzz-runs 10000",
