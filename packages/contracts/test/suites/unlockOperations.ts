@@ -65,10 +65,15 @@ export function unlockOperationsTests<const V extends VariantName>(
       );
       expect(balance).to.equal(10n);
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://unlock-details-50-50',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        5000n, // 50% to client
-        'ipfs://unlock-details-50-50',
+        unlockData,
         [client, provider],
       );
 
@@ -90,10 +95,7 @@ export function unlockOperationsTests<const V extends VariantName>(
             providerReceiver.account.address,
           );
 
-      const hash = await lockedInvoice.write.unlock([
-        { refundBPS: 5000n, unlockURI: 'ipfs://unlock-details-50-50' },
-        signatures,
-      ]);
+      const hash = await lockedInvoice.write.unlock([unlockData, signatures]);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
       const clientBalanceAfter = variant.capabilities.push
@@ -173,10 +175,15 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 7000n,
+        unlockURI: 'ipfs://unlock-details-70-30',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        7000n, // 70% to client
-        'ipfs://unlock-details-70-30',
+        unlockData,
         [client, provider],
       );
 
@@ -198,10 +205,7 @@ export function unlockOperationsTests<const V extends VariantName>(
             providerReceiver.account.address,
           );
 
-      await lockedInvoice.write.unlock([
-        { refundBPS: 7000n, unlockURI: 'ipfs://unlock-details-70-30' },
-        signatures,
-      ]);
+      await lockedInvoice.write.unlock([unlockData, signatures]);
 
       const clientBalanceAfter = variant.capabilities.push
         ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
@@ -254,10 +258,15 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 10000n,
+        unlockURI: 'ipfs://full-refund',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        10000n, // 100% to client
-        'ipfs://full-refund',
+        unlockData,
         [client, provider],
       );
 
@@ -279,10 +288,7 @@ export function unlockOperationsTests<const V extends VariantName>(
             providerReceiver.account.address,
           );
 
-      await lockedInvoice.write.unlock([
-        { refundBPS: 10000n, unlockURI: 'ipfs://full-refund' },
-        signatures,
-      ]);
+      await lockedInvoice.write.unlock([unlockData, signatures]);
 
       const clientBalanceAfter = variant.capabilities.push
         ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
@@ -335,10 +341,15 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 0n,
+        unlockURI: 'ipfs://full-provider-award',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        0n, // 0% to client, 100% to provider
-        'ipfs://full-provider-award',
+        unlockData,
         [client, provider],
       );
 
@@ -360,10 +371,7 @@ export function unlockOperationsTests<const V extends VariantName>(
             providerReceiver.account.address,
           );
 
-      await lockedInvoice.write.unlock([
-        { refundBPS: 0n, unlockURI: 'ipfs://full-provider-award' },
-        signatures,
-      ]);
+      await lockedInvoice.write.unlock([unlockData, signatures]);
 
       const clientBalanceAfter = variant.capabilities.push
         ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
@@ -424,18 +432,19 @@ export function unlockOperationsTests<const V extends VariantName>(
         tempAddress!,
       )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
 
-      const signatures = await createUnlockSignatures(
-        tempInvoice,
-        5000n,
-        'ipfs://should-fail',
-        [client, provider],
-      );
+      const unlockData = {
+        milestone: await tempInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://should-fail',
+      };
+
+      const signatures = await createUnlockSignatures(tempInvoice, unlockData, [
+        client,
+        provider,
+      ]);
 
       await expect(
-        tempInvoice.write.unlock([
-          { refundBPS: 5000n, unlockURI: 'ipfs://should-fail' },
-          signatures,
-        ]),
+        tempInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('NotLocked');
     });
 
@@ -470,18 +479,20 @@ export function unlockOperationsTests<const V extends VariantName>(
       // Drain balance to 0
       await setBalanceOf(mockToken.address, lockedInvoice.address, 0n);
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://zero-balance',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        5000n,
-        'ipfs://zero-balance',
+        unlockData,
         [client, provider],
       );
 
       await expect(
-        lockedInvoice.write.unlock([
-          { refundBPS: 5000n, unlockURI: 'ipfs://zero-balance' },
-          signatures,
-        ]),
+        lockedInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('BalanceIsZero');
     });
 
@@ -512,18 +523,20 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 10001n, // Invalid: > 10000 (100%)
+        unlockURI: 'ipfs://invalid-refund',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        10001n, // Invalid: > 10000 (100%)
-        'ipfs://invalid-refund',
+        unlockData,
         [client, provider],
       );
 
       await expect(
-        lockedInvoice.write.unlock([
-          { refundBPS: 10001n, unlockURI: 'ipfs://invalid-refund' },
-          signatures,
-        ]),
+        lockedInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('InvalidRefundBPS');
     });
 
@@ -555,19 +568,21 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://invalid-sig',
+      };
+
       // Use wrong signers (random instead of client/provider)
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        5000n,
-        'ipfs://invalid-sig',
+        unlockData,
         [randomSigner, resolver], // Wrong signers
       );
 
       await expect(
-        lockedInvoice.write.unlock([
-          { refundBPS: 5000n, unlockURI: 'ipfs://invalid-sig' },
-          signatures,
-        ]),
+        lockedInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('InvalidSignatures');
     });
 
@@ -597,19 +612,21 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://single-sig',
+      };
+
       // Only client signature, missing provider
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        5000n,
-        'ipfs://single-sig',
+        unlockData,
         [client], // Missing provider signature
       );
 
       await expect(
-        lockedInvoice.write.unlock([
-          { refundBPS: 5000n, unlockURI: 'ipfs://single-sig' },
-          signatures,
-        ]),
+        lockedInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('ECDSAInvalidSignature');
     });
 
@@ -640,19 +657,21 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        unlockURI: 'ipfs://wrong-order',
+      };
+
       // Provider signature first, client second (wrong order)
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        5000n,
-        'ipfs://wrong-order',
+        unlockData,
         [provider, client], // Wrong order: should be [client, provider]
       );
 
       await expect(
-        lockedInvoice.write.unlock([
-          { refundBPS: 5000n, unlockURI: 'ipfs://wrong-order' },
-          signatures,
-        ]),
+        lockedInvoice.write.unlock([unlockData, signatures]),
       ).to.be.rejectedWith('InvalidSignatures');
     });
 
@@ -684,22 +703,21 @@ export function unlockOperationsTests<const V extends VariantName>(
         'test unlock',
       );
 
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 3000n,
+        unlockURI: 'ipfs://provider-initiated',
+      };
+
       const signatures = await createUnlockSignatures(
         lockedInvoice,
-        3000n, // 30% to client
-        'ipfs://provider-initiated',
+        unlockData,
         [client, provider],
       );
 
-      const hash = await lockedInvoice.write.unlock(
-        [
-          { refundBPS: 3000n, unlockURI: 'ipfs://provider-initiated' },
-          signatures,
-        ],
-        {
-          account: provider.account, // Provider initiates the unlock
-        },
-      );
+      const hash = await lockedInvoice.write.unlock([unlockData, signatures], {
+        account: provider.account, // Provider initiates the unlock
+      });
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
@@ -752,16 +770,13 @@ export function unlockOperationsTests<const V extends VariantName>(
 
       // Get the hash that would be used for unlock
       const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
         unlockURI: 'ipfs://approve-hash-test',
       };
 
       // Compute the EIP712 hash using our utility to get the hash
-      const eip712Hash = await createUnlockHash(
-        lockedInvoice,
-        unlockData.refundBPS,
-        unlockData.unlockURI,
-      );
+      const eip712Hash = await createUnlockHash(lockedInvoice, unlockData);
 
       // Client approves the hash on-chain instead of signing
       await lockedInvoice.write.approveHash([eip712Hash], {
@@ -769,28 +784,11 @@ export function unlockOperationsTests<const V extends VariantName>(
       });
 
       // Provider signs normally
-      const domainData = await lockedInvoice.read.eip712Domain();
-      const [, name, version, chainId, verifyingContract] = domainData;
-      const domain = {
-        name,
-        version,
-        chainId: Number(chainId),
-        verifyingContract,
-      };
-      const types = {
-        UnlockData: [
-          { name: 'refundBPS', type: 'uint256' },
-          { name: 'unlockURI', type: 'string' },
-        ],
-      };
-
-      const providerSignature = await provider.signTypedData({
-        domain,
-        types,
-        primaryType: 'UnlockData',
-        message: unlockData,
-        account: provider.account,
-      });
+      const providerSignature = await createUnlockSignatures(
+        lockedInvoice,
+        unlockData,
+        [provider],
+      );
 
       // Create combined signatures: empty client sig (65 bytes of zeros) + provider sig
       const emptySignature = `0x${'00'.repeat(65)}`; // 65 bytes of zeros for empty signature
@@ -868,16 +866,13 @@ export function unlockOperationsTests<const V extends VariantName>(
       );
 
       const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
         refundBPS: 7000n, // 70% to client
         unlockURI: 'ipfs://provider-approve-hash',
       };
 
       // Get the EIP712 hash
-      const eip712Hash = await createUnlockHash(
-        lockedInvoice,
-        unlockData.refundBPS,
-        unlockData.unlockURI,
-      );
+      const eip712Hash = await createUnlockHash(lockedInvoice, unlockData);
 
       // Provider approves the hash on-chain
       await lockedInvoice.write.approveHash([eip712Hash], {
@@ -885,28 +880,11 @@ export function unlockOperationsTests<const V extends VariantName>(
       });
 
       // Client signs normally
-      const domainData = await lockedInvoice.read.eip712Domain();
-      const [, name, version, chainId, verifyingContract] = domainData;
-      const domain = {
-        name,
-        version,
-        chainId: Number(chainId),
-        verifyingContract,
-      };
-      const types = {
-        UnlockData: [
-          { name: 'refundBPS', type: 'uint256' },
-          { name: 'unlockURI', type: 'string' },
-        ],
-      };
-
-      const clientSignature = await client.signTypedData({
-        domain,
-        types,
-        primaryType: 'UnlockData',
-        message: unlockData,
-        account: client.account,
-      });
+      const clientSignature = await createUnlockSignatures(
+        lockedInvoice,
+        unlockData,
+        [client],
+      );
 
       // Create combined signatures: client sig + empty provider sig
       const emptySignature = `0x${'00'.repeat(65)}`; // 65 bytes of zeros for empty signature
@@ -984,16 +962,13 @@ export function unlockOperationsTests<const V extends VariantName>(
       );
 
       const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
         refundBPS: 9000n, // 90% to client
         unlockURI: 'ipfs://both-approve-hash',
       };
 
       // Get the EIP712 hash
-      const eip712Hash = await createUnlockHash(
-        lockedInvoice,
-        unlockData.refundBPS,
-        unlockData.unlockURI,
-      );
+      const eip712Hash = await createUnlockHash(lockedInvoice, unlockData);
 
       // Both parties approve the hash on-chain
       await lockedInvoice.write.approveHash([eip712Hash], {
@@ -1069,16 +1044,13 @@ export function unlockOperationsTests<const V extends VariantName>(
       );
 
       const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
         unlockURI: 'ipfs://approve-hash-event-test',
       };
 
       // Get the EIP712 hash
-      const eip712Hash = await createUnlockHash(
-        lockedInvoice,
-        unlockData.refundBPS,
-        unlockData.unlockURI,
-      );
+      const eip712Hash = await createUnlockHash(lockedInvoice, unlockData);
 
       // Approve the hash and check for event
       const hash = await lockedInvoice.write.approveHash([eip712Hash], {

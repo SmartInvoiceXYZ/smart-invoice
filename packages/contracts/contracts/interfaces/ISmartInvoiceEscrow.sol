@@ -22,6 +22,7 @@ interface ISmartInvoiceEscrow {
 
     /// @notice Struct for unlock data
     struct UnlockData {
+        uint256 milestone;
         uint256 refundBPS;
         string unlockURI;
     }
