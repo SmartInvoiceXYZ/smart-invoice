@@ -40,6 +40,12 @@ export async function multisig(
   return signature;
 }
 
+export type UnlockData = {
+  milestone: bigint;
+  refundBPS: bigint;
+  unlockURI: string;
+};
+
 /**
  * Helper function to create unlock signatures for testing
  * @param contract The escrow contract instance
@@ -52,15 +58,9 @@ export async function createUnlockSignatures(
   contract:
     | ContractTypesMap['SmartInvoiceEscrowCore']
     | ContractTypesMap['SmartInvoiceEscrowPush'],
-  refundBPS: bigint,
-  unlockURI: string,
+  unlockData: UnlockData,
   signers: WalletClient[],
 ): Promise<Hex> {
-  const unlockData = {
-    refundBPS,
-    unlockURI,
-  };
-
   // Get EIP712 domain info from contract
   const domainData = await contract.read.eip712Domain();
   // EIP712Domain returns: fields, name, version, chainId, verifyingContract, salt, extensions
@@ -75,6 +75,7 @@ export async function createUnlockSignatures(
 
   const types = {
     UnlockData: [
+      { name: 'milestone', type: 'uint256' },
       { name: 'refundBPS', type: 'uint256' },
       { name: 'unlockURI', type: 'string' },
     ],
@@ -94,14 +95,8 @@ export async function createUnlockHash(
   contract:
     | ContractTypesMap['SmartInvoiceEscrowCore']
     | ContractTypesMap['SmartInvoiceEscrowPush'],
-  refundBPS: bigint,
-  unlockURI: string,
+  unlockData: UnlockData,
 ): Promise<Hex> {
-  const unlockData = {
-    refundBPS,
-    unlockURI,
-  };
-
   // Get EIP712 domain info from contract
   const domainData = await contract.read.eip712Domain();
   // EIP712Domain returns: fields, name, version, chainId, verifyingContract, salt, extensions
@@ -116,6 +111,7 @@ export async function createUnlockHash(
 
   const types = {
     UnlockData: [
+      { name: 'milestone', type: 'uint256' },
       { name: 'refundBPS', type: 'uint256' },
       { name: 'unlockURI', type: 'string' },
     ],
