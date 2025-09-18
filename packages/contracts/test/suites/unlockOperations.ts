@@ -1,6 +1,13 @@
 import { expect } from 'chai';
 import { ContractTypesMap } from 'hardhat/types';
-import { getAddress, Hex, parseAbi, parseEventLogs, zeroAddress } from 'viem';
+import {
+  getAddress,
+  Hex,
+  parseAbi,
+  parseEventLogs,
+  zeroAddress,
+  zeroHash,
+} from 'viem';
 
 import {
   awaitInvoiceAddress,
@@ -68,6 +75,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://unlock-details-50-50',
       };
 
@@ -178,6 +186,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 7000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://unlock-details-70-30',
       };
 
@@ -261,6 +270,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 10000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://full-refund',
       };
 
@@ -344,6 +354,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 0n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://full-provider-award',
       };
 
@@ -435,6 +446,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await tempInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://should-fail',
       };
 
@@ -482,6 +494,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://zero-balance',
       };
 
@@ -526,6 +539,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 10001n, // Invalid: > 10000 (100%)
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://invalid-refund',
       };
 
@@ -571,6 +585,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://invalid-sig',
       };
 
@@ -615,6 +630,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://single-sig',
       };
 
@@ -660,6 +676,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://wrong-order',
       };
 
@@ -706,6 +723,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 3000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://provider-initiated',
       };
 
@@ -772,6 +790,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://approve-hash-test',
       };
 
@@ -868,6 +887,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 7000n, // 70% to client
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://provider-approve-hash',
       };
 
@@ -964,6 +984,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 9000n, // 90% to client
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://both-approve-hash',
       };
 
@@ -1046,6 +1067,7 @@ export function unlockOperationsTests<const V extends VariantName>(
       const unlockData = {
         milestone: await lockedInvoice.read.milestone(),
         refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
         unlockURI: 'ipfs://approve-hash-event-test',
       };
 
@@ -1073,6 +1095,286 @@ export function unlockOperationsTests<const V extends VariantName>(
       expect(approveHashEvent?.args.owner).to.equal(
         getAddress(client.account.address),
       );
+    });
+
+    it('Should revert unlock with expired deadline', async function () {
+      const {
+        client,
+        provider,
+        mockToken,
+        resolverData,
+        clientReceiver,
+        providerReceiver,
+      } = ctx();
+
+      const lockedInvoice = await createVariantLockedEscrow(
+        ctx(),
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(await currentTimestamp()) + 1000n,
+          requireVerification: false,
+          providerReceiver: getAddress(providerReceiver.account.address),
+          clientReceiver: getAddress(clientReceiver.account.address),
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+        'test unlock',
+      );
+
+      const unlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 5000n,
+        deadline: BigInt(await currentTimestamp()) - 100n, // Past deadline
+        unlockURI: 'ipfs://expired-deadline',
+      };
+
+      const signatures = await createUnlockSignatures(
+        lockedInvoice,
+        unlockData,
+        [client, provider],
+      );
+
+      await expect(
+        lockedInvoice.write.unlock([unlockData, signatures]),
+      ).to.be.rejectedWith('DeadlineExpired()');
+    });
+
+    it('Should support multiple lock-unlock cycles with milestone additions', async function () {
+      const {
+        factory,
+        client,
+        provider,
+        mockToken,
+        variant,
+        clientReceiver,
+        providerReceiver,
+        mockSplitsWarehouse,
+        mockArbitrator,
+        publicClient,
+        resolverData,
+      } = ctx();
+
+      // Create initial invoice with 2 milestones using deployEscrow directly
+      const initialAmounts = [50n, 50n];
+      const currentTime = await currentTimestamp();
+      const tx = await deployEscrow(
+        variant,
+        factory,
+        getAddress(provider.account.address),
+        initialAmounts,
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(currentTime + 2000),
+          requireVerification: false,
+          providerReceiver: getAddress(providerReceiver.account.address),
+          clientReceiver: getAddress(clientReceiver.account.address),
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+      );
+
+      const tempAddress = await awaitInvoiceAddress(tx);
+      const lockedInvoice = (await getEscrowAt(
+        variant.contract,
+        tempAddress!,
+      )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
+
+      // Fund the contract
+      await setBalanceOf(mockToken.address, lockedInvoice.address, 100n);
+
+      // Lock the contract to start the test
+      let initialLockValue = 0n;
+      if (variant.capabilities.arbitrable) {
+        const extraData = (zeroHash + zeroHash.slice(2)) as Hex;
+        initialLockValue = await mockArbitrator.read.arbitrationCost([
+          extraData,
+        ]);
+      }
+
+      await lockedInvoice.write.lock(['test multi unlock'], {
+        value: initialLockValue,
+        account: client.account,
+      });
+
+      // Verify initial setup
+      expect(await lockedInvoice.read.locked()).to.equal(true);
+      expect(await lockedInvoice.read.milestone()).to.equal(0n);
+
+      const clientBalanceStart = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
+      const providerBalanceStart = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
+
+      // FIRST UNLOCK: 60% to client, 40% to provider
+      const firstUnlockData = {
+        milestone: await lockedInvoice.read.milestone(),
+        refundBPS: 6000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
+        unlockURI: 'ipfs://first-unlock',
+      };
+
+      const firstSignatures = await createUnlockSignatures(
+        lockedInvoice,
+        firstUnlockData,
+        [client, provider],
+      );
+
+      await lockedInvoice.write.unlock([firstUnlockData, firstSignatures]);
+
+      // Verify first unlock results
+      expect(await lockedInvoice.read.locked()).to.equal(false);
+      expect(await lockedInvoice.read.milestone()).to.equal(2n); // All initial milestones completed
+      expect(await lockedInvoice.read.released()).to.equal(100n);
+
+      const clientBalanceAfterFirst = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
+      const providerBalanceAfterFirst = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
+
+      expect(clientBalanceAfterFirst).to.equal(clientBalanceStart + 60n);
+      expect(providerBalanceAfterFirst).to.equal(providerBalanceStart + 40n);
+
+      // ADD NEW MILESTONES
+      const newMilestones = [75n, 25n];
+      await lockedInvoice.write.addMilestones(
+        [newMilestones, 'ipfs://new-milestones'],
+        {
+          account: client.account,
+        },
+      );
+
+      // Fund the contract for new milestones
+      await setBalanceOf(mockToken.address, lockedInvoice.address, 100n);
+
+      // Verify milestone state after addition
+      expect(await lockedInvoice.read.milestone()).to.equal(2n); // Still at 2 (0-indexed)
+      const amounts = await lockedInvoice.read.getAmounts();
+      expect(amounts.length).to.equal(4); // Now has 4 total milestones
+      expect(amounts[2]).to.equal(75n);
+      expect(amounts[3]).to.equal(25n);
+
+      // SECOND LOCK
+      let lockValue = 0n;
+      if (variant.capabilities.arbitrable) {
+        const extraData = (zeroHash + zeroHash.slice(2)) as Hex;
+        lockValue = await mockArbitrator.read.arbitrationCost([extraData]);
+      }
+
+      await lockedInvoice.write.lock(['ipfs://second-dispute'], {
+        value: lockValue,
+        account: provider.account,
+      });
+
+      expect(await lockedInvoice.read.locked()).to.equal(true);
+
+      // SECOND UNLOCK: 20% to client, 80% to provider
+      const secondUnlockData = {
+        milestone: await lockedInvoice.read.milestone(), // Should be 2
+        refundBPS: 2000n,
+        deadline: BigInt(await currentTimestamp()) + 1000n,
+        unlockURI: 'ipfs://second-unlock',
+      };
+
+      const secondSignatures = await createUnlockSignatures(
+        lockedInvoice,
+        secondUnlockData,
+        [client, provider],
+      );
+
+      const secondUnlockTx = await lockedInvoice.write.unlock(
+        [secondUnlockData, secondSignatures],
+        {
+          account: provider.account,
+        },
+      );
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: secondUnlockTx,
+      });
+
+      // Verify second unlock results
+      expect(await lockedInvoice.read.locked()).to.equal(false);
+      expect(await lockedInvoice.read.milestone()).to.equal(4n); // All 4 milestones completed
+      expect(await lockedInvoice.read.released()).to.equal(200n); // 100 + 100
+
+      const clientBalanceFinal = variant.capabilities.push
+        ? await getBalanceOf(mockToken.address, clientReceiver.account.address)
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            clientReceiver.account.address,
+          );
+      const providerBalanceFinal = variant.capabilities.push
+        ? await getBalanceOf(
+            mockToken.address,
+            providerReceiver.account.address,
+          )
+        : await getSplitsBalanceOf(
+            mockSplitsWarehouse,
+            mockToken.address,
+            providerReceiver.account.address,
+          );
+
+      // Verify total balance changes: First unlock (60+40) + Second unlock (20+80)
+      expect(clientBalanceFinal).to.equal(clientBalanceStart + 60n + 20n); // 80 total
+      expect(providerBalanceFinal).to.equal(providerBalanceStart + 40n + 80n); // 120 total
+
+      // Verify events were emitted correctly for second unlock
+      const unlockEvents = parseEventLogs({
+        abi: parseAbi([
+          'event Unlock(address indexed sender, uint256 clientAward, uint256 providerAward, string unlockURI)',
+        ]),
+        logs: receipt.logs,
+      });
+
+      expect(unlockEvents).to.have.length(1);
+      const unlockEvent = unlockEvents[0];
+      expect(unlockEvent.eventName).to.equal('Unlock');
+      expect(unlockEvent.args.sender).to.equal(
+        getAddress(provider.account.address),
+      );
+      expect(unlockEvent.args.clientAward).to.equal(20n);
+      expect(unlockEvent.args.providerAward).to.equal(80n);
+      expect(unlockEvent.args.unlockURI).to.equal('ipfs://second-unlock');
+
+      // Verify contract cannot be locked again (all milestones completed)
+      await setBalanceOf(mockToken.address, lockedInvoice.address, 50n);
+      await expect(
+        lockedInvoice.write.lock(['ipfs://should-fail'], {
+          account: client.account,
+        }),
+      ).to.be.rejectedWith('NoMilestones');
     });
   });
 }

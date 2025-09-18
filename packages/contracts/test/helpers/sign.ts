@@ -43,6 +43,7 @@ export async function multisig(
 export type UnlockData = {
   milestone: bigint;
   refundBPS: bigint;
+  deadline: bigint;
   unlockURI: string;
 };
 
@@ -77,6 +78,7 @@ export async function createUnlockSignatures(
     UnlockData: [
       { name: 'milestone', type: 'uint256' },
       { name: 'refundBPS', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
       { name: 'unlockURI', type: 'string' },
     ],
   };
@@ -113,6 +115,7 @@ export async function createUnlockHash(
     UnlockData: [
       { name: 'milestone', type: 'uint256' },
       { name: 'refundBPS', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
       { name: 'unlockURI', type: 'string' },
     ],
   };

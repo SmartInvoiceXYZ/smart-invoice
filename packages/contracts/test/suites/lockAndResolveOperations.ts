@@ -349,5 +349,135 @@ export function lockAndResolveOperationsTests<const V extends VariantName>(
         expect(resolverAfterBalance).to.be.equal(resolverBeforeBalance + 5n);
       }
     });
+
+    it('Should revert lock when all milestones have been completed', async function () {
+      const {
+        factory,
+        client,
+        provider,
+        mockToken,
+        amounts,
+        variant,
+        resolverData,
+      } = ctx();
+
+      const currentTime = await currentTimestamp();
+      const tx = await deployEscrow(
+        variant,
+        factory,
+        getAddress(provider.account.address),
+        amounts,
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(currentTime + 3600),
+          requireVerification: false,
+          providerReceiver: zeroAddress,
+          clientReceiver: zeroAddress,
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+      );
+      const tempAddress = await awaitInvoiceAddress(tx);
+
+      const tempInvoice = (await getEscrowAt(
+        variant.contract,
+        tempAddress!,
+      )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
+
+      // Fund the contract
+      await setBalanceOf(mockToken.address, tempInvoice.address, 100n);
+
+      // Release all milestones
+      await tempInvoice.write.release([BigInt(amounts.length - 1)], {
+        account: client.account,
+      });
+
+      // Verify all milestones are completed
+      expect(await tempInvoice.read.milestone()).to.equal(
+        BigInt(amounts.length),
+      );
+
+      // Ensure there's still balance (for edge case testing)
+      await setBalanceOf(mockToken.address, tempInvoice.address, 10n);
+
+      // Try to lock - should fail with NoMilestones error
+      await expect(
+        tempInvoice.write.lock(['ipfs://dispute-after-completion'], {
+          account: client.account,
+        }),
+      ).to.be.rejectedWith('NoMilestones');
+    });
+
+    it('Should allow lock when milestones remain incomplete', async function () {
+      const {
+        factory,
+        client,
+        provider,
+        mockToken,
+        amounts,
+        variant,
+        resolverData,
+        mockArbitrator,
+      } = ctx();
+
+      const currentTime = await currentTimestamp();
+      const tx = await deployEscrow(
+        variant,
+        factory,
+        getAddress(provider.account.address),
+        amounts,
+        {
+          client: client.account.address,
+          resolverData,
+          token: mockToken.address,
+          terminationTime: BigInt(currentTime + 3600),
+          requireVerification: false,
+          providerReceiver: zeroAddress,
+          clientReceiver: zeroAddress,
+          feeBPS: 0n,
+          treasury: zeroAddress,
+          details: '',
+        },
+      );
+      const tempAddress = await awaitInvoiceAddress(tx);
+
+      const tempInvoice = (await getEscrowAt(
+        variant.contract,
+        tempAddress!,
+      )) as unknown as ContractTypesMap['SmartInvoiceEscrowCore'];
+
+      // Fund the contract
+      await setBalanceOf(mockToken.address, tempInvoice.address, 100n);
+
+      // Release only the first milestone (leaving others incomplete)
+      await tempInvoice.write.release([0n], {
+        account: client.account,
+      });
+
+      // Verify milestone is 1 (not equal to amounts.length)
+      expect(await tempInvoice.read.milestone()).to.equal(1n);
+      expect(await tempInvoice.read.milestone()).to.be.lessThan(
+        BigInt(amounts.length),
+      );
+
+      // Calculate lock value for arbitrable contracts
+      let lockValue = 0n;
+      if (variant.capabilities.arbitrable) {
+        const extraData = (zeroHash + zeroHash.slice(2)) as Hex;
+        lockValue = await mockArbitrator.read.arbitrationCost([extraData]);
+      }
+
+      // Lock should succeed since milestones remain
+      await tempInvoice.write.lock(['ipfs://dispute-with-milestones'], {
+        value: lockValue,
+        account: client.account,
+      });
+
+      // Verify contract is locked
+      expect(await tempInvoice.read.locked()).to.equal(true);
+    });
   });
 }

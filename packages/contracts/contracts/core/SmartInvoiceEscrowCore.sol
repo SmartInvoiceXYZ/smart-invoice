@@ -42,7 +42,7 @@ abstract contract SmartInvoiceEscrowCore is
     /// @notice Hash of unlock data struct for eip712 signature
     bytes32 public constant UNLOCK_HASH =
         keccak256(
-            "UnlockData(uint256 milestone,uint256 refundBPS,string unlockURI)"
+            "UnlockData(uint256 milestone,uint256 refundBPS,uint256 deadline,string unlockURI)"
         );
 
     /// @notice Wrapped ETH contract for handling ETH deposits
@@ -327,6 +327,7 @@ abstract contract SmartInvoiceEscrowCore is
         if (!locked) revert NotLocked();
         if (_data.refundBPS > _BPS_DENOMINATOR) revert InvalidRefundBPS();
         if (_data.milestone != milestone) revert InvalidMilestone();
+        if (block.timestamp > _data.deadline) revert DeadlineExpired();
 
         uint256 balance = IERC20(token).balanceOf(address(this));
         if (balance == 0) revert BalanceIsZero();
@@ -338,6 +339,7 @@ abstract contract SmartInvoiceEscrowCore is
                     UNLOCK_HASH,
                     _data.milestone,
                     _data.refundBPS,
+                    _data.deadline,
                     keccak256(bytes(_data.unlockURI))
                 )
             )
@@ -644,6 +646,7 @@ abstract contract SmartInvoiceEscrowCore is
     function _lock(string calldata _disputeURI) internal virtual {
         if (locked) revert Locked();
         if (block.timestamp > terminationTime) revert Terminated();
+        if (milestone == amounts.length) revert NoMilestones();
         if (msg.sender != client && msg.sender != provider)
             revert NotParty(msg.sender);
 

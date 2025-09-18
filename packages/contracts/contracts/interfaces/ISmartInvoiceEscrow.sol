@@ -24,6 +24,7 @@ interface ISmartInvoiceEscrow {
     struct UnlockData {
         uint256 milestone;
         uint256 refundBPS;
+        uint256 deadline;
         string unlockURI;
     }
 
@@ -176,6 +177,7 @@ interface ISmartInvoiceEscrow {
     error AlreadyVerified();
     error NoChange();
     error InvalidSignatures();
+    error DeadlineExpired();
 
     /**
      * @notice Initializes the escrow contract with provider, milestone amounts, and configuration
