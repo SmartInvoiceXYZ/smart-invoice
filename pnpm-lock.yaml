@@ -291,6 +291,9 @@ importers:
 
   packages/contracts:
     dependencies:
+      '@kleros/dispute-resolver-interface-contract':
+        specifier: ^8.0.0
+        version: 8.0.0
       '@kleros/erc-792':
         specifier: ^8.0.0
         version: 8.0.0
@@ -1614,6 +1617,10 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@kleros/dispute-resolver-interface-contract@8.0.0':
+    resolution: {integrity: sha512-595kIpb1riFy8cyx0Kf27kqSyCRph+dUK2MdLJ7sG81UdlcJV+dCdImI4V36AYV/A7z24h2sHz9aMeNPHdXMhw==}
+    engines: {node: '>=0.12'}
 
   '@kleros/erc-792@8.0.0':
     resolution: {integrity: sha512-tl3HnOGbUIRRGIxenb3QJ/eduLTf+I1WY9YmyBrUvRCpgQva/xDDGovvj2n95XP/QjPfYXrkkXTW/vNgT3++Pg==}
@@ -10078,6 +10085,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  '@kleros/dispute-resolver-interface-contract@8.0.0':
+    dependencies:
+      '@kleros/erc-792': 8.0.0
 
   '@kleros/erc-792@8.0.0': {}
 

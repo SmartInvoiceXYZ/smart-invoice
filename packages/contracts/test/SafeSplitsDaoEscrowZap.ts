@@ -13,25 +13,23 @@ import {
   GetContractReturnType,
   Hex,
   hexToBigInt,
-  keccak256,
-  parseAbiParameters,
   parseEventLogs,
-  toBytes,
   toHex,
   zeroAddress,
 } from 'viem';
 
-import pullSplitAbi from './contracts/PullSplit.json';
-import safeAbi from './contracts/Safe.json';
-import splitsWarehouseAbi from './contracts/SplitsWarehouse.json';
-import wethAbi from './contracts/WETH9.json';
-import { SEPOLIA_CONTRACTS } from './utils';
+import {
+  ESCROW_PUSH_TYPE,
+  pullSplitAbi,
+  safeAbi,
+  SEPOLIA_CONTRACTS,
+  splitsWarehouseAbi,
+  wethAbi,
+} from './helpers';
 
 // ---------------------------------------------------------------------------
 // Constants / shared scaffolding
 // ---------------------------------------------------------------------------
-
-const invoiceType = keccak256(toBytes('escrow-v3'));
 
 const DAO_CONFIG = { spoilsBPS: 1_000 }; // 10%
 
@@ -92,24 +90,51 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
     );
 
   const encodeEscrowData = (z: typeof BASE_ZAP_DATA, salt: number) => {
-    const escrowStructAbi = parseAbiParameters([
-      '(address client, address clientReceiver, bool requireVerification, uint8 resolverType, address resolver, address token, uint256 terminationTime, bytes32 saltNonce, uint256 feeBPS, address treasury, string details)',
-    ]);
-    return encodeAbiParameters(escrowStructAbi, [
-      {
-        client: z.client,
-        clientReceiver: z.clientReceiver,
-        requireVerification: false,
-        resolverType: z.arbitration,
-        resolver: z.resolver,
-        token: z.token,
-        terminationTime: BigInt(z.escrowDeadline),
-        saltNonce: toHex(BigInt(salt), { size: 32 }),
-        feeBPS: 0n,
-        treasury: zeroAddress,
-        details: z.details,
-      },
-    ]);
+    const resolverData = encodeAbiParameters(
+      [{ type: 'address' }, { type: 'uint256' }],
+      [z.resolver, 500n],
+    );
+
+    const encodedEscrowData = encodeAbiParameters(
+      [
+        {
+          type: 'tuple',
+          name: 'escrowData',
+          components: [
+            { name: 'client', type: 'address' },
+            { name: 'clientReceiver', type: 'address' },
+            { name: 'requireVerification', type: 'bool' },
+            { name: 'escrowType', type: 'bytes32' },
+            { name: 'resolverData', type: 'bytes' },
+            { name: 'token', type: 'address' },
+            { name: 'terminationTime', type: 'uint256' },
+            { name: 'saltNonce', type: 'bytes32' },
+            { name: 'feeBPS', type: 'uint256' },
+            { name: 'treasury', type: 'address' },
+            { name: 'details', type: 'string' },
+          ],
+        },
+      ],
+      [
+        {
+          client: z.client,
+          clientReceiver: z.clientReceiver,
+          requireVerification: false,
+          escrowType: ESCROW_PUSH_TYPE,
+          resolverData,
+          token: z.token,
+          terminationTime: BigInt(z.escrowDeadline),
+          saltNonce: toHex(BigInt(salt), {
+            size: 32,
+          }),
+          feeBPS: BigInt(0),
+          treasury: zeroAddress,
+          details: z.details,
+        },
+      ],
+    );
+
+    return encodedEscrowData;
   };
 
   const parseCreatedEvent = (
@@ -170,12 +195,12 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
     escrowFactory = await viem.deployContract('SmartInvoiceFactory', [
       SEPOLIA_CONTRACTS.wrappedETH,
     ]);
-    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrow', [
+    const invoiceImpl = await viem.deployContract('SmartInvoiceEscrowPush', [
       SEPOLIA_CONTRACTS.wrappedETH,
       escrowFactory.address,
     ]);
     await escrowFactory.write.addImplementation([
-      invoiceType,
+      ESCROW_PUSH_TYPE,
       invoiceImpl.address,
     ]);
   });
@@ -359,7 +384,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       typeof splitsWarehouseAbi,
       { public: PublicClient; wallet: WalletClient }
     >;
-    let escrow: ContractTypesMap['SmartInvoiceEscrow'];
+    let escrow: ContractTypesMap['SmartInvoiceEscrowPush'];
 
     before(async function () {
       // role wiring once for the context
@@ -415,7 +440,7 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
         client: { public: publicClient, wallet: deployer },
       });
 
-      escrow = await viem.getContractAt('SmartInvoiceEscrow', args.escrow);
+      escrow = await viem.getContractAt('SmartInvoiceEscrowPush', args.escrow);
       teamSplit = args.providerSplit;
       daoSplit = args.daoSplit;
 
@@ -458,7 +483,6 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
       expect(await escrow.read.clientReceiver()).to.equal(
         ZAP_DATA.clientReceiver,
       );
-      expect(await escrow.read.resolverType()).to.equal(ZAP_DATA.arbitration);
       expect(await escrow.read.resolver()).to.equal(ZAP_DATA.resolver);
       expect(await escrow.read.token()).to.equal(ZAP_DATA.token);
       expect(await escrow.read.terminationTime()).to.equal(
@@ -1009,7 +1033,10 @@ describe('SafeSplitsDaoEscrowZap (forked Sepolia)', function () {
 
       expect(args.daoSplit).to.equal(zeroAddress);
 
-      const inv = await viem.getContractAt('SmartInvoiceEscrow', args.escrow);
+      const inv = await viem.getContractAt(
+        'SmartInvoiceEscrowPush',
+        args.escrow,
+      );
       expect(await inv.read.provider()).to.equal(args.providerSafe);
       expect(await inv.read.providerReceiver()).to.equal(args.providerSplit);
     });

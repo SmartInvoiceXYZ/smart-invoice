@@ -21,6 +21,8 @@ const {
   ARBISCAN_API_KEY,
   BASESCAN_API_KEY,
   ZORAENERGY_API_KEY,
+  FORK,
+  FORK_BLOCK_NUMBER,
 } = process.env;
 
 let accounts: string[] | { mnemonic: string } | undefined;
@@ -35,11 +37,15 @@ const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.30',
     settings: {
+      evmVersion: 'cancun',
       optimizer: {
         enabled: true,
         runs: 200,
       },
     },
+  },
+  paths: {
+    sources: './contracts',
   },
   networks: {
     gnosis: {
@@ -110,10 +116,16 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
       forking: {
-        enabled: process.env.FORK === 'true',
+        enabled: FORK === 'true',
         url: ALCHEMY_PROJECT_ID
           ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_PROJECT_ID}`
           : `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
+        blockNumber:
+          FORK === 'true' &&
+          !!FORK_BLOCK_NUMBER &&
+          !Number.isNaN(parseInt(FORK_BLOCK_NUMBER, 10))
+            ? parseInt(FORK_BLOCK_NUMBER, 10)
+            : undefined,
       },
     },
     anvil: {

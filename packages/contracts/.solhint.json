@@ -4,7 +4,11 @@
     "compiler-version": ["error", "^0.8.0"],
     "func-visibility": ["warn", { "ignoreConstructors": true }],
     "prettier/prettier": "error",
-    "style-guide-casing": "off"
+    "style-guide-casing": "off",
+    "private-vars-leading-underscore": "error",
+    "ordering": "error",
+    "visibility-modifier-order": "error",
+    "comprehensive-interface": "error"
   },
   "plugins": ["prettier"]
 }

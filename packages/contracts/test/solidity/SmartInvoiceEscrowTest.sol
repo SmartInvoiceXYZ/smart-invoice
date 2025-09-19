@@ -5,9 +5,11 @@ pragma solidity 0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {
-    SmartInvoiceEscrow,
     ISmartInvoiceEscrow
-} from "contracts/SmartInvoiceEscrow.sol";
+} from "contracts/interfaces/ISmartInvoiceEscrow.sol";
+import {
+    SmartInvoiceEscrowPush
+} from "contracts/variants/base/SmartInvoiceEscrowPush.sol";
 import {
     SmartInvoiceFactory,
     ISmartInvoiceFactory
@@ -16,8 +18,8 @@ import {MockToken} from "contracts/mocks/MockToken.sol";
 import {MockWETH} from "contracts/mocks/MockWETH.sol";
 import {MockArbitrator} from "contracts/mocks/MockArbitrator.sol";
 
-contract SmartInvoiceEscrowFuzzTest is Test {
-    SmartInvoiceEscrow public implementation;
+contract SmartInvoiceEscrowPushFuzzTest is Test {
+    SmartInvoiceEscrowPush public implementation;
     SmartInvoiceFactory public factory;
     MockToken public token;
     MockWETH public wrappedETH;
@@ -30,8 +32,6 @@ contract SmartInvoiceEscrowFuzzTest is Test {
     address public clientReceiver = makeAddr("clientReceiver");
     address public treasury = makeAddr("treasury");
 
-    uint8 public constant INDIVIDUAL_RESOLVER = 0;
-    uint8 public constant ARBITRATOR_RESOLVER = 1;
     bytes32 public constant INVOICE_TYPE = keccak256("escrow-v3");
 
     function setUp() public {
@@ -40,7 +40,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         arbitrator = new MockArbitrator(10);
 
         factory = new SmartInvoiceFactory(address(wrappedETH));
-        implementation = new SmartInvoiceEscrow(
+        implementation = new SmartInvoiceEscrowPush(
             address(wrappedETH),
             address(factory)
         );
@@ -52,13 +52,14 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts,
         uint256 terminationTime,
         uint256 feeBPS,
-        bool useReceivers
-    ) internal returns (SmartInvoiceEscrow) {
+        bool useReceivers,
+        uint256 salt
+    ) internal returns (SmartInvoiceEscrowPush) {
+        bytes memory resolverData = abi.encode(resolver, 1000);
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
-                resolverType: INDIVIDUAL_RESOLVER,
-                resolver: resolver,
+                resolverData: resolverData,
                 token: address(token),
                 terminationTime: terminationTime,
                 requireVerification: false,
@@ -71,14 +72,16 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         bytes memory data = abi.encode(initData);
 
-        address invoiceAddress = factory.create(
+        address invoiceAddress = factory.createDeterministic(
             provider,
             amounts,
             data,
-            INVOICE_TYPE
+            INVOICE_TYPE,
+            0,
+            bytes32(salt)
         );
 
-        return SmartInvoiceEscrow(payable(invoiceAddress));
+        return SmartInvoiceEscrowPush(payable(invoiceAddress));
     }
 
     /// @dev Fuzz test invoice creation with various milestone configurations
@@ -104,11 +107,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         uint256 terminationTime = block.timestamp + terminationOffset;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             terminationTime,
             feeBPS,
-            feeBPS > 0
+            feeBPS > 0,
+            baseAmount
         );
 
         // Verify basic properties
@@ -154,11 +158,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             totalAmount += amounts[i];
         }
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         releaseUpTo = uint8(bound(releaseUpTo, 0, milestoneCount - 1));
@@ -204,11 +209,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         uint256 terminationTime = block.timestamp + terminationOffset;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             terminationTime,
             0,
-            false
+            false,
+            amount
         );
 
         // Fund the contract
@@ -237,11 +243,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             feeBPS,
-            true
+            true,
+            amount
         );
 
         token.mint(address(invoice), amount);
@@ -283,21 +290,23 @@ contract SmartInvoiceEscrowFuzzTest is Test {
     /// @dev Fuzz test dispute resolution with various award distributions
     function testFuzz_DisputeResolution(
         uint256 balance,
-        uint256 clientAwardPct,
+        uint256 clientAwardBPS,
         uint256 resolutionRateBPS
     ) public {
         balance = bound(balance, 1e18, 1e25);
-        clientAwardPct = bound(clientAwardPct, 0, 100);
+        clientAwardBPS = bound(clientAwardBPS, 0, 10000);
         resolutionRateBPS = bound(resolutionRateBPS, 1, 1000);
+        vm.assume(resolutionRateBPS + clientAwardBPS <= 10000);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = balance;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            balance
         );
 
         // Mock resolution rate
@@ -311,7 +320,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         );
 
         // Create new invoice with mocked resolution rate
-        invoice = _createInvoice(amounts, block.timestamp + 30 days, 0, false);
+        invoice = _createInvoice(
+            amounts,
+            block.timestamp + 30 days,
+            0,
+            false,
+            balance + 1
+        );
 
         token.mint(address(invoice), balance);
 
@@ -323,16 +338,15 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         // Calculate awards
         uint256 resolutionFee = (balance * resolutionRateBPS) / 10000;
-        uint256 remainingBalance = balance - resolutionFee;
-        uint256 clientAward = (remainingBalance * clientAwardPct) / 100;
-        uint256 providerAward = remainingBalance - clientAward;
+        uint256 clientAward = (balance * clientAwardBPS) / 10000;
+        uint256 providerAward = balance - clientAward - resolutionFee;
 
         uint256 clientBalanceBefore = token.balanceOf(client);
         uint256 providerBalanceBefore = token.balanceOf(provider);
         uint256 resolverBalanceBefore = token.balanceOf(resolver);
 
         vm.prank(resolver);
-        invoice.resolve(clientAward, providerAward, "Fuzz resolution");
+        invoice.resolve(clientAwardBPS, "Fuzz resolution");
 
         assertEq(invoice.locked(), false);
         assertEq(token.balanceOf(client), clientBalanceBefore + clientAward);
@@ -370,11 +384,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             initialTotal += amounts[i];
         }
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         uint256[] memory newMilestones = new uint256[](additionalCount);
@@ -389,7 +404,7 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         if (addDetails) {
             invoice.addMilestones(newMilestones, "Additional milestones");
         } else {
-            invoice.addMilestones(newMilestones);
+            invoice.addMilestones(newMilestones, "");
         }
 
         assertEq(invoice.total(), initialTotal + additionalTotal);
@@ -406,24 +421,36 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         address newClientReceiver
     ) public {
         // Ensure addresses are not zero or the contract itself
-        vm.assume(newClient != address(0) && newClient != address(0x1));
-        vm.assume(newProvider != address(0) && newProvider != address(0x1));
         vm.assume(
-            newProviderReceiver != address(0) &&
-                newProviderReceiver != address(0x1)
+            newClient != address(0) &&
+                newClient != address(0x1) &&
+                newClient != client
         );
         vm.assume(
-            newClientReceiver != address(0) && newClientReceiver != address(0x1)
+            newProvider != address(0) &&
+                newProvider != address(0x1) &&
+                newProvider != provider
+        );
+        vm.assume(
+            newProviderReceiver != address(0) &&
+                newProviderReceiver != address(0x1) &&
+                newProviderReceiver != providerReceiver
+        );
+        vm.assume(
+            newClientReceiver != address(0) &&
+                newClientReceiver != address(0x1) &&
+                newClientReceiver != clientReceiver
         );
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1e18;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            true
+            true,
+            1 ether
         );
 
         // Update client
@@ -454,12 +481,13 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = ethAmount;
 
+        bytes memory resolverData = abi.encode(resolver, 500);
+
         // Create invoice with wrapped ETH
         ISmartInvoiceEscrow.InitData memory initData = ISmartInvoiceEscrow
             .InitData({
                 client: client,
-                resolverType: INDIVIDUAL_RESOLVER,
-                resolver: resolver,
+                resolverData: resolverData,
                 token: address(wrappedETH),
                 terminationTime: block.timestamp + 30 days,
                 requireVerification: false,
@@ -472,13 +500,15 @@ contract SmartInvoiceEscrowFuzzTest is Test {
 
         bytes memory data = abi.encode(initData);
 
-        address invoiceAddress = factory.create(
+        address invoiceAddress = factory.createDeterministic(
             provider,
             amounts,
             data,
-            INVOICE_TYPE
+            INVOICE_TYPE,
+            0,
+            bytes32(ethAmount)
         );
-        SmartInvoiceEscrow invoice = SmartInvoiceEscrow(
+        SmartInvoiceEscrowPush invoice = SmartInvoiceEscrowPush(
             payable(invoiceAddress)
         );
 
@@ -521,11 +551,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
             amounts[1] = milestoneAmount;
         }
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            milestoneAmount
         );
 
         token.mint(address(invoice), actualBalance);
@@ -563,11 +594,12 @@ contract SmartInvoiceEscrowFuzzTest is Test {
         amounts[1] = baseAmount;
         amounts[2] = baseAmount;
 
-        SmartInvoiceEscrow invoice = _createInvoice(
+        SmartInvoiceEscrowPush invoice = _createInvoice(
             amounts,
             block.timestamp + 30 days,
             0,
-            false
+            false,
+            baseAmount
         );
 
         token.mint(address(invoice), baseAmount * 3);
