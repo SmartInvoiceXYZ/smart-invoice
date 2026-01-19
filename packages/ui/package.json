@@ -23,7 +23,7 @@
     "blockies-ts": "^1.0.0",
     "framer-motion": "^12.15.0",
     "lodash": "^4.17.21",
-    "next": "^15.3.2",
+    "next": "15.3.8",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-datepicker": "^8.4.0",
