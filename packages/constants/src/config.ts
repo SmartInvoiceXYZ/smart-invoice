@@ -151,11 +151,11 @@ export const getGraphStudioSubgraphUrl = (
   return `https://api.studio.thegraph.com/query/${GRAPH_STUDIO_ID}/${subgraph}/${version}`;
 };
 const chains: readonly [Chain, ...Chain[]] = [
-  mainnet,
+  // mainnet,
+  // polygon,
+  // optimism,
   gnosis,
-  polygon,
   arbitrum,
-  optimism,
   sepolia,
   base,
 ];
@@ -259,7 +259,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [arbitrum.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-arbitrum'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-arbitrum', 'v0.0.8'),
     SUBGRAPH_HEALTH_THRESHOLD: 120,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -303,7 +303,7 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-sepolia'),
+    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-sepolia', 'v0.0.7'),
     SUBGRAPH_HEALTH_THRESHOLD: 10,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
@@ -322,28 +322,6 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
       },
     },
   },
-  /*
-  //  [holesky.id]: {
-  //    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-holesky'),
-  //    SUBGRAPH_HEALTH_THRESHOLD: 10,
-  //    WRAPPED_NATIVE_TOKEN: toLower(
-  //      '0x94373a4919B3240D86eA41593D5eBa789FEF3848',
-  //    ) as Address,
-  //    INVOICE_FACTORY: toLower(
-  //      '0xE0986c3bdAB537fBeb7c94D0C5EF961d6d8bf63a',
-  //    ) as Address,
-  //    RESOLVERS: {
-  //      kleros: {
-  //        address: SMART_INVOICE_ARBITRATION_SAFE,
-  //        ...KLEROS_DATA,
-  //      },
-  //      'smart-invoice': {
-  //        address: SMART_INVOICE_ARBITRATION_SAFE,
-  //        ...SMART_INVOICE_ARBITRATION_DATA,
-  //      },
-  //    },
-  //  },
-  */
 };
 
 export const IPFS_ENDPOINT = 'https://gateway.pinata.cloud';
