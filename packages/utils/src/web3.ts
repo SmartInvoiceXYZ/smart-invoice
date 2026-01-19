@@ -21,7 +21,6 @@ import {
   arbitrum,
   base,
   gnosis,
-  holesky,
   mainnet,
   optimism,
   polygon,
@@ -40,7 +39,6 @@ const infuraNetworkName: Partial<Record<SupportedChainId, string>> = {
   [optimism.id]: 'optimism-mainnet',
   [sepolia.id]: 'sepolia',
   [base.id]: 'base-mainnet',
-  [holesky.id]: 'holesky',
   // gnosis is not supported by infura
 };
 
@@ -51,13 +49,11 @@ const alchemyNetworkName: Partial<Record<SupportedChainId, string>> = {
   [optimism.id]: 'opt-mainnet',
   [sepolia.id]: 'eth-sepolia',
   [base.id]: 'base-mainnet',
-  [holesky.id]: 'eth-holesky',
   // gnosis is not supported by alchemy
 };
 
 const chainLabelToId: Record<string, SupportedChainId> = {
   mainnet: mainnet.id,
-  holesky: holesky.id,
   sepolia: sepolia.id,
   polygon: polygon.id,
   base: base.id,
@@ -73,7 +69,6 @@ const chainIdToLabel: Record<SupportedChainId, string> = {
   [optimism.id]: 'optimism',
   [sepolia.id]: 'sepolia',
   [base.id]: 'base',
-  [holesky.id]: 'holesky',
   [gnosis.id]: 'gnosis',
 };
 
@@ -84,7 +79,6 @@ const subgraphNameToChain: Record<string, SupportedChain> = {
   optimism,
   sepolia,
   base,
-  holesky,
   gnosis,
 };
 
