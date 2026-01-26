@@ -61,7 +61,7 @@ export function Layout({ children }: PropsWithChildren) {
         align="center"
         h="100%"
       >
-        <SubgraphHealthAlert chainId={queryChainId ?? chainId} />
+        <SubgraphHealthAlert chainId={queryChainId} />
         {isValid ? children : <ConnectWeb3 />}
       </Flex>
       <Analytics />
