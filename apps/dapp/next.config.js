@@ -34,10 +34,9 @@ const nextConfig = {
     '@smartinvoicexyz/types',
     '@smartinvoicexyz/ui',
     '@smartinvoicexyz/utils',
+    '@farcaster/frame-sdk',
+    '@farcaster/frame-wagmi-connector',
   ],
-  env: {
-    BASE_URL: baseUrl,
-  },
   experimental: {
     optimizePackageImports: [
       '@rainbow-me/rainbowkit',
@@ -45,8 +44,21 @@ const nextConfig = {
       '@chakra-ui/react',
     ],
   },
-  webpack: config => {
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/farcaster.json',
+        destination: '/api/farcaster',
+      },
+    ];
+  },
+  webpack: (config, { webpack }) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SI_BASE_URL__: JSON.stringify(baseUrl),
+      }),
+    );
     return config;
   },
 };

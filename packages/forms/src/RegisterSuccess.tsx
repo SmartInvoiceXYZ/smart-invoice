@@ -8,6 +8,7 @@ import {
   Text,
   useClipboard,
 } from '@chakra-ui/react';
+import { BASE_URL } from '@smartinvoicexyz/constants';
 import { ChakraNextLink, CheckCircleIcon, CopyIcon } from '@smartinvoicexyz/ui';
 import { chainLabelFromId, getTxLink } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
@@ -26,9 +27,10 @@ export function RegisterSuccess({
   const chainLabel = chainLabelFromId(chainId);
 
   const url = `/invoice/${chainLabel}/${invoiceId}`;
+  const fullUrl = `${BASE_URL}${url}`;
 
   const { onCopy: copyId } = useClipboard(_.toLower(invoiceId));
-  const { onCopy: copyLink } = useClipboard(`${process.env.BASE_URL}${url}`);
+  const { onCopy: copyLink } = useClipboard(fullUrl);
 
   return (
     <Stack w="100%" gap="1rem" align="center" justify="center" px="1rem">
@@ -113,7 +115,7 @@ export function RegisterSuccess({
               overflow="clip"
               w="100%"
             >
-              {_.truncate(`${window.location.origin}${url}`, {
+              {_.truncate(fullUrl, {
                 length: 60,
                 omission: '...',
               })}

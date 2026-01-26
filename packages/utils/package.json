@@ -4,6 +4,7 @@
   "version": "0.1.28",
   "author": "",
   "dependencies": {
+    "@farcaster/frame-wagmi-connector": "^0.0.39",
     "@rainbow-me/rainbowkit": "^2.2.5",
     "@smartinvoicexyz/constants": "workspace:*",
     "@smartinvoicexyz/graphql": "workspace:*",

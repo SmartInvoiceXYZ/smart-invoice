@@ -1,4 +1,5 @@
 import { Button } from '@chakra-ui/react';
+import { BASE_URL } from '@smartinvoicexyz/constants';
 import { InvoiceDetails } from '@smartinvoicexyz/types';
 import { chainLabelFromId, getChainName } from '@smartinvoicexyz/utils';
 import { RWebShare } from 'react-web-share';
@@ -13,7 +14,7 @@ export function ShareButton({ invoice }: { invoice: Partial<InvoiceDetails> }) {
     ? chainLabelFromId(invoice.chainId)
     : 'unknown';
 
-  const url = `${process.env.BASE_URL}/invoice/${chainLabel}/${invoiceId}`;
+  const url = `${BASE_URL}/invoice/${chainLabel}/${invoiceId}`;
 
   const text = `Smart Invoice for ${title} on ${getChainName(chainId)}`;
 
