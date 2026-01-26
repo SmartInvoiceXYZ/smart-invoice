@@ -220,7 +220,9 @@ export const wagmiConfig = createConfig({
   connectors,
 });
 
-export const parseChainId = (chainIdOrLabel: string | string[] | undefined) => {
+export const parseChainId = (
+  chainIdOrLabel: string | string[] | undefined,
+): number | undefined => {
   if (!chainIdOrLabel) return undefined;
   // eslint-disable-next-line no-param-reassign
   chainIdOrLabel = chainIdOrLabel.toString();

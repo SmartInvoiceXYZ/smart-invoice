@@ -24,6 +24,11 @@ export const SubgraphHealthAlert: React.FC<{ chainId?: number }> = ({
     return null;
   }
 
+  // Only show alert if chainId is specified (on invoice page)
+  if (!chainId) {
+    return null;
+  }
+
   const { erroredChainIds, notSyncedChainIds } = _.reduce(
     _.entries(health),
     (acc, [c, h]) => {
