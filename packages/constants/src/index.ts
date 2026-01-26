@@ -1,4 +1,5 @@
 export * from './abi';
+export * from './baseUrl';
 export * from './config';
 export * from './content';
 export * from './form';

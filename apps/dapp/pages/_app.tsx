@@ -24,6 +24,7 @@ import { AppProps } from 'next/app';
 import React, { useState } from 'react';
 import { WagmiProvider } from 'wagmi';
 
+import { FrameProvider } from '../contexts/FrameContext';
 import { OverlayContextProvider } from '../contexts/OverlayContext';
 
 function App({ Component, pageProps }: AppProps) {
@@ -54,11 +55,13 @@ function App({ Component, pageProps }: AppProps) {
               <CSSReset />
               <Global styles={globalStyles} />
               <ErrorBoundary>
-                <OverlayContextProvider>
-                  <Layout>
-                    <Component {...pageProps} />
-                  </Layout>
-                </OverlayContextProvider>
+                <FrameProvider>
+                  <OverlayContextProvider>
+                    <Layout>
+                      <Component {...pageProps} />
+                    </Layout>
+                  </OverlayContextProvider>
+                </FrameProvider>
               </ErrorBoundary>
             </ChakraProvider>
             <ReactQueryDevtools initialIsOpen={false} />

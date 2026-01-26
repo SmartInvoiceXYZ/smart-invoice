@@ -1,4 +1,5 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { farcasterFrame as miniAppConnector } from '@farcaster/frame-wagmi-connector';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
   coinbaseWallet,
   injectedWallet,
@@ -9,6 +10,7 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import {
+  BASE_URL,
   isSupportedChainId,
   SUPPORTED_CHAINS,
   SupportedChain,
@@ -16,7 +18,7 @@ import {
 } from '@smartinvoicexyz/constants';
 import _ from 'lodash';
 import { Chain, createPublicClient, http, PublicClient, Transport } from 'viem';
-import { createConfig, fallback } from 'wagmi';
+import { createConfig, CreateConnectorFn, fallback } from 'wagmi';
 import {
   arbitrum,
   base,
@@ -28,6 +30,9 @@ import {
 } from 'wagmi/chains';
 
 const APP_NAME = 'Smart Invoice';
+const APP_DESCRIPTION =
+  'Smart Invoice is an easy-to-use tool that provides web3 freelancers with cryptocurrency invoicing, escrow, and arbitration.';
+const APP_ICON = `${BASE_URL}/favicon-32x32.png`;
 const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '';
 const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID || '';
 const ALCHEMY_ID = process.env.NEXT_PUBLIC_ALCHEMY_ID || '';
@@ -171,13 +176,15 @@ export const serverConfig = createConfig({
   transports,
 });
 
-export const wagmiConfig = getDefaultConfig({
-  ssr: true,
-  appName: APP_NAME,
-  projectId: PROJECT_ID,
-  chains: SUPPORTED_CHAINS,
-  transports,
-  wallets: [
+const metadata = {
+  name: APP_NAME,
+  description: APP_DESCRIPTION,
+  url: BASE_URL,
+  icons: [APP_ICON],
+};
+
+const rainbowConnectors = connectorsForWallets(
+  [
     {
       groupName: 'Recommended',
       wallets: [
@@ -191,6 +198,26 @@ export const wagmiConfig = getDefaultConfig({
       ],
     },
   ],
+  {
+    projectId: PROJECT_ID,
+    appName: APP_NAME,
+    appDescription: APP_DESCRIPTION,
+    appUrl: BASE_URL,
+    appIcon: APP_ICON,
+    walletConnectParameters: { metadata },
+  },
+);
+
+const connectors: CreateConnectorFn[] = [
+  ...rainbowConnectors,
+  miniAppConnector as unknown as CreateConnectorFn,
+];
+
+export const wagmiConfig = createConfig({
+  ssr: true,
+  chains: SUPPORTED_CHAINS,
+  transports,
+  connectors,
 });
 
 export const parseChainId = (chainIdOrLabel: string | string[] | undefined) => {
