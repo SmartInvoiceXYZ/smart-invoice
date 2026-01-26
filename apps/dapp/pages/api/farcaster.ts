@@ -6,6 +6,11 @@ import { withCors } from '../../utils/cors';
 const ACCOUNT_ASSOCIATION = {
   // app.smartinvoice.xyz
   // by dan13ram.eth
+  header:
+    'eyJmaWQiOjM5NzE0MywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDZGRGRBRjE5RjNERjJiMWNCYTE2YTM1MkIzZTJiQzkwQTVEMWU2OTEifQ',
+  payload: 'eyJkb21haW4iOiJhcHAuc21hcnRpbnZvaWNlLnh5eiJ9',
+  signature:
+    'qj8QVaaVKfCM4Rlkupvvu9W8wkDlJ6ATra1nB9t1SOBJVsMmWATrEsaknXczIR6yJV5qfmE/8NwIhpzA/bJBoRs=',
 };
 
 function handler(_req: NextApiRequest, res: NextApiResponse) {
