@@ -10,7 +10,7 @@ import { useSubgraphHealth } from '@smartinvoicexyz/hooks';
 import { getChainName } from '@smartinvoicexyz/utils';
 import _ from 'lodash';
 
-export const SubgraphHealthAlert: React.FC<{ chainId?: number }> = ({
+export const SubgraphHealthAlert: React.FC<{ chainId: number }> = ({
   chainId,
 }) => {
   const { health, error, isLoading } = useSubgraphHealth();
@@ -21,11 +21,6 @@ export const SubgraphHealthAlert: React.FC<{ chainId?: number }> = ({
   }
 
   if (isLoading) {
-    return null;
-  }
-
-  // Only show alert if chainId is specified (on invoice page)
-  if (!chainId) {
     return null;
   }
 

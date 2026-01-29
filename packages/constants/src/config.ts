@@ -135,11 +135,18 @@ export const KLEROS_COURTS: Array<KlerosCourtData> = [
   },
 ];
 
-const GOLDSKY_PROJECT_ID = 'project_cm39qflfrtz7e01xibgnuczby';
+const GOLDSKY_PROJECT_ID_ONE = 'project_cm39qflfrtz7e01xibgnuczby';
+const GOLDSKY_PROJECT_ID_TWO = 'project_cmkz48w8alffb011y73b2ffjt';
+
 const GRAPH_STUDIO_ID = '78711';
 
-export const getGoldskySubgraphUrl = (subgraph: string) =>
-  `https://api.goldsky.com/api/public/${GOLDSKY_PROJECT_ID}/subgraphs/${subgraph}/latest/gn`;
+export const getGoldskySubgraphUrl = (
+  projectId: string,
+  subgraph: string,
+  version = 'latest',
+) =>
+  `https://api.goldsky.com/api/public/${projectId}/subgraphs/${subgraph}/${version}/gn`;
+
 export const getGraphStudioSubgraphUrl = (
   subgraph: string,
   version = 'latest',
@@ -153,7 +160,7 @@ export const getGraphStudioSubgraphUrl = (
 const chains: readonly [Chain, ...Chain[]] = [
   // mainnet,
   // polygon,
-  // optimism,
+  optimism,
   gnosis,
   arbitrum,
   sepolia,
@@ -191,7 +198,11 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [gnosis.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-gnosis'),
+    SUBGRAPH: getGoldskySubgraphUrl(
+      GOLDSKY_PROJECT_ID_ONE,
+      'smart-invoice-gnosis',
+      '0.1.0',
+    ),
     SUBGRAPH_HEALTH_THRESHOLD: 20,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
@@ -215,7 +226,11 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [optimism.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-optimism'),
+    SUBGRAPH: getGoldskySubgraphUrl(
+      GOLDSKY_PROJECT_ID_TWO,
+      'smart-invoice-optimism',
+      '0.1.0',
+    ),
     SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
@@ -259,7 +274,11 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [arbitrum.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-arbitrum', 'v0.0.8'),
+    SUBGRAPH: getGoldskySubgraphUrl(
+      GOLDSKY_PROJECT_ID_TWO,
+      'smart-invoice-arbitrum',
+      '0.1.1',
+    ),
     SUBGRAPH_HEALTH_THRESHOLD: 120,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -283,7 +302,11 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [base.id]: {
-    SUBGRAPH: getGoldskySubgraphUrl('smart-invoice-base'),
+    SUBGRAPH: getGoldskySubgraphUrl(
+      GOLDSKY_PROJECT_ID_ONE,
+      'smart-invoice-base',
+      '0.1.0',
+    ),
     SUBGRAPH_HEALTH_THRESHOLD: 40,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0x4200000000000000000000000000000000000006',
@@ -303,7 +326,11 @@ export const NETWORK_CONFIG: Record<SupportedChainId, NetworkConfig> = {
     },
   },
   [sepolia.id]: {
-    SUBGRAPH: getGraphStudioSubgraphUrl('smart-invoice-sepolia', 'v0.0.7'),
+    SUBGRAPH: getGoldskySubgraphUrl(
+      GOLDSKY_PROJECT_ID_ONE,
+      'smart-invoice-sepolia',
+      '0.1.0',
+    ),
     SUBGRAPH_HEALTH_THRESHOLD: 10,
     WRAPPED_NATIVE_TOKEN: toLower(
       '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',

@@ -1,5 +1,5 @@
 import { BASE_URL } from '@smartinvoicexyz/constants';
-import Document, { Head, Html } from 'next/document';
+import Document, { Head, Html, Main, NextScript } from 'next/document';
 
 const m = {
   title: 'Smart Invoice',
@@ -29,6 +29,8 @@ export default class MyDocument extends Document {
           <meta name="fc:miniapp" content={`${JSON.stringify(m)}`} />
           <meta name="base:app_id" content="6977498c88e3bac59cf3d980" />
         </Head>
+        <Main />
+        <NextScript />
       </Html>
     );
   }
