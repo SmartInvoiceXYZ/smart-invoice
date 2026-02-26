@@ -34,6 +34,7 @@ type FormConfirmationProps = {
   canSubmit: boolean;
   isLoading: boolean;
   type: ValueOf<typeof INVOICE_TYPES>;
+  errorMessage?: string;
 };
 
 export function FormConfirmation({
@@ -42,6 +43,7 @@ export function FormConfirmation({
   canSubmit,
   isLoading,
   type,
+  errorMessage,
 }: FormConfirmationProps) {
   const chainId = useChainId();
   const { data: tokens } = useFetchTokens();
@@ -239,6 +241,17 @@ export function FormConfirmation({
             )}
           </Flex>
         </>
+      )}
+
+      {errorMessage && (
+        <Text
+          color="red.500"
+          textAlign="center"
+          mt="1rem"
+          wordBreak="break-word"
+        >
+          {errorMessage}
+        </Text>
       )}
 
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
