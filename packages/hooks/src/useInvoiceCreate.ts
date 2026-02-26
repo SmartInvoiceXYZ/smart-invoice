@@ -243,6 +243,17 @@ export const useInvoiceCreate = ({
     },
   });
 
+  // eslint-disable-next-line no-console
+  console.debug('useInvoiceCreate', {
+    escrowData,
+    provider,
+    amounts,
+    milestones,
+    isEmptyMilestones: _.isEmpty(milestones),
+    enabled,
+    simulateData: data,
+  });
+
   const {
     writeContractAsync,
     error: writeError,
