@@ -172,9 +172,24 @@ export const useInvoiceCreate = ({
 
   const detailHash = details ?? detailsPin;
 
+  const wrappedNativeToken = getWrappedNativeToken(chainId);
+  const invoiceFactory = getInvoiceFactoryAddress(chainId);
+
+  // eslint-disable-next-line no-console
+  console.log('useInvoiceCreate', {
+    client,
+    resolverAddress,
+    token,
+    safetyValveDate,
+    wrappedNativeToken,
+    detailHash,
+    invoiceFactory,
+    provider,
+    providerReceiver,
+    clientReceiver,
+  });
+
   const escrowData = useMemo(() => {
-    const wrappedNativeToken = getWrappedNativeToken(chainId);
-    const invoiceFactory = getInvoiceFactoryAddress(chainId);
     if (
       !client ||
       !resolverAddress ||
@@ -219,7 +234,16 @@ export const useInvoiceCreate = ({
         clientReceiverFinal as Address,
       ],
     );
-  }, [client, resolverType, token, detailHash, safetyValveDate, provider]);
+  }, [
+    client,
+    resolverType,
+    token,
+    detailHash,
+    safetyValveDate,
+    provider,
+    wrappedNativeToken,
+    invoiceFactory,
+  ]);
 
   const amounts = _.map(milestones, m =>
     parseUnits(
