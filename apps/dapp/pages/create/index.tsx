@@ -65,19 +65,19 @@ export function CreateInvoiceEscrow() {
     onTxSuccess,
   });
 
-  const errorMessage = () => {
+  const errorMessage = (): string | undefined => {
     if (prepareError) {
       if (prepareError?.message) {
-        return prepareError.message;
+        return prepareError.message.toString();
       }
-      return prepareError;
+      return prepareError.toString();
     }
 
     if (writeError) {
       if (writeError?.message) {
-        return writeError.message;
+        return writeError.message.toString();
       }
-      return writeError;
+      return writeError.toString();
     }
 
     return undefined;
