@@ -59,11 +59,29 @@ export function CreateInvoiceEscrow() {
     nextStepHandler();
   };
 
-  const { writeAsync, isLoading } = useInvoiceCreate({
+  const { writeAsync, isLoading, prepareError, writeError } = useInvoiceCreate({
     invoiceForm,
     toast,
     onTxSuccess,
   });
+
+  const errorMessage = () => {
+    if (prepareError) {
+      if (prepareError?.message) {
+        return prepareError.message;
+      }
+      return prepareError;
+    }
+
+    if (writeError) {
+      if (writeError?.message) {
+        return writeError.message;
+      }
+      return writeError;
+    }
+
+    return undefined;
+  };
 
   const handleSubmit = async () => {
     const hash = await writeAsync?.();
@@ -142,6 +160,7 @@ export function CreateInvoiceEscrow() {
                 invoiceForm={invoiceForm}
                 handleSubmit={handleSubmit}
                 canSubmit={!!writeAsync}
+                errorMessage={errorMessage()}
                 isLoading={isLoading}
                 type={INVOICE_TYPES.Escrow}
               />
