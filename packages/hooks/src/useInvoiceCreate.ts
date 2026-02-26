@@ -175,20 +175,6 @@ export const useInvoiceCreate = ({
   const wrappedNativeToken = getWrappedNativeToken(chainId);
   const invoiceFactory = getInvoiceFactoryAddress(chainId);
 
-  // eslint-disable-next-line no-console
-  console.log('useInvoiceCreate', {
-    client,
-    resolverAddress,
-    token,
-    safetyValveDate,
-    wrappedNativeToken,
-    detailHash,
-    invoiceFactory,
-    provider,
-    providerReceiver,
-    clientReceiver,
-  });
-
   const escrowData = useMemo(() => {
     if (
       !client ||
@@ -265,17 +251,6 @@ export const useInvoiceCreate = ({
       enabled:
         escrowData !== '0x' && !!provider && !_.isEmpty(milestones) && enabled,
     },
-  });
-
-  // eslint-disable-next-line no-console
-  console.debug('useInvoiceCreate', {
-    escrowData,
-    provider,
-    amounts,
-    milestones,
-    isEmptyMilestones: _.isEmpty(milestones),
-    enabled,
-    simulateData: data,
   });
 
   const {

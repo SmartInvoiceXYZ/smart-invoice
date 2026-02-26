@@ -243,17 +243,6 @@ export function FormConfirmation({
         </>
       )}
 
-      {errorMessage && (
-        <Text
-          color="red.500"
-          textAlign="center"
-          mt="1rem"
-          wordBreak="break-word"
-        >
-          {errorMessage}
-        </Text>
-      )}
-
       <Grid templateColumns="1fr" gap="1rem" w="100%" marginTop="20px">
         <Button
           onClick={handleSubmit}
@@ -267,6 +256,17 @@ export function FormConfirmation({
           Next: {ESCROW_STEPS[4].next}
         </Button>
       </Grid>
+
+      {errorMessage && (
+        <Text
+          color="red.500"
+          textAlign="center"
+          mt="1rem"
+          wordBreak="break-word"
+        >
+          {errorMessage}
+        </Text>
+      )}
     </Stack>
   );
 }
