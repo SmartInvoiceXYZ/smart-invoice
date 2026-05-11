@@ -21,7 +21,7 @@
     "solhint-plugin-prettier": "^0.1.0",
     "solidity-coverage": "^0.8.16",
     "typescript": "^5.8.3",
-    "viem": "^2.30.2"
+    "viem": "^2.48.11"
   },
   "license": "MIT",
   "lint-staged": {
