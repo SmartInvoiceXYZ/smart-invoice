@@ -12,7 +12,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-zeus": "^6.0.0",
     "lodash": "^4.17.21",
-    "viem": "^2.30.2"
+    "viem": "^2.48.11"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.17",

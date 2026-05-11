@@ -4,7 +4,7 @@
   "version": "0.1.28",
   "author": "",
   "dependencies": {
-    "viem": "^2.30.2"
+    "viem": "^2.48.11"
   },
   "devDependencies": {
     "@types/node": "^22.15.23"
